@@ -1,0 +1,52 @@
+{
+  "name": "seu-projeto/lukrato",
+  "description": "Sistema de gestão financeira pessoal",
+  "type": "project",
+  "require": {
+    "php": "^8.0",
+    "cocur/slugify": "4.6.0",
+    "dompdf/dompdf": "^2.0",
+    "illuminate/database": "^11.0",
+    "illuminate/events": "^11.0",
+    "laravel/serializable-closure": "^2.0",
+    "monolog/monolog": "^3.9",
+    "nesbot/carbon": "^3.10.1",
+    "phpmailer/phpmailer": "^6.9",
+    "predis/predis": "^1.1",
+    "tecnickcom/tcpdf": "*",
+    "vlucas/phpdotenv": "*",
+    "wixel/gump": "^2.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "squizlabs/php_codesniffer": "^3.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "Application\\": "Application/",
+      "App\\": "Application/"
+    },
+    "files": [
+      "Application/Lib/helpers_global.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "cs": "vendor/bin/phpcs --standard=PSR12 application/",
+    "cs-fix": "vendor/bin/phpcbf --standard=PSR12 application/",
+    "install-pdf": [
+      "composer require tecnickcom/tcpdf",
+      "composer require dompdf/dompdf"
+    ]
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  }
+}

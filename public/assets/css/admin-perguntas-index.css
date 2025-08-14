@@ -1,0 +1,84 @@
+:root {
+  /* Cor primária principal, um tom de verde-azulado escuro */
+  --primary-color: #0d7377;
+
+  /* Cor branca, para textos sobre fundos escuros e fundos de elementos */
+  --white-color: #ffffff;
+
+  /* Sombra sutil derivada da cor primária */
+  --primary-shadow-color: rgba(13, 115, 119, 0.15);
+  --primary-shadow-color-hover: rgba(13, 115, 119, 0.25);
+
+  /* Cor de borda sutil, derivada da cor primária */
+  --primary-border-color: rgba(13, 115, 119, 0.2);
+
+  /* Cor para o efeito 'glow' em formulários, derivada da cor primária */
+  --primary-glow-color: rgba(13, 115, 119, 0.25);
+
+  /* Cor para listras de tabela, derivada da cor primária */
+  --primary-stripe-color: rgba(13, 115, 119, 0.05);
+
+  /* Um tom mais escuro da cor primária para gradientes e efeitos :hover */
+  --primary-darker-color: #084c4f;
+}
+
+.navbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-low);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Agrupando todos os botões para usar a cor primária */
+.btn-primary,
+.btn-success,
+.btn-warning,
+.btn-danger {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--white-color);
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Efeito hover para os botões */
+.btn-primary:hover,
+.btn-success:hover,
+.btn-warning:hover,
+.btn-danger:hover {
+  background-color: var(--primary-darker-color);
+  border-color: var(--primary-darker-color);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--primary-stripe-color);
+}
+
+.form-pergunta-model .btn {
+  padding: 2px 25px;
+  margin-left: 5px;
+  margin-bottom: 0;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem var(--primary-glow-color);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.fade-in {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

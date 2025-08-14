@@ -1,0 +1,26 @@
+<IfModule mod_access_compat.c>
+    Require all granted
+</IfModule>
+
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /lukrato/public/
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Segurança extra
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Proteção contra acesso indevido
+<FilesMatch "\.(env|json|lock|gitignore|htaccess|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

@@ -1,0 +1,366 @@
+/* Estilos Gerais (com aprimoramentos) */
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* APRIMORADO: Gradiente animado para um fundo mais dinâmico */
+  background: linear-gradient(45deg, #e8f5f3, #d4f0f0, #e8f5f3, #cdecec);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  overflow: hidden;
+  /* Evita barras de rolagem da animação */
+}
+
+/* NOVO: Animação do gradiente de fundo */
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.login-wrapper {
+  width: 100%;
+  max-width: 920px;
+  display: flex;
+  background: #fff;
+  /* APRIMORADO: Sombra mais pronunciada e transição suave */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  /* NOVO: Animação de entrada */
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* NOVO: Animação de entrada para o container */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.login-left {
+  flex: 1;
+  background: #f7fdfd;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 30px;
+}
+
+.login-left img {
+  max-width: 260px;
+  margin-bottom: 20px;
+}
+
+.login-left h2 {
+  color: #12453E;
+  margin-bottom: 10px;
+}
+
+.login-left p {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  max-width: 300px;
+  /* Limita a largura para melhor leitura */
+}
+
+.login-right {
+  flex: 1;
+  padding: 40px 30px;
+}
+
+.login-right .logo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-right .logo h1 {
+  font-size: 28px;
+  color: #12453E;
+}
+
+.form-floating-group {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.form-floating-group input.form-control {
+  width: 100%;
+  padding: 16px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: transparent;
+  font-size: 15px;
+  outline: none;
+  /* APRIMORADO: Transição suave para todos os efeitos */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* APRIMORADO: Efeito de foco mais visível */
+.form-floating-group input.form-control:focus {
+  border-color: #12453E;
+  box-shadow: 0 0 0 3px rgba(18, 69, 62, 0.1);
+}
+
+.form-floating-group label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  background-color: white;
+  color: #999;
+  font-size: 15px;
+  padding: 0 4px;
+  pointer-events: none;
+  /* APRIMORADO: Transição mais fluida */
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.form-floating-group input:focus+label,
+.form-floating-group input.filled+label {
+  top: 0;
+  transform: translateY(-50%);
+  /* Removido o translateY extra para um alinhamento mais limpo */
+  font-size: 12px;
+  color: #12453E;
+  background: #fff;
+  z-index: 1;
+}
+
+/* APRIMORADO: Feedback visual de erro */
+.form-control.error {
+  border-color: #e74c3c;
+  animation: shake 0.4s;
+  /* NOVO: Animação de tremor para erros */
+}
+
+.form-control.error:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+}
+
+/* NOVO: Animação de tremor */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
+}
+
+.field-error {
+  color: #e74c3c;
+  font-size: 12px;
+  padding-top: 4px;
+  min-height: 18px;
+  /* Evita que o layout "pule" */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.field-error.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  cursor: pointer;
+  /* APRIMORADO: Transição suave para o ícone */
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.input-icon:hover {
+  color: #12453E;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #12453E;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* APRIMORADO: Transição suave */
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+  background-color: #0e3731;
+  transform: translateY(-2px);
+  /* Efeito de elevação sutil */
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* NOVO: Estilos para o estado de carregamento do botão */
+.btn .btn-text {
+  transition: opacity 0.2s ease;
+}
+
+.btn.loading .btn-text {
+  opacity: 0;
+}
+
+.loading-spinner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: spin 1s linear infinite;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.btn.loading .loading-spinner {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.extra-links {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-top: 20px;
+}
+
+.extra-links a {
+  color: #12453E;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.extra-links a:hover {
+  text-decoration: underline;
+  color: #0e3731;
+}
+
+@media (max-width: 768px) {
+  body {
+    height: auto;
+    padding: 20px 0;
+  }
+
+  .login-wrapper {
+    flex-direction: column;
+    margin: 20px;
+  }
+
+  .login-left,
+  .login-right {
+    padding: 30px 20px;
+  }
+}
+
+/* NOVO: Estilos para Mensagens Gerais (Erro e Sucesso) */
+
+.general-message {
+  padding: 12px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 18px;
+  width: 100%;
+
+  /* Inicia invisível para animação */
+  opacity: 0;
+  transform: translateY(-10px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border: none;
+  overflow: hidden;
+
+  /* Transição suave para aparição */
+  transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease, padding 0.4s ease;
+}
+
+/* Estilo para quando a mensagem deve aparecer */
+.general-message.show {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 100px;
+  /* Altura máxima que a caixa pode atingir */
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Cor para mensagem de ERRO */
+.general-message.error {
+  background-color: #fbeae9;
+  /* Fundo vermelho claro */
+  color: #e74c3c;
+  /* Texto vermelho escuro */
+  border: 1px solid #e74c3c;
+}
+
+/* Cor para mensagem de SUCESSO */
+.general-message.success {
+  background-color: #eaf7f2;
+  /* Fundo verde claro */
+  color: #1e8449;
+  /* Texto verde escuro */
+  border: 1px solid #1e8449;
+}
