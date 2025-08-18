@@ -101,13 +101,9 @@ class LoginController extends BaseController
 
     private function redirectToDashboard(): void
     {
-        // Como você quer manter o padrão antigo, se ainda usa admin/{username}/dashboard:
-        $username = $_SESSION['admin_username'] ?? 'admin';
-        $this->redirect('admin/' . $username . '/dashboard');
-
-        // Se já migrou para /dashboard, troque por:
-        // $this->redirect('dashboard');
+        $this->redirect('dashboard'); // ← simples
     }
+
 
     private function renderLoginForm(): void
     {
@@ -249,12 +245,12 @@ class LoginController extends BaseController
     }
     private function redirectWithLogoutNotification(): void
     {
-        // Mantendo o caminho antigo de login:
         echo "<script>
-            localStorage.setItem('logout_success', '1');
-            window.location.href = '" . BASE_URL . "admin/login';
-          </script>";
+        localStorage.setItem('logout_success', '1');
+        window.location.href = '" . BASE_URL . "login';
+    </script>";
     }
+
 
     // =========================
     // COMPAT (se ainda usar em algum lugar)

@@ -68,4 +68,9 @@ class ViewHelper
     {
         return BASE_URL . ltrim($path, '/');
     }
+
+    // public static function url(string $path = ''): string
+    // {
+    //     return BASE_URL . ltrim($path, '/');
+    // }
 }

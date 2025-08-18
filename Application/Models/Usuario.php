@@ -15,6 +15,15 @@ class Usuario extends Model
 
     protected $hidden = ['senha'];
 
+    public function categorias()
+    {
+        return $this->hasMany(Categoria::class, 'user_id');
+    }
+    public function lancamentos()
+    {
+        return $this->hasMany(Lancamento::class, 'user_id');
+    }
+
     // ===== BOOT =====
     protected static function boot()
     {

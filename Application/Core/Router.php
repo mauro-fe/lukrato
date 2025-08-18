@@ -64,7 +64,7 @@ class Router
 
                 // --- EXECUÇÃO DOS MIDDLEWARES ---
                 // Carrega o registro de middlewares uma vez
-                $registry = require BASE_PATH . '/config/RegistryMiddleware.php';
+                $registry = require BASE_PATH . '/Application/Middlewares/RegistryMiddleware.php';
 
                 // --- EXECUÇÃO DOS MIDDLEWARES ---
                 try {

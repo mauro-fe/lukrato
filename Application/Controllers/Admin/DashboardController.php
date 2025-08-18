@@ -3,21 +3,64 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-use Application\Admin\ProfileController;
-use Application\Models\{Transaction, Account};
+use Application\Models\Lancamento;        // <<< use correto
+use Application\Lib\Auth;                 // para pegar o user logado
+use Illuminate\Database\Capsule\Manager as DB;
 
 class DashboardController extends BaseController
 {
-    public function index(string $username)
+    // sua rota chama @dashboard('{username}')
+    public function dashboard(string $username)
     {
-        $uid = $_SESSION['user_id'] ?? null;
-        $month = $_GET['month'] ?? date('Y-m');
-        $income  = Transaction::where('user_id', $uid)->where('type', 'income')
-            ->whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$month])->sum('amount');
-        $expense = Transaction::where('user_id', $uid)->where('type', 'expense')
-            ->whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$month])->sum('amount');
-        $balance = Account::where('user_id', $uid)->sum('balance_cached');
-        $saving_rate = $income > 0 ? round((($income - $expense) / $income) * 100, 1) : 0;
-        return $this->renderAdmin('admin/dashboard/index', compact('month', 'income', 'expense', 'balance', 'saving_rate'));
+        $userId   = Auth::id();
+        $mesAtual = date('m');
+        $anoAtual = date('Y');
+
+        // KPIs (sempre filtrando por user_id!)
+        $receitasMes = Lancamento::where('user_id', $userId)
+            ->where('tipo', 'receita')
+            ->whereMonth('data', $mesAtual)
+            ->whereYear('data', $anoAtual)
+            ->sum('valor');
+
+        $despesasMes = Lancamento::where('user_id', $userId)
+            ->where('tipo', 'despesa')
+            ->whereMonth('data', $mesAtual)
+            ->whereYear('data', $anoAtual)
+            ->sum('valor');
+
+        $saldoTotal = Lancamento::where('user_id', $userId)
+            ->sum(DB::raw("CASE WHEN tipo='receita' THEN valor ELSE -valor END"));
+
+        // Fluxo diário (labels + data)
+        $fluxo = Lancamento::selectRaw("
+                DATE_FORMAT(data, '%d/%m') as dia,
+                SUM(CASE WHEN tipo='receita' THEN valor ELSE -valor END) as saldo_dia
+            ")
+            ->where('user_id', $userId)
+            ->whereMonth('data', $mesAtual)
+            ->whereYear('data', $anoAtual)
+            ->groupBy('data')
+            ->orderBy('data')
+            ->get();
+
+        $labels = $fluxo->pluck('dia')->all();
+        $data   = $fluxo->pluck('saldo_dia')->map(fn($v) => (float)$v)->all();
+
+        // Últimos lançamentos
+        $ultimos = Lancamento::with('categoria')
+            ->where('user_id', $userId)
+            ->orderBy('data', 'desc')
+            ->orderBy('id', 'desc')
+            ->limit(8)
+            ->get();
+
+        // Render com header/footer (agora que já testou sem)
+        $this->render(
+            'dashboard/index',
+            compact('receitasMes', 'despesasMes', 'saldoTotal', 'labels', 'data', 'ultimos'),
+            'admin/home/header',
+            'admin/footer'
+        );
     }
 }

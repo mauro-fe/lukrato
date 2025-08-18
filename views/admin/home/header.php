@@ -139,68 +139,68 @@
                         <span class="nav-link-text ms-1">Logout</span>
                     </a>
                 </li>
-                <?php if (Auth::isLoggedIn() && Auth::user()->isSysAdmin()): ?>
+                <!-- <?php if (Auth::isLoggedIn() && Auth::user()->isSysAdmin()): ?>
                     <li class="nav-item">
                         <a href="<?= BASE_URL ?>sysadmin/dashboard" class="nav-link text-warning">
                             <i class="fas fa-shield-alt me-1"></i> Painel SysAdmin
                         </a>
                     </li>
-                <?php endif; ?>
+                <?php endif; ?> -->
 
             </ul>
         </div>
     </aside>
 
     <script>
-        function copiarTexto(event) {
-            event.preventDefault();
-            const url = event.currentTarget.getAttribute('data-url');
+    function copiarTexto(event) {
+        event.preventDefault();
+        const url = event.currentTarget.getAttribute('data-url');
 
-            if (!url) {
+        if (!url) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro!',
+                text: 'Link não disponível.',
+            });
+            return;
+        }
+
+        navigator.clipboard.writeText(url)
+            .then(() => {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Erro!',
-                    text: 'Link não disponível.',
+                    icon: 'success',
+                    title: 'Link copiado!',
+                    text: 'Você pode enviar este link ao cliente para preenchimento da ficha.',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    position: 'top'
                 });
-                return;
-            }
-
-            navigator.clipboard.writeText(url)
-                .then(() => {
+            })
+            .catch((err) => {
+                console.error("Erro ao copiar: ", err);
+                // Fallback para navegadores que não suportam clipboard API
+                const textArea = document.createElement("textarea");
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
                     Swal.fire({
                         icon: 'success',
                         title: 'Link copiado!',
-                        text: 'Você pode enviar este link ao cliente para preenchimento da ficha.',
-                        timer: 3000,
-                        showConfirmButton: false,
-                        position: 'top'
+                        text: 'Você pode enviar este link ao cliente.',
+                        timer: 2000,
+                        showConfirmButton: false
                     });
-                })
-                .catch((err) => {
-                    console.error("Erro ao copiar: ", err);
-                    // Fallback para navegadores que não suportam clipboard API
-                    const textArea = document.createElement("textarea");
-                    textArea.value = url;
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Link copiado!',
-                            text: 'Você pode enviar este link ao cliente.',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } catch (err) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erro!',
-                            text: 'Não foi possível copiar o link automaticamente. Copie manualmente: ' + url,
-                        });
-                    }
-                    document.body.removeChild(textArea);
-                });
-        }
+                } catch (err) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro!',
+                        text: 'Não foi possível copiar o link automaticamente. Copie manualmente: ' + url,
+                    });
+                }
+                document.body.removeChild(textArea);
+            });
+    }
     </script>

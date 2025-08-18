@@ -1,4 +1,4 @@
-.gitgonore
+.gitignore
 /vendor/
 .env
 *.log
