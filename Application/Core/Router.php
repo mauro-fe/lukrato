@@ -126,8 +126,14 @@ class Router
 
                 // Suporte a controller@metodo
                 if (is_string($route['callback'])) {
-                    [$controllerPath, $method] = explode('@', $route['callback']);
-                    $controllerNamespace = 'Application\\Controllers\\' . str_replace('/', '\\', $controllerPath);
+                    [$controllerPath, $method] = explode('@', $route['callback'], 2);
+                    $ctrl = ltrim(str_replace('/', '\\', $controllerPath), '\\');
+
+                    // Se já for FQCN começando com "Application\", usa como está.
+                    // Caso contrário, prefixa com "Application\Controllers\" (ex.: "Admin\XyzController").
+                    $controllerNamespace = preg_match('/^Application\\\\/i', $ctrl)
+                        ? $ctrl
+                        : 'Application\\Controllers\\' . $ctrl;
 
                     try {
                         if (!class_exists($controllerNamespace)) {

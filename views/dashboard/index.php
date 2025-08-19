@@ -1,31 +1,3 @@
-<?php
-
-use Application\Lib\Helpers;
-
-// defaults defensivos (evitam "Undefined variable")
-$receitasMes = isset($receitasMes) ? (float)$receitasMes : 0.0;
-$despesasMes = isset($despesasMes) ? (float)$despesasMes : 0.0;
-$saldoTotal  = isset($saldoTotal)  ? (float)$saldoTotal  : 0.0;
-$labels      = $labels   ?? [];
-$data        = $data     ?? [];
-$ultimos     = $ultimos  ?? [];
-
-// helper de formatação (nota: coalesce antes do cast)
-$fmt = function ($v) {
-    $n = ($v ?? 0);
-    return Helpers::formatMoneyBRL((float)$n);
-};
-
-// helper para data segura
-$fmtDate = function ($v) {
-    try {
-        if ($v instanceof \DateTimeInterface) return $v->format('d/m/Y');
-        return (new DateTime((string)$v))->format('d/m/Y');
-    } catch (\Throwable $e) {
-        return '—';
-    }
-};
-?>
 <div class="container" style="padding:20px;color:#eaeaea;">
     <h2 style="margin-bottom:20px;">Dashboard</h2>
 
@@ -47,10 +19,10 @@ $fmtDate = function ($v) {
 
     <!-- (Opcional) dados prontos pro gráfico -->
     <script>
-    window.dashboardChart = {
-        labels: <?= json_encode(array_values($labels), JSON_UNESCAPED_UNICODE) ?>,
-        data: <?= json_encode(array_map('floatval', $data), JSON_UNESCAPED_UNICODE) ?>
-    };
+        window.dashboardChart = {
+            labels: <?= json_encode(array_values($labels), JSON_UNESCAPED_UNICODE) ?>,
+            data: <?= json_encode(array_map('floatval', $data), JSON_UNESCAPED_UNICODE) ?>
+        };
     </script>
 
     <!-- Últimos lançamentos -->
@@ -69,29 +41,29 @@ $fmtDate = function ($v) {
                 </thead>
                 <tbody>
                     <?php if (!empty($ultimos) && count($ultimos)): ?>
-                    <?php foreach ($ultimos as $l): ?>
-                    <tr>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars($fmtDate($l->data)) ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars(($l->tipo === 'receita') ? 'Receita' : 'Despesa') ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars($l->categoria->nome ?? '—') ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= $fmt($l->valor) ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars($l->descricao ?? '—') ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                        <?php foreach ($ultimos as $l): ?>
+                            <tr>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($fmtDate($l->data)) ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars(($l->tipo === 'receita') ? 'Receita' : 'Despesa') ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($l->categoria->nome ?? '—') ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= $fmt($l->valor) ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($l->descricao ?? '—') ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php else: ?>
-                    <tr>
-                        <td colspan="5" style="padding:10px;">Nenhum lançamento encontrado.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="5" style="padding:10px;">Nenhum lançamento encontrado.</td>
+                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>

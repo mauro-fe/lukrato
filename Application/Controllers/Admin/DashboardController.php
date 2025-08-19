@@ -5,12 +5,13 @@ namespace Application\Controllers\Admin;
 use Application\Controllers\BaseController;
 use Application\Models\Lancamento;        // <<< use correto
 use Application\Lib\Auth;                 // para pegar o user logado
+use Application\Core\View;                 // para pegar o user logado
 use Illuminate\Database\Capsule\Manager as DB;
 
 class DashboardController extends BaseController
 {
     // sua rota chama @dashboard('{username}')
-    public function dashboard(string $username)
+    public function dashboard()
     {
         $userId   = Auth::id();
         $mesAtual = date('m');
@@ -55,11 +56,18 @@ class DashboardController extends BaseController
             ->limit(8)
             ->get();
 
-        // Render com header/footer (agora que já testou sem)
+        // Dados para a view
+        // Dentro de um método do seu controller
+        $viewData = [
+            'pageTitle' => 'Dashboard',
+            'username'  => $_SESSION['admin_username'] ?? 'Usuário',
+            'menu'      => 'dashboard' // Variável para o menu ativo
+        ];
+
         $this->render(
             'dashboard/index',
-            compact('receitasMes', 'despesasMes', 'saldoTotal', 'labels', 'data', 'ultimos'),
-            'admin/home/header',
+            $viewData,
+            'admin/home/header', // Este é o arquivo que você enviou
             'admin/footer'
         );
     }

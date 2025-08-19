@@ -34,30 +34,57 @@ class View
     {
         ob_start();
 
+        // nome da view atual (útil em header/footer)
         if (isset($this->viewPath)) {
-            $relativeViewPath = str_replace(BASE_PATH . '/views/', '', $this->viewPath);
-            $viewName = str_replace(['.php', '/', '\\'], ['', '-', '-'], $relativeViewPath);
+            $relative = str_replace(rtrim(BASE_PATH, '/\\') . '/views/', '', $this->viewPath);
+            $viewName = str_replace(['.php', '/', '\\'], ['', '-', '-'], $relative);
             $GLOBALS['current_view'] = trim($viewName, '-');
         }
 
-        if ($this->header && file_exists($this->header)) {
-            include $this->header;
+        // Header
+        if ($this->header) {
+            if (file_exists($this->header)) {
+                include $this->header;
+            } else if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
+                echo "<pre style='color:#f66'>Header não encontrado: {$this->header}</pre>";
+            }
         }
 
-        extract($this->data);
-        $view = $this;
+        // Torna os dados acessíveis na view (sem sobrescrever variáveis internas)
+        extract($this->data, EXTR_SKIP);
+        $view = $this; // se a view referenciar $view
 
-        if (!file_exists($this->viewPath)) {
-            throw new \Exception("View file not found: " . $this->viewPath);
+        // Modo estrito: transforma warnings/notices da view em exceções
+        $prevHandler = set_error_handler(function ($severity, $message, $file, $line) {
+            throw new \ErrorException($message, 0, $severity, $file, $line);
+        });
+
+        try {
+            if (!file_exists($this->viewPath)) {
+                throw new \RuntimeException("View não encontrada: {$this->viewPath}");
+            }
+            include $this->viewPath;
+        } finally {
+            // restaura handler anterior
+            if ($prevHandler !== null) {
+                set_error_handler($prevHandler);
+            } else {
+                restore_error_handler();
+            }
         }
-        include $this->viewPath;
 
-        if ($this->footer && file_exists($this->footer)) {
-            include $this->footer;
+        // Footer
+        if ($this->footer) {
+            if (file_exists($this->footer)) {
+                include $this->footer;
+            } else if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
+                echo "<pre style='color:#f66'>Footer não encontrado: {$this->footer}</pre>";
+            }
         }
 
         return ob_get_clean();
     }
+
 
     /** Helper estático opcional para quem quiser chamar de uma vez */
     public static function renderPage(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): string

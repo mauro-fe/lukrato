@@ -19,8 +19,7 @@
     <title>Painel Administrativo</title>
 
     <!-- Ícones -->
-    <link rel="apple-touch-icon" sizes="76x76" href="<?= BASE_URL ?>/img/logo.png">
-    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/img/logo.png">
+
 
     <!-- Fonts e ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -56,8 +55,7 @@
         id="sidenav-main">
         <div class="sidenav-header">
             <a class="navbar-brand m-0" href="<?= BASE_URL ?>admin/<?= $admin_username ?>/dashboard">
-                <img src="<?= BASE_URL ?>/img/logo.png" class="navbar-brand-img" alt="ClinForm">
-                <!-- <span class="ms-1 font-weight-bold">ClinForm</span> -->
+                <span class="ms-1 font-weight-bold">ClinForm</span>
             </a>
         </div>
 
@@ -152,55 +150,55 @@
     </aside>
 
     <script>
-    function copiarTexto(event) {
-        event.preventDefault();
-        const url = event.currentTarget.getAttribute('data-url');
+        function copiarTexto(event) {
+            event.preventDefault();
+            const url = event.currentTarget.getAttribute('data-url');
 
-        if (!url) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Erro!',
-                text: 'Link não disponível.',
-            });
-            return;
-        }
-
-        navigator.clipboard.writeText(url)
-            .then(() => {
+            if (!url) {
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Link copiado!',
-                    text: 'Você pode enviar este link ao cliente para preenchimento da ficha.',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    position: 'top'
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Link não disponível.',
                 });
-            })
-            .catch((err) => {
-                console.error("Erro ao copiar: ", err);
-                // Fallback para navegadores que não suportam clipboard API
-                const textArea = document.createElement("textarea");
-                textArea.value = url;
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    document.execCommand('copy');
+                return;
+            }
+
+            navigator.clipboard.writeText(url)
+                .then(() => {
                     Swal.fire({
                         icon: 'success',
                         title: 'Link copiado!',
-                        text: 'Você pode enviar este link ao cliente.',
-                        timer: 2000,
-                        showConfirmButton: false
+                        text: 'Você pode enviar este link ao cliente para preenchimento da ficha.',
+                        timer: 3000,
+                        showConfirmButton: false,
+                        position: 'top'
                     });
-                } catch (err) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erro!',
-                        text: 'Não foi possível copiar o link automaticamente. Copie manualmente: ' + url,
-                    });
-                }
-                document.body.removeChild(textArea);
-            });
-    }
+                })
+                .catch((err) => {
+                    console.error("Erro ao copiar: ", err);
+                    // Fallback para navegadores que não suportam clipboard API
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Link copiado!',
+                            text: 'Você pode enviar este link ao cliente.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } catch (err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro!',
+                            text: 'Não foi possível copiar o link automaticamente. Copie manualmente: ' + url,
+                        });
+                    }
+                    document.body.removeChild(textArea);
+                });
+        }
     </script>

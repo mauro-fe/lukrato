@@ -1,119 +1,100 @@
-<!-- app/Views/dashboard/index.php -->
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 m-0">Dashboard</h1>
-        <a href="<?= BASE_URL ?>/lancamentos/novo" class="btn btn-primary">+ Adicionar lançamento</a>
+<?php
+
+use Application\Lib\Helpers;
+
+// defaults defensivos (evitam "Undefined variable")
+$receitasMes = isset($receitasMes) ? (float)$receitasMes : 0.0;
+$despesasMes = isset($despesasMes) ? (float)$despesasMes : 0.0;
+$saldoTotal  = isset($saldoTotal)  ? (float)$saldoTotal  : 0.0;
+$labels      = $labels   ?? [];
+$data        = $data     ?? [];
+$ultimos     = $ultimos  ?? [];
+
+// helper de formatação (nota: coalesce antes do cast)
+$fmt = function ($v) {
+    $n = ($v ?? 0);
+    return Helpers::formatMoneyBRL((float)$n);
+};
+
+// helper para data segura
+$fmtDate = function ($v) {
+    try {
+        if ($v instanceof \DateTimeInterface) return $v->format('d/m/Y');
+        return (new DateTime((string)$v))->format('d/m/Y');
+    } catch (\Throwable $e) {
+        return '—';
+    }
+};
+?>
+<div class="container" style="padding:20px;color:#eaeaea;">
+    <h2 style="margin-bottom:20px;">Dashboard</h2>
+
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px;">
+        <div style="background:#1f2937;padding:16px;border-radius:12px;">
+            <div style="opacity:.7;font-size:14px;">Receitas (mês)</div>
+            <div style="font-size:24px;margin-top:6px;"><?= $fmt($receitasMes) ?></div>
+        </div>
+        <div style="background:#1f2937;padding:16px;border-radius:12px;">
+            <div style="opacity:.7;font-size:14px;">Despesas (mês)</div>
+            <div style="font-size:24px;margin-top:6px;"><?= $fmt($despesasMes) ?></div>
+        </div>
+        <div style="background:#1f2937;padding:16px;border-radius:12px;">
+            <div style="opacity:.7;font-size:14px;">Saldo total</div>
+            <div style="font-size:24px;margin-top:6px;"><?= $fmt($saldoTotal) ?></div>
+        </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-12 col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="small text-muted">Saldo total</div>
-                    <div class="fs-4"><?= number_format($saldoTotal ?? 0, 2, ',', '.') ?></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="small text-muted">Receitas (mês)</div>
-                    <div class="fs-4 text-success"><?= number_format($receitasMes ?? 0, 2, ',', '.') ?></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="small text-muted">Despesas (mês)</div>
-                    <div class="fs-4 text-danger"><?= number_format($despesasMes ?? 0, 2, ',', '.') ?></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- (Opcional) dados prontos pro gráfico -->
+    <script>
+        window.dashboardChart = {
+            labels: <?= json_encode(array_values($labels), JSON_UNESCAPED_UNICODE) ?>,
+            data: <?= json_encode(array_map('floatval', $data), JSON_UNESCAPED_UNICODE) ?>
+        };
+    </script>
 
-    <div class="card shadow-sm my-3">
-        <div class="card-body">
-            <div class="small text-muted mb-2">Fluxo de caixa do mês (R$ por dia)</div>
-            <canvas id="fluxoChart" style="height:260px"></canvas>
-        </div>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="small text-muted">Últimos lançamentos</div>
-                <a href="<?= BASE_URL ?>/lancamentos" class="btn btn-sm btn-outline-secondary">Ver todos</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Tipo</th>
-                            <th>Categoria</th>
-                            <th class="text-end">Valor (R$)</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach (($ultimos ?? []) as $l): ?>
-                        <tr>
-                            <td><?= date('d/m/Y', strtotime($l->data)) ?></td>
-                            <td><span
-                                    class="badge <?= $l->tipo === 'receita' ? 'bg-success' : 'bg-danger' ?>"><?= htmlspecialchars($l->tipo) ?></span>
-                            </td>
-                            <td><?= htmlspecialchars($l->categoria->nome ?? 'Sem categoria') ?></td>
-                            <td class="text-end"><?= number_format($l->valor, 2, ',', '.') ?></td>
-                            <td><?= htmlspecialchars($l->descricao ?? '') ?></td>
-                        </tr>
+    <!-- Últimos lançamentos -->
+    <div style="background:#111827;padding:16px;border-radius:12px;">
+        <h3 style="margin:0 0 12px;">Últimos lançamentos</h3>
+        <div style="overflow:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="text-align:left;background:#1f2937;">
+                        <th style="padding:10px;border-bottom:1px solid #374151;">Data</th>
+                        <th style="padding:10px;border-bottom:1px solid #374151;">Tipo</th>
+                        <th style="padding:10px;border-bottom:1px solid #374151;">Categoria</th>
+                        <th style="padding:10px;border-bottom:1px solid #374151;">Valor</th>
+                        <th style="padding:10px;border-bottom:1px solid #374151;">Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($ultimos) && count($ultimos)): ?>
+                        <?php foreach ($ultimos as $l): ?>
+                            <tr>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($fmtDate($l->data)) ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars(($l->tipo === 'receita') ? 'Receita' : 'Despesa') ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($l->categoria->nome ?? '—') ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= $fmt($l->valor) ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($l->descricao ?? '—') ?>
+                                </td>
+                            </tr>
                         <?php endforeach; ?>
-                        <?php if (empty($ultimos) || count($ultimos) === 0): ?>
+                    <?php else: ?>
                         <tr>
-                            <td colspan="5" class="text-muted">Sem lançamentos ainda</td>
+                            <td colspan="5" style="padding:10px;">Nenhum lançamento encontrado.</td>
                         </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const ctx = document.getElementById('fluxoChart');
-const labels = <?= json_encode($labels ?? []) ?>;
-const data = <?= json_encode($data ?? []) ?>;
-
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels,
-        datasets: [{
-            label: 'R$ por dia',
-            data,
-            tension: 0.3,
-            fill: false
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                ticks: {
-                    callback: v => v.toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                    })
-                }
-            }
-        }
-    }
-});
-</script>
