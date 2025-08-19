@@ -47,10 +47,10 @@ $fmtDate = function ($v) {
 
     <!-- (Opcional) dados prontos pro gráfico -->
     <script>
-    window.dashboardChart = {
-        labels: <?= json_encode(array_values($labels), JSON_UNESCAPED_UNICODE) ?>,
-        data: <?= json_encode(array_map('floatval', $data), JSON_UNESCAPED_UNICODE) ?>
-    };
+        window.dashboardChart = {
+            labels: <?= json_encode(array_values($labels), JSON_UNESCAPED_UNICODE) ?>,
+            data: <?= json_encode(array_map('floatval', $data), JSON_UNESCAPED_UNICODE) ?>
+        };
     </script>
 
     <!-- Últimos lançamentos -->
@@ -69,29 +69,29 @@ $fmtDate = function ($v) {
                 </thead>
                 <tbody>
                     <?php if (!empty($ultimos) && count($ultimos)): ?>
-                    <?php foreach ($ultimos as $l): ?>
-                    <tr>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars($fmtDate($l->data)) ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars(($l->tipo === 'receita') ? 'Receita' : 'Despesa') ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars($l->categoria->nome ?? '—') ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= $fmt($l->valor) ?>
-                        </td>
-                        <td style="padding:10px;border-bottom:1px solid #1f2937;">
-                            <?= htmlspecialchars($l->descricao ?? '—') ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                        <?php foreach ($ultimos as $l): ?>
+                            <tr>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($fmtDate($l->data)) ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars(($l->tipo === 'receita') ? 'Receita' : 'Despesa') ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($l->categoria->nome ?? '—') ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= $fmt($l->valor) ?>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #1f2937;">
+                                    <?= htmlspecialchars($l->descricao ?? '—') ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php else: ?>
-                    <tr>
-                        <td colspan="5" style="padding:10px;">Nenhum lançamento encontrado.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="5" style="padding:10px;">Nenhum lançamento encontrado.</td>
+                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
