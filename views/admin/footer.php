@@ -1,11 +1,29 @@
+<style>
+    :root {
+        --bg-1: #0b141c;
+        --text: #e8edf3;
+        --muted: #a9b7c5
+    }
+
+    footer {
+        background: var(--bg-1);
+    }
+
+    span {
+        color: var(--muted);
+    }
+
+    a {
+        color: var(--text);
+    }
+</style>
 <footer class="footer py-5">
     <div class="container">
         <div class="row">
             <div class="col-8 mx-auto text-center mt-1">
-                <p class="mb-0">
-                    Todos os direitos reservados © <span id="currentYear"></span><br> Desenvolvido por <b>Mauro
-                        Felix</b>
-                </p>
+                <span>© 2025 Lukrato</span>
+                <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro Felix </a></span>
+                <span> & <a href="https://github.com/Joseph-0505" target="_blank" rel="noopener"> José Victor</a></span>
             </div>
         </div>
     </div>
