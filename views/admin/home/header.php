@@ -8,8 +8,7 @@
     <title>Painel Administrativo</title>
 
     <!-- Ícones -->
-    <link rel="apple-touch-icon" sizes="76x76" href="<?= BASE_URL ?>/img/logo.png">
-    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/img/logo.png">
+
 
     <!-- Fonts e ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -44,8 +43,8 @@
     <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-10 my-3 fixed-start"
         id="sidenav-main">
         <div class="sidenav-header">
-            <img src="<?= BASE_URL ?>/img/logo.png" class="navbar-brand-img" alt="ClinForm">
-            <!-- <span class="ms-1 font-weight-bold">ClinForm</span> -->
+            <a class="navbar-brand m-0" href="<?= BASE_URL ?>admin/<?= $admin_username ?>/dashboard">
+                <span class="ms-1 font-weight-bold">ClinForm</span>
             </a>
         </div>
 

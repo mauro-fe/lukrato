@@ -3,54 +3,17 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-use Application\Models\Lancamento;
-use Application\Lib\Auth;
+use Application\Models\Lancamento;        // <<< use correto
+use Application\Lib\Auth;                 // para pegar o user logado
 use Illuminate\Database\Capsule\Manager as DB;
 use Application\Services\LogService;
 
 class DashboardController extends BaseController
 {
-    /**
-     * Ponto de entrada para a rota do dashboard.
-     * Orquestra a autorização, busca de dados e renderização.
-     */
-    public function dashboard()
+    // sua rota chama @dashboard('{username}')
+    public function dashboard(string $username)
     {
-        // 1. Lógica de Autorização (exemplo)
-        // if ($username !== Auth::user()->username) {
-        //     // Se o usuário logado não for o mesmo da URL, redireciona ou mostra erro.
-        //     $this->redirect('admin/logout'); // Ou para uma página de erro 403
-        //     return;
-        // }
-
-        try {
-            // 2. Carrega os dados
-            $data = $this->loadDashboardData(Auth::id());
-
-            // Adiciona dados extras para a view
-            $data['pageTitle'] = 'Dashboard';
-            $data['username']  = Auth::user()->username;
-            $data['menu']      = 'dashboard';
-
-            // 3. Renderiza a view com os dados
-            $this->render(
-                'dashboard/index',
-                $data,
-                'admin/home/header',
-                'admin/footer'
-            );
-        } catch (\Throwable $e) {
-            // 4. Lida com qualquer erro que ocorrer
-            $this->handleDashboardError($e);
-        }
-    }
-
-    /**
-     * Busca e processa todos os dados necessários para o dashboard.
-     * @return array
-     */
-    private function loadDashboardData(int $userId): array
-    {
+        $userId   = Auth::id();
         $mesAtual = date('m');
         $anoAtual = date('Y');
 
@@ -84,27 +47,10 @@ class DashboardController extends BaseController
             ->limit(8)
             ->get();
 
-        return [
-            'receitasMes' => $receitasMes,
-            'despesasMes' => $despesasMes,
-            'saldoTotal' => $saldoTotal,
-            'labels' => $fluxo->pluck('dia')->all(),
-            'data' => $fluxo->pluck('saldo_dia')->map(fn($v) => (float)$v)->all(),
-            'ultimos' => $ultimos
-        ];
-    }
-
-    /**
-     * Lida com exceções ocorridas durante o carregamento do dashboard.
-     */
-    private function handleDashboardError(\Throwable $e): void
-    {
-        LogService::critical('Erro ao carregar o dashboard', ['erro' => $e->getMessage()]);
-
-        // Exibe uma página de erro amigável para o usuário
+        // Render com header/footer (agora que já testou sem)
         $this->render(
-            'errors/500', // Você precisará criar essa view
-            ['pageTitle' => 'Erro Interno'],
+            'dashboard/index',
+            compact('receitasMes', 'despesasMes', 'saldoTotal', 'labels', 'data', 'ultimos'),
             'admin/home/header',
             'admin/footer'
         );

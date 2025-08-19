@@ -32,8 +32,7 @@
                     </div>
 
                     <div class="field">
-                        <input type="password" id="password" name="password" placeholder="Senha"
-                            autocomplete="current-password" required>
+                        <input type="password" id="password" name="password" placeholder="Senha" autocomplete="current-password" required>
                         <small class="field-error" id="passwordError"></small>
                     </div>
 

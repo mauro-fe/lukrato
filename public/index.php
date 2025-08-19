@@ -22,6 +22,7 @@ ini_set('session.use_only_cookies', 1);
 define('BASE_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', realpath(__DIR__));
 
+
 // ============================================================================
 // CARREGAMENTO DE DEPENDÊNCIAS
 // ============================================================================

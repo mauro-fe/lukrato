@@ -49,13 +49,12 @@ function registerAuthRoutes(): void
 function registerSimpleRoutes(): void
 {
     // Dashboard financeiro simples
-    // CORRETO
-    Router::add('GET', 'dashboard', 'Admin\DashboardController@dashboard', ['auth']);
+    Router::add('GET',  'dashboard',        'Application\Controllers\DashboardController@index', ['auth']);
 
     // Lançamentos
-    Router::add('GET',  'lancamentos',      'Application\Controllers\LancamentoController@index',  ['auth']);
-    Router::add('GET',  'lancamentos/novo', 'Application\Controllers\LancamentoController@create', ['auth']);
-    Router::add('POST', 'lancamentos',      'Application\Controllers\LancamentoController@store',  ['auth', 'csrf']);
+    Router::add('GET',  'lancamentos',      'LancamentoController@index',  ['auth']);
+    Router::add('GET',  'lancamentos/novo', 'LancamentoController@create', ['auth']);
+    Router::add('POST', 'lancamentos',      'LancamentoController@store',  ['auth', 'csrf']);
 }
 
 

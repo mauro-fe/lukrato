@@ -1,31 +1,3 @@
-<?php
-
-use Application\Lib\Helpers;
-
-// defaults defensivos (evitam "Undefined variable")
-$receitasMes = isset($receitasMes) ? (float)$receitasMes : 0.0;
-$despesasMes = isset($despesasMes) ? (float)$despesasMes : 0.0;
-$saldoTotal  = isset($saldoTotal)  ? (float)$saldoTotal  : 0.0;
-$labels      = $labels   ?? [];
-$data        = $data     ?? [];
-$ultimos     = $ultimos  ?? [];
-
-// helper de formatação (nota: coalesce antes do cast)
-$fmt = function ($v) {
-    $n = ($v ?? 0);
-    return Helpers::formatMoneyBRL((float)$n);
-};
-
-// helper para data segura
-$fmtDate = function ($v) {
-    try {
-        if ($v instanceof \DateTimeInterface) return $v->format('d/m/Y');
-        return (new DateTime((string)$v))->format('d/m/Y');
-    } catch (\Throwable $e) {
-        return '—';
-    }
-};
-?>
 <div class="container" style="padding:20px;color:#eaeaea;">
     <h2 style="margin-bottom:20px;">Dashboard</h2>
 

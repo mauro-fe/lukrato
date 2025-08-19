@@ -90,7 +90,6 @@ function configureDatabaseConnection(): void
         ]
     ]);
 
-    date_default_timezone_set('America/Sao_Paulo');
 
     // Inicializar o Eloquent ORM
     $capsule->setAsGlobal();

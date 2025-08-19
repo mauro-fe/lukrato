@@ -150,12 +150,75 @@ class Router
         exit;
     }
 
-    /**
-     * Lida com rotas não encontradas (404).
-     */
-    private static function handleNotFound(): void
-    {
+
+                // --- EXECUÇÃO DO CALLBACK DA ROTA ---
+                if (is_callable($route['callback'])) {
+                    // Passa a instância de Request como o primeiro argumento para a closure
+                    array_unshift($matches, $request); // Adiciona $request no início dos parâmetros
+                    call_user_func_array($route['callback'], $matches);
+                    return;
+                }
+
+                // Suporte a controller@metodo
+                if (is_string($route['callback'])) {
+                    [$controllerPath, $method] = explode('@', $route['callback']);
+                    $controllerNamespace = 'Application\\Controllers\\' . str_replace('/', '\\', $controllerPath);
+
+                    try {
+                        if (!class_exists($controllerNamespace)) {
+                            LogService::error("Controlador não encontrado", [
+                                'controller' => $controllerNamespace,
+                                'rota' => $route['path'],
+                                'callback' => $route['callback']
+                            ]);
+                            throw new \Exception("Controlador '{$controllerNamespace}' não encontrado.");
+                        }
+
+                        $controllerInstance = new $controllerNamespace();
+
+                        if (!method_exists($controllerInstance, $method)) {
+                            LogService::error("Método não encontrado no controlador", [
+                                'controller' => $controllerNamespace,
+                                'metodo' => $method,
+                                'rota' => $route['path'],
+                                'callback' => $route['callback']
+                            ]);
+                            throw new \Exception("Método '{$method}' não encontrado no controlador '{$controllerNamespace}'.");
+                        }
+
+                        call_user_func_array([$controllerInstance, $method], $matches);
+                        return;
+                    } catch (\Throwable $e) {
+                        // 🔎 Durante DEV mostra erro completo
+                        if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
+                            echo '<h1>Erro no Controller</h1>';
+                            echo '<pre>' . $e->getMessage() . '</pre>';
+                            echo '<h2>Stack Trace:</h2>';
+                            echo '<pre>' . $e->getTraceAsString() . '</pre>';
+                        } else {
+                            // 🧾 Log para produção
+                            LogService::critical('Erro interno no Router', [
+                                'erro' => $e->getMessage(),
+                                'rota' => $route['path'],
+                                'callback' => $route['callback'],
+                                'trace' => $e->getTraceAsString()
+                            ]);
+                            http_response_code(500);
+                            include BASE_PATH . '/views/errors/500.php';
+                        }
+                        exit;
+                    }
+                }
+            }
+        }
+
+        // Se nenhuma rota for encontrada, exibe 404
         http_response_code(404);
-        include BASE_PATH . '/views/errors/404.php';
+        $errorPage = BASE_PATH . '/views/errors/404.php';
+        if (file_exists($errorPage)) {
+            include $errorPage;
+        } else {
+            echo "<h2>Página não encontrada</h2>";
+        }
     }
 }

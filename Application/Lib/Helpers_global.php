@@ -92,4 +92,3 @@ function buscarValor($respostas, string $chave): ?string
     }
     return null;
 }
-
