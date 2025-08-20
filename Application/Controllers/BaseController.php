@@ -100,12 +100,10 @@ abstract class BaseController
 
     protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
     {
-        echo "<b>[BaseController]</b>: Método render foi chamado.<br>"; // PONTO 1
 
         // Cria objeto View com o caminho e dados
         $view = new View($viewPath, $data);
 
-        echo "<b>[BaseController]</b>: Objeto View criado com sucesso.<br>"; // PONTO 2
 
         // Se foi especificado um header, adiciona
         if ($header) {
@@ -117,13 +115,8 @@ abstract class BaseController
             $view->setFooter($footer);
         }
 
-        // Renderiza e exibe a página completa
-        echo "<b>[BaseController]</b>: Chamando o view->render() agora...<br>"; // PONTO 3
 
         echo $view->render();
-
-        echo "<b>[BaseController]</b>: view->render() terminou.<br>"; // PONTO 4 (Provavelmente não chegará aqui)
-        exit; // Força a parada aqui para não executar mais nada
     }
     /**
      * MÉTODO ESPECIALIZADO PARA RENDERIZAR PÁGINAS DO ADMIN
