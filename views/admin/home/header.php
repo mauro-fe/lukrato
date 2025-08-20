@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 // =========================================================================
 // As variáveis agora são recebidas do Controller e inicializadas com
@@ -7,6 +8,8 @@ $pageTitle = $pageTitle ?? 'Painel Administrativo';
 $username  = $username ?? 'usuário';
 $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativo
 ?>
+=======
+>>>>>>> mauro
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -48,8 +51,13 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
             <ul class="navbar-nav">
 
                 <li class="nav-item">
+<<<<<<< HEAD
                     <a class="nav-link <?= ($menu === 'dashboard') ? 'active' : '' ?>"
                         href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/dashboard">
+=======
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/dashboard') !== false) ? 'active' : ''; ?>"
+                        href="<?= BASE_URL ?>admin/dashboard">
+>>>>>>> mauro
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-home"></i>
@@ -59,8 +67,13 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 </li>
 
                 <li class="nav-item">
+<<<<<<< HEAD
                     <a class="nav-link <?= ($menu === 'fichas-modelo') ? 'active' : '' ?>"
                         href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/fichas-modelo">
+=======
+                    <a class="nav-link <?= (preg_match('#/fichas-modelo$#', $_SERVER['REQUEST_URI'])) ? 'active' : ''; ?>"
+                        href="<?= BASE_URL ?>admin/fichas-modelo">
+>>>>>>> mauro
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-file-alt"></i>
@@ -70,8 +83,13 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 </li>
 
                 <li class="nav-item">
+<<<<<<< HEAD
                     <a class="nav-link <?= ($menu === 'banco-perguntas') ? 'active' : '' ?>"
                         href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/banco-perguntas">
+=======
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/banco-perguntas') !== false) ? 'active' : ''; ?>"
+                        href="<?= BASE_URL ?>admin/banco-perguntas">
+>>>>>>> mauro
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-question-circle"></i>
@@ -81,8 +99,13 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 </li>
 
                 <li class="nav-item">
+<<<<<<< HEAD
                     <a class="nav-link <?= ($menu === 'perfil') ? 'active' : '' ?>"
                         href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/perfil">
+=======
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/perfil') !== false) ? 'active' : ''; ?>"
+                        href="<?= BASE_URL ?>admin//perfil">
+>>>>>>> mauro
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-user"></i>
@@ -92,8 +115,13 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 </li>
 
                 <li class="nav-item">
+<<<<<<< HEAD
                     <a class="nav-link <?= ($menu === 'alterar-senha') ? 'active' : '' ?>"
                         href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/alterar-senha">
+=======
+                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/perfil/alterar-senha') !== false) ? 'active' : ''; ?>"
+                        href="<?= BASE_URL ?>admin//alterar-senha">
+>>>>>>> mauro
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-key"></i>
@@ -111,6 +139,11 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                         <span class="nav-link-text ms-1">Logout</span>
                     </a>
                 </li>
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> mauro
             </ul>
         </div>
     </aside>

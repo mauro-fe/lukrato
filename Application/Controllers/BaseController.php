@@ -100,8 +100,10 @@ abstract class BaseController
 
     protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
     {
+
         // Cria objeto View com o caminho e dados
         $view = new View($viewPath, $data);
+
 
         // Se foi especificado um header, adiciona
         if ($header) {
@@ -112,6 +114,7 @@ abstract class BaseController
         if ($footer) {
             $view->setFooter($footer);
         }
+
 
         echo $view->render();
     }

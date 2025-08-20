@@ -52,10 +52,11 @@ function registerSimpleRoutes(): void
     Router::add('GET', 'dashboard', 'Admin\DashboardController@dashboard', ['auth']);
 
     // Lançamentos
-    Router::add('GET',  'lancamentos',      'LancamentoController@index',  ['auth']);
-    Router::add('GET',  'lancamentos/novo', 'LancamentoController@create', ['auth']);
-    Router::add('POST', 'lancamentos',      'LancamentoController@store',  ['auth', 'csrf']);
+    Router::add('GET', 'lancamentos', 'LançamentoController@index', ['auth']);
+    Router::add('GET', 'lancamentos/novo', 'LançamentoController@create', ['auth']);
+    Router::add('POST', 'lancamentos', 'LançamentoController@store', ['auth', 'csrf']);
 }
+
 
 
 /**

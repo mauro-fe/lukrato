@@ -25,7 +25,11 @@ $data   = is_array($data   ?? null) ? array_map('floatval', $data) : [];
 
 
 <main class="main-content max-height-vh-100 h-100 border-radius-lg">
+<<<<<<< HEAD
     <div class="navbar navbar-main d-flex f">
+=======
+    <div class="navbar navbar-main d-flex">
+>>>>>>> mauro
         <div class="container" style="padding:20px;color:#eaeaea;">
             <h2 style="margin-bottom:20px;">Dashboard</h2>
 
