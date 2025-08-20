@@ -1,8 +1,9 @@
 <?php
 
-namespace Application\Core; // <--- ADICIONADO O NAMESPACE AQUI
+declare(strict_types=1);
 
 namespace Application\Core;
+
 
 class View
 {
@@ -17,81 +18,39 @@ class View
         $this->data = $data;
     }
 
-    public function setHeader(string $header): self
+    public function setHeader(string $headerPath): self
     {
-        $this->header = BASE_PATH . '/views/' . trim($header, '/') . '.php';
+        $this->header = BASE_PATH . '/views/' . trim($headerPath, '/') . '.php';
         return $this;
     }
 
-    public function setFooter(string $footer): self
+    public function setFooter(string $footerPath): self
     {
-        $this->footer = BASE_PATH . '/views/' . trim($footer, '/') . '.php';
+        $this->footer = BASE_PATH . '/views/' . trim($footerPath, '/') . '.php';
         return $this;
     }
 
-    /** Mantém render() como MÉTODO DE INSTÂNCIA (sem parâmetros) */
     public function render(): string
     {
         ob_start();
-
-        // nome da view atual (útil em header/footer)
-        if (isset($this->viewPath)) {
-            $relative = str_replace(rtrim(BASE_PATH, '/\\') . '/views/', '', $this->viewPath);
-            $viewName = str_replace(['.php', '/', '\\'], ['', '-', '-'], $relative);
-            $GLOBALS['current_view'] = trim($viewName, '-');
-        }
-
-        // Header
-        if ($this->header) {
-            if (file_exists($this->header)) {
-                include $this->header;
-            } else if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
-                echo "<pre style='color:#f66'>Header não encontrado: {$this->header}</pre>";
-            }
-        }
-
-        // Torna os dados acessíveis na view (sem sobrescrever variáveis internas)
-        extract($this->data, EXTR_SKIP);
-        $view = $this; // se a view referenciar $view
-
-        // Modo estrito: transforma warnings/notices da view em exceções
-        $prevHandler = set_error_handler(function ($severity, $message, $file, $line) {
-            throw new \ErrorException($message, 0, $severity, $file, $line);
-        });
+        $prevHandler = set_error_handler(fn($s, $m, $f, $l) => throw new \ErrorException($m, 0, $s, $f, $l));
 
         try {
-            if (!file_exists($this->viewPath)) {
-                throw new \RuntimeException("View não encontrada: {$this->viewPath}");
-            }
+            extract($this->data, EXTR_SKIP);
+
+            if ($this->header && file_exists($this->header)) include $this->header;
+            if (!file_exists($this->viewPath)) throw new \RuntimeException("View não encontrada: {$this->viewPath}");
             include $this->viewPath;
+            if ($this->footer && file_exists($this->footer)) include $this->footer;
+
+            return ob_get_clean();
+        } catch (\Throwable $e) {
+            ob_end_clean(); // Limpa o buffer quebrado
+            restore_error_handler(); // Restaura o handler antes de sair
+            Router::handleException($e, null); // Reutiliza o handler de exceção do Router
+            return '';
         } finally {
-            // restaura handler anterior
-            if ($prevHandler !== null) {
-                set_error_handler($prevHandler);
-            } else {
-                restore_error_handler();
-            }
+            restore_error_handler(); // Garante que o handler sempre será restaurado
         }
-
-        // Footer
-        if ($this->footer) {
-            if (file_exists($this->footer)) {
-                include $this->footer;
-            } else if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
-                echo "<pre style='color:#f66'>Footer não encontrado: {$this->footer}</pre>";
-            }
-        }
-
-        return ob_get_clean();
-    }
-
-
-    /** Helper estático opcional para quem quiser chamar de uma vez */
-    public static function renderPage(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): string
-    {
-        $v = new self($viewPath, $data);
-        if ($header) $v->setHeader($header);
-        if ($footer) $v->setFooter($footer);
-        return $v->render();
     }
 }
