@@ -1,14 +1,3 @@
-<!-- <?php
-        // Obtém dados compartilhados usando ViewHelper
-        use App\Lib\ViewHelper;
-
-        // $sharedData = ViewHelper::getSharedData();
-        $ficha_id = $sharedData['ficha_id'];
-        $slug_clinica = $sharedData['slug_clinica'];
-        $admin_id = $sharedData['admin_id'];
-        $admin_username = $_SESSION['admin_username'] ?? 'admin';
-        ?> -->
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -67,7 +56,7 @@
                 <!-- Home -->
                 <li class="nav-item">
                     <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/dashboard') !== false) ? 'active' : ''; ?>"
-                        href="<?= BASE_URL ?>admin/<?= $admin_username ?>/dashboard">
+                        href="<?= BASE_URL ?>admin/dashboard">
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-home"></i>
@@ -79,7 +68,7 @@
                 <!-- Ficha Perguntas -->
                 <li class="nav-item">
                     <a class="nav-link <?= (preg_match('#/fichas-modelo$#', $_SERVER['REQUEST_URI'])) ? 'active' : ''; ?>"
-                        href="<?= BASE_URL ?>admin/<?= $admin_username ?>/fichas-modelo">
+                        href="<?= BASE_URL ?>admin/fichas-modelo">
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-user"></i>
@@ -91,7 +80,7 @@
                 <!-- Cadastrar Perguntas -->
                 <li class="nav-item">
                     <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/banco-perguntas') !== false) ? 'active' : ''; ?>"
-                        href="<?= BASE_URL ?>admin/<?= $admin_username ?>/banco-perguntas">
+                        href="<?= BASE_URL ?>admin/banco-perguntas">
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-question-circle"></i>
@@ -106,7 +95,7 @@
                 <!-- Perfil -->
                 <li class="nav-item">
                     <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/perfil') !== false) ? 'active' : ''; ?>"
-                        href="<?= BASE_URL ?>admin/<?= $admin_username ?>/perfil">
+                        href="<?= BASE_URL ?>admin//perfil">
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-user"></i>
@@ -118,7 +107,7 @@
                 <!-- Alterar Senha - CORREÇÃO: URL atualizada -->
                 <li class="nav-item">
                     <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/perfil/alterar-senha') !== false) ? 'active' : ''; ?>"
-                        href="<?= BASE_URL ?>admin/<?= $admin_username ?>/alterar-senha">
+                        href="<?= BASE_URL ?>admin//alterar-senha">
                         <div
                             class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fas fa-key"></i>
@@ -137,13 +126,7 @@
                         <span class="nav-link-text ms-1">Logout</span>
                     </a>
                 </li>
-                <!-- <?php if (Auth::isLoggedIn() && Auth::user()->isSysAdmin()): ?>
-                    <li class="nav-item">
-                        <a href="<?= BASE_URL ?>sysadmin/dashboard" class="nav-link text-warning">
-                            <i class="fas fa-shield-alt me-1"></i> Painel SysAdmin
-                        </a>
-                    </li>
-                <?php endif; ?> -->
+
 
             </ul>
         </div>
