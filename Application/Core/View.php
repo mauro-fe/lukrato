@@ -1,8 +1,10 @@
 <?php
 
-namespace Application\Core; // <--- ADICIONADO O NAMESPACE AQUI
+declare(strict_types=1);
 
 namespace Application\Core;
+
+use Application\Core\Router;
 
 class View
 {
@@ -17,19 +19,18 @@ class View
         $this->data = $data;
     }
 
-    public function setHeader(string $header): self
+    public function setHeader(string $headerPath): self
     {
-        $this->header = BASE_PATH . '/views/' . trim($header, '/') . '.php';
+        $this->header = BASE_PATH . '/views/' . trim($headerPath, '/') . '.php';
         return $this;
     }
 
-    public function setFooter(string $footer): self
+    public function setFooter(string $footerPath): self
     {
-        $this->footer = BASE_PATH . '/views/' . trim($footer, '/') . '.php';
+        $this->footer = BASE_PATH . '/views/' . trim($footerPath, '/') . '.php';
         return $this;
     }
 
-    /** Mantém render() como MÉTODO DE INSTÂNCIA (sem parâmetros) */
     public function render(): string
     {
         ob_start();

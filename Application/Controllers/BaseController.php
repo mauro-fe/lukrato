@@ -96,10 +96,14 @@ abstract class BaseController
      * @param string|null $header - Caminho do header (ex: 'admin/header')
      * @param string|null $footer - Caminho do footer (ex: 'admin/footer')
      */
+    // Em Application/Controllers/BaseController.php
+
     protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
     {
+
         // Cria objeto View com o caminho e dados
         $view = new View($viewPath, $data);
+
 
         // Se foi especificado um header, adiciona
         if ($header) {
@@ -111,10 +115,9 @@ abstract class BaseController
             $view->setFooter($footer);
         }
 
-        // Renderiza e exibe a página completa
+
         echo $view->render();
     }
-
     /**
      * MÉTODO ESPECIALIZADO PARA RENDERIZAR PÁGINAS DO ADMIN
      * 
