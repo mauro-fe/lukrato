@@ -40,7 +40,7 @@
                     </button>
                     <div class="month-display">
                         <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
-                            <span id="currentMonthText">Janeiro 2024</span>
+                            <span id="currentMonthText">Janeiro 2025</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="month-dropdown" id="monthDropdown" role="menu">
@@ -398,6 +398,46 @@
 
     <!-- Dashboard JavaScript -->
     <script src="assets/js/dashboard.js"></script>
+
+    <!-- Modal: Seletor de Data/Mês -->
+    <div class="modal" id="monthPickerModal" aria-hidden="true" role="dialog" aria-labelledby="monthPickerTitle">
+        <div class="modal-backdrop" data-close-month></div>
+
+        <div class="modal-content" role="document">
+            <div class="modal-header" style="gap: 12px;">
+                <h2 id="monthPickerTitle" style="margin-right:auto;">Escolher data</h2>
+
+                <div class="month-picker-nav" aria-live="polite">
+                    <button class="month-nav-btn" id="mpPrev" aria-label="Mês anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="mpLabel" class="mp-label" style="min-width:170px;text-align:center;font-weight:700;"></span>
+                    <button class="month-nav-btn" id="mpNext" aria-label="Próximo mês">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <button class="modal-close" data-close-month aria-label="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="calendar">
+                    <div class="calendar-weekdays">
+                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-ghost" data-close-month>Cancelar</button>
+                <button class="btn btn-primary" id="mpConfirm">Usar mês</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>

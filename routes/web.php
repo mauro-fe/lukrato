@@ -91,7 +91,7 @@ function registerAdminRoutes(): void
  */
 function registerDashboardRoutes(): void
 {
-    Router::add('GET',  'admin/{username}/dashboard',                 'Admin\DashboardController@dashboard', ['auth']);
+    Router::add('GET',  'admin/dashboard',                 'Admin\DashboardController@dashboard', ['auth']);
     Router::add('GET',  'admin/pesquisa',                             'Admin\DashboardController@search',    ['auth']);
     Router::add('POST', 'admin/pesquisa',                             'Admin\DashboardController@search',    ['auth']);
     Router::add('POST', 'admin/{username}/ficha/{id}/lixeira',        'Admin\DashboardController@moverParaLixeira', ['auth', 'csrf']);

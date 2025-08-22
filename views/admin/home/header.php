@@ -14,7 +14,6 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title><?= htmlspecialchars($pageTitle) ?> | Lukrato</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -38,8 +37,7 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
 <body class="g-sidenav-show bg-gray-100">
     <?php
     // valores esperados em $menu: 'dashboard','lancamentos','contas','categorias','cartoes','relatorios','config'
-    $u   = htmlspecialchars($username ?? '', ENT_QUOTES, 'UTF-8');
-    $base = rtrim(BASE_URL, '/') . '/';
+
     $active = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? 'active' : '';
     };
@@ -50,13 +48,13 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
 
     <aside class="sidebar no-glass" id="sidebar-main">
         <div class="sidebar-header">
-            <a class="logo" href="<?= $base ?>admin/<?= $u ?>/dashboard" aria-label="Ir para o Dashboard">
+            <a class="logo" href="<?= BASE_URL ?>admin/dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="<?= $base ?>admin/<?= $u ?>/dashboard"
+            <a href="<?= BASE_URL ?>admin/dashboard"
                 class="nav-item <?= $active('dashboard') ?>" aria-label="Dashboard Principal" <?= $aria('dashboard') ?>>
                 <i class="fas fa-home" aria-hidden="true"></i>
                 <span>Dashboard</span>

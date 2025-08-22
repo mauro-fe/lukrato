@@ -1120,3 +1120,60 @@ body {
   outline: 2px solid var(--laranja);
   outline-offset: 2px;
 }
+
+
+/* ===== Calendário do modal ===== */
+.calendar {
+  user-select: none;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--spacing-2);
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--cinza);
+  padding: var(--spacing-2) 0;
+}
+
+.calendar-day {
+  text-align: center;
+  padding: .9rem .25rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  background: var(--glass-bg);
+  color: var(--branco);
+}
+
+.calendar-day:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.calendar-day.muted {
+  opacity: .45;
+}
+
+.calendar-day.today {
+  box-shadow: inset 0 0 0 2px rgba(230, 126, 34, .35);
+}
+
+.calendar-day.selected {
+  background: var(--laranja);
+  color: var(--branco);
+  border-color: var(--laranja);
+}
+
+.month-picker-nav .month-nav-btn {
+  margin: 0 .125rem;
+}
+
+.mp-label {
+  color: var(--branco);
+}
