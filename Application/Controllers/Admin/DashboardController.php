@@ -30,7 +30,7 @@ class DashboardController extends BaseController
                 'dashboard/index',
                 $data,
                 'admin/home/header',
-                'admin/footer'
+                null
             );
         } catch (\Throwable $e) {
             // 4. Lida com qualquer erro que ocorrer

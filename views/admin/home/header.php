@@ -14,7 +14,7 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title><?= htmlspecialchars($pageTitle) ?> | ClinForm</title>
+    <title><?= htmlspecialchars($pageTitle) ?> | Lukrato</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -32,88 +32,69 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-dt/css/jquery.dataTables.min.css">
+    <?php loadPageCss(); ?>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
-    <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-10 my-3 fixed-start"
-        id="sidenav-main">
-        <div class="sidenav-header">
-            <a class="navbar-brand m-0" href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/dashboard">
-                <span class="ms-1 font-weight-bold">ClinForm</span>
+    <?php
+    // valores esperados em $menu: 'dashboard','lancamentos','contas','categorias','cartoes','relatorios','config'
+    $u   = htmlspecialchars($username ?? '', ENT_QUOTES, 'UTF-8');
+    $base = rtrim(BASE_URL, '/') . '/';
+    $active = function (string $key) use ($menu) {
+        return (!empty($menu) && $menu === $key) ? 'active' : '';
+    };
+    $aria   = function (string $key) use ($menu) {
+        return (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
+    };
+    ?>
+
+    <aside class="sidebar no-glass" id="sidebar-main">
+        <div class="sidebar-header">
+            <a class="logo" href="<?= $base ?>admin/<?= $u ?>/dashboard" aria-label="Ir para o Dashboard">
+                <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
 
-        <hr class="horizontal dark mt-0">
-        <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
-            <ul class="navbar-nav">
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($menu === 'dashboard') ? 'active' : '' ?>"
-                        href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/dashboard">
-                        <div
-                            class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Dashboard</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($menu === 'fichas-modelo') ? 'active' : '' ?>"
-                        href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/fichas-modelo">
-                        <div
-                            class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Modelos de Ficha</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($menu === 'banco-perguntas') ? 'active' : '' ?>"
-                        href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/banco-perguntas">
-                        <div
-                            class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fas fa-question-circle"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Banco de Perguntas</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($menu === 'perfil') ? 'active' : '' ?>"
-                        href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/perfil">
-                        <div
-                            class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Perfil</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($menu === 'alterar-senha') ? 'active' : '' ?>"
-                        href="<?= BASE_URL ?>admin/<?= htmlspecialchars($username) ?>/alterar-senha">
-                        <div
-                            class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fas fa-key"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Alterar senha</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= BASE_URL ?>admin/logout">
-                        <div
-                            class="icon icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+        <nav class="sidebar-nav">
+            <a href="<?= $base ?>admin/<?= $u ?>/dashboard"
+                class="nav-item <?= $active('dashboard') ?>" aria-label="Dashboard Principal" <?= $aria('dashboard') ?>>
+                <i class="fas fa-home" aria-hidden="true"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="<?= $base ?>admin/<?= $u ?>/lancamentos"
+                class="nav-item <?= $active('lancamentos') ?>" aria-label="Lançamentos" <?= $aria('lancamentos') ?>>
+                <i class="fas fa-exchange-alt" aria-hidden="true"></i>
+                <span>Lançamentos</span>
+            </a>
+            <a href="<?= $base ?>admin/<?= $u ?>/contas"
+                class="nav-item <?= $active('contas') ?>" aria-label="Contas" <?= $aria('contas') ?>>
+                <i class="fas fa-wallet" aria-hidden="true"></i>
+                <span>Contas</span>
+            </a>
+            <a href="<?= $base ?>admin/<?= $u ?>/categorias"
+                class="nav-item <?= $active('categorias') ?>" aria-label="Categorias" <?= $aria('categorias') ?>>
+                <i class="fas fa-tags" aria-hidden="true"></i>
+                <span>Categorias</span>
+            </a>
+            <a href="<?= $base ?>admin/<?= $u ?>/cartoes"
+                class="nav-item <?= $active('cartoes') ?>" aria-label="Cartões" <?= $aria('cartoes') ?>>
+                <i class="fas fa-credit-card" aria-hidden="true"></i>
+                <span>Cartões</span>
+            </a>
+            <a href="<?= $base ?>admin/<?= $u ?>/relatorios"
+                class="nav-item <?= $active('relatorios') ?>" aria-label="Relatórios" <?= $aria('relatorios') ?>>
+                <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                <span>Relatórios</span>
+            </a>
+            <a href="<?= $base ?>admin/<?= $u ?>/config"
+                class="nav-item <?= $active('config') ?>" aria-label="Configurações" <?= $aria('config') ?>>
+                <i class="fas fa-cog" aria-hidden="true"></i>
+                <span>Config</span>
+            </a>
+        </nav>
     </aside>
+
+
     <script>
         function copiarTexto(event) {
             event.preventDefault();
