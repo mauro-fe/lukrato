@@ -2,8 +2,8 @@
 
 namespace Application\Services;
 
-use Application\Models\Admin;
-use Application\Core\ValidationException;
+use Application\Models\Usuario;
+use Application\Core\Exceptions\ValidationException;
 
 class AdminService
 {
@@ -64,7 +64,7 @@ class AdminService
      */
     private function isFieldTaken(string $campo, string $valor, int $adminId): bool
     {
-        return Admin::where($campo, $valor)
+        return Usuario::where($campo, $valor)
             ->where('id', '!=', $adminId)
             ->exists();
     }

@@ -5,6 +5,7 @@ namespace Application\Controllers\Auth;
 use Application\Controllers\BaseController;
 use Application\Services\AuthService;
 use Application\Services\CacheService;
+use Application\Services\LogService;
 use Application\Core\Exceptions\ValidationException;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Middlewares\RateLimitMiddleware;
@@ -40,7 +41,7 @@ class LoginController extends BaseController
         $this->prepareJsonResponse();
 
         if (!$this->isPostRequest()) {
-            \Application\Services\LogService::warning('Login request rejected: not POST');
+            LogService::warning('Login request rejected: not POST');
             $this->respondError('Requisição inválida.');
             return;
         }
@@ -49,25 +50,25 @@ class LoginController extends BaseController
 
         try {
             // 1) CSRF
-            \Application\Services\LogService::info('Login CSRF check: start');
+            LogService::info('Login CSRF check: start');
             $this->validateCsrfToken();
-            \Application\Services\LogService::info('Login CSRF check: ok');
+            LogService::info('Login CSRF check: ok');
 
             // 2) credenciais
             $credentials = $this->getLoginCredentials(); // deve retornar ['email'=>..., 'password'=>...]
-            \Application\Services\LogService::info('Login received credentials', ['email' => $credentials['email'] ?? '']);
+            LogService::info('Login received credentials', ['email' => $credentials['email'] ?? '']);
 
             // 3) rate limit
-            \Application\Services\LogService::info('Login rate-limit: start');
+            LogService::info('Login rate-limit: start');
             $this->applyRateLimit();
-            \Application\Services\LogService::info('Login rate-limit: ok');
+            LogService::info('Login rate-limit: ok');
 
             // 4) autenticar
-            \Application\Services\LogService::info('Login authenticate: start', ['email' => $credentials['email'] ?? '']);
+            LogService::info('Login authenticate: start', ['email' => $credentials['email'] ?? '']);
             $this->authenticateUser($credentials);
-            \Application\Services\LogService::info('Login authenticate: ok', ['email' => $credentials['email'] ?? '']);
-        } catch (\Application\Core\Exceptions\ValidationException $e) {
-            \Application\Services\LogService::warning('Login validation exception', [
+            LogService::info('Login authenticate: ok', ['email' => $credentials['email'] ?? '']);
+        } catch (ValidationException $e) {
+            LogService::warning('Login validation exception', [
                 'email' => $credentials['email'] ?? '',
                 'errors' => $e->getErrors(),
                 'msg' => $e->getMessage(),
@@ -75,7 +76,7 @@ class LoginController extends BaseController
             $this->handleValidationException($e, $credentials['email'] ?? '');
         } catch (\Throwable $e) {
             // pega qualquer erro: CSRF fail, 500, etc.
-            \Application\Services\LogService::error('Login fatal error', [
+            LogService::error('Login fatal error', [
                 'email' => $credentials['email'] ?? '',
                 'exception' => get_class($e),
                 'msg' => $e->getMessage(),
@@ -110,12 +111,11 @@ class LoginController extends BaseController
         $data = [
             'error'      => $this->getError(),
             'success'    => $this->getSuccess(),
-            'csrf_token' => \Application\Middlewares\CsrfMiddleware::generateToken('login_form'),
+            'csrf_token' => CsrfMiddleware::generateToken('login_form'),
         ];
 
         // Mantenha exatamente como no seu projeto antigo:
-        $this->render('admin/admins/login', $data, 'admin/header', 'admin/footer');
-        // (se o seu header certo for 'admin/home/header', use ele)
+        $this->render('admin/admins/login', $data, 'null', 'admin/footer');
     }
 
     // =========================

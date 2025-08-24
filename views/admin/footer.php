@@ -22,7 +22,8 @@
         <div class="row">
             <div class="col-8 mx-auto text-center mt-1">
                 <span>© 2025 Lukrato</span>
-                <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro Felix </a></span>
+                <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro Felix
+                    </a></span>
                 <span> & <a href="https://github.com/Joseph-0505" target="_blank" rel="noopener"> José Victor</a></span>
             </div>
         </div>
@@ -38,16 +39,7 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-    // --- Fim da substituição ---
 
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-        var options = {
-            damping: '0.5'
-        }
-        Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-    }
 </script>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 

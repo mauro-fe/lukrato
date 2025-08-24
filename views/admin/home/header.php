@@ -54,38 +54,38 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
         </div>
 
         <nav class="sidebar-nav">
-            <a href="<?= BASE_URL ?>admin/dashboard"
-                class="nav-item <?= $active('dashboard') ?>" aria-label="Dashboard Principal" <?= $aria('dashboard') ?>>
+            <a href="<?= BASE_URL ?>admin/dashboard" class="nav-item <?= $active('dashboard') ?>"
+                aria-label="Dashboard Principal" <?= $aria('dashboard') ?>>
                 <i class="fas fa-home" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/lancamentos"
-                class="nav-item <?= $active('lancamentos') ?>" aria-label="Lançamentos" <?= $aria('lancamentos') ?>>
+            <a href="<?= $base ?>admin/<?= $u ?>/lancamentos" class="nav-item <?= $active('lancamentos') ?>"
+                aria-label="Lançamentos" <?= $aria('lancamentos') ?>>
                 <i class="fas fa-exchange-alt" aria-hidden="true"></i>
                 <span>Lançamentos</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/contas"
-                class="nav-item <?= $active('contas') ?>" aria-label="Contas" <?= $aria('contas') ?>>
+            <a href="<?= $base ?>admin/<?= $u ?>/contas" class="nav-item <?= $active('contas') ?>" aria-label="Contas"
+                <?= $aria('contas') ?>>
                 <i class="fas fa-wallet" aria-hidden="true"></i>
                 <span>Contas</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/categorias"
-                class="nav-item <?= $active('categorias') ?>" aria-label="Categorias" <?= $aria('categorias') ?>>
+            <a href="<?= $base ?>admin/<?= $u ?>/categorias" class="nav-item <?= $active('categorias') ?>"
+                aria-label="Categorias" <?= $aria('categorias') ?>>
                 <i class="fas fa-tags" aria-hidden="true"></i>
                 <span>Categorias</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/cartoes"
-                class="nav-item <?= $active('cartoes') ?>" aria-label="Cartões" <?= $aria('cartoes') ?>>
+            <a href="<?= $base ?>admin/<?= $u ?>/cartoes" class="nav-item <?= $active('cartoes') ?>"
+                aria-label="Cartões" <?= $aria('cartoes') ?>>
                 <i class="fas fa-credit-card" aria-hidden="true"></i>
                 <span>Cartões</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/relatorios"
-                class="nav-item <?= $active('relatorios') ?>" aria-label="Relatórios" <?= $aria('relatorios') ?>>
+            <a href="<?= $base ?>admin/<?= $u ?>/relatorios" class="nav-item <?= $active('relatorios') ?>"
+                aria-label="Relatórios" <?= $aria('relatorios') ?>>
                 <i class="fas fa-chart-bar" aria-hidden="true"></i>
                 <span>Relatórios</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/config"
-                class="nav-item <?= $active('config') ?>" aria-label="Configurações" <?= $aria('config') ?>>
+            <a href="<?= $base ?>admin/<?= $u ?>/config" class="nav-item <?= $active('config') ?>"
+                aria-label="Configurações" <?= $aria('config') ?>>
                 <i class="fas fa-cog" aria-hidden="true"></i>
                 <span>Config</span>
             </a>

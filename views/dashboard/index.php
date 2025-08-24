@@ -39,7 +39,8 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="month-display">
-                        <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
+                        <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true"
+                            aria-expanded="false">
                             <span id="currentMonthText">Janeiro 2025</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
@@ -59,7 +60,8 @@
                     Exportar
                 </button>
                 <div class="user-avatar">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Avatar do usuário">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
+                        alt="Avatar do usuário">
                 </div>
             </div>
         </header>
@@ -169,7 +171,8 @@
 
         <!-- Floating Action Button -->
         <div class="fab-container">
-            <button class="fab" id="fabButton" aria-label="Adicionar transação" aria-haspopup="true" aria-expanded="false">
+            <button class="fab" id="fabButton" aria-label="Adicionar transação" aria-haspopup="true"
+                aria-expanded="false">
                 <i class="fas fa-plus"></i>
             </button>
             <div class="fab-menu" id="fabMenu" role="menu">
@@ -222,7 +225,8 @@
                 </div>
                 <div class="form-group">
                     <label for="receitaDescricao">Descrição</label>
-                    <input type="text" id="receitaDescricao" class="form-input" placeholder="Descrição da receita" required>
+                    <input type="text" id="receitaDescricao" class="form-input" placeholder="Descrição da receita"
+                        required>
                 </div>
                 <div class="form-group">
                     <label for="receitaValor">Valor</label>
@@ -272,7 +276,8 @@
                 </div>
                 <div class="form-group">
                     <label for="despesaDescricao">Descrição</label>
-                    <input type="text" id="despesaDescricao" class="form-input" placeholder="Descrição da despesa" required>
+                    <input type="text" id="despesaDescricao" class="form-input" placeholder="Descrição da despesa"
+                        required>
                 </div>
                 <div class="form-group">
                     <label for="despesaValor">Valor</label>
@@ -294,7 +299,8 @@
     </div>
 
     <!-- Modal Despesa Cartão -->
-    <div class="modal" id="modalDespesaCartao" role="dialog" aria-labelledby="modalDespesaCartaoTitle" aria-hidden="true">
+    <div class="modal" id="modalDespesaCartao" role="dialog" aria-labelledby="modalDespesaCartaoTitle"
+        aria-hidden="true">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
             <div class="modal-header">
@@ -322,11 +328,13 @@
                 </div>
                 <div class="form-group">
                     <label for="despesaCartaoDescricao">Descrição</label>
-                    <input type="text" id="despesaCartaoDescricao" class="form-input" placeholder="Descrição da compra" required>
+                    <input type="text" id="despesaCartaoDescricao" class="form-input" placeholder="Descrição da compra"
+                        required>
                 </div>
                 <div class="form-group">
                     <label for="despesaCartaoValor">Valor</label>
-                    <input type="text" id="despesaCartaoValor" class="form-input money-mask" placeholder="R$ 0,00" required>
+                    <input type="text" id="despesaCartaoValor" class="form-input money-mask" placeholder="R$ 0,00"
+                        required>
                 </div>
                 <div class="form-group">
                     <label for="despesaCartaoParcelas">Parcelas</label>
@@ -354,7 +362,8 @@
     </div>
 
     <!-- Modal Transferência -->
-    <div class="modal" id="modalTransferencia" role="dialog" aria-labelledby="modalTransferenciaTitle" aria-hidden="true">
+    <div class="modal" id="modalTransferencia" role="dialog" aria-labelledby="modalTransferenciaTitle"
+        aria-hidden="true">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
             <div class="modal-header">
@@ -382,11 +391,13 @@
                 </div>
                 <div class="form-group">
                     <label for="transferenciaValor">Valor</label>
-                    <input type="text" id="transferenciaValor" class="form-input money-mask" placeholder="R$ 0,00" required>
+                    <input type="text" id="transferenciaValor" class="form-input money-mask" placeholder="R$ 0,00"
+                        required>
                 </div>
                 <div class="form-group">
                     <label for="transferenciaObservacao">Observação</label>
-                    <input type="text" id="transferenciaObservacao" class="form-input" placeholder="Observação (opcional)">
+                    <input type="text" id="transferenciaObservacao" class="form-input"
+                        placeholder="Observação (opcional)">
                 </div>
             </form>
             <div class="modal-footer">
@@ -411,7 +422,8 @@
                     <button class="month-nav-btn" id="mpPrev" aria-label="Mês anterior">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span id="mpLabel" class="mp-label" style="min-width:170px;text-align:center;font-weight:700;"></span>
+                    <span id="mpLabel" class="mp-label"
+                        style="min-width:170px;text-align:center;font-weight:700;"></span>
                     <button class="month-nav-btn" id="mpNext" aria-label="Próximo mês">
                         <i class="fas fa-chevron-right"></i>
                     </button>
