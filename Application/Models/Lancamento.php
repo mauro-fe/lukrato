@@ -6,17 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lancamento extends Model
 {
-    protected $table = 'lancamentos';
+    protected $table = 'lancamentos';     // confirme o nome certo da tabela
+
     protected $fillable = [
-        'admin_id',
         'tipo',
+        'data',
         'categoria_id',
         'descricao',
-        'valor',
-        'data',
-        'observacao'
+        'observacao',
+        'valor'
     ];
 
+    protected $casts = [
+        'data'  => 'date:Y-m-d',
+        'valor' => 'float',
+    ];
+
+    // RELACIONAMENTO QUE O CONTROLLER USA:
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');

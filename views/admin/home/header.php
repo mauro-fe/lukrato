@@ -30,7 +30,7 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-dt/css/jquery.dataTables.min.css">
+
     <?php loadPageCss(); ?>
 </head>
 

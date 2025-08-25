@@ -19,8 +19,7 @@ registerSimpleRoutes();
 // ============================================================================
 // ROTAS ADMINISTRATIVAS LEGACY (mantidas por compatibilidade)
 // ============================================================================
-registerSysAdminRoutes();
-registerAdminRoutes();
+
 registerFinanceRoutes();
 
 // ============================================================================
@@ -48,70 +47,27 @@ function registerAuthRoutes(): void
  */
 function registerSimpleRoutes(): void
 {
-    // Dashboard financeiro simples
+    // Dashboard (view já existe)
     Router::add('GET', 'dashboard', 'Admin\DashboardController@dashboard', ['auth']);
 
-    // Lançamentos
-    Router::add('GET', 'lancamentos', 'LançamentoController@index', ['auth']);
-    Router::add('GET', 'lancamentos/novo', 'LançamentoController@create', ['auth']);
-    Router::add('POST', 'lancamentos', 'LançamentoController@store', ['auth', 'csrf']);
+    // Lançamentos (já existentes)
+    Router::add('GET',  'lancamentos',       'LançamentoController@index',  ['auth']);
+    Router::add('GET',  'lancamentos/novo',  'LançamentoController@create', ['auth']);
+    Router::add('POST', 'lancamentos',       'LançamentoController@store',  ['auth', 'csrf']);
+
+    // === API (dashboard) ===
+    Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
+    Router::add('GET',  'api/dashboard/transactions',  'Api\FinanceApiController@transactions', ['auth']);
+    Router::add('GET',  'api/options',                 'Api\FinanceApiController@options',      ['auth']);
+    Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']); // se usar CSRF por header, ajuste o middleware
+
 }
 
 
 
-/**
- * Rotas do sistema administrativo (SysAdmin) – legado
- */
-function registerSysAdminRoutes(): void
-{
-    Router::add('GET', 'sysadmin/dashboard', 'SysAdmin\SysAdminController@index', ['sysadmin']);
-    Router::add('GET', 'sysadmin/clientes',  'SysAdmin\SysAdminController@clientes', ['sysadmin']);
 
-    Router::add('GET',  'sysadmin/admins',                 'SysAdmin\SysAdminController@admins',    ['sysadmin']);
-    Router::add('GET',  'sysadmin/admins/autorizar/{id}',  'SysAdmin\SysAdminController@autorizar', ['sysadmin']);
-    Router::add('GET',  'sysadmin/admins/bloquear/{id}',   'SysAdmin\SysAdminController@bloquear',  ['sysadmin']);
-    Router::add('GET',  'sysadmin/admins/editar/{id}',     'SysAdmin\SysAdminController@editar',    ['sysadmin']);
-    Router::add('POST', 'sysadmin/admins/salvar/{id}',     'SysAdmin\SysAdminController@salvar',    ['sysadmin']);
 
-    Router::add('GET',  'admin/novo',        'Admin\RegisterController@showRegisterForm', ['sysadmin']);
-    Router::add('POST', 'admin/novo/salvar', 'Admin\RegisterController@processRegister',  ['sysadmin']);
-}
 
-/**
- * Rotas ADMIN (legado)
- */
-function registerAdminRoutes(): void
-{
-    registerDashboardRoutes();
-    registerProfileRoutes();
-}
-
-/**
- * Dashboard ADMIN (legado)
- */
-function registerDashboardRoutes(): void
-{
-    Router::add('GET',  'admin/dashboard',                 'Admin\DashboardController@dashboard', ['auth']);
-    Router::add('GET',  'admin/pesquisa',                             'Admin\DashboardController@search',    ['auth']);
-    Router::add('POST', 'admin/pesquisa',                             'Admin\DashboardController@search',    ['auth']);
-    Router::add('POST', 'admin/{username}/ficha/{id}/lixeira',        'Admin\DashboardController@moverParaLixeira', ['auth', 'csrf']);
-    Router::add('GET',  'admin/{username}/fichas-lixeira',            'Admin\DashboardController@viewLixeira', ['auth']);
-    Router::add('POST', 'admin/{username}/ficha/{id}/excluir-definitivo', 'Admin\DashboardController@excluirDefinitivamente', ['auth', 'csrf']);
-    Router::add('POST', 'admin/{username}/fichas/{id}/restaurar',     'Admin\DashboardController@restaurar', ['auth']);
-}
-
-/**
- * Perfil ADMIN (legado)
- */
-function registerProfileRoutes(): void
-{
-    Router::add('GET',  'admin/{username}/perfil',          'Admin\ProfileController@view',            ['auth']);
-    Router::add('GET',  'admin/{username}/perfil/editar',   'Admin\ProfileController@edit',            ['auth']);
-    Router::add('POST', 'admin/{username}/perfil/salvar',   'Admin\ProfileController@update',          ['auth']);
-    Router::add('POST', 'admin/perfil/atualizar-campo',     'Admin\ProfileController@updateField',     ['auth']);
-    Router::add('GET',  'admin/{username}/alterar-senha',   'Admin\ProfileController@editCredentials', ['auth']);
-    Router::add('POST', 'admin/alterar-senha',              'Admin\ProfileController@updateCredentials', ['auth']);
-}
 
 /**
  * Finance (legado com username na URL)
@@ -161,11 +117,6 @@ function registerRedirectRoutes(): void
         exit;
     });
 
-    // Compat específico
-    Router::add('GET', 'admins/{username}/editCredentials', function ($username) {
-        header('Location: ' . BASE_URL . 'admin/' . $username . '/alterar-senha');
-        exit;
-    });
 
     Router::add('GET', 'admin/home', function () {
         redirectToUserDashboard();

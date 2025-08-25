@@ -2,34 +2,35 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lukrato - Dashboard Financeiro</title>
+
+    <!-- Base URL e CSRF para o JS -->
+    <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token('default') ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+    <script>
+        // BASE_URL sempre com / no final
+        window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
+    </script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome Icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Chart.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    <!-- (Opcional) jQuery + Inputmask para máscara de moeda -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.9/jquery.inputmask.min.js"></script>
+
+    <!-- Chart.js UMD (necessário antes do dashboard-index.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
     <!-- SweetAlert2 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.9.0/sweetalert2.all.min.js"></script>
-
-    <!-- InputMask -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="assets/css/main.css">
-
 </head>
 
 <body>
-
-    <!-- Main Content -->
     <main class="main-content">
         <!-- Header -->
         <header class="header">
@@ -38,16 +39,15 @@
                     <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior">
                         <i class="fas fa-chevron-left"></i>
                     </button>
+
                     <div class="month-display">
-                        <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true"
-                            aria-expanded="false">
+                        <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
                             <span id="currentMonthText">Janeiro 2025</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
-                        <div class="month-dropdown" id="monthDropdown" role="menu">
-                            <!-- Populated by JS -->
-                        </div>
+                        <div class="month-dropdown" id="monthDropdown" role="menu"></div>
                     </div>
+
                     <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -56,25 +56,21 @@
 
             <div class="header-right">
                 <button class="btn btn-ghost" id="exportBtn" aria-label="Exportar dados">
-                    <i class="fas fa-download"></i>
-                    Exportar
+                    <i class="fas fa-download"></i> Exportar
                 </button>
                 <div class="user-avatar">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
-                        alt="Avatar do usuário">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Avatar do usuário">
                 </div>
             </div>
         </header>
 
-        <!-- Dashboard Content -->
+        <!-- Conteúdo -->
         <div class="container">
-            <!-- KPIs Grid -->
+            <!-- KPIs -->
             <section class="kpi-grid" role="region" aria-label="Indicadores principais">
                 <div class="card kpi-card" id="saldoCard">
                     <div class="card-header">
-                        <div class="kpi-icon saldo">
-                            <i class="fas fa-wallet"></i>
-                        </div>
+                        <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div>
                         <span class="kpi-title">Saldo Atual</span>
                     </div>
                     <div class="kpi-value" id="saldoValue">R$ 0,00</div>
@@ -82,9 +78,7 @@
 
                 <div class="card kpi-card" id="receitasCard">
                     <div class="card-header">
-                        <div class="kpi-icon receitas">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
+                        <div class="kpi-icon receitas"><i class="fas fa-arrow-up"></i></div>
                         <span class="kpi-title">Receitas do Mês</span>
                     </div>
                     <div class="kpi-value receitas" id="receitasValue">R$ 0,00</div>
@@ -92,24 +86,20 @@
 
                 <div class="card kpi-card" id="despesasCard">
                     <div class="card-header">
-                        <div class="kpi-icon despesas">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
+                        <div class="kpi-icon despesas"><i class="fas fa-arrow-down"></i></div>
                         <span class="kpi-title">Despesas do Mês</span>
                     </div>
                     <div class="kpi-value despesas" id="despesasValue">R$ 0,00</div>
                 </div>
             </section>
 
-            <!-- Charts and Summary Grid -->
+            <!-- Gráfico + Resumo -->
             <section class="charts-grid">
                 <div class="card chart-card">
                     <div class="card-header">
                         <h2 class="card-title">Evolução Financeira</h2>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="evolutionChart" role="img" aria-label="Gráfico de evolução do saldo"></canvas>
-                    </div>
+                    <div class="chart-container"><canvas id="evolutionChart" role="img" aria-label="Gráfico de evolução do saldo"></canvas></div>
                 </div>
 
                 <div class="card summary-card">
@@ -117,36 +107,22 @@
                         <h2 class="card-title">Resumo Mensal</h2>
                     </div>
                     <div class="summary-grid">
-                        <div class="summary-item">
-                            <span class="summary-label">Total Receitas</span>
-                            <span class="summary-value receitas" id="totalReceitas">R$ 0,00</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Total Despesas</span>
-                            <span class="summary-value despesas" id="totalDespesas">R$ 0,00</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Resultado</span>
-                            <span class="summary-value" id="resultadoMes">R$ 0,00</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Saldo Acumulado</span>
-                            <span class="summary-value" id="saldoAcumulado">R$ 0,00</span>
-                        </div>
+                        <div class="summary-item"><span class="summary-label">Total Receitas</span><span class="summary-value receitas" id="totalReceitas">R$ 0,00</span></div>
+                        <div class="summary-item"><span class="summary-label">Total Despesas</span><span class="summary-value despesas" id="totalDespesas">R$ 0,00</span></div>
+                        <div class="summary-item"><span class="summary-label">Resultado</span><span class="summary-value" id="resultadoMes">R$ 0,00</span></div>
+                        <div class="summary-item"><span class="summary-label">Saldo Acumulado</span><span class="summary-value" id="saldoAcumulado">R$ 0,00</span></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Transactions Table -->
+            <!-- Tabela -->
             <section class="card table-card">
                 <div class="card-header">
                     <h2 class="card-title">Últimos Lançamentos</h2>
                 </div>
                 <div class="table-container">
-                    <div class="empty-state" id="emptyState" style="display: none;">
-                        <div class="empty-icon">
-                            <i class="fas fa-receipt"></i>
-                        </div>
+                    <div class="empty-state" id="emptyState" style="display:none;">
+                        <div class="empty-icon"><i class="fas fa-receipt"></i></div>
                         <h3>Nenhum lançamento encontrado</h3>
                         <p>Adicione sua primeira transação clicando no botão + no canto inferior direito</p>
                     </div>
@@ -161,40 +137,32 @@
                                 <th>Valor</th>
                             </tr>
                         </thead>
-                        <tbody id="transactionsTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
+                        <tbody id="transactionsTableBody"></tbody>
                     </table>
                 </div>
             </section>
         </div>
 
-        <!-- Floating Action Button -->
+        <!-- FAB -->
         <div class="fab-container">
-            <button class="fab" id="fabButton" aria-label="Adicionar transação" aria-haspopup="true"
-                aria-expanded="false">
+            <button class="fab" id="fabButton" aria-label="Adicionar transação" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-plus"></i>
             </button>
             <div class="fab-menu" id="fabMenu" role="menu">
-                <button class="fab-menu-item" data-modal="receita" role="menuitem">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>Receita</span>
-                </button>
-                <button class="fab-menu-item" data-modal="despesa" role="menuitem">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>Despesa</span>
-                </button>
-                <button class="fab-menu-item" data-modal="despesa-cartao" role="menuitem">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Despesa Cartão</span>
-                </button>
-                <button class="fab-menu-item" data-modal="transferencia" role="menuitem">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Transferência</span>
-                </button>
+                <button class="fab-menu-item" data-modal="receita" role="menuitem"><i class="fas fa-arrow-up"></i><span>Receita</span></button>
+                <button class="fab-menu-item" data-modal="despesa" role="menuitem"><i class="fas fa-arrow-down"></i><span>Despesa</span></button>
+                <button class="fab-menu-item" data-modal="despesa-cartao" role="menuitem"><i class="fas fa-credit-card"></i><span>Despesa Cartão</span></button>
+                <button class="fab-menu-item" data-modal="transferencia" role="menuitem"><i class="fas fa-exchange-alt"></i><span>Transferência</span></button>
             </div>
         </div>
     </main>
+
+
+    <i class="fas fa-chevron-left"></i>
+    </button>
+    <span id="mpLabel" class="mp-label"
+        style="min-width:170px;text-align:center;font-weight:700;"></span>
+
 
     <!-- Modal Receita -->
     <div class="modal" id="modalReceita" role="dialog" aria-labelledby="modalReceitaTitle" aria-hidden="true">
@@ -449,7 +417,6 @@
             </div>
         </div>
     </div>
-
 </body>
 
 </html>
