@@ -6,6 +6,8 @@
 
 use Application\Core\Router;
 
+
+
 // ============================================================================
 // ROTAS PÚBLICAS / AUTENTICAÇÃO (simples)
 // ============================================================================
@@ -58,8 +60,13 @@ function registerSimpleRoutes(): void
     Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
     Router::add('GET',  'api/dashboard/transactions',  'Api\FinanceApiController@transactions', ['auth']);
     Router::add('GET',  'api/options',                 'Api\FinanceApiController@options',      ['auth']);
-    Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']); // se usar CSRF por header, ajuste o middleware
+    Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']);
 
+    // Página de relatórios
+    Router::add('GET', 'relatorios', 'RelatoriosController@view', ['auth']);
+
+    // API de relatórios
+    Router::add('GET', 'api/reports', 'Api\ReportController@index', ['auth']);
 }
 
 
