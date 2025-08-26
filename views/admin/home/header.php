@@ -25,6 +25,49 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
 
 
     <?php loadPageCss(); ?>
+
+    <style>
+        /* Botão só aparece em telas menores */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+            background: #2C3E50;
+            /* azul noite */
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Sempre visível no mobile */
+        @media (max-width: 992px) {
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -260px;
+                /* escondida */
+                width: 240px;
+                height: 100%;
+                background: #1e293b;
+                /* ajusta conforme seu tema */
+                transition: left 0.3s ease;
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+        }
+    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -45,6 +88,10 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
+        <!-- Botão Toggle Sidebar -->
+        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Abrir/Fechar menu">
+            <i class="fas fa-bars"></i>
+        </button>
 
         <nav class="sidebar-nav">
             <a href="<?= BASE_URL ?>/dashboard" class="nav-item <?= $active('dashboard') ?>"
@@ -72,11 +119,12 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 <i class="fas fa-credit-card" aria-hidden="true"></i>
                 <span>Cartões</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/relatorios" class="nav-item <?= $active('relatorios') ?>"
+            <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
                 aria-label="Relatórios" <?= $aria('relatorios') ?>>
-                <i class="fas fa-chart-bar" aria-hidden="true"></i>
-                <span>Relatórios</span>
+                <i class="fas fa-chart-bar"></i> <span>Relatórios</span>
             </a>
+
+
             <a href="<?= $base ?>admin/<?= $u ?>/config" class="nav-item <?= $active('config') ?>"
                 aria-label="Configurações" <?= $aria('config') ?>>
                 <i class="fas fa-cog" aria-hidden="true"></i>
@@ -138,4 +186,14 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                     document.body.removeChild(textArea);
                 });
         }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggle = document.getElementById("sidebarToggle");
+            const sidebar = document.getElementById("sidebar-main");
+
+            toggle.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
     </script>
