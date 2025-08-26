@@ -7,13 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Categoria extends Model
 {
     protected $table = 'categorias';
-    protected $fillable = ['nome', 'user_id'];
-    public function user()
+
+    // precisa existir no BD: colunas 'nome' e 'tipo'
+    protected $fillable = ['nome', 'tipo'];
+
+    // ---- SCOPES USADOS PELO /api/options ----
+    public function scopeReceitas($q)
     {
-        return $this->belongsTo(Usuario::class, 'user_id');
+        return $q->whereIn('tipo', ['receita', 'ambas']);
     }
-    public function lancamentos()
+
+    public function scopeDespesas($q)
     {
-        return $this->hasMany(Lancamento::class);
+        return $q->whereIn('tipo', ['despesa', 'ambas']);
     }
 }

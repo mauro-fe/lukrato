@@ -14,7 +14,9 @@ class Lancamento extends Model
         'categoria_id',
         'descricao',
         'observacao',
-        'valor'
+        'valor',
+        'nome',
+        'tipo'
     ];
 
     protected $casts = [

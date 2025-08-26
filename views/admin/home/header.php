@@ -14,18 +14,11 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/nucleo-icons.css" rel="stylesheet">
-    <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/nucleo-svg.css" rel="stylesheet">
-
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/soft-ui-dashboard.css?v=1.1.0">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -48,19 +41,19 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
 
     <aside class="sidebar no-glass" id="sidebar-main">
         <div class="sidebar-header">
-            <a class="logo" href="<?= BASE_URL ?>admin/dashboard" aria-label="Ir para o Dashboard">
+            <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="<?= BASE_URL ?>admin/dashboard" class="nav-item <?= $active('dashboard') ?>"
+            <a href="<?= BASE_URL ?>/dashboard" class="nav-item <?= $active('dashboard') ?>"
                 aria-label="Dashboard Principal" <?= $aria('dashboard') ?>>
                 <i class="fas fa-home" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                aria-label="Lançamentos" <?= $aria('lancamentos') ?>>
+            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>" aria-label="Lançamentos"
+                <?= $aria('lancamentos') ?>>
                 <i class="fas fa-exchange-alt" aria-hidden="true"></i>
                 <span>Lançamentos</span>
             </a>

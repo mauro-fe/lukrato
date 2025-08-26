@@ -96,14 +96,18 @@ class FinanceApiController
     public function options(): void
     {
         try {
-            $cats = Categoria::orderBy('nome')->get(['id', 'nome']);
-            $arr  = $cats->map(function ($c) {
-                return ['id' => $c->id, 'nome' => $c->nome];
-            })->all();
+            // Requer que o Model Categoria tenha os scopes ->receitas() e ->despesas()
+            $catsReceita = Categoria::receitas()->orderBy('nome')->get(['id', 'nome']);
+            $catsDespesa = Categoria::despesas()->orderBy('nome')->get(['id', 'nome']);
 
-            Response::json(['categorias' => ['todas' => $arr]]);
+            Response::json([
+                'categorias' => [
+                    'receitas' => $catsReceita->map(fn($c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
+                    'despesas' => $catsDespesa->map(fn($c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
+                ],
+            ]);
         } catch (\Throwable $e) {
-            Response::json(['error' => $e->getMessage()], 500);
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -114,18 +118,64 @@ class FinanceApiController
             $raw  = file_get_contents('php://input');
             $data = json_decode($raw, true) ?: [];
 
+            // -------- Validações básicas --------
+            $tipo = strtolower(trim((string)($data['tipo'] ?? 'despesa')));
+            if (!in_array($tipo, ['receita', 'despesa'], true)) {
+                Response::json(['status' => 'error', 'message' => 'Tipo inválido. Use "receita" ou "despesa".'], 422);
+                return;
+            }
+
+            $dataStr = (string)($data['data'] ?? date('Y-m-d'));
+            $dt = \DateTime::createFromFormat('Y-m-d', $dataStr);
+            if (!$dt || $dt->format('Y-m-d') !== $dataStr) {
+                Response::json(['status' => 'error', 'message' => 'Data inválida. Formato esperado: YYYY-MM-DD.'], 422);
+                return;
+            }
+
+            $valor = (float)($data['valor'] ?? 0);
+            if (!is_numeric($data['valor'] ?? null) && !is_string($data['valor'] ?? null)) {
+                Response::json(['status' => 'error', 'message' => 'Valor inválido.'], 422);
+                return;
+            }
+            // Permite zero e negativos? Se não, bloqueie negativos:
+            if ($valor < 0) {
+                Response::json(['status' => 'error', 'message' => 'Valor não pode ser negativo.'], 422);
+                return;
+            }
+            // Normaliza para 2 casas
+            $valor = round($valor, 2);
+
+            // Categoria (opcional), mas se vier precisa existir e ser compatível
+            $categoriaId = $data['categoria_id'] ?? null;
+            if ($categoriaId !== null && $categoriaId !== '') {
+                $categoriaId = (int)$categoriaId;
+                $cat = Categoria::find($categoriaId);
+                if (!$cat) {
+                    Response::json(['status' => 'error', 'message' => 'Categoria inválida.'], 422);
+                    return;
+                }
+                // Compatibilidade: cat.tipo deve ser 'ambas' ou igual ao $tipo
+                if (!in_array($cat->tipo, ['ambas', $tipo], true)) {
+                    Response::json(['status' => 'error', 'message' => 'Categoria não compatível com o tipo do lançamento.'], 422);
+                    return;
+                }
+            } else {
+                $categoriaId = null;
+            }
+
+            // -------- Persistência --------
             $t = new Lancamento();
-            $t->tipo         = $data['tipo'] ?? 'despesa';
-            $t->data         = $data['data'] ?? date('Y-m-d');
-            $t->categoria_id = $data['categoria_id'] ?? null;
-            $t->observacao = $data['observacao'] ?? null;
-            $t->descricao    = $data['descricao'] ?? null;
-            $t->valor        = (float) ($data['valor'] ?? 0);
+            $t->tipo         = $tipo;
+            $t->data         = $dataStr;
+            $t->categoria_id = $categoriaId;
+            $t->descricao    = isset($data['descricao'])   ? trim((string)$data['descricao'])   : null;
+            $t->observacao   = isset($data['observacao'])  ? trim((string)$data['observacao'])  : null;
+            $t->valor        = $valor;
             $t->save();
 
-            Response::json(['ok' => true, 'id' => $t->id]);
+            Response::json(['ok' => true, 'id' => (int)$t->id]);
         } catch (\Throwable $e) {
-            Response::json(['error' => $e->getMessage()], 500);
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 }

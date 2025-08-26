@@ -1,39 +1,96 @@
-<!-- app/Views/lancamentos/index.php -->
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 m-0">Lançamentos</h1>
-        <a href="<?= BASE_URL ?>/lancamentos/novo" class="btn btn-primary">+ Adicionar</a>
-    </div>
+<style>
+    /* ===== Offset para não ficar sob o header sticky ===== */
+    :root {
+        /* margem superior que o conteúdo precisa para não ficar embaixo do header */
+        --content-top-offset: calc(var(--header-height) + var(--spacing-4));
+    }
 
-    <div class="table-responsive">
-        <table class="table table-sm align-middle">
+    /* se sua página usa <main class="main-content"> ou .lukrato-main, ambas cobertas */
+    .main-content,
+    .lukrato-main {
+        padding-top: var(--content-top-offset);
+        padding-left: var(--container-padding);
+        padding-right: var(--container-padding);
+    }
+
+    /* quando o aside some no mobile, mantemos um pouco menos de espaço */
+    @media (max-width: 768px) {
+        :root {
+            --content-top-offset: calc(var(--header-height) + var(--spacing-2));
+        }
+    }
+
+    .content-offset {
+        padding-top: var(--content-top-offset);
+    }
+
+    /* alias para a tabela de lançamentos */
+    .lukrato-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .lukrato-table th,
+    .lukrato-table td {
+        text-align: left;
+        padding: var(--spacing-4);
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--branco);
+    }
+
+    .lukrato-table th {
+        font-weight: 600;
+        color: var(--cinza);
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .lukrato-table tr:hover {
+        background-color: var(--glass-bg);
+    }
+</style>
+
+<section class="main-content">
+    <header class="page-header">
+        <h1><i class="fas fa-receipt"></i> Lançamentos</h1>
+    </header>
+
+    <section class="filters">
+        <form id="formFiltros" class="filter-form">
+            <div class="form-group">
+                <label for="filtroMes">Mês</label>
+                <input type="month" id="filtroMes" class="form-input" value="<?= date('Y-m') ?>">
+            </div>
+            <div class="form-group">
+                <label for="filtroTipo">Tipo</label>
+                <select id="filtroTipo" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="receita">Receitas</option>
+                    <option value="despesa">Despesas</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-ghost"><i class="fas fa-search"></i> Filtrar</button>
+        </form>
+    </section>
+
+    <section class="table-container">
+        <table class="lukrato-table" id="tabelaLancamentos">
             <thead>
                 <tr>
                     <th>Data</th>
                     <th>Tipo</th>
                     <th>Categoria</th>
-                    <th class="text-end">Valor (R$)</th>
                     <th>Descrição</th>
+                    <th>Observação</th>
+                    <th class="text-right">Valor</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php foreach (($lancamentos ?? []) as $l): ?>
+            <tbody id="tbodyLancamentos">
                 <tr>
-                    <td><?= date('d/m/Y', strtotime($l->data)) ?></td>
-                    <td><span
-                            class="badge <?= $l->tipo === 'receita' ? 'bg-success' : 'bg-danger' ?>"><?= htmlspecialchars($l->tipo) ?></span>
-                    </td>
-                    <td><?= htmlspecialchars($l->categoria->nome ?? 'Sem categoria') ?></td>
-                    <td class="text-end"><?= number_format($l->valor, 2, ',', '.') ?></td>
-                    <td><?= htmlspecialchars($l->descricao ?? '') ?></td>
+                    <td colspan="6" class="text-center">Carregando...</td>
                 </tr>
-                <?php endforeach; ?>
-                <?php if (empty($lancamentos) || count($lancamentos) === 0): ?>
-                <tr>
-                    <td colspan="5" class="text-muted">Sem lançamentos</td>
-                </tr>
-                <?php endif; ?>
             </tbody>
         </table>
-    </div>
-</div>
+    </section>
+</section>

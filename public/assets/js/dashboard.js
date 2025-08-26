@@ -60,29 +60,68 @@
     };
 
     // ---------------- FORMAT & DATAS ----------------
+    // Função para formatar um número no formato monetário brasileiro (R$ 0,00)
     function formatMoneyBR(value) {
+        // Verifica se o valor não é um número ou é NaN -> retorna "R$ 0,00"
         if (typeof value !== 'number' || isNaN(value)) return 'R$ 0,00';
+
+        // Usa Intl.NumberFormat para formatar no padrão do Brasil
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     }
+
+    // Função para converter uma string no formato monetário brasileiro em número
     function parseMoneyBR(moneyStr) {
+        // Se for vazio ou não for string, retorna 0
         if (!moneyStr || typeof moneyStr !== 'string') return 0;
+
+        // Remove tudo que não for dígito, vírgula ou traço
+        // Exemplo: "R$ 1.234,56" -> "1234,56"
+        // Depois troca a vírgula por ponto para converter em número decimal
         return parseFloat(moneyStr.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
     }
-    function formatDateBR(iso) {
-        if (!iso) return '—';
-        const [y, m, d] = iso.split('-');
-        return `${d}/${m}/${y}`;
+
+    // Aceita "YYYY-MM-DD", "YYYY-MM-DD HH:mm:ss", "YYYY-MM-DDTHH:mm:ss"
+    function formatDateBR(input) {
+        if (!input) return '—';
+
+        // Garante string e separa a parte da data da parte da hora (T ou espaço)
+        const [datePart] = String(input).trim().split(/[T\s]/);
+
+        // datePart deve estar em AAAA-MM-DD; se vier com /, normaliza para -
+        const normalized = datePart.replace(/\//g, '-');
+
+        const m = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!m) return '—';
+
+        const [, y, mo, d] = m;
+        return `${d}/${mo}/${y}`;
     }
+
+
+    // Função para transformar um mês no formato ISO (AAAA-MM) em rótulo legível (ex: "agosto de 2025")
     function monthLabel(monthStr) {
+        // Divide em ano e mês e transforma em número
         const [y, m] = monthStr.split('-').map(Number);
+
+        // Cria um objeto Date no primeiro dia do mês
         const date = new Date(y, m - 1, 1);
+
+        // Converte para string com mês e ano por extenso em pt-BR
         return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
     }
+
+    // Função para somar ou subtrair meses a partir de uma data no formato AAAA-MM
     function clampMonth(monthStr, delta) {
+        // Separa ano e mês e transforma em número
         const [y, m] = monthStr.split('-').map(Number);
+
+        // Cria nova data somando/subtraindo "delta" meses
         const date = new Date(y, m - 1 + delta, 1);
+
+        // Retorna no formato ISO AAAA-MM
         return date.toISOString().slice(0, 7);
     }
+
 
     // ---------------- CHART ----------------
     async function buildMonthlySeries(referenceMonth, lastN = 6) {
@@ -450,49 +489,29 @@
 
     async function populateReceita() {
         const selCat = document.getElementById('receitaCategoria');
-        const selConta = document.getElementById('receitaConta');
-
         const { categorias } = await ensureOptions();
-        const all = categorias?.todas || [];
+        const all = categorias?.receitas || [];
         selCat.innerHTML = '<option value="">Selecione uma categoria</option>' +
-            all.map((c) => `<option value="${c.id}">${c.nome}</option>`).join('');
-
-        // não usamos contas: remove "required" e mostra placeholder
-        if (selConta) {
-            selConta.removeAttribute('required');
-            selConta.innerHTML = '<option value="">—</option>';
-        }
+            all.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
     }
 
     async function populateDespesa() {
         const selCat = document.getElementById('despesaCategoria');
-        const selConta = document.getElementById('despesaConta');
-
         const { categorias } = await ensureOptions();
-        const all = categorias?.todas || [];
+        const all = categorias?.despesas || [];
         selCat.innerHTML = '<option value="">Selecione uma categoria</option>' +
-            all.map((c) => `<option value="${c.id}">${c.nome}</option>`).join('');
-
-        if (selConta) {
-            selConta.removeAttribute('required');
-            selConta.innerHTML = '<option value="">—</option>';
-        }
+            all.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
     }
 
     async function populateDespesaCartao() {
         const selCat = document.getElementById('despesaCartaoCategoria');
-        const selCartao = document.getElementById('despesaCartaoCartao');
-
         const { categorias } = await ensureOptions();
-        const all = categorias?.todas || [];
+        const all = categorias?.despesas || [];
         selCat.innerHTML = '<option value="">Selecione uma categoria</option>' +
-            all.map((c) => `<option value="${c.id}">${c.nome}</option>`).join('');
-
-        if (selCartao) {
-            selCartao.removeAttribute('required');
-            selCartao.innerHTML = '<option value="">Sem cartões</option>';
-        }
+            all.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
     }
+
+
 
     async function populateTransferencia() {
         const selOrigem = document.getElementById('transferenciaOrigem');
