@@ -129,9 +129,9 @@ abstract class BaseController
      */
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
-        // Chama o método render() com header e footer padrão do admin
         $this->render($viewPath, $data, 'admin/home/header', 'admin/footer');
     }
+
 
     /**
      * MÉTODO PARA REDIRECIONAR USUÁRIO
