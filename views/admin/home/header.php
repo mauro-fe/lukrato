@@ -16,7 +16,6 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/soft-ui-dashboard.css?v=1.1.0">
 
@@ -25,49 +24,6 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
 
 
     <?php loadPageCss(); ?>
-
-    <style>
-        /* Botão só aparece em telas menores */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1100;
-            background: #2C3E50;
-            /* azul noite */
-            color: #fff;
-            border: none;
-            padding: 10px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        /* Sempre visível no mobile */
-        @media (max-width: 992px) {
-            .sidebar-toggle {
-                display: block;
-            }
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: -260px;
-                /* escondida */
-                width: 240px;
-                height: 100%;
-                background: #1e293b;
-                /* ajusta conforme seu tema */
-                transition: left 0.3s ease;
-                z-index: 1000;
-            }
-
-            .sidebar.open {
-                left: 0;
-            }
-        }
-    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -133,67 +89,70 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
         </nav>
     </aside>
 
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+        <div class="container-fluid py-4 lk-page">
 
-    <script>
-        function copiarTexto(event) {
-            event.preventDefault();
-            const url = event.currentTarget.getAttribute('data-url');
+            <script>
+                function copiarTexto(event) {
+                    event.preventDefault();
+                    const url = event.currentTarget.getAttribute('data-url');
 
-            if (!url) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro!',
-                    text: 'Link não disponível.',
-                });
-                return;
-            }
-
-            navigator.clipboard.writeText(url)
-                .then(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Link copiado!',
-                        text: 'Você pode enviar este link ao cliente para preenchimento da ficha.',
-                        timer: 3000,
-                        showConfirmButton: false,
-                        position: 'top'
-                    });
-                })
-                .catch((err) => {
-                    console.error("Erro ao copiar: ", err);
-                    // Fallback para navegadores que não suportam clipboard API
-                    const textArea = document.createElement("textarea");
-                    textArea.value = url;
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Link copiado!',
-                            text: 'Você pode enviar este link ao cliente.',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } catch (err) {
+                    if (!url) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro!',
-                            text: 'Não foi possível copiar o link automaticamente. Copie manualmente: ' + url,
+                            text: 'Link não disponível.',
                         });
+                        return;
                     }
-                    document.body.removeChild(textArea);
-                });
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggle = document.getElementById("sidebarToggle");
-            const sidebar = document.getElementById("sidebar-main");
 
-            toggle.addEventListener("click", () => {
-                sidebar.classList.toggle("open");
-            });
-        });
-    </script>
+                    navigator.clipboard.writeText(url)
+                        .then(() => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Link copiado!',
+                                text: 'Você pode enviar este link ao cliente para preenchimento da ficha.',
+                                timer: 3000,
+                                showConfirmButton: false,
+                                position: 'top'
+                            });
+                        })
+                        .catch((err) => {
+                            console.error("Erro ao copiar: ", err);
+                            // Fallback para navegadores que não suportam clipboard API
+                            const textArea = document.createElement("textarea");
+                            textArea.value = url;
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Link copiado!',
+                                    text: 'Você pode enviar este link ao cliente.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } catch (err) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro!',
+                                    text: 'Não foi possível copiar o link automaticamente. Copie manualmente: ' +
+                                        url,
+                                });
+                            }
+                            document.body.removeChild(textArea);
+                        });
+                }
+            </script>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const toggle = document.getElementById("sidebarToggle");
+                    const sidebar = document.getElementById("sidebar-main");
+
+                    toggle.addEventListener("click", () => {
+                        sidebar.classList.toggle("open");
+                    });
+                });
+            </script>
