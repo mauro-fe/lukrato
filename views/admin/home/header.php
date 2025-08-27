@@ -22,8 +22,8 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-
     <?php loadPageCss(); ?>
+    <?php loadPageCss('admin-home-header'); ?>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -88,6 +88,38 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
             </a>
         </nav>
     </aside>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="month-selector">
+                <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="month-display">
+                    <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
+                        <span id="currentMonthText"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+                </div>
+
+                <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button class="btn btn-ghost" id="exportBtn" aria-label="Exportar dados">
+                <i class="fas fa-download"></i> Exportar
+            </button>
+            <div class="user-avatar">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
+                    alt="Avatar do usuário">
+            </div>
+        </div>
+    </header>
 
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
         <div class="container-fluid py-4 lk-page">
@@ -145,8 +177,7 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                             document.body.removeChild(textArea);
                         });
                 }
-            </script>
-            <script>
+
                 document.addEventListener("DOMContentLoaded", function() {
                     const toggle = document.getElementById("sidebarToggle");
                     const sidebar = document.getElementById("sidebar-main");
@@ -156,3 +187,5 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                     });
                 });
             </script>
+
+            <?php loadPageJs('admin-home-header'); ?>

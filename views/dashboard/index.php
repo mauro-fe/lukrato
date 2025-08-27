@@ -1,8 +1,8 @@
 <!-- Base URL e CSRF para o JS -->
 <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token('default') ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 <script>
-    // BASE_URL sempre com / no final
-    window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
+// BASE_URL sempre com / no final
+window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
 </script>
 
 <!---------------------TTTTTTTTTTTTTEEEEEEEEEEEEEEESSSSSSSSSSSSSSSTTTTTTTTTTTTTSSSSSSSSS---->
@@ -10,40 +10,7 @@
 <!-- Chart.js UMD (necessário antes do dashboard-index.js) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<section class="main-content">
-    <!-- Header -->
-    <header class="header">
-        <div class="header-left">
-            <div class="month-selector">
-                <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-
-                <div class="month-display">
-                    <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
-                        <span id="currentMonthText">Janeiro 2025</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="month-dropdown" id="monthDropdown" role="menu"></div>
-                </div>
-
-                <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="header-right">
-            <button class="btn btn-ghost" id="exportBtn" aria-label="Exportar dados">
-                <i class="fas fa-download"></i> Exportar
-            </button>
-            <div class="user-avatar">
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
-                    alt="Avatar do usuário">
-            </div>
-        </div>
-    </header>
-
+<section>
     <!-- Conteúdo -->
     <div class="container">
         <!-- KPIs -->
