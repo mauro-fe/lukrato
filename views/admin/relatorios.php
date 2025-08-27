@@ -23,11 +23,13 @@
 
     .lk-t {
         font-size: 28px;
+        color: #e67e22;
         font-weight: 700
     }
 
     .lk-controls {
         display: flex;
+        margin-top: 50px;
         gap: 12px;
         flex-wrap: wrap
     }
@@ -57,7 +59,7 @@
 
     .lk-seg button.active {
         background: #eef2ff;
-        color: #6d4aff
+        color: #e67e22
     }
 
     .lk-sel {
@@ -129,7 +131,7 @@
         padding: 8px 14px;
         border-radius: 999px;
         font-weight: 700;
-        color: #6d4aff
+        color: #e67e22
     }
 
     .lk-arrow {
@@ -453,6 +455,3 @@
         load();
     })();
 </script>
-
-</div>
-</main>

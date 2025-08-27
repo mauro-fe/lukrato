@@ -60,27 +60,10 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
                 <i class="fas fa-exchange-alt" aria-hidden="true"></i>
                 <span>Lançamentos</span>
             </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/contas" class="nav-item <?= $active('contas') ?>" aria-label="Contas"
-                <?= $aria('contas') ?>>
-                <i class="fas fa-wallet" aria-hidden="true"></i>
-                <span>Contas</span>
-            </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/categorias" class="nav-item <?= $active('categorias') ?>"
-                aria-label="Categorias" <?= $aria('categorias') ?>>
-                <i class="fas fa-tags" aria-hidden="true"></i>
-                <span>Categorias</span>
-            </a>
-            <a href="<?= $base ?>admin/<?= $u ?>/cartoes" class="nav-item <?= $active('cartoes') ?>"
-                aria-label="Cartões" <?= $aria('cartoes') ?>>
-                <i class="fas fa-credit-card" aria-hidden="true"></i>
-                <span>Cartões</span>
-            </a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" aria-label="Relatórios"
                 <?= $aria('relatorios') ?>>
                 <i class="fas fa-chart-bar"></i> <span>Relatórios</span>
             </a>
-
-
             <a href="<?= $base ?>admin/<?= $u ?>/config" class="nav-item <?= $active('config') ?>"
                 aria-label="Configurações" <?= $aria('config') ?>>
                 <i class="fas fa-cog" aria-hidden="true"></i>
