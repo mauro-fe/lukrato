@@ -189,3 +189,5 @@ $menu      = $menu ?? 'dashboard'; // Variável que controla o item de menu ativ
             </script>
 
             <?php loadPageJs('admin-home-header'); ?>
+
+            <?php loadPageJs(); ?>
