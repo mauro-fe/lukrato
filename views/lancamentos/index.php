@@ -1,57 +1,57 @@
 <style>
-/* ===== Offset para não ficar sob o header sticky ===== */
-:root {
-    /* margem superior que o conteúdo precisa para não ficar embaixo do header */
-    --content-top-offset: calc(var(--header-height) + var(--spacing-4));
-}
-
-/* se sua página usa <main class="main-content"> ou .lukrato-main, ambas cobertas */
-.main-content,
-.lukrato-main {
-    padding-top: var(--content-top-offset);
-    padding-left: var(--container-padding);
-    padding-right: var(--container-padding);
-}
-
-/* quando o aside some no mobile, mantemos um pouco menos de espaço */
-@media (max-width: 768px) {
+    /* ===== Offset para não ficar sob o header sticky ===== */
     :root {
-        --content-top-offset: calc(var(--header-height) + var(--spacing-2));
+        /* margem superior que o conteúdo precisa para não ficar embaixo do header */
+        --content-top-offset: calc(var(--header-height) + var(--spacing-4));
     }
-}
 
-.content-offset {
-    padding-top: var(--content-top-offset);
-}
+    /* se sua página usa <main class="main-content"> ou .lukrato-main, ambas cobertas */
+    .main-content,
+    .lukrato-main {
+        padding-top: var(--content-top-offset);
+        padding-left: var(--container-padding);
+        padding-right: var(--container-padding);
+    }
 
-/* alias para a tabela de lançamentos */
-.lukrato-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    /* quando o aside some no mobile, mantemos um pouco menos de espaço */
+    @media (max-width: 768px) {
+        :root {
+            --content-top-offset: calc(var(--header-height) + var(--spacing-2));
+        }
+    }
 
-.lukrato-table th,
-.lukrato-table td {
-    text-align: left;
-    padding: var(--spacing-4);
-    border-bottom: 1px solid var(--glass-border);
-    color: var(--branco);
-}
+    .content-offset {
+        padding-top: var(--content-top-offset);
+    }
 
-.lukrato-table th {
-    font-weight: 600;
-    color: var(--cinza);
-    font-size: var(--font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
+    /* alias para a tabela de lançamentos */
+    .lukrato-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-.lukrato-table tr:hover {
-    background-color: var(--glass-bg);
-}
+    .lukrato-table th,
+    .lukrato-table td {
+        text-align: left;
+        padding: var(--spacing-4);
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--branco);
+    }
+
+    .lukrato-table th {
+        font-weight: 600;
+        color: var(--cinza);
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .lukrato-table tr:hover {
+        background-color: var(--glass-bg);
+    }
 </style>
 
-<section class="main-content">
+<section>
     <header class="page-header">
         <h1><i class="fas fa-receipt"></i> Lançamentos</h1>
     </header>

@@ -56,28 +56,86 @@ if (!function_exists('csrf_input')) {
     }
 }
 if (!function_exists('loadPageCss')) {
-    function loadPageCss(): void
+    function loadPageCss(?string $view = null): void
     {
-        $view = $GLOBALS['current_view'] ?? '';
-        $cssPath = 'assets/css/' . $view . '.css';
+        // 1) De onde vem o nome da view?
+        $view = $view ?? ($GLOBALS['current_view'] ?? '');
+        if ($view === '') return;
 
-        if (file_exists(__DIR__ . '/../../public/' . $cssPath)) {
-            echo '<link rel="stylesheet" href="' . BASE_URL . $cssPath . '">' . PHP_EOL;
+        // 2) Candidatos de caminhos para o CSS
+        $candidates = [];
+
+        // assets/css/admin/home/header.css  (mesma estrutura de pastas)
+        $candidates[] = 'assets/css/' . $view . '.css';
+
+        // assets/css/admin-home-header.css  (hífens)
+        $candidates[] = 'assets/css/' . str_replace(['\\', '/'], '-', $view) . '.css';
+
+        // assets/css/admin-home.css (opcional – pacote por pasta)
+        $parts = preg_split('#[\\/]+#', $view);
+        if ($parts && count($parts) >= 2) {
+            $candidates[] = 'assets/css/' . implode('-', array_slice($parts, 0, -1)) . '.css';
+        }
+
+        // 3) Tenta injetar o primeiro que existir
+        $publicRoot = __DIR__ . '/../../public/';
+        foreach ($candidates as $cssPath) {
+            if (file_exists($publicRoot . $cssPath)) {
+                echo '<link rel="stylesheet" href="' . BASE_URL . $cssPath . '">' . PHP_EOL;
+                return;
+            }
         }
     }
 }
+
 
 if (!function_exists('loadPageJs')) {
-    function loadPageJs(): void
+    /**
+     * Carrega dinamicamente um arquivo JS baseado na view atual
+     * ou em um nome passado manualmente.
+     *
+     * Regras de resolução (na ordem):
+     *   1) assets/js/{view}.js                     // mesma estrutura de pastas
+     *   2) assets/js/{view-com-hifens}.js         // barras/contra-barras -> hífens
+     *   3) assets/js/{pacote-da-pasta}.js         // opcional: junta pastas, sem o último segmento
+     *
+     * Ex.: view = "admin/home/header"
+     *   -> assets/js/admin/home/header.js
+     *   -> assets/js/admin-home-header.js
+     *   -> assets/js/admin-home.js
+     *
+     * Uso:
+     *   <?php loadPageJs(); ?> // usa $GLOBALS['current_view']
+     * <?php loadPageJs('admin/home/header'); ?>
+     */
+    function loadPageJs(?string $view = null): void
     {
-        $view = $GLOBALS['current_view'] ?? '';
-        $jsPath = 'assets/js/' . $view . '.js';
+        // 1) origem do nome
+        $view = $view ?? ($GLOBALS['current_view'] ?? '');
+        if ($view === '') return;
 
-        if (file_exists(__DIR__ . '/../../public/' . $jsPath)) {
-            echo '<script src="' . BASE_URL . $jsPath . '"></script>' . PHP_EOL;
+        // 2) candidatos
+        $candidates = [];
+        $candidates[] = 'assets/js/' . $view . '.js';
+        $candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
+
+        $parts = preg_split('#[\\/]+#', $view);
+        if ($parts && count($parts) >= 2) {
+            $candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
+        }
+
+        // 3) injeta o primeiro que existir
+        $publicRoot = __DIR__ . '/../../public/';
+        foreach ($candidates as $jsPath) {
+            if (file_exists($publicRoot . $jsPath)) {
+                echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
+                return;
+            }
         }
     }
 }
+
+
 
 function buscarValor($respostas, string $chave): ?string
 {
