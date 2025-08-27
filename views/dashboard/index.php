@@ -1,8 +1,8 @@
 <!-- Base URL e CSRF para o JS -->
 <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token('default') ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 <script>
-// BASE_URL sempre com / no final
-window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
+    // BASE_URL sempre com / no final
+    window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
 </script>
 
 <!---------------------TTTTTTTTTTTTTEEEEEEEEEEEEEEESSSSSSSSSSSSSSSTTTTTTTTTTTTTSSSSSSSSS---->
@@ -114,9 +114,6 @@ window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
 </section>
 
 
-<i class="fas fa-chevron-left"></i>
-</button>
-<span id="mpLabel" class="mp-label" style="min-width:170px;text-align:center;font-weight:700;"></span>
 
 
 <!-- Modal Receita -->
