@@ -81,6 +81,103 @@
   }
 }
 
+/* ======================= Month Selector (dentro do header) ======================= */
+.lk-header .month-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2);
+}
+.lk-header .month-nav-btn {
+  background: none;
+  border: 0;
+  color: var(--cinza);
+  cursor: pointer;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+.lk-header .month-nav-btn:hover {
+  background-color: var(--glass-bg);
+  color: var(--branco);
+}
+.lk-header .month-display {
+  position: relative;
+}
+.lk-header .month-dropdown-btn {
+  background: none;
+  border: 0;
+  color: var(--branco);
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 600;
+  min-width: 140px;
+  justify-content: space-between;
+}
+.lk-header .month-dropdown-btn:hover {
+  background-color: var(--glass-bg);
+}
+.lk-header .month-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--azul);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: var(--transition-fast);
+}
+.lk-header .month-dropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.lk-header .month-dropdown button {
+  width: 100%;
+  background: none;
+  border: 0;
+  color: var(--branco);
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.lk-header .month-dropdown button:hover {
+  background-color: var(--glass-bg);
+}
+.lk-header .user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--laranja);
+}
+.lk-header .user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Layout - Main Content */
 .main-content {
   margin-left: var(--sidebar-width);
@@ -324,47 +421,6 @@
   font-size: var(--font-size-base);
   max-width: 400px;
   margin: 0 auto;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-5);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  text-decoration: none;
-  justify-content: center;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--laranja), var(--amarelo));
-  color: var(--branco);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-ghost {
-  background: var(--glass-bg);
-  color: var(--cinza);
-  border: 1px solid var(--glass-border);
-}
-
-.btn-ghost:hover {
-  background-color: var(--glass-border);
-  color: var(--branco);
 }
 
 /* Floating Action Button */

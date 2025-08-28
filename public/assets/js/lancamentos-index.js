@@ -1,80 +1,90 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const tbody = document.getElementById("tbodyLancamentos");
-    const filtroMes = document.getElementById("filtroMes");
-    const filtroTipo = document.getElementById("filtroTipo");
-    const filtroCategoria = document.getElementById("filtroCategoria");
+/* Página: Lançamentos */
+(() => {
+    const BASE_URL = (window.BASE_URL || '/').replace(/\/?$/, '/');
+    const API = (p) => `${BASE_URL}api/${p.replace(/^\/+/, '')}`;
 
-    async function carregarCategorias() {
-        try {
-            const r = await fetch(`${window.BASE_URL}api/options`, { credentials: 'include' });
-            if (!r.ok) throw new Error('Falha ao buscar categorias');
-            const json = await r.json();
+    const $ = (s) => document.querySelector(s);
+    const tbody = $('#tbodyLancamentos');
+    const form = $('#formFiltros');
+    const fMes = $('#filtroMes');
+    const fTipo = $('#filtroTipo');
 
-            filtroCategoria.innerHTML = '<option value="">Todas</option>';
-            const mix = [...(json?.categorias?.receitas || []), ...(json?.categorias?.despesas || [])];
-            mix.forEach(c => filtroCategoria.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.nome}</option>`));
-        } catch (err) {
-            console.error(err);
+    const fmt = {
+        money: (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(n || 0)),
+        date: (iso) => {
+            if (!iso) return '—';
+            const m = String(iso).split(/[T\s]/)[0].match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
         }
+    };
+
+    function getMonth() { return window.LukratoHeader?.getMonth?.() || fMes?.value || new Date().toISOString().slice(0, 7); }
+
+    function setEmpty(msg) { if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center">${msg}</td></tr>`; }
+
+    function normalizeList(p) { if (Array.isArray(p)) return p; if (p?.items) return p.items; if (p?.data) return p.data; if (p?.lancamentos) return p.lancamentos; return []; }
+
+    async function fetchList() {
+        const month = getMonth();
+        const tipo = fTipo?.value || '';
+        const q = `month=${encodeURIComponent(month)}&tipo=${encodeURIComponent(tipo)}&limit=200`;
+
+        // tenta alguns endpoints
+        const paths = [`lancamentos?${q}`, `transactions?${q}`, `dashboard/transactions?${q}`];
+        for (const p of paths) {
+            const r = await fetch(API(p), { credentials: 'include' });
+            if (r.ok) return normalizeList(await r.json());
+            if (r.status !== 404) break;
+        }
+        return [];
     }
 
-    async function carregarLancamentos() {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center">Carregando...</td></tr>`;
-        try {
-            const month = filtroMes.value;
-            const r = await fetch(`${window.BASE_URL}api/dashboard/transactions?month=${encodeURIComponent(month)}&limit=500`, { credentials: 'include' });
-            if (!r.ok) throw new Error('Falha ao buscar lançamentos');
-            const data = await r.json();
-
-            const filtrados = data.filter(t => {
-                if (filtroTipo.value && t.tipo !== filtroTipo.value) return false;
-                if (filtroCategoria.value && String(t.categoria?.id) !== filtroCategoria.value) return false;
-                return true;
-            });
-
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center">Nenhum lançamento encontrado</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = "";
-            filtrados.forEach(t => {
-                const cor = t.tipo === 'receita' ? 'var(--verde)' : 'var(--vermelho)';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-          <td>${t.data}</td>
-          <td>${t.tipo}</td>
-          <td>${t.categoria ? t.categoria.nome : '—'}</td>
-          <td>${t.descricao || '—'}</td>
-          <td>${t.observacao || '—'}</td>
-          <td class="text-right" style="font-weight:700;color:${cor}">R$ ${Number(t.valor).toFixed(2).replace('.', ',')}</td>
-          <td class="text-center">
-            <button class="btn-icon" data-edit="${t.id}" title="Editar"><i class="fas fa-edit"></i></button>
-            <button class="btn-icon text-red" data-delete="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button>
-          </td>
-        `;
-                tbody.appendChild(tr);
-            });
-        } catch (err) {
-            console.error(err);
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red">Erro ao carregar lançamentos</td></tr>`;
-        }
+    async function render() {
+        if (!tbody) return;
+        setEmpty('Carregando…');
+        const list = await fetchList();
+        if (!list.length) { setEmpty('Sem lançamentos para o período'); return; }
+        tbody.innerHTML = list.map(t => `
+      <tr>
+        <td>${fmt.date(t.data)}</td>
+        <td>${t.tipo || '—'}</td>
+        <td>${t.categoria_nome || t.categoria?.nome || t.categoria || '—'}</td>
+        <td>${t.conta?.nome || '—'}</td>
+        <td>${t.descricao || t.observacao || '—'}</td>
+        <td class="text-right">${fmt.money(t.valor)}</td>
+      </tr>
+    `).join('');
     }
 
-    // Ações do topo
-    document.getElementById("btnNovaReceita")?.addEventListener("click", () => {
-        if (typeof openModal === 'function') openModal("modalReceita");
-    });
-    document.getElementById("btnNovaDespesa")?.addEventListener("click", () => {
-        if (typeof openModal === 'function') openModal("modalDespesa");
-    });
+    // export acionado pelo header
+    async function onExport(month) {
+        const list = await fetchList();
+        const rows = list.map(t => [
+            fmt.date(t.data),
+            t.tipo || '',
+            t.categoria_nome || t.categoria?.nome || t.categoria || '',
+            t.conta?.nome || '',
+            String(t.descricao || t.observacao || '').replace(/[\r\n;]+/g, ' '),
+            (Number(t.valor) || 0).toFixed(2).replace('.', ',')
+        ].join(';'));
+        const csv = ['Data;Tipo;Categoria;Conta/Cartão;Descrição;Valor', ...rows].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement('a'), { href: url, download: `lukrato-${month}.csv` });
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
 
-    // Filtros
-    document.getElementById("formFiltros")?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        carregarLancamentos();
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+        render();
+        form?.addEventListener('submit', (e) => { e.preventDefault(); render(); });
+        fMes?.addEventListener('change', render);
+        fTipo?.addEventListener('change', render);
 
-    // Inicialização
-    carregarCategorias().then(carregarLancamentos);
-});
+        // mês mudou no header → recarrega
+        document.addEventListener('lukrato:month-changed', render);
+        // header pediu exportar → gera CSV desta página
+        document.addEventListener('lukrato:export-click', (e) => onExport(e.detail?.month));
+        // algum modal salvou algo → recarrega
+        document.addEventListener('lukrato:data-changed', render);
+    });
+})();
