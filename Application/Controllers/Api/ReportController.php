@@ -31,7 +31,7 @@ class ReportController extends BaseController
         $end   = (clone $start)->endOfMonth()->endOfDay();
 
         // id do usuário logado
-        $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
+        $userId = $this->adminId ?? null;
         if (!$userId) {
             Response::json(['error' => 'Unauthorized'], 401);
             return;
@@ -41,12 +41,13 @@ class ReportController extends BaseController
             // ------------------ PIZZA: DESPESAS POR CATEGORIA ------------------
             case 'despesas_por_categoria':
                 $data = Lancamento::query()
-                    ->select('categorias.nome as label', DB::raw('SUM(lancamentos.valor) as total'))
-                    ->join('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                    ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                    ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
+                    ->selectRaw('SUM(lancamentos.valor) as total')
                     ->where('lancamentos.user_id', $userId)
                     ->where('lancamentos.tipo', 'despesa')
                     ->whereBetween('lancamentos.data', [$start, $end])
-                    ->groupBy('categorias.nome')
+                    ->groupBy('label')
                     ->orderByDesc('total')
                     ->get();
 
@@ -66,12 +67,13 @@ class ReportController extends BaseController
                 // ------------------ PIZZA: RECEITAS POR CATEGORIA ------------------
             case 'receitas_por_categoria':
                 $data = Lancamento::query()
-                    ->select('categorias.nome as label', DB::raw('SUM(lancamentos.valor) as total'))
-                    ->join('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                    ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                    ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
+                    ->selectRaw('SUM(lancamentos.valor) as total')
                     ->where('lancamentos.user_id', $userId)
                     ->where('lancamentos.tipo', 'receita')
                     ->whereBetween('lancamentos.data', [$start, $end])
-                    ->groupBy('categorias.nome')
+                    ->groupBy('label')
                     ->orderByDesc('total')
                     ->get();
 
@@ -117,6 +119,73 @@ class ReportController extends BaseController
                     'end'    => $end->toDateString(),
                     'type'   => $type,
                     'total'  => array_sum($values),
+                ]);
+                return;
+
+                // ------------------ BARRAS: RECEITAS x DESPESAS (por dia) ----------
+            case 'receitas_despesas_diario':
+                $rows = Lancamento::query()
+                    ->selectRaw('DATE(lancamentos.data) as dia')
+                    ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE 0 END) as receitas")
+                    ->selectRaw("SUM(CASE WHEN lancamentos.tipo='despesa' THEN lancamentos.valor ELSE 0 END) as despesas")
+                    ->where('lancamentos.user_id', $userId)
+                    ->whereBetween('lancamentos.data', [$start, $end])
+                    ->groupBy(DB::raw('DATE(lancamentos.data)'))
+                    ->orderBy('dia')
+                    ->get();
+
+                $labels = [];
+                $receitas = [];
+                $despesas = [];
+                $cursor = clone $start;
+                while ($cursor <= $end) {
+                    $d = $cursor->toDateString();
+                    $labels[]   = $cursor->format('d/m');
+                    $receitas[] = (float) ($rows->firstWhere('dia', $d)->receitas ?? 0);
+                    $despesas[] = (float) ($rows->firstWhere('dia', $d)->despesas ?? 0);
+                    $cursor->addDay();
+                }
+
+                Response::json([
+                    'labels'   => $labels,
+                    'receitas' => $receitas,
+                    'despesas' => $despesas,
+                    'type'     => $type,
+                    'start'    => $start->toDateString(),
+                    'end'      => $end->toDateString(),
+                ]);
+                return;
+
+                // ------------------ LINHA: EVOLUÇÃO 12 MESES (saldo por mês) -------
+            case 'evolucao_12m':
+                $ini = (clone $start)->subMonthsNoOverflow(11)->startOfMonth();
+                $fim = (clone $end);
+
+                $rows = Lancamento::query()
+                    ->selectRaw("DATE_FORMAT(lancamentos.data, '%Y-%m-01') as mes")
+                    ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as saldo")
+                    ->where('lancamentos.user_id', $userId)
+                    ->whereBetween('lancamentos.data', [$ini, $fim])
+                    ->groupBy('mes')
+                    ->orderBy('mes')
+                    ->get();
+
+                $labels = [];
+                $values = [];
+                $cursor = clone $ini;
+                while ($cursor <= $fim) {
+                    $ym = $cursor->format('Y-m-01');
+                    $labels[] = $cursor->format('m/Y');
+                    $values[] = (float) ($rows->firstWhere('mes', $ym)->saldo ?? 0);
+                    $cursor->addMonth();
+                }
+
+                Response::json([
+                    'labels' => $labels,
+                    'values' => $values,
+                    'type'   => $type,
+                    'start'  => $ini->toDateString(),
+                    'end'    => $fim->toDateString(),
                 ]);
                 return;
 
