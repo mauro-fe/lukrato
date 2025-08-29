@@ -6,8 +6,6 @@
 
 use Application\Core\Router;
 
-
-
 // ============================================================================
 // ROTAS PÚBLICAS / AUTENTICAÇÃO (simples)
 // ============================================================================
@@ -21,7 +19,6 @@ registerSimpleRoutes();
 // ============================================================================
 // ROTAS ADMINISTRATIVAS LEGACY (mantidas por compatibilidade)
 // ============================================================================
-
 registerFinanceRoutes();
 
 // ============================================================================
@@ -55,7 +52,6 @@ function registerSimpleRoutes(): void
     // Lançamentos (já existentes)
     Router::add('GET',  'lancamentos',       'Admin\LancamentoController@index',  ['auth']);
 
-
     // === API (dashboard) ===
     Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
     Router::add('GET',  'api/dashboard/transactions',  'Api\FinanceApiController@transactions', ['auth']);
@@ -65,15 +61,14 @@ function registerSimpleRoutes(): void
     // Página de relatórios
     Router::add('GET', 'relatorios', 'RelatoriosController@view', ['auth']);
 
-    // API de relatórios
+    // === API de relatórios (NOVAS) ===
+    Router::add('GET', 'api/reports/overview',   'RelatoriosController@overview',   ['auth']);
+    Router::add('GET', 'api/reports/table',      'RelatoriosController@table',      ['auth']);
+    Router::add('GET', 'api/reports/timeseries', 'RelatoriosController@timeseries', ['auth']);
+
+    // Compatibilidade antiga (se houver front/integração usando /api/reports)
     Router::add('GET', 'api/reports', 'Api\ReportController@index', ['auth']);
 }
-
-
-
-
-
-
 
 /**
  * Finance (legado com username na URL)
@@ -122,7 +117,6 @@ function registerRedirectRoutes(): void
         header('Location: ' . BASE_URL . 'dashboard');
         exit;
     });
-
 
     Router::add('GET', 'admin/home', function () {
         redirectToUserDashboard();

@@ -62,10 +62,12 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;
 }
+
 body {
   font-family: var(--font-primary);
   background-color: var(--fundo) !important;
@@ -73,23 +75,28 @@ body {
   line-height: 1.5;
   overflow-x: hidden;
 }
+
 *:focus {
   outline: 2px solid var(--laranja);
   outline-offset: 2px;
 }
+
 .container {
   padding: var(--container-padding);
   max-width: 1400px;
   margin: 0 auto;
 }
+
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -110,35 +117,47 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+
 .sidebar-header {
   padding: var(--spacing-6);
   border-bottom: 1px solid var(--glass-border);
 }
+
 .logo img {
   max-width: 150px !important;
 }
+
 .sidebar-nav {
   flex: 1;
   padding: var(--spacing-4) 0;
 }
+
 .nav-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6);
-  color: var(--cinza);
+  color: var(--branco);
   text-decoration: none;
   transition: var(--transition-fast);
   font-weight: 500;
+
+  span {
+    color: #fff;
+  }
 }
+
 .nav-item:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
+
 .nav-item.active {
   background-color: var(--laranja);
   color: var(--branco);
 }
+
 .nav-item i {
   font-size: var(--font-size-lg);
   width: 20px;
@@ -178,6 +197,7 @@ body {
   width: calc(100% - var(--sidebar-width));
   z-index: 200;
 }
+
 .header-left,
 .header-right {
   display: flex;
@@ -189,7 +209,8 @@ body {
 .main-content {
   margin-left: var(--sidebar-width);
   min-height: 100vh;
-  padding-top: var(--header-height); /* evita conteúdo atrás do header fixo */
+  padding-top: var(--header-height);
+  /* evita conteúdo atrás do header fixo */
 }
 
 /* ======================= Month Selector ======================= */
@@ -202,10 +223,11 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--spacing-2);
 }
+
 .month-nav-btn {
   background: none;
   border: 0;
-  color: var(--cinza);
+  color: var(--branco);
   cursor: pointer;
   padding: var(--spacing-2);
   border-radius: var(--radius-sm);
@@ -216,13 +238,16 @@ body {
   width: 32px;
   height: 32px;
 }
+
 .month-nav-btn:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
+
 .month-display {
   position: relative;
 }
+
 .month-dropdown-btn {
   background: none;
   border: 0;
@@ -238,9 +263,11 @@ body {
   min-width: 140px;
   justify-content: space-between;
 }
+
 .month-dropdown-btn:hover {
   background-color: var(--glass-bg);
 }
+
 .month-dropdown {
   position: absolute;
   top: 100%;
@@ -258,11 +285,13 @@ body {
   transform: translateY(-10px);
   transition: var(--transition-fast);
 }
+
 .month-dropdown.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
+
 .month-dropdown button {
   width: 100%;
   background: none;
@@ -273,9 +302,11 @@ body {
   cursor: pointer;
   transition: var(--transition-fast);
 }
+
 .month-dropdown button:hover {
   background-color: var(--glass-bg);
 }
+
 .user-avatar {
   width: 40px;
   height: 40px;
@@ -283,6 +314,7 @@ body {
   overflow: hidden;
   border: 2px solid var(--laranja);
 }
+
 .user-avatar img {
   width: 100%;
   height: 100%;
@@ -304,6 +336,7 @@ body {
     transition: left 0.3s ease;
     z-index: 1000;
   }
+
   .sidebar.open {
     left: 0;
   }

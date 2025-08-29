@@ -1,7 +1,3 @@
-<?php
-// View: Relatórios – integrada ao layout padrão (header/footer via renderAdmin)
-?>
-
 <style>
     /* ====== Layout base (escopado) ====== */
     .lk-page {
@@ -81,6 +77,11 @@
     /* ====== Dropdown ====== */
     .lk-sel {
         position: relative;
+
+        span {
+            color: #e67e22;
+        }
+
     }
 
     .lk-sel>button {
@@ -122,6 +123,7 @@
         border: 0;
         padding: 10px 14px;
         cursor: pointer;
+
     }
 
     .lk-menu>button:hover {
@@ -621,4 +623,28 @@
 
         load();
     })();
+    // deixar o refresh disponível globalmente (p/ modal chamar)
+    window.refreshReports = function() {
+        // mantém o mês/aba/tipo atuais (st.d / st.view / st.type)
+        load();
+    };
+
+    // (opcional) helpers para controlar de fora, se quiser:
+    window.setReportsMonth = function(ym) { // "YYYY-MM"
+        if (!/^\d{4}-\d{2}$/.test(ym)) return;
+        const [y, m] = ym.split('-').map(Number);
+        st.d = new Date(y, m - 1, 1);
+        sync();
+        load();
+    };
+
+    window.setReportsView = function(view) { // 'pizza' | 'linha' | 'barras' | 'evolucao'
+        const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
+        if (btn) btn.click(); // reaproveita seu handler de abas
+    };
+
+    window.setReportsType = function(type) { // 'despesas_por_categoria' | 'receitas_por_categoria'
+        const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
+        if (b) b.click(); // reaproveita seu handler do dropdown
+    };
 </script>
