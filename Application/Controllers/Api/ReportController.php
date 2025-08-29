@@ -32,21 +32,28 @@ class ReportController extends BaseController
 
         // id do usuário logado
         $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
-        if (!$userId) {
-            Response::json(['error' => 'Unauthorized'], 401);
-            return;
-        }
+
+        $userScope = function ($q) use ($userId) {
+            $q->where(function ($q2) use ($userId) {
+                $q2->whereNull('lancamentos.user_id');   // pega lançamentos sem dono
+                if (!empty($userId)) {
+                    $q2->orWhere('lancamentos.user_id', $userId); // e os do usuário, se houver
+                }
+            });
+        };
 
         switch ($type) {
             // ------------------ PIZZA: DESPESAS POR CATEGORIA ------------------
             case 'despesas_por_categoria':
+                // despesas_por_categoria
                 $data = Lancamento::query()
-                    ->select('categorias.nome as label', DB::raw('SUM(lancamentos.valor) as total'))
-                    ->join('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
-                    ->where('lancamentos.user_id', $userId)
+                    ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                    ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
+                    ->selectRaw('SUM(lancamentos.valor) as total')
+                    ->where($userScope)                      // <-- aqui
                     ->where('lancamentos.tipo', 'despesa')
                     ->whereBetween('lancamentos.data', [$start, $end])
-                    ->groupBy('categorias.nome')
+                    ->groupBy('label')
                     ->orderByDesc('total')
                     ->get();
 

@@ -1,0 +1,214 @@
+/* ======================= Lançamentos: página ======================= */
+
+/* Header da página */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+.page-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--branco);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+.page-header h1 i {
+  color: var(--laranja);
+}
+
+/* ======================= Filtros ======================= */
+.filters {
+  margin-bottom: var(--spacing-6);
+}
+
+.filter-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-4);
+  align-items: end;
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow-md);
+}
+
+/* grupos e campos */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.form-group label {
+  font-size: var(--font-size-sm);
+  color: var(--cinza);
+  font-weight: 600;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--spacing-4);
+  color: var(--branco);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast),
+    box-shadow var(--transition-fast), background var(--transition-fast);
+  appearance: none;
+}
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.25);
+  outline: none;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+/* botão filtrar (usa o seu padrão .btn .btn-ghost, mas reforço aqui caso não exista) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-5);
+  height: 44px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast), color var(--transition-fast);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--branco);
+  border-color: var(--glass-border);
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--laranja);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+.btn i {
+  font-size: 0.95em;
+}
+
+/* No grid dos filtros, o botão ocupa 1 coluna e alinha no fim */
+.filter-form .btn {
+  justify-self: start;
+}
+
+/* ======================= Tabela ======================= */
+.table-container {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden; /* clip borda arredondada */
+}
+
+/* scroll horizontal suave em telas pequenas */
+.table-container {
+  overflow-x: auto;
+}
+
+/* Tabela principal */
+.lukrato-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px; /* evita quebra feia em mobile muito estreito */
+  color: var(--branco);
+}
+
+.lukrato-table thead th {
+  position: sticky;
+  top: 0; /* útil se a tabela rolar dentro do container */
+  z-index: 1;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cinza);
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--glass-border);
+  padding: var(--spacing-4) var(--spacing-6);
+  backdrop-filter: blur(6px);
+}
+
+.lukrato-table tbody td {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+/* zebra */
+.lukrato-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* hover */
+.lukrato-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* alinhamentos utilitários */
+.text-right {
+  text-align: right;
+}
+.text-center {
+  text-align: center;
+}
+
+/* estados “vazio/carregando” (caso você use) */
+.lukrato-table tbody td[colspan] {
+  color: var(--cinza);
+  font-weight: 600;
+  padding: var(--spacing-6);
+}
+
+/* ======================= Responsividade ======================= */
+@media (max-width: 1200px) {
+  .filter-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filter-form .btn {
+    grid-column: 1 / -1; /* botão ocupa a linha inteira */
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-form {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4);
+  }
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+  .lukrato-table {
+    min-width: 600px; /* permite scroll horizontal controlado */
+  }
+}
