@@ -224,7 +224,6 @@ body {
     transition: left 0.3s ease;
     z-index: 1000;
   }
-
   .sidebar.open {
     left: 0;
   }
@@ -304,6 +303,24 @@ body {
   border: none;
   color: var(--cinza);
   font-size: var(--font-size-lg);
+
+}
+.lk-modal.active .lk-modal-content {
+  transform: scale(1);
+}
+.lk-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.month-nav-btn {
+  background: none;
+  border: 0;
+  color: var(--branco);
+
   cursor: pointer;
   padding: var(--spacing-2);
   border-radius: var(--radius-sm);
@@ -353,6 +370,63 @@ body {
   cursor: pointer;
   font-size: var(--font-size-sm);
   color: var(--cinza);
+
+.checkbox-custom {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--cinza);
+  border-radius: var(--radius-sm);
+  background-color: var(--azul);
+  transition: var(--transition-fast);
+}
+input[type="checkbox"]:checked + .checkbox-custom {
+  background-color: var(--verde);
+  border-color: var(--verde);
+}
+input[type="checkbox"] {
+  display: none;
+}
+.btn {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition-fast);
+}
+.btn-primary {
+  background-color: var(--laranja);
+  border: 1px solid var(--laranja);
+  color: var(--branco);
+}
+.btn-ghost {
+  background-color: transparent;
+  border: 1px solid var(--cinza);
+  color: var(--cinza);
+}
+.btn-primary:hover {
+  background-color: var(--amarelo);
+  border-color: var(--amarelo);
+}
+.btn-ghost:hover {
+  color: var(--branco);
+  border-color: var(--branco);
+}
+/* Estilos para o seletor de mês */
+.month-picker-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+.month-nav-btn {
+  background: none;
+  border: 1px solid var(--glass-border);
+  color: var(--cinza);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+
 }
 .checkbox-custom {
   display: inline-block;
@@ -410,10 +484,12 @@ input[type="checkbox"] {
   cursor: pointer;
   transition: var(--transition-fast);
 }
+
 .month-nav-btn:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
+
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -428,6 +504,14 @@ input[type="checkbox"] {
   gap: var(--spacing-2);
 }
 .calendar-day {
+
+
+.month-display {
+  position: relative;
+}
+
+.month-dropdown-btn {
+
   background: none;
   border: none;
   color: var(--branco);
@@ -486,6 +570,7 @@ input[type="checkbox"] {
   box-shadow: var(--shadow-lg);
   position: relative;
 }
+
 .fab:hover {
   transform: scale(1.1);
   box-shadow: var(--shadow-xl);
@@ -497,6 +582,13 @@ input[type="checkbox"] {
   transform: rotate(45deg);
 }
 .fab-menu {
+
+.month-dropdown-btn:hover {
+  background-color: var(--glass-bg);
+}
+
+.month-dropdown {
+
   position: absolute;
   bottom: 70px;
   right: 0;
@@ -508,15 +600,28 @@ input[type="checkbox"] {
   transform: translateY(20px);
   transition: var(--transition-normal);
 }
+
 .fab-menu.active {
+
+  }
+.month-dropdown.active {
+
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
+
 .fab-menu-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
+
+
+.month-dropdown button {
+  width: 100%;
+  background: none;
+  border: 0;
+  color: var(--branco);
   padding: var(--spacing-3) var(--spacing-4);
   background: var(--azul);
   color: var(--branco);
@@ -530,11 +635,63 @@ input[type="checkbox"] {
   min-width: 160px;
   justify-content: flex-start;
 }
-.fab-menu-item:hover {
+
+
+.month-dropdown button:hover {
+
   background-color: var(--glass-bg);
   transform: translateX(-5px);
 }
+
 .fab-menu-item i {
   width: 20px;
   text-align: center;
+  }
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--laranja);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ======================= Mobile ======================= */
+@media (max-width: 992px) {
+  .sidebar-toggle {
+    display: block;
+  }
+
+  /* Sidebar off-canvas */
+  .sidebar {
+    left: -260px;
+    width: 240px;
+    height: 100%;
+    background: #1e293b;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  /* Header ocupa 100% no mobile */
+  .header {
+    left: 0;
+    width: 100%;
+  }
+
+  /* Conteúdo sem margem lateral no mobile */
+  .main-content {
+    margin-left: 0;
+    padding-top: var(--header-height);
+  }
+
 }

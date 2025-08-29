@@ -31,6 +31,7 @@ class ReportController extends BaseController
         $end    = (clone $start)->endOfMonth()->endOfDay();
         $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null); // fallback
 
+<<<<<<< HEAD
         // id do usuário logado
         $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
 
@@ -39,12 +40,21 @@ class ReportController extends BaseController
                 $q2->whereNull('lancamentos.user_id');   // pega lançamentos sem dono
                 if (!empty($userId)) {
                     $q2->orWhere('lancamentos.user_id', $userId); // e os do usuário, se houver
+=======
+        // Escopo: inclui registros SEM user_id (NULL) + os do usuário (se houver)
+        $userScope = function ($q) use ($userId) {
+            $q->where(function ($q2) use ($userId) {
+                $q2->whereNull('lancamentos.user_id');
+                if (!empty($userId)) {
+                    $q2->orWhere('lancamentos.user_id', $userId);
+>>>>>>> 6345128ceac19585939f2fc4729fc7b774d1d4ba
                 }
             });
         };
 
         switch ($type) {
             // ------------------ PIZZA: DESPESAS POR CATEGORIA ------------------
+<<<<<<< HEAD
             case 'despesas_por_categoria':
                 // despesas_por_categoria
                 $data = Lancamento::query()
@@ -57,6 +67,19 @@ class ReportController extends BaseController
                     ->groupBy('label')
                     ->orderByDesc('total')
                     ->get();
+=======
+            case 'despesas_por_categoria': {
+                    $data = Lancamento::query()
+                        ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                        ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
+                        ->selectRaw('SUM(lancamentos.valor) as total')
+                        ->where($userScope)
+                        ->where('lancamentos.tipo', 'despesa')
+                        ->whereBetween('lancamentos.data', [$start, $end])
+                        ->groupBy('label')
+                        ->orderByDesc('total')
+                        ->get();
+>>>>>>> 6345128ceac19585939f2fc4729fc7b774d1d4ba
 
                     $labels = $data->pluck('label')->values()->all();
                     $values = $data->pluck('total')->map(fn($v) => (float)$v)->values()->all();
@@ -71,6 +94,7 @@ class ReportController extends BaseController
                     ]);
                     return;
                 }
+
 
                 // ------------------ PIZZA: RECEITAS POR CATEGORIA ------------------
             case 'receitas_por_categoria': {
