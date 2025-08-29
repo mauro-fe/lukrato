@@ -69,6 +69,7 @@ class ReportController extends BaseController
                     return;
                 }
 
+
                 // ------------------ PIZZA: RECEITAS POR CATEGORIA ------------------
             case 'receitas_por_categoria': {
                     $data = Lancamento::query()

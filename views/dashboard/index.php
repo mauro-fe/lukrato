@@ -109,9 +109,6 @@
 
 </section>
 
-
-
-
 <!-- Modal Receita -->
 <div class="modal" id="modalReceita" role="dialog" aria-labelledby="modalReceitaTitle" aria-hidden="true">
     <div class="modal-backdrop"></div>
