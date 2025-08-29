@@ -31,29 +31,32 @@ class ReportController extends BaseController
         $end    = (clone $start)->endOfMonth()->endOfDay();
         $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null); // fallback
 
-        // Escopo: inclui registros SEM user_id (NULL) + os do usuário (se houver)
+        // id do usuário logado
+        $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
+
         $userScope = function ($q) use ($userId) {
             $q->where(function ($q2) use ($userId) {
-                $q2->whereNull('lancamentos.user_id');
+                $q2->whereNull('lancamentos.user_id');   // pega lançamentos sem dono
                 if (!empty($userId)) {
-                    $q2->orWhere('lancamentos.user_id', $userId);
+                    $q2->orWhere('lancamentos.user_id', $userId); // e os do usuário, se houver
                 }
             });
         };
 
         switch ($type) {
             // ------------------ PIZZA: DESPESAS POR CATEGORIA ------------------
-            case 'despesas_por_categoria': {
-                    $data = Lancamento::query()
-                        ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
-                        ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
-                        ->selectRaw('SUM(lancamentos.valor) as total')
-                        ->where($userScope)
-                        ->where('lancamentos.tipo', 'despesa')
-                        ->whereBetween('lancamentos.data', [$start, $end])
-                        ->groupBy('label')
-                        ->orderByDesc('total')
-                        ->get();
+            case 'despesas_por_categoria':
+                // despesas_por_categoria
+                $data = Lancamento::query()
+                    ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
+                    ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
+                    ->selectRaw('SUM(lancamentos.valor) as total')
+                    ->where($userScope)                      // <-- aqui
+                    ->where('lancamentos.tipo', 'despesa')
+                    ->whereBetween('lancamentos.data', [$start, $end])
+                    ->groupBy('label')
+                    ->orderByDesc('total')
+                    ->get();
 
                     $labels = $data->pluck('label')->values()->all();
                     $values = $data->pluck('total')->map(fn($v) => (float)$v)->values()->all();

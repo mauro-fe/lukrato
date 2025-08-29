@@ -56,7 +56,7 @@ $base = BASE_URL; // Use the defined constant
                 <?= $aria('lancamentos') ?>>
                 <i class="fas fa-exchange-alt"></i><span>Lançamentos</span>
             </a>
-            <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" aria-label="Relatórios"
+            <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
                 <?= $aria('relatorios') ?>>
                 <i class="fas fa-chart-bar"></i><span>Relatórios</span>
             </a>

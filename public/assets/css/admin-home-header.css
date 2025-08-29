@@ -192,17 +192,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-6);
-
-  /* Fixo e alinhado ao lado da sidebar */
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  width: calc(100% - var(--sidebar-width));
-  z-index: 200;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-bottom: 1px solid var(--glass-border);
+  transition: left 0.3s ease, width 0.3s ease; /* Adiciona transição para o mobile */
 }
 
-.header-left,
-.header-right {
+.lk-header .header-left,
+.lk-header .header-right {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
@@ -213,8 +210,37 @@ body {
   margin-left: var(--sidebar-width);
   padding-top: var(--header-height);
   min-height: 100vh;
-  padding-top: var(--header-height);
-  /* evita conteúdo atrás do header fixo */
+  transition: margin-left 0.3s ease; /* Adiciona transição para o mobile */
+}
+
+/* ======================= Mobile ======================= */
+@media (max-width: 992px) {
+  /* Sidebar off-canvas */
+  .sidebar {
+    left: -260px;
+    width: 240px;
+    height: 100%;
+    background: #1e293b;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+  /* Header ocupa 100% no mobile */
+  .lk-header {
+    left: 0;
+    width: 100%;
+  }
+  /* Conteúdo sem margem lateral no mobile */
+  .main-content {
+    margin-left: 0;
+    padding-top: var(--header-height);
+  }
+  .sidebar-toggle {
+    display: block; /* Mostra o botão de toggle no mobile */
+  }
 }
 
 /* ======================= MODAIS (Header) ======================= */
@@ -268,11 +294,16 @@ body {
   padding: var(--spacing-6);
   border-bottom: 1px solid var(--glass-border);
 }
-
-.month-nav-btn {
-  background: none;
-  border: 0;
+.lk-modal-header h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
   color: var(--branco);
+}
+.lk-modal-close {
+  background: none;
+  border: none;
+  color: var(--cinza);
+  font-size: var(--font-size-lg);
   cursor: pointer;
   padding: var(--spacing-2);
   border-radius: var(--radius-sm);
@@ -379,17 +410,24 @@ input[type="checkbox"] {
   cursor: pointer;
   transition: var(--transition-fast);
 }
-
 .month-nav-btn:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
-
-.month-display {
-  position: relative;
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--cinza);
+  margin-bottom: var(--spacing-2);
 }
-
-.month-dropdown-btn {
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--spacing-2);
+}
+.calendar-day {
   background: none;
   border: none;
   color: var(--branco);
@@ -448,12 +486,17 @@ input[type="checkbox"] {
   box-shadow: var(--shadow-lg);
   position: relative;
 }
-
-.month-dropdown-btn:hover {
-  background-color: var(--glass-bg);
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-xl);
 }
-
-.month-dropdown {
+.fab:active {
+  transform: scale(0.95);
+}
+.fab.active {
+  transform: rotate(45deg);
+}
+.fab-menu {
   position: absolute;
   bottom: 70px;
   right: 0;
@@ -465,18 +508,15 @@ input[type="checkbox"] {
   transform: translateY(20px);
   transition: var(--transition-normal);
 }
-
-.month-dropdown.active {
+.fab-menu.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-
-.month-dropdown button {
-  width: 100%;
-  background: none;
-  border: 0;
-  color: var(--branco);
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   background: var(--azul);
   color: var(--branco);
@@ -490,54 +530,11 @@ input[type="checkbox"] {
   min-width: 160px;
   justify-content: flex-start;
 }
-
-.month-dropdown button:hover {
+.fab-menu-item:hover {
   background-color: var(--glass-bg);
+  transform: translateX(-5px);
 }
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--laranja);
-}
-
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* ======================= Mobile ======================= */
-@media (max-width: 992px) {
-  .sidebar-toggle {
-    display: block;
-  }
-
-  /* Sidebar off-canvas */
-  .sidebar {
-    left: -260px;
-    width: 240px;
-    height: 100%;
-    background: #1e293b;
-    transition: left 0.3s ease;
-    z-index: 1000;
-  }
-
-  .sidebar.open {
-    left: 0;
-  }
-
-  /* Header ocupa 100% no mobile */
-  .header {
-    left: 0;
-    width: 100%;
-  }
-
-  /* Conteúdo sem margem lateral no mobile */
-  .main-content {
-    margin-left: 0;
-    padding-top: var(--header-height);
-  }
+.fab-menu-item i {
+  width: 20px;
+  text-align: center;
 }
