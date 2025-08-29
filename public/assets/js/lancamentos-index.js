@@ -1,80 +1,137 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const tbody = document.getElementById("tbodyLancamentos");
-    const filtroMes = document.getElementById("filtroMes");
-    const filtroTipo = document.getElementById("filtroTipo");
-    const filtroCategoria = document.getElementById("filtroCategoria");
+/* Página: Lançamentos (robusto contra 404 e variações de rota) */
+(() => {
+    const rawBase = (window.BASE_URL || '/').replace(/\/?$/, '/');
 
-    async function carregarCategorias() {
-        try {
-            const r = await fetch(`${window.BASE_URL}api/options`, { credentials: 'include' });
-            if (!r.ok) throw new Error('Falha ao buscar categorias');
-            const json = await r.json();
+    // duas bases possíveis
+    const BASES = [`${rawBase}api/`, `${rawBase}index.php/api/`];
 
-            filtroCategoria.innerHTML = '<option value="">Todas</option>';
-            const mix = [...(json?.categorias?.receitas || []), ...(json?.categorias?.despesas || [])];
-            mix.forEach(c => filtroCategoria.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.nome}</option>`));
-        } catch (err) {
-            console.error(err);
+    const $ = (s) => document.querySelector(s);
+    const tbody = $('#tbodyLancamentos');
+    const form = $('#formFiltros');
+    const fMes = $('#filtroMes');
+    const fTipo = $('#filtroTipo');
+
+    const fmt = {
+        money: (n) =>
+            new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+                .format(Number(n || 0)),
+        date: (iso) => {
+            if (!iso) return '—';
+            const m = String(iso).split(/[T\s]/)[0].match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
+        },
+    };
+
+    const getMonth = () =>
+        window.LukratoHeader?.getMonth?.() ||
+        fMes?.value ||
+        new Date().toISOString().slice(0, 7);
+
+    const setEmpty = (msg) => {
+        if (!tbody) return;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center">${msg}</td></tr>`;
+    };
+
+    const normalizeList = (p) => {
+        if (Array.isArray(p)) return p;
+        if (p?.items) return p.items;
+        if (p?.data) return p.data;
+        if (p?.lancamentos) return p.lancamentos;
+        return [];
+    };
+
+    async function tryFetch(pathWithQuery) {
+        // tenta nas duas bases
+        for (const base of BASES) {
+            try {
+                const r = await fetch(base + pathWithQuery, { credentials: 'include' });
+                if (r.ok) return await r.json();
+                // se não for 404, não adianta tentar outras rotas nesse base
+                if (r.status !== 404) continue;
+            } catch (_) {
+                // ignora e tenta a próxima base
+            }
         }
+        return null;
     }
 
-    async function carregarLancamentos() {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center">Carregando...</td></tr>`;
+    async function fetchList() {
+        const month = getMonth();
+        const tipo = fTipo?.value || '';
+        const q = `month=${encodeURIComponent(month)}&tipo=${encodeURIComponent(tipo)}&limit=200`;
+
+        // ordem de tentativas (mais provável primeiro)
+        const candidates = [
+            `dashboard/transactions?${q}`,
+            `transactions?${q}`,
+            `lancamentos?${q}`,
+        ];
+
+        for (const c of candidates) {
+            const json = await tryFetch(c);
+            const list = normalizeList(json);
+            if (list.length) return list;
+            // mesmo que venha vazio, tenta a próxima rota
+        }
+        // última tentativa: pode ter rota que responde 200 mas sem items
+        return [];
+    }
+
+    async function render() {
+        if (!tbody) return;
+        setEmpty('Carregando…');
+
         try {
-            const month = filtroMes.value;
-            const r = await fetch(`${window.BASE_URL}api/dashboard/transactions?month=${encodeURIComponent(month)}&limit=500`, { credentials: 'include' });
-            if (!r.ok) throw new Error('Falha ao buscar lançamentos');
-            const data = await r.json();
-
-            const filtrados = data.filter(t => {
-                if (filtroTipo.value && t.tipo !== filtroTipo.value) return false;
-                if (filtroCategoria.value && String(t.categoria?.id) !== filtroCategoria.value) return false;
-                return true;
-            });
-
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center">Nenhum lançamento encontrado</td></tr>`;
+            const list = await fetchList();
+            if (!list.length) {
+                setEmpty('Sem lançamentos para o período');
                 return;
             }
 
-            tbody.innerHTML = "";
-            filtrados.forEach(t => {
-                const cor = t.tipo === 'receita' ? 'var(--verde)' : 'var(--vermelho)';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-          <td>${t.data}</td>
-          <td>${t.tipo}</td>
-          <td>${t.categoria ? t.categoria.nome : '—'}</td>
-          <td>${t.descricao || '—'}</td>
-          <td>${t.observacao || '—'}</td>
-          <td class="text-right" style="font-weight:700;color:${cor}">R$ ${Number(t.valor).toFixed(2).replace('.', ',')}</td>
-          <td class="text-center">
-            <button class="btn-icon" data-edit="${t.id}" title="Editar"><i class="fas fa-edit"></i></button>
-            <button class="btn-icon text-red" data-delete="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button>
-          </td>
-        `;
-                tbody.appendChild(tr);
-            });
-        } catch (err) {
-            console.error(err);
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red">Erro ao carregar lançamentos</td></tr>`;
+            tbody.innerHTML = list.map(t => `
+    <tr>
+        <td>${fmt.date(t.data)}</td>
+        <td>${t.tipo || '—'}</td>
+        <td>${t.categoria_nome || t.categoria?.nome || t.categoria || '—'}</td>
+        <td>${t.conta?.nome || '—'}</td>
+        <td>${t.descricao || t.observacao || '—'}</td>
+        <td class="text-right">${fmt.money(t.valor)}</td>
+    </tr>
+    `).join('');
+        } catch (e) {
+            console.error(e);
+            setEmpty('Erro ao carregar lançamentos');
         }
     }
 
-    // Ações do topo
-    document.getElementById("btnNovaReceita")?.addEventListener("click", () => {
-        if (typeof openModal === 'function') openModal("modalReceita");
-    });
-    document.getElementById("btnNovaDespesa")?.addEventListener("click", () => {
-        if (typeof openModal === 'function') openModal("modalDespesa");
-    });
+    async function onExport(month) {
+        const list = await fetchList();
+        const rows = list.map(t => [
+            fmt.date(t.data),
+            t.tipo || '',
+            t.categoria_nome || t.categoria?.nome || t.categoria || '',
+            t.conta?.nome || '',
+            String(t.descricao || t.observacao || '').replace(/[\r\n;]+/g, ' '),
+            (Number(t.valor) || 0).toFixed(2).replace('.', ',')
+        ].join(';'));
 
-    // Filtros
-    document.getElementById("formFiltros")?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        carregarLancamentos();
-    });
+        const csv = ['Data;Tipo;Categoria;Conta/Cartão;Descrição;Valor', ...rows].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement('a'), { href: url, download: `lukrato-${month}.csv` });
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 
-    // Inicialização
-    carregarCategorias().then(carregarLancamentos);
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        render();
+
+        form?.addEventListener('submit', (e) => { e.preventDefault(); render(); });
+        fMes?.addEventListener('change', render);
+        fTipo?.addEventListener('change', render);
+
+        document.addEventListener('lukrato:month-changed', render);
+        document.addEventListener('lukrato:export-click', (e) => onExport(e.detail?.month));
+        document.addEventListener('lukrato:data-changed', render);
+    });
+})();

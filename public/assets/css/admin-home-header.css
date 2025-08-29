@@ -1,4 +1,4 @@
-/* ======================= Design Tokens ======================= */
+/* ... (existing design tokens) ... */
 :root {
   --laranja: #e67e22;
   --azul: #2c3e50;
@@ -30,11 +30,13 @@
   --spacing-8: 2rem;
   --spacing-12: 3rem;
 
-  /* Radius & Shadows */
+  /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+
+  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
@@ -45,7 +47,7 @@
   --header-height: 80px;
   --container-padding: var(--spacing-6);
 
-  /* Glass */
+  /* Glass Effect */
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-backdrop: blur(10px);
@@ -118,7 +120,6 @@ body {
   flex-direction: column;
 }
 
-
 .sidebar-header {
   padding: var(--spacing-6);
   border-bottom: 1px solid var(--glass-border);
@@ -180,11 +181,13 @@ body {
 }
 
 /* ======================= Header (fixo) ======================= */
-.header {
+.lk-header {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
   height: var(--header-height);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  border-bottom: 1px solid var(--glass-border);
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -208,20 +211,62 @@ body {
 /* ======================= Main Content ======================= */
 .main-content {
   margin-left: var(--sidebar-width);
+  padding-top: var(--header-height);
   min-height: 100vh;
   padding-top: var(--header-height);
   /* evita conteúdo atrás do header fixo */
 }
 
-/* ======================= Month Selector ======================= */
-.month-selector {
+/* ======================= MODAIS (Header) ======================= */
+.lk-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  background: var(--glass-bg);
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-normal);
+}
+.lk-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+.lk-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+.lk-modal-content {
+  position: relative;
+  background: var(--azul);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-2);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: var(--transition-normal);
+}
+.lk-modal.active .lk-modal-content {
+  transform: scale(1);
+}
+.lk-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .month-nav-btn {
@@ -232,11 +277,107 @@ body {
   padding: var(--spacing-2);
   border-radius: var(--radius-sm);
   transition: var(--transition-fast);
+}
+.lk-modal-close:hover {
+  background-color: var(--glass-bg);
+  color: var(--branco);
+}
+.lk-modal-body {
+  padding: var(--spacing-6);
+}
+.lk-modal-footer {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+  border-top: 1px solid var(--glass-border);
+  justify-content: flex-end;
+}
+.form-group {
+  margin-bottom: var(--spacing-4);
+}
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--cinza);
+}
+.form-input,
+.form-select {
+  width: 100%;
+  padding: var(--spacing-3);
+  background-color: var(--azul);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--branco);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-base);
+}
+.form-input::placeholder {
+  color: var(--cinza);
+}
+.checkbox-label {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
+  gap: var(--spacing-2);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--cinza);
+}
+.checkbox-custom {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--cinza);
+  border-radius: var(--radius-sm);
+  background-color: var(--azul);
+  transition: var(--transition-fast);
+}
+input[type="checkbox"]:checked + .checkbox-custom {
+  background-color: var(--verde);
+  border-color: var(--verde);
+}
+input[type="checkbox"] {
+  display: none;
+}
+.btn {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition-fast);
+}
+.btn-primary {
+  background-color: var(--laranja);
+  border: 1px solid var(--laranja);
+  color: var(--branco);
+}
+.btn-ghost {
+  background-color: transparent;
+  border: 1px solid var(--cinza);
+  color: var(--cinza);
+}
+.btn-primary:hover {
+  background-color: var(--amarelo);
+  border-color: var(--amarelo);
+}
+.btn-ghost:hover {
+  color: var(--branco);
+  border-color: var(--branco);
+}
+/* Estilos para o seletor de mês */
+.month-picker-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+.month-nav-btn {
+  background: none;
+  border: 1px solid var(--glass-border);
+  color: var(--cinza);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
 }
 
 .month-nav-btn:hover {
@@ -250,18 +391,62 @@ body {
 
 .month-dropdown-btn {
   background: none;
-  border: 0;
+  border: none;
   color: var(--branco);
-  cursor: pointer;
-  padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  font-weight: 600;
-  min-width: 140px;
-  justify-content: space-between;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.calendar-day:hover:not(.selected) {
+  background-color: var(--glass-bg);
+}
+.calendar-day.muted {
+  color: var(--cinza);
+  opacity: 0.5;
+}
+.calendar-day.today {
+  border: 1px solid var(--verde);
+}
+.calendar-day.selected {
+  background-color: var(--laranja);
+  color: var(--branco);
+  font-weight: bold;
+}
+
+/* ======================= Responsividade ======================= */
+@media (max-width: 768px) {
+  .lk-modal-content {
+    width: 95%;
+    margin: var(--spacing-4);
+  }
+}
+/* Floating Action Button */
+.fab-container {
+  position: fixed;
+  bottom: var(--spacing-6);
+  right: var(--spacing-6);
+  z-index: 1000;
+}
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--laranja), var(--amarelo));
+  border: none;
+  color: var(--branco);
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  position: relative;
 }
 
 .month-dropdown-btn:hover {
@@ -270,20 +455,15 @@ body {
 
 .month-dropdown {
   position: absolute;
-  top: 100%;
-  left: 0;
+  bottom: 70px;
   right: 0;
-  background: var(--azul);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  z-index: 1000;
-  max-height: 300px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: var(--transition-fast);
+  transform: translateY(20px);
+  transition: var(--transition-normal);
 }
 
 .month-dropdown.active {
@@ -298,9 +478,17 @@ body {
   border: 0;
   color: var(--branco);
   padding: var(--spacing-3) var(--spacing-4);
-  text-align: left;
+  background: var(--azul);
+  color: var(--branco);
+  border: none;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: var(--transition-fast);
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  min-width: 160px;
+  justify-content: flex-start;
 }
 
 .month-dropdown button:hover {

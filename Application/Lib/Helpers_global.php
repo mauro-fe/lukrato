@@ -56,37 +56,23 @@ if (!function_exists('csrf_input')) {
     }
 }
 if (!function_exists('loadPageCss')) {
-    function loadPageCss(?string $view = null): void
+    function loadPageCss(?string $name = null): void
     {
-        // 1) De onde vem o nome da view?
-        $view = $view ?? ($GLOBALS['current_view'] ?? '');
+        // se vier um nome, usa; senão cai no current_view
+        $view = $name ?: ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
-        // 2) Candidatos de caminhos para o CSS
-        $candidates = [];
+        $cssPath = 'assets/css/' . $view . '.css';
+        $abs     = __DIR__ . '/../../public/' . $cssPath;
 
-        // assets/css/admin/home/header.css  (mesma estrutura de pastas)
-        $candidates[] = 'assets/css/' . $view . '.css';
-
-        // assets/css/admin-home-header.css  (hífens)
-        $candidates[] = 'assets/css/' . str_replace(['\\', '/'], '-', $view) . '.css';
-
-        // assets/css/admin-home.css (opcional – pacote por pasta)
-        $parts = preg_split('#[\\/]+#', $view);
-        if ($parts && count($parts) >= 2) {
-            $candidates[] = 'assets/css/' . implode('-', array_slice($parts, 0, -1)) . '.css';
-        }
-
-        // 3) Tenta injetar o primeiro que existir
-        $publicRoot = __DIR__ . '/../../public/';
-        foreach ($candidates as $cssPath) {
-            if (file_exists($publicRoot . $cssPath)) {
-                echo '<link rel="stylesheet" href="' . BASE_URL . $cssPath . '">' . PHP_EOL;
-                return;
-            }
+        if (file_exists($abs)) {
+            // cache-busting simples pelo mtime do arquivo
+            $v = filemtime($abs) ?: time();
+            echo '<link rel="stylesheet" href="' . BASE_URL . $cssPath . '?v=' . $v . '">' . PHP_EOL;
         }
     }
 }
+
 
 
 if (!function_exists('loadPageJs')) {

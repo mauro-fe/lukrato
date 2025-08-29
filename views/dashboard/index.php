@@ -1,14 +1,26 @@
-<!-- Base URL e CSRF para o JS -->
-<meta name="csrf-token" content="<?= htmlspecialchars(csrf_token('default') ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-<script>
-    // BASE_URL sempre com / no final
-    window.BASE_URL = "<?= rtrim(BASE_URL ?? '/', '/') . '/'; ?>";
-</script>
+<!-- Header -->
+<header class="lk-header">
+    <div class="header-left">
+        <div class="month-selector">
+            <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior">
+                <i class="fas fa-chevron-left"></i>
+            </button>
 
-<!---------------------TTTTTTTTTTTTTEEEEEEEEEEEEEEESSSSSSSSSSSSSSSTTTTTTTTTTTTTSSSSSSSSS---->
+            <div class="month-display">
+                <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
+                    <span id="currentMonthText"></span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+            </div>
 
-<!-- Chart.js UMD (necessário antes do dashboard-index.js) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+            <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+</header>
 
 <section>
     <!-- Conteúdo -->
@@ -95,22 +107,6 @@
         </section>
     </div>
 
-    <!-- FAB -->
-    <div class="fab-container">
-        <button class="fab" id="fabButton" aria-label="Adicionar transação" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-plus"></i>
-        </button>
-        <div class="fab-menu" id="fabMenu" role="menu">
-            <button class="fab-menu-item" data-modal="receita" role="menuitem"><i
-                    class="fas fa-arrow-up"></i><span>Receita</span></button>
-            <button class="fab-menu-item" data-modal="despesa" role="menuitem"><i
-                    class="fas fa-arrow-down"></i><span>Despesa</span></button>
-            <button class="fab-menu-item" data-modal="despesa-cartao" role="menuitem"><i
-                    class="fas fa-credit-card"></i><span>Despesa Cartão</span></button>
-            <button class="fab-menu-item" data-modal="transferencia" role="menuitem"><i
-                    class="fas fa-exchange-alt"></i><span>Transferência</span></button>
-        </div>
-    </div>
 </section>
 
 
