@@ -1,4 +1,4 @@
-<section>
+<section class="container">
     <header class="page-header">
         <h1><i class="fas fa-receipt"></i> Lançamentos</h1>
     </header>
