@@ -1,37 +1,48 @@
-<?php
-// View: Relatórios – integrada ao layout padrão (header/footer via renderAdmin)
-?>
-
-
 <style>
-    /* ---- Tudo escopado dentro de .lk-page para não interferir no tema ---- */
+    /* ====== Layout base (escopado) ====== */
     .lk-page {
-        /* apenas container */
+        /* container */
     }
 
     .lk-wrap {
         max-width: 1140px;
-        margin: 0 auto
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 0 32px;
+        /* gutter principal vai nos cards/grades */
+        box-sizing: border-box;
     }
 
+    /* Cabeçalho */
     .lk-h {
+        margin-bottom: 16px;
+    }
+
+    .lk-titlebar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 18px
+        gap: 12px;
+        margin-bottom: 12px;
     }
 
     .lk-t {
         font-size: 28px;
-        font-weight: 700
+        color: #e67e22;
+        margin-left: 20px;
+        font-weight: 700;
     }
 
     .lk-controls {
         display: flex;
         gap: 12px;
-        flex-wrap: wrap
+        flex-wrap: wrap;
+        margin-top: 0;
+        padding: 0 24px;
+        /* gutter alinhado com os cards */
     }
 
+    /* ====== Abas (segmented) ====== */
     .lk-seg {
         background: #fff;
         border: 1px solid #e5e7eb;
@@ -39,7 +50,8 @@
         border-radius: 999px;
         display: flex;
         gap: 6px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06)
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+        height: 44px;
     }
 
     .lk-seg button {
@@ -52,16 +64,24 @@
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 8px
+        gap: 8px;
+        line-height: 1;
+        height: 32px;
     }
 
     .lk-seg button.active {
         background: #eef2ff;
-        color: #6d4aff
+        color: #e67e22;
     }
 
+    /* ====== Dropdown ====== */
     .lk-sel {
-        position: relative
+        position: relative;
+
+        span {
+            color: #e67e22;
+        }
+
     }
 
     .lk-sel>button {
@@ -75,7 +95,7 @@
         gap: 10px;
         font-weight: 600;
         box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-        cursor: pointer
+        cursor: pointer;
     }
 
     .lk-menu {
@@ -89,11 +109,11 @@
         min-width: 260px;
         padding: 8px 0;
         display: none;
-        z-index: 10
+        z-index: 10;
     }
 
     .lk-menu.open {
-        display: block
+        display: block;
     }
 
     .lk-menu>button {
@@ -102,14 +122,18 @@
         background: transparent;
         border: 0;
         padding: 10px 14px;
-        cursor: pointer
+        cursor: pointer;
+
     }
 
     .lk-menu>button:hover {
-        background: #f8fafc
+        background: #f8fafc;
     }
 
+    /* ====== Seletor de período ====== */
     .lk-period {
+        margin-top: 20px;
+        margin-right: 20px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -118,7 +142,7 @@
         border-radius: 999px;
         padding: 6px 8px;
         height: 44px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06)
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
     }
 
     .lk-chip {
@@ -129,7 +153,7 @@
         padding: 8px 14px;
         border-radius: 999px;
         font-weight: 700;
-        color: #6d4aff
+        color: #e67e22;
     }
 
     .lk-arrow {
@@ -137,88 +161,129 @@
         background: transparent;
         padding: 8px;
         border-radius: 999px;
-        cursor: pointer
+        cursor: pointer;
     }
 
     .lk-arrow:hover {
-        background: #f3f4f6
+        background: #f3f4f6;
     }
 
+    /* ====== Cards (grandes), gráficos, estados ====== */
     .lk-card {
         background: #fff;
         border: 1px solid #e5e7eb;
         border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06)
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+        padding: 18px;
+        overflow: hidden;
+        margin: 0 24px;
+        /* gutter lateral largo */
     }
 
-    .lk-empty {
-        display: grid;
-        place-items: center;
-        padding: 60px 20px;
-        text-align: center;
-        color: #6b7280
-    }
-
-    .lk-empty img {
-        width: 220px;
-        max-width: 60vw;
-        opacity: .95
+    .lk-card+.lk-card {
+        margin-top: 16px;
     }
 
     .lk-chart {
-        padding: 12px 14px
+        padding: 20px 24px;
+    }
+
+    .lk-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 80px 28px;
+        text-align: center;
+        color: #6b7280;
+    }
+
+    .lk-empty h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #374151;
+        margin: 8px 0 0;
+    }
+
+    .lk-empty p {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .lk-empty img {
+        width: 180px;
+        max-width: 50vw;
+        opacity: .9;
     }
 
     .lk-loading {
         padding: 40px;
         text-align: center;
-        color: #6b7280
+        color: #6b7280;
+    }
+
+    /* ====== Responsivo ====== */
+    @media (max-width:1024px) {
+        /* (sem KPIs aqui) */
     }
 
     @media (max-width:720px) {
-        .lk-h {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px
+        .lk-controls {
+            padding: 0 16px;
         }
 
-        .lk-seg,
+        .lk-card {
+            margin: 0 16px;
+        }
+
+        /* gutter menor no mobile */
+        .lk-titlebar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
         .lk-period,
-        .lk-sel>button {
-            width: 100%
+        .lk-sel>button,
+        .lk-seg {
+            width: 100%;
         }
     }
 </style>
 
 <div class="lk-wrap">
     <div class="lk-h">
-        <div class="lk-t">Relatórios</div>
+        <!-- barra de título + mês alinhados -->
+        <div class="lk-titlebar">
+            <div class="lk-t">Relatórios</div>
 
-        <div class="lk-controls">
-            <!-- Abas (pizza/linha) -->
+            <!-- Período (vai para a direita do título) -->
+            <div class="lk-period" aria-label="Seletor de mês">
+                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i class="fa-solid fa-angle-left"></i></button>
+                <span class="lk-chip" id="month">—</span>
+                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i class="fa-solid fa-angle-right"></i></button>
+            </div>
+        </div>
+
+        <!-- linha de controles (tabs + seletor de tipo) -->
+        <div class="lk-controls" role="tablist" aria-label="Tipos de relatório">
             <div class="lk-seg" id="tabs">
-                <button class="active" data-view="pizza"><i class="fa-solid fa-chart-pie"></i> Por
-                    categoria</button>
-                <button data-view="linha"><i class="fa-solid fa-chart-line"></i> Saldo mensal</button>
+                <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por categoria</button>
+                <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo diário</button>
+                <button data-view="barras" aria-pressed="false"><i class="fa-solid fa-chart-column"></i> Receitas x Despesas</button>
+                <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução 12m</button>
             </div>
 
-            <!-- Tipo (só na aba pizza) -->
             <div class="lk-sel" id="typeSelect">
-                <button id="typeBtn"><span class="lb">Despesas por categorias</span> <i
-                        class="fa-solid fa-chevron-down"></i></button>
-                <div class="lk-menu" role="menu">
+                <button id="typeBtn" aria-haspopup="menu" aria-expanded="false">
+                    <span class="lb">Despesas por categorias</span> <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="lk-menu" role="menu" aria-label="Escolha do tipo">
                     <button data-type="despesas_por_categoria">Despesas por categorias</button>
                     <button data-type="receitas_por_categoria">Receitas por categorias</button>
                 </div>
-            </div>
-
-            <!-- Período -->
-            <div class="lk-period">
-                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i
-                        class="fa-solid fa-angle-left"></i></button>
-                <span class="lk-chip" id="month">—</span>
-                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i
-                        class="fa-solid fa-angle-right"></i></button>
             </div>
         </div>
     </div>
@@ -242,9 +307,7 @@
             });
         }
 
-        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
-            'setembro', 'outubro', 'novembro', 'dezembro'
-        ];
+        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
         const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
         const fmt = v => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -262,11 +325,11 @@
         const base = '<?= BASE_URL ?>';
 
         function label(d) {
-            return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear()
+            return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
         }
 
         function sync() {
-            monthEl.textContent = label(st.d)
+            monthEl.textContent = label(st.d);
         }
         sync();
 
@@ -274,50 +337,68 @@
         $('#prev').addEventListener('click', () => {
             st.d.setMonth(st.d.getMonth() - 1);
             sync();
-            load()
+            load();
         });
         $('#next').addEventListener('click', () => {
             st.d.setMonth(st.d.getMonth() + 1);
             sync();
-            load()
+            load();
         });
 
         // Seletor de tipo (apenas pizza)
         const sel = $('#typeSelect');
         const btn = $('#typeBtn');
         const menu = sel.querySelector('.lk-menu');
-        btn.addEventListener('click', () => menu.classList.toggle('open'));
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('open');
+            btn.setAttribute('aria-expanded', menu.classList.contains('open'));
+        });
         document.addEventListener('click', (e) => {
-            if (!sel.contains(e.target)) menu.classList.remove('open');
+            if (!sel.contains(e.target)) {
+                menu.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
         });
         menu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
             st.type = b.dataset.type;
             btn.querySelector('.lb').textContent = b.textContent;
             menu.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
             if (st.view === 'pizza') load();
         }));
 
         // Abas
         document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
-            document.querySelectorAll('#tabs button').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('#tabs button').forEach(x => {
+                x.classList.remove('active');
+                x.setAttribute('aria-pressed', 'false');
+            });
             b.classList.add('active');
+            b.setAttribute('aria-pressed', 'true');
             st.view = b.dataset.view;
-            // mostra/esconde seletor de tipo
             sel.style.display = (st.view === 'pizza') ? '' : 'none';
             load();
         }));
         sel.style.display = (st.view === 'pizza') ? '' : 'none';
 
+        // ---- APIs ----
         async function fetchData() {
             const y = st.d.getFullYear();
             const m = String(st.d.getMonth() + 1).padStart(2, '0');
-            const type = (st.view === 'linha') ? 'saldo_mensal' : st.type;
+
+            const type =
+                st.view === 'linha' ? 'saldo_mensal' :
+                st.view === 'barras' ? 'receitas_despesas_diario' :
+                st.view === 'evolucao' ? 'evolucao_12m' :
+                st.type; // pizza
+
             const url = `${base}api/reports?type=${encodeURIComponent(type)}&year=${y}&month=${m}`;
             try {
                 const r = await fetch(url, {
                     headers: {
                         'Accept': 'application/json'
-                    }
+                    },
+                    credentials: 'include'
                 });
                 if (!r.ok) return {
                     labels: [],
@@ -333,6 +414,12 @@
             }
         }
 
+        // (opcional) KPIs – se quiser reusar futuramente
+        async function loadKpis() {
+            /* deixado aqui para futura integração com /api/dashboard/metrics */
+        }
+
+        // ---- UI helpers ----
         function setArea(html) {
             $('#area').innerHTML = html;
         }
@@ -341,14 +428,15 @@
             setArea('<div class="lk-loading">Carregando…</div>');
         }
 
+        // ====== Estado vazio (SEM botão) ======
         function empty() {
-            setArea(
-                '<div class="lk-empty">' +
-                '<img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">' +
-                '<h3>Nenhum resultado</h3>' +
-                '<p>Altere o período ou o tipo.</p>' +
-                '</div>'
-            );
+            setArea(`
+            <div class="lk-empty">
+                <img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">
+                <h3>Nenhum dado encontrado</h3>
+                <p>Altere o período ou selecione outro tipo de relatório.</p>
+            </div>
+        `);
         }
 
         function destroyChart() {
@@ -358,20 +446,18 @@
             }
         }
 
+        // ---- Desenho dos gráficos ----
         function drawPie(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
-            const map = {
-                despesas_por_categoria: 'Despesas por categorias',
-                receitas_por_categoria: 'Receitas por categorias'
-            };
             const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
+            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' : 'Despesas por categorias';
             st.chart = new Chart($('#c'), {
                 type: 'doughnut',
                 data: {
                     labels: d.labels || [],
                     datasets: [{
-                        label: map[st.type],
+                        label: titulo,
                         data: d.values || []
                     }]
                 },
@@ -382,7 +468,7 @@
                         },
                         title: {
                             display: true,
-                            text: `${map[st.type]} • Total ${fmt(ttl)}`
+                            text: `${titulo} • Total ${fmt(ttl)}`
                         },
                         tooltip: {
                             callbacks: {
@@ -436,14 +522,99 @@
             });
         }
 
+        function drawBars(d) {
+            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+            destroyChart();
+            st.chart = new Chart($('#c'), {
+                type: 'bar',
+                data: {
+                    labels: d.labels || [],
+                    datasets: [{
+                            label: 'Receitas',
+                            data: (d.receitas || []).map(Number)
+                        },
+                        {
+                            label: 'Despesas',
+                            data: (d.despesas || []).map(Number)
+                        }
+                    ]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => fmt(c.parsed.y)
+                            }
+                        }
+                    },
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: (v) => fmt(v)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawLine12m(d) {
+            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+            destroyChart();
+            st.chart = new Chart($('#c'), {
+                type: 'line',
+                data: {
+                    labels: d.labels || [],
+                    datasets: [{
+                        label: 'Saldo mensal',
+                        data: (d.values || []).map(Number),
+                        tension: .3
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => fmt(c.parsed.y)
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evolução dos últimos 12 meses'
+                        }
+                    },
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: (v) => fmt(v)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ---- Loader principal ----
         async function load() {
             loading();
             try {
                 await ensureChart();
+                // await loadKpis(); // (quando integrar)
                 const d = await fetchData();
                 if (!d.labels || !d.labels.length) return empty();
+
                 if (st.view === 'pizza') drawPie(d);
-                else drawLine(d);
+                else if (st.view === 'linha') drawLine(d);
+                else if (st.view === 'barras') drawBars(d);
+                else if (st.view === 'evolucao') drawLine12m(d);
             } catch (e) {
                 console.error(e);
                 empty();
@@ -452,7 +623,28 @@
 
         load();
     })();
-</script>
+    // deixar o refresh disponível globalmente (p/ modal chamar)
+    window.refreshReports = function() {
+        // mantém o mês/aba/tipo atuais (st.d / st.view / st.type)
+        load();
+    };
 
-</div>
-</main>
+    // (opcional) helpers para controlar de fora, se quiser:
+    window.setReportsMonth = function(ym) { // "YYYY-MM"
+        if (!/^\d{4}-\d{2}$/.test(ym)) return;
+        const [y, m] = ym.split('-').map(Number);
+        st.d = new Date(y, m - 1, 1);
+        sync();
+        load();
+    };
+
+    window.setReportsView = function(view) { // 'pizza' | 'linha' | 'barras' | 'evolucao'
+        const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
+        if (btn) btn.click(); // reaproveita seu handler de abas
+    };
+
+    window.setReportsType = function(type) { // 'despesas_por_categoria' | 'receitas_por_categoria'
+        const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
+        if (b) b.click(); // reaproveita seu handler do dropdown
+    };
+</script>
