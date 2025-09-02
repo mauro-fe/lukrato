@@ -9,7 +9,7 @@ class Categoria extends Model
     protected $table = 'categorias';
 
     // precisa existir no BD: colunas 'nome' e 'tipo'
-    protected $fillable = ['nome', 'tipo'];
+    protected $fillable = ['nome', 'tipo', 'user_id',];
 
     // ---- SCOPES USADOS PELO /api/options ----
     public function scopeReceitas($q)
