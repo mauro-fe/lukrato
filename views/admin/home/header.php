@@ -60,6 +60,10 @@ $base = BASE_URL; // Use the defined constant
                 <?= $aria('relatorios') ?>>
                 <i class="fas fa-chart-bar"></i><span>Relatórios</span>
             </a>
+            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>"
+                <?= $aria('perfil') ?>>
+                <i class="fas fa-user-circle"></i><span>Perfil</span>
+            </a>
             <a href="<?= $base ?>admin/<?= $u ?>/config" class="nav-item <?= $active('config') ?>"
                 <?= $aria('config') ?>>
                 <i class="fas fa-cog"></i><span>Config</span>
@@ -87,151 +91,54 @@ $base = BASE_URL; // Use the defined constant
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
 
         <div class="container-fluid py-4 lk-page">
-            <div class="lk-modal" id="modalReceita" role="dialog" aria-labelledby="modalReceitaTitle"
-                aria-hidden="true">
+            <!-- Modal Único de Lançamento -->
+            <div class="lk-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle" aria-hidden="true">
                 <div class="lk-modal-backdrop"></div>
                 <div class="lk-modal-content">
                     <div class="lk-modal-header">
-                        <h2 id="modalReceitaTitle">Nova Receita</h2>
+                        <h2 id="modalLancamentoTitle">Novo Lançamento</h2>
                         <button class="lk-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
                     </div>
-                    <form class="lk-modal-body" id="formReceita">
+
+                    <form class="lk-modal-body" id="formLancamento" novalidate>
                         <div class="form-group">
-                            <label for="receitaData">Data</label>
-                            <input type="date" id="receitaData" class="form-input" data-field="data" required>
+                            <label for="lanTipo">Tipo</label>
+                            <select id="lanTipo" class="form-select" required>
+                                <option value="despesa">Despesa</option>
+                                <option value="receita">Receita</option>
+                                <!-- Futuro: <option value="despesa_cartao" disabled>Despesa no Cartão</option>
+                       <option value="transferencia" disabled>Transferência</option> -->
+                            </select>
                         </div>
+
                         <div class="form-group">
-                            <label for="receitaCategoria">Categoria</label>
-                            <select id="receitaCategoria" class="form-select" data-field="categoria_id" required>
+                            <label for="lanData">Data</label>
+                            <input type="date" id="lanData" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lanCategoria">Categoria</label>
+                            <select id="lanCategoria" class="form-select" required>
                                 <option value="">Selecione uma categoria</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="receitaContaSelect">Conta</label>
-                            <select id="receitaContaSelect" class="form-select">
+
+                        <!-- Campos futuros (mantidos ocultos por enquanto) -->
+                        <div class="form-group" id="grpConta" style="display:none;">
+                            <label for="lanConta">Conta</label>
+                            <select id="lanConta" class="form-select">
                                 <option value="">Selecione uma conta</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="receitaDescricao">Descrição</label>
-                            <input type="text" id="receitaDescricao" class="form-input" data-field="descricao"
-                                placeholder="Descrição da receita" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="receitaObservacao">Observação (opcional)</label>
-                            <input type="text" id="receitaObservacao" class="form-input" data-field="observacao"
-                                placeholder="Detalhe, nota interna...">
-                        </div>
-                        <div class="form-group">
-                            <label for="receitaValor">Valor</label>
-                            <input type="text" id="receitaValor" class="form-input money-mask" data-field="valor"
-                                placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="receitaPago"><span class="checkbox-custom"></span>Foi
-                                recebido?
-                            </label>
-                        </div>
-                    </form>
-                    <div class="lk-modal-footer">
-                        <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" form="formReceita" class="btn btn-primary">Salvar Receita</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lk-modal" id="modalDespesa" role="dialog" aria-labelledby="modalDespesaTitle"
-                aria-hidden="true">
-                <div class="lk-modal-backdrop"></div>
-                <div class="lk-modal-content">
-                    <div class="lk-modal-header">
-                        <h2 id="modalDespesaTitle">Nova Despesa</h2>
-                        <button class="lk-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
-                    </div>
-                    <form class="lk-modal-body" id="formDespesa">
-                        <div class="form-group">
-                            <label for="despesaData">Data</label>
-                            <input type="date" id="despesaData" class="form-input" data-field="data" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaCategoria">Categoria</label>
-                            <select id="despesaCategoria" class="form-select" data-field="categoria_id" required>
-                                <option value="">Selecione uma categoria</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaContaSelect">Conta</label>
-                            <select id="despesaContaSelect" class="form-select">
-                                <option value="">Selecione uma conta</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaDescricao">Descrição</label>
-                            <input type="text" id="despesaDescricao" class="form-input" data-field="descricao"
-                                placeholder="Descrição da despesa">
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaObservacao">Observação (opcional)</label>
-                            <input type="text" id="despesaObservacao" class="form-input" data-field="observacao"
-                                placeholder="Detalhe, nota interna...">
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaValor">Valor</label>
-                            <input type="text" id="despesaValor" class="form-input money-mask" data-field="valor"
-                                placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="despesaPago"><span class="checkbox-custom"></span>Foi pago?
-                            </label>
-                        </div>
-                    </form>
-                    <div class="lk-modal-footer">
-                        <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" form="formDespesa" class="btn btn-primary">Salvar Despesa</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lk-modal" id="modalDespesaCartao" role="dialog" aria-labelledby="modalDespesaCartaoTitle"
-                aria-hidden="true">
-                <div class="lk-modal-backdrop"></div>
-                <div class="lk-modal-content">
-                    <div class="lk-modal-header">
-                        <h2 id="modalDespesaCartaoTitle">Nova Despesa no Cartão</h2>
-                        <button class="lk-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
-                    </div>
-                    <form class="lk-modal-body" id="formDespesaCartao">
-                        <div class="form-group">
-                            <label for="despesaCartaoData">Data da Compra</label>
-                            <input type="date" id="despesaCartaoData" class="form-input" data-field="data" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaCartaoCartao">Cartão</label>
-                            <select id="despesaCartaoCartao" class="form-select">
+                        <div class="form-group" id="grpCartao" style="display:none;">
+                            <label for="lanCartao">Cartão</label>
+                            <select id="lanCartao" class="form-select">
                                 <option value="">Selecione um cartão</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="despesaCartaoCategoria">Categoria</label>
-                            <select id="despesaCartaoCategoria" class="form-select" data-field="categoria_id" required>
-                                <option value="">Selecione uma categoria</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaCartaoDescricao">Descrição</label>
-                            <input type="text" id="despesaCartaoDescricao" class="form-input" data-field="descricao"
-                                placeholder="Descrição da compra">
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaCartaoValor">Valor</label>
-                            <input type="text" id="despesaCartaoValor" class="form-input money-mask" data-field="valor"
-                                placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="despesaCartaoParcelas">Parcelas</label>
-                            <select id="despesaCartaoParcelas" class="form-select">
+                        <div class="form-group" id="grpParcelas" style="display:none;">
+                            <label for="lanParcelas">Parcelas</label>
+                            <select id="lanParcelas" class="form-select">
                                 <option value="1">1x (à vista)</option>
                                 <option value="2">2x sem juros</option>
                                 <option value="3">3x sem juros</option>
@@ -246,108 +153,107 @@ $base = BASE_URL; // Use the defined constant
                                 <option value="12">12x sem juros</option>
                             </select>
                         </div>
+
+                        <div class="form-group">
+                            <label for="lanDescricao">Descrição</label>
+                            <input type="text" id="lanDescricao" class="form-input" placeholder="Descrição do lançamento" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lanObservacao">Observação (opcional)</label>
+                            <input type="text" id="lanObservacao" class="form-input" placeholder="Detalhe, nota interna..." />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lanValor">Valor</label>
+                            <input type="text" id="lanValor" class="form-input money-mask" placeholder="R$ 0,00" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="lanPago"><span class="checkbox-custom"></span>
+                                <span id="lanPagoLabel">Foi pago?</span>
+                            </label>
+                        </div>
                     </form>
+
                     <div class="lk-modal-footer">
                         <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" form="formDespesaCartao" class="btn btn-primary">Salvar Despesa</button>
+                        <button type="submit" form="formLancamento" class="btn btn-primary">Salvar</button>
                     </div>
                 </div>
             </div>
 
-            <div class="lk-modal" id="modalTransferencia" role="dialog" aria-labelledby="modalTransferenciaTitle"
-                aria-hidden="true">
-                <div class="lk-modal-backdrop"></div>
-                <div class="lk-modal-content">
-                    <div class="lk-modal-header">
-                        <h2 id="modalTransferenciaTitle">Nova Transferência</h2>
-                        <button class="lk-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
-                    </div>
-                    <form class="lk-modal-body" id="formTransferencia">
-                        <div class="form-group">
-                            <label for="transferenciaData">Data</label>
-                            <input type="date" id="transferenciaData" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="transferenciaOrigem">Conta de Origem</label>
-                            <select id="transferenciaOrigem" class="form-select" required>
-                                <option value="">Selecione a conta de origem</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="transferenciaDestino">Conta de Destino</label>
-                            <select id="transferenciaDestino" class="form-select" required>
-                                <option value="">Selecione a conta de destino</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="transferenciaValor">Valor</label>
-                            <input type="text" id="transferenciaValor" class="form-input money-mask"
-                                placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="transferenciaObservacao">Observação</label>
-                            <input type="text" id="transferenciaObservacao" class="form-input"
-                                placeholder="Observação (opcional)">
-                        </div>
-                    </form>
-                    <div class="lk-modal-footer">
-                        <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" form="formTransferencia" class="btn btn-primary">Fazer
-                            Transferência</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lk-modal" id="monthPickerModal" aria-hidden="true" role="dialog"
-                aria-labelledby="monthPickerTitle">
-                <div class="lk-modal-backdrop" data-close-month></div>
-                <div class="lk-modal-content" role="document">
-                    <div class="lk-modal-header" style="gap:12px;">
-                        <h2 id="monthPickerTitle" style="margin-right:auto;">Escolher data</h2>
-                        <div class="month-picker-nav" aria-live="polite">
-                            <button class="month-nav-btn" id="mpPrev" aria-label="Mês anterior"><i
-                                    class="fas fa-chevron-left"></i></button>
-                            <span id="mpLabel" class="mp-label"
-                                style="min-width:170px;text-align:center;font-weight:700;"></span>
-                            <button class="month-nav-btn" id="mpNext" aria-label="Próximo mês"><i
-                                    class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <button class="lk-modal-close" data-close-month aria-label="Fechar"><i
-                                class="fas fa-times"></i></button>
-                    </div>
-                    <div class="lk-modal-body">
-                        <div class="calendar">
-                            <div class="calendar-weekdays">
-                                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-                            </div>
-                            <div class="calendar-grid" id="calendarGrid"></div>
-                        </div>
-                    </div>
-                    <div class="lk-modal-footer">
-                        <button class="btn btn-ghost" data-close-month>Cancelar</button>
-                        <button class="btn btn-primary" id="mpConfirm">Usar mês</button>
-                    </div>
-                </div>
-            </div>
 
             <?php loadPageJs('admin-home-header'); ?>
 
             <?php loadPageJs(); ?>
         </div>
-        <script>
-            (function fixBaseUrl() {
-                const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-                let base = meta;
 
-                if (!base) {
-                    const m = location.pathname.match(/^(.*\/public\/)/);
-                    base = m ? (location.origin + m[1]) : (location.origin + '/');
+
+        <script>
+            (() => {
+                const $ = (s, sc = document) => sc.querySelector(s);
+
+                // ---- FAB: abrir/fechar menu
+                const fab = $('#fabButton');
+                const menu = $('#fabMenu');
+                fab?.addEventListener('click', () => {
+                    const open = !menu.classList.contains('active');
+                    fab.classList.toggle('active', open);
+                    fab.setAttribute('aria-expanded', String(open));
+                    menu.classList.toggle('active', open);
+                });
+
+                // ---- Abrir modais a partir do menu
+                function modalIdFromKey(key) {
+                    return 'modal' + String(key || '').replace(/(^|-)(\w)/g, (_, __, b) => b.toUpperCase());
                 }
-                if (base && !/\/public\/?$/.test(base)) {
-                    const m2 = location.pathname.match(/^(.*\/public\/)/);
-                    if (m2) base = location.origin + m2[1];
+
+                function openModalByKey(key) {
+                    const id = modalIdFromKey(key); // 'receita' -> 'modalReceita'
+                    const m = document.getElementById(id);
+                    if (!m) return;
+                    m.classList.add('active');
+                    m.setAttribute('aria-hidden', 'false');
+                    document.body.style.overflow = 'hidden';
                 }
-                window.BASE_URL = base.replace(/\/?$/, '/');
-                console.log('[Lukrato] BASE_URL =', window.BASE_URL);
+
+                document.querySelectorAll('.fab-menu-item[data-open-modal]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const key = btn.getAttribute('data-open-modal'); // receita / despesa / despesa-cartao / transferencia
+                        openModalByKey(key);
+                        menu.classList.remove('active');
+                        fab.classList.remove('active');
+                        fab.setAttribute('aria-expanded', 'false');
+                    });
+                });
+
+                // ---- Fechar modal (X, backdrop, data-dismiss)
+                document.addEventListener('click', (e) => {
+                    if (
+                        e.target.closest('.lk-modal-close,[data-dismiss="modal"]') ||
+                        e.target.classList.contains('lk-modal-backdrop')
+                    ) {
+                        const m = e.target.closest('.lk-modal') || document.querySelector('.lk-modal.active');
+                        if (m) {
+                            m.classList.remove('active');
+                            m.setAttribute('aria-hidden', 'true');
+                            if (!document.querySelector('.lk-modal.active')) document.body.style.overflow = '';
+                        }
+                    }
+                });
+
+                // Opcional: ESC fecha o modal aberto
+                document.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Escape') return;
+                    const top = document.querySelector('.lk-modal.active');
+                    if (top) {
+                        e.preventDefault();
+                        top.classList.remove('active');
+                        top.setAttribute('aria-hidden', 'true');
+                        if (!document.querySelector('.lk-modal.active')) document.body.style.overflow = '';
+                    }
+                });
             })();
         </script>

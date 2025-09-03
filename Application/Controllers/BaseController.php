@@ -160,10 +160,10 @@ abstract class BaseController
      * @param array $data - Dados para retornar
      * @param int $statusCode - Código de status HTTP (200, 404, 500, etc.)
      */
-    protected function json(array $data, int $statusCode = 200): void
-    {
-        $this->response->json($data, $statusCode)->send();
-    }
+    // protected function json(array $data, int $statusCode = 200): void
+    // {
+    //     $this->response->json($data, $statusCode)->send();
+    // }
 
     /**
      * MÉTODO PARA RETORNAR ERRO EM JSON
@@ -174,15 +174,15 @@ abstract class BaseController
      * @param int $statusCode - Código de status HTTP
      * @param array $errors - Detalhes específicos dos erros
      */
-    protected function jsonError(string $message, int $code = 400, array $errors = []): void
-    {
-        $this->response->json([
-            'success' => false,
-            'message' => $message,
-            'errors' => $errors
-        ], $code)->send(); // ← ESSENCIAL
-        exit;
-    }
+    // protected function jsonError(string $message, int $code = 400, array $errors = []): void
+    // {
+    //     $this->response->json([
+    //         'success' => false,
+    //         'message' => $message,
+    //         'errors' => $errors
+    //     ], $code)->send(); // ← ESSENCIAL
+    //     exit;
+    // }
 
     /**
      * MÉTODO PARA RETORNAR SUCESSO EM JSON
@@ -193,15 +193,15 @@ abstract class BaseController
      * @param array $data - Dados adicionais
      * @param int $status - Código de status HTTP
      */
-    protected function jsonSuccess(string $message, array $data = []): void
-    {
-        $this->response->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $data
-        ])->send(); // ← ESSENCIAL
-        exit;
-    }
+    // protected function jsonSuccess(string $message, array $data = []): void
+    // {
+    //     $this->response->json([
+    //         'success' => true,
+    //         'message' => $message,
+    //         'data' => $data
+    //     ])->send(); // ← ESSENCIAL
+    //     exit;
+    // }
 
     /**
      * MÉTODO PARA PEGAR DADOS DO POST
@@ -258,13 +258,13 @@ abstract class BaseController
      * 
      * @throws \Exception Se não for POST
      */
-    protected function requirePost(): void
-    {
-        if (!$this->request->isPost()) {
-            $this->jsonError('Método não permitido', 405);
-            exit; // Para a execução após enviar o erro
-        }
-    }
+    // protected function requirePost(): void
+    // {
+    //     if (!$this->request->isPost()) {
+    //         $this->jsonError('Método não permitido', 405);
+    //         exit; // Para a execução após enviar o erro
+    //     }
+    // }
 
     // MÉTODOS PARA FLASH MESSAGES
     // Flash messages são mensagens que aparecem uma vez e depois desaparecem

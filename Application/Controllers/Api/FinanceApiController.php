@@ -7,12 +7,14 @@ use Application\Core\Response;
 use Application\Models\Lancamento;   // <- seu model
 use Application\Models\Categoria;
 use Carbon\Carbon;
+use Application\Lib\Auth; // adicione no topo
 
 class FinanceApiController
 {
     // GET /api/dashboard/metrics?month=YYYY-MM
     public function metrics(): void
     {
+        $uid = Auth::id();
         try {
             $req   = new Request();
             $month = $req->get('month') ?? ($_GET['month'] ?? date('Y-m'));
@@ -22,24 +24,25 @@ class FinanceApiController
             $end   = $start->copy()->endOfMonth();
 
             // Somatórios do mês
-            $receitas = (float) Lancamento::whereBetween('data', [$start->toDateString(), $end->toDateString()])
-                ->where('tipo', 'receita')
-                ->sum('valor');
+            $receitas = (float) Lancamento::whereBetween('data', [$start, $end])
+                ->when($uid, fn($q) => $q->where('user_id', $uid))   // << filtro user
+                ->where('tipo', 'receita')->sum('valor');
 
-            $despesas = (float) Lancamento::whereBetween('data', [$start->toDateString(), $end->toDateString()])
-                ->where('tipo', 'despesa')
-                ->sum('valor');
+
+            $despesas = (float) Lancamento::whereBetween('data', [$start, $end])
+                ->when($uid, fn($q) => $q->where('user_id', $uid))
+                ->where('tipo', 'despesa')->sum('valor');
 
             $resultado = $receitas - $despesas;
 
             // Saldo acumulado até o fim do mês
-            $acumRec = (float) Lancamento::where('data', '<=', $end->toDateString())
-                ->where('tipo', 'receita')
-                ->sum('valor');
+            $acumRec = (float) Lancamento::where('data', '<=', $end)
+                ->when($uid, fn($q) => $q->where('user_id', $uid))
+                ->where('tipo', 'receita')->sum('valor');
 
-            $acumDes = (float) Lancamento::where('data', '<=', $end->toDateString())
-                ->where('tipo', 'despesa')
-                ->sum('valor');
+            $acumDes = (float) Lancamento::where('data', '<=', $end)
+                ->when($uid, fn($q) => $q->where('user_id', $uid))
+                ->where('tipo', 'despesa')->sum('valor');
 
             $saldoAcumulado = $acumRec - $acumDes;
 
@@ -171,6 +174,7 @@ class FinanceApiController
             $t->descricao    = isset($data['descricao'])   ? trim((string)$data['descricao'])   : null;
             $t->observacao   = isset($data['observacao'])  ? trim((string)$data['observacao'])  : null;
             $t->valor        = $valor;
+            $t->user_id = Auth::id() ?? ($_SESSION['user_id'] ?? null);
             $t->save();
 
             Response::json(['ok' => true, 'id' => (int)$t->id]);

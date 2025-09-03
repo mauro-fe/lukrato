@@ -68,6 +68,12 @@ function registerSimpleRoutes(): void
 
     // Compatibilidade antiga (se houver front/integração usando /api/reports)
     Router::add('GET', 'api/reports', 'Api\ReportController@index', ['auth']);
+
+    Router::add('GET', 'perfil', 'Admin\ProfileController@index');
+    Router::add('POST', 'api/profile', 'Api\ProfileController@update');
+    // página
+
+
 }
 
 /**
