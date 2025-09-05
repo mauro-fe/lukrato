@@ -21,9 +21,7 @@ class LoginController extends BaseController
         $this->authService = new AuthService();
     }
 
-    /**
-     * Exibe o formulário de login (se já autenticado, redireciona)
-     */
+    /** Exibe o formulário de login (se já autenticado, redireciona) */
     public function login(): void
     {
         if ($this->isAuthenticated()) {
@@ -33,9 +31,7 @@ class LoginController extends BaseController
         $this->renderLoginForm();
     }
 
-    /**
-     * Processa tentativa de login via AJAX (POST)
-     */
+    /** Processa tentativa de login via AJAX (POST) */
     public function processLogin(): void
     {
         $this->prepareJsonResponse();
@@ -50,77 +46,66 @@ class LoginController extends BaseController
 
         try {
             // 1) CSRF
-            LogService::info('Login CSRF check: start');
             $this->validateCsrfToken();
-            LogService::info('Login CSRF check: ok');
 
             // 2) credenciais
-            $credentials = $this->getLoginCredentials(); // deve retornar ['email'=>..., 'password'=>...]
-            LogService::info('Login received credentials', ['email' => $credentials['email'] ?? '']);
+            $credentials = $this->getLoginCredentials();
 
             // 3) rate limit
-            LogService::info('Login rate-limit: start');
             $this->applyRateLimit();
-            LogService::info('Login rate-limit: ok');
 
             // 4) autenticar
-            LogService::info('Login authenticate: start', ['email' => $credentials['email'] ?? '']);
-            $this->authenticateUser($credentials);
-            LogService::info('Login authenticate: ok', ['email' => $credentials['email'] ?? '']);
+            // AuthService->login DEVE setar a sessão de usuário (ex.: Auth::login($user))
+            // e retornar o path de redirect (ex.: 'dashboard')
+            $result = $this->authService->login($credentials['email'], $credentials['password']);
+
+            // CSRF cleanup após sucesso
+            $this->clearOldCsrfTokens();
+
+            $this->respondLoginSuccess($result['redirect'] ?? (BASE_URL . 'dashboard'));
         } catch (ValidationException $e) {
-            LogService::warning('Login validation exception', [
-                'email' => $credentials['email'] ?? '',
-                'errors' => $e->getErrors(),
-                'msg' => $e->getMessage(),
-            ]);
             $this->handleValidationException($e, $credentials['email'] ?? '');
         } catch (\Throwable $e) {
-            // pega qualquer erro: CSRF fail, 500, etc.
-            LogService::error('Login fatal error', [
-                'email' => $credentials['email'] ?? '',
-                'exception' => get_class($e),
-                'msg' => $e->getMessage(),
-                'file' => $e->getFile() . ':' . $e->getLine(),
-                // 'trace' => $e->getTraceAsString(), // habilite se precisar (cuidado com tamanho do log)
-            ]);
-            $this->handleGeneralException($e);
+            $msg = trim($e->getMessage());
+            if (stripos($msg, 'credenciais inválidas') !== false) {
+                $this->respondError('E-mail ou senha inválidos.');
+                return;
+            }
+            $this->respondError('Erro ao processar login: ' . htmlspecialchars($msg));
         }
     }
 
-    /**
-     * Logout
-     */
+    /** Logout */
     public function logout(): void
     {
         $this->authService->logout();
-        $this->redirectWithLogoutNotification();
+        // Redireciona pro /login com “toaster” via localStorage (mantive seu padrão)
+        echo "<script>
+            localStorage.setItem('logout_success', '1');
+            window.location.href = '" . BASE_URL . "login';
+        </script>";
     }
 
-    // =========================
-    // RENDER
-    // =========================
+    // ========================= RENDER/REDIRECT =========================
 
     private function redirectToDashboard(): void
     {
-        $this->redirect('dashboard'); // ← simples
+        $this->redirect('dashboard');
     }
-
 
     private function renderLoginForm(): void
     {
         $data = [
             'error'      => $this->getError(),
             'success'    => $this->getSuccess(),
-            'csrf_token' => CsrfMiddleware::generateToken('login_form'),
+            'csrf_token' => \Application\Middlewares\CsrfMiddleware::generateToken('login_form'),
         ];
 
-        // Mantenha exatamente como no seu projeto antigo:
-        $this->render('admin/admins/login', $data, 'null', 'admin/footer');
+        // View atual do seu projeto de login
+        $this->render('admin/admins/login', $data, null, 'admin/footer');
     }
 
-    // =========================
-    // PROCESSAMENTO
-    // =========================
+    // ========================= PROCESSAMENTO =========================
 
     private function prepareJsonResponse(): void
     {
@@ -132,14 +117,16 @@ class LoginController extends BaseController
 
     private function isPostRequest(): bool
     {
-        return ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
+        return (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST');
     }
 
     private function validateCsrfToken(): void
     {
         $request = new Request();
+        // Token name deve bater com csrf_input('login_form') do HTML
         CsrfMiddleware::handle($request, 'login_form');
     }
+
     private function getLoginCredentials(): array
     {
         return [
@@ -148,80 +135,15 @@ class LoginController extends BaseController
         ];
     }
 
-
     private function applyRateLimit(): void
     {
-        $request = new Request();
+        $request     = new Request();
         $rateLimiter = new RateLimitMiddleware(new CacheService());
-        $identifier = RateLimitMiddleware::getIdentifier($request);
+        $identifier  = RateLimitMiddleware::getIdentifier($request);
         $rateLimiter->handle($request, 'login:' . $identifier);
     }
 
-    private function isAccountBlocked(string $email): bool
-    {
-        // No novo modelo não há coluna de bloqueio em `usuarios`.
-        // Caso queira bloquear, implemente via cache/redis aqui.
-        // Por ora, sempre false.
-        return false;
-    }
-
-    private function authenticateUser(array $credentials): void
-    {
-        // AuthService atualizado já aceita (email, password)
-        $result = $this->authService->login($credentials['email'], $credentials['password']);
-
-        // Limpa tokens CSRF após sucesso
-        $this->clearOldCsrfTokens();
-
-        $this->respondLoginSuccess($result['redirect']);
-    }
-
-    // =========================
-    // ERROS
-    // =========================
-
-    private function handleValidationException(ValidationException $e, string $email): void
-    {
-        if ($this->isRateLimitError($e)) {
-            $this->respondError('Muitas tentativas. Aguarde 1 minuto e tente novamente.');
-            return;
-        }
-
-        // Se quiser bloqueio temporário por email via cache, implemente aqui.
-        // $this->blockAccountTemporarily($email);
-
-        // Mantém resposta geral (frontend já lida com mensagem genérica)
-        $this->respondError('E-mail ou senha inválidos.', $e->getErrors());
-    }
-
-    private function handleGeneralException(\Exception $e): void
-    {
-        // Se vier "Credenciais inválidas." do AuthService, devolvemos msg amigável
-        $msg = trim($e->getMessage());
-        if (stripos($msg, 'credenciais inválidas') !== false) {
-            $this->respondError('E-mail ou senha inválidos.');
-            return;
-        }
-
-        $this->respondError('Erro ao processar login: ' . htmlspecialchars($msg));
-    }
-
-    private function isRateLimitError(ValidationException $e): bool
-    {
-        $m = $e->getMessage();
-        return str_contains($m, 'Muitas tentativas') || str_contains($m, 'rate limit');
-    }
-
-    // Se quiser bloquear por cache, implemente aqui (opcional)
-    private function blockAccountTemporarily(string $email): void
-    {
-        // Exemplo (pseudocódigo):
-        // CacheService::put('lock:login:' . sha1($email), 1, 60);
-    }
-
-    // =========================
-    // RESPOSTAS JSON
-    // =========================
+    // ========================= RESPOSTAS JSON =========================
 
     private function respondError(string $message, array $errors = []): void
     {
@@ -232,10 +154,12 @@ class LoginController extends BaseController
 
     private function respondLoginSuccess(string $redirectUrl): void
     {
+        // aceita caminho relativo ou absoluto
+        $url = filter_var($redirectUrl, FILTER_VALIDATE_URL) ? $redirectUrl : (BASE_URL . ltrim($redirectUrl, '/'));
         echo json_encode([
             'status'   => 'success',
             'message'  => 'Login realizado com sucesso!',
-            'redirect' => $redirectUrl
+            'redirect' => $url
         ]);
     }
 
@@ -243,26 +167,16 @@ class LoginController extends BaseController
     {
         unset($_SESSION['csrf_tokens']);
     }
-    private function redirectWithLogoutNotification(): void
+
+    // ========================= ERROS =========================
+
+    private function handleValidationException(ValidationException $e, string $email): void
     {
-        echo "<script>
-        localStorage.setItem('logout_success', '1');
-        window.location.href = '" . BASE_URL . "login';
-    </script>";
-    }
-
-
-    // =========================
-    // COMPAT (se ainda usar em algum lugar)
-    // =========================
-
-    private function handleLoginError(string $message, array $errors = []): void
-    {
-        if ($this->request->isAjax()) {
-            $this->jsonError($message, 400, $errors);
+        $m = $e->getMessage();
+        if (str_contains($m, 'Muitas tentativas') || str_contains($m, 'rate limit')) {
+            $this->respondError('Muitas tentativas. Aguarde 1 minuto e tente novamente.');
             return;
         }
-        $this->setError($message);
-        $this->redirect('login');
+        $this->respondError('E-mail ou senha inválidos.', $e->getErrors());
     }
 }

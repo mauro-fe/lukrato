@@ -46,35 +46,41 @@ function registerAuthRoutes(): void
  */
 function registerSimpleRoutes(): void
 {
-    // Dashboard (view já existe)
-    Router::add('GET', 'dashboard', 'Admin\DashboardController@dashboard', ['auth']);
+    // Dashboard / páginas simples
+    Router::add('GET', 'dashboard',    'Admin\DashboardController@dashboard', ['auth']);
+    Router::add('GET', 'lancamentos',  'Admin\LancamentoController@index',    ['auth']);
+    Router::add('GET', 'relatorios',   'RelatoriosController@view',           ['auth']);
 
-    // Lançamentos (já existentes)
-    Router::add('GET',  'lancamentos',       'Admin\LancamentoController@index',  ['auth']);
-
-    // === API (dashboard) ===
+    // API Dashboard/Reports já existentes
     Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
     Router::add('GET',  'api/dashboard/transactions',  'Api\FinanceApiController@transactions', ['auth']);
     Router::add('GET',  'api/options',                 'Api\FinanceApiController@options',      ['auth']);
     Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']);
+    Router::add('GET',  'api/reports/overview',        'RelatoriosController@overview',         ['auth']);
+    Router::add('GET',  'api/reports/table',           'RelatoriosController@table',            ['auth']);
+    Router::add('GET',  'api/reports/timeseries',      'RelatoriosController@timeseries',       ['auth']);
+    Router::add('GET',  'api/reports',                 'Api\ReportController@index',            ['auth']); // compat
 
-    // Página de relatórios
-    Router::add('GET', 'relatorios', 'RelatoriosController@view', ['auth']);
+    // Página Contas
+    Router::add('GET', 'contas', 'Admin\AccountsController@index', ['auth']);
 
-    // === API de relatórios (NOVAS) ===
-    Router::add('GET', 'api/reports/overview',   'RelatoriosController@overview',   ['auth']);
-    Router::add('GET', 'api/reports/table',      'RelatoriosController@table',      ['auth']);
-    Router::add('GET', 'api/reports/timeseries', 'RelatoriosController@timeseries', ['auth']);
+    // ===== API de Contas (NOVAS) =====
+    // REST "bonito"
+    // registerSimpleRoutes()
+    Router::add('GET',    'api/accounts',          'Api\AccountController@index',  ['auth']);
+    Router::add('POST',   'api/accounts',          'Api\AccountController@store',  ['auth']);   // sem 'csrf'
+    Router::add('PUT',    'api/accounts/{id}',     'Api\AccountController@update', ['auth']);   // sem 'csrf'
+    Router::add('DELETE', 'api/accounts/{id}',     'Api\AccountController@destroy', ['auth']);   // sem 'csrf'
 
-    // Compatibilidade antiga (se houver front/integração usando /api/reports)
-    Router::add('GET', 'api/reports', 'Api\ReportController@index', ['auth']);
+    // Fallbacks para ambientes sem PUT/DELETE (úteis se seu Router/Apache não aceitarem)
+    Router::add('POST',    'api/accounts/{id:\d+}/update', 'Api\AccountController@update',  ['auth', 'csrf']);
+    Router::add('POST',    'api/accounts/{id:\d+}/delete', 'Api\AccountController@destroy', ['auth', 'csrf']);
 
-    Router::add('GET', 'perfil', 'Admin\ProfileController@index');
-    Router::add('POST', 'api/profile', 'Api\ProfileController@update');
-    // página
-
-
+    // Perfil
+    Router::add('GET',  'perfil',      'Admin\ProfileController@index', ['auth']);
+    Router::add('POST', 'api/profile', 'Api\ProfileController@update',  ['auth', 'csrf']);
 }
+
 
 /**
  * Finance (legado com username na URL)

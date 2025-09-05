@@ -15,21 +15,27 @@ class Usuario extends Model
 
     protected $hidden = ['senha'];
 
+    // ---- RELAÇÕES ----
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
     }
+
     public function lancamentos()
     {
         return $this->hasMany(Lancamento::class, 'user_id');
     }
 
-    // ===== BOOT =====
+    public function contas()
+    {
+        return $this->hasMany(Conta::class, 'user_id');
+    }
+
+    // ---- BOOT ----
     protected static function boot()
     {
         parent::boot();
 
-        // Normalizações simples antes de criar/atualizar
         static::saving(function (Usuario $u) {
             if (!empty($u->email)) {
                 $u->email = trim(strtolower($u->email));
@@ -40,13 +46,13 @@ class Usuario extends Model
         });
     }
 
-    // ===== SCOPES =====
+    // ---- SCOPES ----
     public function scopeByEmail($query, string $email)
     {
         return $query->whereRaw('LOWER(email) = ?', [trim(strtolower($email))]);
     }
 
-    // ===== MUTATORS =====
+    // ---- MUTATORS ----
     public function setSenhaAttribute($value): void
     {
         if (!empty($value) && !$this->isPasswordHashed($value)) {
@@ -56,22 +62,19 @@ class Usuario extends Model
         }
     }
 
-    // ===== ACCESSORS ÚTEIS (opcional) =====
+    // ---- ACCESSORS ----
     public function getPrimeiroNomeAttribute(): string
     {
         $p = trim((string) $this->nome);
         return $p === '' ? '' : explode(' ', $p)[0];
     }
 
-    // ===== AUTENTICAÇÃO (somente e-mail) =====
+    // ---- AUTH SIMPLES ----
     public static function authenticate(string $email, string $password): ?self
     {
         $user = self::byEmail($email)->first();
 
         if ($user && password_verify($password, $user->senha)) {
-            // Se quiser registrar último login, adicione a coluna e descomente:
-            // $user->ultimo_login = now();
-            // $user->save();
             return $user;
         }
 
@@ -79,7 +82,6 @@ class Usuario extends Model
         return null;
     }
 
-    // ===== HELPERS =====
     private function isPasswordHashed(string $value): bool
     {
         return is_string($value) && password_get_info($value)['algo'] !== 0;

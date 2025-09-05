@@ -4,102 +4,226 @@ namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
 use Application\Models\Lancamento;
+use Application\Models\Conta;
 use Application\Lib\Auth;
 use Illuminate\Database\Capsule\Manager as DB;
 use Application\Services\LogService;
+use Application\Core\Response;
+
 
 class DashboardController extends BaseController
 {
     /**
-     * Ponto de entrada para a rota do dashboard.
-     * Orquestra a autorização, busca de dados e renderização.
+     * View do dashboard. Quem busca dados é o JS via /api (abaixo).
      */
     public function dashboard()
     {
         try {
-            // 2. Carrega os dados
-            $data = $this->loadDashboardData(Auth::id());
-
-            // Adiciona dados extras para a view
-            $data['pageTitle'] = 'Dashboard';
-            $data['username']  = Auth::user()->username;
-            $data['menu']      = 'dashboard';
-
-            // 3. Renderiza a view com os dados
             $this->render(
                 'dashboard/index',
-                $data,
+                [
+                    'pageTitle' => 'Dashboard',
+                    'username'  => Auth::user()->username,
+                    'menu'      => 'dashboard',
+                ],
                 'admin/home/header',
                 null
             );
         } catch (\Throwable $e) {
-            // 4. Lida com qualquer erro que ocorrer
             $this->handleDashboardError($e);
         }
     }
 
     /**
-     * Busca e processa todos os dados necessários para o dashboard.
-     * @return array
+     * GET /api/dashboard/metrics?month=YYYY-MM&account_id=ID (opcional)
+     * Retorna: saldo, receitas, despesas, resultado, saldoAcumulado
+     *
+     * Regras:
+     * - receitas/despesas ignoram transferências;
+     * - quando filtra por conta, saldo considera:
+     *   saldo_inicial + receitas - despesas + transf_in - transf_out (até o fim do mês).
      */
-    private function loadDashboardData(int $userId): array
+    public function apiMetrics(): void
     {
-        $mesAtual = date('m');
-        $anoAtual = date('Y');
+        try {
+            $userId = Auth::id();
+            $month  = trim($_GET['month'] ?? date('Y-m'));
+            $accId  = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
 
-        $receitasMes = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'receita')
-            ->whereMonth('data', $mesAtual)
-            ->whereYear('data', $anoAtual)
-            ->sum('valor');
+            // valida mês
+            $dt = \DateTime::createFromFormat('Y-m', $month);
+            if (!$dt || $dt->format('Y-m') !== $month) {
+                $month = date('Y-m');
+                $dt = new \DateTime("$month-01");
+            }
+            $y = (int)$dt->format('Y');
+            $m = (int)$dt->format('m');
 
-        $despesasMes = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->whereMonth('data', $mesAtual)
-            ->whereYear('data', $anoAtual)
-            ->sum('valor');
+            // filtros base
+            $base = Lancamento::where('user_id', $userId)
+                ->whereYear('data', $y)
+                ->whereMonth('data', $m);
 
-        $saldoTotal = Lancamento::where('user_id', $userId)
-            ->sum(DB::raw("CASE WHEN tipo='receita' THEN valor ELSE -valor END"));
+            // receitas/despesas (ignora transferências)
+            $receitas = (clone $base)->where('tipo', 'receita')
+                ->where('eh_transferencia', 0);
+            $despesas = (clone $base)->where('tipo', 'despesa')
+                ->where('eh_transferencia', 0);
 
-        $fluxo = Lancamento::selectRaw("DATE_FORMAT(data, '%d/%m') as dia, SUM(CASE WHEN tipo='receita' THEN valor ELSE -valor END) as saldo_dia")
-            ->where('user_id', $userId)
-            ->whereMonth('data', $mesAtual)
-            ->whereYear('data', $anoAtual)
-            ->groupBy('data')
-            ->orderBy('data')
-            ->get();
+            if ($accId) {
+                $receitas->where('conta_id', $accId);
+                $despesas->where('conta_id', $accId);
+            }
 
-        $ultimos = Lancamento::with('categoria')
-            ->where('user_id', $userId)
-            ->orderBy('data', 'desc')
-            ->orderBy('id', 'desc')
-            ->limit(8)
-            ->get();
+            $sumReceitas = (float)$receitas->sum('valor');
+            $sumDespesas = (float)$despesas->sum('valor');
+            $resultado   = $sumReceitas - $sumDespesas;
 
-        return [
-            'receitasMes' => $receitasMes,
-            'despesasMes' => $despesasMes,
-            'saldoTotal' => $saldoTotal,
-            'labels' => $fluxo->pluck('dia')->all(),
-            'data' => $fluxo->pluck('saldo_dia')->map(fn($v) => (float)$v)->all(),
-            'ultimos' => $ultimos
-        ];
+            // Saldo:
+            // - sem conta: saldo "global" = receitas-acum - despesas-acum (ignora transferências)
+            // - com conta: saldo_inicial + movimentos + transfer in/out até o fim do mês
+            if ($accId) {
+                $conta = Conta::where('user_id', $userId)->find($accId);
+                $saldoInicial = $conta ? (float)$conta->saldo_inicial : 0;
+
+                // até o fim do mês selecionado
+                $ate = (new \DateTimeImmutable("$month-01"))->modify('last day of this month')->format('Y-m-d');
+
+                $movBase = Lancamento::where('user_id', $userId)
+                    ->where('data', '<=', $ate)
+                    ->where('eh_transferencia', 0)
+                    ->where('conta_id', $accId);
+
+                $movReceitas = (float)(clone $movBase)->where('tipo', 'receita')->sum('valor');
+                $movDespesas = (float)(clone $movBase)->where('tipo', 'despesa')->sum('valor');
+
+                // transferências na conta
+                $transfIn  = (float)Lancamento::where('user_id', $userId)
+                    ->where('data', '<=', $ate)
+                    ->where('eh_transferencia', 1)
+                    ->where('conta_destino_id', $accId)
+                    ->sum('valor');
+
+                $transfOut = (float)Lancamento::where('user_id', $userId)
+                    ->where('data', '<=', $ate)
+                    ->where('eh_transferencia', 1)
+                    ->where('conta_id', $accId)
+                    ->sum('valor');
+
+                $saldo = $saldoInicial + $movReceitas - $movDespesas + $transfIn - $transfOut;
+
+                // saldo acumulado = mesmo saldo (sem diferença de conceito aqui)
+                $saldoAcumulado = $saldo;
+            } else {
+                // Global acumulado até fim do mês
+                $ate = (new \DateTimeImmutable("$month-01"))->modify('last day of this month')->format('Y-m-d');
+
+                $movGlobal = Lancamento::where('user_id', $userId)
+                    ->where('data', '<=', $ate)
+                    ->where('eh_transferencia', 0);
+
+                $r = (float)(clone $movGlobal)->where('tipo', 'receita')->sum('valor');
+                $d = (float)(clone $movGlobal)->where('tipo', 'despesa')->sum('valor');
+
+                $saldo = $r - $d;
+                $saldoAcumulado = $saldo;
+            }
+
+            $this->json([
+                'saldo'          => $saldo,
+                'receitas'       => $sumReceitas,
+                'despesas'       => $sumDespesas,
+                'resultado'      => $resultado,
+                'saldoAcumulado' => $saldoAcumulado,
+            ]);
+        } catch (\Throwable $e) {
+            $this->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Lida com exceções ocorridas durante o carregamento do dashboard.
+     * GET /api/dashboard/transactions?month=YYYY-MM&limit=N&account_id=ID (opcional)
+     * Lista últimos lançamentos do mês (p/ tabela do dashboard).
      */
+    public function apiTransactions(): void
+    {
+        try {
+            $userId = Auth::id();
+            $month  = trim($_GET['month'] ?? date('Y-m'));
+            $limit  = max(1, (int)($_GET['limit'] ?? 50));
+            $accId  = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
+
+            $dt = \DateTime::createFromFormat('Y-m', $month);
+            if (!$dt || $dt->format('Y-m') !== $month) {
+                $month = date('Y-m');
+                $dt = new \DateTime("$month-01");
+            }
+            $y = (int)$dt->format('Y');
+            $m = (int)$dt->format('m');
+
+            $q = Lancamento::with(['categoria', 'conta', 'contaDestino'])
+                ->where('user_id', $userId)
+                ->whereYear('data', $y)
+                ->whereMonth('data', $m)
+                ->orderBy('data', 'desc')
+                ->orderBy('id', 'desc');
+
+            if ($accId) {
+                // mostra os da conta e transferências onde a conta participa
+                $q->where(function ($w) use ($accId) {
+                    $w->where('conta_id', $accId)
+                        ->orWhere('conta_destino_id', $accId);
+                });
+            }
+
+            $rows = $q->limit($limit)->get();
+
+            $this->json($rows->map(function ($t) {
+                return [
+                    'id'        => (int)$t->id,
+                    'data'      => $t->data,
+                    'tipo'      => $t->tipo,
+                    'valor'     => (float)$t->valor,
+                    'descricao' => $t->descricao,
+                    'observacao' => $t->observacao,
+                    'eh_transferencia' => (int)$t->eh_transferencia === 1,
+                    'categoria' => $t->categoria ? ['id' => (int)$t->categoria->id, 'nome' => $t->categoria->nome] : null,
+                    'conta'     => $t->conta ? ['id' => (int)$t->conta->id, 'nome' => $t->conta->nome] : null,
+                    'conta_destino' => $t->contaDestino ? ['id' => (int)$t->contaDestino->id, 'nome' => $t->contaDestino->nome] : null,
+                ];
+            }));
+        } catch (\Throwable $e) {
+            $this->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     private function handleDashboardError(\Throwable $e): void
     {
         LogService::critical('Erro ao carregar o dashboard', ['erro' => $e->getMessage()]);
 
-        // Exibe uma página de erro amigável para o usuário
         $this->render(
-            'errors/500', // Você precisará criar essa view
+            'errors/500',
             ['pageTitle' => 'Erro Interno'],
             'admin/home/header',
-            'admin/footer'
+            null
         );
+    }
+    // Em BaseController.php – descomente/adicione:
+    protected function json(array $data, int $statusCode = 200): void
+    {
+        Response::json($data, $statusCode);
+        exit;
+    }
+
+
+
+    private function jsonError(string $message, int $code = 400, array $errors = []): void
+    {
+        Response::error($message, $code, $errors); // já envia e finaliza
+    }
+
+    protected function jsonSuccess(string $message, array $data = []): void
+    {
+        Response::success($data, $message); // já envia e finaliza
     }
 }

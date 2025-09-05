@@ -13,17 +13,17 @@
   --vermelho: #e74c3c;
 
   --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-size-xs: .75rem;
-  --font-size-sm: .875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
 
-  --spacing-1: .25rem;
-  --spacing-2: .5rem;
-  --spacing-3: .75rem;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
   --spacing-4: 1rem;
   --spacing-5: 1.25rem;
   --spacing-6: 1.5rem;
@@ -35,10 +35,10 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .1);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, .1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, .1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, .15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
 
   --sidebar-width: 280px;
   --header-height: 80px;
@@ -48,9 +48,9 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-backdrop: blur(10px);
 
-  --transition-fast: .15s ease;
-  --transition-normal: .3s ease;
-  --transition-slow: .5s ease;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
 }
 
 /* =========================================================
@@ -59,12 +59,12 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 html {
   font-size: 16px;
-  scroll-behavior: smooth
+  scroll-behavior: smooth;
 }
 
 body {
@@ -72,33 +72,33 @@ body {
   background-color: var(--fundo) !important;
   color: var(--branco);
   line-height: 1.5;
-  overflow-x: hidden
+  overflow-x: hidden;
 }
 
 *:focus {
   outline: 2px solid var(--laranja);
-  outline-offset: 2px
+  outline-offset: 2px;
 }
 
 .container {
   padding: var(--container-padding);
   max-width: 1400px;
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 .fade-in {
-  animation: fadeIn .5s ease-in-out
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px)
+    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0)
+    transform: translateY(0);
   }
 }
 
@@ -116,21 +116,21 @@ body {
   border-right: 1px solid var(--glass-border);
   z-index: 100;
   display: flex;
-  flex-direction: column
+  flex-direction: column;
 }
 
 .sidebar-header {
   padding: var(--spacing-6);
-  border-bottom: 1px solid var(--glass-border)
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .logo img {
-  max-width: 150px !important
+  max-width: 150px !important;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: var(--spacing-4) 0
+  padding: var(--spacing-4) 0;
 }
 
 .nav-item {
@@ -141,22 +141,22 @@ body {
   color: var(--branco);
   text-decoration: none;
   transition: var(--transition-fast);
-  font-weight: 500
+  font-weight: 500;
 }
 
 .nav-item:hover {
   background-color: var(--glass-bg);
-  color: var(--branco)
+  color: var(--branco);
 }
 
 .nav-item.active {
   background-color: var(--laranja);
-  color: var(--branco)
+  color: var(--branco);
 }
 
 .nav-item i {
   font-size: var(--font-size-lg);
-  width: 20px
+  width: 20px;
 }
 
 /* Toggle (mobile) */
@@ -172,7 +172,7 @@ body {
   padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 18px
+  font-size: 18px;
 }
 
 /* =========================================================
@@ -192,21 +192,21 @@ body {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   border-bottom: 1px solid var(--glass-border);
-  transition: left .3s ease, width .3s ease
+  transition: left 0.3s ease, width 0.3s ease;
 }
 
 .lk-header .header-left,
 .lk-header .header-right {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4)
+  gap: var(--spacing-4);
 }
 
 /* Seletor de mês no header */
 .month-picker-nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2)
+  gap: var(--spacing-2);
 }
 
 .month-nav-btn {
@@ -216,16 +216,16 @@ body {
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: var(--transition-fast)
+  transition: var(--transition-fast);
 }
 
 .month-nav-btn:hover {
   background-color: var(--glass-bg);
-  color: var(--branco)
+  color: var(--branco);
 }
 
 .month-display {
-  position: relative
+  position: relative;
 }
 
 .month-dropdown-btn {
@@ -235,7 +235,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  cursor: pointer
+  cursor: pointer;
 }
 
 /* Dropdown de mês */
@@ -248,11 +248,11 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--spacing-3);
   box-shadow: var(--shadow-md);
-  display: none
+  display: none;
 }
 
 .month-dropdown.active {
-  display: block
+  display: block;
 }
 
 .month-dropdown button {
@@ -264,12 +264,12 @@ body {
   padding: var(--spacing-3) var(--spacing-4);
   text-align: left;
   cursor: pointer;
-  transition: var(--transition-fast)
+  transition: var(--transition-fast);
 }
 
 .month-dropdown button:hover {
   background-color: var(--glass-bg);
-  transform: translateX(-5px)
+  transform: translateX(-5px);
 }
 
 /* =========================================================
@@ -279,44 +279,45 @@ body {
   margin-left: var(--sidebar-width);
   padding-top: var(--header-height);
   min-height: 100vh;
-  transition: margin-left .3s ease
+  transition: margin-left 0.3s ease;
 }
 
 /* =========================================================
  * Mobile
  * =======================================================*/
-@media (max-width:992px) {
+@media (max-width: 992px) {
   .sidebar {
     left: -260px;
     width: 240px;
     background: #1e293b;
-    transition: left .3s ease;
-    z-index: 1000
+    transition: left 0.3s ease;
+    z-index: 1000;
   }
 
   .sidebar.open {
-    left: 0
+    left: 0;
   }
 
   .lk-header {
     left: 0;
-    width: 100%
+    width: 100%;
   }
 
   .main-content {
     margin-left: 0;
-    padding-top: var(--header-height)
+    padding-top: var(--header-height);
   }
 
   .sidebar-toggle {
-    display: block
+    display: block;
   }
 }
 
 /* =========================================================
  * Modal básico (LK)
  * =======================================================*/
-.lk-modal {
+/* === Modal do HEADER / LANÇAMENTOS (escopado) === */
+.lkh-modal {
   position: fixed;
   inset: 0;
   display: none;
@@ -325,23 +326,20 @@ body {
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
-  transition: var(--transition-normal)
+  transition: var(--transition-normal);
 }
-
-.lk-modal.active {
+.lkh-modal.active {
   display: flex;
   opacity: 1;
-  visibility: visible
+  visibility: visible;
 }
-
-.lk-modal-backdrop {
+.lkh-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, .5);
-  backdrop-filter: blur(4px)
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
 }
-
-.lk-modal-content {
+.lkh-modal-content {
   position: relative;
   background: var(--azul);
   border: 1px solid var(--glass-border);
@@ -351,59 +349,54 @@ body {
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  transform: scale(.9);
+  transform: scale(0.9);
   transition: var(--transition-normal);
-  z-index: 1
+  z-index: 1;
+}
+.lkh-modal.active .lkh-modal-content {
+  transform: scale(1);
 }
 
-.lk-modal.active .lk-modal-content {
-  transform: scale(1)
-}
-
-.lk-modal-header {
+.lkh-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-6);
-  border-bottom: 1px solid var(--glass-border)
+  border-bottom: 1px solid var(--glass-border);
 }
-
-.lk-modal-header h2 {
+.lkh-modal-header h2 {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--branco)
+  color: var(--branco);
 }
-
-.lk-modal-close {
+.lkh-modal-close {
   background: none;
   border: none;
   color: var(--cinza);
   font-size: var(--font-size-lg);
-  cursor: pointer
+  cursor: pointer;
 }
-
-.lk-modal-body {
-  padding: var(--spacing-6)
+.lkh-modal-body {
+  padding: var(--spacing-6);
 }
-
-.lk-modal-footer {
+.lkh-modal-footer {
   display: flex;
   gap: var(--spacing-3);
   padding: var(--spacing-6);
   border-top: 1px solid var(--glass-border);
-  justify-content: flex-end
+  justify-content: flex-end;
 }
 
 /* Formulário no modal */
 .form-group {
-  margin-bottom: var(--spacing-4)
+  margin-bottom: var(--spacing-4);
 }
 
 .form-group label {
   display: block;
   margin-bottom: var(--spacing-2);
   font-size: var(--font-size-sm);
-  color: var(--cinza)
+  color: var(--cinza);
 }
 
 .form-input,
@@ -415,11 +408,11 @@ body {
   border-radius: var(--radius-sm);
   color: var(--branco);
   font-family: var(--font-primary);
-  font-size: var(--font-size-base)
+  font-size: var(--font-size-base);
 }
 
 .form-input::placeholder {
-  color: var(--cinza)
+  color: var(--cinza);
 }
 
 .checkbox-label {
@@ -428,7 +421,7 @@ body {
   gap: var(--spacing-2);
   cursor: pointer;
   font-size: var(--font-size-sm);
-  color: var(--cinza)
+  color: var(--cinza);
 }
 
 .checkbox-label .checkbox-custom {
@@ -438,16 +431,16 @@ body {
   border: 1px solid var(--cinza);
   border-radius: var(--radius-sm);
   background-color: var(--azul);
-  transition: var(--transition-fast)
+  transition: var(--transition-fast);
 }
 
 .checkbox-label input[type="checkbox"] {
-  display: none
+  display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
   background-color: var(--verde);
-  border-color: var(--verde)
+  border-color: var(--verde);
 }
 
 .btn {
@@ -455,29 +448,29 @@ body {
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  transition: var(--transition-fast)
+  transition: var(--transition-fast);
 }
 
 .btn-primary {
   background-color: var(--laranja);
   border: 1px solid var(--laranja);
-  color: var(--branco)
+  color: var(--branco);
 }
 
 .btn-ghost {
   background-color: transparent;
   border: 1px solid var(--cinza);
-  color: var(--cinza)
+  color: var(--cinza);
 }
 
 .btn-primary:hover {
   background-color: var(--amarelo);
-  border-color: var(--amarelo)
+  border-color: var(--amarelo);
 }
 
 .btn-ghost:hover {
   color: var(--branco);
-  border-color: var(--branco)
+  border-color: var(--branco);
 }
 
 /* Calendário dentro do modal (seletor de mês) */
@@ -487,45 +480,45 @@ body {
   text-align: center;
   font-size: var(--font-size-sm);
   color: var(--cinza);
-  margin-bottom: var(--spacing-2)
+  margin-bottom: var(--spacing-2);
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--spacing-2)
+  gap: var(--spacing-2);
 }
 
 .calendar-day {
   padding: 8px;
   text-align: center;
   border-radius: 10px;
-  cursor: pointer
+  cursor: pointer;
 }
 
 .calendar-day:hover:not(.selected) {
-  background-color: var(--glass-bg)
+  background-color: var(--glass-bg);
 }
 
 .calendar-day.muted {
   color: var(--cinza);
-  opacity: .5
+  opacity: 0.5;
 }
 
 .calendar-day.today {
-  border: 1px solid var(--verde)
+  border: 1px solid var(--verde);
 }
 
 .calendar-day.selected {
   background-color: var(--laranja);
   color: var(--branco);
-  font-weight: bold
+  font-weight: bold;
 }
 
-@media (max-width:768px) {
+@media (max-width: 768px) {
   .lk-modal-content {
     width: 95%;
-    margin: var(--spacing-4)
+    margin: var(--spacing-4);
   }
 }
 
@@ -552,20 +545,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-lg)
+  box-shadow: var(--shadow-lg);
 }
 
 .fab:hover {
   transform: scale(1.1);
-  box-shadow: var(--shadow-xl)
+  box-shadow: var(--shadow-xl);
 }
 
 .fab:active {
-  transform: scale(.95)
+  transform: scale(0.95);
 }
 
 .fab.active {
-  transform: rotate(45deg)
+  transform: rotate(45deg);
 }
 
 .fab-menu {
@@ -578,14 +571,14 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
-  transition: var(--transition-normal)
+  transition: var(--transition-normal);
 }
 
 .fab-menu.active {
   display: flex;
   opacity: 1;
   visibility: visible;
-  transform: translateY(0)
+  transform: translateY(0);
 }
 
 .fab-menu-item {
@@ -599,14 +592,14 @@ body {
   padding: var(--spacing-3) var(--spacing-4);
   cursor: pointer;
   box-shadow: var(--shadow-md);
-  white-space: nowrap
+  white-space: nowrap;
 }
 
 .fab-menu-item i {
   width: 20px;
-  text-align: center
+  text-align: center;
 }
 
 .fab-menu-item:hover {
-  background-color: var(--glass-bg)
+  background-color: var(--glass-bg);
 }

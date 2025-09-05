@@ -13,17 +13,15 @@ class ProfileController extends BaseController
             $this->requireAuth();
         }
 
-        $user = Auth::user(); // objeto do usuário logado
-
-        $data = [
-            'pageTitle' => 'Meu Perfil',
-            'menu'      => 'perfil',
-            'user'      => $user,
-        ];
+        $user = Auth::user();
 
         $this->render(
             'admin/profile/index',
-            $data,
+            [
+                'pageTitle' => 'Meu Perfil',
+                'menu'      => 'perfil',
+                'user'      => $user,
+            ],
             'admin/home/header',
             null
         );

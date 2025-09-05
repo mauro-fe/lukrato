@@ -52,6 +52,9 @@ $base = BASE_URL; // Use the defined constant
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>>
                 <i class="fas fa-home"></i><span>Dashboard</span>
             </a>
+            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>>
+                <i class="fas fa-chart-bar"></i><span>Contas</span>
+            </a>
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                 <?= $aria('lancamentos') ?>>
                 <i class="fas fa-exchange-alt"></i><span>Lançamentos</span>
@@ -60,8 +63,7 @@ $base = BASE_URL; // Use the defined constant
                 <?= $aria('relatorios') ?>>
                 <i class="fas fa-chart-bar"></i><span>Relatórios</span>
             </a>
-            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>"
-                <?= $aria('perfil') ?>>
+            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>>
                 <i class="fas fa-user-circle"></i><span>Perfil</span>
             </a>
             <a href="<?= $base ?>admin/<?= $u ?>/config" class="nav-item <?= $active('config') ?>"
@@ -92,15 +94,16 @@ $base = BASE_URL; // Use the defined constant
 
         <div class="container-fluid py-4 lk-page">
             <!-- Modal Único de Lançamento -->
-            <div class="lk-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle" aria-hidden="true">
-                <div class="lk-modal-backdrop"></div>
-                <div class="lk-modal-content">
-                    <div class="lk-modal-header">
+            <div class="lkh-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle"
+                aria-hidden="true">
+                <div class="lkh-modal-backdrop"></div>
+                <div class="lkh-modal-content">
+                    <div class="lkh-modal-header">
                         <h2 id="modalLancamentoTitle">Novo Lançamento</h2>
-                        <button class="lk-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
+                        <button class="lkh-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
                     </div>
 
-                    <form class="lk-modal-body" id="formLancamento" novalidate>
+                    <form class="lkh-modal-body" id="formLancamento" novalidate>
                         <div class="form-group">
                             <label for="lanTipo">Tipo</label>
                             <select id="lanTipo" class="form-select" required>
@@ -156,17 +159,20 @@ $base = BASE_URL; // Use the defined constant
 
                         <div class="form-group">
                             <label for="lanDescricao">Descrição</label>
-                            <input type="text" id="lanDescricao" class="form-input" placeholder="Descrição do lançamento" />
+                            <input type="text" id="lanDescricao" class="form-input"
+                                placeholder="Descrição do lançamento" />
                         </div>
 
                         <div class="form-group">
                             <label for="lanObservacao">Observação (opcional)</label>
-                            <input type="text" id="lanObservacao" class="form-input" placeholder="Detalhe, nota interna..." />
+                            <input type="text" id="lanObservacao" class="form-input"
+                                placeholder="Detalhe, nota interna..." />
                         </div>
 
                         <div class="form-group">
                             <label for="lanValor">Valor</label>
-                            <input type="text" id="lanValor" class="form-input money-mask" placeholder="R$ 0,00" required />
+                            <input type="text" id="lanValor" class="form-input money-mask" placeholder="R$ 0,00"
+                                required />
                         </div>
 
                         <div class="form-group">
@@ -177,7 +183,7 @@ $base = BASE_URL; // Use the defined constant
                         </div>
                     </form>
 
-                    <div class="lk-modal-footer">
+                    <div class="lkh-modal-footer">
                         <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancelar</button>
                         <button type="submit" form="formLancamento" class="btn btn-primary">Salvar</button>
                     </div>
@@ -221,7 +227,8 @@ $base = BASE_URL; // Use the defined constant
 
                 document.querySelectorAll('.fab-menu-item[data-open-modal]').forEach(btn => {
                     btn.addEventListener('click', () => {
-                        const key = btn.getAttribute('data-open-modal'); // receita / despesa / despesa-cartao / transferencia
+                        const key = btn.getAttribute(
+                            'data-open-modal'); // receita / despesa / despesa-cartao / transferencia
                         openModalByKey(key);
                         menu.classList.remove('active');
                         fab.classList.remove('active');
@@ -232,14 +239,14 @@ $base = BASE_URL; // Use the defined constant
                 // ---- Fechar modal (X, backdrop, data-dismiss)
                 document.addEventListener('click', (e) => {
                     if (
-                        e.target.closest('.lk-modal-close,[data-dismiss="modal"]') ||
-                        e.target.classList.contains('lk-modal-backdrop')
+                        e.target.closest('.lkh-modal-close,[data-dismiss="modal"]') ||
+                        e.target.classList.contains('lkh-modal-backdrop')
                     ) {
-                        const m = e.target.closest('.lk-modal') || document.querySelector('.lk-modal.active');
+                        const m = e.target.closest('.lkh-modal') || document.querySelector('.lkh-modal.active');
                         if (m) {
                             m.classList.remove('active');
                             m.setAttribute('aria-hidden', 'true');
-                            if (!document.querySelector('.lk-modal.active')) document.body.style.overflow = '';
+                            if (!document.querySelector('.lkh-modal.active')) document.body.style.overflow = '';
                         }
                     }
                 });
@@ -247,12 +254,12 @@ $base = BASE_URL; // Use the defined constant
                 // Opcional: ESC fecha o modal aberto
                 document.addEventListener('keydown', (e) => {
                     if (e.key !== 'Escape') return;
-                    const top = document.querySelector('.lk-modal.active');
+                    const top = document.querySelector('.lkh-modal.active');
                     if (top) {
                         e.preventDefault();
                         top.classList.remove('active');
                         top.setAttribute('aria-hidden', 'true');
-                        if (!document.querySelector('.lk-modal.active')) document.body.style.overflow = '';
+                        if (!document.querySelector('.lkh-modal.active')) document.body.style.overflow = '';
                     }
                 });
             })();
