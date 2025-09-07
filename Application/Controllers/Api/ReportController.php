@@ -17,10 +17,12 @@ class ReportController extends BaseController
             $this->requireAuth();
         }
 
-        $req   = new Request();
-        $type  = (string) $req->get('type', 'despesas_por_categoria');
-        $year  = (int) ($req->get('year') ?? date('Y'));
-        $month = (int) ($req->get('month') ?? date('n'));
+        $req    = new Request();
+        $type   = (string)$req->get('type', 'despesas_por_categoria');
+        $year   = (int)($req->get('year') ?? date('Y'));
+        $month  = (int)($req->get('month') ?? date('n'));
+        $acc    = $req->get('account_id'); // opcional
+        $accId  = is_null($acc) || $acc === '' ? null : (int)$acc;
 
         if ($year < 2000 || $year > 2100 || $month < 1 || $month > 12) {
             Response::json(['error' => 'Parâmetros de data inválidos.'], 422);
@@ -29,9 +31,9 @@ class ReportController extends BaseController
 
         $start  = Carbon::create($year, $month, 1)->startOfDay();
         $end    = (clone $start)->endOfMonth()->endOfDay();
-        $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null); // fallback
+        $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
 
-        // Escopo: inclui registros SEM user_id (NULL) + os do usuário (se houver)
+        // Escopo: registros sem user_id (NULL) + do usuário
         $userScope = function ($q) use ($userId) {
             $q->where(function ($q2) use ($userId) {
                 $q2->whereNull('lancamentos.user_id');
@@ -39,6 +41,13 @@ class ReportController extends BaseController
                     $q2->orWhere('lancamentos.user_id', $userId);
                 }
             });
+        };
+
+        // Filtro de conta (quando existir coluna)
+        $accountScope = function ($q) use ($accId) {
+            if ($accId) {
+                $q->where('lancamentos.conta_id', $accId);
+            }
         };
 
         switch ($type) {
@@ -49,6 +58,7 @@ class ReportController extends BaseController
                         ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
                         ->selectRaw('SUM(lancamentos.valor) as total')
                         ->where($userScope)
+                        ->where($accountScope)
                         ->where('lancamentos.tipo', 'despesa')
                         ->whereBetween('lancamentos.data', [$start, $end])
                         ->groupBy('label')
@@ -76,6 +86,7 @@ class ReportController extends BaseController
                         ->selectRaw("COALESCE(categorias.nome, 'Sem categoria') as label")
                         ->selectRaw('SUM(lancamentos.valor) as total')
                         ->where($userScope)
+                        ->where($accountScope)
                         ->where('lancamentos.tipo', 'receita')
                         ->whereBetween('lancamentos.data', [$start, $end])
                         ->groupBy('label')
@@ -102,6 +113,7 @@ class ReportController extends BaseController
                         ->select(DB::raw('DATE(lancamentos.data) as dia'))
                         ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as total")
                         ->where($userScope)
+                        ->where($accountScope)
                         ->whereBetween('lancamentos.data', [$start, $end])
                         ->groupBy(DB::raw('DATE(lancamentos.data)'))
                         ->orderBy('dia')
@@ -135,6 +147,7 @@ class ReportController extends BaseController
                         ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE 0 END) as receitas")
                         ->selectRaw("SUM(CASE WHEN lancamentos.tipo='despesa' THEN lancamentos.valor ELSE 0 END) as despesas")
                         ->where($userScope)
+                        ->where($accountScope)
                         ->whereBetween('lancamentos.data', [$start, $end])
                         ->groupBy(DB::raw('DATE(lancamentos.data)'))
                         ->orderBy('dia')
@@ -172,6 +185,7 @@ class ReportController extends BaseController
                         ->selectRaw("DATE_FORMAT(lancamentos.data, '%Y-%m-01') as mes")
                         ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as saldo")
                         ->where($userScope)
+                        ->where($accountScope)
                         ->whereBetween('lancamentos.data', [$ini, $fim])
                         ->groupBy('mes')
                         ->orderBy('mes')
@@ -193,6 +207,37 @@ class ReportController extends BaseController
                         'type'   => $type,
                         'start'  => $ini->toDateString(),
                         'end'    => $fim->toDateString(),
+                    ]);
+                    return;
+                }
+
+                // --------- NOVO: BARRAS POR CONTA (no mês) -------------------------
+            case 'receitas_despesas_por_conta': {
+                    // Para o mês atual, agrupa por conta
+                    $rows = Lancamento::query()
+                        ->leftJoin('contas', 'contas.id', '=', 'lancamentos.conta_id')
+                        ->selectRaw("COALESCE(contas.nome, contas.instituicao, 'Sem conta') as conta")
+                        ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE 0 END) as receitas")
+                        ->selectRaw("SUM(CASE WHEN lancamentos.tipo='despesa' THEN lancamentos.valor ELSE 0 END) as despesas")
+                        ->where($userScope)
+                        // se veio account_id, mantemos filtro também (mostra só a escolhida)
+                        ->where($accountScope)
+                        ->whereBetween('lancamentos.data', [$start, $end])
+                        ->groupBy('conta')
+                        ->orderBy('conta')
+                        ->get();
+
+                    $labels   = $rows->pluck('conta')->values()->all();
+                    $receitas = $rows->pluck('receitas')->map(fn($v) => (float)$v)->values()->all();
+                    $despesas = $rows->pluck('despesas')->map(fn($v) => (float)$v)->values()->all();
+
+                    Response::json([
+                        'labels'   => $labels,
+                        'receitas' => $receitas,
+                        'despesas' => $despesas,
+                        'type'     => $type,
+                        'start'    => $start->toDateString(),
+                        'end'      => $end->toDateString(),
                     ]);
                     return;
                 }

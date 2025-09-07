@@ -9,7 +9,6 @@
         margin-left: auto;
         margin-right: auto;
         padding: 0 0 32px;
-        /* gutter principal vai nos cards/grades */
         box-sizing: border-box;
     }
 
@@ -39,7 +38,6 @@
         flex-wrap: wrap;
         margin-top: 0;
         padding: 0 24px;
-        /* gutter alinhado com os cards */
     }
 
     /* ====== Abas (segmented) ====== */
@@ -74,14 +72,13 @@
         color: #e67e22;
     }
 
-    /* ====== Dropdown ====== */
+    /* ====== Dropdown base ====== */
     .lk-sel {
         position: relative;
+    }
 
-        span {
-            color: #e67e22;
-        }
-
+    .lk-sel span {
+        color: #e67e22;
     }
 
     .lk-sel>button {
@@ -123,7 +120,6 @@
         border: 0;
         padding: 10px 14px;
         cursor: pointer;
-
     }
 
     .lk-menu>button:hover {
@@ -168,7 +164,7 @@
         background: #f3f4f6;
     }
 
-    /* ====== Cards (grandes), gráficos, estados ====== */
+    /* ====== Cards/gráficos ====== */
     .lk-card {
         background: #fff;
         border: 1px solid #e5e7eb;
@@ -177,7 +173,6 @@
         padding: 18px;
         overflow: hidden;
         margin: 0 24px;
-        /* gutter lateral largo */
     }
 
     .lk-card+.lk-card {
@@ -225,10 +220,6 @@
     }
 
     /* ====== Responsivo ====== */
-    @media (max-width:1024px) {
-        /* (sem KPIs aqui) */
-    }
-
     @media (max-width:720px) {
         .lk-controls {
             padding: 0 16px;
@@ -238,7 +229,6 @@
             margin: 0 16px;
         }
 
-        /* gutter menor no mobile */
         .lk-titlebar {
             flex-direction: column;
             align-items: flex-start;
@@ -255,11 +245,9 @@
 
 <div class="lk-wrap">
     <div class="lk-h">
-        <!-- barra de título + mês alinhados -->
         <div class="lk-titlebar">
             <div class="lk-t">Relatórios</div>
 
-            <!-- Período (vai para a direita do título) -->
             <div class="lk-period" aria-label="Seletor de mês">
                 <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i class="fa-solid fa-angle-left"></i></button>
                 <span class="lk-chip" id="month">—</span>
@@ -267,15 +255,17 @@
             </div>
         </div>
 
-        <!-- linha de controles (tabs + seletor de tipo) -->
+        <!-- Controles: Abas + Tipo (pizza) + Conta -->
         <div class="lk-controls" role="tablist" aria-label="Tipos de relatório">
             <div class="lk-seg" id="tabs">
                 <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por categoria</button>
                 <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo diário</button>
                 <button data-view="barras" aria-pressed="false"><i class="fa-solid fa-chart-column"></i> Receitas x Despesas</button>
+                <button data-view="contas" aria-pressed="false"><i class="fa-solid fa-wallet"></i> Por conta</button>
                 <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução 12m</button>
             </div>
 
+            <!-- tipo (apenas pizza) -->
             <div class="lk-sel" id="typeSelect">
                 <button id="typeBtn" aria-haspopup="menu" aria-expanded="false">
                     <span class="lb">Despesas por categorias</span> <i class="fa-solid fa-chevron-down"></i>
@@ -283,6 +273,16 @@
                 <div class="lk-menu" role="menu" aria-label="Escolha do tipo">
                     <button data-type="despesas_por_categoria">Despesas por categorias</button>
                     <button data-type="receitas_por_categoria">Receitas por categorias</button>
+                </div>
+            </div>
+
+            <!-- contas -->
+            <div class="lk-sel" id="accountSelect" style="display:none">
+                <button id="accountBtn" aria-haspopup="menu" aria-expanded="false">
+                    <span class="lb">Todas as contas</span> <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="lk-menu" role="menu" aria-label="Escolha de conta">
+                    <!-- preenchido via JS -->
                 </div>
             </div>
         </div>
@@ -318,8 +318,11 @@
             view: 'pizza',
             type: 'despesas_por_categoria',
             d: new Date(),
-            chart: null
+            chart: null,
+            accounts: [],
+            accountId: null // null => todas
         };
+
         const $ = sel => document.querySelector(sel);
         const monthEl = $('#month');
         const base = '<?= BASE_URL ?>';
@@ -345,25 +348,25 @@
             load();
         });
 
-        // Seletor de tipo (apenas pizza)
-        const sel = $('#typeSelect');
-        const btn = $('#typeBtn');
-        const menu = sel.querySelector('.lk-menu');
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('open');
-            btn.setAttribute('aria-expanded', menu.classList.contains('open'));
+        // Seletor de tipo (pizza)
+        const selType = $('#typeSelect');
+        const typeBtn = $('#typeBtn');
+        const typeMenu = selType.querySelector('.lk-menu');
+        typeBtn.addEventListener('click', () => {
+            typeMenu.classList.toggle('open');
+            typeBtn.setAttribute('aria-expanded', typeMenu.classList.contains('open'));
         });
         document.addEventListener('click', (e) => {
-            if (!sel.contains(e.target)) {
-                menu.classList.remove('open');
-                btn.setAttribute('aria-expanded', 'false');
+            if (!selType.contains(e.target)) {
+                typeMenu.classList.remove('open');
+                typeBtn.setAttribute('aria-expanded', 'false');
             }
         });
-        menu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        typeMenu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
             st.type = b.dataset.type;
-            btn.querySelector('.lb').textContent = b.textContent;
-            menu.classList.remove('open');
-            btn.setAttribute('aria-expanded', 'false');
+            typeBtn.querySelector('.lb').textContent = b.textContent;
+            typeMenu.classList.remove('open');
+            typeBtn.setAttribute('aria-expanded', 'false');
             if (st.view === 'pizza') load();
         }));
 
@@ -376,10 +379,81 @@
             b.classList.add('active');
             b.setAttribute('aria-pressed', 'true');
             st.view = b.dataset.view;
-            sel.style.display = (st.view === 'pizza') ? '' : 'none';
+
+            // mostra/oculta seletores
+            selType.style.display = (st.view === 'pizza') ? '' : 'none';
+            accountSelectWrap.style.display = (['pizza', 'linha', 'barras', 'evolucao'].includes(st.view)) ? '' : ''; // sempre útil
             load();
         }));
-        sel.style.display = (st.view === 'pizza') ? '' : 'none';
+        selType.style.display = (st.view === 'pizza') ? '' : 'none';
+
+        // ====== Seletor de Conta ======
+        const accountSelectWrap = $('#accountSelect');
+        const accountBtn = $('#accountBtn');
+        const accountMenu = accountSelectWrap.querySelector('.lk-menu');
+
+        accountBtn.addEventListener('click', () => {
+            accountMenu.classList.toggle('open');
+            accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
+        });
+        document.addEventListener('click', (e) => {
+            if (!accountSelectWrap.contains(e.target)) {
+                accountMenu.classList.remove('open');
+                accountBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        async function loadAccounts() {
+            try {
+                const r = await fetch(`${base}api/accounts`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                if (!r.ok) throw new Error('Falha ao carregar contas');
+                const json = await r.json();
+
+                // Esperado: array de contas com {id, nome/apelido/instituicao}
+                st.accounts = (json.items || json || []).map(a => ({
+                    id: Number(a.id),
+                    nome: a.nome || a.apelido || a.instituicao || `Conta #${a.id}`
+                }));
+
+                // Monta menu
+                accountMenu.innerHTML = '';
+                const btnAll = document.createElement('button');
+                btnAll.textContent = 'Todas as contas';
+                btnAll.dataset.id = '';
+                btnAll.addEventListener('click', () => {
+                    st.accountId = null;
+                    accountBtn.querySelector('.lb').textContent = 'Todas as contas';
+                    accountMenu.classList.remove('open');
+                    accountBtn.setAttribute('aria-expanded', 'false');
+                    load();
+                });
+                accountMenu.appendChild(btnAll);
+
+                st.accounts.forEach(acc => {
+                    const b = document.createElement('button');
+                    b.textContent = acc.nome;
+                    b.dataset.id = acc.id;
+                    b.addEventListener('click', () => {
+                        st.accountId = acc.id;
+                        accountBtn.querySelector('.lb').textContent = acc.nome;
+                        accountMenu.classList.remove('open');
+                        accountBtn.setAttribute('aria-expanded', 'false');
+                        load();
+                    });
+                    accountMenu.appendChild(b);
+                });
+
+                accountSelectWrap.style.display = '';
+            } catch (e) {
+                console.warn('Contas: não foi possível carregar.', e);
+                accountSelectWrap.style.display = 'none';
+            }
+        }
 
         // ---- APIs ----
         async function fetchData() {
@@ -390,9 +464,17 @@
                 st.view === 'linha' ? 'saldo_mensal' :
                 st.view === 'barras' ? 'receitas_despesas_diario' :
                 st.view === 'evolucao' ? 'evolucao_12m' :
+                st.view === 'contas' ? 'receitas_despesas_por_conta' :
                 st.type; // pizza
 
-            const url = `${base}api/reports?type=${encodeURIComponent(type)}&year=${y}&month=${m}`;
+            const params = new URLSearchParams({
+                type,
+                year: String(y),
+                month: String(m)
+            });
+            if (st.accountId) params.set('account_id', String(st.accountId));
+
+            const url = `${base}api/reports?${params.toString()}`;
             try {
                 const r = await fetch(url, {
                     headers: {
@@ -414,12 +496,7 @@
             }
         }
 
-        // (opcional) KPIs – se quiser reusar futuramente
-        async function loadKpis() {
-            /* deixado aqui para futura integração com /api/dashboard/metrics */
-        }
-
-        // ---- UI helpers ----
+        // UI helpers
         function setArea(html) {
             $('#area').innerHTML = html;
         }
@@ -428,13 +505,12 @@
             setArea('<div class="lk-loading">Carregando…</div>');
         }
 
-        // ====== Estado vazio (SEM botão) ======
         function empty() {
             setArea(`
             <div class="lk-empty">
                 <img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">
                 <h3>Nenhum dado encontrado</h3>
-                <p>Altere o período ou selecione outro tipo de relatório.</p>
+                <p>Altere o período, o tipo ou a conta.</p>
             </div>
         `);
         }
@@ -446,7 +522,7 @@
             }
         }
 
-        // ---- Desenho dos gráficos ----
+        // Desenhos
         function drawPie(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
@@ -602,18 +678,23 @@
             });
         }
 
-        // ---- Loader principal ----
+        // Loader principal
         async function load() {
             loading();
             try {
                 await ensureChart();
-                // await loadKpis(); // (quando integrar)
+                if (!st.accounts.length) {
+                    await loadAccounts();
+                } // carrega uma vez
                 const d = await fetchData();
-                if (!d.labels || !d.labels.length) return empty();
-
+                if (!d || (!d.labels || !d.labels.length)) {
+                    empty();
+                    return;
+                }
                 if (st.view === 'pizza') drawPie(d);
                 else if (st.view === 'linha') drawLine(d);
                 else if (st.view === 'barras') drawBars(d);
+                else if (st.view === 'contas') drawBars(d); // usa mesma função (receitas/despesas por conta)
                 else if (st.view === 'evolucao') drawLine12m(d);
             } catch (e) {
                 console.error(e);
@@ -622,29 +703,25 @@
         }
 
         load();
+
+        // Helpers globais
+        window.refreshReports = function() {
+            load();
+        };
+        window.setReportsMonth = function(ym) {
+            if (!/^\d{4}-\d{2}$/.test(ym)) return;
+            const [y, m] = ym.split('-').map(Number);
+            st.d = new Date(y, m - 1, 1);
+            sync();
+            load();
+        };
+        window.setReportsView = function(view) {
+            const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
+            if (btn) btn.click();
+        };
+        window.setReportsType = function(type) {
+            const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
+            if (b) b.click();
+        };
     })();
-    // deixar o refresh disponível globalmente (p/ modal chamar)
-    window.refreshReports = function() {
-        // mantém o mês/aba/tipo atuais (st.d / st.view / st.type)
-        load();
-    };
-
-    // (opcional) helpers para controlar de fora, se quiser:
-    window.setReportsMonth = function(ym) { // "YYYY-MM"
-        if (!/^\d{4}-\d{2}$/.test(ym)) return;
-        const [y, m] = ym.split('-').map(Number);
-        st.d = new Date(y, m - 1, 1);
-        sync();
-        load();
-    };
-
-    window.setReportsView = function(view) { // 'pizza' | 'linha' | 'barras' | 'evolucao'
-        const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
-        if (btn) btn.click(); // reaproveita seu handler de abas
-    };
-
-    window.setReportsType = function(type) { // 'despesas_por_categoria' | 'receitas_por_categoria'
-        const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
-        if (b) b.click(); // reaproveita seu handler do dropdown
-    };
 </script>
