@@ -19,6 +19,7 @@ class RelatoriosController extends BaseController
         $this->renderAdmin('admin/relatorios', [
             'username' => $this->adminUsername ?? 'usuário',
             'menu'     => 'relatorios',
+
         ]);
     }
 

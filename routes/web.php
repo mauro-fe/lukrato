@@ -52,8 +52,8 @@ function registerSimpleRoutes(): void
     Router::add('GET', 'lancamentos',  'Admin\LancamentoController@index',    ['auth']);
     Router::add('GET', 'relatorios',   'RelatoriosController@view',           ['auth']);
 
-
-
+    Router::add('GET',  'config',      'Admin\ConfigController@index', ['auth']);
+    Router::add('POST', 'api/config',  'Api\ConfigController@update',  ['auth', 'csrf']);
 
     // API Dashboard/Reports já existentes
     Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);

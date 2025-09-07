@@ -1,15 +1,14 @@
 :root {
   /* --- Cores Base --- */
   --primary-color: #0d7377;
-  --primary-darker-color: #084c4f; /* Tom mais escuro para gradientes e textos */
+  --primary-darker-color: #084c4f;
+  /* Tom mais escuro para gradientes e textos */
   --white-color: #ffffff;
 
   /* --- Gradiente Monocromático --- */
-  --primary-gradient: linear-gradient(
-    45deg,
-    var(--primary-color) 0%,
-    var(--primary-darker-color) 100%
-  );
+  --primary-gradient: linear-gradient(45deg,
+      var(--primary-color) 0%,
+      var(--primary-darker-color) 100%);
 
   /* --- Efeitos Derivados --- */
   /* RGB de #0d7377 é 13, 115, 119 */

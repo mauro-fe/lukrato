@@ -53,7 +53,6 @@ abstract class BaseController
     {
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
-        if ($footer) $view->setFooter($footer);
         echo $view->render();
     }
 

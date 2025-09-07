@@ -1,7 +1,8 @@
 :root {
   /* --- Cores Base --- */
   --primary-color: #0d7377;
-  --primary-darker-color: #084c4f; /* Tom mais escuro para gradientes e textos */
+  --primary-darker-color: #084c4f;
+  /* Tom mais escuro para gradientes e textos */
   --white-color: #ffffff;
 
   /* --- Gradiente Monocromático --- */
@@ -11,11 +12,14 @@
   /* RGB de #0d7377 é 13, 115, 119 */
   --primary-glow-color: rgba(13, 115, 119, 0.25);
   --btn-hover-shadow: 0 4px 8px rgba(13, 115, 119, 0.1);
-  --text-color: #344767; /* Mantido o cinza escuro original para texto de formulário por legibilidade */
-  
+  --text-color: #344767;
+  /* Mantido o cinza escuro original para texto de formulário por legibilidade */
+
   /* Cores para inputs */
-  --input-bg-color: #f5f9f9; /* Um cinza muito claro com um leve toque de verde */
-  --input-border-color: #d1e2e3; /* Uma borda sutil de verde-acinzentado */
+  --input-bg-color: #f5f9f9;
+  /* Um cinza muito claro com um leve toque de verde */
+  --input-border-color: #d1e2e3;
+  /* Uma borda sutil de verde-acinzentado */
 }
 
 .bg-gradient-primary {
@@ -55,14 +59,14 @@
 
 /* O botão primário agora usa a cor principal */
 .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--white-color);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--white-color);
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-darker-color);
-    border-color: var(--primary-darker-color);
+  background-color: var(--primary-darker-color);
+  border-color: var(--primary-darker-color);
 }
 
 .btn:hover {
@@ -77,9 +81,9 @@
 
 /* Um exemplo de alerta com a nova cor */
 .alert-primary {
-    background-color: rgba(13, 115, 119, 0.1);
-    color: var(--primary-darker-color);
-    border: 1px solid rgba(13, 115, 119, 0.2);
+  background-color: rgba(13, 115, 119, 0.1);
+  color: var(--primary-darker-color);
+  border: 1px solid rgba(13, 115, 119, 0.2);
 }
 
 
