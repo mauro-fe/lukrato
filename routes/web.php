@@ -39,6 +39,7 @@ function registerAuthRoutes(): void
     Router::add('GET',  'login',        'Auth\LoginController@login');
     Router::add('POST', 'login/entrar', 'Auth\LoginController@processLogin');
     Router::add('GET',  'logout',       'Auth\LoginController@logout');
+    Router::add('POST', 'register/criar', 'Auth\RegisterController@store');
 }
 
 /**

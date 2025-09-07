@@ -314,49 +314,58 @@ body {
 }
 
 /* =========================================================
- * Modal básico (LK)
+ * Modal básico (LK) — CENTRALIZADO
  * =======================================================*/
-/* === Modal do HEADER / LANÇAMENTOS (escopado) === */
 .lkh-modal {
   position: fixed;
   inset: 0;
   display: none;
+  /* fechado */
   align-items: center;
+  /* central v */
   justify-content: center;
+  /* central h */
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
   transition: var(--transition-normal);
 }
+
 .lkh-modal.active {
   display: flex;
+  /* aberto e centralizado */
   opacity: 1;
   visibility: visible;
 }
+
 .lkh-modal-backdrop {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
+
 .lkh-modal-content {
   position: relative;
   background: var(--azul);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
-  max-width: 500px;
+  max-width: 600px;
+  /* um pouco mais largo */
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  transform: scale(0.9);
+  transform: scale(0.95);
   transition: var(--transition-normal);
   z-index: 1;
 }
+
 .lkh-modal.active .lkh-modal-content {
   transform: scale(1);
 }
 
+/* Header / Body / Footer do modal */
 .lkh-modal-header {
   display: flex;
   align-items: center;
@@ -364,11 +373,13 @@ body {
   padding: var(--spacing-6);
   border-bottom: 1px solid var(--glass-border);
 }
+
 .lkh-modal-header h2 {
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--branco);
 }
+
 .lkh-modal-close {
   background: none;
   border: none;
@@ -376,9 +387,11 @@ body {
   font-size: var(--font-size-lg);
   cursor: pointer;
 }
+
 .lkh-modal-body {
   padding: var(--spacing-6);
 }
+
 .lkh-modal-footer {
   display: flex;
   gap: var(--spacing-3);
@@ -438,11 +451,12 @@ body {
   display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
   background-color: var(--verde);
   border-color: var(--verde);
 }
 
+/* Botões */
 .btn {
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-sm);
@@ -457,15 +471,15 @@ body {
   color: var(--branco);
 }
 
+.btn-primary:hover {
+  background-color: var(--amarelo);
+  border-color: var(--amarelo);
+}
+
 .btn-ghost {
   background-color: transparent;
   border: 1px solid var(--cinza);
   color: var(--cinza);
-}
-
-.btn-primary:hover {
-  background-color: var(--amarelo);
-  border-color: var(--amarelo);
 }
 
 .btn-ghost:hover {
@@ -473,7 +487,7 @@ body {
   border-color: var(--branco);
 }
 
-/* Calendário dentro do modal (seletor de mês) */
+/* Calendário dentro do modal */
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -515,20 +529,13 @@ body {
   font-weight: bold;
 }
 
-@media (max-width: 768px) {
-  .lk-modal-content {
-    width: 95%;
-    margin: var(--spacing-4);
-  }
-}
-
 /* =========================================================
- * FAB (Floating Action Button)
+ * FAB (Floating Action Button) — canto inferior esquerdo
  * =======================================================*/
 .fab-container {
   position: fixed;
-  bottom: var(--spacing-12);
-  left: 30%;
+  bottom: 20px;
+  left: 20px;
   z-index: 3000;
 }
 
@@ -539,59 +546,60 @@ body {
   background: linear-gradient(135deg, var(--laranja), var(--amarelo));
   border: none;
   color: var(--branco);
-  font-size: var(--font-size-xl);
+  font-size: 20px;
   cursor: pointer;
-  transition: var(--transition-normal);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
+  transition: transform .2s ease;
 }
 
 .fab:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-xl);
-}
-
-.fab:active {
-  transform: scale(0.95);
+  transform: scale(1.05);
 }
 
 .fab.active {
   transform: rotate(45deg);
 }
 
+/* Menu do FAB abrindo para a direita (horizontal) */
 .fab-menu {
   position: absolute;
-  bottom: 70px;
-  right: 0;
+  left: 72px;
+  /* distância entre o FAB e o menu */
+  bottom: 0;
+  /* alinhado pela base do FAB */
   display: none;
-  flex-direction: column;
-  gap: var(--spacing-3);
+  flex-direction: row;
+  /* horizontal */
+  align-items: center;
+  gap: 10px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(20px);
-  transition: var(--transition-normal);
+  transform: translateX(-10px);
+  transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
 }
 
 .fab-menu.active {
   display: flex;
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateX(0);
 }
 
 .fab-menu-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
   background: var(--azul);
   color: var(--branco);
-  border: none;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-3) var(--spacing-4);
-  cursor: pointer;
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
+  cursor: pointer;
   white-space: nowrap;
 }
 
@@ -601,5 +609,26 @@ body {
 }
 
 .fab-menu-item:hover {
-  background-color: var(--glass-bg);
+  background: rgba(255, 255, 255, .06);
+}
+
+/* Mobile — aproxima o menu */
+@media (max-width: 520px) {
+  .fab-menu {
+    left: 60px;
+    gap: 6px;
+  }
+
+  .fab-menu-item {
+    height: 40px;
+    padding: 0 10px;
+  }
+}
+
+/* Responsivo do modal */
+@media (max-width: 768px) {
+  .lkh-modal-content {
+    width: 95%;
+    margin: var(--spacing-4);
+  }
 }

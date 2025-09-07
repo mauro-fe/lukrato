@@ -201,7 +201,7 @@ $base = BASE_URL; // Use the defined constant
             (() => {
                 const $ = (s, sc = document) => sc.querySelector(s);
 
-                // ---- FAB: abrir/fechar menu
+                // ---- FAB: abrir/fechar menu (horizontal à direita)
                 const fab = $('#fabButton');
                 const menu = $('#fabMenu');
                 fab?.addEventListener('click', () => {
@@ -211,32 +211,71 @@ $base = BASE_URL; // Use the defined constant
                     menu.classList.toggle('active', open);
                 });
 
-                // ---- Abrir modais a partir do menu
+                // ---- Normaliza a "key" dos itens do FAB para abrir SEMPRE o mesmo modal (#modalLancamento)
+                // Ex.: receita, despesa, despesa-cartao, transferencia -> "lancamento"
+                const KEY_MAP = {
+                    receita: 'lancamento',
+                    despesa: 'lancamento',
+                    'despesa-cartao': 'lancamento',
+                    transferencia: 'lancamento',
+                    lancamento: 'lancamento'
+                };
+
+                function toKey(raw) {
+                    const k = String(raw || '').trim().toLowerCase();
+                    return KEY_MAP[k] || k;
+                }
+
                 function modalIdFromKey(key) {
+                    // gera "modalLancamento" a partir de "lancamento"
                     return 'modal' + String(key || '').replace(/(^|-)(\w)/g, (_, __, b) => b.toUpperCase());
                 }
 
-                function openModalByKey(key) {
-                    const id = modalIdFromKey(key); // 'receita' -> 'modalReceita'
+                // ---- Centraliza o modal de Lançamento (remove estilos de canto, mostra backdrop)
+                function centerLancModal(m) {
+                    if (!m || m.id !== 'modalLancamento') return;
+                    // limpa qualquer inline remanescente
+                    m.removeAttribute('style');
+
+                    const content = m.querySelector('.lkh-modal-content');
+                    const backdrop = m.querySelector('.lkh-modal-backdrop');
+
+                    if (content) content.removeAttribute('style'); // volta a obedecer ao CSS padrão (flex center)
+                    if (backdrop) backdrop.style.display = ''; // backdrop visível
+                }
+
+                // ---- Abrir modal a partir de uma key vinda do FAB
+                function openModalByKey(rawKey) {
+                    const key = toKey(rawKey);
+                    const id = modalIdFromKey(key); // "lancamento" -> "modalLancamento"
                     const m = document.getElementById(id);
                     if (!m) return;
+
+                    if (id === 'modalLancamento') centerLancModal(m);
+
                     m.classList.add('active');
                     m.setAttribute('aria-hidden', 'false');
                     document.body.style.overflow = 'hidden';
+
+                    if (id === 'modalLancamento') {
+                        // re-centraliza no próximo frame caso algum script altere algo
+                        requestAnimationFrame(() => centerLancModal(m));
+                    }
                 }
 
+                // ---- Liga os itens do FAB (menu horizontal à direita)
                 document.querySelectorAll('.fab-menu-item[data-open-modal]').forEach(btn => {
                     btn.addEventListener('click', () => {
-                        const key = btn.getAttribute(
-                            'data-open-modal'); // receita / despesa / despesa-cartao / transferencia
-                        openModalByKey(key);
+                        const raw = btn.getAttribute('data-open-modal'); // receita | despesa | despesa-cartao | transferencia
+                        openModalByKey(raw);
+                        // fecha menu do FAB
                         menu.classList.remove('active');
                         fab.classList.remove('active');
                         fab.setAttribute('aria-expanded', 'false');
                     });
                 });
 
-                // ---- Fechar modal (X, backdrop, data-dismiss)
+                // ---- Fechar modal (X / backdrop / data-dismiss)
                 document.addEventListener('click', (e) => {
                     if (
                         e.target.closest('.lkh-modal-close,[data-dismiss="modal"]') ||
@@ -251,7 +290,7 @@ $base = BASE_URL; // Use the defined constant
                     }
                 });
 
-                // Opcional: ESC fecha o modal aberto
+                // ---- ESC fecha o modal
                 document.addEventListener('keydown', (e) => {
                     if (e.key !== 'Escape') return;
                     const top = document.querySelector('.lkh-modal.active');

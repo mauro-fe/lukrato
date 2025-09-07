@@ -13,32 +13,33 @@
   --shadow: rgba(0, 0, 0, 0.45);
   --radius: 18px;
   --mobile-max: 430px;
-  /* largura-alvo (iPhone 14 Pro Max = 430px) */
 }
 
-/* Fix base para evitar “faixa branca” e cantos arredondados herdados */
+/* Base global */
 html,
 body {
   height: 100%;
   margin: 0;
-  background: #0b141c;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
   overflow-x: hidden;
 }
 
+/* Main ocupa espaço entre topo e footer */
 main.lukrato-auth {
-  width: 100vw;
-  min-height: 100svh;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-block: 40px;
   border-radius: 0 !important;
-}
-
-/* Fundo e fonte */
-.lukrato-auth {
-  background: radial-gradient(
-    1200px 800px at -10% -10%,
-    #1b3145 0%,
-    var(--bg-2) 40%,
-    var(--bg-1) 100%
-  );
+  background: radial-gradient(1200px 800px at -10% -10%,
+      #1b3145 0%,
+      var(--bg-2) 40%,
+      var(--bg-1) 100%);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu,
     "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
@@ -47,24 +48,28 @@ main.lukrato-auth {
 /* Grid principal */
 .login-wrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 36px;
+  gap: 60px;
+  max-width: 1200px;
+  width: 100%;
+  padding: 40px 20px;
 }
 
 /* ESQUERDA */
 .login-left {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .login-left .welcome {
-  /* se realmente precisar de margem no desktop, deixe aqui, mas evite valores negativos */
   margin-top: 0;
-  margin: auto;
+  margin: auto 0;
 }
 
 .brand {
@@ -72,7 +77,7 @@ main.lukrato-auth {
   margin-bottom: 26px;
 }
 
-/* Logo responsiva (não deixar bloquear a largura no mobile) */
+/* Logo responsiva */
 .imagem-logo img {
   width: 250px;
   max-width: 100%;
@@ -81,11 +86,9 @@ main.lukrato-auth {
 }
 
 .welcome {
-  margin: 20px;
-  margin-bottom: 50px;
+  margin: 20px 0 50px;
 }
 
-/* Título e texto */
 .welcome h2 {
   font-size: 42px;
   line-height: 1.1;
@@ -101,28 +104,67 @@ main.lukrato-auth {
 
 /* DIREITA */
 .login-right {
+  flex: 1;
   display: flex;
-  width: 1000px;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
 }
 
+/* Card base */
 .card {
   width: 100%;
-  max-width: 540px;
+  max-width: 640px;
   background: linear-gradient(180deg, var(--card), var(--card-2));
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 34px;
+  padding: 26px 26px 32px;
   box-shadow: 0 26px 60px var(--shadow);
 }
 
 .card-title {
   text-align: center;
-  font-size: 34px;
+  font-size: 32px;
   color: #e8edf3;
-  margin: 8px 0 24px;
+  margin: 6px 0 18px;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Abas */
+.auth-tabs-card {
+  padding-top: 0;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+  gap: 0;
+}
+
+.tab-btn {
+  appearance: none;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 18px 16px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tab-btn.is-active {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 -2px 0 var(--orange);
+}
+
+.tab-panel {
+  padding-top: 16px;
+}
+
+.is-hidden {
+  display: none;
 }
 
 /* Campos */
@@ -136,7 +178,7 @@ main.lukrato-auth {
   color: var(--text);
   border: 1px solid #2b3e50;
   border-radius: 14px;
-  padding: 18px 16px;
+  padding: 16px 14px;
   outline: none;
   transition: 0.2s border-color, 0.2s box-shadow, 0.2s background;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03),
@@ -196,7 +238,7 @@ main.lukrato-auth {
   color: var(--text);
 }
 
-/* Link */
+/* Links e mensagens */
 .extra-link {
   margin-top: 14px;
 }
@@ -211,7 +253,6 @@ main.lukrato-auth {
   text-decoration: underline;
 }
 
-/* Mensagens globais */
 .msg {
   margin-top: 12px;
   min-height: 18px;
@@ -226,21 +267,46 @@ main.lukrato-auth {
   color: #79e6a0;
 }
 
+/* Footer */
+footer {
+  background: var(--bg-1);
+  text-align: center;
+  padding: 20px 0;
+}
+
+footer span {
+  color: var(--muted);
+}
+
+footer a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
 /* ===== MOBILE ===== */
-@media (max-width: 480px) {
-  /* container limitado e centralizado */
+@media (max-width: 992px) {
   .login-wrapper {
-    max-width: var(--mobile-max);
-    width: 100%;
-    margin: 0 auto;
+    flex-direction: column !important;
+    gap: 28px;
+    max-width: 100%;
     padding: 24px 16px;
-    grid-template-columns: 1fr;
-    gap: 20px;
   }
 
   .login-left {
-    align-items: center;
-    text-align: center;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .welcome {
+    margin: 12px 0 20px;
+  }
+
+  .welcome h2 {
+    font-size: 28px;
   }
 
   .welcome p {
@@ -248,25 +314,31 @@ main.lukrato-auth {
     padding: 0 6px;
   }
 
-  /* logo menor no mobile */
   .imagem-logo img {
     width: 150px;
     max-width: 70%;
-    margin-right: 50px;
   }
 
-  .card {
-    max-width: 100%;
-    padding: 24px;
+  .login-right {
+    width: 100% !important;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card,
+  .auth-tabs-card {
+    width: 100% !important;
+    max-width: 420px !important;
+    padding: 20px !important;
     border-radius: 16px;
   }
 
   .card-title {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .field {
-    margin: 14px 0;
+    margin: 12px 0;
   }
 
   .field input {
@@ -278,11 +350,5 @@ main.lukrato-auth {
     padding: 14px;
     font-size: 16px;
     border-radius: 12px;
-  }
-
-  /* respeita notch */
-  .lukrato-auth {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
   }
 }
