@@ -20,28 +20,24 @@
 }
 
 /* ======================= Filtros ======================= */
+
 .filters {
-  margin-bottom: var(--spacing-6);
+  display: flex;
+  justify-content: center;
 }
 
 .filter-form {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--spacing-4);
   align-items: end;
-
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
   backdrop-filter: var(--glass-backdrop);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
-  box-shadow: var(--shadow-md);
+  padding: 30px 0 30px;
 }
 
 /* grupos e campos */
 .form-group {
   display: flex;
-  flex-direction: column;
   gap: var(--spacing-2);
   min-width: 0;
 }
@@ -50,6 +46,7 @@
   font-size: var(--font-size-sm);
   color: var(--cinza);
   font-weight: 600;
+  display: flex;
 }
 
 .form-input,

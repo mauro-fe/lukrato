@@ -20,7 +20,7 @@
     .lk-titlebar {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         gap: 12px;
         margin-bottom: 12px;
     }
@@ -243,26 +243,35 @@
     }
 </style>
 
-<div class="lk-wrap">
+<div class="lk-wrap container pt-4">
     <div class="lk-h">
+        <div class="lk-t">
+            <h3>Relatórios</h3>
+        </div>
+
         <div class="lk-titlebar">
-            <div class="lk-t">Relatórios</div>
 
             <div class="lk-period" aria-label="Seletor de mês">
-                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i class="fa-solid fa-angle-left"></i></button>
+                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i
+                        class="fa-solid fa-angle-left"></i></button>
                 <span class="lk-chip" id="month">—</span>
-                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i class="fa-solid fa-angle-right"></i></button>
+                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i
+                        class="fa-solid fa-angle-right"></i></button>
             </div>
         </div>
 
         <!-- Controles: Abas + Tipo (pizza) + Conta -->
         <div class="lk-controls" role="tablist" aria-label="Tipos de relatório">
             <div class="lk-seg" id="tabs">
-                <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por categoria</button>
-                <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo diário</button>
-                <button data-view="barras" aria-pressed="false"><i class="fa-solid fa-chart-column"></i> Receitas x Despesas</button>
+                <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por
+                    categoria</button>
+                <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo
+                    diário</button>
+                <button data-view="barras" aria-pressed="false"><i class="fa-solid fa-chart-column"></i> Receitas x
+                    Despesas</button>
                 <button data-view="contas" aria-pressed="false"><i class="fa-solid fa-wallet"></i> Por conta</button>
-                <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução 12m</button>
+                <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução
+                    12m</button>
             </div>
 
             <!-- tipo (apenas pizza) -->
@@ -307,7 +316,9 @@
             });
         }
 
-        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro',
+            'outubro', 'novembro', 'dezembro'
+        ];
         const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
         const fmt = v => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -382,7 +393,8 @@
 
             // mostra/oculta seletores
             selType.style.display = (st.view === 'pizza') ? '' : 'none';
-            accountSelectWrap.style.display = (['pizza', 'linha', 'barras', 'evolucao'].includes(st.view)) ? '' : ''; // sempre útil
+            accountSelectWrap.style.display = (['pizza', 'linha', 'barras', 'evolucao'].includes(st.view)) ?
+                '' : ''; // sempre útil
             load();
         }));
         selType.style.display = (st.view === 'pizza') ? '' : 'none';
@@ -527,7 +539,8 @@
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
             const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
-            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' : 'Despesas por categorias';
+            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
+                'Despesas por categorias';
             st.chart = new Chart($('#c'), {
                 type: 'doughnut',
                 data: {

@@ -1,26 +1,22 @@
 <section class="container">
-    <header class="page-header">
-        <h1><i class="fas fa-receipt"></i> Lançamentos</h1>
-    </header>
-
+    <h3>Lançamentos</h3>
     <section class="filters">
         <form id="formFiltros" class="filter-form">
             <div class="form-group">
-                <label for="filtroMes">Mês</label>
+                <label for="filtroMes"></label>
                 <input type="month" id="filtroMes" class="form-input" value="<?= date('Y-m') ?>">
             </div>
-            <div class="form-group">
-                <label for="filtroTipo">Tipo</label>
-                <select id="filtroTipo" class="form-select">
-                    <option value="">Todos</option>
-                    <option value="receita">Receitas</option>
-                    <option value="despesa">Despesas</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-ghost"><i class="fas fa-search"></i> Filtrar</button>
         </form>
     </section>
-
+    <div class="form-group">
+        <label for="filtroTipo"></label>
+        <select id="filtroTipo" class="form-select">
+            <option value="">Todos</option>
+            <option value="receita">Receitas</option>
+            <option value="despesa">Despesas</option>
+        </select>
+        <button type="submit" class="btn btn-ghost"><i class="fas fa-search"></i> Filtrar</button>
+    </div>
     <section class="table-container">
         <table class="lukrato-table" id="tabelaLancamentos">
             <thead>

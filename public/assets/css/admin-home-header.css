@@ -74,6 +74,11 @@ body {
   line-height: 1.5;
   overflow-x: hidden;
 }
+h3 {
+  color: var(--laranja);
+  font-weight: bold;
+  margin: auto;
+}
 
 *:focus {
   outline: 2px solid var(--laranja);
@@ -451,7 +456,7 @@ body {
   display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
   background-color: var(--verde);
   border-color: var(--verde);
 }
@@ -552,7 +557,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
-  transition: transform .2s ease;
+  transition: transform 0.2s ease;
 }
 
 .fab:hover {
@@ -578,7 +583,7 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateX(-10px);
-  transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
 }
 
 .fab-menu.active {
@@ -609,7 +614,7 @@ body {
 }
 
 .fab-menu-item:hover {
-  background: rgba(255, 255, 255, .06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* Mobile — aproxima o menu */

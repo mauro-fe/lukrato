@@ -324,111 +324,115 @@
         }
     }
 </style>
+<section class="container py-4">
+    <div class="lk-acc-title">
+        <h3>Contas</h3>
+    </div>
 
-<div class="lk-accounts-wrap">
-    <div class="lk-acc-header">
-        <div class="lk-acc-title">💳 Minhas Contas</div>
-        <div class="lk-acc-actions">
-            <button class="btn btn-light" id="btnReload">
-                <i class="fas fa-sync-alt"></i> Atualizar
-            </button>
-            <button class="btn btn-primary" id="btnNovaConta">
-                <i class="fas fa-plus"></i> Nova Conta
-            </button>
+    <div class="lk-accounts-wrap">
+        <div class="lk-acc-header">
+            <div class="lk-acc-actions">
+                <button class="btn btn-light" id="btnReload">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+                <button class="btn btn-primary" id="btnNovaConta">
+                    <i class="fas fa-plus"></i> Nova Conta
+                </button>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="stats-grid" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-value" id="totalContas">0</div>
+                <div class="stat-label">Total de Contas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="contasAtivas">0</div>
+                <div class="stat-label">Contas Ativas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="saldoTotal">R$ 0,00</div>
+                <div class="stat-label">Saldo Total</div>
+            </div>
+        </div>
+
+        <div class="lk-card">
+            <table class="lk-table" id="accountsTable" aria-label="Tabela de contas">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Instituição</th>
+                        <th>Moeda</th>
+                        <th>Saldo Inicial</th>
+                        <th>Status</th>
+                        <th style="width:160px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="accountsTbody">
+                    <tr>
+                        <td class="lk-empty" colspan="6">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Estatísticas -->
-    <div class="stats-grid" id="statsContainer">
-        <div class="stat-card">
-            <div class="stat-value" id="totalContas">0</div>
-            <div class="stat-label">Total de Contas</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="contasAtivas">0</div>
-            <div class="stat-label">Contas Ativas</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="saldoTotal">R$ 0,00</div>
-            <div class="stat-label">Saldo Total</div>
-        </div>
-    </div>
-
-    <div class="lk-card">
-        <table class="lk-table" id="accountsTable" aria-label="Tabela de contas">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Instituição</th>
-                    <th>Moeda</th>
-                    <th>Saldo Inicial</th>
-                    <th>Status</th>
-                    <th style="width:160px">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="accountsTbody">
-                <tr>
-                    <td class="lk-empty" colspan="6">Carregando...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Modal Criar/Editar -->
-<div class="lk-modal" id="modalConta" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle">
-    <div class="lk-modal-card">
-        <div class="lk-modal-h">
-            <div class="lk-modal-t" id="modalContaTitle">Nova conta</div>
-            <button class="btn btn-ghost" id="modalClose" type="button">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="lk-modal-b">
-            <form id="formConta">
-                <input type="hidden" id="contaId" value="">
-                <div class="lk-form-grid">
-                    <div class="lk-field full">
-                        <label for="nome">Nome da conta *</label>
-                        <input id="nome" name="nome" type="text" placeholder="Ex.: Nubank, Dinheiro, PicPay" required>
+    <!-- Modal Criar/Editar -->
+    <div class="lk-modal" id="modalConta" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle">
+        <div class="lk-modal-card">
+            <div class="lk-modal-h">
+                <div class="lk-modal-t" id="modalContaTitle">Nova conta</div>
+                <button class="btn btn-ghost" id="modalClose" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lk-modal-b">
+                <form id="formConta">
+                    <input type="hidden" id="contaId" value="">
+                    <div class="lk-form-grid">
+                        <div class="lk-field full">
+                            <label for="nome">Nome da conta *</label>
+                            <input id="nome" name="nome" type="text" placeholder="Ex.: Nubank, Dinheiro, PicPay"
+                                required>
+                        </div>
+                        <div class="lk-field">
+                            <label for="instituicao">Instituição</label>
+                            <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa">
+                        </div>
+                        <div class="lk-field">
+                            <label for="moeda">Moeda</label>
+                            <select id="moeda" name="moeda">
+                                <option value="BRL">BRL (R$)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                            </select>
+                        </div>
+                        <div class="lk-field">
+                            <label for="saldo_inicial">Saldo inicial</label>
+                            <input id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal"
+                                placeholder="0,00">
+                        </div>
+                        <div class="lk-field">
+                            <label for="tipo_id">Tipo (opcional)</label>
+                            <select id="tipo_id" name="tipo_id">
+                                <option value="">—</option>
+                                <option value="1">Conta Corrente</option>
+                                <option value="2">Carteira</option>
+                                <option value="3">Poupança</option>
+                                <option value="4">Cartão Pré-pago</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="lk-field">
-                        <label for="instituicao">Instituição</label>
-                        <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa">
+                    <div class="lk-modal-f">
+                        <button type="button" class="btn btn-light" id="btnCancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave">Salvar</button>
                     </div>
-                    <div class="lk-field">
-                        <label for="moeda">Moeda</label>
-                        <select id="moeda" name="moeda">
-                            <option value="BRL">BRL (R$)</option>
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                        </select>
-                    </div>
-                    <div class="lk-field">
-                        <label for="saldo_inicial">Saldo inicial</label>
-                        <input id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal"
-                            placeholder="0,00">
-                    </div>
-                    <div class="lk-field">
-                        <label for="tipo_id">Tipo (opcional)</label>
-                        <select id="tipo_id" name="tipo_id">
-                            <option value="">—</option>
-                            <option value="1">Conta Corrente</option>
-                            <option value="2">Carteira</option>
-                            <option value="3">Poupança</option>
-                            <option value="4">Cartão Pré-pago</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="lk-modal-f">
-                    <button type="button" class="btn btn-light" id="btnCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSave">Salvar</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
+</section>
 <script>
     (function initAccountsPage() {
         const BASE = (document.querySelector('meta[name="base-url"]')?.content || location.origin + '/');

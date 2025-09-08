@@ -22,6 +22,8 @@ $base = BASE_URL; // Use the defined constant
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-home-header'); ?>
@@ -98,9 +100,9 @@ $base = BASE_URL; // Use the defined constant
         </div>
     </aside>
 
-    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
 
-        <div class="container-fluid py-4 lk-page">
+        <div class="container-fluid lk-page">
             <!-- Modal Único de Lançamento -->
             <div class="lkh-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle"
                 aria-hidden="true">
@@ -274,7 +276,8 @@ $base = BASE_URL; // Use the defined constant
                 // ---- Liga os itens do FAB (menu horizontal à direita)
                 document.querySelectorAll('.fab-menu-item[data-open-modal]').forEach(btn => {
                     btn.addEventListener('click', () => {
-                        const raw = btn.getAttribute('data-open-modal'); // receita | despesa | despesa-cartao | transferencia
+                        const raw = btn.getAttribute(
+                            'data-open-modal'); // receita | despesa | despesa-cartao | transferencia
                         openModalByKey(raw);
                         // fecha menu do FAB
                         menu.classList.remove('active');

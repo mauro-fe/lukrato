@@ -82,17 +82,15 @@
 }
 
 /* ======================= Month Selector (dentro do header) ======================= */
-.lk-header .month-selector {
+.dash-lk-header .month-selector {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
   padding: var(--spacing-2);
 }
 
-.lk-header .month-nav-btn {
+.dash-lk-header .month-nav-btn {
   background: none;
   border: 0;
   color: var(--cinza);
@@ -107,16 +105,16 @@
   height: 32px;
 }
 
-.lk-header .month-nav-btn:hover {
+.dash-lk-header .month-nav-btn:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
 
-.lk-header .month-display {
+.dash-lk-header .month-display {
   position: relative;
 }
 
-.lk-header .month-dropdown-btn {
+.dash-lk-header .month-dropdown-btn {
   background: none;
   border: 0;
   color: var(--branco);
@@ -132,11 +130,11 @@
   justify-content: space-between;
 }
 
-.lk-header .month-dropdown-btn:hover {
+.dash-lk-header .month-dropdown-btn:hover {
   background-color: var(--glass-bg);
 }
 
-.lk-header .month-dropdown {
+.dash-lk-header .month-dropdown {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
@@ -155,28 +153,28 @@
   padding: 6px;
 }
 
-.lk-header .month-dropdown.active {
+.dash-lk-header .month-dropdown.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.lk-header .month-dropdown .year-row {
+.dash-lk-header .month-dropdown .year-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   padding: 4px 0 8px;
 }
 
-.lk-header .month-dropdown .year-label {
+.dash-lk-header .month-dropdown .year-label {
   grid-column: 1 / -1;
   font-weight: 700;
   color: var(--claro);
   padding: 6px 8px;
-  opacity: .85;
+  opacity: 0.85;
 }
 
-.lk-header .month-dropdown .m-btn {
+.dash-lk-header .month-dropdown .m-btn {
   background: none;
   border: 1px solid var(--glass-border);
   color: var(--branco);
@@ -188,16 +186,14 @@
   font-size: var(--font-size-sm);
 }
 
-.lk-header .month-dropdown .m-btn:hover {
+.dash-lk-header .month-dropdown .m-btn:hover {
   background-color: var(--glass-bg);
 }
 
-.lk-header .month-dropdown .m-btn.is-current {
+.dash-lk-header .month-dropdown .m-btn.is-current {
   border-color: var(--laranja);
   box-shadow: 0 0 0 1px var(--laranja) inset;
 }
-
-
 
 /* Layout - Main Content */
 .main-content {
@@ -510,12 +506,12 @@
   transition: var(--transition-fast);
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
   background-color: var(--laranja);
   border-color: var(--laranja);
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom::after {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
   content: "✓";
   position: absolute;
   top: 50%;
@@ -715,7 +711,6 @@
 
 /* Print Styles */
 @media print {
-
   .sidebar,
   .fab-container,
   .modal {
