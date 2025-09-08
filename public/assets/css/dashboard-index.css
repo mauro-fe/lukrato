@@ -91,6 +91,7 @@
   border-radius: var(--radius-lg);
   padding: var(--spacing-2);
 }
+
 .lk-header .month-nav-btn {
   background: none;
   border: 0;
@@ -105,13 +106,16 @@
   width: 32px;
   height: 32px;
 }
+
 .lk-header .month-nav-btn:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
+
 .lk-header .month-display {
   position: relative;
 }
+
 .lk-header .month-dropdown-btn {
   background: none;
   border: 0;
@@ -124,59 +128,76 @@
   align-items: center;
   gap: var(--spacing-2);
   font-weight: 600;
-  min-width: 140px;
+  min-width: 160px;
   justify-content: space-between;
 }
+
 .lk-header .month-dropdown-btn:hover {
   background-color: var(--glass-bg);
 }
+
 .lk-header .month-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
-  right: 0;
+  width: 260px;
   background: var(--azul);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   z-index: 1000;
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
+  transform: translateY(-8px);
   transition: var(--transition-fast);
+  padding: 6px;
 }
+
 .lk-header .month-dropdown.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-.lk-header .month-dropdown button {
-  width: 100%;
+
+.lk-header .month-dropdown .year-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+
+.lk-header .month-dropdown .year-label {
+  grid-column: 1 / -1;
+  font-weight: 700;
+  color: var(--claro);
+  padding: 6px 8px;
+  opacity: .85;
+}
+
+.lk-header .month-dropdown .m-btn {
   background: none;
-  border: 0;
+  border: 1px solid var(--glass-border);
   color: var(--branco);
-  padding: var(--spacing-3) var(--spacing-4);
-  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition-fast);
+  text-align: center;
+  font-size: var(--font-size-sm);
 }
-.lk-header .month-dropdown button:hover {
+
+.lk-header .month-dropdown .m-btn:hover {
   background-color: var(--glass-bg);
 }
-.lk-header .user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--laranja);
+
+.lk-header .month-dropdown .m-btn.is-current {
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 1px var(--laranja) inset;
 }
-.lk-header .user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+
+
 
 /* Layout - Main Content */
 .main-content {
@@ -489,12 +510,12 @@
   transition: var(--transition-fast);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
   background-color: var(--laranja);
   border-color: var(--laranja);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom::after {
   content: "✓";
   position: absolute;
   top: 50%;
@@ -694,6 +715,7 @@
 
 /* Print Styles */
 @media print {
+
   .sidebar,
   .fab-container,
   .modal {
@@ -783,60 +805,4 @@
 .sidebar-nav .nav-item:focus-visible {
   outline: 2px solid var(--laranja);
   outline-offset: 2px;
-}
-
-/* ===== Calendário do modal ===== */
-.calendar {
-  user-select: none;
-}
-
-.calendar-weekdays,
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: var(--spacing-2);
-}
-
-.calendar-weekdays span {
-  text-align: center;
-  font-size: var(--font-size-sm);
-  color: var(--cinza);
-  padding: var(--spacing-2) 0;
-}
-
-.calendar-day {
-  text-align: center;
-  padding: 0.9rem 0.25rem;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  background: var(--glass-bg);
-  color: var(--branco);
-}
-
-.calendar-day:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.calendar-day.muted {
-  opacity: 0.45;
-}
-
-.calendar-day.today {
-  box-shadow: inset 0 0 0 2px rgba(230, 126, 34, 0.35);
-}
-
-.calendar-day.selected {
-  background: var(--laranja);
-  color: var(--branco);
-  border-color: var(--laranja);
-}
-
-.month-picker-nav .month-nav-btn {
-  margin: 0 0.125rem;
-}
-
-.mp-label {
-  color: var(--branco);
 }

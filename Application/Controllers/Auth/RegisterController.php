@@ -67,21 +67,21 @@ class RegisterController extends BaseController
 
             // -------- 5) LOGIN AUTOMÁTICO --------
             // ✅ Auth::login espera um Usuario, não um int
-            Auth::login($user);
+            // Auth::login($user);
 
             // -------- 6) RESPOSTA --------
             if ($this->request->isAjax()) {
                 Response::json([
                     'status'   => 'success',
                     'message'  => 'Conta criada com sucesso!',
-                    'redirect' => BASE_URL . 'dashboard',
+                    'redirect' => BASE_URL . 'login',
                 ], 200);
                 return;
             }
 
             $this->response
                 ->setStatusCode(302)
-                ->header('Location', BASE_URL . 'dashboard')
+                ->header('Location', BASE_URL . 'login')
                 ->send();
         } catch (\Throwable $e) {
             if ($this->request->isAjax()) {

@@ -70,6 +70,14 @@ $base = BASE_URL; // Use the defined constant
                 <?= $aria('config') ?>>
                 <i class="fas fa-cog"></i><span>Config</span>
             </a>
+
+            <!-- Botão de sair -->
+            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </a>
+
+
+
         </nav>
 
         <div class="fab-container">
@@ -302,4 +310,34 @@ $base = BASE_URL; // Use the defined constant
                     }
                 });
             })();
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.addEventListener('click', function(e) {
+                    const a = e.target.closest('#btn-logout');
+                    if (!a) return;
+
+                    e.preventDefault();
+                    const url = a.getAttribute('href');
+                    if (!url) return;
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Deseja realmente sair?',
+                            text: 'Sua sessão será encerrada.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sim, sair',
+                            cancelButtonText: 'Cancelar',
+                            confirmButtonColor: '#e74c3c'
+                        }).then(result => {
+                            if (result.isConfirmed) window.location.href = url;
+                        });
+                    } else {
+                        if (confirm('Deseja realmente sair?')) window.location.href = url;
+                    }
+                });
+            });
         </script>

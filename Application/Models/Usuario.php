@@ -55,12 +55,41 @@ class Usuario extends Model
     // ---- MUTATORS ----
     public function setSenhaAttribute($value): void
     {
-        if (!empty($value) && !$this->isPasswordHashed($value)) {
-            $this->attributes['senha'] = password_hash($value, PASSWORD_DEFAULT);
-        } else {
-            $this->attributes['senha'] = $value;
+        // Não mexe se vier null (evita apagar em updates sem intenção)
+        if ($value === null) {
+            return;
         }
+
+        $value = (string)$value;
+
+        // Se vier string vazia, não altera (evita gravar vazio)
+        if ($value === '') {
+            return;
+        }
+
+        // Se já parecer hash, mantém
+        if ($this->looksHashed($value)) {
+            $this->attributes['senha'] = $value;
+            return;
+        }
+
+        // Hash consistente (bcrypt). Se quiser, troque para PASSWORD_DEFAULT.
+        $this->attributes['senha'] = password_hash($value, PASSWORD_BCRYPT);
     }
+
+    private function looksHashed(string $value): bool
+    {
+        // cobre os formatos comuns
+        // bcrypt ($2y$ or $2a$), argon2i/argon2id ($argon2i$, $argon2id$)
+        return (
+            str_starts_with($value, '$2y$') ||
+            str_starts_with($value, '$2a$') ||
+            str_starts_with($value, '$argon2i$') ||
+            str_starts_with($value, '$argon2id$')
+        );
+    }
+
+
 
     // ---- ACCESSORS ----
     public function getPrimeiroNomeAttribute(): string

@@ -5,14 +5,12 @@ $menu      = $menu      ?? 'dashboard';
 $base      = rtrim(BASE_URL ?? '/', '/') . '/';
 ?>
 
-<!-- Libs (somente as necessárias aqui) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <?php loadPageCss(); ?>
-
 
 <?php
 $active = function (string $key) use ($menu) {
@@ -23,27 +21,30 @@ $aria   = function (string $key) use ($menu) {
 };
 ?>
 
-<!-- Header (seletor de mês) -->
 <header class="lk-header">
     <div class="header-left">
         <div class="month-selector">
-            <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior"><i class="fas fa-chevron-left"></i></button>
+            <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
             <div class="month-display">
-                <button class="month-dropdown-btn" id="monthDropdownBtn" aria-haspopup="true" aria-expanded="false">
+                <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" aria-haspopup="true" aria-expanded="false">
                     <span id="currentMonthText"></span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="month-dropdown" id="monthDropdown" role="menu"></div>
             </div>
-            <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês"><i class="fas fa-chevron-right"></i></button>
+
+            <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
     </div>
 </header>
 
-<!-- Conteúdo -->
 <section>
     <div class="container">
-        <!-- KPIs -->
         <section class="kpi-grid" role="region" aria-label="Indicadores principais">
             <div class="card kpi-card" id="saldoCard">
                 <div class="card-header">
@@ -65,7 +66,6 @@ $aria   = function (string $key) use ($menu) {
             </div>
         </section>
 
-        <!-- Gráfico + Resumo -->
         <section class="charts-grid">
             <div class="card chart-card">
                 <div class="card-header">
@@ -87,7 +87,6 @@ $aria   = function (string $key) use ($menu) {
             </div>
         </section>
 
-        <!-- Tabela -->
         <section class="card table-card">
             <div class="card-header">
                 <h2 class="card-title">Últimos Lançamentos</h2>
@@ -115,8 +114,6 @@ $aria   = function (string $key) use ($menu) {
         </section>
     </div>
 </section>
-
-
 
 <?php loadPageJs(); ?>
 <script>
@@ -225,20 +222,24 @@ $aria   = function (string $key) use ($menu) {
 
         /* ============ Renderizadores ============ */
         async function renderKPIs() {
-            const k = await apiMetrics(currentMonth);
-            const map = {
-                saldoValue: 'saldo',
-                receitasValue: 'receitas',
-                despesasValue: 'despesas',
-                totalReceitas: 'receitas',
-                totalDespesas: 'despesas',
-                resultadoMes: 'resultado',
-                saldoAcumulado: 'saldoAcumulado',
-            };
-            Object.entries(map).forEach(([id, key]) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = money(k[key] || 0);
-            });
+            try {
+                const k = await apiMetrics(currentMonth);
+                const map = {
+                    saldoValue: 'saldo',
+                    receitasValue: 'receitas',
+                    despesasValue: 'despesas',
+                    totalReceitas: 'receitas',
+                    totalDespesas: 'despesas',
+                    resultadoMes: 'resultado',
+                    saldoAcumulado: 'saldoAcumulado',
+                };
+                Object.entries(map).forEach(([id, key]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = money(k[key] || 0);
+                });
+            } catch (e) {
+                console.error('Erro ao renderizar KPIs:', e);
+            }
         }
 
         async function renderTable() {
@@ -246,23 +247,28 @@ $aria   = function (string $key) use ($menu) {
             const empty = $('#emptyState');
             if (!tbody || !empty) return;
 
-            const list = await apiTransactions(currentMonth, 50);
-            tbody.innerHTML = '';
-            empty.style.display = list.length ? 'none' : 'block';
+            try {
+                const list = await apiTransactions(currentMonth, 50);
+                tbody.innerHTML = '';
+                empty.style.display = list.length ? 'none' : 'block';
 
-            list.forEach(t => {
-                const tr = document.createElement('tr');
-                const color = t.tipo === 'receita' ? 'var(--verde)' :
-                    (String(t.tipo || '').startsWith('despesa') ? 'var(--vermelho)' : 'var(--laranja)');
-                tr.innerHTML = `
-        <td>${dateBR(t.data)}</td>
-        <td>${String(t.tipo||'').replace('_',' ')}</td>
-        <td>${t.categoria?.nome || '—'}</td>
-        <td>—</td>
-        <td>${t.descricao || t.observacao || '—'}</td>
-        <td style="font-weight:700;text-align:right;color:${color}">${money(Number(t.valor)||0)}</td>`;
-                tbody.appendChild(tr);
-            });
+                list.forEach(t => {
+                    const tr = document.createElement('tr');
+                    const color = t.tipo === 'receita' ? 'var(--verde)' :
+                        (String(t.tipo || '').startsWith('despesa') ? 'var(--vermelho)' : 'var(--laranja)');
+                    tr.innerHTML = `
+                        <td>${dateBR(t.data)}</td>
+                        <td>${String(t.tipo||'').replace('_',' ')}</td>
+                        <td>${t.categoria?.nome || '—'}</td>
+                        <td>—</td>
+                        <td>${t.descricao || t.observacao || '—'}</td>
+                        <td style="font-weight:700;text-align:right;color:${color}">${money(Number(t.valor)||0)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error('Erro ao renderizar tabela:', e);
+                empty.style.display = 'block';
+            }
         }
 
         let chartInstance = null;
@@ -294,67 +300,71 @@ $aria   = function (string $key) use ($menu) {
             grad.addColorStop(0, 'rgba(230,126,34,0.35)');
             grad.addColorStop(1, 'rgba(230,126,34,0.05)');
 
-            if (!chartInstance) {
-                chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: 'Resultado do Mês',
-                            data: series,
-                            borderColor: '#E67E22',
-                            backgroundColor: grad,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#E67E22',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 5,
-                            tension: .35,
-                            fill: true
-                        }]
+            const data = {
+                labels,
+                datasets: [{
+                    label: 'Resultado do Mês',
+                    data: series,
+                    borderColor: '#E67E22',
+                    backgroundColor: grad,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#E67E22',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    tension: .35,
+                    fill: true
+                }]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: '#2C3E50',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                displayColors: false,
-                                callbacks: {
-                                    label: (c) => money(c.parsed.y)
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    color: 'rgba(189,195,199,.16)'
-                                },
-                                ticks: {
-                                    color: '#cfd8e3'
-                                }
-                            },
-                            y: {
-                                grid: {
-                                    color: 'rgba(189,195,199,.16)'
-                                },
-                                ticks: {
-                                    color: '#cfd8e3',
-                                    callback: v => money(v)
-                                }
-                            }
+                    tooltip: {
+                        backgroundColor: '#2C3E50',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: (c) => money(c.parsed.y)
                         }
                     }
-                });
-            } else {
-                chartInstance.data.labels = labels;
-                chartInstance.data.datasets[0].data = series;
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(189,195,199,.16)'
+                        },
+                        ticks: {
+                            color: '#cfd8e3'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(189,195,199,.16)'
+                        },
+                        ticks: {
+                            color: '#cfd8e3',
+                            callback: v => money(v)
+                        }
+                    }
+                }
+            };
+
+            if (chartInstance) {
+                chartInstance.data = data;
+                chartInstance.options = options;
                 chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: options
+                });
             }
         }
 
@@ -363,173 +373,13 @@ $aria   = function (string $key) use ($menu) {
             await Promise.all([renderKPIs(), renderTable(), drawChart()]);
         }
 
-        // Exponho pra você chamar depois de salvar algo
+        // Exponho para você chamar depois de salvar algo
         window.refreshDashboard = renderAll;
 
         /* ============ Boot ============ */
         document.addEventListener('DOMContentLoaded', async () => {
             writeLabel();
             await renderAll();
-        });
-    })();
-</script>
-
-<script>
-    (() => {
-        const STORAGE_KEY = 'lukrato.month.dashboard';
-        const $ = (s, sc = document) => sc.querySelector(s);
-
-        const $btn = $('#monthDropdownBtn');
-        const $drop = $('#monthDropdown');
-        const $label = $('#currentMonthText');
-        const $prev = $('#prevMonth');
-        const $next = $('#nextMonth');
-
-        // estado do mês (pega do header se existir; senão do storage; senão hoje)
-        let currentMonth = (window.LukratoHeader?.getMonth?.()) ||
-            sessionStorage.getItem(STORAGE_KEY) ||
-            new Date().toISOString().slice(0, 7);
-
-        // ano “focado” no dropdown (inicia no ano do currentMonth)
-        let viewYear = Number(currentMonth.split('-')[0]);
-
-        const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-
-        const monthLabel = (m) => {
-            const [y, mm] = m.split('-').map(Number);
-            return new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
-                month: 'long',
-                year: 'numeric'
-            });
-        };
-        const addMonths = (m, delta) => {
-            const [y, mm] = m.split('-').map(Number);
-            const d = new Date(y, mm - 1 + delta, 1);
-            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        };
-        const setMonth = (m, {
-            emit = true
-        } = {}) => {
-            currentMonth = m;
-            sessionStorage.setItem(STORAGE_KEY, currentMonth);
-            if ($label) $label.textContent = monthLabel(currentMonth);
-            if (emit) document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
-                detail: {
-                    month: currentMonth
-                }
-            }));
-        };
-
-        // escreve label inicial
-        if ($label) $label.textContent = monthLabel(currentMonth);
-
-        // navegação setas (mes a mes)
-        $prev?.addEventListener('click', () => setMonth(addMonths(currentMonth, -1)));
-        $next?.addEventListener('click', () => setMonth(addMonths(currentMonth, +1)));
-
-        // dropdown: template + render
-        function renderDropdown() {
-            if (!$drop) return;
-            const curY = viewYear;
-            const cm = currentMonth;
-
-            const curMonthNum = Number(cm.split('-')[1]); // 1..12
-
-            $drop.innerHTML = `
-      <div class="mdp-head" style="display:flex;align-items:center;gap:8px;justify-content:space-between;padding:8px 8px 0;">
-        <button class="mdp-y-prev" aria-label="Ano anterior" style="background:none;border:0;color:inherit;cursor:pointer;padding:6px 8px;">‹</button>
-        <strong class="mdp-year" aria-live="polite">${curY}</strong>
-        <button class="mdp-y-next" aria-label="Próximo ano" style="background:none;border:0;color:inherit;cursor:pointer;padding:6px 8px;">›</button>
-      </div>
-      <div class="mdp-grid" role="grid" style="display:grid;grid-template-columns:repeat(3, minmax(80px,1fr));gap:8px;padding:10px;">
-        ${MONTHS.map((mName,i)=>{
-          const mNum = i+1;
-          const isActive = (mNum===curMonthNum && curY===Number(cm.split('-')[0]));
-          return `
-            <button class="mdp-month ${isActive?'active':''}" data-month="${String(mNum).padStart(2,'0')}" data-year="${curY}"
-              role="gridcell"
-              style="background:var(--azul);border:1px solid var(--glass-border);border-radius:12px;padding:10px;cursor:pointer;text-transform:capitalize;">
-              ${mName}
-            </button>`;
-        }).join('')}
-      </div>
-    `;
-
-            // binds do header do dropdown
-            $drop.querySelector('.mdp-y-prev')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                viewYear--;
-                renderDropdown();
-            });
-            $drop.querySelector('.mdp-y-next')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                viewYear++;
-                renderDropdown();
-            });
-
-            // bind de cada mês
-            $drop.querySelectorAll('.mdp-month').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const y = btn.getAttribute('data-year');
-                    const mm = btn.getAttribute('data-month');
-                    setMonth(`${y}-${mm}`);
-                    closeDropdown();
-                });
-            });
-        }
-
-        function openDropdown() {
-            if (!$drop) return;
-            viewYear = Number(currentMonth.split('-')[0]); // sempre abrir no ano do currentMonth
-            renderDropdown();
-            $drop.classList.add('active');
-            $btn?.setAttribute('aria-expanded', 'true');
-            // fechar ao clicar fora
-            document.addEventListener('click', handleOutside, {
-                once: true
-            });
-            document.addEventListener('keydown', onEsc, {
-                once: true
-            });
-        }
-
-        function closeDropdown() {
-            if (!$drop) return;
-            $drop.classList.remove('active');
-            $btn?.setAttribute('aria-expanded', 'false');
-        }
-
-        function handleOutside(ev) {
-            if ($drop.contains(ev.target) || $btn.contains(ev.target)) {
-                // clicou dentro – reanexa o outside pra próxima interação
-                document.addEventListener('click', handleOutside, {
-                    once: true
-                });
-                return;
-            }
-            closeDropdown();
-        }
-
-        function onEsc(ev) {
-            if (ev.key === 'Escape') closeDropdown();
-        }
-
-        // toggle do botão central
-        $btn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = $drop.classList.contains('active');
-            if (isOpen) closeDropdown();
-            else openDropdown();
-        });
-
-        // se algum outro script (ex.: seu header global) mudar o mês, mantém o label sincronizado aqui também
-        document.addEventListener('lukrato:month-changed', (e) => {
-            const m = e.detail?.month;
-            if (!m || m === currentMonth) return;
-            currentMonth = m;
-            sessionStorage.setItem(STORAGE_KEY, currentMonth);
-            if ($label) $label.textContent = monthLabel(currentMonth);
         });
     })();
 </script>
