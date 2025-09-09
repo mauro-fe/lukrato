@@ -74,6 +74,7 @@ body {
   line-height: 1.5;
   overflow-x: hidden;
 }
+
 h3 {
   color: var(--laranja);
   font-weight: bold;
@@ -352,6 +353,8 @@ h3 {
 
 .lkh-modal-content {
   position: relative;
+  left: 30%;
+
   background: var(--azul);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
@@ -429,6 +432,7 @@ h3 {
   font-size: var(--font-size-base);
 }
 
+
 .form-input::placeholder {
   color: var(--cinza);
 }
@@ -456,7 +460,7 @@ h3 {
   display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
   background-color: var(--verde);
   border-color: var(--verde);
 }
@@ -576,9 +580,13 @@ h3 {
   bottom: 0;
   /* alinhado pela base do FAB */
   display: none;
-  flex-direction: row;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 30px;
+  flex-direction: column;
   /* horizontal */
-  align-items: center;
+  align-items: flex-start;
+
   gap: 10px;
   opacity: 0;
   visibility: hidden;

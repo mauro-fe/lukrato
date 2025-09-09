@@ -19,6 +19,11 @@ $aria   = function (string $key) use ($menu) {
     return $menu === $key ? ' aria-current="page"' : '';
 };
 ?>
+<style>
+    .table {
+        background-color: #092741 !important;
+    }
+</style>
 <section class="container ">
     <div>
         <h3>Dashboard</h3>

@@ -614,19 +614,29 @@
         function drawBars(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
+
+            const datasets = [{
+                    label: 'Receitas',
+                    data: (d.receitas || []).map(Number)
+                },
+                {
+                    label: 'Despesas',
+                    data: (d.despesas || []).map(Number)
+                }
+            ];
+
+            if (Array.isArray(d.saldosMes)) {
+                datasets.push({
+                    label: 'Saldo do mês',
+                    data: d.saldosMes.map(Number)
+                });
+            }
+
             st.chart = new Chart($('#c'), {
                 type: 'bar',
                 data: {
                     labels: d.labels || [],
-                    datasets: [{
-                            label: 'Receitas',
-                            data: (d.receitas || []).map(Number)
-                        },
-                        {
-                            label: 'Despesas',
-                            data: (d.despesas || []).map(Number)
-                        }
-                    ]
+                    datasets
                 },
                 options: {
                     plugins: {
@@ -637,6 +647,10 @@
                             callbacks: {
                                 label: (c) => fmt(c.parsed.y)
                             }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Receitas x Despesas' + (Array.isArray(d.saldosMes) ? ' x Saldo do mês' : '')
                         }
                     },
                     maintainAspectRatio: false,
@@ -650,6 +664,7 @@
                 }
             });
         }
+
 
         function drawLine12m(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');

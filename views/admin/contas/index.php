@@ -366,7 +366,7 @@
                         <th>Moeda</th>
                         <th>Saldo Inicial</th>
                         <th>Status</th>
-                        <th style="width:160px">Ações</th>
+                        <!--  <th style="width:160px">Ações</th> -->
                     </tr>
                 </thead>
                 <tbody id="accountsTbody">
@@ -619,14 +619,7 @@
                         <td>${escapeHTML(c.moeda||'BRL')}</td>
                         <td>R$ ${formatMoneyBR(c.saldoInicial ?? 0)}</td>
                         <td><span class="tag ${c.ativo ? 'active' : 'inactive'}">${c.ativo ? 'Ativa' : 'Inativa'}</span></td>
-                        <td>
-                            <button class="btn btn-light btn-sm btn-edit" data-id="${c.id}">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="btn btn-danger btn-sm btn-del" data-id="${c.id}">
-                                <i class="fas fa-trash"></i> Inativar
-                            </button>
-                        </td>
+                      
                     `;
                 tbody.appendChild(tr);
             }

@@ -211,33 +211,56 @@ class ReportController extends BaseController
                     return;
                 }
 
-                // --------- NOVO: BARRAS POR CONTA (no mês) -------------------------
+                // --------- BARRAS POR CONTA (no mês) — inclui saldo_inicial e saldo_mes
             case 'receitas_despesas_por_conta': {
-                    // Para o mês atual, agrupa por conta
-                    $rows = Lancamento::query()
-                        ->leftJoin('contas', 'contas.id', '=', 'lancamentos.conta_id')
+                    $rows = DB::table('contas')
+                        // contas do usuário logado
+                        ->when($userId, fn($q) => $q->where('contas.user_id', $userId))
+                        // filtra conta específica se fornecida
+                        ->when($accId, fn($q) => $q->where('contas.id', $accId))
+                        // left join nos lançamentos do período + escopo de usuário
+                        ->leftJoin('lancamentos', function ($j) use ($start, $end, $userId) {
+                            $j->on('lancamentos.conta_id', '=', 'contas.id')
+                                ->whereBetween('lancamentos.data', [$start, $end]);
+
+                            if (!empty($userId)) {
+                                $j->where(function ($q2) use ($userId) {
+                                    $q2->whereNull('lancamentos.user_id')
+                                        ->orWhere('lancamentos.user_id', $userId);
+                                });
+                            } else {
+                                $j->whereNull('lancamentos.user_id');
+                            }
+                        })
                         ->selectRaw("COALESCE(contas.nome, contas.instituicao, 'Sem conta') as conta")
                         ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE 0 END) as receitas")
                         ->selectRaw("SUM(CASE WHEN lancamentos.tipo='despesa' THEN lancamentos.valor ELSE 0 END) as despesas")
-                        ->where($userScope)
-                        // se veio account_id, mantemos filtro também (mostra só a escolhida)
-                        ->where($accountScope)
-                        ->whereBetween('lancamentos.data', [$start, $end])
+                        ->selectRaw("COALESCE(MAX(contas.saldo_inicial),0) as saldo_inicial")
+                        ->selectRaw("
+                        COALESCE(MAX(contas.saldo_inicial),0)
+                        + SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE 0 END)
+                        - SUM(CASE WHEN lancamentos.tipo='despesa' THEN lancamentos.valor ELSE 0 END)
+                        as saldo_mes
+                    ")
                         ->groupBy('conta')
                         ->orderBy('conta')
                         ->get();
 
-                    $labels   = $rows->pluck('conta')->values()->all();
-                    $receitas = $rows->pluck('receitas')->map(fn($v) => (float)$v)->values()->all();
-                    $despesas = $rows->pluck('despesas')->map(fn($v) => (float)$v)->values()->all();
+                    $labels         = $rows->pluck('conta')->values()->all();
+                    $receitas       = $rows->pluck('receitas')->map(fn($v) => (float)$v)->values()->all();
+                    $despesas       = $rows->pluck('despesas')->map(fn($v) => (float)$v)->values()->all();
+                    $saldosIniciais = $rows->pluck('saldo_inicial')->map(fn($v) => (float)$v)->values()->all();
+                    $saldosMes      = $rows->pluck('saldo_mes')->map(fn($v) => (float)$v)->values()->all();
 
                     Response::json([
-                        'labels'   => $labels,
-                        'receitas' => $receitas,
-                        'despesas' => $despesas,
-                        'type'     => $type,
-                        'start'    => $start->toDateString(),
-                        'end'      => $end->toDateString(),
+                        'labels'         => $labels,
+                        'receitas'       => $receitas,
+                        'despesas'       => $despesas,
+                        'saldosIniciais' => $saldosIniciais,
+                        'saldosMes'      => $saldosMes,
+                        'type'           => $type,
+                        'start'          => $start->toDateString(),
+                        'end'            => $end->toDateString(),
                     ]);
                     return;
                 }

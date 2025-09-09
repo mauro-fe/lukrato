@@ -354,6 +354,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
+  --bs-table-bg: var(--azul);
 }
 
 .table th,
@@ -506,12 +507,12 @@
   transition: var(--transition-fast);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
   background-color: var(--laranja);
   border-color: var(--laranja);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom::after {
   content: "✓";
   position: absolute;
   top: 50%;
@@ -711,6 +712,7 @@
 
 /* Print Styles */
 @media print {
+
   .sidebar,
   .fab-container,
   .modal {
