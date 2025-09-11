@@ -1,59 +1,4 @@
 /* =========================================================
- * Tokens
- * =======================================================*/
-:root {
-  --laranja: #e67e22;
-  --azul: #2c3e50;
-  --verde: #2ecc71;
-  --cinza: #bdc3c7;
-  --amarelo: #f39c12;
-  --fundo: #092741;
-  --claro: #f8f9fa;
-  --branco: #ffffff;
-  --vermelho: #e74c3c;
-
-  --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-5: 1.25rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
-  --spacing-12: 3rem;
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
-
-  --sidebar-width: 280px;
-  --header-height: 80px;
-  --container-padding: var(--spacing-6);
-
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-backdrop: blur(10px);
-
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-}
-
-/* =========================================================
  * Base
  * =======================================================*/
 * {
@@ -69,20 +14,20 @@ html {
 
 body {
   font-family: var(--font-primary);
-  background-color: var(--fundo) !important;
-  color: var(--branco);
+  background-color: var(--color-bg) !important;
+  color: var(--color-text);
   line-height: 1.5;
   overflow-x: hidden;
 }
 
 h3 {
-  color: var(--laranja);
+  color: var(--color-primary);
   font-weight: bold;
   margin: auto;
 }
 
 *:focus {
-  outline: 2px solid var(--laranja);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -107,6 +52,8 @@ h3 {
     transform: translateY(0);
   }
 }
+
+
 
 /* =========================================================
  * Sidebar
@@ -139,25 +86,88 @@ h3 {
   padding: var(--spacing-4) 0;
 }
 
+
+/* Barra superior do aside */
+.sidebar-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Itens do menu: base */
+.sidebar-nav .nav-item {
+  position: relative;
+  color: #cfd8e3;
+  /* cinza claro */
+  background: transparent;
+  border-left: 3px solid transparent;
+  /* guia para o ativo */
+}
+
+/* Ícones herdam a cor do link */
+.sidebar-nav .nav-item i {
+  color: currentColor;
+}
+
+/* Hover sutil */
+.sidebar-nav .nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--branco);
+}
+
+/* ATIVO: texto + ícone laranja, sem bloco */
+.sidebar-nav .nav-item.active,
+.sidebar-nav .nav-item[aria-current="page"] {
+  color: var(--laranja);
+  background: transparent;
+  /* sobrescreve teu .nav-item.active antigo */
+  font-weight: 700;
+  border-left-color: var(--laranja);
+}
+
+/* Indicador vertical (opcional, bonito no dark) */
+.sidebar-nav .nav-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.sidebar-nav .nav-item.active::before,
+.sidebar-nav .nav-item[aria-current="page"]::before {
+  background: var(--laranja);
+}
+
+/* Foco acessível no teclado */
+.sidebar-nav .nav-item:focus-visible {
+  outline: 2px solid var(--laranja);
+  outline-offset: 2px;
+}
+
+
+
 .nav-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6);
-  color: var(--branco);
+  color: var(--color-text);
   text-decoration: none;
   transition: var(--transition-fast);
   font-weight: 500;
+  border-radius: var(--radius-sm);
 }
 
 .nav-item:hover {
   background-color: var(--glass-bg);
-  color: var(--branco);
+  color: var(--color-text);
 }
 
 .nav-item.active {
-  background-color: var(--laranja);
-  color: var(--branco);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .nav-item i {
@@ -172,8 +182,8 @@ h3 {
   top: 15px;
   left: 15px;
   z-index: 1100;
-  background: #2c3e50;
-  color: #fff;
+  background: var(--color-secondary);
+  color: var(--color-surface);
   border: 0;
   padding: 10px 12px;
   border-radius: 8px;
@@ -218,7 +228,7 @@ h3 {
 .month-nav-btn {
   background: none;
   border: 1px solid var(--glass-border);
-  color: var(--cinza);
+  color: var(--color-text-muted);
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -227,7 +237,7 @@ h3 {
 
 .month-nav-btn:hover {
   background-color: var(--glass-bg);
-  color: var(--branco);
+  color: var(--color-text);
 }
 
 .month-display {
@@ -237,7 +247,7 @@ h3 {
 .month-dropdown-btn {
   background: none;
   border: none;
-  color: var(--branco);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -249,12 +259,13 @@ h3 {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  background: var(--azul);
+  background: var(--color-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-3);
   box-shadow: var(--shadow-md);
   display: none;
+  color: var(--color-text);
 }
 
 .month-dropdown.active {
@@ -263,8 +274,8 @@ h3 {
 
 .month-dropdown button {
   width: 100%;
-  background: var(--azul);
-  color: var(--branco);
+  background: var(--color-surface);
+  color: var(--color-text);
   border: 0;
   border-radius: var(--radius-lg);
   padding: var(--spacing-3) var(--spacing-4);
@@ -295,7 +306,7 @@ h3 {
   .sidebar {
     left: -260px;
     width: 240px;
-    background: #1e293b;
+    background: var(--color-surface);
     transition: left 0.3s ease;
     z-index: 1000;
   }
@@ -326,11 +337,8 @@ h3 {
   position: fixed;
   inset: 0;
   display: none;
-  /* fechado */
   align-items: center;
-  /* central v */
   justify-content: center;
-  /* central h */
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
@@ -339,7 +347,6 @@ h3 {
 
 .lkh-modal.active {
   display: flex;
-  /* aberto e centralizado */
   opacity: 1;
   visibility: visible;
 }
@@ -354,19 +361,19 @@ h3 {
 .lkh-modal-content {
   position: relative;
   left: 30%;
-
-  background: var(--azul);
+  /* (mantive seu posicionamento) */
+  background: var(--color-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   max-width: 600px;
-  /* um pouco mais largo */
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   transform: scale(0.95);
   transition: var(--transition-normal);
   z-index: 1;
+  color: var(--color-text);
 }
 
 .lkh-modal.active .lkh-modal-content {
@@ -385,13 +392,13 @@ h3 {
 .lkh-modal-header h2 {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--branco);
+  color: var(--color-text);
 }
 
 .lkh-modal-close {
   background: none;
   border: none;
-  color: var(--cinza);
+  color: var(--color-text-muted);
   font-size: var(--font-size-lg);
   cursor: pointer;
 }
@@ -417,24 +424,24 @@ h3 {
   display: block;
   margin-bottom: var(--spacing-2);
   font-size: var(--font-size-sm);
-  color: var(--cinza);
+  color: var(--color-text-muted);
 }
 
 .form-input,
 .form-select {
   width: 100%;
   padding: var(--spacing-3);
-  background-color: var(--azul);
+  background-color: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
-  color: var(--branco);
+  color: var(--color-text);
   font-family: var(--font-primary);
   font-size: var(--font-size-base);
+  backdrop-filter: var(--glass-backdrop);
 }
 
-
 .form-input::placeholder {
-  color: var(--cinza);
+  color: var(--color-text-muted);
 }
 
 .checkbox-label {
@@ -443,16 +450,16 @@ h3 {
   gap: var(--spacing-2);
   cursor: pointer;
   font-size: var(--font-size-sm);
-  color: var(--cinza);
+  color: var(--color-text-muted);
 }
 
 .checkbox-label .checkbox-custom {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 1px solid var(--cinza);
+  border: 1px solid var(--color-text-muted);
   border-radius: var(--radius-sm);
-  background-color: var(--azul);
+  background-color: var(--glass-bg);
   transition: var(--transition-fast);
 }
 
@@ -461,8 +468,8 @@ h3 {
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
-  background-color: var(--verde);
-  border-color: var(--verde);
+  background-color: var(--color-success);
+  border-color: var(--color-success);
 }
 
 /* Botões */
@@ -475,25 +482,25 @@ h3 {
 }
 
 .btn-primary {
-  background-color: var(--laranja);
-  border: 1px solid var(--laranja);
-  color: var(--branco);
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: var(--color-surface);
 }
 
 .btn-primary:hover {
-  background-color: var(--amarelo);
-  border-color: var(--amarelo);
+  background-color: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
+  border-color: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
 }
 
 .btn-ghost {
   background-color: transparent;
-  border: 1px solid var(--cinza);
-  color: var(--cinza);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-muted);
 }
 
 .btn-ghost:hover {
-  color: var(--branco);
-  border-color: var(--branco);
+  color: var(--color-text);
+  border-color: var(--color-text);
 }
 
 /* Calendário dentro do modal */
@@ -502,7 +509,7 @@ h3 {
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-size: var(--font-size-sm);
-  color: var(--cinza);
+  color: var(--color-text-muted);
   margin-bottom: var(--spacing-2);
 }
 
@@ -524,17 +531,17 @@ h3 {
 }
 
 .calendar-day.muted {
-  color: var(--cinza);
-  opacity: 0.5;
+  color: var(--color-text-muted);
+  opacity: .6;
 }
 
 .calendar-day.today {
-  border: 1px solid var(--verde);
+  border: 1px solid var(--color-success);
 }
 
 .calendar-day.selected {
-  background-color: var(--laranja);
-  color: var(--branco);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
   font-weight: bold;
 }
 
@@ -552,9 +559,9 @@ h3 {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--laranja), var(--amarelo));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
   border: none;
-  color: var(--branco);
+  color: var(--color-surface);
   font-size: 20px;
   cursor: pointer;
   display: inline-flex;
@@ -576,22 +583,21 @@ h3 {
 .fab-menu {
   position: absolute;
   left: 72px;
-  /* distância entre o FAB e o menu */
   bottom: 0;
-  /* alinhado pela base do FAB */
   display: none;
-  background-color: #fff;
+  background-color: var(--color-surface);
   padding: 10px;
   border-radius: 30px;
   flex-direction: column;
-  /* horizontal */
   align-items: flex-start;
-
   gap: 10px;
   opacity: 0;
   visibility: hidden;
   transform: translateX(-10px);
   transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
 }
 
 .fab-menu.active {
@@ -608,8 +614,8 @@ h3 {
   height: 44px;
   padding: 0 12px;
   border-radius: 999px;
-  background: var(--azul);
-  color: var(--branco);
+  background: var(--glass-bg);
+  color: var(--color-text);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
   cursor: pointer;
@@ -622,7 +628,7 @@ h3 {
 }
 
 .fab-menu-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
 }
 
 /* Mobile — aproxima o menu */
@@ -644,4 +650,58 @@ h3 {
     width: 95%;
     margin: var(--spacing-4);
   }
+}
+
+.theme-toggle {
+  border: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background var(--transition-fast);
+  color: var(--color-text);
+  margin-left:25px ;
+  margin-top: 20px;
+
+}
+
+.theme-toggle:hover {
+  background: var(--glass-border);
+}
+
+/* Ícones */
+.theme-toggle i {
+  position: absolute;
+  font-size: 18px;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Sol aparece no light */
+.theme-toggle i.fa-sun {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+/* Lua fica invisível no light */
+.theme-toggle i.fa-moon {
+  opacity: 0;
+  transform: rotate(-90deg);
+}
+
+/* Dark mode: inverte */
+.theme-toggle.dark i.fa-sun {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+.theme-toggle.dark i.fa-moon {
+  opacity: 1;
+  transform: rotate(0deg);
 }

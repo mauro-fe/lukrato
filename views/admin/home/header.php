@@ -8,7 +8,7 @@ $u    = 'admin';
 $base = BASE_URL;
 ?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" lang="pt-BR" data-theme="dark">
 
 <head>
     <meta charset="utf-8" />
@@ -23,6 +23,7 @@ $base = BASE_URL;
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-home-header'); ?>
@@ -48,7 +49,10 @@ $base = BASE_URL;
         <button id="sidebarToggle" class="sidebar-toggle" aria-label="Abrir/Fechar menu">
             <i class="fas fa-bars"></i>
         </button>
-
+        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+        </button>
         <nav class="sidebar-nav">
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?>><i class="fas fa-home"></i><span>Dashboard</span></a>
@@ -60,8 +64,7 @@ $base = BASE_URL;
                 <?= $aria('relatorios')  ?>><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
                 <?= $aria('perfil')      ?>><i class="fas fa-user-circle"></i><span>Perfil</span></a>
-            <a href="<?= $base ?>admin/<?= $u ?>/config" class="nav-item <?= $active('config') ?>"
-                <?= $aria('config') ?>><i class="fas fa-cog"></i><span>Config</span></a>
+
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout"><i class="fas fa-sign-out-alt"></i>
                 Sair</a>
         </nav>
@@ -187,3 +190,34 @@ $base = BASE_URL;
             <?php loadPageJs('admin-home-header'); ?>
             <?php loadPageJs(); ?>
         </div>
+
+        <script>
+            (function() {
+                const root = document.documentElement;
+                const btn = document.getElementById("toggleTheme");
+
+                // aplica o tema salvo no localStorage (padrão = light)
+                const saved = localStorage.getItem("theme") || "dark";
+                root.setAttribute("data-theme", saved);
+
+                // atualiza ícone
+                updateIcon(saved);
+
+                // alternar ao clicar
+                btn.addEventListener("click", () => {
+                    const current = root.getAttribute("data-theme");
+                    const next = current === "dark" ? "light" : "dark";
+                    root.setAttribute("data-theme", next);
+                    localStorage.setItem("theme", next);
+                    updateIcon(next);
+                });
+
+                function updateIcon(theme) {
+                    if (theme === "dark") {
+                        btn.classList.add("dark");
+                    } else {
+                        btn.classList.remove("dark");
+                    }
+                }
+            })();
+        </script>

@@ -1,68 +1,4 @@
-/* Design Tokens */
-:root {
-  --laranja: #e67e22;
-  --azul: #2c3e50;
-  --verde: #2ecc71;
-  --cinza: #bdc3c7;
-  --amarelo: #f39c12;
-  --fundo: #092741;
-  --claro: #f8f9fa;
-  --branco: #ffffff;
-  --vermelho: #e74c3c;
 
-  /* Typography */
-  --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-
-  /* Spacing */
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-5: 1.25rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
-  --spacing-12: 3rem;
-
-  /* Border Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
-
-  /* Layout */
-  --sidebar-width: 280px;
-  --header-height: 80px;
-  --container-padding: var(--spacing-6);
-
-  /* Glass Effect */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-backdrop: blur(10px);
-
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-}
-
-/* Focus Styles for Accessibility */
-*:focus {
-  outline: 2px solid var(--laranja);
-  outline-offset: 2px;
-}
 
 /* Utility Classes */
 .fade-in {
@@ -80,6 +16,8 @@
     transform: translateY(0);
   }
 }
+
+
 
 /* ======================= Month Selector (dentro do header) ======================= */
 .dash-lk-header .month-selector {
@@ -724,75 +662,19 @@
 
   body {
     background: white !important;
-    color: black !important;
   }
 }
 
-/* ====== ASIDE (OVERRIDES) ====== */
+/* ---- Bridge de compatibilidade com tokens antigos ---- */
+:root {
+  --laranja: var(--color-primary);
+  --amarelo: var(--color-warning);
+  --verde: var(--color-success);
+  --vermelho: var(--color-danger);
 
-/* Sólido, sem blur (não afeta cards/header) */
-.sidebar {
-  background: linear-gradient(180deg, #0b2436 0%, #102a3f 100%);
-  border-right: 1px solid rgba(0, 0, 0, 0.25);
-  backdrop-filter: none;
-  /* remove o vidro só do aside */
-}
-
-/* Barra superior do aside */
-.sidebar-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Itens do menu: base */
-.sidebar-nav .nav-item {
-  position: relative;
-  color: #cfd8e3;
-  /* cinza claro */
-  background: transparent;
-  border-left: 3px solid transparent;
-  /* guia para o ativo */
-}
-
-/* Ícones herdam a cor do link */
-.sidebar-nav .nav-item i {
-  color: currentColor;
-}
-
-/* Hover sutil */
-.sidebar-nav .nav-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--branco);
-}
-
-/* ATIVO: texto + ícone laranja, sem bloco */
-.sidebar-nav .nav-item.active,
-.sidebar-nav .nav-item[aria-current="page"] {
-  color: var(--laranja);
-  background: transparent;
-  /* sobrescreve teu .nav-item.active antigo */
-  font-weight: 700;
-  border-left-color: var(--laranja);
-}
-
-/* Indicador vertical (opcional, bonito no dark) */
-.sidebar-nav .nav-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 6px;
-  background: transparent;
-}
-
-.sidebar-nav .nav-item.active::before,
-.sidebar-nav .nav-item[aria-current="page"]::before {
-  background: var(--laranja);
-}
-
-/* Foco acessível no teclado */
-.sidebar-nav .nav-item:focus-visible {
-  outline: 2px solid var(--laranja);
-  outline-offset: 2px;
+  --cinza: var(--color-text-muted);
+  --branco: var(--color-text);         /* textos que usavam 'branco' viram texto do tema */
+  --claro: var(--color-text);          /* mesmo racional do 'branco' */
+  --azul: var(--color-surface);        /* superfícies/menus que usavam 'azul' viram surface */
+  --fundo: var(--color-bg);            /* fundo global */
 }
