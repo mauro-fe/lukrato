@@ -11,9 +11,25 @@ class Usuario extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
 
-    protected $fillable = ['nome', 'email', 'senha'];
+    // Inclui os novos campos e username (opcional)
+    protected $fillable = [
+        'nome',
+        'email',
+        'senha',           // campo físico no banco
+        'username',        // opcional
+        'cpf',             // só dígitos
+        'telefone',        // só dígitos (10/11)
+        'data_nascimento', // DATE (Y-m-d)
+        'sexo',            // 'M','F','O','N' ou null
+    ];
 
-    protected $hidden = ['senha'];
+    // Esconde senha nas respostas JSON
+    protected $hidden = ['senha', 'password'];
+
+    // Cast da data para padrão Y-m-d
+    protected $casts = [
+        'data_nascimento' => 'date:Y-m-d',
+    ];
 
     // ---- RELAÇÕES ----
     public function categorias()
@@ -37,11 +53,30 @@ class Usuario extends Model
         parent::boot();
 
         static::saving(function (Usuario $u) {
-            if (!empty($u->email)) {
-                $u->email = trim(strtolower($u->email));
+            // normalização básica
+            if (!empty($u->email))  $u->email = trim(strtolower($u->email));
+            if (isset($u->nome))    $u->nome  = trim((string)$u->nome);
+
+            // cpf/telefone: somente dígitos ou null
+            if (array_key_exists('cpf', $u->attributes)) {
+                $dig = preg_replace('/\D+/', '', (string)$u->cpf);
+                $u->cpf = ($dig !== '') ? $dig : null;
             }
-            if (!empty($u->nome)) {
-                $u->nome = trim($u->nome);
+            if (array_key_exists('telefone', $u->attributes)) {
+                $dig = preg_replace('/\D+/', '', (string)$u->telefone);
+                $u->telefone = ($dig !== '') ? $dig : null;
+            }
+
+            // sexo em maiúsculo e válido
+            if (array_key_exists('sexo', $u->attributes) && $u->sexo !== null) {
+                $sx = strtoupper((string)$u->sexo);
+                $u->sexo = in_array($sx, ['M', 'F', 'O', 'N'], true) ? $sx : null;
+            }
+
+            // data_nascimento para Y-m-d
+            if (!empty($u->data_nascimento)) {
+                $ts = strtotime((string)$u->data_nascimento);
+                $u->data_nascimento = $ts ? date('Y-m-d', $ts) : null;
             }
         });
     }
@@ -52,44 +87,53 @@ class Usuario extends Model
         return $query->whereRaw('LOWER(email) = ?', [trim(strtolower($email))]);
     }
 
+    public function scopeByUsername($query, string $username)
+    {
+        return $query->where('username', trim($username));
+    }
+
+    public function scopeByCpf($query, string $cpf)
+    {
+        return $query->where('cpf', preg_replace('/\D+/', '', $cpf));
+    }
+
     // ---- MUTATORS ----
     public function setSenhaAttribute($value): void
     {
-        // Não mexe se vier null (evita apagar em updates sem intenção)
-        if ($value === null) {
+        // não altera se null ou vazio
+        if ($value === null || $value === '') return;
+
+        // se já parecer hash, mantém
+        if ($this->looksHashed((string)$value)) {
+            $this->attributes['senha'] = (string)$value;
             return;
         }
 
-        $value = (string)$value;
+        // hash (bcrypt); pode trocar para PASSWORD_DEFAULT se preferir
+        $this->attributes['senha'] = password_hash((string)$value, PASSWORD_BCRYPT);
+    }
 
-        // Se vier string vazia, não altera (evita gravar vazio)
-        if ($value === '') {
-            return;
-        }
+    // Alias para compatibilizar $user->password no controller
+    public function setPasswordAttribute($value): void
+    {
+        $this->setSenhaAttribute($value); // delega para o mutator acima
+    }
 
-        // Se já parecer hash, mantém
-        if ($this->looksHashed($value)) {
-            $this->attributes['senha'] = $value;
-            return;
-        }
-
-        // Hash consistente (bcrypt). Se quiser, troque para PASSWORD_DEFAULT.
-        $this->attributes['senha'] = password_hash($value, PASSWORD_BCRYPT);
+    public function getPasswordAttribute(): ?string
+    {
+        return $this->attributes['senha'] ?? null;
     }
 
     private function looksHashed(string $value): bool
     {
-        // cobre os formatos comuns
-        // bcrypt ($2y$ or $2a$), argon2i/argon2id ($argon2i$, $argon2id$)
         return (
             str_starts_with($value, '$2y$') ||
             str_starts_with($value, '$2a$') ||
             str_starts_with($value, '$argon2i$') ||
-            str_starts_with($value, '$argon2id$')
+            str_starts_with($value, '$argon2id$') ||
+            (is_string($value) && password_get_info($value)['algo'] !== 0)
         );
     }
-
-
 
     // ---- ACCESSORS ----
     public function getPrimeiroNomeAttribute(): string
@@ -103,16 +147,12 @@ class Usuario extends Model
     {
         $user = self::byEmail($email)->first();
 
+        // verifica contra 'senha' (coluna física); alias 'password' existe se precisar
         if ($user && password_verify($password, $user->senha)) {
             return $user;
         }
 
         LogService::warning('Tentativa de login inválida', ['email' => $email]);
         return null;
-    }
-
-    private function isPasswordHashed(string $value): bool
-    {
-        return is_string($value) && password_get_info($value)['algo'] !== 0;
     }
 }

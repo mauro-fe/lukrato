@@ -1,12 +1,73 @@
 <style>
+    /* Design Tokens */
+    :root {
+        --laranja: #e67e22;
+        --azul: #2c3e50;
+        --verde: #2ecc71;
+        --cinza: #bdc3c7;
+        --amarelo: #f39c12;
+        --fundo: #092741;
+        --claro: #f8f9fa;
+        --branco: #ffffff;
+        --vermelho: #e74c3c;
+
+        /* Typography */
+        --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        --font-size-xs: 0.75rem;
+        --font-size-sm: 0.875rem;
+        --font-size-base: 1rem;
+        --font-size-lg: 1.125rem;
+        --font-size-xl: 1.25rem;
+        --font-size-2xl: 1.5rem;
+        --font-size-3xl: 1.875rem;
+
+        /* Spacing */
+        --spacing-1: 0.25rem;
+        --spacing-2: 0.5rem;
+        --spacing-3: 0.75rem;
+        --spacing-4: 1rem;
+        --spacing-5: 1.25rem;
+        --spacing-6: 1.5rem;
+        --spacing-8: 2rem;
+        --spacing-12: 3rem;
+
+        /* Border Radius */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+
+        /* Shadows */
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+        /* Layout */
+        --sidebar-width: 280px;
+        --header-height: 80px;
+        --container-padding: var(--spacing-6);
+
+        /* Glass Effect */
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --glass-backdrop: blur(10px);
+
+        /* Transitions */
+        --transition-fast: 0.15s ease;
+        --transition-normal: 0.3s ease;
+        --transition-slow: 0.5s ease;
+    }
+
+
     .lk-accounts-wrap {
-        max-width: 1200px;
-        margin: 0 auto;
-        background: #2c3e50;
+        background: var(--glass-bg);
         backdrop-filter: blur(10px);
         border-radius: 20px;
         padding: 30px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--glass-border);
+
     }
 
     .lk-acc-header {
@@ -20,7 +81,6 @@
 
     .lk-acc-title {
         font-size: 32px;
-        font-weight: 700;
         color: #2d3748;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -32,7 +92,6 @@
     }
 
     .lk-card {
-        background: #2c3e50;
         border: none;
         border-radius: 16px;
         padding: 0;
@@ -48,17 +107,14 @@
     .lk-table th,
     .lk-table td {
         padding: 16px 20px;
-        border-bottom: 1px solid #f0f2f5;
+        border-bottom: 1px solid var(--glass-border);
         text-align: left;
+
     }
 
     .lk-table th {
-        background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
-        font-size: 13px;
-        font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #4a5568;
     }
 
     .lk-table tbody tr {
@@ -66,8 +122,8 @@
     }
 
     .lk-table tbody tr:hover {
-        background-color: #f8f9ff;
         transform: translateX(2px);
+        background: rgba(255, 255, 255, 0.05);
     }
 
     .lk-empty {
@@ -248,20 +304,22 @@
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
+        color: var(--claro);
     }
 
     .stat-card {
-        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        background: var(--glass-bg);
         border-radius: 16px;
         padding: 20px;
         text-align: center;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--glass-border);
+
     }
 
     .stat-value {
         font-size: 28px;
         font-weight: 700;
-        color: #2d3748;
         margin-bottom: 5px;
     }
 
@@ -324,9 +382,26 @@
         }
     }
 </style>
-<section class="container py-4">
+
+<div class="container">
     <div class="lk-acc-title">
         <h3>Contas</h3>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="stats-grid pt-5" id="statsContainer">
+        <div class="stat-card">
+            <div class="stat-value" id="totalContas">0</div>
+            <div class="stat-label">Total de Contas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="contasAtivas">0</div>
+            <div class="stat-label">Contas Ativas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="saldoTotal">R$ 0,00</div>
+            <div class="stat-label">Saldo Total</div>
+        </div>
     </div>
 
     <div class="lk-accounts-wrap">
@@ -341,21 +416,6 @@
             </div>
         </div>
 
-        <!-- Estatísticas -->
-        <div class="stats-grid" id="statsContainer">
-            <div class="stat-card">
-                <div class="stat-value" id="totalContas">0</div>
-                <div class="stat-label">Total de Contas</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="contasAtivas">0</div>
-                <div class="stat-label">Contas Ativas</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="saldoTotal">R$ 0,00</div>
-                <div class="stat-label">Saldo Total</div>
-            </div>
-        </div>
 
         <div class="lk-card">
             <table class="lk-table" id="accountsTable" aria-label="Tabela de contas">
@@ -432,7 +492,9 @@
             </div>
         </div>
     </div>
-</section>
+
+    </section>
+</div>
 <script>
     (function initAccountsPage() {
         const BASE = (document.querySelector('meta[name="base-url"]')?.content || location.origin + '/');
@@ -614,7 +676,7 @@
             for (const c of rows) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                        <td><strong>${escapeHTML(c.nome||'')}</strong></td>
+                        <td>${escapeHTML(c.nome||'')}</td>
                         <td>${escapeHTML(c.instituicao||'')}</td>
                         <td>${escapeHTML(c.moeda||'BRL')}</td>
                         <td>R$ ${formatMoneyBR(c.saldoInicial ?? 0)}</td>

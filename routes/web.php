@@ -82,7 +82,7 @@ function registerSimpleRoutes(): void
 
     // Perfil
     Router::add('GET',  'perfil',      'Admin\ProfileController@index', ['auth']);
-    Router::add('POST', 'api/profile', 'Api\ProfileController@update',  ['auth', 'csrf']);
+    Router::add('POST', 'api/profile', 'Api\ProfileApiController@update', ['auth', 'csrf']);
 }
 
 

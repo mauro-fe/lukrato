@@ -1,246 +1,292 @@
 <style>
-    /* ====== Layout base (escopado) ====== */
-    .lk-page {
-        /* container */
+/* Design Tokens */
+:root {
+    --laranja: #e67e22;
+    --azul: #2c3e50;
+    --verde: #2ecc71;
+    --cinza: #bdc3c7;
+    --amarelo: #f39c12;
+    --fundo: #092741;
+    --claro: #f8f9fa;
+    --branco: #ffffff;
+    --vermelho: #e74c3c;
+
+    /* Typography */
+    --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+
+    /* Spacing */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-5: 1.25rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+    --spacing-12: 3rem;
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+    /* Layout */
+    --sidebar-width: 280px;
+    --header-height: 80px;
+    --container-padding: var(--spacing-6);
+
+    /* Glass Effect */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-backdrop: blur(10px);
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* ====== Layout base (escopado) ====== */
+.container {
+    padding: 0;
+}
+
+/* Cabeçalho */
+.lk-h {
+    margin-bottom: 20px;
+}
+
+.lk-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.lk-t {
+    font-size: 28px;
+    color: #e67e22;
+    margin-left: 20px;
+    font-weight: 700;
+}
+
+.lk-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 0;
+    padding: 0 24px;
+}
+
+/* ====== Abas (segmented) ====== */
+.lk-seg {
+    border: 2px solid var(--glass-bg);
+    padding: 6px;
+    border-radius: 999px;
+    display: flex;
+    gap: 6px;
+    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+    height: 44px;
+}
+
+.lk-seg button {
+    border: 0;
+    background: transparent;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+    height: 32px;
+}
+
+.lk-seg button.active {
+    color: #e67e22;
+}
+
+/* ====== Dropdown base ====== */
+.lk-sel {
+    position: relative;
+}
+
+.lk-sel span {
+    color: #e67e22;
+}
+
+.lk-sel>button {
+    border: 2px solid var(--glass-bg);
+
+    height: 44px;
+    border-radius: 999px;
+    padding: 0 16px;
+    display: flex;
+    background-color: transparent;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+    cursor: pointer;
+}
+
+.lk-menu {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    border: 2px solid var(--glass-bg);
+
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+    min-width: 260px;
+    padding: 8px 0;
+    display: none;
+    z-index: 10;
+}
+
+.lk-menu.open {
+    display: block;
+}
+
+.lk-menu>button {
+    width: 90%;
+    text-align: center;
+    margin: auto;
+    border: 0;
+    border-radius: 20px;
+    padding: 10px 14px;
+    cursor: pointer;
+    background: var(--glass-bg);
+    color: var(--claro);
+    margin-top: 5px;
+}
+
+.lk-menu>button:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ====== Seletor de período ====== */
+.lk-period {
+    margin-top: 20px;
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--glass-bg);
+    border-radius: 999px;
+    padding: 6px 8px;
+    height: 44px;
+    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+}
+
+.lk-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    color: #e67e22;
+}
+
+.lk-arrow {
+    border: 0;
+    padding: 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--claro);
+}
+
+/* ====== Cards/gráficos ====== */
+.lk-card {
+    border: 2px solid var(--glass-bg);
+    background: var(--glass-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+    padding: 18px;
+    overflow: hidden;
+    margin: 0 24px;
+}
+
+.lk-card+.lk-card {
+    margin-top: 16px;
+}
+
+.lk-chart {
+    padding: 20px 24px;
+}
+
+.lk-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 80px 28px;
+    text-align: center;
+}
+
+.lk-empty h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 8px 0 0;
+}
+
+.lk-empty p {
+    font-size: 14px;
+    margin: 0;
+}
+
+.lk-empty img {
+    width: 180px;
+    max-width: 50vw;
+    opacity: .9;
+}
+
+.lk-loading {
+    padding: 40px;
+    text-align: center;
+}
+
+/* ====== Responsivo ====== */
+@media (max-width:720px) {
+    .lk-controls {
+        padding: 0 16px;
     }
 
-    .lk-wrap {
-        max-width: 1140px;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 0 0 32px;
-        box-sizing: border-box;
-    }
-
-    /* Cabeçalho */
-    .lk-h {
-        margin-bottom: 16px;
+    .lk-card {
+        margin: 0 16px;
     }
 
     .lk-titlebar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-
-    .lk-t {
-        font-size: 28px;
-        color: #e67e22;
-        margin-left: 20px;
-        font-weight: 700;
-    }
-
-    .lk-controls {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 0;
-        padding: 0 24px;
-    }
-
-    /* ====== Abas (segmented) ====== */
-    .lk-seg {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        padding: 6px;
-        border-radius: 999px;
-        display: flex;
-        gap: 6px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-        height: 44px;
-    }
-
-    .lk-seg button {
-        border: 0;
-        background: transparent;
-        padding: 10px 14px;
-        border-radius: 999px;
-        font-weight: 600;
-        color: #6b7280;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        line-height: 1;
-        height: 32px;
-    }
-
-    .lk-seg button.active {
-        background: #eef2ff;
-        color: #e67e22;
-    }
-
-    /* ====== Dropdown base ====== */
-    .lk-sel {
-        position: relative;
-    }
-
-    .lk-sel span {
-        color: #e67e22;
-    }
-
-    .lk-sel>button {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        height: 44px;
-        border-radius: 999px;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 600;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-        cursor: pointer;
-    }
-
-    .lk-menu {
-        position: absolute;
-        top: 52px;
-        left: 0;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-        min-width: 260px;
-        padding: 8px 0;
-        display: none;
-        z-index: 10;
-    }
-
-    .lk-menu.open {
-        display: block;
-    }
-
-    .lk-menu>button {
-        width: 100%;
-        text-align: left;
-        background: transparent;
-        border: 0;
-        padding: 10px 14px;
-        cursor: pointer;
-    }
-
-    .lk-menu>button:hover {
-        background: #f8fafc;
-    }
-
-    /* ====== Seletor de período ====== */
-    .lk-period {
-        margin-top: 20px;
-        margin-right: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 999px;
-        padding: 6px 8px;
-        height: 44px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    }
-
-    .lk-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #eef2ff;
-        padding: 8px 14px;
-        border-radius: 999px;
-        font-weight: 700;
-        color: #e67e22;
-    }
-
-    .lk-arrow {
-        border: 0;
-        background: transparent;
-        padding: 8px;
-        border-radius: 999px;
-        cursor: pointer;
-    }
-
-    .lk-arrow:hover {
-        background: #f3f4f6;
-    }
-
-    /* ====== Cards/gráficos ====== */
-    .lk-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-        padding: 18px;
-        overflow: hidden;
-        margin: 0 24px;
-    }
-
-    .lk-card+.lk-card {
-        margin-top: 16px;
-    }
-
-    .lk-chart {
-        padding: 20px 24px;
-    }
-
-    .lk-empty {
-        display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        padding: 80px 28px;
-        text-align: center;
-        color: #6b7280;
+        align-items: flex-start;
+        gap: 8px;
     }
 
-    .lk-empty h3 {
-        font-size: 18px;
-        font-weight: 700;
-        color: #374151;
-        margin: 8px 0 0;
+    .lk-period,
+    .lk-sel>button,
+    .lk-seg {
+        width: 100%;
     }
-
-    .lk-empty p {
-        font-size: 14px;
-        color: #6b7280;
-        margin: 0;
-    }
-
-    .lk-empty img {
-        width: 180px;
-        max-width: 50vw;
-        opacity: .9;
-    }
-
-    .lk-loading {
-        padding: 40px;
-        text-align: center;
-        color: #6b7280;
-    }
-
-    /* ====== Responsivo ====== */
-    @media (max-width:720px) {
-        .lk-controls {
-            padding: 0 16px;
-        }
-
-        .lk-card {
-            margin: 0 16px;
-        }
-
-        .lk-titlebar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .lk-period,
-        .lk-sel>button,
-        .lk-seg {
-            width: 100%;
-        }
-    }
+}
 </style>
 
 <div class="lk-wrap container pt-4">
@@ -261,7 +307,7 @@
         </div>
 
         <!-- Controles: Abas + Tipo (pizza) + Conta -->
-        <div class="lk-controls" role="tablist" aria-label="Tipos de relatório">
+        <div class="lk-controls pt-4" role="tablist" aria-label="Tipos de relatório">
             <div class="lk-seg" id="tabs">
                 <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por
                     categoria</button>
@@ -303,453 +349,438 @@
 </div>
 
 <script>
-    (function() {
-        // Carrega Chart.js se necessário
-        function ensureChart() {
-            return new Promise((resolve, reject) => {
-                if (window.Chart) return resolve();
-                const s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
-                s.onload = () => resolve();
-                s.onerror = () => reject(new Error('Falha ao carregar Chart.js'));
-                document.head.appendChild(s);
-            });
-        }
+(function() {
+    // Carrega Chart.js se necessário
+    function ensureChart() {
+        return new Promise((resolve, reject) => {
+            if (window.Chart) return resolve();
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('Falha ao carregar Chart.js'));
+            document.head.appendChild(s);
+        });
+    }
 
-        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro',
-            'outubro', 'novembro', 'dezembro'
-        ];
-        const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-        const fmt = v => new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(v || 0);
+    const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro',
+        'outubro', 'novembro', 'dezembro'
+    ];
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    const fmt = v => new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(v || 0);
 
-        const st = {
-            view: 'pizza',
-            type: 'despesas_por_categoria',
-            d: new Date(),
-            chart: null,
-            accounts: [],
-            accountId: null // null => todas
-        };
+    const st = {
+        view: 'pizza',
+        type: 'despesas_por_categoria',
+        d: new Date(),
+        chart: null,
+        accounts: [],
+        accountId: null // null => todas
+    };
 
-        const $ = sel => document.querySelector(sel);
-        const monthEl = $('#month');
-        const base = '<?= BASE_URL ?>';
+    const $ = sel => document.querySelector(sel);
+    const monthEl = $('#month');
+    const base = '<?= BASE_URL ?>';
 
-        function label(d) {
-            return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
-        }
+    function label(d) {
+        return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
+    }
 
-        function sync() {
-            monthEl.textContent = label(st.d);
-        }
+    function sync() {
+        monthEl.textContent = label(st.d);
+    }
+    sync();
+
+    // Navegação de meses
+    $('#prev').addEventListener('click', () => {
+        st.d.setMonth(st.d.getMonth() - 1);
         sync();
+        load();
+    });
+    $('#next').addEventListener('click', () => {
+        st.d.setMonth(st.d.getMonth() + 1);
+        sync();
+        load();
+    });
 
-        // Navegação de meses
-        $('#prev').addEventListener('click', () => {
-            st.d.setMonth(st.d.getMonth() - 1);
-            sync();
-            load();
-        });
-        $('#next').addEventListener('click', () => {
-            st.d.setMonth(st.d.getMonth() + 1);
-            sync();
-            load();
-        });
-
-        // Seletor de tipo (pizza)
-        const selType = $('#typeSelect');
-        const typeBtn = $('#typeBtn');
-        const typeMenu = selType.querySelector('.lk-menu');
-        typeBtn.addEventListener('click', () => {
-            typeMenu.classList.toggle('open');
-            typeBtn.setAttribute('aria-expanded', typeMenu.classList.contains('open'));
-        });
-        document.addEventListener('click', (e) => {
-            if (!selType.contains(e.target)) {
-                typeMenu.classList.remove('open');
-                typeBtn.setAttribute('aria-expanded', 'false');
-            }
-        });
-        typeMenu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-            st.type = b.dataset.type;
-            typeBtn.querySelector('.lb').textContent = b.textContent;
+    // Seletor de tipo (pizza)
+    const selType = $('#typeSelect');
+    const typeBtn = $('#typeBtn');
+    const typeMenu = selType.querySelector('.lk-menu');
+    typeBtn.addEventListener('click', () => {
+        typeMenu.classList.toggle('open');
+        typeBtn.setAttribute('aria-expanded', typeMenu.classList.contains('open'));
+    });
+    document.addEventListener('click', (e) => {
+        if (!selType.contains(e.target)) {
             typeMenu.classList.remove('open');
             typeBtn.setAttribute('aria-expanded', 'false');
-            if (st.view === 'pizza') load();
-        }));
+        }
+    });
+    typeMenu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        st.type = b.dataset.type;
+        typeBtn.querySelector('.lb').textContent = b.textContent;
+        typeMenu.classList.remove('open');
+        typeBtn.setAttribute('aria-expanded', 'false');
+        if (st.view === 'pizza') load();
+    }));
 
-        // Abas
-        document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
-            document.querySelectorAll('#tabs button').forEach(x => {
-                x.classList.remove('active');
-                x.setAttribute('aria-pressed', 'false');
-            });
-            b.classList.add('active');
-            b.setAttribute('aria-pressed', 'true');
-            st.view = b.dataset.view;
-
-            // mostra/oculta seletores
-            selType.style.display = (st.view === 'pizza') ? '' : 'none';
-            accountSelectWrap.style.display = (['pizza', 'linha', 'barras', 'evolucao'].includes(st.view)) ?
-                '' : ''; // sempre útil
-            load();
-        }));
-        selType.style.display = (st.view === 'pizza') ? '' : 'none';
-
-        // ====== Seletor de Conta ======
-        const accountSelectWrap = $('#accountSelect');
-        const accountBtn = $('#accountBtn');
-        const accountMenu = accountSelectWrap.querySelector('.lk-menu');
-
-        accountBtn.addEventListener('click', () => {
-            accountMenu.classList.toggle('open');
-            accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
+    // Abas
+    document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('#tabs button').forEach(x => {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
         });
-        document.addEventListener('click', (e) => {
-            if (!accountSelectWrap.contains(e.target)) {
+        b.classList.add('active');
+        b.setAttribute('aria-pressed', 'true');
+        st.view = b.dataset.view;
+
+        // mostra/oculta seletores
+        selType.style.display = (st.view === 'pizza') ? '' : 'none';
+        accountSelectWrap.style.display = (['pizza', 'linha', 'barras', 'evolucao'].includes(st.view)) ?
+            '' : ''; // sempre útil
+        load();
+    }));
+    selType.style.display = (st.view === 'pizza') ? '' : 'none';
+
+    // ====== Seletor de Conta ======
+    const accountSelectWrap = $('#accountSelect');
+    const accountBtn = $('#accountBtn');
+    const accountMenu = accountSelectWrap.querySelector('.lk-menu');
+
+    accountBtn.addEventListener('click', () => {
+        accountMenu.classList.toggle('open');
+        accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
+    });
+    document.addEventListener('click', (e) => {
+        if (!accountSelectWrap.contains(e.target)) {
+            accountMenu.classList.remove('open');
+            accountBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    async function loadAccounts() {
+        try {
+            const r = await fetch(`${base}api/accounts`, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!r.ok) throw new Error('Falha ao carregar contas');
+            const json = await r.json();
+
+            // Esperado: array de contas com {id, nome/apelido/instituicao}
+            st.accounts = (json.items || json || []).map(a => ({
+                id: Number(a.id),
+                nome: a.nome || a.apelido || a.instituicao || `Conta #${a.id}`
+            }));
+
+            // Monta menu
+            accountMenu.innerHTML = '';
+            const btnAll = document.createElement('button');
+            btnAll.textContent = 'Todas as contas';
+            btnAll.dataset.id = '';
+            btnAll.addEventListener('click', () => {
+                st.accountId = null;
+                accountBtn.querySelector('.lb').textContent = 'Todas as contas';
                 accountMenu.classList.remove('open');
                 accountBtn.setAttribute('aria-expanded', 'false');
-            }
-        });
+                load();
+            });
+            accountMenu.appendChild(btnAll);
 
-        async function loadAccounts() {
-            try {
-                const r = await fetch(`${base}api/accounts`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                if (!r.ok) throw new Error('Falha ao carregar contas');
-                const json = await r.json();
-
-                // Esperado: array de contas com {id, nome/apelido/instituicao}
-                st.accounts = (json.items || json || []).map(a => ({
-                    id: Number(a.id),
-                    nome: a.nome || a.apelido || a.instituicao || `Conta #${a.id}`
-                }));
-
-                // Monta menu
-                accountMenu.innerHTML = '';
-                const btnAll = document.createElement('button');
-                btnAll.textContent = 'Todas as contas';
-                btnAll.dataset.id = '';
-                btnAll.addEventListener('click', () => {
-                    st.accountId = null;
-                    accountBtn.querySelector('.lb').textContent = 'Todas as contas';
+            st.accounts.forEach(acc => {
+                const b = document.createElement('button');
+                b.textContent = acc.nome;
+                b.dataset.id = acc.id;
+                b.addEventListener('click', () => {
+                    st.accountId = acc.id;
+                    accountBtn.querySelector('.lb').textContent = acc.nome;
                     accountMenu.classList.remove('open');
                     accountBtn.setAttribute('aria-expanded', 'false');
                     load();
                 });
-                accountMenu.appendChild(btnAll);
-
-                st.accounts.forEach(acc => {
-                    const b = document.createElement('button');
-                    b.textContent = acc.nome;
-                    b.dataset.id = acc.id;
-                    b.addEventListener('click', () => {
-                        st.accountId = acc.id;
-                        accountBtn.querySelector('.lb').textContent = acc.nome;
-                        accountMenu.classList.remove('open');
-                        accountBtn.setAttribute('aria-expanded', 'false');
-                        load();
-                    });
-                    accountMenu.appendChild(b);
-                });
-
-                accountSelectWrap.style.display = '';
-            } catch (e) {
-                console.warn('Contas: não foi possível carregar.', e);
-                accountSelectWrap.style.display = 'none';
-            }
-        }
-
-        // ---- APIs ----
-        async function fetchData() {
-            const y = st.d.getFullYear();
-            const m = String(st.d.getMonth() + 1).padStart(2, '0');
-
-            const type =
-                st.view === 'linha' ? 'saldo_mensal' :
-                st.view === 'barras' ? 'receitas_despesas_diario' :
-                st.view === 'evolucao' ? 'evolucao_12m' :
-                st.view === 'contas' ? 'receitas_despesas_por_conta' :
-                st.type; // pizza
-
-            const params = new URLSearchParams({
-                type,
-                year: String(y),
-                month: String(m)
+                accountMenu.appendChild(b);
             });
-            if (st.accountId) params.set('account_id', String(st.accountId));
 
-            const url = `${base}api/reports?${params.toString()}`;
-            try {
-                const r = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include'
-                });
-                if (!r.ok) return {
-                    labels: [],
-                    values: []
-                };
-                return await r.json();
-            } catch (e) {
-                console.error(e);
-                return {
-                    labels: [],
-                    values: []
-                };
-            }
+            accountSelectWrap.style.display = '';
+        } catch (e) {
+            console.warn('Contas: não foi possível carregar.', e);
+            accountSelectWrap.style.display = 'none';
         }
+    }
 
-        // UI helpers
-        function setArea(html) {
-            $('#area').innerHTML = html;
+    // ---- APIs ----
+    async function fetchData() {
+        const y = st.d.getFullYear();
+        const m = String(st.d.getMonth() + 1).padStart(2, '0');
+
+        const type =
+            st.view === 'linha' ? 'saldo_mensal' :
+            st.view === 'barras' ? 'receitas_despesas_diario' :
+            st.view === 'evolucao' ? 'evolucao_12m' :
+            st.view === 'contas' ? 'receitas_despesas_por_conta' :
+            st.type; // pizza
+
+        const params = new URLSearchParams({
+            type,
+            year: String(y),
+            month: String(m)
+        });
+        if (st.accountId) params.set('account_id', String(st.accountId));
+
+        const url = `${base}api/reports?${params.toString()}`;
+        try {
+            const r = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                },
+                credentials: 'include'
+            });
+            if (!r.ok) return {
+                labels: [],
+                values: []
+            };
+            return await r.json();
+        } catch (e) {
+            console.error(e);
+            return {
+                labels: [],
+                values: []
+            };
         }
+    }
 
-        function loading() {
-            setArea('<div class="lk-loading">Carregando…</div>');
-        }
+    // UI helpers
+    function setArea(html) {
+        $('#area').innerHTML = html;
+    }
 
-        function empty() {
-            setArea(`
+    function loading() {
+        setArea('<div class="lk-loading">Carregando…</div>');
+    }
+
+    function empty() {
+        setArea(`
             <div class="lk-empty">
                 <img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">
                 <h3>Nenhum dado encontrado</h3>
                 <p>Altere o período, o tipo ou a conta.</p>
             </div>
         `);
-        }
+    }
 
-        function destroyChart() {
-            if (st.chart) {
-                st.chart.destroy();
-                st.chart = null;
+    function destroyChart() {
+        if (st.chart) {
+            st.chart.destroy();
+            st.chart = null;
+        }
+    }
+
+    // Desenhos
+    function drawPie(d) {
+        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+        destroyChart();
+        const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
+        const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
+            'Despesas por categorias';
+        st.chart = new Chart($('#c'), {
+            type: 'doughnut',
+            data: {
+                labels: d.labels || [],
+                datasets: [{
+                    label: titulo,
+                    data: d.values || []
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: `${titulo} • Total ${fmt(ttl)}`
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => `${c.label}: ${fmt(c.parsed)}`
+                        }
+                    }
+                },
+                maintainAspectRatio: false
             }
-        }
+        });
+    }
 
-        // Desenhos
-        function drawPie(d) {
-            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-            destroyChart();
-            const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
-            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
-                'Despesas por categorias';
-            st.chart = new Chart($('#c'), {
-                type: 'doughnut',
-                data: {
-                    labels: d.labels || [],
-                    datasets: [{
-                        label: titulo,
-                        data: d.values || []
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        title: {
-                            display: true,
-                            text: `${titulo} • Total ${fmt(ttl)}`
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => `${c.label}: ${fmt(c.parsed)}`
-                            }
+    function drawLine(d) {
+        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+        destroyChart();
+        st.chart = new Chart($('#c'), {
+            type: 'line',
+            data: {
+                labels: d.labels || [],
+                datasets: [{
+                    label: 'Saldo diário (receitas - despesas)',
+                    data: (d.values || []).map(Number),
+                    tension: .3,
+                    fill: false
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => fmt(c.parsed.y)
                         }
                     },
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        function drawLine(d) {
-            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-            destroyChart();
-            st.chart = new Chart($('#c'), {
-                type: 'line',
-                data: {
-                    labels: d.labels || [],
-                    datasets: [{
-                        label: 'Saldo diário (receitas - despesas)',
-                        data: (d.values || []).map(Number),
-                        tension: .3,
-                        fill: false
-                    }]
+                    title: {
+                        display: true,
+                        text: 'Saldo do mês (diário)'
+                    }
                 },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => fmt(c.parsed.y)
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Saldo do mês (diário)'
-                        }
-                    },
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            ticks: {
-                                callback: (v) => fmt(v)
-                            }
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (v) => fmt(v)
                         }
                     }
                 }
-            });
-        }
-
-        function drawBars(d) {
-            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-            destroyChart();
-
-            const datasets = [{
-                    label: 'Receitas',
-                    data: (d.receitas || []).map(Number)
-                },
-                {
-                    label: 'Despesas',
-                    data: (d.despesas || []).map(Number)
-                }
-            ];
-
-            if (Array.isArray(d.saldosMes)) {
-                datasets.push({
-                    label: 'Saldo do mês',
-                    data: d.saldosMes.map(Number)
-                });
             }
+        });
+    }
 
-            st.chart = new Chart($('#c'), {
-                type: 'bar',
-                data: {
-                    labels: d.labels || [],
-                    datasets
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => fmt(c.parsed.y)
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Receitas x Despesas' + (Array.isArray(d.saldosMes) ? ' x Saldo do mês' : '')
-                        }
+    function drawBars(d) {
+        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+        destroyChart();
+        st.chart = new Chart($('#c'), {
+            type: 'bar',
+            data: {
+                labels: d.labels || [],
+                datasets: [{
+                        label: 'Receitas',
+                        data: (d.receitas || []).map(Number)
                     },
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            ticks: {
-                                callback: (v) => fmt(v)
-                            }
+                    {
+                        label: 'Despesas',
+                        data: (d.despesas || []).map(Number)
+                    }
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => fmt(c.parsed.y)
+                        }
+                    }
+                },
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (v) => fmt(v)
                         }
                     }
                 }
-            });
-        }
+            }
+        });
+    }
 
-
-        function drawLine12m(d) {
-            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-            destroyChart();
-            st.chart = new Chart($('#c'), {
-                type: 'line',
-                data: {
-                    labels: d.labels || [],
-                    datasets: [{
-                        label: 'Saldo mensal',
-                        data: (d.values || []).map(Number),
-                        tension: .3
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => fmt(c.parsed.y)
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Evolução dos últimos 12 meses'
+    function drawLine12m(d) {
+        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+        destroyChart();
+        st.chart = new Chart($('#c'), {
+            type: 'line',
+            data: {
+                labels: d.labels || [],
+                datasets: [{
+                    label: 'Saldo mensal',
+                    data: (d.values || []).map(Number),
+                    tension: .3
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => fmt(c.parsed.y)
                         }
                     },
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            ticks: {
-                                callback: (v) => fmt(v)
-                            }
+                    title: {
+                        display: true,
+                        text: 'Evolução dos últimos 12 meses'
+                    }
+                },
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (v) => fmt(v)
                         }
                     }
                 }
-            });
-        }
+            }
+        });
+    }
 
-        // Loader principal
-        async function load() {
-            loading();
-            try {
-                await ensureChart();
-                if (!st.accounts.length) {
-                    await loadAccounts();
-                } // carrega uma vez
-                const d = await fetchData();
-                if (!d || (!d.labels || !d.labels.length)) {
-                    empty();
-                    return;
-                }
-                if (st.view === 'pizza') drawPie(d);
-                else if (st.view === 'linha') drawLine(d);
-                else if (st.view === 'barras') drawBars(d);
-                else if (st.view === 'contas') drawBars(d); // usa mesma função (receitas/despesas por conta)
-                else if (st.view === 'evolucao') drawLine12m(d);
-            } catch (e) {
-                console.error(e);
+    // Loader principal
+    async function load() {
+        loading();
+        try {
+            await ensureChart();
+            if (!st.accounts.length) {
+                await loadAccounts();
+            } // carrega uma vez
+            const d = await fetchData();
+            if (!d || (!d.labels || !d.labels.length)) {
                 empty();
+                return;
             }
+            if (st.view === 'pizza') drawPie(d);
+            else if (st.view === 'linha') drawLine(d);
+            else if (st.view === 'barras') drawBars(d);
+            else if (st.view === 'contas') drawBars(d); // usa mesma função (receitas/despesas por conta)
+            else if (st.view === 'evolucao') drawLine12m(d);
+        } catch (e) {
+            console.error(e);
+            empty();
         }
+    }
 
+    load();
+
+    // Helpers globais
+    window.refreshReports = function() {
         load();
-
-        // Helpers globais
-        window.refreshReports = function() {
-            load();
-        };
-        window.setReportsMonth = function(ym) {
-            if (!/^\d{4}-\d{2}$/.test(ym)) return;
-            const [y, m] = ym.split('-').map(Number);
-            st.d = new Date(y, m - 1, 1);
-            sync();
-            load();
-        };
-        window.setReportsView = function(view) {
-            const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
-            if (btn) btn.click();
-        };
-        window.setReportsType = function(type) {
-            const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
-            if (b) b.click();
-        };
-    })();
+    };
+    window.setReportsMonth = function(ym) {
+        if (!/^\d{4}-\d{2}$/.test(ym)) return;
+        const [y, m] = ym.split('-').map(Number);
+        st.d = new Date(y, m - 1, 1);
+        sync();
+        load();
+    };
+    window.setReportsView = function(view) {
+        const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
+        if (btn) btn.click();
+    };
+    window.setReportsType = function(type) {
+        const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
+        if (b) b.click();
+    };
+})();
 </script>

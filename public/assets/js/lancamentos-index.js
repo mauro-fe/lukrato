@@ -1,15 +1,16 @@
-/* Página: Lançamentos (robusto contra 404 e variações de rota) */
+/* Página: Lançamentos (mês auto via header, botão filtra tipo no cliente) */
 (() => {
     const rawBase = (window.BASE_URL || '/').replace(/\/?$/, '/');
-
-    // duas bases possíveis
     const BASES = [`${rawBase}api/`, `${rawBase}index.php/api/`];
 
     const $ = (s) => document.querySelector(s);
     const tbody = $('#tbodyLancamentos');
-    const form = $('#formFiltros');
-    const fMes = $('#filtroMes');
-    const fTipo = $('#filtroTipo');
+    const selectTipo = $('#filtroTipo');
+    const btnFiltrar = $('#btnFiltrar');
+
+    // cache simples por mês para não refazer fetch desnecessário
+    const monthCache = new Map();
+    let isLoading = false;
 
     const fmt = {
         money: (n) =>
@@ -22,10 +23,21 @@
         },
     };
 
-    const getMonth = () =>
-        window.LukratoHeader?.getMonth?.() ||
-        fMes?.value ||
-        new Date().toISOString().slice(0, 7);
+    /** Resolve o mês atual (YYYY-MM) a partir do header/component/evento */
+    const getMonth = () => {
+        // 1) Componente do header (se expuser getMonth)
+        if (window.LukratoHeader?.getMonth) {
+            const m = window.LukratoHeader.getMonth();
+            if (m) return m;
+        }
+        // 2) Texto “currentMonthText” pode ter data em data-* (se você configurou)
+        const el = document.getElementById('currentMonthText');
+        const dataMonth = el?.getAttribute?.('data-month');
+        if (dataMonth) return dataMonth;
+
+        // 3) Fallback: mês atual
+        return new Date().toISOString().slice(0, 7);
+    };
 
     const setEmpty = (msg) => {
         if (!tbody) return;
@@ -40,27 +52,32 @@
         return [];
     };
 
+    const normalizeTipo = (v) => {
+        if (!v) return '';
+        const s = String(v).toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (/(receita|entrada|credit)/.test(s)) return 'receita';
+        if (/(despesa|saida|debit)/.test(s)) return 'despesa';
+        return '';
+    };
+
+    /** Busca por mês no backend (sem tipo) e retorna lista bruta */
     async function tryFetch(pathWithQuery) {
-        // tenta nas duas bases
         for (const base of BASES) {
             try {
                 const r = await fetch(base + pathWithQuery, { credentials: 'include' });
-                if (r.ok) return await r.json();
-                // se não for 404, não adianta tentar outras rotas nesse base
-                if (r.status !== 404) continue;
-            } catch (_) {
-                // ignora e tenta a próxima base
-            }
+                if (r.ok) return await r.json();     // 2xx
+                if (r.status === 404) continue;      // tenta próxima base
+                // outros códigos: para de tentar nesta base e passa para próxima
+            } catch (_) { /* ignora e tenta próxima base */ }
         }
         return null;
     }
 
-    async function fetchList() {
-        const month = getMonth();
-        const tipo = fTipo?.value || '';
-        const q = `month=${encodeURIComponent(month)}&tipo=${encodeURIComponent(tipo)}&limit=200`;
+    async function fetchListByMonth(month) {
+        if (monthCache.has(month)) return monthCache.get(month);
 
-        // ordem de tentativas (mais provável primeiro)
+        const q = `month=${encodeURIComponent(month)}&limit=500`;
         const candidates = [
             `dashboard/transactions?${q}`,
             `transactions?${q}`,
@@ -70,47 +87,111 @@
         for (const c of candidates) {
             const json = await tryFetch(c);
             const list = normalizeList(json);
-            if (list.length) return list;
-            // mesmo que venha vazio, tenta a próxima rota
+            if (list.length) {
+                monthCache.set(month, list);
+                return list;
+            }
         }
-        // última tentativa: pode ter rota que responde 200 mas sem items
+        // mesmo vazio, cacheia (evita requisições repetidas)
+        monthCache.set(month, []);
         return [];
     }
 
-    async function render() {
-        if (!tbody) return;
-        setEmpty('Carregando…');
+    /** Aplica filtro de tipo no cliente */
+    function applyTipoFilter(list, tipoSelecionado) {
+        if (!tipoSelecionado) return list;
+        const alvo = normalizeTipo(tipoSelecionado);
+        if (!alvo) return list;
 
-        try {
-            const list = await fetchList();
-            if (!list.length) {
-                setEmpty('Sem lançamentos para o período');
-                return;
+        return list.filter((t) => {
+            const candidatos = [
+                t.tipo,
+                t.tipo_transacao,
+                t.kind,
+                t.category_type,
+                t.categoria?.tipo,
+                t.categoria_tipo
+            ];
+            for (const c of candidatos) {
+                const n = normalizeTipo(c);
+                if (n) return n === alvo;
             }
+            // fallback: sinal do valor
+            const v = Number(t.valor);
+            if (!Number.isNaN(v)) {
+                return (alvo === 'receita' && v >= 0) || (alvo === 'despesa' && v < 0);
+            }
+            return true;
+        });
+    }
 
-            tbody.innerHTML = list.map(t => `
-    <tr>
-        <td>${fmt.date(t.data)}</td>
-        <td>${t.tipo || '—'}</td>
-        <td>${t.categoria_nome || t.categoria?.nome || t.categoria || '—'}</td>
-        <td>${t.conta?.nome || '—'}</td>
-        <td>${t.descricao || t.observacao || '—'}</td>
-        <td class="text-right">${fmt.money(t.valor)}</td>
-    </tr>
-    `).join('');
-        } catch (e) {
-            console.error(e);
-            setEmpty('Erro ao carregar lançamentos');
+    async function getDataForRender() {
+        const month = getMonth();
+        const lista = await fetchListByMonth(month);
+        return { month, lista };
+    }
+
+    function setLoading(on) {
+        isLoading = on;
+        if (btnFiltrar) {
+            btnFiltrar.disabled = on;
+            btnFiltrar.classList.toggle('is-loading', on);
+            btnFiltrar.innerHTML = on
+                ? `<i class="fas fa-circle-notch fa-spin"></i> Filtrando…`
+                : `<i class="fas fa-filter"></i> Filtrar`;
         }
     }
 
-    async function onExport(month) {
-        const list = await fetchList();
-        const rows = list.map(t => [
+    async function render({ byButton = false } = {}) {
+        if (!tbody || isLoading) return;
+        setEmpty('Carregando…');
+        setLoading(true);
+
+        try {
+            const { month, lista } = await getDataForRender();
+            const tipoSelecionado = byButton ? (selectTipo?.value || '') : '';
+            const final = applyTipoFilter(lista, tipoSelecionado);
+
+            if (!final.length) {
+                setEmpty('Sem lançamentos para o período');
+            } else {
+                tbody.innerHTML = final.map(t => `
+          <tr>
+            <td>${fmt.date(t.data)}</td>
+            <td>${normalizeTipo(t.tipo) || t.tipo || '—'}</td>
+            <td>${t.categoria_nome || t.categoria?.nome || t.categoria || '—'}</td>
+            <td>${t.conta?.nome || '—'}</td>
+            <td>${t.descricao || t.observacao || '—'}</td>
+            <td class="text-right">${fmt.money(t.valor)}</td>
+          </tr>
+        `).join('');
+            }
+
+            // dispara evento útil para quem quiser escutar após render
+            document.dispatchEvent(new CustomEvent('lukrato:lancamentos-rendered', {
+                detail: { month, total: final.length }
+            }));
+        } catch (e) {
+            console.error(e);
+            setEmpty('Erro ao carregar lançamentos');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function onExport(monthOverride) {
+        const month = monthOverride || getMonth();
+        // usa cache/fetch
+        const lista = await fetchListByMonth(month);
+        // respeita tipo selecionado (independe de ter clicado antes)
+        const tipoSelecionado = selectTipo?.value || '';
+        const final = applyTipoFilter(lista, tipoSelecionado);
+
+        const rows = final.map(t => [
             fmt.date(t.data),
-            t.tipo || '',
-            t.categoria_nome || t.categoria?.nome || t.categoria || '',
-            t.conta?.nome || '',
+            (normalizeTipo(t.tipo) || t.tipo || ''),
+            (t.categoria_nome || t.categoria?.nome || t.categoria || ''),
+            (t.conta?.nome || ''),
             String(t.descricao || t.observacao || '').replace(/[\r\n;]+/g, ' '),
             (Number(t.valor) || 0).toFixed(2).replace('.', ',')
         ].join(';'));
@@ -124,14 +205,33 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // 1) Render inicial (sem tipo)
         render();
 
-        form?.addEventListener('submit', (e) => { e.preventDefault(); render(); });
-        fMes?.addEventListener('change', render);
-        fTipo?.addEventListener('change', render);
+        // 2) Botão aplica APENAS o tipo
+        btnFiltrar?.addEventListener('click', () => render({ byButton: true }));
 
-        document.addEventListener('lukrato:month-changed', render);
+        // 3) Eventos globais do header:
+        //    - quando o mês muda via setas/dropdown, o header deve emitir este evento
+        document.addEventListener('lukrato:month-changed', (e) => {
+            // se o header enviar detail.month, atualiza um data-attr (ajuda o getMonth)
+            const m = e?.detail?.month;
+            const el = document.getElementById('currentMonthText');
+            if (m && el) el.setAttribute('data-month', m);
+            // limpe cache se quiser sempre refazer busca para novos meses
+            // monthCache.delete(m); // opcional
+            render(); // mês auto, sem tipo
+        });
+
+        // exportar
         document.addEventListener('lukrato:export-click', (e) => onExport(e.detail?.month));
-        document.addEventListener('lukrato:data-changed', render);
+
+        // data-changed (ex.: criou/alterou/apagou lançamento)
+        document.addEventListener('lukrato:data-changed', () => {
+            // invalida cache do mês atual para refletir alterações
+            const m = getMonth();
+            monthCache.delete(m);
+            render();
+        });
     });
 })();
