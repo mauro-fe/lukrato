@@ -53,8 +53,6 @@ h3 {
   }
 }
 
-
-
 /* =========================================================
  * Sidebar
  * =======================================================*/
@@ -85,7 +83,6 @@ h3 {
   flex: 1;
   padding: var(--spacing-4) 0;
 }
-
 
 /* Barra superior do aside */
 .sidebar-header {
@@ -145,8 +142,6 @@ h3 {
   outline: 2px solid var(--laranja);
   outline-offset: 2px;
 }
-
-
 
 .nav-item {
   display: flex;
@@ -225,7 +220,7 @@ h3 {
   gap: var(--spacing-2);
 }
 
-.month-nav-btn {
+/* .month-nav-btn {
   background: none;
   border: 1px solid var(--glass-border);
   color: var(--color-text-muted);
@@ -252,10 +247,10 @@ h3 {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-}
+} */
 
 /* Dropdown de mês */
-.month-dropdown {
+/* .month-dropdown {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
@@ -287,7 +282,7 @@ h3 {
 .month-dropdown button:hover {
   background-color: var(--glass-bg);
   transform: translateX(-5px);
-}
+} */
 
 /* =========================================================
  * Main Content
@@ -467,7 +462,7 @@ h3 {
   display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
   background-color: var(--color-success);
   border-color: var(--color-success);
 }
@@ -532,7 +527,7 @@ h3 {
 
 .calendar-day.muted {
   color: var(--color-text-muted);
-  opacity: .6;
+  opacity: 0.6;
 }
 
 .calendar-day.today {
@@ -559,7 +554,11 @@ h3 {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-warning)
+  );
   border: none;
   color: var(--color-surface);
   font-size: 20px;
@@ -667,9 +666,8 @@ h3 {
   position: relative;
   transition: background var(--transition-fast);
   color: var(--color-text);
-  margin-left:25px ;
+  margin-left: 25px;
   margin-top: 20px;
-
 }
 
 .theme-toggle:hover {

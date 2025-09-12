@@ -1,5 +1,3 @@
-
-
 <div class="container">
     <div class="lk-acc-title">
         <h3>Contas</h3>
@@ -24,9 +22,6 @@
     <div class="lk-accounts-wrap">
         <div class="lk-acc-header">
             <div class="lk-acc-actions">
-                <button class="btn btn-light" id="btnReload">
-                    <i class="fas fa-sync-alt"></i> Atualizar
-                </button>
                 <button class="btn btn-primary" id="btnNovaConta">
                     <i class="fas fa-plus"></i> Nova Conta
                 </button>
