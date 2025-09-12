@@ -62,21 +62,17 @@
         if (!modal) return;
         modal.classList.toggle('active', !!open);
         modal.setAttribute('aria-hidden', String(!open));
-        // força exibição como "block" para não herdar displays externos
         modal.style.display = open ? 'block' : '';
         document.body.style.overflow = open ? 'hidden' : '';
 
         if (open) {
-            // limpa campos básicos
             const today = new Date().toISOString().slice(0, 10);
             $('#lanData').value = today;
             $('#lanValor').value = '';
             $('#lanDescricao').value = '';
             $('#lanObservacao') && ($('#lanObservacao').value = '');
             $('#lanPago') && ($('#lanPago').checked = false);
-            // inicializa opções para esta abertura (sem repopular contas se já tiverem sido preenchidas)
             initModalFieldsOnce();
-            // foca primeiro campo
             (modal.querySelector('input,select,textarea') || {}).focus?.();
         }
     }
@@ -88,7 +84,6 @@
             if (type === 'receita' || type === 'despesa') $('#lanTipo').value = type;
             else $('#lanTipo').value = 'despesa';
             toggleModal(true);
-            // fecha menu do FAB
             menu.classList.remove('active'); fab.classList.remove('active'); fab.setAttribute('aria-expanded', 'false');
         });
     });
@@ -114,7 +109,7 @@
         $('#lanValor').value = v === '0' ? '' : v;
     });
 
-    // ---------- preencher selects ----------
+    // ---------- preencher selects (SEM conta) ----------
     function fillSelect(sel, items, { value = 'id', label = 'nome', first = 'Selecione...' } = {}) {
         sel.innerHTML = '';
         if (first !== null) {
@@ -132,20 +127,16 @@
         if (!modal) return;
         const tipoSel = $('#lanTipo');
         const catSel = $('#lanCategoria');
-        const contaSel = $('#lanConta');
 
         const opts = await ensureOptions();
 
-        // CONTAS: só popula se ainda não tiver sido preenchido (<= 1 = só o placeholder)
-        if ((contaSel?.options?.length || 0) <= 1) {
-            fillSelect(contaSel, opts?.contas || [], { first: 'Selecione uma conta' });
-        }
-
+        // CATEGORIAS por tipo (receita/despesa)
         function refreshCategorias() {
             const tipo = (tipoSel.value || 'despesa').toLowerCase();
             const list = (tipo === 'receita') ? (opts?.categorias?.receitas || []) : (opts?.categorias?.despesas || []);
             fillSelect(catSel, list, { first: 'Selecione uma categoria' });
-            const lbl = $('#lanPagoLabel'); if (lbl) lbl.textContent = (tipo === 'receita') ? 'Foi recebido?' : 'Foi pago?';
+            const lbl = $('#lanPagoLabel');
+            if (lbl) lbl.textContent = (tipo === 'receita') ? 'Foi recebido?' : 'Foi pago?';
         }
         refreshCategorias();
 
@@ -155,7 +146,7 @@
         }
     }
 
-    // ---------- submit ----------
+    // ---------- submit (SEM conta_id) ----------
     const form = $('#formLancamento');
     if (form && !form.dataset.bound) {
         form.addEventListener('submit', async (e) => {
@@ -165,17 +156,18 @@
                 const data = $('#lanData').value;
                 const valor = parseMoney($('#lanValor').value);
                 const catId = $('#lanCategoria').value || null;
-                const conta = $('#lanConta')?.value || null;
                 const desc = $('#lanDescricao').value || '';
                 const obs = $('#lanObservacao') ? $('#lanObservacao').value : '';
 
-                if (!conta) { Swal.fire('Atenção', 'Selecione uma conta.', 'warning'); return; }
-                if (!data || !valor || valor <= 0) { Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning'); return; }
+                if (!data || !valor || valor <= 0) {
+                    Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning');
+                    return;
+                }
 
                 await apiCreate({
                     tipo, data, valor,
                     categoria_id: catId ? Number(catId) : null,
-                    conta_id: conta ? Number(conta) : null,
+                    // conta_id REMOVIDO
                     descricao: desc || null,
                     observacao: obs || null
                 });
@@ -183,7 +175,7 @@
                 Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1300, showConfirmButton: false });
                 toggleModal(false);
 
-                // atualiza visões se existirem
+                // atualizações reativas (se existirem)
                 window.refreshDashboard && window.refreshDashboard();
                 window.refreshReports && window.refreshReports();
                 window.fetchLancamentos && window.fetchLancamentos();

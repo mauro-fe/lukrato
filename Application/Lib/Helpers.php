@@ -132,4 +132,19 @@ class Helpers
 
         return (int)$cnpj[13] === $d2;
     }
+    private static function valueLooksHashed(string $value): bool
+    {
+        // Evita funções de PHP 8 aqui
+        $prefix = substr($value, 0, 4);
+        if ($prefix === '$2y$' || $prefix === '$2a$') {
+            return true; // bcrypt
+        }
+        if (substr($value, 0, 9) === '$argon2i' || substr($value, 0, 10) === '$argon2id') {
+            return true; // argon2
+        }
+
+        // password_get_info é seguro; se "algo" != 0, já é hash suportado
+        $info = password_get_info($value);
+        return !empty($info) && !empty($info['algo']) && $info['algo'] !== 0;
+    }
 }

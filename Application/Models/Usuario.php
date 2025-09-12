@@ -53,11 +53,10 @@ class Usuario extends Model
         parent::boot();
 
         static::saving(function (Usuario $u) {
-            // normalização básica
+            // normalizações que você já tem...
             if (!empty($u->email))  $u->email = trim(strtolower($u->email));
             if (isset($u->nome))    $u->nome  = trim((string)$u->nome);
 
-            // cpf/telefone: somente dígitos ou null
             if (array_key_exists('cpf', $u->attributes)) {
                 $dig = preg_replace('/\D+/', '', (string)$u->cpf);
                 $u->cpf = ($dig !== '') ? $dig : null;
@@ -67,16 +66,22 @@ class Usuario extends Model
                 $u->telefone = ($dig !== '') ? $dig : null;
             }
 
-            // sexo em maiúsculo e válido
             if (array_key_exists('sexo', $u->attributes) && $u->sexo !== null) {
                 $sx = strtoupper((string)$u->sexo);
                 $u->sexo = in_array($sx, ['M', 'F', 'O', 'N'], true) ? $sx : null;
             }
 
-            // data_nascimento para Y-m-d
             if (!empty($u->data_nascimento)) {
                 $ts = strtotime((string)$u->data_nascimento);
                 $u->data_nascimento = $ts ? date('Y-m-d', $ts) : null;
+            }
+
+            // 🔒 Garanta hash mesmo se o mutator não rodar
+            if ($u->isDirty('senha')) {
+                $raw = (string) $u->senha;
+                if ($raw !== '' && !self::valueLooksHashed($raw)) {
+                    $u->attributes['senha'] = password_hash($raw, PASSWORD_BCRYPT);
+                }
             }
         });
     }
@@ -100,23 +105,26 @@ class Usuario extends Model
     // ---- MUTATORS ----
     public function setSenhaAttribute($value): void
     {
-        // não altera se null ou vazio
-        if ($value === null || $value === '') return;
-
-        // se já parecer hash, mantém
-        if ($this->looksHashed((string)$value)) {
-            $this->attributes['senha'] = (string)$value;
+        if ($value === null || $value === '') {
             return;
         }
 
-        // hash (bcrypt); pode trocar para PASSWORD_DEFAULT se preferir
-        $this->attributes['senha'] = password_hash((string)$value, PASSWORD_BCRYPT);
+        $val = (string) $value;
+
+        // Se já parecer hash, mantém
+        if (self::valueLooksHashed($val)) {
+            $this->attributes['senha'] = $val;
+            return;
+        }
+
+        // Gera hash
+        $this->attributes['senha'] = password_hash($val, PASSWORD_BCRYPT);
     }
 
     // Alias para compatibilizar $user->password no controller
     public function setPasswordAttribute($value): void
     {
-        $this->setSenhaAttribute($value); // delega para o mutator acima
+        $this->setSenhaAttribute($value);
     }
 
     public function getPasswordAttribute(): ?string
@@ -124,15 +132,20 @@ class Usuario extends Model
         return $this->attributes['senha'] ?? null;
     }
 
-    private function looksHashed(string $value): bool
+    private static function valueLooksHashed(string $value): bool
     {
-        return (
-            str_starts_with($value, '$2y$') ||
-            str_starts_with($value, '$2a$') ||
-            str_starts_with($value, '$argon2i$') ||
-            str_starts_with($value, '$argon2id$') ||
-            (is_string($value) && password_get_info($value)['algo'] !== 0)
-        );
+        // Evita funções de PHP 8 aqui
+        $prefix = substr($value, 0, 4);
+        if ($prefix === '$2y$' || $prefix === '$2a$') {
+            return true; // bcrypt
+        }
+        if (substr($value, 0, 9) === '$argon2i' || substr($value, 0, 10) === '$argon2id') {
+            return true; // argon2
+        }
+
+        // password_get_info é seguro; se "algo" != 0, já é hash suportado
+        $info = password_get_info($value);
+        return !empty($info) && !empty($info['algo']) && $info['algo'] !== 0;
     }
 
     // ---- ACCESSORS ----

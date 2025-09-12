@@ -61,8 +61,14 @@ class RegisterController extends BaseController
             // -------- 4) CRIAR USUÁRIO --------
             $user = new Usuario();
             $user->nome  = $data['nome'];
-            $user->email = $data['email'];
-            $user->senha = $data['senha']; // mutator faz o hash
+            $user->email = strtolower(trim($data['email']));
+
+            // 🔒 Hash explícito aqui (defensivo)
+            $raw = (string) $data['senha'];
+            $user->senha = password_get_info($raw)['algo'] !== 0
+                ? $raw                               // já veio hasheada (raro)
+                : password_hash($raw, PASSWORD_BCRYPT);
+
             $user->save();
 
             // -------- 5) LOGIN AUTOMÁTICO --------

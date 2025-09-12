@@ -10,7 +10,6 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Application\Services\LogService;
 use Application\Core\Response;
 
-
 class DashboardController extends BaseController
 {
     /**
@@ -50,7 +49,7 @@ class DashboardController extends BaseController
             $month  = trim($_GET['month'] ?? date('Y-m'));
             $accId  = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
 
-            // valida mês
+            // valida mês (YYYY-MM)
             $dt = \DateTime::createFromFormat('Y-m', $month);
             if (!$dt || $dt->format('Y-m') !== $month) {
                 $month = date('Y-m');
@@ -59,18 +58,21 @@ class DashboardController extends BaseController
             $y = (int)$dt->format('Y');
             $m = (int)$dt->format('m');
 
-            // filtros base
+            // filtros base (mês/ano)
             $base = Lancamento::where('user_id', $userId)
                 ->whereYear('data', $y)
                 ->whereMonth('data', $m);
 
-            // receitas/despesas (ignora transferências)
-            $receitas = (clone $base)->where('tipo', 'receita')
-                ->where('eh_transferencia', 0);
-            $despesas = (clone $base)->where('tipo', 'despesa')
-                ->where('eh_transferencia', 0);
+            // receitas/despesas do mês (ignora transferências)
+            $receitas = (clone $base)->where('tipo', 'receita')->where('eh_transferencia', 0);
+            $despesas = (clone $base)->where('tipo', 'despesa')->where('eh_transferencia', 0);
 
             if ($accId) {
+                // garante ownership da conta ANTES de consultar
+                $exists = Conta::where('user_id', $userId)->where('id', $accId)->exists();
+                if (!$exists) {
+                    $this->json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
+                }
                 $receitas->where('conta_id', $accId);
                 $despesas->where('conta_id', $accId);
             }
@@ -82,12 +84,14 @@ class DashboardController extends BaseController
             // Saldo:
             // - sem conta: saldo "global" = receitas-acum - despesas-acum (ignora transferências)
             // - com conta: saldo_inicial + movimentos + transfer in/out até o fim do mês
-            if ($accId) {
-                $conta = Conta::where('user_id', $userId)->find($accId);
-                $saldoInicial = $conta ? (float)$conta->saldo_inicial : 0;
+            $ate = (new \DateTimeImmutable("$month-01"))->modify('last day of this month')->format('Y-m-d');
 
-                // até o fim do mês selecionado
-                $ate = (new \DateTimeImmutable("$month-01"))->modify('last day of this month')->format('Y-m-d');
+            if ($accId) {
+                $conta = Conta::where('user_id', $userId)->where('id', $accId)->first();
+                if (!$conta) {
+                    $this->json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
+                }
+                $saldoInicial = (float)$conta->saldo_inicial;
 
                 $movBase = Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
@@ -97,7 +101,7 @@ class DashboardController extends BaseController
                 $movReceitas = (float)(clone $movBase)->where('tipo', 'receita')->sum('valor');
                 $movDespesas = (float)(clone $movBase)->where('tipo', 'despesa')->sum('valor');
 
-                // transferências na conta
+                // transferências envolvendo a conta
                 $transfIn  = (float)Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('eh_transferencia', 1)
@@ -111,13 +115,9 @@ class DashboardController extends BaseController
                     ->sum('valor');
 
                 $saldo = $saldoInicial + $movReceitas - $movDespesas + $transfIn - $transfOut;
-
-                // saldo acumulado = mesmo saldo (sem diferença de conceito aqui)
                 $saldoAcumulado = $saldo;
             } else {
-                // Global acumulado até fim do mês
-                $ate = (new \DateTimeImmutable("$month-01"))->modify('last day of this month')->format('Y-m-d');
-
+                // Global acumulado até fim do mês (ignora transferências)
                 $movGlobal = Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('eh_transferencia', 0);
@@ -150,9 +150,13 @@ class DashboardController extends BaseController
         try {
             $userId = Auth::id();
             $month  = trim($_GET['month'] ?? date('Y-m'));
-            $limit  = max(1, (int)($_GET['limit'] ?? 50));
             $accId  = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
 
+            // clamp do limit: 1..100
+            $limit  = (int)($_GET['limit'] ?? 50);
+            $limit  = max(1, min($limit, 100));
+
+            // valida mês
             $dt = \DateTime::createFromFormat('Y-m', $month);
             if (!$dt || $dt->format('Y-m') !== $month) {
                 $month = date('Y-m');
@@ -161,6 +165,7 @@ class DashboardController extends BaseController
             $y = (int)$dt->format('Y');
             $m = (int)$dt->format('m');
 
+            // base query
             $q = Lancamento::with(['categoria', 'conta', 'contaDestino'])
                 ->where('user_id', $userId)
                 ->whereYear('data', $y)
@@ -169,10 +174,16 @@ class DashboardController extends BaseController
                 ->orderBy('id', 'desc');
 
             if ($accId) {
-                // mostra os da conta e transferências onde a conta participa
+                // verifica ownership antes
+                $exists = Conta::where('user_id', $userId)->where('id', $accId)->exists();
+                if (!$exists) {
+                    $this->json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
+                }
+
+                // mostra lançamentos da conta e transferências onde a conta participa
                 $q->where(function ($w) use ($accId) {
                     $w->where('conta_id', $accId)
-                        ->orWhere('conta_destino_id', $accId);
+                      ->orWhere('conta_destino_id', $accId);
                 });
             }
 
@@ -180,18 +191,27 @@ class DashboardController extends BaseController
 
             $this->json($rows->map(function ($t) {
                 return [
-                    'id'        => (int)$t->id,
-                    'data'      => $t->data,
-                    'tipo'      => $t->tipo,
-                    'valor'     => (float)$t->valor,
-                    'descricao' => $t->descricao,
-                    'observacao' => $t->observacao,
+                    'id'               => (int)$t->id,
+                    'data'             => $t->data,
+                    'tipo'             => $t->tipo,
+                    'valor'            => (float)$t->valor,
+                    'descricao'        => $t->descricao,
+                    'observacao'       => $t->observacao,
                     'eh_transferencia' => (int)$t->eh_transferencia === 1,
-                    'categoria' => $t->categoria ? ['id' => (int)$t->categoria->id, 'nome' => $t->categoria->nome] : null,
-                    'conta'     => $t->conta ? ['id' => (int)$t->conta->id, 'nome' => $t->conta->nome] : null,
-                    'conta_destino' => $t->contaDestino ? ['id' => (int)$t->contaDestino->id, 'nome' => $t->contaDestino->nome] : null,
+                    'categoria'        => $t->categoria ? [
+                        'id'   => (int)$t->categoria->id,
+                        'nome' => $t->categoria->nome
+                    ] : null,
+                    'conta'            => $t->conta ? [
+                        'id'   => (int)$t->conta->id,
+                        'nome' => $t->conta->nome
+                    ] : null,
+                    'conta_destino'    => $t->contaDestino ? [
+                        'id'   => (int)$t->contaDestino->id,
+                        'nome' => $t->contaDestino->nome
+                    ] : null,
                 ];
-            }));
+            })->all());
         } catch (\Throwable $e) {
             $this->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
@@ -208,14 +228,13 @@ class DashboardController extends BaseController
             null
         );
     }
-    // Em BaseController.php – descomente/adicione:
+
+    // ===== Helpers de resposta JSON =====
     protected function json(array $data, int $statusCode = 200): void
     {
         Response::json($data, $statusCode);
         exit;
     }
-
-
 
     private function jsonError(string $message, int $code = 400, array $errors = []): void
     {

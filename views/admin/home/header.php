@@ -80,8 +80,6 @@ $base = BASE_URL;
                         class="fas fa-arrow-up"></i><span>Receita</span></button>
                 <button class="fab-menu-item" data-open-modal="despesa" role="menuitem"><i
                         class="fas fa-arrow-down"></i><span>Despesa</span></button>
-                <button class="fab-menu-item" data-open-modal="despesa-cartao" role="menuitem"><i
-                        class="fas fa-credit-card"></i><span>Despesa Cartão</span></button>
                 <button class="fab-menu-item" data-open-modal="transferencia" role="menuitem"><i
                         class="fas fa-exchange-alt"></i><span>Transferência</span></button>
             </div>
@@ -121,21 +119,7 @@ $base = BASE_URL;
                             </select>
                         </div>
 
-                        <!-- CONTA (sempre visível) -->
-                        <div class="form-group" id="grpConta">
-                            <label for="lanConta">Conta</label>
-                            <select id="lanConta" class="form-select">
-                                <option value="">Selecione uma conta</option>
-                            </select>
-                        </div>
-
-                        <!-- Campos futuros -->
-                        <div class="form-group" id="grpCartao" style="display:none;">
-                            <label for="lanCartao">Cartão</label>
-                            <select id="lanCartao" class="form-select">
-                                <option value="">Selecione um cartão</option>
-                            </select>
-                        </div>
+    
                         <div class="form-group" id="grpParcelas" style="display:none;">
                             <label for="lanParcelas">Parcelas</label>
                             <select id="lanParcelas" class="form-select">
