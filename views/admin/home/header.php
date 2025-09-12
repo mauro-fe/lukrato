@@ -80,8 +80,6 @@ $base = BASE_URL;
                         class="fas fa-arrow-up"></i><span>Receita</span></button>
                 <button class="fab-menu-item" data-open-modal="despesa" role="menuitem"><i
                         class="fas fa-arrow-down"></i><span>Despesa</span></button>
-                <button class="fab-menu-item" data-open-modal="transferencia" role="menuitem"><i
-                        class="fas fa-exchange-alt"></i><span>Transferência</span></button>
             </div>
         </div>
     </aside>

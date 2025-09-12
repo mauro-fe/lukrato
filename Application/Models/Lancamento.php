@@ -25,7 +25,7 @@ class Lancamento extends Model
         'data',
         'categoria_id',
         'conta_id',
-        'conta_destino_id',    // p/ transferências
+        'conta_id_destino',    // p/ transferências
         'descricao',
         'observacao',
         'valor',
@@ -37,7 +37,7 @@ class Lancamento extends Model
         'user_id'           => 'int',
         'categoria_id'      => 'int',
         'conta_id'          => 'int',
-        'conta_destino_id'  => 'int',
+        'conta_id_destino'  => 'int',
         'data'              => 'date:Y-m-d',
         'valor'             => 'float',
         'eh_transferencia'  => 'bool',
@@ -105,7 +105,7 @@ class Lancamento extends Model
     {
         return $q->where(function ($w) use ($contaId) {
             $w->where('conta_id', $contaId)
-                ->orWhere('conta_destino_id', $contaId);
+                ->orWhere('conta_id_destino', $contaId);
         });
     }
 
@@ -170,7 +170,7 @@ class Lancamento extends Model
         if ((int)$this->conta_id === $contaId) {
             return -1 * (float)$this->valor; // saiu da conta origem
         }
-        if ((int)$this->conta_destino_id === $contaId) {
+        if ((int)$this->conta_id_destino === $contaId) {
             return +1 * (float)$this->valor; // entrou na conta destino
         }
         return 0.0;

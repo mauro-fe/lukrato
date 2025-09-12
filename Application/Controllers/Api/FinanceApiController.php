@@ -40,7 +40,7 @@ class FinanceApiController
 
             $resultado = $receitas - $despesas;
 
-            // Saldo acumulado até o fim do mês (ignora transferências)
+            // Acumulado até o fim do mês (ignora transferências)
             $acumRec = (float) Lancamento::where('data', '<=', $end)
                 ->when($uid, fn($q) => $q->where('user_id', $uid))
                 ->where('tipo', 'receita')
@@ -54,7 +54,7 @@ class FinanceApiController
                 ->sum('valor');
 
             Response::json([
-                'saldo'          => $resultado,
+                'saldo'          => $resultado,         // saldo do mês (igual ao resultado)
                 'receitas'       => $receitas,
                 'despesas'       => $despesas,
                 'resultado'      => $resultado,
@@ -82,7 +82,7 @@ class FinanceApiController
             $rows = Lancamento::with('categoria:id,nome')
                 ->whereBetween('data', [$start, $end])
                 ->when($uid, fn($q) => $q->where('user_id', $uid))
-                ->where('eh_transferencia', 0) // não mostra transferências na tabela “Últimos Lançamentos”
+                ->where('eh_transferencia', 0) // não mostra transferências na tabela
                 ->orderBy('data', 'desc')
                 ->orderBy('id', 'desc')
                 ->limit($limit)
@@ -171,16 +171,23 @@ class FinanceApiController
                 $s = str_replace(',', '.', $s);
                 $valor = is_numeric($s) ? (float)$s : null;
             }
-            if (!is_numeric($valor) || $valor < 0) {
-                Response::json(['status' => 'error', 'message' => 'Valor inválido.'], 422);
+            // ★ exigir > 0 (não aceitar 0)
+            if (!is_numeric($valor) || $valor <= 0) {
+                Response::json(['status' => 'error', 'message' => 'Valor deve ser maior que zero.'], 422);
                 return;
             }
             $valor = round((float)$valor, 2);
 
-            // categoria (opcional, mas se vier precisa ser compatível)
+            // categoria (opcional, mas se vier precisa ser compatível e do usuário/globais)
             $categoriaId = $data['categoria_id'] ?? null;
             if ($categoriaId !== null && $categoriaId !== '') {
-                $cat = Categoria::find((int)$categoriaId);
+                // ★ valida escopo (user_id = $uid ou NULL)
+                $cat = Categoria::where('id', (int)$categoriaId)
+                    ->where(function ($q) use ($uid) {
+                        $q->whereNull('user_id')->orWhere('user_id', $uid);
+                    })
+                    ->first();
+
                 if (!$cat) {
                     Response::json(['status' => 'error', 'message' => 'Categoria inválida.'], 422);
                     return;

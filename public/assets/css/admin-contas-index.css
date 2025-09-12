@@ -97,20 +97,16 @@
 
 .btn-primary {
   /* gradiente baseado na cor primária */
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 85%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-primary) 85%, #000 0%),
+      color-mix(in srgb, var(--color-primary) 65%, #000 20%));
   color: var(--color-surface);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 95%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 75%, #000 15%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-primary) 95%, #000 0%),
+      color-mix(in srgb, var(--color-primary) 75%, #000 15%));
 }
 
 .btn-light {
@@ -124,20 +120,16 @@
 }
 
 .btn-danger {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 85%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-danger) 85%, #000 0%),
+      color-mix(in srgb, var(--color-danger) 65%, #000 20%));
   color: var(--color-surface);
 }
 
 .btn-danger:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 95%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 75%, #000 15%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-danger) 95%, #000 0%),
+      color-mix(in srgb, var(--color-danger) 75%, #000 15%));
 }
 
 .btn-ghost {
@@ -167,19 +159,15 @@
 }
 
 .tag.active {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-success) 85%, #000 0%),
-    color-mix(in srgb, var(--color-success) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-success) 85%, #000 0%),
+      color-mix(in srgb, var(--color-success) 65%, #000 20%));
 }
 
 .tag.inactive {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 85%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-danger) 85%, #000 0%),
+      color-mix(in srgb, var(--color-danger) 65%, #000 20%));
 }
 
 /* ===== Form ===== */
@@ -221,8 +209,7 @@
 .lk-field select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
   background: color-mix(in srgb, var(--glass-bg) 70%, var(--color-surface) 30%);
 }
 
@@ -305,6 +292,122 @@
   text-transform: uppercase;
   color: var(--color-text-muted);
   letter-spacing: 0.05em;
+}
+
+/* modal contas */
+
+.acc-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.acc-card {
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--card-bg, #121318);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .25);
+  border: 1px solid rgba(255, 255, 255, .06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.acc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+}
+
+.acc-card .acc-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.acc-card .acc-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand, #6ea8fe);
+}
+
+.acc-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.acc-sub {
+  opacity: .7;
+  font-size: .85rem;
+}
+
+.acc-balance {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 8px 0 4px;
+}
+
+.acc-currency {
+  opacity: .75;
+  font-size: .85rem;
+}
+
+.acc-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.acc-actions .btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.acc-actions .btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .12);
+}
+
+.acc-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .75rem;
+  margin-left: auto;
+}
+
+.acc-badge.active {
+  background: rgba(40, 167, 69, .15);
+  color: #4BD07B;
+  border: 1px solid rgba(40, 167, 69, .35);
+}
+
+.acc-badge.inactive {
+  background: rgba(220, 53, 69, .15);
+  color: #ff6b6b;
+  border: 1px solid rgba(220, 53, 69, .35);
+}
+
+/* skeleton */
+.acc-skeleton {
+  height: 140px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #1b1e26 25%, #222635 37%, #1b1e26 63%);
+  background-size: 400% 100%;
+  animation: accShimmer 1.2s infinite;
+}
+
+@keyframes accShimmer {
+  0% {
+    background-position: 100% 0
+  }
+
+  100% {
+    background-position: -100% 0
+  }
 }
 
 /* ===== Animations ===== */

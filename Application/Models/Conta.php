@@ -10,19 +10,19 @@ class Conta extends Model
 
     protected $fillable = [
         'user_id',
-        'tipo_id',
         'nome',
         'cor',
         'instituicao',
         'moeda',
+        'tipo_id',
         'saldo_inicial',
         'ativo',
     ];
 
     protected $casts = [
         'user_id'       => 'int',
-        'tipo_id'       => 'int',
         'saldo_inicial' => 'float',
+        'tipo_id',
         'ativo'         => 'bool',
     ];
 
