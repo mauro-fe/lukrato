@@ -94,7 +94,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--branco);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-primary);
   transition: border-color var(--transition-fast),
     box-shadow var(--transition-fast), background var(--transition-fast);
   appearance: none;
