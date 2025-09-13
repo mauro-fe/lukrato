@@ -249,28 +249,21 @@
         </div>
 
         <div class="lk-titlebar">
-
             <div class="lk-period" aria-label="Seletor de mês">
-                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i
-                        class="fa-solid fa-angle-left"></i></button>
+                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i class="fa-solid fa-angle-left"></i></button>
                 <span class="lk-chip" id="month">—</span>
-                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i
-                        class="fa-solid fa-angle-right"></i></button>
+                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i class="fa-solid fa-angle-right"></i></button>
             </div>
         </div>
 
         <!-- Controles: Abas + Tipo (pizza) + Conta -->
         <div class="lk-controls pt-4" role="tablist" aria-label="Tipos de relatório">
             <div class="lk-seg" id="tabs">
-                <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por
-                    categoria</button>
-                <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo
-                    diário</button>
-                <button data-view="barras" aria-pressed="false"><i class="fa-solid fa-chart-column"></i> Receitas x
-                    Despesas</button>
+                <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por categoria</button>
+                <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo diário</button>
+                <button data-view="barras" aria-pressed="false"><i class="fa-solid fa-chart-column"></i> Receitas x Despesas</button>
                 <button data-view="contas" aria-pressed="false"><i class="fa-solid fa-wallet"></i> Por conta</button>
-                <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução
-                    12m</button>
+                <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução 12m</button>
             </div>
 
             <!-- tipo (apenas pizza) -->
@@ -315,9 +308,56 @@
             });
         }
 
-        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro',
-            'outubro', 'novembro', 'dezembro'
-        ];
+        /* =================== THEME / CORES DO LUKRATO PARA CHART.JS =================== */
+        function getTheme() {
+            const css = getComputedStyle(document.documentElement);
+            const v = (k, fallback) => (css.getPropertyValue(k) || fallback).trim();
+
+            const brand = {
+                primary: v('--color-primary', '#E67E22'), // Laranja vibrante
+                text: v('--color-text', '#EAF2FF'),
+                textMute: v('--color-text-muted', '#94A3B8'),
+                surface: v('--color-surface', '#0F2233'),
+
+                // Paleta Lukrato
+                green: '#2ECC71',
+                orange: '#E67E22',
+                yellow: '#F39C12',
+                blue: '#2C3E50',
+                gray: '#BDC3C7',
+                red: '#E74C3C',
+                purple: '#9B59B6',
+                cyan: '#1ABC9C'
+            };
+
+            // paleta p/ setores (donut). Altere a ordem/cores se quiser.
+            const palette = ['#E67E22', '#2C3E50', '#2ECC71', '#BDC3C7', '#F39C12', '#9B59B6', '#1ABC9C', '#E74C3C'];
+            return {
+                brand,
+                palette
+            };
+        }
+
+        function hexToRgba(hex, a = .25) {
+            const m = hex.replace('#', '');
+            const n = parseInt(m, 16);
+            const r = (m.length === 3) ? ((n >> 8) & 0xF) * 17 : (n >> 16) & 255;
+            const g = (m.length === 3) ? ((n >> 4) & 0xF) * 17 : (n >> 8) & 255;
+            const b = (m.length === 3) ? (n & 0xF) * 17 : n & 255;
+            return `rgba(${r},${g},${b},${a})`;
+        }
+        const THEME = getTheme();
+
+        function applyChartDefaults() {
+            if (!window.Chart) return;
+            Chart.defaults.color = THEME.brand.text;
+            Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
+            Chart.defaults.plugins.title.color = THEME.brand.text;
+            Chart.defaults.plugins.legend.labels.color = THEME.brand.textMute;
+        }
+        /* ============================================================================== */
+
+        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
         const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
         const fmt = v => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -392,8 +432,8 @@
 
             // mostra/oculta seletores
             selType.style.display = (st.view === 'pizza') ? '' : 'none';
-            accountSelectWrap.style.display = (['pizza', 'linha', 'barras', 'evolucao'].includes(st.view)) ?
-                '' : ''; // sempre útil
+            accountSelectWrap.style.display = ''; // seletor de conta visível
+
             load();
         }));
         selType.style.display = (st.view === 'pizza') ? '' : 'none';
@@ -533,20 +573,25 @@
             }
         }
 
-        // Desenhos
+        // =================== DESENHOS COM CORES PERSONALIZADAS ===================
         function drawPie(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
             const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
-            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
-                'Despesas por categorias';
+            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' : 'Despesas por categorias';
+            const colors = (d.values || []).map((_, i) => THEME.palette[i % THEME.palette.length]);
+
             st.chart = new Chart($('#c'), {
                 type: 'doughnut',
                 data: {
                     labels: d.labels || [],
                     datasets: [{
                         label: titulo,
-                        data: d.values || []
+                        data: d.values || [],
+                        backgroundColor: colors,
+                        borderColor: THEME.brand.surface,
+                        borderWidth: 2,
+                        hoverOffset: 4
                     }]
                 },
                 options: {
@@ -564,7 +609,8 @@
                             }
                         }
                     },
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    cutout: '60%'
                 }
             });
         }
@@ -572,6 +618,8 @@
         function drawLine(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
+            const color = THEME.brand.primary;
+
             st.chart = new Chart($('#c'), {
                 type: 'line',
                 data: {
@@ -580,7 +628,11 @@
                         label: 'Saldo diário (receitas - despesas)',
                         data: (d.values || []).map(Number),
                         tension: .3,
-                        fill: false
+                        borderWidth: 2,
+                        borderColor: color,
+                        pointRadius: 2,
+                        backgroundColor: hexToRgba(color, .20),
+                        fill: true
                     }]
                 },
                 options: {
@@ -600,8 +652,20 @@
                     },
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
                             ticks: {
+                                color: THEME.brand.textMute
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute,
                                 callback: (v) => fmt(v)
                             }
                         }
@@ -613,17 +677,27 @@
         function drawBars(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
+
+            const rec = THEME.brand.green; // Receitas
+            const des = THEME.brand.orange; // Despesas
+
             st.chart = new Chart($('#c'), {
                 type: 'bar',
                 data: {
                     labels: d.labels || [],
                     datasets: [{
                             label: 'Receitas',
-                            data: (d.receitas || []).map(Number)
+                            data: (d.receitas || []).map(Number),
+                            backgroundColor: hexToRgba(rec, .55),
+                            borderColor: rec,
+                            borderWidth: 2
                         },
                         {
                             label: 'Despesas',
-                            data: (d.despesas || []).map(Number)
+                            data: (d.despesas || []).map(Number),
+                            backgroundColor: hexToRgba(des, .55),
+                            borderColor: des,
+                            borderWidth: 2
                         }
                     ]
                 },
@@ -640,8 +714,20 @@
                     },
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
                             ticks: {
+                                color: THEME.brand.textMute
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute,
                                 callback: (v) => fmt(v)
                             }
                         }
@@ -653,6 +739,8 @@
         function drawLine12m(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
+            const color = THEME.brand.cyan;
+
             st.chart = new Chart($('#c'), {
                 type: 'line',
                 data: {
@@ -660,7 +748,12 @@
                     datasets: [{
                         label: 'Saldo mensal',
                         data: (d.values || []).map(Number),
-                        tension: .3
+                        tension: .3,
+                        borderWidth: 2,
+                        borderColor: color,
+                        pointRadius: 2,
+                        backgroundColor: hexToRgba(color, .18),
+                        fill: true
                     }]
                 },
                 options: {
@@ -680,8 +773,20 @@
                     },
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
                             ticks: {
+                                color: THEME.brand.textMute
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute,
                                 callback: (v) => fmt(v)
                             }
                         }
@@ -689,12 +794,15 @@
                 }
             });
         }
+        // =======================================================================
 
         // Loader principal
         async function load() {
             loading();
             try {
                 await ensureChart();
+                applyChartDefaults(); // aplica o tema global do Chart.js
+
                 if (!st.accounts.length) {
                     await loadAccounts();
                 } // carrega uma vez
@@ -703,10 +811,10 @@
                     empty();
                     return;
                 }
+
                 if (st.view === 'pizza') drawPie(d);
                 else if (st.view === 'linha') drawLine(d);
-                else if (st.view === 'barras') drawBars(d);
-                else if (st.view === 'contas') drawBars(d); // usa mesma função (receitas/despesas por conta)
+                else if (st.view === 'barras' || st.view === 'contas') drawBars(d);
                 else if (st.view === 'evolucao') drawLine12m(d);
             } catch (e) {
                 console.error(e);

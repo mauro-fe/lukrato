@@ -42,14 +42,14 @@
   margin: 0;
   font-size: var(--font-size-3xl);
   font-weight: 700;
-  color: var(--branco);
+  color: var(--color-primary);
   font-family: var(--font-primary);
 }
 
 .profile-subtitle {
   margin: var(--spacing-1) 0 0 0;
   font-size: var(--font-size-base);
-  color: var(--cinza);
+  color: var(--color-primary);
   font-family: var(--font-primary);
 }
 

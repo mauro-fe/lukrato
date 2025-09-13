@@ -57,7 +57,7 @@ $base = BASE_URL;
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?>><i class="fas fa-home"></i><span>Dashboard</span></a>
             <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>"
-                <?= $aria('contas')      ?>><i class="fas fa-chart-bar"></i><span>Contas</span></a>
+                <?= $aria('contas')      ?>><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                 <?= $aria('lancamentos') ?>><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
@@ -117,7 +117,7 @@ $base = BASE_URL;
                             </select>
                         </div>
 
-    
+
                         <div class="form-group" id="grpParcelas" style="display:none;">
                             <label for="lanParcelas">Parcelas</label>
                             <select id="lanParcelas" class="form-select">

@@ -1,3 +1,4 @@
+
 // ====== BASE_URL a partir do <meta name="base-url"> ======
 (function () {
     const m = document.querySelector('meta[name="base-url"]');
@@ -84,7 +85,9 @@
             if (type === 'receita' || type === 'despesa') $('#lanTipo').value = type;
             else $('#lanTipo').value = 'despesa';
             toggleModal(true);
-            menu.classList.remove('active'); fab.classList.remove('active'); fab.setAttribute('aria-expanded', 'false');
+            menu.classList.remove('active');
+            fab.classList.remove('active');
+            fab.setAttribute('aria-expanded', 'false');
         });
     });
 
@@ -109,7 +112,7 @@
         $('#lanValor').value = v === '0' ? '' : v;
     });
 
-    // ---------- preencher selects (SEM conta) ----------
+    // ---------- preencher selects ----------
     function fillSelect(sel, items, { value = 'id', label = 'nome', first = 'Selecione...' } = {}) {
         sel.innerHTML = '';
         if (first !== null) {
@@ -130,7 +133,6 @@
 
         const opts = await ensureOptions();
 
-        // CATEGORIAS por tipo (receita/despesa)
         function refreshCategorias() {
             const tipo = (tipoSel.value || 'despesa').toLowerCase();
             const list = (tipo === 'receita') ? (opts?.categorias?.receitas || []) : (opts?.categorias?.despesas || []);
@@ -146,13 +148,13 @@
         }
     }
 
-    // ---------- submit (SEM conta_id) ----------
+    // ---------- submit ----------
     const form = $('#formLancamento');
     if (form && !form.dataset.bound) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
-                const tipo = $('#lanTipo').value;           // 'receita' | 'despesa'
+                const tipo = $('#lanTipo').value; // 'receita' | 'despesa'
                 const data = $('#lanData').value;
                 const valor = parseMoney($('#lanValor').value);
                 const catId = $('#lanCategoria').value || null;
@@ -167,7 +169,6 @@
                 await apiCreate({
                     tipo, data, valor,
                     categoria_id: catId ? Number(catId) : null,
-                    // conta_id REMOVIDO
                     descricao: desc || null,
                     observacao: obs || null
                 });
@@ -175,7 +176,7 @@
                 Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1300, showConfirmButton: false });
                 toggleModal(false);
 
-                // atualizações reativas (se existirem)
+                // reativos
                 window.refreshDashboard && window.refreshDashboard();
                 window.refreshReports && window.refreshReports();
                 window.fetchLancamentos && window.fetchLancamentos();
@@ -199,4 +200,38 @@
         }).then(r => { if (r.isConfirmed) window.location.href = url; });
     });
 
+    // ---------- Sidebar ativo (apenas texto + ícone em laranja) ----------
+    (function initSidebarActive() {
+        const links = $$('.sidebar .nav-item[href]');
+        const here = location.pathname.replace(/\/+$/, '');
+        // Se o PHP já marcou algum ativo, respeita
+        let hasActive = !!document.querySelector('.sidebar .nav-item.active,[aria-current="page"]');
+
+        // Marca pelo URL atual se nada veio do PHP
+        if (!hasActive) {
+            links.forEach(a => {
+                if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;
+                try {
+                    const path = new URL(a.getAttribute('href'), location.origin).pathname.replace(/\/+$/, '');
+                    if (path && (path === here || (path !== '/' && here.startsWith(path + '/')))) {
+                        a.classList.add('active');
+                        a.setAttribute('aria-current', 'page');
+                        hasActive = true;
+                    }
+                } catch { }
+            });
+        }
+
+        // Mantém visual ativo ao clicar (SPA / antes do reload)
+        links.forEach(a => {
+            a.addEventListener('click', () => {
+                if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;
+                links.forEach(x => { x.classList.remove('active'); x.removeAttribute('aria-current'); });
+                a.classList.add('active');
+                a.setAttribute('aria-current', 'page');
+            });
+        });
+    })();
+
 })();
+
