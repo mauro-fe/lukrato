@@ -92,47 +92,47 @@ if (!function_exists('loadPageJs')) {
      *
      * Uso:
      *   <?php loadPageJs(); ?> // usa $GLOBALS['current_view']
-     * <?php loadPageJs('admin/home/header'); ?>
-     */
-    function loadPageJs(?string $view = null): void
-    {
-        // 1) origem do nome
-        $view = $view ?? ($GLOBALS['current_view'] ?? '');
-        if ($view === '') return;
+* <?php loadPageJs('admin/home/header'); ?>
+*/
+function loadPageJs(?string $view = null): void
+{
+// 1) origem do nome
+$view = $view ?? ($GLOBALS['current_view'] ?? '');
+if ($view === '') return;
 
-        // 2) candidatos
-        $candidates = [];
-        $candidates[] = 'assets/js/' . $view . '.js';
-        $candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
+// 2) candidatos
+$candidates = [];
+$candidates[] = 'assets/js/' . $view . '.js';
+$candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
 
-        $parts = preg_split('#[\\/]+#', $view);
-        if ($parts && count($parts) >= 2) {
-            $candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
-        }
+$parts = preg_split('#[\\/]+#', $view);
+if ($parts && count($parts) >= 2) {
+$candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
+}
 
-        // 3) injeta o primeiro que existir
-        $publicRoot = __DIR__ . '/../../public/';
-        foreach ($candidates as $jsPath) {
-            if (file_exists($publicRoot . $jsPath)) {
-                echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
-                return;
-            }
-        }
-    }
+// 3) injeta o primeiro que existir
+$publicRoot = __DIR__ . '/../../public/';
+foreach ($candidates as $jsPath) {
+if (file_exists($publicRoot . $jsPath)) {
+echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
+return;
+}
+}
+}
 }
 
 
 
 function buscarValor($respostas, string $chave): ?string
 {
-    if ($respostas instanceof \Illuminate\Support\Collection) {
-        $respostas = $respostas->all();
-    }
+if ($respostas instanceof \Illuminate\Support\Collection) {
+$respostas = $respostas->all();
+}
 
-    foreach ($respostas as $resposta) {
-        if ($resposta->chave === $chave) {
-            return $resposta->valor;
-        }
-    }
-    return null;
+foreach ($respostas as $resposta) {
+if ($resposta->chave === $chave) {
+return $resposta->valor;
+}
+}
+return null;
 }

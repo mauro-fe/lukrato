@@ -52,19 +52,18 @@ h3 {
     transform: translateY(0);
   }
 }
-
 /* ===== ATIVO: só texto e ícone laranja (#E67E22) ===== */
 .sidebar-nav .nav-item.active,
 .sidebar-nav .nav-item[aria-current="page"] {
   background: transparent !important;
-  color: #E67E22 !important;
+  color: #e67e22 !important;
   font-weight: 700;
   border-left-color: transparent !important;
 }
 
 .sidebar-nav .nav-item.active i,
 .sidebar-nav .nav-item[aria-current="page"] i {
-  color: #E67E22 !important;
+  color: #e67e22 !important;
 }
 
 /* Indicador vertical desativado */
@@ -74,7 +73,7 @@ h3 {
 
 /* Foco acessível */
 .sidebar-nav .nav-item:focus-visible {
-  outline: 2px solid #E67E22;
+  outline: 2px solid #e67e22;
   outline-offset: 2px;
 }
 
@@ -244,70 +243,6 @@ h3 {
   align-items: center;
   gap: var(--spacing-2);
 }
-
-/* .month-nav-btn {
-  background: none;
-  border: 1px solid var(--glass-border);
-  color: var(--color-text-muted);
-  padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.month-nav-btn:hover {
-  background-color: var(--glass-bg);
-  color: var(--color-text);
-}
-
-.month-display {
-  position: relative;
-}
-
-.month-dropdown-btn {
-  background: none;
-  border: none;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-} */
-
-/* Dropdown de mês */
-/* .month-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-3);
-  box-shadow: var(--shadow-md);
-  display: none;
-  color: var(--color-text);
-}
-
-.month-dropdown.active {
-  display: block;
-}
-
-.month-dropdown button {
-  width: 100%;
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 0;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-3) var(--spacing-4);
-  text-align: left;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.month-dropdown button:hover {
-  background-color: var(--glass-bg);
-  transform: translateX(-5px);
-} */
 
 /* =========================================================
  * Main Content
@@ -487,7 +422,7 @@ h3 {
   display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
   background-color: var(--color-success);
   border-color: var(--color-success);
 }
@@ -521,6 +456,49 @@ h3 {
 .btn-ghost:hover {
   color: var(--color-text);
   border-color: var(--color-text);
+}
+
+/* BTN */
+.lk-btn {
+  height: 44px;
+  padding: 0 var(--spacing-5);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  border: 1px solid transparent;
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.lk-btn.ghost {
+  background: transparent;
+  color: var(--branco);
+  border-color: var(--glass-border);
+}
+
+.lk-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--laranja);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.lk-btn i {
+  font-size: 0.95em;
+}
+
+.btn-del {
+  transition: var(--transition-normal);
+}
+
+.btn-del:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text);
 }
 
 /* Calendário dentro do modal */
@@ -579,9 +557,11 @@ h3 {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg,
-      var(--color-primary),
-      var(--color-warning));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-warning)
+  );
   border: none;
   color: var(--color-surface);
   font-size: 20px;

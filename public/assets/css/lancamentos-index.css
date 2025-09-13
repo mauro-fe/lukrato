@@ -106,39 +106,6 @@
   color: var(--branco);
 }
 
-.lk-btn {
-  height: 44px;
-  padding: 0 var(--spacing-5);
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  border: 1px solid transparent;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast), background var(--transition-fast),
-    border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.lk-btn.ghost {
-  background: transparent;
-  color: var(--branco);
-  border-color: var(--glass-border);
-}
-
-.lk-btn.ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--laranja);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-.lk-btn i {
-  font-size: 0.95em;
-}
-
 .sr-only {
   position: absolute !important;
   width: 1px;

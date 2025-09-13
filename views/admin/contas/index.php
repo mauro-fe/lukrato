@@ -145,7 +145,49 @@
                 </form>
             </div>
         </div>
+    </div><!-- Modal: Transferência -->
+    <div class="lk-modal" id="modalTransfer" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
+        <div class="lk-modal-card">
+            <div class="lk-modal-h">
+                <div class="lk-modal-t" id="modalTransferTitle">Transferência</div>
+                <button class="btn btn-ghost" id="trClose" type="button"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="lk-modal-b">
+                <form id="formTransfer">
+                    <input type="hidden" id="trOrigemId">
+                    <div class="lk-form-grid">
+                        <div class="lk-field full">
+                            <label>Origem</label>
+                            <input id="trOrigemNome" type="text" readonly>
+                        </div>
+                        <div class="lk-field full">
+                            <label for="trDestinoId">Destino</label>
+                            <select id="trDestinoId" required>
+                                <option value="">Selecione a conta de destino</option>
+                            </select>
+                        </div>
+                        <div class="lk-field">
+                            <label for="trData">Data</label>
+                            <input type="date" id="trData" required>
+                        </div>
+                        <div class="lk-field">
+                            <label for="trValor">Valor</label>
+                            <input type="text" id="trValor" inputmode="decimal" placeholder="0,00" required>
+                        </div>
+                        <div class="lk-field full">
+                            <label for="trDesc">Descrição (opcional)</label>
+                            <input type="text" id="trDesc" placeholder="Ex.: Transferência entre contas">
+                        </div>
+                    </div>
+                    <div class="lk-modal-f">
+                        <button type="button" class="btn btn-light" id="trCancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Transferir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
 
     </section>
 </div>
@@ -363,6 +405,43 @@
                 Swal.fire('Erro', err.message || 'Falha ao inativar conta.', 'error');
             }
         }
+        async function handleActivateAccount(id) {
+            try {
+                const res = await fetchAPI(`accounts/${id}`, {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(CSRF ? {
+                            'X-CSRF-TOKEN': CSRF
+                        } : {})
+                    },
+                    body: JSON.stringify({
+                        ativo: 1
+                    })
+                });
+
+                const ct = res.headers.get('content-type') || '';
+                if (!res.ok) {
+                    let msg = `HTTP ${res.status}`;
+                    if (ct.includes('application/json')) {
+                        const j = await res.json().catch(() => ({}));
+                        msg = j?.message || msg;
+                    } else {
+                        const t = await res.text();
+                        msg = t.slice(0, 200);
+                    }
+                    throw new Error(msg);
+                }
+
+                Swal.fire('Pronto!', 'Conta ativada.', 'success');
+                await load();
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Erro', err.message || 'Falha ao ativar conta.', 'error');
+            }
+        }
+
 
         // ====== TABELA (fallback) ======
         function renderRows(rows) {
@@ -418,41 +497,54 @@
             updateStats(rows);
 
             for (const c of rows) {
-                const ativoBadge = c.ativo ? `<span class="acc-badge active">Ativa</span>` :
+                const ativoBadge = c.ativo ?
+                    `<span class="acc-badge active">Ativa</span>` :
                     `<span class="acc-badge inactive">Inativa</span>`;
-                const saldo = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial ?? 0); // ← AQUI
+
+                const saldo = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial ?? 0);
+
+                const actionToggle = c.ativo ?
+                    `<button class="btn btn-ghost btn-del" data-id="${c.id}">
+         <i class="fas fa-ban"></i> Desativar
+       </button>` :
+                    `<button class="btn btn-ghost btn-activate" data-id="${c.id}">
+         <i class="fas fa-check"></i> Ativar
+       </button>`;
+
                 const card = document.createElement('div');
                 card.className = 'acc-card';
                 card.innerHTML = `
-      <div>
-        <div class="acc-head">
-          <div class="acc-dot"></div>
-          <div>
-            <div class="acc-name">${escapeHTML(c.nome || '')}</div>
-            <div class="acc-sub">${escapeHTML(c.instituicao || '—')}</div>
-          </div>
-          ${ativoBadge}
+    <div>
+      <div class="acc-head">
+        <div class="acc-dot"></div>
+        <div>
+          <div class="acc-name">${escapeHTML(c.nome || '')}</div>
+          <div class="acc-sub">${escapeHTML(c.instituicao || '—')}</div>
         </div>
-        <div class="acc-balance">R$ ${formatMoneyBR(saldo)}</div>            <!-- ← AQUI -->
-        <div class="acc-currency">Moeda: ${escapeHTML(c.moeda || 'BRL')}</div>
+        ${ativoBadge}
       </div>
-      <div class="acc-actions">
-        <button class="btn btn-primary btn-acc-receita" data-id="${c.id}">
-          <i class="fas fa-arrow-up"></i> Receita
-        </button>
-        <button class="btn btn-ghost btn-acc-despesa" data-id="${c.id}">
-          <i class="fas fa-arrow-down"></i> Despesa
-        </button>
-        <button class="btn btn-ghost btn-edit" data-id="${c.id}">
-          <i class="fas fa-pen"></i> Editar
-        </button>
-        <button class="btn btn-ghost btn-del" data-id="${c.id}">
-          <i class="fas fa-ban"></i> Inativar
-        </button>
-      </div>
-    `;
+      <div class="acc-balance">R$ ${formatMoneyBR(saldo)}</div>
+      <div class="acc-currency">Moeda: ${escapeHTML(c.moeda || 'BRL')}</div>
+    </div>
+    <div class="acc-actions">
+      <button class="btn btn-primary btn-acc-receita" data-id="${c.id}">
+        <i class="fas fa-arrow-up"></i> Receita
+      </button>
+      <button class="btn btn-ghost btn-acc-despesa" data-id="${c.id}">
+        <i class="fas fa-arrow-down"></i> Despesa
+      </button>
+      <button class="btn btn-ghost btn-acc-transfer" data-id="${c.id}">
+      <i class="fas fa-right-left"></i> Transferir
+    </button>
+      <button class="btn btn-ghost btn-edit" data-id="${c.id}">
+        <i class="fas fa-pen"></i> Editar
+      </button>
+      ${actionToggle}
+    </div>
+  `;
                 grid.appendChild(card);
             }
+
         }
 
 
@@ -461,7 +553,9 @@
             const btnRec = e.target.closest('.btn-acc-receita');
             const btnDes = e.target.closest('.btn-acc-despesa');
             const btnEd = e.target.closest('.btn-edit');
-            const btnDel = e.target.closest('.btn-del');
+            const btnDel = e.target.closest('.btn-del'); // Desativar
+            const btnAct = e.target.closest('.btn-activate'); // Ativar  👈
+            const btnTr = e.target.closest('.btn-acc-transfer');
 
             if (btnRec) {
                 openLancModal(btnRec.dataset.id, 'receita');
@@ -473,15 +567,22 @@
                 openModal(true, c);
             } else if (btnDel) {
                 const id = Number(btnDel.dataset.id);
-                handleDeleteAccount(id);
+                handleDeleteAccount(id); // usa DELETE (inativar)
+            } else if (btnAct) {
+                const id = Number(btnAct.dataset.id);
+                handleActivateAccount(id); // usa PUT {ativo:1} (ativar)
+            } else if (btnTr) {
+                openTransferModal(btnTr.dataset.id); // 👈 abre modal de transferência
             }
         });
+
 
         // ====== LOAD ======
         async function load() {
             try {
                 if (grid) {
-                    grid.innerHTML = `<div class="acc-skeleton"></div><div class="acc-skeleton"></div><div class="acc-skeleton"></div>`;
+                    grid.innerHTML =
+                        `<div class="acc-skeleton"></div><div class="acc-skeleton"></div><div class="acc-skeleton"></div>`;
                 }
                 if (tbody) {
                     tbody.innerHTML = `<tr><td class="lk-empty" colspan="6">Carregando...</td></tr>`;
@@ -633,9 +734,10 @@
         }
         lanClose?.addEventListener('click', closeLancModal);
         lanCancel?.addEventListener('click', closeLancModal);
-        modalLanc?.addEventListener('click', (e) => {
-            if (e.target === modalLanc) closeLancModal();
-        });
+        modalLanc
+            ?.addEventListener('click', (e) => {
+                if (e.target === modalLanc) closeLancModal();
+            });
 
         fLanTipo?.addEventListener('change', refreshCategoriasLanc);
 
@@ -702,8 +804,143 @@
                 console.error(err);
                 Swal.fire('Erro', err.message || 'Falha ao salvar', 'error');
             }
+        }); // ---- Modal Transferência ----
+        const modalTr = document.querySelector('#modalTransfer');
+        const trClose = document.querySelector('#trClose');
+        const trCancel = document.querySelector('#trCancel');
+        const formTr = document.querySelector('#formTransfer');
+
+        const trOrigemId = modalTr?.querySelector('#trOrigemId');
+        const trOrigemNome = modalTr?.querySelector('#trOrigemNome');
+        const trDestinoId = modalTr?.querySelector('#trDestinoId');
+        const trData = modalTr?.querySelector('#trData');
+        const trValor = modalTr?.querySelector('#trValor');
+        const trDesc = modalTr?.querySelector('#trDesc');
+
+        // Reaproveita o cache de opções que você já tem:
+        async function getOptions() {
+            if (_optsCache) return _optsCache;
+            const res = await fetchAPI('options', {
+                credentials: 'same-origin'
+            });
+            if (!res.ok) throw new Error('Falha ao carregar opções');
+            _optsCache = await res.json().catch(() => ({}));
+            return _optsCache;
+        }
+
+        async function openTransferModal(origemId) {
+            if (!modalTr) return;
+            const id = Number(origemId);
+            const conta = _lastRows.find(r => r.id === id);
+            if (!conta) return;
+
+            trOrigemId.value = String(conta.id);
+            trOrigemNome.value = `${conta.nome} ${conta.instituicao ? '— ' + conta.instituicao : ''}`;
+
+            // data de hoje
+            if (trData && 'valueAsDate' in trData) trData.valueAsDate = new Date();
+            else if (trData) trData.value = new Date().toISOString().slice(0, 10);
+
+            trValor.value = '';
+            trDesc.value = '';
+
+            // popula destinos (todas ativas do usuário, exceto a origem)
+            const opts = await getOptions();
+            const contas = Array.isArray(opts?.contas) ? opts.contas : [];
+            trDestinoId.innerHTML = `<option value="">Selecione a conta de destino</option>`;
+            for (const c of contas) {
+                if (c.id === id) continue; // não deixa escolher a mesma
+                const op = document.createElement('option');
+                op.value = c.id;
+                op.textContent = c.nome;
+                trDestinoId.appendChild(op);
+            }
+
+            modalTr.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => trValor?.focus(), 40);
+        }
+
+        function closeTransferModal() {
+            if (!modalTr) return;
+            modalTr.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        trClose?.addEventListener('click', closeTransferModal);
+        trCancel?.addEventListener('click', closeTransferModal);
+        modalTr?.addEventListener('click', (e) => {
+            if (e.target === modalTr) closeTransferModal();
         });
 
+        // máscara simples
+        trValor?.addEventListener('blur', () => {
+            const v = parseMoneyBR(trValor.value);
+            trValor.value = v ? formatMoneyBR(v) : '';
+        });
+
+        // submit transferência
+        formTr?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const origemId = Number(trOrigemId.value);
+                const destinoId = Number(trDestinoId.value);
+                const valor = parseMoneyBR(trValor.value);
+
+                if (!destinoId || !origemId || origemId === destinoId)
+                    return Swal.fire('Atenção', 'Selecione contas de origem e destino diferentes.',
+                        'warning');
+
+                if (!trData.value || !valor || valor <= 0)
+                    return Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning');
+
+                const payload = {
+                    data: trData.value,
+                    valor,
+                    conta_id: origemId,
+                    conta_id_destino: destinoId,
+                    descricao: trDesc.value || null,
+                    observacao: null
+                };
+
+                const res = await fetchAPI('transfers', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(CSRF ? {
+                            'X-CSRF-TOKEN': CSRF
+                        } : {})
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const ct = res.headers.get('content-type') || '';
+                if (!res.ok) {
+                    let msg = `HTTP ${res.status}`;
+                    if (ct.includes('application/json')) {
+                        const j = await res.json().catch(() => ({}));
+                        msg = j?.message || msg;
+                    } else {
+                        const t = await res.text();
+                        msg = t.slice(0, 200);
+                    }
+                    throw new Error(msg);
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Transferência registrada!',
+                    timer: 1300,
+                    showConfirmButton: false
+                });
+                closeTransferModal();
+                await load();
+                window.refreshDashboard && window.refreshDashboard();
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Erro', err.message || 'Falha ao salvar transferência.', 'error');
+            }
+        });
         // Init
         load();
     })();

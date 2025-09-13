@@ -65,6 +65,7 @@ function registerSimpleRoutes(): void
     Router::add('GET',  'api/reports',                 'Api\ReportController@index',            ['auth']); // compat
     Router::add('GET',  'api/lancamentos',             'Api\LancamentosController@index');
     Router::add('POST', 'api/lancamentos/{id}/delete', 'Api\LancamentosController@destroy');
+    Router::add('POST', 'api/transfers',  'Api\FinanceApiController@transfer');
 
 
     // Página Contas

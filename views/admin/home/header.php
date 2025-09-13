@@ -16,6 +16,7 @@ $base = BASE_URL;
     <title><?= $pageTitle ?></title>
 
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -27,57 +28,6 @@ $base = BASE_URL;
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-home-header'); ?>
-
-    <style>
-        /* =========================================================
- * Modal (LK)
- * =======================================================*/
-        .lkh-modal {
-            position: fixed;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: var(--transition-normal);
-        }
-
-        .lkh-modal.active {
-            display: flex;
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .lkh-modal-backdrop {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-
-        .lkh-modal-content {
-            position: relative;
-            left: 30%;
-            background: var(--color-surface);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-xl);
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.95);
-            transition: var(--transition-normal);
-            z-index: 1;
-            color: var(--color-text);
-        }
-
-        .lkh-modal.active .lkh-modal-content {
-            transform: scale(1);
-        }
-    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -131,7 +81,10 @@ $base = BASE_URL;
                         class="fas fa-arrow-up"></i><span>Receita</span></button>
                 <button class="fab-menu-item" data-open-modal="despesa" role="menuitem"><i
                         class="fas fa-arrow-down"></i><span>Despesa</span></button>
+
             </div>
+
+
         </div>
     </aside>
 
@@ -167,25 +120,13 @@ $base = BASE_URL;
                                 <option value="">Selecione uma categoria</option>
                             </select>
                         </div>
-
-
-                        <div class="form-group" id="grpParcelas" style="display:none;">
-                            <label for="lanParcelas">Parcelas</label>
-                            <select id="lanParcelas" class="form-select">
-                                <option value="1">1x (à vista)</option>
-                                <option value="2">2x sem juros</option>
-                                <option value="3">3x sem juros</option>
-                                <option value="4">4x sem juros</option>
-                                <option value="5">5x sem juros</option>
-                                <option value="6">6x sem juros</option>
-                                <option value="7">7x sem juros</option>
-                                <option value="8">8x sem juros</option>
-                                <option value="9">9x sem juros</option>
-                                <option value="10">10x sem juros</option>
-                                <option value="11">11x sem juros</option>
-                                <option value="12">12x sem juros</option>
+                        <div class="form-group">
+                            <label for="lanConta">Conta</label>
+                            <select id="lanConta" class="form-select">
+                                <option value="">Selecione uma categoria</option>
                             </select>
                         </div>
+
 
                         <div class="form-group">
                             <label for="lanDescricao">Descrição</label>
@@ -193,23 +134,10 @@ $base = BASE_URL;
                                 placeholder="Descrição do lançamento" />
                         </div>
 
-                        <div class="form-group" style="display:none;">
-                            <label for="lanObservacao">Observação (opcional)</label>
-                            <input type="text" id="lanObservacao" class="form-input"
-                                placeholder="Detalhe, nota interna..." />
-                        </div>
-
                         <div class="form-group">
                             <label for="lanValor">Valor</label>
                             <input type="text" id="lanValor" class="form-input money-mask" placeholder="R$ 0,00"
                                 required />
-                        </div>
-
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="lanPago"><span class="checkbox-custom"></span>
-                                <span id="lanPagoLabel">Foi pago?</span>
-                            </label>
                         </div>
                     </form>
 
@@ -220,10 +148,12 @@ $base = BASE_URL;
                 </div>
             </div>
 
-            <?php loadPageJs('admin-home-header'); ?>
-            <?php loadPageJs(); ?>
+
         </div>
 
+
+        <?php loadPageJs('admin-home-header'); ?>
+        <?php loadPageJs(); ?>
         <script>
             (function() {
                 const root = document.documentElement;

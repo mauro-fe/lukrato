@@ -202,7 +202,7 @@
         <td>${cat}</td>
         <td>${acc}</td>
         <td>${t.descricao || t.observacao || '—'}</td>
-        <td class="text-right">${fmt.money(t.valor)}</td>
+        <td>${fmt.money(t.valor)}</td>
         <td class="text-right">
           <button class="lk-btn danger btn-del" title="Excluir" aria-label="Excluir">
             <i class="fas fa-trash"></i>
@@ -327,5 +327,158 @@
             monthCache.delete(m);
             render();
         });
+        // ====== Transferência via botão do header ======
+        const btnTransferHeader = $('#btnTransferHeader');
+
+        const modalTr = $('#modalTransfer');
+        const trClose = $('#trClose');
+        const trCancel = $('#trCancel');
+        const formTr = $('#formTransfer');
+
+        const grpOrigemReadOnly = $('#grpOrigemReadOnly');
+        const grpOrigemSelect = $('#grpOrigemSelect');
+
+        const trOrigemId = $('#trOrigemId');     // hidden (modo card)
+        const trOrigemNome = $('#trOrigemNome');   // readonly (modo card)
+        const trOrigemIdSel = $('#trOrigemIdSel');  // select (modo header)
+
+        const trDestinoId = $('#trDestinoId');
+        const trData = $('#trData');
+        const trValor = $('#trValor');
+        const trDesc = $('#trDesc');
+
+        const apiTransfer = (payload) => fetchJSON(BASE + 'api/transfers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        function closeFab() {
+            const fab = $('#fabButton');
+            const menu = $('#fabMenu');
+            menu?.classList.remove('active');
+            fab?.classList.remove('active');
+            fab?.setAttribute('aria-expanded', 'false');
+        }
+
+        function openTransferModal(fromAccountId = null) {
+            // data de hoje
+            if (trData && 'valueAsDate' in trData) trData.valueAsDate = new Date();
+            else if (trData) trData.value = new Date().toISOString().slice(0, 10);
+
+            trValor && (trValor.value = '');
+            trDesc && (trDesc.value = '');
+
+            // Modo header (sem origem fixa) → mostra select de origem
+            if (!fromAccountId) {
+                grpOrigemReadOnly.style.display = 'none';
+                grpOrigemSelect.style.display = '';
+                trOrigemId.value = '';
+                populateOrigemSelect().then(() => populateDestinoSelect());
+            } else {
+                // (Se você chamar com uma conta fixa no futuro)
+                grpOrigemReadOnly.style.display = '';
+                grpOrigemSelect.style.display = 'none';
+                trOrigemId.value = String(fromAccountId);
+                const c = (_lastRows || []).find(r => r.id === Number(fromAccountId));
+                trOrigemNome.value = c ? `${(c.instituicao || '').trim()}${c.instituicao ? ' — ' : ''}${(c.nome || '').trim()}` : '';
+                populateDestinoSelect(fromAccountId);
+            }
+
+            modalTr.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => trValor?.focus(), 40);
+        }
+
+        function closeTransferModal() {
+            modalTr.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        trClose?.addEventListener('click', closeTransferModal);
+        trCancel?.addEventListener('click', closeTransferModal);
+        modalTr?.addEventListener('click', (e) => { if (e.target === modalTr) closeTransferModal(); });
+
+        trValor?.addEventListener('blur', () => {
+            const v = parseMoney(trValor.value);
+            trValor.value = v ? brl(v) : '';
+        });
+
+        // Popula selects
+        async function populateOrigemSelect(selectedId = '') {
+            const opts = await ensureOptions();
+            const contas = Array.isArray(opts?.contas) ? opts.contas : [];
+            trOrigemIdSel.innerHTML = `<option value="">Selecione a conta de origem</option>`;
+            contas.forEach(c => {
+                const op = document.createElement('option');
+                op.value = c.id;
+                const inst = (c.instituicao || '').trim(), nome = (c.nome || '').trim();
+                op.textContent = inst && inst !== nome ? `${inst} (${nome})` : (inst || nome || '—');
+                if (String(c.id) === String(selectedId)) op.selected = true;
+                trOrigemIdSel.appendChild(op);
+            });
+        }
+
+        async function populateDestinoSelect(originId = '') {
+            const opts = await ensureOptions();
+            const contas = Array.isArray(opts?.contas) ? opts.contas : [];
+            trDestinoId.innerHTML = `<option value="">Selecione a conta de destino</option>`;
+            contas.forEach(c => {
+                if (originId && Number(c.id) === Number(originId)) return; // não permitir mesma conta
+                const op = document.createElement('option');
+                op.value = c.id;
+                const inst = (c.instituicao || '').trim(), nome = (c.nome || '').trim();
+                op.textContent = inst && inst !== nome ? `${inst} (${nome})` : (inst || nome || '—');
+                trDestinoId.appendChild(op);
+            });
+        }
+
+        // Quando trocar a origem (modo header), refaz o destino
+        trOrigemIdSel?.addEventListener('change', () => {
+            const oid = Number(trOrigemIdSel.value || 0);
+            populateDestinoSelect(oid);
+        });
+
+        // Clique no botão do header
+        btnTransferHeader?.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeFab();
+            openTransferModal(null);            // origem será escolhida no select
+        });
+
+        // Submit
+        formTr?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const origem = trOrigemId.value ? Number(trOrigemId.value) : Number(trOrigemIdSel.value);
+                const destino = Number(trDestinoId.value);
+                const valor = parseMoney(trValor.value);
+
+                if (!origem || !destino || origem === destino)
+                    return Swal.fire('Atenção', 'Selecione contas de origem e destino diferentes.', 'warning');
+                if (!trData.value || !valor || valor <= 0)
+                    return Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning');
+
+                await apiTransfer({
+                    data: trData.value,
+                    valor,
+                    conta_id: origem,
+                    conta_id_destino: destino,
+                    descricao: trDesc.value || null,
+                    observacao: null
+                });
+
+                Swal.fire({ icon: 'success', title: 'Transferência registrada!', timer: 1300, showConfirmButton: false });
+                closeTransferModal();
+                // atualiza UI
+                window.refreshDashboard && window.refreshDashboard();
+                window.refreshReports && window.refreshReports();
+                window.fetchLancamentos && window.fetchLancamentos();
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Erro', err.message || 'Falha ao salvar transferência.', 'error');
+            }
+        });
+
     });
 })();

@@ -51,7 +51,7 @@ class LancamentosController
     /**** DELETE /api/lancamentos/{id} ****/
     public function destroy(int $id): void
     {
-        $userId = \Application\Lib\Auth::id();
+        $userId = Auth::id();
 
         // Confere se é do usuário
         $row = \Illuminate\Database\Capsule\Manager::table('lancamentos')
@@ -60,7 +60,7 @@ class LancamentosController
             ->first();
 
         if (!$row) {
-            \Application\Core\Response::json(['status' => 'error', 'message' => 'Lançamento não encontrado'], 404);
+            Response::json(['status' => 'error', 'message' => 'Lançamento não encontrado'], 404);
             return;
         }
 
@@ -70,6 +70,6 @@ class LancamentosController
             ->where('user_id', $userId)
             ->delete();
 
-        \Application\Core\Response::json(['ok' => true]);
+        Response::json(['ok' => true]);
     }
 }

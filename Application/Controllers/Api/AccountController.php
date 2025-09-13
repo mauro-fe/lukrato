@@ -135,25 +135,22 @@ class AccountController
 
         $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-        if (array_key_exists('nome', $data))         $conta->nome = trim((string)$data['nome']);
-        if (array_key_exists('instituicao', $data))  $conta->instituicao = trim((string)$data['instituicao']);
-        if (array_key_exists('moeda', $data)) {
-            $moeda = strtoupper(trim((string)$data['moeda']));
-            $allowedMoedas = ['BRL', 'USD', 'EUR'];
-            $conta->moeda = in_array($moeda, $allowedMoedas, true) ? $moeda : 'BRL';
+        foreach (['nome', 'instituicao', 'moeda'] as $f) {
+            if (array_key_exists($f, $data)) $conta->{$f} = trim((string)$data[$f]);
         }
-        if (array_key_exists('saldo_inicial', $data)) $conta->saldo_inicial = round((float)$data['saldo_inicial'], 2);
+        if (array_key_exists('saldo_inicial', $data)) {
+            $conta->saldo_inicial = round((float)$data['saldo_inicial'], 2);
+        }
 
-        // novo: tipo_id (pode ser null)
-        if (array_key_exists('tipo_id', $data)) {
-            $conta->tipo_id = ($data['tipo_id'] === '' || $data['tipo_id'] === null)
-                ? null
-                : (int)$data['tipo_id'];
+        // 👇 permite toggle de status
+        if (array_key_exists('ativo', $data)) {
+            $conta->ativo = (int) !!$data['ativo'];
         }
 
         $conta->save();
-        Response::json(['ok' => true]);
+        Response::json(['ok' => true, 'ativo' => (bool)$conta->ativo]);
     }
+
 
     /** DELETE /api/accounts/{id}  (inativar) */
     public function destroy(int $id): void

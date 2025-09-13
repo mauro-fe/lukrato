@@ -231,4 +231,67 @@ class FinanceApiController
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function transfer(): void
+    {
+        try {
+            $uid  = \Application\Lib\Auth::id();
+            $data = json_decode(file_get_contents('php://input'), true) ?: [];
+
+            // -------- validações --------
+            $dataStr = (string)($data['data'] ?? date('Y-m-d'));
+            $dt = \DateTime::createFromFormat('Y-m-d', $dataStr);
+            if (!$dt || $dt->format('Y-m-d') !== $dataStr) {
+                Response::json(['status' => 'error', 'message' => 'Data inválida (YYYY-MM-DD).'], 422);
+                return;
+            }
+
+            // valor > 0
+            $valor = $data['valor'] ?? 0;
+            if (is_string($valor)) {
+                $s = str_replace(['R$', ' ', '.'], ['', '', ''], trim($valor));
+                $s = str_replace(',', '.', $s);
+                $valor = is_numeric($s) ? (float)$s : null;
+            }
+            if (!is_numeric($valor) || $valor <= 0) {
+                Response::json(['status' => 'error', 'message' => 'Valor inválido.'], 422);
+                return;
+            }
+            $valor = round((float)$valor, 2);
+
+            // contas
+            $origemId  = isset($data['conta_id']) ? (int)$data['conta_id'] : 0;
+            $destinoId = isset($data['conta_id_destino']) ? (int)$data['conta_id_destino'] : 0;
+
+            if ($origemId <= 0 || $destinoId <= 0 || $origemId === $destinoId) {
+                Response::json(['status' => 'error', 'message' => 'Selecione contas de origem e destino diferentes.'], 422);
+                return;
+            }
+
+            $origem  = \Application\Models\Conta::forUser($uid)->find($origemId);
+            $destino = \Application\Models\Conta::forUser($uid)->find($destinoId);
+            if (!$origem || !$destino) {
+                Response::json(['status' => 'error', 'message' => 'Conta de origem ou destino inválida.'], 422);
+                return;
+            }
+
+            // -------- gravação --------
+            $t = new Lancamento();
+            $t->user_id           = $uid;
+            $t->tipo              = Lancamento::TIPO_TRANSFERENCIA; // "transferencia"
+            $t->data              = $dataStr;
+            $t->categoria_id      = null;
+            $t->conta_id          = $origemId;        // origem
+            $t->conta_id_destino  = $destinoId;       // destino
+            $t->descricao         = isset($data['descricao'])  ? trim((string)$data['descricao'])  : null;
+            $t->observacao        = isset($data['observacao']) ? trim((string)$data['observacao']) : null;
+            $t->valor             = $valor;
+            $t->eh_transferencia  = 1;
+            $t->save();
+
+            Response::json(['ok' => true, 'id' => (int)$t->id]);
+        } catch (\Throwable $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

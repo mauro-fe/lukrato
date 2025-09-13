@@ -187,7 +187,10 @@ class ProfileApiController
                 ]
             ]);
         } catch (\Throwable $e) {
-            try { DB::connection()->rollBack(); } catch (\Throwable $_) {}
+            try {
+                DB::connection()->rollBack();
+            } catch (\Throwable $_) {
+            }
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }

@@ -118,6 +118,7 @@ $aria   = function (string $key) use ($menu) {
                                 <th>Conta</th>
                                 <th>Descrição</th>
                                 <th>Valor</th>
+                                <th class="text-end">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="transactionsTableBody"></tbody>
@@ -175,450 +176,609 @@ $aria   = function (string $key) use ($menu) {
 
 <?php if (function_exists('loadPageJs')) loadPageJs(); ?>
 <script>
-    (() => {
-        'use strict';
+(() => {
+    'use strict';
 
-        /* ============ BASE + helpers ============ */
-        const BASE = (() => {
-            const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-            let base = meta;
-            if (!base) {
-                const m = location.pathname.match(/^(.*\/public\/)/);
-                base = m ? (location.origin + m[1]) : (location.origin + '/');
-            }
-            if (base && !/\/public\/?$/.test(base)) {
-                const m2 = location.pathname.match(/^(.*\/public\/)/);
-                if (m2) base = location.origin + m2[1];
-            }
-            return base.replace(/\/?$/, '/');
-        })();
+    /* ============ BASE + helpers ============ */
+    const BASE = (() => {
+        const meta = document.querySelector('meta[name="base-url"]')?.content || '';
+        let base = meta;
+        if (!base) {
+            const m = location.pathname.match(/^(.*\/public\/)/);
+            base = m ? (location.origin + m[1]) : (location.origin + '/');
+        }
+        if (base && !/\/public\/?$/.test(base)) {
+            const m2 = location.pathname.match(/^(.*\/public\/)/);
+            if (m2) base = location.origin + m2[1];
+        }
+        return base.replace(/\/?$/, '/');
+    })();
 
-        const money = n => {
-            try {
-                return Number(n || 0).toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                });
-            } catch {
-                return 'R$ 0,00';
-            }
-        };
-
-        const dateBR = iso => {
-            if (!iso) return '—';
-            try {
-                const d = String(iso).split(/[T\s]/)[0];
-                const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
-            } catch {
-                return '—';
-            }
-        };
-
-        const $ = (s, sc = document) => sc.querySelector(s);
-
-        async function getJSON(url) {
-            const r = await fetch(url, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
+    const money = n => {
+        try {
+            return Number(n || 0).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
             });
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            const j = await r.json();
-            if (j?.error || j?.status === 'error') throw new Error(j?.message || j?.error || 'Erro na API');
-            return j;
+        } catch {
+            return 'R$ 0,00';
         }
+    };
 
-        // KPIs continuam iguais
-        const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
+    const dateBR = iso => {
+        if (!iso) return '—';
+        try {
+            const d = String(iso).split(/[T\s]/)[0];
+            const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
+        } catch {
+            return '—';
+        }
+    };
 
-        // NOVO: tenta /api/lancamentos primeiro; se falhar, cai para /api/dashboard/transactions
-        async function apiTransactionsSmart(m, l = 50) {
-            const urlLanc = `${BASE}api/lancamentos?month=${encodeURIComponent(m)}&limit=${l}`;
-            try {
-                const data = await getJSON(urlLanc);
-                // normaliza formato (array direto OU {items|data|lancamentos})
-                if (Array.isArray(data)) return data;
-                return data?.items || data?.data || data?.lancamentos || [];
-            } catch {
-                // fallback para o endpoint antigo do dashboard
-                const urlDash = `${BASE}api/dashboard/transactions?month=${encodeURIComponent(m)}&limit=${l}`;
-                return await getJSON(urlDash);
+    const $ = (s, sc = document) => sc.querySelector(s);
+
+    async function getJSON(url) {
+        const r = await fetch(url, {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
-        }
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        if (j?.error || j?.status === 'error') throw new Error(j?.message || j?.error || 'Erro na API');
+        return j;
+    }
+    // ---- SweetAlert2 helpers (carrega via CDN se não existir) ----
+    async function ensureSwal() {
+        if (window.Swal) return;
+        await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
 
-        /* ============ Controle de mês (igual ao seu) ============ */
-        const STORAGE_KEY = 'lukrato.month.dashboard';
-        const $label = $('#currentMonthText');
-        const btnOpen = $('#monthDropdownBtn');
-        const modalEl = $('#monthModal');
-        const mpYearLabel = $('#mpYearLabel');
-        const mpPrevYear = $('#mpPrevYear');
-        const mpNextYear = $('#mpNextYear');
-        const mpGrid = $('#mpGrid');
-        const mpTodayBtn = $('#mpTodayBtn');
-        const mpInput = $('#mpInputMonth');
-        const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    function toast(icon, title) {
+        window.Swal.fire({
+            toast: true,
+            position: 'top-end',
+            timer: 1700,
+            showConfirmButton: false,
+            icon,
+            title
+        });
+    }
 
-        let currentMonth = (() => {
+    // ---- API de exclusão: tenta DELETE e 2 fallbacks via POST ----
+    async function apiDeleteLancamento(id) {
+        const rawBase = (window.BASE_URL || '/').replace(/\/?$/, '/');
+        const tries = [{
+                url: `${rawBase}api/lancamentos/${id}`,
+                opt: {
+                    method: 'DELETE'
+                }
+            },
+            {
+                url: `${rawBase}index.php/api/lancamentos/${id}`,
+                opt: {
+                    method: 'DELETE'
+                }
+            },
+            {
+                url: `${rawBase}api/lancamentos/${id}/delete`,
+                opt: {
+                    method: 'POST'
+                }
+            },
+            {
+                url: `${rawBase}index.php/api/lancamentos/${id}/delete`,
+                opt: {
+                    method: 'POST'
+                }
+            },
+            {
+                url: `${rawBase}api/lancamentos/delete`,
+                opt: {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        id
+                    })
+                }
+            },
+            {
+                url: `${rawBase}index.php/api/lancamentos/delete`,
+                opt: {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        id
+                    })
+                }
+            },
+        ];
+        for (const t of tries) {
             try {
-                return (window.LukratoHeader?.getMonth?.()) || sessionStorage.getItem(STORAGE_KEY) || new Date().toISOString().slice(0, 7);
-            } catch {
-                return new Date().toISOString().slice(0, 7);
-            }
-        })();
-
-        let modalYear = (() => {
-            try {
-                return Number(currentMonth.split('-')[0]) || new Date().getFullYear();
-            } catch {
-                return new Date().getFullYear();
-            }
-        })();
-
-        function yymm(d) {
-            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        }
-
-        function makeMonthValue(y, i) {
-            return `${y}-${String(i+1).padStart(2,'0')}`;
-        }
-        const monthLabel = m => {
-            try {
-                const [y, mm] = String(m || '').split('-').map(Number);
-                return new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
-                    month: 'long',
-                    year: 'numeric'
+                const r = await fetch(t.url, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    ...t.opt
                 });
-            } catch {
-                return '—';
+                if (r.ok) return await r.json();
+                if (r.status !== 404) {
+                    const j = await r.json().catch(() => ({}));
+                    throw new Error(j?.message || `HTTP ${r.status}`);
+                }
+            } catch (_) {
+                /* tenta a próxima */
             }
-        };
-        const addMonths = (m, d) => {
-            try {
-                const [y, mm] = m.split('-').map(Number);
-                const dt = new Date(y, mm - 1 + d, 1);
-                return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
-            } catch {
-                return m;
-            }
-        };
-
-        function writeLabel() {
-            if ($label) $label.textContent = monthLabel(currentMonth);
         }
+        throw new Error('Endpoint de exclusão não encontrado. Verifique as rotas.');
+    }
 
-        function setLocalMonth(m, {
-            emit = true
-        } = {}) {
-            if (!/^\d{4}-\d{2}$/.test(m)) return;
-            currentMonth = m;
+
+    // KPIs continuam iguais
+    const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
+
+    // NOVO: tenta /api/lancamentos primeiro; se falhar, cai para /api/dashboard/transactions
+    async function apiTransactionsSmart(m, l = 50) {
+        const urlLanc = `${BASE}api/lancamentos?month=${encodeURIComponent(m)}&limit=${l}`;
+        try {
+            const data = await getJSON(urlLanc);
+            // normaliza formato (array direto OU {items|data|lancamentos})
+            if (Array.isArray(data)) return data;
+            return data?.items || data?.data || data?.lancamentos || [];
+        } catch {
+            // fallback para o endpoint antigo do dashboard
+            const urlDash = `${BASE}api/dashboard/transactions?month=${encodeURIComponent(m)}&limit=${l}`;
+            return await getJSON(urlDash);
+        }
+    }
+
+    /* ============ Controle de mês (igual ao seu) ============ */
+    const STORAGE_KEY = 'lukrato.month.dashboard';
+    const $label = $('#currentMonthText');
+    const btnOpen = $('#monthDropdownBtn');
+    const modalEl = $('#monthModal');
+    const mpYearLabel = $('#mpYearLabel');
+    const mpPrevYear = $('#mpPrevYear');
+    const mpNextYear = $('#mpNextYear');
+    const mpGrid = $('#mpGrid');
+    const mpTodayBtn = $('#mpTodayBtn');
+    const mpInput = $('#mpInputMonth');
+    const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    let currentMonth = (() => {
+        try {
+            return (window.LukratoHeader?.getMonth?.()) || sessionStorage.getItem(STORAGE_KEY) || new Date()
+                .toISOString().slice(0, 7);
+        } catch {
+            return new Date().toISOString().slice(0, 7);
+        }
+    })();
+
+    let modalYear = (() => {
+        try {
+            return Number(currentMonth.split('-')[0]) || new Date().getFullYear();
+        } catch {
+            return new Date().getFullYear();
+        }
+    })();
+
+    function yymm(d) {
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function makeMonthValue(y, i) {
+        return `${y}-${String(i+1).padStart(2,'0')}`;
+    }
+    const monthLabel = m => {
+        try {
+            const [y, mm] = String(m || '').split('-').map(Number);
+            return new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
+                month: 'long',
+                year: 'numeric'
+            });
+        } catch {
+            return '—';
+        }
+    };
+    const addMonths = (m, d) => {
+        try {
+            const [y, mm] = m.split('-').map(Number);
+            const dt = new Date(y, mm - 1 + d, 1);
+            return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+        } catch {
+            return m;
+        }
+    };
+
+    function writeLabel() {
+        if ($label) $label.textContent = monthLabel(currentMonth);
+    }
+
+    function setLocalMonth(m, {
+        emit = true
+    } = {}) {
+        if (!/^\d{4}-\d{2}$/.test(m)) return;
+        currentMonth = m;
+        try {
+            sessionStorage.setItem(STORAGE_KEY, m);
+        } catch {}
+        writeLabel();
+        if (emit) {
             try {
-                sessionStorage.setItem(STORAGE_KEY, m);
+                document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
+                    detail: {
+                        month: m
+                    }
+                }));
             } catch {}
-            writeLabel();
-            if (emit) {
-                try {
-                    document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
-                        detail: {
-                            month: m
-                        }
-                    }));
-                } catch {}
-            }
         }
+    }
 
-        function buildGrid() {
-            if (!mpYearLabel || !mpGrid) return;
-            mpYearLabel.textContent = modalYear;
-            let html = '';
-            for (let i = 0; i < 12; i++) {
-                const val = makeMonthValue(modalYear, i);
-                const isCurrent = val === currentMonth;
-                html += `<div class="col-4">
+    function buildGrid() {
+        if (!mpYearLabel || !mpGrid) return;
+        mpYearLabel.textContent = modalYear;
+        let html = '';
+        for (let i = 0; i < 12; i++) {
+            const val = makeMonthValue(modalYear, i);
+            const isCurrent = val === currentMonth;
+            html += `<div class="col-4">
         <button type="button" class="mp-month btn w-100 py-3 ${isCurrent?'btn-warning text-dark fw-bold':'btn-outline-light'}" data-val="${val}">
           ${MONTH_NAMES_SHORT[i]}
         </button>
       </div>`;
+        }
+        mpGrid.innerHTML = html;
+        mpGrid.querySelectorAll('.mp-month').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const v = btn.getAttribute('data-val');
+                if (!v) return;
+                try {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+                    }
+                } catch {}
+                setLocalMonth(v);
+                await renderAll();
+            });
+        });
+    }
+
+    mpPrevYear?.addEventListener('click', e => {
+        e.preventDefault();
+        modalYear--;
+        buildGrid();
+    });
+    mpNextYear?.addEventListener('click', e => {
+        e.preventDefault();
+        modalYear++;
+        buildGrid();
+    });
+    mpTodayBtn?.addEventListener('click', e => {
+        e.preventDefault();
+        const now = new Date();
+        const today = yymm(new Date(now.getFullYear(), now.getMonth(), 1));
+        try {
+            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+        } catch {}
+        setLocalMonth(today);
+        renderAll();
+    });
+    mpInput?.addEventListener('change', async e => {
+        const v = String(e.target.value || '');
+        if (!/^\d{4}-\d{2}$/.test(v)) return;
+        try {
+            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+        } catch {}
+        setLocalMonth(v);
+        await renderAll();
+    });
+    btnOpen?.addEventListener('click', e => {
+        e.preventDefault();
+        try {
+            modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
+            buildGrid();
+            if (mpInput) mpInput.value = currentMonth;
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(modalEl)?.show();
             }
-            mpGrid.innerHTML = html;
-            mpGrid.querySelectorAll('.mp-month').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const v = btn.getAttribute('data-val');
-                    if (!v) return;
-                    try {
-                        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
-                        }
-                    } catch {}
-                    setLocalMonth(v);
-                    await renderAll();
-                });
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    document.getElementById('prevMonth')?.addEventListener('click', async e => {
+        e.preventDefault();
+        setLocalMonth(addMonths(currentMonth, -1));
+        await renderAll();
+    });
+    document.getElementById('nextMonth')?.addEventListener('click', async e => {
+        e.preventDefault();
+        setLocalMonth(addMonths(currentMonth, +1));
+        await renderAll();
+    });
+    document.addEventListener('lukrato:month-changed', async e => {
+        try {
+            const m = e.detail?.month;
+            if (!m || m === currentMonth) return;
+            currentMonth = m;
+            writeLabel();
+            await renderAll();
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    /* ============ Renderizadores ============ */
+    async function renderKPIs() {
+        try {
+            const k = await apiMetrics(currentMonth);
+            const map = {
+                saldoValue: 'saldo',
+                receitasValue: 'receitas',
+                despesasValue: 'despesas',
+                totalReceitas: 'receitas',
+                totalDespesas: 'despesas',
+                resultadoMes: 'resultado',
+                saldoAcumulado: 'saldoAcumulado'
+            };
+            Object.entries(map).forEach(([id, key]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = money(k[key] || 0);
+            });
+        } catch (e) {
+            console.error('KPIs:', e);
+            ['saldoValue', 'receitasValue', 'despesasValue', 'totalReceitas', 'totalDespesas', 'resultadoMes',
+                'saldoAcumulado'
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = 'R$ 0,00';
             });
         }
+    }
 
-        mpPrevYear?.addEventListener('click', e => {
-            e.preventDefault();
-            modalYear--;
-            buildGrid();
-        });
-        mpNextYear?.addEventListener('click', e => {
-            e.preventDefault();
-            modalYear++;
-            buildGrid();
-        });
-        mpTodayBtn?.addEventListener('click', e => {
-            e.preventDefault();
-            const now = new Date();
-            const today = yymm(new Date(now.getFullYear(), now.getMonth(), 1));
-            try {
-                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
-            } catch {}
-            setLocalMonth(today);
-            renderAll();
-        });
-        mpInput?.addEventListener('change', async e => {
-            const v = String(e.target.value || '');
-            if (!/^\d{4}-\d{2}$/.test(v)) return;
-            try {
-                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
-            } catch {}
-            setLocalMonth(v);
-            await renderAll();
-        });
-        btnOpen?.addEventListener('click', e => {
-            e.preventDefault();
-            try {
-                modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
-                buildGrid();
-                if (mpInput) mpInput.value = currentMonth;
-                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                    bootstrap.Modal.getOrCreateInstance(modalEl)?.show();
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        });
+    // aceita string ("Sicredi") OU objetos com instituicao/nome, e formata transferência "origem → destino"
+    function getContaLabel(t) {
+        // se vier string pronta
+        if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim();
+        // preferir instituição, depois nome
+        const origem = t.conta_instituicao ?? t.conta_nome ?? t.conta?.instituicao ?? t.conta?.nome ?? null;
+        const destino = t.conta_destino_instituicao ?? t.conta_destino_nome ?? t.conta_destino?.instituicao ?? t
+            .conta_destino?.nome ?? null;
+        if (t.eh_transferencia && (origem || destino)) return `${origem || '—'} → ${destino || '—'}`;
+        // rótulo pronto do backend, se existir
+        if (t.conta_label && String(t.conta_label).trim()) return String(t.conta_label).trim();
+        return origem || '—';
+    }
 
-        document.getElementById('prevMonth')?.addEventListener('click', async e => {
-            e.preventDefault();
-            setLocalMonth(addMonths(currentMonth, -1));
-            await renderAll();
-        });
-        document.getElementById('nextMonth')?.addEventListener('click', async e => {
-            e.preventDefault();
-            setLocalMonth(addMonths(currentMonth, +1));
-            await renderAll();
-        });
-        document.addEventListener('lukrato:month-changed', async e => {
-            try {
-                const m = e.detail?.month;
-                if (!m || m === currentMonth) return;
-                currentMonth = m;
-                writeLabel();
-                await renderAll();
-            } catch (err) {
-                console.error(err);
-            }
-        });
+    async function renderTable() {
+        const tbody = document.querySelector('#transactionsTableBody');
+        const empty = document.querySelector('#emptyState');
+        const table = document.querySelector('#transactionsTable');
 
-        /* ============ Renderizadores ============ */
-        async function renderKPIs() {
-            try {
-                const k = await apiMetrics(currentMonth);
-                const map = {
-                    saldoValue: 'saldo',
-                    receitasValue: 'receitas',
-                    despesasValue: 'despesas',
-                    totalReceitas: 'receitas',
-                    totalDespesas: 'despesas',
-                    resultadoMes: 'resultado',
-                    saldoAcumulado: 'saldoAcumulado'
-                };
-                Object.entries(map).forEach(([id, key]) => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = money(k[key] || 0);
-                });
-            } catch (e) {
-                console.error('KPIs:', e);
-                ['saldoValue', 'receitasValue', 'despesasValue', 'totalReceitas', 'totalDespesas', 'resultadoMes', 'saldoAcumulado'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = 'R$ 0,00';
+
+        try {
+
+
+            const list = await apiTransactionsSmart(currentMonth, 50);
+            tbody.innerHTML = '';
+
+            const hasData = Array.isArray(list) && list.length > 0;
+            empty.style.display = hasData ? 'none' : 'block';
+            if (table) table.style.display = hasData ? 'table' : 'none';
+
+            if (hasData) {
+                list.forEach(t => {
+                    const tr = document.createElement('tr');
+                    const tipo = String(t.tipo || '').toLowerCase();
+                    const color = (tipo === 'receita') ? 'var(--verde, #27ae60)' :
+                        (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' :
+                            'var(--laranja, #f39c12)');
+                    const categoriaTxt = t.categoria_nome ?? (typeof t.categoria === 'string' ? t
+                        .categoria : t.categoria?.nome) ?? '—';
+                    const contaTxt = getContaLabel(t);
+                    // aceita categoria como string OU objeto
+
+
+                    tr.innerHTML = ` 
+                    <td>${dateBR(t.data)}</td>
+                    <td>${String(t.tipo||'').replace(/_/g,' ')}</td>
+                    <td>${categoriaTxt}</td>
+                    <td>${contaTxt}</td>
+                    <td>${t.descricao || t.observacao || '—'}</td>
+                    <td style="font-weight:700;color:${color}">${money(Number(t.valor)||0)}</td>
+                    <td class="text-end">
+                    <button class="lk-btn danger btn-del" title="Excluir" aria-label="Excluir">
+                    <i class="fas fa-trash"></i>
+                    </button>
+                    </td>`;
+                    tbody.appendChild(tr);
                 });
             }
+        } catch (e) {
+            console.error('Tabela:', e);
+            empty.style.display = 'block';
+            if (table) table.style.display = 'none';
         }
+    }
 
-        // aceita string ("Sicredi") OU objetos com instituicao/nome, e formata transferência "origem → destino"
-        function getContaLabel(t) {
-            // se vier string pronta
-            if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim();
-            // preferir instituição, depois nome
-            const origem = t.conta_instituicao ?? t.conta_nome ?? t.conta?.instituicao ?? t.conta?.nome ?? null;
-            const destino = t.conta_destino_instituicao ?? t.conta_destino_nome ?? t.conta_destino?.instituicao ?? t.conta_destino?.nome ?? null;
-            if (t.eh_transferencia && (origem || destino)) return `${origem || '—'} → ${destino || '—'}`;
-            // rótulo pronto do backend, se existir
-            if (t.conta_label && String(t.conta_label).trim()) return String(t.conta_label).trim();
-            return origem || '—';
+    // Clique no botão excluir dentro da tabela de "Últimos Lançamentos" (Dashboard)
+    document.getElementById('transactionsTableBody')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest?.('.btn-del');
+        if (!btn) return;
+
+        const tr = e.target.closest('tr');
+        const id = tr?.getAttribute('data-id');
+        if (!id) return;
+
+        try {
+            await ensureSwal();
+
+            const confirm = await Swal.fire({
+                title: 'Excluir lançamento?',
+                text: 'Essa ação não pode ser desfeita.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true,
+                focusCancel: true
+            });
+            if (!confirm.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Excluindo...',
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+
+            await apiDeleteLancamento(Number(id));
+
+            Swal.close();
+            toast('success', 'Lançamento excluído');
+
+            // remove a linha imediatamente para dar feedback…
+            tr.remove();
+
+            // …e atualiza os cards/ gráfico/ tabela
+            await window.refreshDashboard?.();
+            // avisa outras telas (como /lancamentos) que houve mudança
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
+        } catch (err) {
+            console.error(err);
+            await ensureSwal();
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: (err && err.message) || 'Falha ao excluir'
+            });
         }
+    });
 
-        async function renderTable() {
-            const tbody = document.querySelector('#transactionsTableBody');
-            const empty = document.querySelector('#emptyState');
-            const table = document.querySelector('#transactionsTable');
-            if (!tbody || !empty) return;
 
-            try {
-                const list = await apiTransactionsSmart(currentMonth, 50);
-                tbody.innerHTML = '';
-
-                const hasData = Array.isArray(list) && list.length > 0;
-                empty.style.display = hasData ? 'none' : 'block';
-                if (table) table.style.display = hasData ? 'table' : 'none';
-
-                if (hasData) {
-                    list.forEach(t => {
-                        const tr = document.createElement('tr');
-                        const tipo = String(t.tipo || '').toLowerCase();
-                        const color = (tipo === 'receita') ? 'var(--verde, #27ae60)' :
-                            (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' : 'var(--laranja, #f39c12)');
-
-                        // aceita categoria como string OU objeto
-                        const categoriaTxt = t.categoria_nome ?? (typeof t.categoria === 'string' ? t.categoria : t.categoria?.nome) ?? '—';
-                        const contaTxt = getContaLabel(t);
-
-                        tr.innerHTML = `
-            <td>${dateBR(t.data)}</td>
-            <td>${String(t.tipo||'').replace(/_/g,' ')}</td>
-            <td>${categoriaTxt}</td>
-            <td>${contaTxt}</td>
-            <td>${t.descricao || t.observacao || '—'}</td>
-            <td style="font-weight:700;text-align:right;color:${color}">${money(Number(t.valor)||0)}</td>`;
-                        tbody.appendChild(tr);
+    let chartInstance = null;
+    async function drawChart() {
+        const canvas = document.getElementById('evolutionChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        try {
+            const months = Array.from({
+                length: 6
+            }, (_, i) => {
+                const [y, m] = currentMonth.split('-').map(Number);
+                const d = new Date(y, m - 1 - (5 - i), 1);
+                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            });
+            const labels = months.map(m => {
+                try {
+                    const [yy, mm] = m.split('-').map(Number);
+                    return new Date(yy, mm - 1, 1).toLocaleDateString('pt-BR', {
+                        month: 'short'
                     });
+                } catch {
+                    return 'N/A';
                 }
-            } catch (e) {
-                console.error('Tabela:', e);
-                empty.style.display = 'block';
-                if (table) table.style.display = 'none';
-            }
-        }
-
-        let chartInstance = null;
-        async function drawChart() {
-            const canvas = document.getElementById('evolutionChart');
-            if (!canvas || typeof Chart === 'undefined') return;
-            try {
-                const months = Array.from({
-                    length: 6
-                }, (_, i) => {
-                    const [y, m] = currentMonth.split('-').map(Number);
-                    const d = new Date(y, m - 1 - (5 - i), 1);
-                    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                });
-                const labels = months.map(m => {
-                    try {
-                        const [yy, mm] = m.split('-').map(Number);
-                        return new Date(yy, mm - 1, 1).toLocaleDateString('pt-BR', {
-                            month: 'short'
-                        });
-                    } catch {
-                        return 'N/A';
+            });
+            const results = await Promise.allSettled(months.map(m => apiMetrics(m)));
+            const series = results.map(r => r.status === 'fulfilled' ? Number(r.value?.resultado || 0) : 0);
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 0, 300);
+            grad.addColorStop(0, 'rgba(230,126,34,0.35)');
+            grad.addColorStop(1, 'rgba(230,126,34,0.05)');
+            const data = {
+                labels,
+                datasets: [{
+                    label: 'Resultado do Mês',
+                    data: series,
+                    borderColor: '#E67E22',
+                    backgroundColor: grad,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#E67E22',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    tension: .35,
+                    fill: true
+                }]
+            };
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#2C3E50',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: (c) => money(c.parsed.y)
+                        }
                     }
-                });
-                const results = await Promise.allSettled(months.map(m => apiMetrics(m)));
-                const series = results.map(r => r.status === 'fulfilled' ? Number(r.value?.resultado || 0) : 0);
-                const ctx = canvas.getContext('2d');
-                const grad = ctx.createLinearGradient(0, 0, 0, 300);
-                grad.addColorStop(0, 'rgba(230,126,34,0.35)');
-                grad.addColorStop(1, 'rgba(230,126,34,0.05)');
-                const data = {
-                    labels,
-                    datasets: [{
-                        label: 'Resultado do Mês',
-                        data: series,
-                        borderColor: '#E67E22',
-                        backgroundColor: grad,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#E67E22',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        tension: .35,
-                        fill: true
-                    }]
-                };
-                const options = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(189,195,199,.16)'
                         },
-                        tooltip: {
-                            backgroundColor: '#2C3E50',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            displayColors: false,
-                            callbacks: {
-                                label: (c) => money(c.parsed.y)
-                            }
+                        ticks: {
+                            color: '#cfd8e3'
                         }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(189,195,199,.16)'
-                            },
-                            ticks: {
-                                color: '#cfd8e3'
-                            }
+                    y: {
+                        grid: {
+                            color: 'rgba(189,195,199,.16)'
                         },
-                        y: {
-                            grid: {
-                                color: 'rgba(189,195,199,.16)'
-                            },
-                            ticks: {
-                                color: '#cfd8e3',
-                                callback: v => money(v)
-                            }
+                        ticks: {
+                            color: '#cfd8e3',
+                            callback: v => money(v)
                         }
                     }
-                };
-                if (chartInstance) {
-                    chartInstance.data = data;
-                    chartInstance.options = options;
-                    chartInstance.update();
-                } else {
-                    chartInstance = new Chart(ctx, {
-                        type: 'line',
-                        data,
-                        options
-                    });
                 }
-            } catch (e) {
-                console.error('Gráfico:', e);
+            };
+            if (chartInstance) {
+                chartInstance.data = data;
+                chartInstance.options = options;
+                chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data,
+                    options
+                });
             }
+        } catch (e) {
+            console.error('Gráfico:', e);
         }
+    }
 
-        async function renderAll() {
+    async function renderAll() {
+        writeLabel();
+        await Promise.allSettled([renderKPIs(), renderTable(), drawChart()]);
+    }
+    window.refreshDashboard = renderAll;
+
+    /* Boot */
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', async () => {
             writeLabel();
-            await Promise.allSettled([renderKPIs(), renderTable(), drawChart()]);
-        }
-        window.refreshDashboard = renderAll;
-
-        /* Boot */
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', async () => {
-                writeLabel();
-                await renderAll();
-            });
-        } else {
-            setTimeout(async () => {
-                writeLabel();
-                await renderAll();
-            }, 100);
-        }
-    })();
+            await renderAll();
+        });
+    } else {
+        setTimeout(async () => {
+            writeLabel();
+            await renderAll();
+        }, 100);
+    }
+})();
 </script>
