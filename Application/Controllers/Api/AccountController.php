@@ -64,7 +64,7 @@ class AccountController
                 $i = (float)($tin[$cid]  ?? 0);
                 $o = (float)($tout[$cid] ?? 0);
                 $extras[$cid] = [
-                    'saldoAtual'  => $r - $d + $i - $o, // sem saldo_inicial (vamos somar abaixo por conta)
+                    'saldoAtual'  => $r - $d + $i - $o,
                     'entradasMes' => $r + $i,
                     'saidasMes'   => $d + $o,
                 ];
@@ -78,13 +78,12 @@ class AccountController
                 'nome'         => (string)($c->nome ?? ''),
                 'instituicao'  => (string)($c->instituicao ?? ''),
                 'moeda'        => (string)($c->moeda ?? 'BRL'),
-                'saldoInicial' => (float) ($c->saldo_inicial ?? 0),
+                'saldoInicial' => (float) ($c->saldo_inicial ?? 0), // manter para exibir no card, mas NÃO somar
                 'tipo_id'      => $c->tipo_id !== null ? (int)$c->tipo_id : null,
                 'ativo'        => (bool)  $c->ativo,
             ];
             if (isset($extras[$cid])) {
-                // saldo atual = saldo_inicial + movimentos acumulados
-                $base['saldoAtual']  = $base['saldoInicial'] + (float)$extras[$cid]['saldoAtual'];
+                $base['saldoAtual']  = (float)$extras[$cid]['saldoAtual']; // <— sem somar saldoInicial
                 $base['entradasMes'] = (float)$extras[$cid]['entradasMes'];
                 $base['saidasMes']   = (float)$extras[$cid]['saidasMes'];
             }

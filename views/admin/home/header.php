@@ -27,6 +27,57 @@ $base = BASE_URL;
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-home-header'); ?>
+
+    <style>
+        /* =========================================================
+ * Modal (LK)
+ * =======================================================*/
+        .lkh-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .lkh-modal.active {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lkh-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .lkh-modal-content {
+            position: relative;
+            left: 30%;
+            background: var(--color-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: var(--transition-normal);
+            z-index: 1;
+            color: var(--color-text);
+        }
+
+        .lkh-modal.active .lkh-modal-content {
+            transform: scale(1);
+        }
+    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">

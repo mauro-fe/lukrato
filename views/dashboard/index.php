@@ -199,7 +199,7 @@ $aria   = function (string $key) use ($menu) {
                     style: 'currency',
                     currency: 'BRL'
                 });
-            } catch (e) {
+            } catch {
                 return 'R$ 0,00';
             }
         };
@@ -207,9 +207,10 @@ $aria   = function (string $key) use ($menu) {
         const dateBR = iso => {
             if (!iso) return '—';
             try {
-                const m = String(iso).split(/[T\s]/)[0].match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                const d = String(iso).split(/[T\s]/)[0];
+                const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
                 return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
-            } catch (e) {
+            } catch {
                 return '—';
             }
         };
@@ -217,66 +218,54 @@ $aria   = function (string $key) use ($menu) {
         const $ = (s, sc = document) => sc.querySelector(s);
 
         async function getJSON(url) {
+            const r = await fetch(url, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const j = await r.json();
+            if (j?.error || j?.status === 'error') throw new Error(j?.message || j?.error || 'Erro na API');
+            return j;
+        }
+
+        // KPIs continuam iguais
+        const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
+
+        // NOVO: tenta /api/lancamentos primeiro; se falhar, cai para /api/dashboard/transactions
+        async function apiTransactionsSmart(m, l = 50) {
+            const urlLanc = `${BASE}api/lancamentos?month=${encodeURIComponent(m)}&limit=${l}`;
             try {
-                const r = await fetch(url, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!r.ok) {
-                    throw new Error(`HTTP ${r.status}`);
-                }
-
-                const j = await r.json();
-                if (j?.error || j?.status === 'error') {
-                    throw new Error(j?.message || j?.error || 'Erro na resposta da API');
-                }
-                return j;
-            } catch (e) {
-                console.error('Erro na requisição:', e);
-                throw e;
+                const data = await getJSON(urlLanc);
+                // normaliza formato (array direto OU {items|data|lancamentos})
+                if (Array.isArray(data)) return data;
+                return data?.items || data?.data || data?.lancamentos || [];
+            } catch {
+                // fallback para o endpoint antigo do dashboard
+                const urlDash = `${BASE}api/dashboard/transactions?month=${encodeURIComponent(m)}&limit=${l}`;
+                return await getJSON(urlDash);
             }
         }
 
-        const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
-        const apiTransactions = (m, l = 50) => getJSON(
-            `${BASE}api/dashboard/transactions?month=${encodeURIComponent(m)}&limit=${l}`);
-
-        /* ============ Controle de mês ============ */
+        /* ============ Controle de mês (igual ao seu) ============ */
         const STORAGE_KEY = 'lukrato.month.dashboard';
-
-        // elementos
         const $label = $('#currentMonthText');
-        const $prev = $('#prevMonth');
-        const $next = $('#nextMonth');
         const btnOpen = $('#monthDropdownBtn');
         const modalEl = $('#monthModal');
-
-        if (!btnOpen || !modalEl) {
-            console.warn('Elementos do modal não encontrados');
-            return;
-        }
-
-        // elementos do modal
         const mpYearLabel = $('#mpYearLabel');
         const mpPrevYear = $('#mpPrevYear');
         const mpNextYear = $('#mpNextYear');
         const mpGrid = $('#mpGrid');
         const mpTodayBtn = $('#mpTodayBtn');
         const mpInput = $('#mpInputMonth');
-
         const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-        // fonte de verdade inicial
         let currentMonth = (() => {
             try {
-                return (window.LukratoHeader?.getMonth?.()) ||
-                    sessionStorage.getItem(STORAGE_KEY) ||
-                    new Date().toISOString().slice(0, 7);
-            } catch (e) {
+                return (window.LukratoHeader?.getMonth?.()) || sessionStorage.getItem(STORAGE_KEY) || new Date().toISOString().slice(0, 7);
+            } catch {
                 return new Date().toISOString().slice(0, 7);
             }
         })();
@@ -284,7 +273,7 @@ $aria   = function (string $key) use ($menu) {
         let modalYear = (() => {
             try {
                 return Number(currentMonth.split('-')[0]) || new Date().getFullYear();
-            } catch (e) {
+            } catch {
                 return new Date().getFullYear();
             }
         })();
@@ -293,228 +282,146 @@ $aria   = function (string $key) use ($menu) {
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
         }
 
-        function makeMonthValue(year, mIndex) { // mIndex 0..11
-            return `${year}-${String(mIndex+1).padStart(2,'0')}`;
+        function makeMonthValue(y, i) {
+            return `${y}-${String(i+1).padStart(2,'0')}`;
         }
-
-        const monthLabel = (m) => {
+        const monthLabel = m => {
             try {
                 const [y, mm] = String(m || '').split('-').map(Number);
-                if (!y || !mm || mm < 1 || mm > 12) return '—';
                 return new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
                     month: 'long',
                     year: 'numeric'
                 });
-            } catch (e) {
+            } catch {
                 return '—';
             }
         };
-
-        const addMonths = (m, delta) => {
+        const addMonths = (m, d) => {
             try {
                 const [y, mm] = m.split('-').map(Number);
-                const d = new Date(y, mm - 1 + delta, 1);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            } catch (e) {
-                return m; // retorna o mês original em caso de erro
+                const dt = new Date(y, mm - 1 + d, 1);
+                return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+            } catch {
+                return m;
             }
         };
 
         function writeLabel() {
-            if ($label) {
-                const label = monthLabel(currentMonth);
-                $label.textContent = label;
-            }
+            if ($label) $label.textContent = monthLabel(currentMonth);
         }
 
         function setLocalMonth(m, {
             emit = true
         } = {}) {
-            if (!m || !/^\d{4}-\d{2}$/.test(m)) {
-                console.warn('Formato de mês inválido:', m);
-                return;
-            }
-
+            if (!/^\d{4}-\d{2}$/.test(m)) return;
             currentMonth = m;
             try {
-                sessionStorage.setItem(STORAGE_KEY, currentMonth);
-            } catch (e) {
-                console.warn('Erro ao salvar no sessionStorage:', e);
-            }
-
+                sessionStorage.setItem(STORAGE_KEY, m);
+            } catch {}
             writeLabel();
-
             if (emit) {
                 try {
                     document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
                         detail: {
-                            month: currentMonth
+                            month: m
                         }
                     }));
-                } catch (e) {
-                    console.warn('Erro ao disparar evento:', e);
-                }
+                } catch {}
             }
         }
 
         function buildGrid() {
             if (!mpYearLabel || !mpGrid) return;
-
             mpYearLabel.textContent = modalYear;
-
-            // monta 12 cards de mês (3 col x 4 rows)
             let html = '';
             for (let i = 0; i < 12; i++) {
                 const val = makeMonthValue(modalYear, i);
                 const isCurrent = val === currentMonth;
-                html += `
-                    <div class="col-4">
-                        <button type="button"
-                            class="mp-month btn w-100 py-3 ${isCurrent ? 'btn-warning text-dark fw-bold' : 'btn-outline-light'}"
-                            data-val="${val}">
-                            ${MONTH_NAMES_SHORT[i]}
-                        </button>
-                    </div>`;
+                html += `<div class="col-4">
+        <button type="button" class="mp-month btn w-100 py-3 ${isCurrent?'btn-warning text-dark fw-bold':'btn-outline-light'}" data-val="${val}">
+          ${MONTH_NAMES_SHORT[i]}
+        </button>
+      </div>`;
             }
             mpGrid.innerHTML = html;
-
-            // listeners
             mpGrid.querySelectorAll('.mp-month').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.preventDefault();
+                btn.addEventListener('click', async () => {
                     const v = btn.getAttribute('data-val');
                     if (!v) return;
-
-                    // fecha modal
                     try {
                         if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                            const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
-                            inst?.hide();
+                            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
                         }
-                    } catch (e) {
-                        console.warn('Bootstrap Modal não disponível:', e);
-                    }
-
+                    } catch {}
                     setLocalMonth(v);
                     await renderAll();
                 });
             });
         }
 
-        function setToday() {
-            try {
-                const now = new Date();
-                const todayFirst = new Date(now.getFullYear(), now.getMonth(), 1);
-                const todayVal = yymm(todayFirst);
-
-                // fecha modal
-                try {
-                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                        const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
-                        inst?.hide();
-                    }
-                } catch (e) {
-                    console.warn('Bootstrap Modal não disponível:', e);
-                }
-
-                setLocalMonth(todayVal);
-                renderAll();
-            } catch (e) {
-                console.error('Erro ao definir mês atual:', e);
-            }
-        }
-
-        // input type=month -> integra direto
-        function syncInput() {
-            if (mpInput) {
-                mpInput.value = currentMonth;
-            }
-        }
-
-        // Event listeners
-        mpPrevYear?.addEventListener('click', (e) => {
+        mpPrevYear?.addEventListener('click', e => {
             e.preventDefault();
             modalYear--;
             buildGrid();
         });
-
-        mpNextYear?.addEventListener('click', (e) => {
+        mpNextYear?.addEventListener('click', e => {
             e.preventDefault();
             modalYear++;
             buildGrid();
         });
-
-        mpTodayBtn?.addEventListener('click', (e) => {
+        mpTodayBtn?.addEventListener('click', e => {
             e.preventDefault();
-            setToday();
+            const now = new Date();
+            const today = yymm(new Date(now.getFullYear(), now.getMonth(), 1));
+            try {
+                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+            } catch {}
+            setLocalMonth(today);
+            renderAll();
         });
-
-        mpInput?.addEventListener('change', async (e) => {
+        mpInput?.addEventListener('change', async e => {
             const v = String(e.target.value || '');
             if (!/^\d{4}-\d{2}$/.test(v)) return;
-
             try {
-                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                    const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    inst?.hide();
-                }
-            } catch (e) {
-                console.warn('Bootstrap Modal não disponível:', e);
-            }
-
+                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+            } catch {}
             setLocalMonth(v);
             await renderAll();
         });
-
-        // abrir modal no clique do botão
-        btnOpen?.addEventListener('click', (ev) => {
-            ev.preventDefault();
-
+        btnOpen?.addEventListener('click', e => {
+            e.preventDefault();
             try {
                 modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
                 buildGrid();
-                syncInput();
-
+                if (mpInput) mpInput.value = currentMonth;
                 if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                    const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    inst?.show();
-                } else {
-                    console.warn('Bootstrap 5 não detectado. Inclua JS do Bootstrap para o modal funcionar.');
+                    bootstrap.Modal.getOrCreateInstance(modalEl)?.show();
                 }
-            } catch (e) {
-                console.error('Erro ao abrir modal:', e);
+            } catch (err) {
+                console.error(err);
             }
         });
 
-        // navegação por botões se não houver LukratoHeader
-        $prev?.addEventListener('click', async (e) => {
+        document.getElementById('prevMonth')?.addEventListener('click', async e => {
             e.preventDefault();
             setLocalMonth(addMonths(currentMonth, -1));
             await renderAll();
         });
-
-        $next?.addEventListener('click', async (e) => {
+        document.getElementById('nextMonth')?.addEventListener('click', async e => {
             e.preventDefault();
             setLocalMonth(addMonths(currentMonth, +1));
             await renderAll();
         });
-
-        // se houver LukratoHeader, só ouvimos
-        document.addEventListener('lukrato:month-changed', async (e) => {
+        document.addEventListener('lukrato:month-changed', async e => {
             try {
-                const newMonth = e.detail?.month;
-                if (!newMonth || newMonth === currentMonth) return;
-                currentMonth = newMonth;
+                const m = e.detail?.month;
+                if (!m || m === currentMonth) return;
+                currentMonth = m;
                 writeLabel();
                 await renderAll();
             } catch (err) {
-                console.error('Erro ao processar mudança de mês:', err);
+                console.error(err);
             }
-        });
-
-        // se mês mudar por outro lugar, mantém coerência interna
-        document.addEventListener('lukrato:month-changed', () => {
-            syncInput();
         });
 
         /* ============ Renderizadores ============ */
@@ -528,38 +435,42 @@ $aria   = function (string $key) use ($menu) {
                     totalReceitas: 'receitas',
                     totalDespesas: 'despesas',
                     resultadoMes: 'resultado',
-                    saldoAcumulado: 'saldoAcumulado',
+                    saldoAcumulado: 'saldoAcumulado'
                 };
-
                 Object.entries(map).forEach(([id, key]) => {
                     const el = document.getElementById(id);
-                    if (el) {
-                        el.textContent = money(k[key] || 0);
-                    }
+                    if (el) el.textContent = money(k[key] || 0);
                 });
             } catch (e) {
-                console.error('Erro ao renderizar KPIs:', e);
-
-                // Fallback: zerar valores em caso de erro
-                const ids = ['saldoValue', 'receitasValue', 'despesasValue', 'totalReceitas', 'totalDespesas',
-                    'resultadoMes', 'saldoAcumulado'
-                ];
-                ids.forEach(id => {
+                console.error('KPIs:', e);
+                ['saldoValue', 'receitasValue', 'despesasValue', 'totalReceitas', 'totalDespesas', 'resultadoMes', 'saldoAcumulado'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = 'R$ 0,00';
                 });
             }
         }
 
-        async function renderTable() {
-            const tbody = $('#transactionsTableBody');
-            const empty = $('#emptyState');
-            const table = $('#transactionsTable');
+        // aceita string ("Sicredi") OU objetos com instituicao/nome, e formata transferência "origem → destino"
+        function getContaLabel(t) {
+            // se vier string pronta
+            if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim();
+            // preferir instituição, depois nome
+            const origem = t.conta_instituicao ?? t.conta_nome ?? t.conta?.instituicao ?? t.conta?.nome ?? null;
+            const destino = t.conta_destino_instituicao ?? t.conta_destino_nome ?? t.conta_destino?.instituicao ?? t.conta_destino?.nome ?? null;
+            if (t.eh_transferencia && (origem || destino)) return `${origem || '—'} → ${destino || '—'}`;
+            // rótulo pronto do backend, se existir
+            if (t.conta_label && String(t.conta_label).trim()) return String(t.conta_label).trim();
+            return origem || '—';
+        }
 
+        async function renderTable() {
+            const tbody = document.querySelector('#transactionsTableBody');
+            const empty = document.querySelector('#emptyState');
+            const table = document.querySelector('#transactionsTable');
             if (!tbody || !empty) return;
 
             try {
-                const list = await apiTransactions(currentMonth, 50);
+                const list = await apiTransactionsSmart(currentMonth, 50);
                 tbody.innerHTML = '';
 
                 const hasData = Array.isArray(list) && list.length > 0;
@@ -570,23 +481,25 @@ $aria   = function (string $key) use ($menu) {
                     list.forEach(t => {
                         const tr = document.createElement('tr');
                         const tipo = String(t.tipo || '').toLowerCase();
-                        const color = tipo === 'receita' ? 'var(--verde, #27ae60)' :
-                            (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' :
-                                'var(--laranja, #f39c12)');
+                        const color = (tipo === 'receita') ? 'var(--verde, #27ae60)' :
+                            (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' : 'var(--laranja, #f39c12)');
 
-                        tr.innerHTML =
-                            `
-                            <td>${dateBR(t.data)}</td>
-                            <td>${String(t.tipo||'').replace(/_/g,' ')}</td>
-                            <td>${t.categoria?.nome || '—'}</td>
-                            <td>${t.conta?.nome || '—'}</td>
-                            <td>${t.descricao || t.observacao || '—'}</td>
-                            <td style="font-weight:700;text-align:right;color:${color}">${money(Number(t.valor)||0)}</td>`;
+                        // aceita categoria como string OU objeto
+                        const categoriaTxt = t.categoria_nome ?? (typeof t.categoria === 'string' ? t.categoria : t.categoria?.nome) ?? '—';
+                        const contaTxt = getContaLabel(t);
+
+                        tr.innerHTML = `
+            <td>${dateBR(t.data)}</td>
+            <td>${String(t.tipo||'').replace(/_/g,' ')}</td>
+            <td>${categoriaTxt}</td>
+            <td>${contaTxt}</td>
+            <td>${t.descricao || t.observacao || '—'}</td>
+            <td style="font-weight:700;text-align:right;color:${color}">${money(Number(t.valor)||0)}</td>`;
                         tbody.appendChild(tr);
                     });
                 }
             } catch (e) {
-                console.error('Erro ao renderizar tabela:', e);
+                console.error('Tabela:', e);
                 empty.style.display = 'block';
                 if (table) table.style.display = 'none';
             }
@@ -595,50 +508,31 @@ $aria   = function (string $key) use ($menu) {
         let chartInstance = null;
         async function drawChart() {
             const canvas = document.getElementById('evolutionChart');
-            if (!canvas) return;
-
-            if (typeof Chart === 'undefined') {
-                console.warn('Chart.js não carregado');
-                return;
-            }
-
+            if (!canvas || typeof Chart === 'undefined') return;
             try {
-                // últimos 6 meses relativos ao currentMonth
                 const months = Array.from({
                     length: 6
                 }, (_, i) => {
                     const [y, m] = currentMonth.split('-').map(Number);
                     const d = new Date(y, m - 1 - (5 - i), 1);
-                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 });
-
                 const labels = months.map(m => {
                     try {
-                        const [y, mm] = m.split('-').map(Number);
-                        return new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
+                        const [yy, mm] = m.split('-').map(Number);
+                        return new Date(yy, mm - 1, 1).toLocaleDateString('pt-BR', {
                             month: 'short'
                         });
-                    } catch (e) {
+                    } catch {
                         return 'N/A';
                     }
                 });
-
-                const results = await Promise.allSettled(
-                    months.map(m => apiMetrics(m))
-                );
-
-                const series = results.map(result => {
-                    if (result.status === 'fulfilled') {
-                        return Number(result.value?.resultado || 0);
-                    }
-                    return 0;
-                });
-
+                const results = await Promise.allSettled(months.map(m => apiMetrics(m)));
+                const series = results.map(r => r.status === 'fulfilled' ? Number(r.value?.resultado || 0) : 0);
                 const ctx = canvas.getContext('2d');
                 const grad = ctx.createLinearGradient(0, 0, 0, 300);
                 grad.addColorStop(0, 'rgba(230,126,34,0.35)');
                 grad.addColorStop(1, 'rgba(230,126,34,0.05)');
-
                 const data = {
                     labels,
                     datasets: [{
@@ -655,7 +549,6 @@ $aria   = function (string $key) use ($menu) {
                         fill: true
                     }]
                 };
-
                 const options = {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -693,7 +586,6 @@ $aria   = function (string $key) use ($menu) {
                         }
                     }
                 };
-
                 if (chartInstance) {
                     chartInstance.data = data;
                     chartInstance.options = options;
@@ -701,36 +593,28 @@ $aria   = function (string $key) use ($menu) {
                 } else {
                     chartInstance = new Chart(ctx, {
                         type: 'line',
-                        data: data,
-                        options: options
+                        data,
+                        options
                     });
                 }
             } catch (e) {
-                console.error('Erro ao renderizar gráfico:', e);
+                console.error('Gráfico:', e);
             }
         }
 
         async function renderAll() {
             writeLabel();
-            await Promise.allSettled([
-                renderKPIs(),
-                renderTable(),
-                drawChart()
-            ]);
+            await Promise.allSettled([renderKPIs(), renderTable(), drawChart()]);
         }
-
-        // Expor para uso externo
         window.refreshDashboard = renderAll;
 
-        /* ============ Boot ============ */
-        // Aguardar carregamento completo
+        /* Boot */
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', async () => {
                 writeLabel();
                 await renderAll();
             });
         } else {
-            // DOM já carregado
             setTimeout(async () => {
                 writeLabel();
                 await renderAll();

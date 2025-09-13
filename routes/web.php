@@ -50,20 +50,22 @@ function registerSimpleRoutes(): void
     // Dashboard / páginas simples
     Router::add('GET', 'dashboard',    'Admin\DashboardController@dashboard', ['auth']);
     Router::add('GET', 'lancamentos',  'Admin\LancamentoController@index',    ['auth']);
-    Router::add('GET', 'relatorios',   'RelatoriosController@view',           ['auth']);
+    Router::add('GET', 'relatorios',   'Admin\RelatoriosController@view',           ['auth']);
 
     Router::add('GET',  'config',      'Admin\ConfigController@index', ['auth']);
     Router::add('POST', 'api/config',  'Api\ConfigController@update',  ['auth', 'csrf']);
 
     // API Dashboard/Reports já existentes
     Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
-    Router::add('GET',  'api/dashboard/transactions',  'Api\FinanceApiController@transactions', ['auth']);
     Router::add('GET',  'api/options',                 'Api\FinanceApiController@options',      ['auth']);
     Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']);
-    Router::add('GET',  'api/reports/overview',        'RelatoriosController@overview',         ['auth']);
-    Router::add('GET',  'api/reports/table',           'RelatoriosController@table',            ['auth']);
-    Router::add('GET',  'api/reports/timeseries',      'RelatoriosController@timeseries',       ['auth']);
+    Router::add('GET',  'api/reports/overview',        'Api\RelatoriosController@overview',         ['auth']);
+    Router::add('GET',  'api/reports/table',           'Api\RelatoriosController@table',            ['auth']);
+    Router::add('GET',  'api/reports/timeseries',      'Api\RelatoriosController@timeseries',       ['auth']);
     Router::add('GET',  'api/reports',                 'Api\ReportController@index',            ['auth']); // compat
+    Router::add('GET',  'api/lancamentos',             'Api\LancamentosController@index');
+    Router::add('POST', 'api/lancamentos/{id}/delete', 'Api\LancamentosController@destroy');
+
 
     // Página Contas
     Router::add('GET', 'contas', 'Admin\AccountsController@index', ['auth']);

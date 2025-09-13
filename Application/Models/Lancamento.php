@@ -21,16 +21,16 @@ class Lancamento extends Model
     // ---------------------------
     protected $fillable = [
         'user_id',
-        'tipo',                // 'receita' | 'despesa' | 'transferencia' (se usar)
+        'tipo',
         'data',
         'categoria_id',
         'conta_id',
-        'conta_id_destino',    // p/ transferências
+        'conta_id_destino',
         'descricao',
         'observacao',
         'valor',
-        'eh_transferencia',    // 0/1
-        // 'pago',              // se existir na sua tabela
+        'eh_transferencia',
+        'eh_saldo_inicial', // <— NOVO
     ];
 
     protected $casts = [
@@ -41,6 +41,7 @@ class Lancamento extends Model
         'data'              => 'date:Y-m-d',
         'valor'             => 'float',
         'eh_transferencia'  => 'bool',
+        'eh_saldo_inicial'  => 'bool', // <— NOVO
     ];
 
     // ---------------------------
@@ -174,5 +175,14 @@ class Lancamento extends Model
             return +1 * (float)$this->valor; // entrou na conta destino
         }
         return 0.0;
+    }
+    public function getContaNomeAttribute(): string
+    {
+        // carrega relacionamento se ainda não veio
+        $conta = $this->relationLoaded('conta') ? $this->conta : $this->conta()->first();
+        if ($conta) {
+            return $conta->nome ?: ($conta->instituicao ?: '—');
+        }
+        return '—';
     }
 }

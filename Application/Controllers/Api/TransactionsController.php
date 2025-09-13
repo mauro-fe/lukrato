@@ -3,68 +3,104 @@
 namespace Application\Controllers\Api;
 
 use Application\Core\Response;
-use Application\Models\Lancamento;
-use Application\Models\Conta;
-use Application\Models\Categoria;
 use Application\Lib\Auth;
+use Illuminate\Database\Capsule\Manager as DB;
 
 class TransactionsController
 {
-    /** POST /api/transactions */
-    public function store(): void
+    /**
+     * GET /api/transactions?month=YYYY-MM&limit=N[&account_id=]
+     * Retorna lançamentos do mês com:
+     * - categoria (objeto)
+     * - conta (objeto)
+     * - conta_destino (objeto, quando houver)
+     * - conta_nome / conta_destino_nome (campos planos)
+     * - conta_label (ex.: "Sicoob → Banco do Brasil" para transferências)
+     */
+    public function index(): void
     {
         $userId = Auth::id();
-        $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-        // validações básicas
-        $tipo  = strtolower(trim((string)($data['tipo'] ?? '')));
-        if (!in_array($tipo, [Lancamento::TIPO_RECEITA, Lancamento::TIPO_DESPESA], true)) {
-            Response::json(['status'=>'error','message'=>'Tipo inválido.'], 422); return;
+        $month = trim($_GET['month'] ?? date('Y-m'));
+        $dt = \DateTime::createFromFormat('Y-m', $month);
+        if (!$dt || $dt->format('Y-m') !== $month) {
+            $month = date('Y-m');
+            $dt = new \DateTime("$month-01");
         }
+        $from = $dt->format('Y-m-01');
+        $to   = $dt->format('Y-m-t');
 
-        $dt = trim((string)($data['data'] ?? ''));
-        if (!$dt || !\DateTime::createFromFormat('Y-m-d', $dt)) {
-            Response::json(['status'=>'error','message'=>'Data inválida (use YYYY-MM-DD).'], 422); return;
-        }
+        $limit = (int)($_GET['limit'] ?? 100);
+        $limit = max(1, min($limit, 1000));
 
-        $valor = (float)($data['valor'] ?? 0);
-        if ($valor <= 0) {
-            Response::json(['status'=>'error','message'=>'Valor deve ser maior que zero.'], 422); return;
-        }
+        $acc   = $_GET['account_id'] ?? null;
+        $accId = ($acc === '' || $acc === null) ? null : (int)$acc;
 
-        // conta é opcional, mas se vier precisa ser do usuário
-        $contaId = isset($data['conta_id']) ? (int)$data['conta_id'] : null;
-        if ($contaId) {
-            $conta = Conta::forUser($userId)->find($contaId);
-            if (!$conta) {
-                Response::json(['status'=>'error','message'=>'Conta inválida.'], 422); return;
-            }
-        }
+        $q = DB::table('lancamentos as l')
+            ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
+            ->leftJoin('contas as co', 'co.id', '=', 'l.conta_id')             // conta origem
+            ->leftJoin('contas as cd', 'cd.id', '=', 'l.conta_id_destino')     // conta destino
+            ->where('l.user_id', $userId)
+            ->whereBetween('l.data', [$from, $to])
+            ->when($accId, function ($w) use ($accId) {
+                // mostra lançamentos da conta e transferências em que ela participa
+                $w->where(function ($s) use ($accId) {
+                    $s->where('l.conta_id', $accId)->orWhere('l.conta_id_destino', $accId);
+                });
+            })
+            ->orderBy('l.data', 'desc')
+            ->orderBy('l.id', 'desc')
+            ->limit($limit)
+            ->selectRaw('
+                l.id, l.data, l.tipo, l.valor, l.descricao, l.observacao, l.eh_transferencia,
+                l.categoria_id, l.conta_id, l.conta_id_destino,
+                COALESCE(c.nome, "—")                         as categoria_nome,
+                COALESCE(co.nome, co.instituicao, "—")        as conta_origem_nome,
+                COALESCE(cd.nome, cd.instituicao, "—")        as conta_destino_nome
+            ');
 
-        // categoria opcional, se vier valida dono
-        $categoriaId = isset($data['categoria_id']) ? (int)$data['categoria_id'] : null;
-        if ($categoriaId) {
-            $cat = Categoria::forUser($userId)->find($categoriaId);
-            if (!$cat) $categoriaId = null; // ignora se não for do usuário
-        }
+        $rows = $q->get();
 
-        $lan = new Lancamento([
-            'user_id'          => $userId,
-            'tipo'             => $tipo,            // 'receita' | 'despesa'
-            'data'             => $dt,
-            'valor'            => $valor,           // mutator já normaliza string BR
-            'categoria_id'     => $categoriaId,
-            'conta_id'         => $contaId,         // << amarra no card
-            'conta_id_destino' => null,
-            'descricao'        => $data['descricao'] ?? null,
-            'observacao'       => $data['observacao'] ?? null,
-            'eh_transferencia' => 0,                // não é transferência
-        ]);
-        $lan->save();
+        $out = $rows->map(function ($t) {
+            $isTransfer = (int)$t->eh_transferencia === 1;
 
-        Response::json([
-            'ok' => true,
-            'id' => (int)$lan->id,
-        ], 201);
+            // label amigável para coluna "Conta"
+            $label = $isTransfer
+                ? (($t->conta_origem_nome ?: '—') . ' → ' . ($t->conta_destino_nome ?: '—'))
+                : ($t->conta_origem_nome ?: '—');
+
+            return [
+                'id'               => (int)$t->id,
+                'data'             => (string)$t->data,
+                'tipo'             => (string)$t->tipo,
+                'valor'            => (float)$t->valor,
+                'descricao'        => (string)($t->descricao ?? ''),
+                'observacao'       => (string)($t->observacao ?? ''),
+                'eh_transferencia' => $isTransfer,
+
+                // Categoria como objeto (compatível com seu JS)
+                'categoria'        => $t->categoria_id ? [
+                    'id'   => (int)$t->categoria_id,
+                    'nome' => (string)$t->categoria_nome
+                ] : null,
+
+                // Objetos de conta (origem/destino)
+                'conta'            => $t->conta_id ? [
+                    'id'   => (int)$t->conta_id,
+                    'nome' => (string)$t->conta_origem_nome
+                ] : null,
+                'conta_destino'    => $t->conta_id_destino ? [
+                    'id'   => (int)$t->conta_id_destino,
+                    'nome' => (string)$t->conta_destino_nome
+                ] : null,
+
+                // Campos planos + label pronto
+                'conta_nome'          => (string)($t->conta_origem_nome ?? ''),
+                'conta_destino_nome'  => (string)($t->conta_destino_nome ?? ''),
+                'conta_label'         => $label,
+            ];
+        });
+
+        Response::json($out->all());
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\Controllers;
+namespace Application\Controllers\Api;
 
 use Application\Controllers\BaseController;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -8,20 +8,7 @@ use Application\Core\Response as HttpResponse;
 
 class RelatoriosController extends BaseController
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
-    public function view(): void
-    {
-        $this->requireAuth();
-        $this->renderAdmin('admin/relatorios', [
-            'username' => $this->adminUsername ?? 'usuário',
-            'menu'     => 'relatorios',
-
-        ]);
-    }
 
     // GET /api/reports/overview?month=YYYY-MM[&tipo=receita|despesa][&account_id=]
     public function overview(): void
@@ -37,9 +24,12 @@ class RelatoriosController extends BaseController
         $accId      = is_null($acc) || $acc === '' ? null : (int)$acc;
 
         // Totais por tipo
-        $base = DB::table('lancamentos')->whereBetween('data', [$from, $to]);
+        $base = DB::table('lancamentos')
+            ->whereBetween('data', [$from, $to])
+            ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0); // <— NOVO
         if ($tipoFiltro) $base->where('tipo', $tipoFiltro);
-        if ($accId) $base->where('conta_id', $accId);
+        if ($accId)      $base->where('conta_id', $accId);
 
         $totalReceitas = (clone $base)->where('tipo', 'receita')->sum('valor');
         $totalDespesas = (clone $base)->where('tipo', 'despesa')->sum('valor');
@@ -48,6 +38,8 @@ class RelatoriosController extends BaseController
         $porCategoria = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->whereBetween('l.data', [$from, $to])
+            ->where('l.eh_transferencia', 0)
+            ->where('l.eh_saldo_inicial', 0) // <— NOVO
             ->when($tipoFiltro, fn($q) => $q->where('l.tipo', $tipoFiltro))
             ->when($accId, fn($q) => $q->where('l.conta_id', $accId))
             ->selectRaw('l.categoria_id, COALESCE(c.nome,"—") as categoria, l.tipo, SUM(l.valor) as total')
@@ -61,10 +53,11 @@ class RelatoriosController extends BaseController
                 'total'        => (float)$r->total,
             ]);
 
-        // Por conta (NOVO)
         $porContaRows = DB::table('lancamentos as l')
             ->leftJoin('contas as a', 'a.id', '=', 'l.conta_id')
             ->whereBetween('l.data', [$from, $to])
+            ->where('l.eh_transferencia', 0)
+            ->where('l.eh_saldo_inicial', 0) // <— NOVO
             ->when($tipoFiltro, fn($q) => $q->where('l.tipo', $tipoFiltro))
             ->when($accId, fn($q) => $q->where('l.conta_id', $accId))
             ->selectRaw('COALESCE(a.nome, a.instituicao, "—") as conta')
@@ -152,13 +145,15 @@ class RelatoriosController extends BaseController
 
         $rows = DB::table('lancamentos')
             ->whereBetween('data', [$from, $to])
+            ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0) // <— NOVO
             ->when($tipo, fn($q) => $q->where('tipo', $tipo))
             ->when($accId, fn($q) => $q->where('conta_id', $accId))
             ->selectRaw("
-                DATE(data) as dia,
-                SUM(CASE WHEN tipo='receita' THEN valor ELSE 0 END) as receitas,
-                SUM(CASE WHEN tipo='despesa' THEN valor ELSE 0 END) as despesas
-            ")
+        DATE(data) as dia,
+        SUM(CASE WHEN tipo='receita' THEN valor ELSE 0 END) as receitas,
+        SUM(CASE WHEN tipo='despesa' THEN valor ELSE 0 END) as despesas
+    ")
             ->groupBy('dia')
             ->orderBy('dia')
             ->get();

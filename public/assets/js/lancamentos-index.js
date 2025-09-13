@@ -8,7 +8,6 @@
     const selectTipo = $('#filtroTipo');
     const btnFiltrar = $('#btnFiltrar');
 
-    // cache simples por mês para não refazer fetch desnecessário
     const monthCache = new Map();
     let isLoading = false;
 
@@ -23,25 +22,19 @@
         },
     };
 
-    /** Resolve o mês atual (YYYY-MM) a partir do header/component/evento */
     const getMonth = () => {
-        // 1) Componente do header (se expuser getMonth)
         if (window.LukratoHeader?.getMonth) {
             const m = window.LukratoHeader.getMonth();
             if (m) return m;
         }
-        // 2) Texto “currentMonthText” pode ter data em data-* (se você configurou)
         const el = document.getElementById('currentMonthText');
-        const dataMonth = el?.getAttribute?.('data-month');
-        if (dataMonth) return dataMonth;
-
-        // 3) Fallback: mês atual
-        return new Date().toISOString().slice(0, 7);
+        const dm = el?.getAttribute?.('data-month');
+        return dm || new Date().toISOString().slice(0, 7);
     };
 
     const setEmpty = (msg) => {
         if (!tbody) return;
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center">${msg}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center">${msg}</td></tr>`; // 7 colunas (inclui Ações)
     };
 
     const normalizeList = (p) => {
@@ -54,69 +47,23 @@
 
     const normalizeTipo = (v) => {
         if (!v) return '';
-        const s = String(v).toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const s = String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (/(receita|entrada|credit)/.test(s)) return 'receita';
         if (/(despesa|saida|debit)/.test(s)) return 'despesa';
         return '';
     };
 
-    /** Busca por mês no backend (sem tipo) e retorna lista bruta */
-    async function tryFetch(pathWithQuery) {
-        for (const base of BASES) {
-            try {
-                const r = await fetch(base + pathWithQuery, { credentials: 'include' });
-                if (r.ok) return await r.json();     // 2xx
-                if (r.status === 404) continue;      // tenta próxima base
-                // outros códigos: para de tentar nesta base e passa para próxima
-            } catch (_) { /* ignora e tenta próxima base */ }
-        }
-        return null;
-    }
-
-    async function fetchListByMonth(month) {
-        if (monthCache.has(month)) return monthCache.get(month);
-
-        const q = `month=${encodeURIComponent(month)}&limit=500`;
-        const candidates = [
-            `dashboard/transactions?${q}`,
-            `transactions?${q}`,
-            `lancamentos?${q}`,
-        ];
-
-        for (const c of candidates) {
-            const json = await tryFetch(c);
-            const list = normalizeList(json);
-            if (list.length) {
-                monthCache.set(month, list);
-                return list;
-            }
-        }
-        // mesmo vazio, cacheia (evita requisições repetidas)
-        monthCache.set(month, []);
-        return [];
-    }
-
-    /** Aplica filtro de tipo no cliente */
     function applyTipoFilter(list, tipoSelecionado) {
         if (!tipoSelecionado) return list;
         const alvo = normalizeTipo(tipoSelecionado);
         if (!alvo) return list;
 
         return list.filter((t) => {
-            const candidatos = [
-                t.tipo,
-                t.tipo_transacao,
-                t.kind,
-                t.category_type,
-                t.categoria?.tipo,
-                t.categoria_tipo
-            ];
+            const candidatos = [t.tipo, t.tipo_transacao, t.kind, t.category_type, t.categoria?.tipo, t.categoria_tipo];
             for (const c of candidatos) {
                 const n = normalizeTipo(c);
                 if (n) return n === alvo;
             }
-            // fallback: sinal do valor
             const v = Number(t.valor);
             if (!Number.isNaN(v)) {
                 return (alvo === 'receita' && v >= 0) || (alvo === 'despesa' && v < 0);
@@ -125,10 +72,60 @@
         });
     }
 
-    async function getDataForRender() {
-        const month = getMonth();
-        const lista = await fetchListByMonth(month);
-        return { month, lista };
+    async function tryFetch(pathWithQuery) {
+        for (const base of BASES) {
+            try {
+                const r = await fetch(base + pathWithQuery, { credentials: 'include' });
+                if (r.ok) return await r.json();
+                if (r.status === 404) continue;
+            } catch (_) { }
+        }
+        return null;
+    }
+
+    async function fetchListByMonth(month) {
+        if (monthCache.has(month)) return monthCache.get(month);
+        const q = `month=${encodeURIComponent(month)}&limit=500`;
+        const candidates = [
+            `lancamentos?${q}`,            // usa endpoint que já traz "conta" (instituição/nome)
+            `dashboard/transactions?${q}`, // fallback
+            `transactions?${q}`,           // fallback
+        ];
+        for (const c of candidates) {
+            const json = await tryFetch(c);
+            const list = normalizeList(json);
+            if (list.length) {
+                monthCache.set(month, list);
+                return list;
+            }
+        }
+        monthCache.set(month, []);
+        return [];
+    }
+
+    // Monta rótulo da conta priorizando INSTITUIÇÃO
+    function getContaLabel(t) {
+        if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim(); // /api/lancamentos
+        if (t.conta && typeof t.conta === 'object') {
+            if (t.conta.instituicao) return t.conta.instituicao;
+            if (t.conta.nome) return t.conta.nome;
+        }
+        const origem =
+            t.conta_origem_instituicao || t.origem_instituicao ||
+            (t.conta && t.conta.instituicao) ||
+            (t.conta_origem && t.conta_origem.instituicao) ||
+            t.conta_origem_nome || (t.conta && t.conta.nome) ||
+            (t.conta_origem && t.conta_origem.nome) || null;
+
+        const destino =
+            t.conta_destino_instituicao || t.destino_instituicao ||
+            (t.conta_destino && t.conta_destino.instituicao) ||
+            t.conta_destino_nome || (t.conta_destino && t.conta_destino.nome) || null;
+
+        if (t.eh_transferencia && (origem || destino)) {
+            return `${origem || '—'} → ${destino || '—'}`;
+        }
+        return '—';
     }
 
     function setLoading(on) {
@@ -142,6 +139,79 @@
         }
     }
 
+    async function getDataForRender() {
+        const month = getMonth();
+        const lista = await fetchListByMonth(month);
+        return { month, lista };
+    }
+
+    // --- SweetAlert2 ---
+    async function ensureSwal() {
+        if (window.Swal) return;
+        await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+            s.onload = resolve; s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+    function toast(icon, title) {
+        window.Swal.fire({
+            toast: true, position: 'top-end', timer: 1700, showConfirmButton: false,
+            icon, title
+        });
+    }
+
+    // --- Exclusão: tenta DELETE e fallbacks POST ---
+    async function apiDeleteLancamento(id) {
+        const raw = (window.BASE_URL || '/').replace(/\/?$/, '/');
+        const tries = [
+            { url: `${raw}api/lancamentos/${id}`, opt: { method: 'DELETE' } },
+            { url: `${raw}index.php/api/lancamentos/${id}`, opt: { method: 'DELETE' } },
+            { url: `${raw}api/lancamentos/${id}/delete`, opt: { method: 'POST' } },
+            { url: `${raw}index.php/api/lancamentos/${id}/delete`, opt: { method: 'POST' } },
+            { url: `${raw}api/lancamentos/delete`, opt: { method: 'POST', body: JSON.stringify({ id }) } },
+            { url: `${raw}index.php/api/lancamentos/delete`, opt: { method: 'POST', body: JSON.stringify({ id }) } },
+        ];
+        for (const t of tries) {
+            try {
+                const r = await fetch(t.url, {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    ...t.opt
+                });
+                if (r.ok) return await r.json();
+                if (r.status !== 404) {
+                    const j = await r.json().catch(() => ({}));
+                    throw new Error(j?.message || `HTTP ${r.status}`);
+                }
+            } catch (_) { /* tenta próxima */ }
+        }
+        throw new Error('Endpoint de exclusão não encontrado (404). Verifique as rotas do back-end.');
+    }
+
+    // --- Linha da tabela (inclui botão Excluir) ---
+    function renderRow(t) {
+        const tipo = normalizeTipo(t.tipo) || t.tipo || '—';
+        const cat = t.categoria_nome || t.categoria?.nome || t.categoria || '—';
+        const acc = getContaLabel(t);
+        return `
+      <tr data-id="${t.id}">
+        <td>${fmt.date(t.data)}</td>
+        <td>${tipo}</td>
+        <td>${cat}</td>
+        <td>${acc}</td>
+        <td>${t.descricao || t.observacao || '—'}</td>
+        <td class="text-right">${fmt.money(t.valor)}</td>
+        <td class="text-right">
+          <button class="lk-btn danger btn-del" title="Excluir" aria-label="Excluir">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      </tr>`;
+    }
+
+    // --- RENDER principal (faltava) ---
     async function render({ byButton = false } = {}) {
         if (!tbody || isLoading) return;
         setEmpty('Carregando…');
@@ -155,19 +225,9 @@
             if (!final.length) {
                 setEmpty('Sem lançamentos para o período');
             } else {
-                tbody.innerHTML = final.map(t => `
-          <tr>
-            <td>${fmt.date(t.data)}</td>
-            <td>${normalizeTipo(t.tipo) || t.tipo || '—'}</td>
-            <td>${t.categoria_nome || t.categoria?.nome || t.categoria || '—'}</td>
-            <td>${t.conta?.nome || '—'}</td>
-            <td>${t.descricao || t.observacao || '—'}</td>
-            <td class="text-right">${fmt.money(t.valor)}</td>
-          </tr>
-        `).join('');
+                tbody.innerHTML = final.map(renderRow).join('');
             }
 
-            // dispara evento útil para quem quiser escutar após render
             document.dispatchEvent(new CustomEvent('lukrato:lancamentos-rendered', {
                 detail: { month, total: final.length }
             }));
@@ -179,11 +239,10 @@
         }
     }
 
+    // --- Exportar CSV (estava referenciado) ---
     async function onExport(monthOverride) {
         const month = monthOverride || getMonth();
-        // usa cache/fetch
         const lista = await fetchListByMonth(month);
-        // respeita tipo selecionado (independe de ter clicado antes)
         const tipoSelecionado = selectTipo?.value || '';
         const final = applyTipoFilter(lista, tipoSelecionado);
 
@@ -191,7 +250,7 @@
             fmt.date(t.data),
             (normalizeTipo(t.tipo) || t.tipo || ''),
             (t.categoria_nome || t.categoria?.nome || t.categoria || ''),
-            (t.conta?.nome || ''),
+            (getContaLabel(t) || ''),
             String(t.descricao || t.observacao || '').replace(/[\r\n;]+/g, ' '),
             (Number(t.valor) || 0).toFixed(2).replace('.', ',')
         ].join(';'));
@@ -204,31 +263,66 @@
         URL.revokeObjectURL(url);
     }
 
+    // --- Clique no botão Excluir ---
+    tbody?.addEventListener('click', async (e) => {
+        const btn = (e.target.closest && e.target.closest('.btn-del')) || null;
+        if (!btn) return;
+
+        const tr = e.target.closest('tr');
+        const id = tr?.getAttribute('data-id');
+        if (!id) return;
+
+        try {
+            await ensureSwal();
+
+            const confirm = await Swal.fire({
+                title: 'Excluir lançamento?',
+                text: 'Essa ação não pode ser desfeita.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true,
+                focusCancel: true
+            });
+            if (!confirm.isConfirmed) return;
+
+            Swal.fire({ title: 'Excluindo...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, allowEscapeKey: false });
+
+            await apiDeleteLancamento(Number(id));
+
+            Swal.close();
+            toast('success', 'Lançamento excluído');
+
+            // invalida cache + re-render
+            const m = getMonth();
+            monthCache.delete(m);
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
+            render();
+
+        } catch (err) {
+            console.error(err);
+            await ensureSwal();
+            Swal.fire({ icon: 'error', title: 'Erro', text: (err && err.message) || 'Falha ao excluir' });
+        }
+    });
+
+    // --- Boot ---
     document.addEventListener('DOMContentLoaded', () => {
-        // 1) Render inicial (sem tipo)
         render();
 
-        // 2) Botão aplica APENAS o tipo
         btnFiltrar?.addEventListener('click', () => render({ byButton: true }));
 
-        // 3) Eventos globais do header:
-        //    - quando o mês muda via setas/dropdown, o header deve emitir este evento
         document.addEventListener('lukrato:month-changed', (e) => {
-            // se o header enviar detail.month, atualiza um data-attr (ajuda o getMonth)
             const m = e?.detail?.month;
             const el = document.getElementById('currentMonthText');
             if (m && el) el.setAttribute('data-month', m);
-            // limpe cache se quiser sempre refazer busca para novos meses
-            // monthCache.delete(m); // opcional
-            render(); // mês auto, sem tipo
+            render();
         });
 
-        // exportar
         document.addEventListener('lukrato:export-click', (e) => onExport(e.detail?.month));
 
-        // data-changed (ex.: criou/alterou/apagou lançamento)
         document.addEventListener('lukrato:data-changed', () => {
-            // invalida cache do mês atual para refletir alterações
             const m = getMonth();
             monthCache.delete(m);
             render();

@@ -47,6 +47,7 @@
                         <th>Conta</th>
                         <th>Descrição</th>
                         <th class="text-right">Valor</th>
+                        <th style="width:82px">Ações</th> <!-- NOVO -->
                     </tr>
                 </thead>
                 <tbody id="tbodyLancamentos">
