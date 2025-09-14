@@ -206,4 +206,39 @@ class AccountController
         $conta->save();
         Response::json(['ok' => true]);
     }
+
+    // Application\Controllers\Api\AccountController.php
+
+    /** POST /api/accounts/{id}/delete  (exclusão definitiva) */
+    public function hardDelete(int $id): void
+    {
+        $uid   = Auth::id();
+        $conta = Conta::forUser($uid)->find($id);
+
+        if (!$conta) {
+            Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
+            return;
+        }
+
+        // Verifica vínculos em lançamentos (saída, entrada via transferência)
+        $temLanc = Lancamento::where('user_id', $uid)
+            ->where(function ($q) use ($id) {
+                $q->where('conta_id', $id)
+                    ->orWhere('conta_id_destino', $id);
+            })
+            ->exists();
+
+        if ($temLanc) {
+            Response::json([
+                'status'  => 'error',
+                'message' => 'Não é possível excluir: existem lançamentos vinculados a esta conta.'
+            ], 422);
+            return;
+        }
+
+        // Exclusão física
+        $conta->delete();
+
+        Response::json(['ok' => true]);
+    }
 }

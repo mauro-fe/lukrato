@@ -69,6 +69,7 @@ function registerSimpleRoutes(): void
     Router::add('POST', 'api/accounts/{id}/archive', 'Api\AccountController@archive');
     Router::add('POST', 'api/accounts/{id}/restore', 'Api\AccountController@restore');
     Router::add('GET', 'contas/arquivadas', 'Admin\AccountsController@archived');
+    Router::add('POST', 'api/accounts/{id}/delete',  'Api\AccountController@hardDelete');
 
 
     // Página Contas

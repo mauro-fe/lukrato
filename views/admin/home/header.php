@@ -29,9 +29,9 @@ $base = BASE_URL;
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-home-header'); ?>
     <style>
-    option {
-        background-color: #1c2c3c;
-    }
+        option {
+            background-color: #1c2c3c;
+        }
     </style>
 </head>
 
@@ -158,32 +158,32 @@ $base = BASE_URL;
         <?php loadPageJs('admin-home-header'); ?>
         <?php loadPageJs(); ?>
         <script>
-        (function() {
-            const root = document.documentElement;
-            const btn = document.getElementById("toggleTheme");
+            (function() {
+                const root = document.documentElement;
+                const btn = document.getElementById("toggleTheme");
 
-            // aplica o tema salvo no localStorage (padrão = light)
-            const saved = localStorage.getItem("theme") || "dark";
-            root.setAttribute("data-theme", saved);
+                // aplica o tema salvo no localStorage (padrão = light)
+                const saved = localStorage.getItem("theme") || "dark";
+                root.setAttribute("data-theme", saved);
 
-            // atualiza ícone
-            updateIcon(saved);
+                // atualiza ícone
+                updateIcon(saved);
 
-            // alternar ao clicar
-            btn.addEventListener("click", () => {
-                const current = root.getAttribute("data-theme");
-                const next = current === "dark" ? "light" : "dark";
-                root.setAttribute("data-theme", next);
-                localStorage.setItem("theme", next);
-                updateIcon(next);
-            });
+                // alternar ao clicar
+                btn.addEventListener("click", () => {
+                    const current = root.getAttribute("data-theme");
+                    const next = current === "dark" ? "light" : "dark";
+                    root.setAttribute("data-theme", next);
+                    localStorage.setItem("theme", next);
+                    updateIcon(next);
+                });
 
-            function updateIcon(theme) {
-                if (theme === "dark") {
-                    btn.classList.add("dark");
-                } else {
-                    btn.classList.remove("dark");
+                function updateIcon(theme) {
+                    if (theme === "dark") {
+                        btn.classList.add("dark");
+                    } else {
+                        btn.classList.remove("dark");
+                    }
                 }
-            }
-        })();
+            })();
         </script>
