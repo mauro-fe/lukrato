@@ -13,4 +13,12 @@ class AccountsController extends BaseController
             'menu' => 'contas'
         ], 'admin/home/header', null);
     }
+
+    public function archived(): void
+    {
+        $this->render('admin/contas/arquivadas', [
+            'pageTitle' => 'Contas',
+            'menu' => 'contas'
+        ], 'admin/home/header', null);
+    }
 }

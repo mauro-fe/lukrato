@@ -2,119 +2,120 @@
    TOKENS BASE (fixos)
    =============================== */
 :root {
-    /* Tipografia */
-    --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-    --font-size-3xl: 1.875rem;
+  /* Tipografia */
+  --font-primary: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
 
-    /* Espaçamento */
-    --spacing-1: 0.25rem;
-    --spacing-2: 0.5rem;
-    --spacing-3: 0.75rem;
-    --spacing-4: 1rem;
-    --spacing-5: 1.25rem;
-    --spacing-6: 1.5rem;
-    --spacing-8: 2rem;
-    --spacing-12: 3rem;
+  /* Espaçamento */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
 
-    /* Radius */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 
-    /* Sombra */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .08);
-    --shadow-md: 0 4px 10px rgba(0, 0, 0, .10);
-    --shadow-lg: 0 10px 20px rgba(0, 0, 0, .12);
-    --shadow-xl: 0 20px 30px rgba(0, 0, 0, .14);
+  /* Sombra */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.14);
 
-    /* Layout */
-    --sidebar-width: 280px;
-    --header-height: 80px;
-    --container-padding: var(--spacing-6);
+  /* Layout */
+  --sidebar-width: 280px;
+  --header-height: 80px;
+  --container-padding: var(--spacing-6);
 
-    /* Glass */
-    --glass-backdrop: blur(10px);
+  /* Glass */
+  --glass-backdrop: blur(10px);
 
-    /* Transições */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
+  /* Transições */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
 
-    /* Paleta azul utilitária (opcional) */
-    --blue-50: #f0f5ff;
-    --blue-100: #e6effe;
-    --blue-200: #d7e5fd;
-    --blue-300: #b9d1fb;
-    --blue-400: #8fb6f6;
-    --blue-500: #5f97ee;
-    --blue-600: #3a79d9;
-    --blue-700: #2f63b5;
-    --blue-800: #2a4f8f;
-    --blue-900: #2c3e50;
-    /* Azul Noite */
+  /* Paleta azul utilitária (opcional) */
+  --blue-50: #f0f5ff;
+  --blue-100: #e6effe;
+  --blue-200: #d7e5fd;
+  --blue-300: #b9d1fb;
+  --blue-400: #8fb6f6;
+  --blue-500: #5f97ee;
+  --blue-600: #3a79d9;
+  --blue-700: #2f63b5;
+  --blue-800: #2a4f8f;
+  --blue-900: #2c3e50;
+  /* Azul Noite */
 }
 
 /* ===============================
    THEME LIGHT (azulado, harmônico)
    =============================== */
 :root[data-theme="light"] {
-    --color-primary: #e67e22;
-    /* laranja vibrante */
-    --color-secondary: #2c3e50;
-    /* azul noite */
-    --color-success: #2ecc71;
-    --color-warning: #f39c12;
-    --color-danger: #e74c3c;
-    --color-neutral: #94a3b8;
-    /* cinza-azulado */
+  --color-primary: #e67e22;
+  /* laranja vibrante */
+  --color-secondary: #2c3e50;
+  /* azul noite */
+  --color-success: #2ecc71;
+  --color-warning: #f39c12;
+  --color-danger: #e74c3c;
+  --color-neutral: #94a3b8;
+  /* cinza-azulado */
 
-    /* fundo / surface azulados */
-    --color-bg: #e6f0fa;
-    /* azul bem claro (fundo geral) */
-    --color-surface: #f0f6fc;
-    /* cards/surfaces */
-    --color-surface-muted: #d9e6f2;
-    /* blocos auxiliares */
+  /* fundo / surface azulados */
+  --color-bg: #e6f0fa;
+  /* azul bem claro (fundo geral) */
+  --color-surface: #f0f6fc;
+  /* cards/surfaces */
+  --color-surface-muted: #d9e6f2;
+  /* blocos auxiliares */
 
-    /* textos */
-    --color-text: #1e293b;
-    /* azul escuro para contraste */
-    --color-text-muted: #475569;
-    /* cinza-azulado médio */
+  /* textos */
+  --color-text: #1e293b;
+  /* azul escuro para contraste */
+  --color-text-muted: #475569;
+  /* cinza-azulado médio */
 
-    /* glass effect */
-    --glass-bg: rgba(255, 255, 255, 0.35);
-    --glass-border: rgba(30, 41, 59, 0.1);
+  /* glass effect */
+  --glass-bg: rgba(255, 255, 255, 0.35);
+  --glass-border: rgba(30, 41, 59, 0.1);
 
-    /* ring (foco, inputs) */
-    --ring: rgba(230, 126, 34, 0.25);
+  /* ring (foco, inputs) */
+  --ring: rgba(230, 126, 34, 0.25);
 }
 
 /* ===============================
    THEME DARK (mantido)
    =============================== */
 :root[data-theme="dark"] {
-    --color-primary: #e67e22;
-    --color-secondary: #3498db;
-    --color-success: #2ecc71;
-    --color-warning: #f39c12;
-    --color-danger: #e74c3c;
-    --color-neutral: #95a5a6;
+  --color-primary: #e67e22;
+  --color-secondary: #3498db;
+  --color-success: #2ecc71;
+  --color-warning: #f39c12;
+  --color-danger: #e74c3c;
+  --color-neutral: #95a5a6;
 
-    --color-bg: #092741;
-    --color-surface: #1c2c3c;
-    --color-surface-muted: #213245;
-    --color-text: #f8f9fa;
-    --color-text-muted: #bdc3c7;
+  --color-bg: #092741;
+  --color-surface: #1c2c3c;
+  --color-surface-muted: #213245;
+  --color-btn: #203c53;
+  --color-text: #f8f9fa;
+  --color-text-muted: #bdc3c7;
 
-    --glass-bg: rgba(255, 255, 255, 0.06);
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --ring: rgba(230, 126, 34, 0.22);
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --ring: rgba(230, 126, 34, 0.22);
 }

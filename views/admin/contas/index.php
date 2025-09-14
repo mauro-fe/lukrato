@@ -1,4 +1,4 @@
-<div class="container">
+v<div class="container">
     <div class="lk-acc-title">
         <h3>Contas</h3>
     </div>
@@ -9,10 +9,10 @@
             <div class="stat-value" id="totalContas">0</div>
             <div class="stat-label">Total de Contas</div>
         </div>
-        <div class="stat-card">
+        <!-- <div class="stat-card">
             <div class="stat-value" id="contasAtivas">0</div>
             <div class="stat-label">Contas Ativas</div>
-        </div>
+        </div> -->
         <div class="stat-card">
             <div class="stat-value" id="saldoTotal">R$ 0,00</div>
             <div class="stat-label">Saldo Total</div>
@@ -26,6 +26,8 @@
                     <i class="fas fa-plus"></i> Nova Conta
                 </button>
             </div>
+            <a class="btn btn-primary" href="<?= BASE_URL ?>contas/arquivadas">Arquivadas</a>
+
         </div>
 
 
@@ -60,23 +62,24 @@
                                 required>
                         </div>
                         <div class="lk-field">
-                            <label for="instituicao">Instituição</label>
-                            <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa">
+                            <label for="instituicao">Instituição *</label>
+                            <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa"
+                                required>
                         </div>
-                        <div class="lk-field">
+                        <!-- <div class="lk-field">
                             <label for="moeda">Moeda</label>
                             <select id="moeda" name="moeda">
                                 <option value="BRL">BRL (R$)</option>
                                 <option value="USD">USD ($)</option>
                                 <option value="EUR">EUR (€)</option>
                             </select>
-                        </div>
+                        </div> -->
                         <div class="lk-field">
                             <label for="saldo_inicial">Saldo inicial</label>
                             <input id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal"
                                 placeholder="0,00">
                         </div>
-                        <div class="lk-field">
+                        <!-- <div class="lk-field">
                             <label for="tipo_id">Tipo (opcional)</label>
                             <select id="tipo_id" name="tipo_id">
                                 <option value="">—</option>
@@ -85,7 +88,7 @@
                                 <option value="3">Poupança</option>
                                 <option value="4">Cartão Pré-pago</option>
                             </select>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="lk-modal-f">
                         <button type="button" class="btn btn-light" id="btnCancel">Cancelar</button>
@@ -232,7 +235,7 @@
 
         // Stats
         const totalContas = $('#totalContas');
-        const contasAtivas = $('#contasAtivas');
+        // const contasAtivas = $('#contasAtivas');
         const saldoTotal = $('#saldoTotal');
 
         // ===== Modal Conta (criar/editar) =====
@@ -245,14 +248,14 @@
                 inputId.value = data.id;
                 fNome.value = data.nome || '';
                 fInst.value = data.instituicao || '';
-                fMoeda.value = data.moeda || 'BRL';
+                // fMoeda.value = data.moeda || 'BRL';
                 fSaldo.value = formatMoneyBR(data.saldoInicial ?? 0);
                 fTipo.value = data.tipo_id ?? '';
             } else {
                 modalTitle.textContent = 'Nova conta';
                 inputId.value = '';
                 form.reset();
-                fMoeda.value = 'BRL';
+                // fMoeda.value = 'BRL';
                 fSaldo.value = '';
             }
             setTimeout(() => fNome.focus(), 40);
@@ -289,9 +292,9 @@
             const payload = {
                 nome: (fNome.value || '').trim(),
                 instituicao: (fInst.value || '').trim(),
-                moeda: fMoeda.value || 'BRL',
+                // moeda: fMoeda.value || 'BRL',
                 saldo_inicial: parseMoneyBR(fSaldo.value || '0'),
-                tipo_id: fTipo.value ? Number(fTipo.value) : null
+                // tipo_id: fTipo.value ? Number(fTipo.value) : null
             };
             if (!payload.nome) return Swal.fire('Atenção', 'Nome obrigatório.', 'warning');
 
@@ -353,25 +356,30 @@
                 0;
 
             totalContas.textContent = total;
-            contasAtivas.textContent = ativas;
+            // contasAtivas.textContent = ativas;
             saldoTotal.textContent = `R$ ${formatMoneyBR(saldo)}`;
         }
 
 
         // ========= DELETE extraído para função =========
-        async function handleDeleteAccount(id) {
-            const ok = await Swal.fire({
-                title: 'Inativar conta?',
-                text: 'Você poderá reativá-la depois.',
+        // Arquivar conta (confirma antes)
+        async function handleArchiveAccount(id) {
+            const {
+                isConfirmed
+            } = await Swal.fire({
+                title: 'Arquivar conta?',
+                text: 'Você poderá restaurá-la depois na página "Contas arquivadas".',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Sim, inativar'
+                confirmButtonText: 'Sim, arquivar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
             });
-            if (!ok.isConfirmed) return;
+            if (!isConfirmed) return;
 
             try {
-                const res = await fetchAPI(`accounts/${id}`, {
-                    method: 'DELETE',
+                const res = await fetchAPI(`accounts/${id}/archive`, {
+                    method: 'POST',
                     credentials: 'same-origin',
                     headers: {
                         ...(CSRF ? {
@@ -380,72 +388,65 @@
                     }
                 });
 
-                const ct = res.headers.get('content-type') || '';
-                if (!res.ok) {
-                    let msg = `HTTP ${res.status}`;
-                    if (ct.includes('application/json')) {
-                        const j = await res.json().catch(() => ({}));
-                        msg = j?.message || msg;
-                    } else {
-                        const t = await res.text();
-                        msg = t.slice(0, 200);
-                    }
-                    throw new Error(msg);
-                }
-                if (!ct.includes('application/json')) {
-                    const t = await res.text();
-                    throw new Error('Resposta não é JSON. Prévia: ' + t.slice(0, 120));
-                }
-                const data = await res.json();
-                if (data?.status === 'error') throw new Error(data?.message || 'Falha ao inativar.');
-                Swal.fire('Pronto!', 'Conta inativada.', 'success');
+                if (!res.ok) throw new Error('Falha ao arquivar');
+                Swal.fire('Pronto!', 'Conta arquivada.', 'success');
                 await load();
             } catch (err) {
                 console.error(err);
-                Swal.fire('Erro', err.message || 'Falha ao inativar conta.', 'error');
+                Swal.fire('Erro', err.message || 'Falha ao arquivar', 'error');
             }
         }
-        async function handleActivateAccount(id) {
+
+        // (Opcional) Restaurar conta (também com confirmação)
+        async function handleRestoreAccount(id) {
+            const {
+                isConfirmed
+            } = await Swal.fire({
+                title: 'Restaurar conta?',
+                text: 'A conta voltará para a lista de contas ativas.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, restaurar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            });
+            if (!isConfirmed) return;
+
             try {
-                const res = await fetchAPI(`accounts/${id}`, {
-                    method: 'PUT',
+                const res = await fetchAPI(`accounts/${id}/restore`, {
+                    method: 'POST',
                     credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
                         ...(CSRF ? {
                             'X-CSRF-TOKEN': CSRF
                         } : {})
-                    },
-                    body: JSON.stringify({
-                        ativo: 1
-                    })
+                    }
                 });
 
-                const ct = res.headers.get('content-type') || '';
-                if (!res.ok) {
-                    let msg = `HTTP ${res.status}`;
-                    if (ct.includes('application/json')) {
-                        const j = await res.json().catch(() => ({}));
-                        msg = j?.message || msg;
-                    } else {
-                        const t = await res.text();
-                        msg = t.slice(0, 200);
-                    }
-                    throw new Error(msg);
-                }
-
-                Swal.fire('Pronto!', 'Conta ativada.', 'success');
+                if (!res.ok) throw new Error('Falha ao restaurar');
+                Swal.fire('Pronto!', 'Conta restaurada.', 'success');
                 await load();
             } catch (err) {
                 console.error(err);
-                Swal.fire('Erro', err.message || 'Falha ao ativar conta.', 'error');
+                Swal.fire('Erro', err.message || 'Falha ao restaurar', 'error');
             }
         }
+
+
+
+        // Delegação:
+        grid?.addEventListener('click', (e) => {
+            const bArch = e.target.closest('.btn-archive');
+            const bRest = e.target.closest('.btn-restore');
+            // ... seus handlers de receita/despesa/editar
+            if (bArch) handleArchiveAccount(Number(bArch.dataset.id));
+            if (bRest) handleRestoreAccount(Number(bRest.dataset.id));
+        });
 
 
         // ====== TABELA (fallback) ======
         function renderRows(rows) {
-            if (!tbody) return; // nada a fazer se não houver tabela
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             if (!rows || rows.length === 0) {
@@ -458,30 +459,29 @@
 
             for (const c of rows) {
                 const saldo = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial ?? 0);
-                const ativoBadge = c.ativo ? `<span class="acc-badge active">Ativa</span>` :
-                    `<span class="acc-badge inactive">Inativa</span>`;
-                const card = document.createElement('div');
-                card.className = 'acc-card';
-                card.innerHTML = `
-     <div>
-       <div class="acc-head">
-         <div class="acc-dot"></div>
-         <div>
-           <div class="acc-name">${escapeHTML(c.nome || '')}</div>
-           <div class="acc-sub">${escapeHTML(c.instituicao || '—')}</div>
-         </div>
-         ${ativoBadge}
-       </div>
-     <div class="acc-balance">R$ ${formatMoneyBR(saldo)}</div>
-       <div class="acc-currency">Moeda: ${escapeHTML(c.moeda || 'BRL')}</div>
-     </div>
-     <div class="acc-actions">
-       ...
-     </div>
-   `;
-                grid.appendChild(card);
+                const isActive = !!c.ativo;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+      <td>${escapeHTML(c.nome||'')}</td>
+      <td>${escapeHTML(c.instituicao||'')}</td>
+      <td>R$ ${formatMoneyBR(saldo)}</td>
+      <td>${isActive ? '<span class="tag active">Ativa</span>' : '<span class="tag inactive">Arquivada</span>'}</td>
+      <td style="width:260px">
+        ${isActive ? `
+          <button class="btn btn-ghost btn-acc-receita" data-id="${c.id}"><i class="fas fa-arrow-up"></i></button>
+          <button class="btn btn-ghost btn-acc-despesa" data-id="${c.id}"><i class="fas fa-arrow-down"></i></button>
+          <button class="btn btn-ghost btn-acc-transfer" data-id="${c.id}"><i class="fas fa-right-left"></i></button>
+          <button class="btn btn-ghost btn-edit" data-id="${c.id}"><i class="fas fa-pen"></i></button>
+          <button class="btn btn-ghost btn-archive" data-id="${c.id}"><i class="fas fa-box-archive"></i></button>
+        ` : `
+          <button class="btn btn-ghost btn-restore" data-id="${c.id}"><i class="fas fa-rotate-left"></i></button>
+        `}
+      </td>
+    `;
+                tbody.appendChild(tr);
             }
         }
+
 
         // ====== GRID (cards) ======
         let _lastRows = [];
@@ -489,62 +489,64 @@
         function renderCards(rows) {
             if (!grid) return;
             grid.innerHTML = '';
+
             if (!rows || rows.length === 0) {
                 grid.innerHTML = `<div class="lk-empty">Nenhuma conta cadastrada ainda.</div>`;
                 updateStats([]);
                 return;
             }
+
             updateStats(rows);
 
             for (const c of rows) {
-                const ativoBadge = c.ativo ?
+                const isActive = !!c.ativo;
+                const statusBadge = isActive ?
                     `<span class="acc-badge active">Ativa</span>` :
-                    `<span class="acc-badge inactive">Inativa</span>`;
+                    `<span class="acc-badge inactive">Arquivada</span>`;
 
                 const saldo = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial ?? 0);
 
-                const actionToggle = c.ativo ?
-                    `<button class="btn btn-ghost btn-del" data-id="${c.id}">
-         <i class="fas fa-ban"></i> Desativar
-       </button>` :
-                    `<button class="btn btn-ghost btn-activate" data-id="${c.id}">
-         <i class="fas fa-check"></i> Ativar
-       </button>`;
+                // ações: se arquivada, só “Restaurar”
+                const actions = isActive ?
+                    `
+        <button class="btn btn-primary btn-acc-receita" data-id="${c.id}">
+          <i class="fas fa-arrow-up"></i> Receita
+        </button>
+        <button class="btn btn-ghost btn-acc-despesa" data-id="${c.id}">
+          <i class="fas fa-arrow-down"></i> Despesa
+        </button>
+        <button class="btn btn-ghost btn-acc-transfer" data-id="${c.id}">
+          <i class="fas fa-right-left"></i> Transferir
+        </button>
+        <button class="btn btn-ghost btn-edit" data-id="${c.id}">
+          <i class="fas fa-pen"></i> Editar
+        </button>
+        <button class="btn btn-ghost btn-archive" data-id="${c.id}">
+          <i class="fas fa-box-archive"></i> Arquivar
+        </button>` :
+                    `
+        <button class="btn btn-ghost btn-restore" data-id="${c.id}">
+          <i class="fas fa-rotate-left"></i> Restaurar
+        </button>`;
 
                 const card = document.createElement('div');
                 card.className = 'acc-card';
                 card.innerHTML = `
-    <div>
-      <div class="acc-head">
-        <div class="acc-dot"></div>
-        <div>
-          <div class="acc-name">${escapeHTML(c.nome || '')}</div>
-          <div class="acc-sub">${escapeHTML(c.instituicao || '—')}</div>
+      <div>
+        <div class="acc-head">
+          <div class="acc-dot"></div>
+          <div>
+            <div class="acc-name">${escapeHTML(c.nome || '')}</div>
+            <div class="acc-sub">${escapeHTML(c.instituicao || '—')}</div>
+          </div>
+          ${statusBadge}
         </div>
-        ${ativoBadge}
+        <div class="acc-balance">R$ ${formatMoneyBR(saldo)}</div>
       </div>
-      <div class="acc-balance">R$ ${formatMoneyBR(saldo)}</div>
-      <div class="acc-currency">Moeda: ${escapeHTML(c.moeda || 'BRL')}</div>
-    </div>
-    <div class="acc-actions">
-      <button class="btn btn-primary btn-acc-receita" data-id="${c.id}">
-        <i class="fas fa-arrow-up"></i> Receita
-      </button>
-      <button class="btn btn-ghost btn-acc-despesa" data-id="${c.id}">
-        <i class="fas fa-arrow-down"></i> Despesa
-      </button>
-      <button class="btn btn-ghost btn-acc-transfer" data-id="${c.id}">
-      <i class="fas fa-right-left"></i> Transferir
-    </button>
-      <button class="btn btn-ghost btn-edit" data-id="${c.id}">
-        <i class="fas fa-pen"></i> Editar
-      </button>
-      ${actionToggle}
-    </div>
-  `;
+      <div class="acc-actions">${actions}</div>
+    `;
                 grid.appendChild(card);
             }
-
         }
 
 
@@ -553,28 +555,22 @@
             const btnRec = e.target.closest('.btn-acc-receita');
             const btnDes = e.target.closest('.btn-acc-despesa');
             const btnEd = e.target.closest('.btn-edit');
-            const btnDel = e.target.closest('.btn-del'); // Desativar
-            const btnAct = e.target.closest('.btn-activate'); // Ativar  👈
             const btnTr = e.target.closest('.btn-acc-transfer');
+            const bArch = e.target.closest('.btn-archive');
+            const bRest = e.target.closest('.btn-restore');
 
-            if (btnRec) {
-                openLancModal(btnRec.dataset.id, 'receita');
-            } else if (btnDes) {
-                openLancModal(btnDes.dataset.id, 'despesa');
-            } else if (btnEd) {
-                const id = Number(btnEd.dataset.id);
+            if (btnRec) return openLancModal(btnRec.dataset.id, 'receita');
+            if (btnDes) return openLancModal(btnDes.dataset.id, 'despesa');
+            if (btnEd) {
+                const id = +btnEd.dataset.id;
                 const c = _lastRows.find(r => r.id === id);
-                openModal(true, c);
-            } else if (btnDel) {
-                const id = Number(btnDel.dataset.id);
-                handleDeleteAccount(id); // usa DELETE (inativar)
-            } else if (btnAct) {
-                const id = Number(btnAct.dataset.id);
-                handleActivateAccount(id); // usa PUT {ativo:1} (ativar)
-            } else if (btnTr) {
-                openTransferModal(btnTr.dataset.id); // 👈 abre modal de transferência
+                return openModal(true, c);
             }
+            if (btnTr) return openTransferModal(btnTr.dataset.id);
+            if (bArch) return handleArchiveAccount(+bArch.dataset.id);
+            if (bRest) return handleRestoreAccount(+bRest.dataset.id);
         });
+
 
 
         // ====== LOAD ======

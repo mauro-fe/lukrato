@@ -115,7 +115,6 @@
 .form-select:focus {
   outline: none;
   border-color: var(--laranja);
-  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
 }
 
 .form-divider {
@@ -137,7 +136,7 @@
 }
 
 .section-title::before {
-  content: '';
+  content: "";
   width: 4px;
   height: 24px;
   background: var(--laranja);

@@ -60,6 +60,10 @@ class Conta extends Model
 
     public function scopeAtivas($q)
     {
-        return $q->where('ativo', true);
+        return $q->where('ativo', 1);
+    }
+    public function scopeArquivadas($q)
+    {
+        return $q->where('ativo', 0);
     }
 }

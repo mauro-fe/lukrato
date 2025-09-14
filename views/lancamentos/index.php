@@ -27,12 +27,12 @@
     <div class="header-right">
         <div class="type-filter" role="group" aria-label="Filtro por tipo">
             <label for="filtroTipo" class="sr-only">Tipo</label>
-            <select id="filtroTipo" class="lk-select">
+            <select id="filtroTipo" class="lk-select btn btn-primary">
                 <option value="">Todos</option>
                 <option value="receita">Receitas</option>
                 <option value="despesa">Despesas</option>
             </select>
-            <button id="btnFiltrar" type="button" class="lk-btn ghost">
+            <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
                 <i class="fas fa-filter"></i> Filtrar
             </button>
         </div>
