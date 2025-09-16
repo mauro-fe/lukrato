@@ -125,13 +125,13 @@ $base = BASE_URL;
                                 <option value="">Selecione uma categoria</option>
                             </select>
                         </div>
+                        <!-- Conta (opcional) -->
                         <div class="form-group">
-                            <label for="lanConta">Conta</label>
-                            <select id="lanConta" class="form-select">
-                                <option value="">Selecione uma categoria</option>
+                            <label for="headerConta">Conta</label>
+                            <select id="headerConta" class="form-select form-select-sm" autocomplete="off">
+                                <option value="">Todas as contas (opcional)</option>
                             </select>
                         </div>
-
 
                         <div class="form-group">
                             <label for="lanDescricao">Descrição</label>

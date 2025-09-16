@@ -106,13 +106,6 @@
 .btn:hover {
   transform: translateY(-2px);
 }
-
-.btn-primary {
-  /* gradiente baseado na cor primária */
-  background-color: var(--color-btn) !important;
-  color: #fff !important;
-}
-
 .btn:focus {
   background-color: var(--color-primary);
 }

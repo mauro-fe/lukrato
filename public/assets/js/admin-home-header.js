@@ -35,6 +35,54 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
     });
 
+    // --- API: contas ativas ---
+    const apiAccounts = () => fetchJSON(BASE + 'api/accounts?only_active=1');
+
+    // --- Preencher o seletor de conta do header/modal (opcional) ---
+    async function initHeaderAccountPicker() {
+        const sel = document.getElementById('headerConta');
+        if (!sel) return;
+
+        try {
+            const contas = await apiAccounts(); // [{id, nome, instituicao, ...}]
+            const keep = sel.value; // tenta preservar seleção atual
+
+            sel.innerHTML = '<option value="">Todas as contas (opcional)</option>';
+            contas.forEach(c => {
+                const op = document.createElement('option');
+                op.value = c.id;
+                op.textContent = c.instituicao ? `${c.nome} — ${c.instituicao}` : c.nome;
+                sel.appendChild(op);
+            });
+
+            // restaura: prioridade = sessionStorage > seleção anterior > vazio
+            const saved = sessionStorage.getItem('lukrato.account_id') || keep || '';
+            if (saved) sel.value = saved;
+
+            sel.onchange = () => {
+                const v = sel.value;
+                if (v) sessionStorage.setItem('lukrato.account_id', v);
+                else sessionStorage.removeItem('lukrato.account_id');
+
+                // avisa quem quiser reagir (dashboard/relatórios/etc.)
+                document.dispatchEvent(new CustomEvent('lukrato:account-changed', {
+                    detail: { account_id: v ? Number(v) : null }
+                }));
+            };
+
+            // expõe helper (se quiser usar em outros scripts)
+            window.LukratoHeader = Object.assign({}, window.LukratoHeader, {
+                getAccountId: () => {
+                    const v = document.getElementById('headerConta')?.value || '';
+                    return v ? Number(v) : null;
+                }
+            });
+        } catch (e) {
+            console.error('headerConta:', e);
+        }
+    }
+
+
     // ---------- cache de opções ----------
     let optionsCache = null;
     async function ensureOptions() {
@@ -67,6 +115,7 @@
         document.body.style.overflow = open ? 'hidden' : '';
 
         if (open) {
+            initHeaderAccountPicker(); // <-- garante que o <select> de conta seja preenchido/atualizado
             const today = new Date().toISOString().slice(0, 10);
             $('#lanData').value = today;
             $('#lanValor').value = '';
@@ -78,6 +127,7 @@
         }
     }
 
+
     // abre pelo menu do FAB
     $$('.fab-menu-item[data-open-modal]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -85,6 +135,7 @@
             if (type === 'receita' || type === 'despesa') $('#lanTipo').value = type;
             else $('#lanTipo').value = 'despesa';
             toggleModal(true);
+            initHeaderAccountPicker();
             menu.classList.remove('active');
             fab.classList.remove('active');
             fab.setAttribute('aria-expanded', 'false');
@@ -149,12 +200,13 @@
     }
 
     // ---------- submit ----------
+    // ---------- submit ----------
     const form = $('#formLancamento');
     if (form && !form.dataset.bound) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
-                const tipo = $('#lanTipo').value; // 'receita' | 'despesa'
+                const tipo = $('#lanTipo').value;          // 'receita' | 'despesa'
                 const data = $('#lanData').value;
                 const valor = parseMoney($('#lanValor').value);
                 const catId = $('#lanCategoria').value || null;
@@ -166,12 +218,18 @@
                     return;
                 }
 
-                await apiCreate({
+                // conta (opcional): usa o seletor do header/modal
+                const contaId = document.getElementById('headerConta')?.value || '';
+
+                const payload = {
                     tipo, data, valor,
                     categoria_id: catId ? Number(catId) : null,
                     descricao: desc || null,
-                    observacao: obs || null
-                });
+                    observacao: obs || null,
+                    ...(contaId ? { conta_id: Number(contaId) } : {}) // só envia se tiver
+                };
+
+                await apiCreate(payload);
 
                 Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1300, showConfirmButton: false });
                 toggleModal(false);
@@ -187,6 +245,7 @@
         });
         form.dataset.bound = '1';
     }
+
 
     // ---------- Logout confirm ----------
     document.addEventListener('click', (e) => {
@@ -232,6 +291,9 @@
             });
         });
     })();
+    document.addEventListener('DOMContentLoaded', () => {
+        initHeaderAccountPicker();
+    });
 
 })();
 

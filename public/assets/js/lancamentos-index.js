@@ -1,16 +1,23 @@
-/* Página: Lançamentos (mês auto via header, botão filtra tipo no cliente) */
+/* Página: Lançamentos (mês auto via header, filtro por tipo no cliente, seleção múltipla + exclusão em massa) */
 (() => {
     const rawBase = (window.BASE_URL || '/').replace(/\/?$/, '/');
     const BASES = [`${rawBase}api/`, `${rawBase}index.php/api/`];
+    const BASE = rawBase; // para POSTs diretos quando preciso
 
     const $ = (s) => document.querySelector(s);
     const tbody = $('#tbodyLancamentos');
     const selectTipo = $('#filtroTipo');
     const btnFiltrar = $('#btnFiltrar');
+    // Bulk actions UI
+    const btnExcluirSel = document.getElementById('btnExcluirSel');
+    const chkAll = document.getElementById('chkAll');
+    const selInfo = document.getElementById('selInfo');
+    const selCountSpan = document.getElementById('selCount');
 
     const monthCache = new Map();
     let isLoading = false;
 
+    /* ---------- helpers ---------- */
     const fmt = {
         money: (n) =>
             new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -21,6 +28,42 @@
             return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
         },
     };
+
+    const brl = (n) => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    function parseMoney(input) {
+        if (input == null) return 0;
+        let s = String(input).trim().replace(/[R$\s]/g, '');
+        if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+        const n = Number(s);
+        return Number.isFinite(n) ? Number(n.toFixed(2)) : 0;
+    }
+
+    async function fetchJSON(url, opts = {}) {
+        const r = await fetch(url, { credentials: 'include', ...opts });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j?.error || j?.status === 'error') throw new Error(j?.message || 'Erro na API');
+        return j;
+    }
+
+    // POST com fallback /api e /index.php/api
+    async function postAPIs(path, payload) {
+        for (const base of BASES) {
+            try {
+                const r = await fetch(base + path, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (r.ok) return await r.json();
+                if (r.status !== 404) {
+                    const j = await r.json().catch(() => ({}));
+                    throw new Error(j?.message || `HTTP ${r.status}`);
+                }
+            } catch { /* tenta próximo base */ }
+        }
+        throw new Error('Falha ao enviar (POST) para a API.');
+    }
 
     const getMonth = () => {
         if (window.LukratoHeader?.getMonth) {
@@ -34,7 +77,8 @@
 
     const setEmpty = (msg) => {
         if (!tbody) return;
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center">${msg}</td></tr>`; // 7 colunas (inclui Ações)
+        // 8 colunas (inclui checkbox e ações)
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center">${msg}</td></tr>`;
     };
 
     const normalizeList = (p) => {
@@ -83,11 +127,15 @@
         return null;
     }
 
+    async function ensureOptions() {
+        return (await tryFetch('options')) || {};
+    }
+
     async function fetchListByMonth(month) {
         if (monthCache.has(month)) return monthCache.get(month);
         const q = `month=${encodeURIComponent(month)}&limit=500`;
         const candidates = [
-            `lancamentos?${q}`,            // usa endpoint que já traz "conta" (instituição/nome)
+            `lancamentos?${q}`,            // endpoint novo que traz rótulos de conta
             `dashboard/transactions?${q}`, // fallback
             `transactions?${q}`,           // fallback
         ];
@@ -103,9 +151,9 @@
         return [];
     }
 
-    // Monta rótulo da conta priorizando INSTITUIÇÃO
+    // Rótulo da conta: prioriza instituição (e trata transferências)
     function getContaLabel(t) {
-        if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim(); // /api/lancamentos
+        if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim();
         if (t.conta && typeof t.conta === 'object') {
             if (t.conta.instituicao) return t.conta.instituicao;
             if (t.conta.nome) return t.conta.nome;
@@ -145,7 +193,7 @@
         return { month, lista };
     }
 
-    // --- SweetAlert2 ---
+    // SweetAlert2
     async function ensureSwal() {
         if (window.Swal) return;
         await new Promise((resolve, reject) => {
@@ -162,7 +210,7 @@
         });
     }
 
-    // --- Exclusão: tenta DELETE e fallbacks POST ---
+    // Exclusão (tenta DELETE e fallbacks POST)
     async function apiDeleteLancamento(id) {
         const raw = (window.BASE_URL || '/').replace(/\/?$/, '/');
         const tries = [
@@ -190,19 +238,43 @@
         throw new Error('Endpoint de exclusão não encontrado (404). Verifique as rotas do back-end.');
     }
 
-    // --- Linha da tabela (inclui botão Excluir) ---
+    /* ---------- bulk selection helpers (definidos fora do DOMContentLoaded) ---------- */
+    function getSelectedIds() {
+        return Array.from(tbody?.querySelectorAll('input.row-chk:checked') || [])
+            .map(ch => Number(ch.value))
+            .filter(Boolean);
+    }
+    function updateBulkUI() {
+        const ids = getSelectedIds();
+        const n = ids.length;
+        if (btnExcluirSel) btnExcluirSel.disabled = n === 0 || isLoading;
+        if (selInfo && selCountSpan) {
+            selCountSpan.textContent = n;
+            selInfo.classList.toggle('d-none', n === 0);
+        }
+        if (chkAll) {
+            const total = tbody?.querySelectorAll('input.row-chk').length || 0;
+            chkAll.indeterminate = n > 0 && n < total;
+            chkAll.checked = n > 0 && n === total;
+        }
+    }
+
+    // Linha da tabela (checkbox + botão excluir)
     function renderRow(t) {
         const tipo = normalizeTipo(t.tipo) || t.tipo || '—';
         const cat = t.categoria_nome || t.categoria?.nome || t.categoria || '—';
         const acc = getContaLabel(t);
+        const id = t.id;
+
         return `
-      <tr data-id="${t.id}">
+      <tr data-id="${id}">
+        <td class="text-center"><input type="checkbox" class="row-chk" value="${id}" aria-label="Selecionar lançamento"></td>
         <td>${fmt.date(t.data)}</td>
         <td>${tipo}</td>
         <td>${cat}</td>
         <td>${acc}</td>
         <td>${t.descricao || t.observacao || '—'}</td>
-        <td>${fmt.money(t.valor)}</td>
+        <td class="text-right">${fmt.money(t.valor)}</td>
         <td class="text-right">
           <button class="lk-btn danger btn-del" title="Excluir" aria-label="Excluir">
             <i class="fas fa-trash"></i>
@@ -211,7 +283,7 @@
       </tr>`;
     }
 
-    // --- RENDER principal (faltava) ---
+    // Render principal
     async function render({ byButton = false } = {}) {
         if (!tbody || isLoading) return;
         setEmpty('Carregando…');
@@ -227,6 +299,7 @@
             } else {
                 tbody.innerHTML = final.map(renderRow).join('');
             }
+            updateBulkUI();
 
             document.dispatchEvent(new CustomEvent('lukrato:lancamentos-rendered', {
                 detail: { month, total: final.length }
@@ -239,7 +312,7 @@
         }
     }
 
-    // --- Exportar CSV (estava referenciado) ---
+    // Export CSV
     async function onExport(monthOverride) {
         const month = monthOverride || getMonth();
         const lista = await fetchListByMonth(month);
@@ -263,7 +336,9 @@
         URL.revokeObjectURL(url);
     }
 
-    // --- Clique no botão Excluir ---
+    /* ---------- eventos ---------- */
+
+    // Excluir individual
     tbody?.addEventListener('click', async (e) => {
         const btn = (e.target.closest && e.target.closest('.btn-del')) || null;
         if (!btn) return;
@@ -307,7 +382,71 @@
         }
     });
 
-    // --- Boot ---
+    // Seleção por linha
+    tbody?.addEventListener('change', (e) => {
+        if (e.target && e.target.classList.contains('row-chk')) updateBulkUI();
+    });
+
+    // Master checkbox
+    chkAll?.addEventListener('change', () => {
+        const rows = tbody?.querySelectorAll('input.row-chk') || [];
+        rows.forEach(ch => ch.checked = !!chkAll.checked);
+        updateBulkUI();
+    });
+
+    // Excluir selecionados
+    btnExcluirSel?.addEventListener('click', async () => {
+        const ids = getSelectedIds();
+        if (!ids.length) return;
+
+        try {
+            await ensureSwal();
+            const confirm = await Swal.fire({
+                title: `Excluir ${ids.length} lançamento(s)?`,
+                text: 'Essa ação não pode ser desfeita.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true,
+                focusCancel: true
+            });
+            if (!confirm.isConfirmed) return;
+
+            isLoading = true;
+            btnExcluirSel.disabled = true;
+            btnExcluirSel.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Excluindo…`;
+
+            const results = await Promise.allSettled(ids.map(id => apiDeleteLancamento(id)));
+            const ok = results.filter(r => r.status === 'fulfilled').length;
+            const fail = ids.length - ok;
+
+            // invalida cache + atualiza
+            const m = getMonth();
+            monthCache.delete(m);
+
+            await render();
+            await ensureSwal();
+            Swal.fire({
+                icon: fail ? 'warning' : 'success',
+                title: fail ? `Excluídos: ${ok} • Falhas: ${fail}` : `Excluídos: ${ok}`,
+                timer: 1800,
+                showConfirmButton: false
+            });
+
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
+        } catch (err) {
+            console.error(err);
+            await ensureSwal();
+            Swal.fire({ icon: 'error', title: 'Erro', text: (err && err.message) || 'Falha ao excluir' });
+        } finally {
+            isLoading = false;
+            if (btnExcluirSel) btnExcluirSel.innerHTML = `<i class="fas fa-trash"></i> Excluir selecionados`;
+            updateBulkUI();
+        }
+    });
+
+    // Boot
     document.addEventListener('DOMContentLoaded', () => {
         render();
 
@@ -327,7 +466,8 @@
             monthCache.delete(m);
             render();
         });
-        // ====== Transferência via botão do header ======
+
+        /* ====== Transferência via botão do header (opcional) ====== */
         const btnTransferHeader = $('#btnTransferHeader');
 
         const modalTr = $('#modalTransfer');
@@ -338,20 +478,17 @@
         const grpOrigemReadOnly = $('#grpOrigemReadOnly');
         const grpOrigemSelect = $('#grpOrigemSelect');
 
-        const trOrigemId = $('#trOrigemId');     // hidden (modo card)
-        const trOrigemNome = $('#trOrigemNome');   // readonly (modo card)
-        const trOrigemIdSel = $('#trOrigemIdSel');  // select (modo header)
+        const trOrigemId = $('#trOrigemId');      // hidden (modo card)
+        const trOrigemNome = $('#trOrigemNome');    // readonly (modo card)
+        const trOrigemIdSel = $('#trOrigemIdSel');   // select (modo header)
 
         const trDestinoId = $('#trDestinoId');
         const trData = $('#trData');
         const trValor = $('#trValor');
         const trDesc = $('#trDesc');
 
-        const apiTransfer = (payload) => fetchJSON(BASE + 'api/transfers', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        // usa fallback de POST automático
+        const apiTransfer = (payload) => postAPIs('transfers', payload);
 
         function closeFab() {
             const fab = $('#fabButton');
@@ -362,36 +499,34 @@
         }
 
         function openTransferModal(fromAccountId = null) {
-            // data de hoje
             if (trData && 'valueAsDate' in trData) trData.valueAsDate = new Date();
             else if (trData) trData.value = new Date().toISOString().slice(0, 10);
 
             trValor && (trValor.value = '');
             trDesc && (trDesc.value = '');
 
-            // Modo header (sem origem fixa) → mostra select de origem
             if (!fromAccountId) {
-                grpOrigemReadOnly.style.display = 'none';
-                grpOrigemSelect.style.display = '';
-                trOrigemId.value = '';
+                // Modo header → escolhe origem
+                grpOrigemReadOnly && (grpOrigemReadOnly.style.display = 'none');
+                grpOrigemSelect && (grpOrigemSelect.style.display = '');
+                trOrigemId && (trOrigemId.value = '');
                 populateOrigemSelect().then(() => populateDestinoSelect());
             } else {
-                // (Se você chamar com uma conta fixa no futuro)
-                grpOrigemReadOnly.style.display = '';
-                grpOrigemSelect.style.display = 'none';
-                trOrigemId.value = String(fromAccountId);
+                grpOrigemReadOnly && (grpOrigemReadOnly.style.display = '');
+                grpOrigemSelect && (grpOrigemSelect.style.display = 'none');
+                trOrigemId && (trOrigemId.value = String(fromAccountId));
                 const c = (_lastRows || []).find(r => r.id === Number(fromAccountId));
-                trOrigemNome.value = c ? `${(c.instituicao || '').trim()}${c.instituicao ? ' — ' : ''}${(c.nome || '').trim()}` : '';
+                trOrigemNome && (trOrigemNome.value = c ? `${(c.instituicao || '').trim()}${c.instituicao ? ' — ' : ''}${(c.nome || '').trim()}` : '');
                 populateDestinoSelect(fromAccountId);
             }
 
-            modalTr.classList.add('open');
+            modalTr?.classList.add('open');
             document.body.style.overflow = 'hidden';
             setTimeout(() => trValor?.focus(), 40);
         }
 
         function closeTransferModal() {
-            modalTr.classList.remove('open');
+            modalTr?.classList.remove('open');
             document.body.style.overflow = '';
         }
 
@@ -404,10 +539,10 @@
             trValor.value = v ? brl(v) : '';
         });
 
-        // Popula selects
         async function populateOrigemSelect(selectedId = '') {
             const opts = await ensureOptions();
             const contas = Array.isArray(opts?.contas) ? opts.contas : [];
+            if (!trOrigemIdSel) return;
             trOrigemIdSel.innerHTML = `<option value="">Selecione a conta de origem</option>`;
             contas.forEach(c => {
                 const op = document.createElement('option');
@@ -422,9 +557,10 @@
         async function populateDestinoSelect(originId = '') {
             const opts = await ensureOptions();
             const contas = Array.isArray(opts?.contas) ? opts.contas : [];
+            if (!trDestinoId) return;
             trDestinoId.innerHTML = `<option value="">Selecione a conta de destino</option>`;
             contas.forEach(c => {
-                if (originId && Number(c.id) === Number(originId)) return; // não permitir mesma conta
+                if (originId && Number(c.id) === Number(originId)) return;
                 const op = document.createElement('option');
                 op.value = c.id;
                 const inst = (c.instituicao || '').trim(), nome = (c.nome || '').trim();
@@ -433,30 +569,27 @@
             });
         }
 
-        // Quando trocar a origem (modo header), refaz o destino
         trOrigemIdSel?.addEventListener('change', () => {
             const oid = Number(trOrigemIdSel.value || 0);
             populateDestinoSelect(oid);
         });
 
-        // Clique no botão do header
         btnTransferHeader?.addEventListener('click', (e) => {
             e.preventDefault();
             closeFab();
-            openTransferModal(null);            // origem será escolhida no select
+            openTransferModal(null); // origem escolhida no select
         });
 
-        // Submit
         formTr?.addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
-                const origem = trOrigemId.value ? Number(trOrigemId.value) : Number(trOrigemIdSel.value);
-                const destino = Number(trDestinoId.value);
-                const valor = parseMoney(trValor.value);
+                const origem = trOrigemId?.value ? Number(trOrigemId.value) : Number(trOrigemIdSel?.value);
+                const destino = Number(trDestinoId?.value);
+                const valor = parseMoney(trValor?.value);
 
                 if (!origem || !destino || origem === destino)
                     return Swal.fire('Atenção', 'Selecione contas de origem e destino diferentes.', 'warning');
-                if (!trData.value || !valor || valor <= 0)
+                if (!trData?.value || !valor || valor <= 0)
                     return Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning');
 
                 await apiTransfer({
@@ -464,13 +597,12 @@
                     valor,
                     conta_id: origem,
                     conta_id_destino: destino,
-                    descricao: trDesc.value || null,
+                    descricao: trDesc?.value || null,
                     observacao: null
                 });
 
                 Swal.fire({ icon: 'success', title: 'Transferência registrada!', timer: 1300, showConfirmButton: false });
                 closeTransferModal();
-                // atualiza UI
                 window.refreshDashboard && window.refreshDashboard();
                 window.refreshReports && window.refreshReports();
                 window.fetchLancamentos && window.fetchLancamentos();
@@ -480,5 +612,7 @@
             }
         });
 
+        // Inicializa o estado do bulk após primeiro render
+        updateBulkUI();
     });
 })();

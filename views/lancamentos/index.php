@@ -35,27 +35,42 @@
             <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
                 <i class="fas fa-filter"></i> Filtrar
             </button>
+
+            <!-- NOVO: ações em massa -->
+            <button id="btnExcluirSel" type="button" class="lk-btn danger btn ms-2" disabled>
+                <i class="fas fa-trash"></i> Excluir selecionados
+            </button>
+            <small id="selInfo" class="text-muted ms-2 d-none">
+                <span id="selCount">0</span> selecionado(s)
+            </small>
         </div>
+
 
         <section class="table-container mt-5">
             <table class="lukrato-table" id="tabelaLancamentos">
                 <thead>
                     <tr>
+                        <!-- NOVO: seleção em massa -->
+                        <th class="text-center" style="width:36px">
+                            <input type="checkbox" id="chkAll" aria-label="Selecionar todos">
+                        </th>
                         <th>Data</th>
                         <th>Tipo</th>
                         <th>Categoria</th>
                         <th>Conta</th>
                         <th>Descrição</th>
                         <th class="text-right">Valor</th>
-                        <th style="width:82px">Ações</th> <!-- NOVO -->
+                        <th style="width:82px">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyLancamentos">
                     <tr>
-                        <td colspan="6" class="text-center">Carregando…</td>
+                        <!-- ATUALIZE O COLSPAN PARA 8 -->
+                        <td colspan="8" class="text-center">Carregando…</td>
                     </tr>
                 </tbody>
             </table>
+
         </section>
     </div>
 
