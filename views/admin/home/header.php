@@ -69,7 +69,7 @@ $base = BASE_URL;
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
                 <?= $aria('relatorios')  ?>><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
                 <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
-                <?= $aria('categorias')  ?>><i class="fas fa-chart-bar"></i><span>Categorias</span></a>
+                <?= $aria('categorias')  ?>><i class="fas fa-tags"></i><span>Categorias</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
                 <?= $aria('perfil')      ?>><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
