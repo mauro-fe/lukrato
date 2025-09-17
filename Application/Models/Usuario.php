@@ -16,6 +16,7 @@ class Usuario extends Model
         'nome',
         'email',
         'senha',           // campo físico no banco
+        'theme_preference',
         'username',        // opcional
         'cpf',             // só dígitos
         'telefone',        // só dígitos (10/11)

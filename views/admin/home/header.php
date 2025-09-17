@@ -11,6 +11,7 @@ $base = BASE_URL;
 <html lang="pt-BR" lang="pt-BR" data-theme="dark">
 
 <head>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $pageTitle ?></title>
@@ -68,7 +69,7 @@ $base = BASE_URL;
                 <?= $aria('lancamentos') ?>><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
                 <?= $aria('relatorios')  ?>><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
-                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
+            <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
                 <?= $aria('categorias')  ?>><i class="fas fa-tags"></i><span>Categorias</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
                 <?= $aria('perfil')      ?>><i class="fas fa-user-circle"></i><span>Perfil</span></a>
@@ -164,28 +165,54 @@ $base = BASE_URL;
                 const root = document.documentElement;
                 const btn = document.getElementById("toggleTheme");
 
-                // aplica o tema salvo no localStorage (padrão = light)
-                const saved = localStorage.getItem("theme") || "dark";
-                root.setAttribute("data-theme", saved);
+                // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
+                const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
+                const ENDPOINT = BASE_URL + 'api/user/theme';
+                const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
 
-                // atualiza ícone
-                updateIcon(saved);
+                // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
+                const cached = localStorage.getItem("theme");
+                if (cached) applyTheme(cached, false);
 
-                // alternar ao clicar
-                btn.addEventListener("click", () => {
-                    const current = root.getAttribute("data-theme");
-                    const next = current === "dark" ? "light" : "dark";
-                    root.setAttribute("data-theme", next);
-                    localStorage.setItem("theme", next);
-                    updateIcon(next);
+                // 2) busca do backend (fonte da verdade)
+                fetch(ENDPOINT, {
+                        credentials: 'include'
+                    })
+                    .then(r => r.ok ? r.json() : Promise.reject(r))
+                    .then(j => applyTheme(j?.theme || cached || 'light', false))
+                    .catch(() => applyTheme(cached || 'light', false));
+
+                // 3) clique alterna e salva no backend
+                btn?.addEventListener("click", () => {
+                    const current = root.getAttribute("data-theme") || 'light';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    applyTheme(next, true);
                 });
 
-                function updateIcon(theme) {
-                    if (theme === "dark") {
-                        btn.classList.add("dark");
-                    } else {
-                        btn.classList.remove("dark");
+                function applyTheme(theme, persist) {
+                    root.setAttribute("data-theme", theme);
+                    localStorage.setItem("theme", theme);
+                    updateIcon(theme);
+
+                    if (persist) {
+                        fetch(ENDPOINT, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': CSRF
+                            },
+                            body: JSON.stringify({
+                                theme
+                            })
+                        }).catch(err => console.error('Falha ao salvar tema:', err));
                     }
+                }
+
+                function updateIcon(theme) {
+                    const btnEl = document.getElementById("toggleTheme");
+                    if (!btnEl) return;
+                    btnEl.classList.toggle('dark', theme === 'dark');
                 }
             })();
         </script>

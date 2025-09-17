@@ -99,6 +99,9 @@ function registerSimpleRoutes(): void
     Router::add('POST', 'api/categorias/{id:\d+}/delete', 'Api\CategoryController@delete');
     // (opcional) fallback:
     Router::add('POST', 'api/categorias/delete',         'Api\CategoryController@delete');
+
+    Router::add('GET',  '/api/user/theme', 'Api\UserPreferenceController@show');
+    Router::add('POST', '/api/user/theme', 'Api\UserPreferenceController@update');
 }
 
 

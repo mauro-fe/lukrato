@@ -264,4 +264,5 @@ if (!empty($user->data_nascimento)) {
             }
         });
     })();
+    
 </script>

@@ -75,7 +75,8 @@ abstract class BaseController
     // Helpers diversos (mantidos)
     protected function getPost(string $key, $default = null)
     {
-        return $this->request->get($key, $default);
+        // CORRIGIDO: ler exclusivamente POST
+        return $this->request->post($key, $default);
     }
     protected function getQuery(string $key, $default = null)
     {
@@ -106,5 +107,19 @@ abstract class BaseController
         $x = $_SESSION['success'] ?? null;
         unset($_SESSION['success']);
         return $x;
+    }
+
+    // Application/Controllers/BaseController.php
+
+    // ...
+
+    protected function getJson(string $key = null, $default = null)
+    {
+        $raw = file_get_contents('php://input') ?: '';
+        if ($raw === '') return $key ? $default : [];
+        $json = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE) return $key ? $default : [];
+        if ($key === null) return $json;
+        return $json[$key] ?? $default;
     }
 }
