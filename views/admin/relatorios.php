@@ -125,41 +125,118 @@
         background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
     }
 
-    /* ====== Seletor de período ====== */
-    .lk-period {
-        margin-top: 20px;
-        margin-right: 20px;
+    /* ======================= Month Selector (dentro do header) ======================= */
+    .dash-lk-header .month-selector {
         display: flex;
         align-items: center;
-        gap: 8px;
-        border: 1px solid var(--glass-border);
-        border-radius: 999px;
-        padding: 6px 8px;
-        height: 44px;
-        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-        background: var(--glass-bg);
-        backdrop-filter: var(--glass-backdrop);
-        color: var(--color-text);
+        justify-content: center;
+
+
     }
 
-    .lk-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        border-radius: 999px;
-        font-weight: 700;
-        color: var(--color-primary);
-    }
-
-    .lk-arrow {
+    .dash-lk-header .month-nav-btn {
+        background: none;
         border: 0;
-        padding: 8px;
-        border-radius: 999px;
+        color: var(--branco);
         cursor: pointer;
-        background-color: transparent;
-        color: var(--color-text);
+
+        border-radius: var(--radius-sm);
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
     }
+
+    .dash-lk-header .month-nav-btn:hover {
+        background-color: var(--glass-bg);
+        color: var(--branco);
+    }
+
+    .dash-lk-header .month-display {
+        position: relative;
+    }
+
+    .dash-lk-header .month-dropdown-btn {
+        background: none;
+        border: 0;
+        color: var(--color-primary);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-weight: 600;
+        min-width: 160px;
+        justify-content: space-between;
+    }
+
+
+
+    .dash-lk-header .month-dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        width: 260px;
+        background: var(--azul);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        max-height: 320px;
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: var(--transition-fast);
+        padding: 6px;
+    }
+
+    .dash-lk-header .month-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dash-lk-header .month-dropdown .year-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px 0 8px;
+    }
+
+    .dash-lk-header .month-dropdown .year-label {
+        grid-column: 1 / -1;
+        font-weight: 700;
+        color: var(--claro);
+        padding: 6px 8px;
+        opacity: 0.85;
+    }
+
+    .dash-lk-header .month-dropdown .m-btn {
+        background: none;
+        border: 1px solid var(--glass-border);
+        color: var(--branco);
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: var(--transition-fast);
+        text-align: center;
+        font-size: var(--font-size-sm);
+    }
+
+    .dash-lk-header .month-dropdown .m-btn:hover {
+        background-color: var(--glass-bg);
+    }
+
+    .dash-lk-header .month-dropdown .m-btn.is-current {
+        border-color: var(--laranja);
+        box-shadow: 0 0 0 1px var(--laranja) inset;
+    }
+
+
 
     /* ====== Cards/gráficos ====== */
     .lk-card {
@@ -248,13 +325,30 @@
             <h3>Relatórios</h3>
         </div>
 
-        <div class="lk-titlebar">
-            <div class="lk-period" aria-label="Seletor de mês">
-                <button class="lk-arrow" id="prev" aria-label="Mês anterior"><i class="fa-solid fa-angle-left"></i></button>
-                <span class="lk-chip" id="month">—</span>
-                <button class="lk-arrow" id="next" aria-label="Próximo mês"><i class="fa-solid fa-angle-right"></i></button>
+        <header class="dash-lk-header">
+            <div class="header-left">
+                <div class="month-selector">
+                    <div class="lk-period">
+                        <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal"
+                            data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
+                            <span id="currentMonthText">Carregando...</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+
+                        <div class="month-display">
+                            <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+                        </div>
+
+                        <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+        </header>
 
         <!-- Controles: Abas + Tipo (pizza) + Conta -->
         <div class="lk-controls pt-4" role="tablist" aria-label="Tipos de relatório">
@@ -293,6 +387,49 @@
         <div id="area"></div>
     </div>
 </div>
+<!-- Modal: Selecionar mês -->
+<div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+        <div class="modal-content bg-dark text-light border-0 rounded-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="monthModalLabel">Selecionar mês</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body pt-0">
+                <!-- Toolbar: Ano + Ações rápidas -->
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                    <div class="btn-group" role="group" aria-label="Navegar entre anos">
+                        <button type="button" class="btn btn-outline-light btn-sm" id="mpPrevYear"
+                            title="Ano anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="px-3 fw-semibold" id="mpYearLabel">2024</span>
+                        <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear"
+                            title="Próximo ano">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-light btn-sm" id="mpTodayBtn">Hoje</button>
+                        <input type="month" class="form-control form-control-sm bg-dark text-light border-secondary"
+                            id="mpInputMonth" style="width:165px">
+                    </div>
+                </div>
+
+                <!-- Grade de meses -->
+                <div id="mpGrid" class="row g-2"></div>
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     (function() {
@@ -314,12 +451,10 @@
             const v = (k, fallback) => (css.getPropertyValue(k) || fallback).trim();
 
             const brand = {
-                primary: v('--color-primary', '#E67E22'), // Laranja vibrante
+                primary: v('--color-primary', '#E67E22'),
                 text: v('--color-text', '#EAF2FF'),
                 textMute: v('--color-text-muted', '#94A3B8'),
                 surface: v('--color-surface', '#0F2233'),
-
-                // Paleta Lukrato
                 green: '#2ECC71',
                 orange: '#E67E22',
                 yellow: '#F39C12',
@@ -329,8 +464,6 @@
                 purple: '#9B59B6',
                 cyan: '#1ABC9C'
             };
-
-            // paleta p/ setores (donut). Altere a ordem/cores se quiser.
             const palette = ['#E67E22', '#2C3E50', '#2ECC71', '#BDC3C7', '#F39C12', '#9B59B6', '#1ABC9C', '#E74C3C'];
             return {
                 brand,
@@ -362,7 +495,7 @@
         const fmt = v => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
-        }).format(v || 0);
+        }).format(Number(v || 0));
 
         const st = {
             view: 'pizza',
@@ -370,91 +503,205 @@
             d: new Date(),
             chart: null,
             accounts: [],
-            accountId: null // null => todas
+            accountId: null,
+            modalYear: new Date().getFullYear()
         };
 
         const $ = sel => document.querySelector(sel);
-        const monthEl = $('#month');
+        const $$ = sel => Array.from(document.querySelectorAll(sel));
+        const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
+
         const base = '<?= BASE_URL ?>';
+
+        const currentMonthTextEl = $('#currentMonthText');
+        const prevBtn = $('#prevMonth');
+        const nextBtn = $('#nextMonth');
 
         function label(d) {
             return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
         }
 
         function sync() {
-            monthEl.textContent = label(st.d);
+            if (currentMonthTextEl) currentMonthTextEl.textContent = label(st.d);
         }
         sync();
 
-        // Navegação de meses
-        $('#prev').addEventListener('click', () => {
+        // Navegação pelas setas
+        on(prevBtn, 'click', () => {
             st.d.setMonth(st.d.getMonth() - 1);
             sync();
             load();
         });
-        $('#next').addEventListener('click', () => {
+        on(nextBtn, 'click', () => {
             st.d.setMonth(st.d.getMonth() + 1);
             sync();
             load();
         });
 
-        // Seletor de tipo (pizza)
+        // ===== Modal de mês =====
+        const yearPrev = $('#mpPrevYear');
+        const yearNext = $('#mpNextYear');
+        const yearLabel = $('#mpYearLabel');
+        const monthsGrid = $('#mpGrid');
+        const inputMonth = $('#mpInputMonth');
+        const todayBtn = $('#mpTodayBtn');
+
+        function renderMonthsGrid() {
+            if (!monthsGrid || !yearLabel) return;
+            monthsGrid.innerHTML = '';
+            yearLabel.textContent = String(st.modalYear);
+
+            for (let m = 0; m < 12; m++) {
+                const col = document.createElement('div');
+                col.className = 'col-4';
+
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn btn-outline-light w-100';
+                b.textContent = cap(monthNames[m]);
+
+                // destaque mês atual escolhido
+                if (st.d.getFullYear() === st.modalYear && st.d.getMonth() === m) {
+                    b.classList.add('active');
+                    b.style.borderColor = 'var(--color-primary, #E67E22)';
+                    b.style.background = 'rgba(230,126,34,.15)';
+                }
+
+                b.addEventListener('click', () => {
+                    st.d = new Date(st.modalYear, m, 1);
+                    sync();
+                    load();
+                    try {
+                        const modalEl = document.getElementById('monthModal');
+                        const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+                        modal?.hide();
+                    } catch {}
+                });
+
+                col.appendChild(b);
+                monthsGrid.appendChild(col);
+            }
+        }
+
+        on(yearPrev, 'click', () => {
+            st.modalYear--;
+            renderMonthsGrid();
+        });
+        on(yearNext, 'click', () => {
+            st.modalYear++;
+            renderMonthsGrid();
+        });
+
+        // “Hoje”
+        on(todayBtn, 'click', () => {
+            const now = new Date();
+            st.modalYear = now.getFullYear();
+            st.d = new Date(st.modalYear, now.getMonth(), 1);
+            sync();
+            load();
+            try {
+                const modalEl = document.getElementById('monthModal');
+                const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+                modal?.hide();
+            } catch {}
+        });
+
+        // <input type="month">
+        on(inputMonth, 'change', () => {
+            const ym = inputMonth.value; // formato yyyy-mm
+            if (!/^\d{4}-\d{2}$/.test(ym)) return;
+            const [y, m] = ym.split('-').map(Number);
+            st.modalYear = y;
+            st.d = new Date(y, m - 1, 1);
+            sync();
+            load();
+            try {
+                const modalEl = document.getElementById('monthModal');
+                const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+                modal?.hide();
+            } catch {}
+        });
+
+        // Ao abrir o modal, alinhar o ano mostrado e redesenhar a grade
+        document.getElementById('monthModal')?.addEventListener('shown.bs.modal', () => {
+            st.modalYear = st.d.getFullYear();
+            // preencher <input type="month"> com o mês atual selecionado
+            if (inputMonth) {
+                const y = st.d.getFullYear();
+                const m = String(st.d.getMonth() + 1).padStart(2, '0');
+                inputMonth.value = `${y}-${m}`;
+            }
+            renderMonthsGrid();
+        });
+
+        // ===== Seletor de tipo (pizza) =====
         const selType = $('#typeSelect');
         const typeBtn = $('#typeBtn');
-        const typeMenu = selType.querySelector('.lk-menu');
-        typeBtn.addEventListener('click', () => {
+        const typeMenu = selType?.querySelector('.lk-menu');
+
+        on(typeBtn, 'click', () => {
+            if (!typeMenu) return;
             typeMenu.classList.toggle('open');
-            typeBtn.setAttribute('aria-expanded', typeMenu.classList.contains('open'));
+            typeBtn.setAttribute('aria-expanded', String(typeMenu.classList.contains('open')));
         });
+
         document.addEventListener('click', (e) => {
-            if (!selType.contains(e.target)) {
+            if (selType && typeMenu && !selType.contains(e.target)) {
                 typeMenu.classList.remove('open');
-                typeBtn.setAttribute('aria-expanded', 'false');
+                if (typeBtn) typeBtn.setAttribute('aria-expanded', 'false');
             }
         });
-        typeMenu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-            st.type = b.dataset.type;
-            typeBtn.querySelector('.lb').textContent = b.textContent;
-            typeMenu.classList.remove('open');
-            typeBtn.setAttribute('aria-expanded', 'false');
-            if (st.view === 'pizza') load();
-        }));
 
-        // Abas
-        document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
-            document.querySelectorAll('#tabs button').forEach(x => {
-                x.classList.remove('active');
-                x.setAttribute('aria-pressed', 'false');
-            });
-            b.classList.add('active');
-            b.setAttribute('aria-pressed', 'true');
-            st.view = b.dataset.view;
+        (typeMenu ? typeMenu.querySelectorAll('button') : []).forEach((b) =>
+            on(b, 'click', () => {
+                st.type = b.dataset.type;
+                const lb = typeBtn ? typeBtn.querySelector('.lb') : null;
+                if (lb) lb.textContent = b.textContent; // <-- sem optional chaining do lado esquerdo
+                typeMenu.classList.remove('open');
+                if (typeBtn) typeBtn.setAttribute('aria-expanded', 'false');
+                if (st.view === 'pizza') load();
+            })
+        );
 
-            // mostra/oculta seletores
-            selType.style.display = (st.view === 'pizza') ? '' : 'none';
-            accountSelectWrap.style.display = ''; // seletor de conta visível
-
-            load();
-        }));
-        selType.style.display = (st.view === 'pizza') ? '' : 'none';
-
-        // ====== Seletor de Conta ======
+        // ===== Abas =====
         const accountSelectWrap = $('#accountSelect');
-        const accountBtn = $('#accountBtn');
-        const accountMenu = accountSelectWrap.querySelector('.lk-menu');
 
-        accountBtn.addEventListener('click', () => {
+        $$('#tabs button').forEach((b) =>
+            on(b, 'click', () => {
+                $$('#tabs button').forEach((x) => {
+                    x.classList.remove('active');
+                    x.setAttribute('aria-pressed', 'false');
+                });
+                b.classList.add('active');
+                b.setAttribute('aria-pressed', 'true');
+                st.view = b.dataset.view;
+
+                if (selType) selType.style.display = (st.view === 'pizza') ? '' : 'none';
+                if (accountSelectWrap) accountSelectWrap.style.display = '';
+                load();
+            })
+        );
+        if (selType) selType.style.display = (st.view === 'pizza') ? '' : 'none';
+
+        // ===== Seletor de Conta =====
+        const accountBtn = $('#accountBtn');
+        const accountMenu = accountSelectWrap?.querySelector('.lk-menu');
+
+        on(accountBtn, 'click', () => {
+            if (!accountMenu) return;
             accountMenu.classList.toggle('open');
-            accountBtn.setAttribute('aria-expanded', accountMenu.classList.contains('open'));
+            accountBtn.setAttribute('aria-expanded', String(accountMenu.classList.contains('open')));
         });
+
         document.addEventListener('click', (e) => {
-            if (!accountSelectWrap.contains(e.target)) {
+            if (accountSelectWrap && accountMenu && !accountSelectWrap.contains(e.target)) {
                 accountMenu.classList.remove('open');
-                accountBtn.setAttribute('aria-expanded', 'false');
+                if (accountBtn) accountBtn.setAttribute('aria-expanded', 'false');
             }
         });
 
         async function loadAccounts() {
+            if (!accountSelectWrap || !accountMenu || !accountBtn) return;
             try {
                 const r = await fetch(`${base}api/accounts`, {
                     credentials: 'include',
@@ -465,20 +712,18 @@
                 if (!r.ok) throw new Error('Falha ao carregar contas');
                 const json = await r.json();
 
-                // Esperado: array de contas com {id, nome/apelido/instituicao}
                 st.accounts = (json.items || json || []).map(a => ({
                     id: Number(a.id),
                     nome: a.nome || a.apelido || a.instituicao || `Conta #${a.id}`
                 }));
 
-                // Monta menu
                 accountMenu.innerHTML = '';
                 const btnAll = document.createElement('button');
                 btnAll.textContent = 'Todas as contas';
-                btnAll.dataset.id = '';
-                btnAll.addEventListener('click', () => {
+                on(btnAll, 'click', () => {
                     st.accountId = null;
-                    accountBtn.querySelector('.lb').textContent = 'Todas as contas';
+                    const lb = accountBtn ? accountBtn.querySelector('.lb') : null;
+                    if (lb) lb.textContent = 'Todas as contas';
                     accountMenu.classList.remove('open');
                     accountBtn.setAttribute('aria-expanded', 'false');
                     load();
@@ -488,10 +733,10 @@
                 st.accounts.forEach(acc => {
                     const b = document.createElement('button');
                     b.textContent = acc.nome;
-                    b.dataset.id = acc.id;
-                    b.addEventListener('click', () => {
+                    on(b, 'click', () => {
                         st.accountId = acc.id;
-                        accountBtn.querySelector('.lb').textContent = acc.nome;
+                        const lb = accountBtn ? accountBtn.querySelector('.lb') : null;
+                        if (lb) lb.textContent = acc.nome;
                         accountMenu.classList.remove('open');
                         accountBtn.setAttribute('aria-expanded', 'false');
                         load();
@@ -516,7 +761,7 @@
                 st.view === 'barras' ? 'receitas_despesas_diario' :
                 st.view === 'evolucao' ? 'evolucao_12m' :
                 st.view === 'contas' ? 'receitas_despesas_por_conta' :
-                st.type; // pizza
+                st.type;
 
             const params = new URLSearchParams({
                 type,
@@ -558,12 +803,12 @@
 
         function empty() {
             setArea(`
-            <div class="lk-empty">
-                <img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">
-                <h3>Nenhum dado encontrado</h3>
-                <p>Altere o período, o tipo ou a conta.</p>
-            </div>
-        `);
+      <div class="lk-empty">
+        <img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">
+        <h3>Nenhum dado encontrado</h3>
+        <p>Altere o período, o tipo ou a conta.</p>
+      </div>
+    `);
         }
 
         function destroyChart() {
@@ -573,7 +818,7 @@
             }
         }
 
-        // =================== DESENHOS COM CORES PERSONALIZADAS ===================
+        // =================== DESENHOS ===================
         function drawPie(d) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
@@ -678,8 +923,8 @@
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
 
-            const rec = THEME.brand.green; // Receitas
-            const des = THEME.brand.orange; // Despesas
+            const rec = THEME.brand.green;
+            const des = THEME.brand.orange;
 
             st.chart = new Chart($('#c'), {
                 type: 'bar',
@@ -801,13 +1046,12 @@
             loading();
             try {
                 await ensureChart();
-                applyChartDefaults(); // aplica o tema global do Chart.js
-
+                applyChartDefaults();
                 if (!st.accounts.length) {
                     await loadAccounts();
-                } // carrega uma vez
+                }
                 const d = await fetchData();
-                if (!d || (!d.labels || !d.labels.length)) {
+                if (!d || !d.labels || !d.labels.length) {
                     empty();
                     return;
                 }

@@ -9,6 +9,12 @@
   border: 1px solid var(--glass-border);
 }
 
+.lk-accounts-wrap:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+
+}
+
 .lk-acc-header {
   display: flex;
   align-items: center;
@@ -97,20 +103,16 @@
 
 .btn-primary {
   /* gradiente baseado na cor primária */
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 85%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-primary) 85%, #000 0%),
+      color-mix(in srgb, var(--color-primary) 65%, #000 20%));
   color: var(--color-text) !important;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 90%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 75%, #000 15%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-primary) 90%, #000 0%),
+      color-mix(in srgb, var(--color-primary) 75%, #000 15%));
 }
 
 .btn-light {
@@ -124,20 +126,16 @@
 }
 
 .btn-danger {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 85%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-danger) 85%, #000 0%),
+      color-mix(in srgb, var(--color-danger) 65%, #000 20%));
   color: var(--color-surface);
 }
 
 .btn-danger:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 95%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 75%, #000 15%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-danger) 95%, #000 0%),
+      color-mix(in srgb, var(--color-danger) 75%, #000 15%));
 }
 
 .btn-ghost {
@@ -167,19 +165,15 @@
 }
 
 .tag.active {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-success) 85%, #000 0%),
-    color-mix(in srgb, var(--color-success) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-success) 85%, #000 0%),
+      color-mix(in srgb, var(--color-success) 65%, #000 20%));
 }
 
 .tag.inactive {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 85%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 65%, #000 20%)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-danger) 85%, #000 0%),
+      color-mix(in srgb, var(--color-danger) 65%, #000 20%));
 }
 
 /* ===== Form ===== */
@@ -221,8 +215,7 @@
 .lk-field select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
   background: color-mix(in srgb, var(--glass-bg) 70%, var(--color-surface) 30%);
 }
 
@@ -292,6 +285,11 @@
   box-shadow: var(--shadow-md);
   border: 1px solid var(--glass-border);
   color: var(--color-text);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
 }
 
 .stat-value {

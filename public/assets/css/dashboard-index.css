@@ -20,16 +20,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2);
+
+
 }
 
 .dash-lk-header .month-nav-btn {
   background: none;
   border: 0;
-  color: var(--cinza);
+  color: var(--branco);
   cursor: pointer;
-  padding: var(--spacing-2);
+
   border-radius: var(--radius-sm);
   transition: var(--transition-fast);
   display: flex;
@@ -51,9 +51,8 @@
 .dash-lk-header .month-dropdown-btn {
   background: none;
   border: 0;
-  color: var(--branco);
+  color: var(--color-primary);
   cursor: pointer;
-  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-sm);
   transition: var(--transition-fast);
   display: flex;
@@ -401,12 +400,12 @@
   transition: var(--transition-fast);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
   background-color: var(--laranja);
   border-color: var(--laranja);
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+.checkbox-label input[type="checkbox"]:checked+.checkbox-custom::after {
   content: "✓";
   position: absolute;
   top: 50%;
@@ -598,6 +597,7 @@
 
 /* Print Styles */
 @media print {
+
   .sidebar,
   .fab-container,
   .modal {
@@ -627,12 +627,12 @@
   --vermelho: var(--color-danger);
 
   --cinza: var(--color-text-muted);
-  --branco: var(
-    --color-text
-  ); /* textos que usavam 'branco' viram texto do tema */
-  --claro: var(--color-text); /* mesmo racional do 'branco' */
-  --azul: var(
-    --color-surface
-  ); /* superfícies/menus que usavam 'azul' viram surface */
-  --fundo: var(--color-bg); /* fundo global */
+  --branco: var(--color-text);
+  /* textos que usavam 'branco' viram texto do tema */
+  --claro: var(--color-text);
+  /* mesmo racional do 'branco' */
+  --azul: var(--color-surface);
+  /* superfícies/menus que usavam 'azul' viram surface */
+  --fundo: var(--color-bg);
+  /* fundo global */
 }

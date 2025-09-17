@@ -4,22 +4,24 @@
     <header class="dash-lk-header">
         <div class="header-left">
             <div class="month-selector">
-                <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal"
-                    data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
-                    <span id="currentMonthText">Carregando...</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
+                <div class="lk-period">
+                    <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal"
+                        data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
+                        <span id="currentMonthText">Carregando...</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
 
-                <div class="month-display">
-                    <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+                    <div class="month-display">
+                        <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+                    </div>
+
+                    <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-
-                <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
             </div>
         </div>
     </header>
@@ -75,6 +77,7 @@
     </div>
 
 </section>
+<!-- Modal: Selecionar mês -->
 <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
@@ -88,11 +91,13 @@
                 <!-- Toolbar: Ano + Ações rápidas -->
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                     <div class="btn-group" role="group" aria-label="Navegar entre anos">
-                        <button type="button" class="btn btn-outline-light btn-sm" id="mpPrevYear" title="Ano anterior">
+                        <button type="button" class="btn btn-outline-light btn-sm" id="mpPrevYear"
+                            title="Ano anterior">
                             <i class="fas fa-chevron-left"></i>
                         </button>
                         <span class="px-3 fw-semibold" id="mpYearLabel">2024</span>
-                        <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear" title="Próximo ano">
+                        <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear"
+                            title="Próximo ano">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>

@@ -1,5 +1,4 @@
-/* Seu CSS existente */
-.page-header {
+Seu CSS existente .page-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
@@ -31,19 +30,21 @@
   flex-direction: column;
 }
 
-.month-selector {
+/* ======================= Month Selector (dentro do header) ======================= */
+.dash-lk-header .month-selector {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
+
+
 }
 
-.month-nav-btn {
+.dash-lk-header .month-nav-btn {
   background: none;
   border: 0;
-  color: var(--cinza);
+  color: var(--branco);
   cursor: pointer;
-  padding: var(--spacing-2);
+
   border-radius: var(--radius-sm);
   transition: var(--transition-fast);
   display: flex;
@@ -53,21 +54,20 @@
   height: 32px;
 }
 
-.month-nav-btn:hover {
+.dash-lk-header .month-nav-btn:hover {
   background-color: var(--glass-bg);
   color: var(--branco);
 }
 
-.month-display {
+.dash-lk-header .month-display {
   position: relative;
 }
 
-.month-dropdown-btn {
+.dash-lk-header .month-dropdown-btn {
   background: none;
   border: 0;
-  color: var(--branco);
+  color: var(--color-primary);
   cursor: pointer;
-  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-sm);
   transition: var(--transition-fast);
   display: flex;
@@ -78,8 +78,67 @@
   justify-content: space-between;
 }
 
-.month-dropdown-btn:hover {
+
+
+.dash-lk-header .month-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 260px;
+  background: var(--azul);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-height: 320px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: var(--transition-fast);
+  padding: 6px;
+}
+
+.dash-lk-header .month-dropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dash-lk-header .month-dropdown .year-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+
+.dash-lk-header .month-dropdown .year-label {
+  grid-column: 1 / -1;
+  font-weight: 700;
+  color: var(--claro);
+  padding: 6px 8px;
+  opacity: 0.85;
+}
+
+.dash-lk-header .month-dropdown .m-btn {
+  background: none;
+  border: 1px solid var(--glass-border);
+  color: var(--branco);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.dash-lk-header .month-dropdown .m-btn:hover {
   background-color: var(--glass-bg);
+}
+
+.dash-lk-header .month-dropdown .m-btn.is-current {
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 1px var(--laranja) inset;
 }
 
 .type-filter {
@@ -88,24 +147,10 @@
   gap: 8px;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  border: none !important;
-  border-radius: var(--radius-md);
-  padding: var(--spacing-3) var(--spacing-4);
-  cursor: pointer;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast), background var(--transition-fast);
-  font-size: var(--font-size-sm);
-}
-
 .btn:hover {
   transform: translateY(-2px);
 }
+
 .btn:focus {
   background-color: var(--color-primary);
 }
@@ -113,6 +158,7 @@
 .lk-btn {
   background-color: var(--color-primary) !important;
 }
+
 
 .sr-only {
   position: absolute !important;
@@ -233,56 +279,7 @@
   box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
 }
 
-/* Modal melhorado */
-.modal-content {
-  background: var(--azul);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: var(--glass-backdrop);
-}
 
-.month-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-
-.month-btn {
-  padding: 1rem;
-  border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-  font-weight: 500;
-}
-
-.month-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-.month-btn.active {
-  background: var(--laranja);
-  border-color: white;
-}
-
-.year-nav {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.year-nav:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
 
 /* Responsividade */
 @media (max-width: 992px) {
@@ -296,7 +293,7 @@
     width: 100%;
   }
 
-  .type-filter > * {
+  .type-filter>* {
     flex: 1 1 auto;
   }
 

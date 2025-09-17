@@ -136,7 +136,7 @@ $base = BASE_URL;
                         <div class="form-group">
                             <label for="lanDescricao">Descrição</label>
                             <input type="text" id="lanDescricao" class="form-input"
-                                placeholder="Descrição do lançamento" />
+                                placeholder="Descrição do lançamento (opcional)" />
                         </div>
 
                         <div class="form-group">
