@@ -90,6 +90,15 @@ function registerSimpleRoutes(): void
     // Perfil
     Router::add('GET',  'perfil',      'Admin\ProfileController@index', ['auth']);
     Router::add('POST', 'api/profile', 'Api\ProfileApiController@update', ['auth', 'csrf']);
+
+    // web.php
+    Router::add('GET',  'categorias',                'Admin\CategoryController@index');
+
+    Router::add('GET',  'api/categorias',                'Api\CategoryController@index');
+    Router::add('POST', 'api/categorias',                'Api\CategoryController@store');
+    Router::add('POST', 'api/categorias/{id:\d+}/delete', 'Api\CategoryController@delete');
+    // (opcional) fallback:
+    Router::add('POST', 'api/categorias/delete',         'Api\CategoryController@delete');
 }
 
 
