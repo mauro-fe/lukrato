@@ -4,12 +4,12 @@ namespace Application\Controllers\Api;
 
 use Application\Controllers\BaseController;
 use Application\Models\Usuario;
+use Application\Services\LogService;
 use GUMP;
-use Exception;
 
 class UserPreferenceController extends BaseController
 {
-    /** GET /api/user/theme -> { theme: "light"|"dark"|"system" } */
+    /** GET /api/user/theme -> { theme } */
     public function show(): void
     {
         try {
@@ -18,27 +18,15 @@ class UserPreferenceController extends BaseController
             /** @var Usuario|null $user */
             $user = Usuario::find($this->adminId);
             if (!$user) {
-                $this->response
-                    ->jsonBody(['error' => 'Usuário não encontrado.'], 404)
-                    ->send();
+                $this->response->jsonBody(['error' => 'Usuário não encontrado.'], 404)->send();
                 return;
             }
 
             $this->response->jsonBody([
                 'theme' => $user->theme_preference ?? 'system',
             ])->send();
-            // Application/Controllers/Api/UserPreferenceController.php (método update)
         } catch (\Throwable $e) {
-            $this->response->jsonBody([
-                'error' => 'Falha ao salvar preferência de tema.',
-                'debug' => [
-                    'message' => $e->getMessage(),
-                    'type'    => get_class($e),
-                    'file'    => $e->getFile(),
-                    'line'    => $e->getLine(),
-                    'trace'   => $e->getTraceAsString(),
-                ],
-            ], 500)->send();
+            $this->failAndLog($e, 'Falha ao buscar preferência de tema.', 500);
         }
     }
 
@@ -48,7 +36,7 @@ class UserPreferenceController extends BaseController
         try {
             $this->requireAuth();
 
-            // Aceita JSON OU form
+            // Lê JSON ou form
             $theme = $this->getPost('theme');
             if ($theme === null) {
                 $raw = file_get_contents('php://input') ?: '';
@@ -60,46 +48,47 @@ class UserPreferenceController extends BaseController
                 }
             }
 
-            // Validação (definir regras ANTES do run)
-            $gump = new GUMP();
-            $gump->validation_rules([
-                'theme' => ['required', 'contains_list,light;dark;system'],
-            ]);
-            $gump->filter_rules([
-                'theme' => 'trim|sanitize_string',
-            ]);
+            // Normaliza
+            $theme = is_string($theme) ? strtolower(trim($theme)) : null;
 
-            $data = $gump->run(['theme' => $theme]);
-            if (!$data) {
-                $this->response
-                    ->jsonBody([
-                        'error'  => 'Validação falhou.',
-                        'fields' => $gump->get_errors_array(),
-                    ], 422)
-                    ->send();
+            // ✅ Validação: whitelist simples
+            $allowed = ['light', 'dark', 'system'];
+            if (!in_array($theme, $allowed, true)) {
+                $this->response->jsonBody([
+                    'error'  => 'Validação falhou.',
+                    'fields' => ['theme' => 'Deve ser: light, dark ou system.'],
+                ], 422)->send();
                 return;
             }
+
+            // (Opcional) mantenha GUMP só pra filtros (se quiser)
+            // $gump = new GUMP();
+            // $gump->filter_rules(['theme' => 'trim|sanitize_string']);
+            // $data = $gump->run(['theme' => $theme]);
+            // $theme = $data['theme'] ?? $theme;
 
             /** @var Usuario|null $user */
             $user = Usuario::find($this->adminId);
             if (!$user) {
-                $this->response
-                    ->jsonBody(['error' => 'Usuário não encontrado.'], 404)
-                    ->send();
+                $this->response->jsonBody(['error' => 'Usuário não encontrado.'], 404)->send();
                 return;
             }
 
-            $user->theme_preference = $data['theme'];
+            $user->theme_preference = $theme;
             $user->save();
 
             $this->response->jsonBody([
                 'message' => 'Preferência de tema atualizada.',
                 'theme'   => $user->theme_preference,
             ])->send();
-        } catch (Exception $e) {
-            $this->response
-                ->jsonBody(['error' => 'Falha ao salvar preferência de tema.'], 500)
-                ->send();
+        } catch (\Throwable $e) {
+            // loga com contexto (mantém teu helper se você já adicionou)
+            $this->failAndLog(
+                $e,
+                'Falha ao salvar preferência de tema.',
+                500,
+                ['payload' => ['theme' => $theme ?? null]]
+            );
         }
     }
 }

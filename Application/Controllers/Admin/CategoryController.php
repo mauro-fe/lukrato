@@ -19,7 +19,7 @@ class CategoryController extends BaseController
          $this->render(
             'admin/categorias/index',
             [],
-            'admin/home/header',
+            'admin/partials/header',
             null
         );
     }

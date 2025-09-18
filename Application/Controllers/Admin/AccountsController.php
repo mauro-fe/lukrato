@@ -11,7 +11,7 @@ class AccountsController extends BaseController
         $this->render('admin/contas/index', [
             'pageTitle' => 'Contas',
             'menu' => 'contas'
-        ], 'admin/home/header', null);
+        ], 'admin/partials/header', null);
     }
 
     public function archived(): void
@@ -19,6 +19,6 @@ class AccountsController extends BaseController
         $this->render('admin/contas/arquivadas', [
             'pageTitle' => 'Contas',
             'menu' => 'contas'
-        ], 'admin/home/header', null);
+        ], 'admin/partials/header', null);
     }
 }

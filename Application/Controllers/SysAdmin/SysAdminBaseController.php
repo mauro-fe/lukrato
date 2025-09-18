@@ -66,7 +66,7 @@ abstract class SysAdminBaseController extends BaseController
         $this->render(
             'sys_admin/' . ltrim($viewPath, '/'),
             $data,
-            'admin/home/header',
+            'admin/partials/header',
             'admin/footer'
         );
     }

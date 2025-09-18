@@ -85,14 +85,14 @@ if (!function_exists('loadPageJs')) {
      *   2) assets/js/{view-com-hifens}.js         // barras/contra-barras -> hífens
      *   3) assets/js/{pacote-da-pasta}.js         // opcional: junta pastas, sem o último segmento
      *
-     * Ex.: view = "admin/home/header"
-     *   -> assets/js/admin/home/header.js
+     * Ex.: view = "admin/partials/header"
+     *   -> assets/js/admin/partials/header.js
      *   -> assets/js/admin-home-header.js
      *   -> assets/js/admin-home.js
      *
      * Uso:
      *   <?php loadPageJs(); ?> // usa $GLOBALS['current_view']
-* <?php loadPageJs('admin/home/header'); ?>
+* <?php loadPageJs('admin/partials/header'); ?>
 */
 function loadPageJs(?string $view = null): void
 {

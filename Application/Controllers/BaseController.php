@@ -6,6 +6,7 @@ use Application\Core\View;
 use Application\Lib\Auth;
 use Application\Core\Response;
 use Application\Core\Request;
+use Application\Services\LogService;
 
 abstract class BaseController
 {
@@ -59,7 +60,7 @@ abstract class BaseController
     /** Atalho para páginas do admin com header/footer padrão */
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
-        $this->render($viewPath, $data, 'admin/home/header', 'admin/footer');
+        $this->render($viewPath, $data, 'admin/partials/header', 'admin/footer');
     }
 
     /** Redirect helper */
@@ -121,5 +122,32 @@ abstract class BaseController
         if (json_last_error() !== JSON_ERROR_NONE) return $key ? $default : [];
         if ($key === null) return $json;
         return $json[$key] ?? $default;
+    }
+    protected function failAndLog(\Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = []): void
+    {
+        // gera um ID pra correlacionar client ↔ server
+        $rid = bin2hex(random_bytes(6));
+
+        // contexto do log
+        $ctx = array_merge([
+            'request_id' => $rid,
+            'type'       => get_class($e),
+            'message'    => $e->getMessage(),
+            'file'       => $e->getFile(),
+            'line'       => $e->getLine(),
+            'trace'      => $e->getTraceAsString(),
+            'url'        => ($_SERVER['REQUEST_METHOD'] ?? '-') . ' ' . ($_SERVER['REQUEST_URI'] ?? '-'),
+            'user_id'    => $this->adminId ?? null,
+            'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+        ], $extra);
+
+        // manda pro Monolog
+        LogService::error($userMessage, $ctx);
+
+        // responde pro client (sem vazar detalhes sensíveis)
+        $this->response->jsonBody([
+            'error'      => $userMessage,
+            'request_id' => $rid,
+        ], $status)->send();
     }
 }

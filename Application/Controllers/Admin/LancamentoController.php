@@ -9,15 +9,11 @@ class LancamentoController extends BaseController
 {
     public function index(): void
     {
-        $this->render(
-            'lancamentos/index',
-            [
-                'pageTitle' => 'Lançamentos',
-                'menu'      => 'lancamentos',
-                'username'  => Auth::user()->username ?? '',
-            ],
-            'admin/home/header',
-            null
-        );
+        $this->requireAuth();
+        $this->render('admin/lancamentos/index', [
+            'pageTitle' => 'Lançamentos',
+            'menu'      => 'lancamentos',
+            'username'  => Auth::user()->username ?? '',
+        ], 'admin/partials/header', null);
     }
 }

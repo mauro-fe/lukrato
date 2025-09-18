@@ -28,7 +28,7 @@ $base = BASE_URL;
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 
     <?php loadPageCss(); ?>
-    <?php loadPageCss('admin-home-header'); ?>
+    <?php loadPageCss('admin-partials-header'); ?>
     <style>
         option {
             background-color: #1c2c3c;

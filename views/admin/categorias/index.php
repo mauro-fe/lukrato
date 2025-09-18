@@ -25,36 +25,69 @@
         color: var(--color-text)
     }
 
-   
 
-    .table {
+
+    .table-container {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 1px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        overflow-x: auto;
     }
 
-    .table thead tr th {
-        font-weight: 600;
+    .lukrato-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+        color: var(--branco);
+        overflow: hidden;
+    }
+
+    .lukrato-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        text-align: left;
+        font-size: var(--font-size-sm);
+        letter-spacing: 0.02em;
         text-transform: uppercase;
-        font-size: var(--font-size-xs);
-        letter-spacing: .04em;
-        color: var(--color-text);
-       background-color: var(--glass-bg);
-       padding: 20px;
-
+        color: var(--cinza);
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid var(--glass-border);
+        padding: var(--spacing-4) var(--spacing-6);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
     }
 
-    .table tr {
-        box-shadow: var(--shadow-xs, 0 1px 2px #0000000f);
-       background-color: var(--glass-bg);
+    .lukrato-table tbody td {
+        padding: var(--spacing-4) var(--spacing-6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        vertical-align: middle;
     }
 
-    .table td {
-        vertical-align: middle
+    .lukrato-table tbody tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.02);
     }
-    .table td, table th {
-       background-color: var(--glass-bg);
-       color: var(--color-text);
+
+    .lukrato-table tbody tr:hover td {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateX(2px);
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .lukrato-table tbody td[colspan] {
+        color: var(--cinza);
+        font-weight: 600;
+        padding: var(--spacing-6);
     }
 
     .tag {
@@ -98,16 +131,16 @@
             <button class="btn lk-select btn-primary" type="submit">Adicionar</button>
         </form>
     </div>
-        <div class="py-4">
-            <label class="c-muted">Filtrar por tipo:</label>
-            <select id="filtroTipo" class="c-select" style="max-width:240px">
-                <option value="">Todos</option>
-                <option value="receita">Receita</option>
-                <option value="despesa">Despesa</option>
-            </select>
-        </div>
-    
-        <table class="table" id="tblCats">
+    <div class="py-4">
+        <label class="c-muted">Filtrar por tipo:</label>
+        <select id="filtroTipo" class="c-select" style="max-width:240px">
+            <option value="">Todos</option>
+            <option value="receita">Receita</option>
+            <option value="despesa">Despesa</option>
+        </select>
+    </div>
+    <section class="table-container">
+        <table class="lukrato-table" id="tblCats">
             <!-- THEAD com a coluna "Cor" incluída -->
             <thead>
                 <tr class="c-card">
@@ -119,6 +152,7 @@
 
             <tbody></tbody>
         </table>
+    </section>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -64,7 +64,7 @@ function registerSimpleRoutes(): void
     Router::add('GET',  'api/reports/timeseries',      'Api\RelatoriosController@timeseries',       ['auth']);
     Router::add('GET',  'api/reports',                 'Api\ReportController@index',            ['auth']); // compat
     Router::add('GET',  'api/lancamentos',             'Api\LancamentosController@index');
-    Router::add('POST', 'api/lancamentos/{id}/delete', 'Api\LancamentosController@destroy');
+    Router::add('DELETE', 'api/lancamentos/{id}', 'Api\LancamentosController@destroy');
     Router::add('POST', 'api/transfers',  'Api\FinanceApiController@transfer');
     Router::add('POST', 'api/accounts/{id}/archive', 'Api\AccountController@archive');
     Router::add('POST', 'api/accounts/{id}/restore', 'Api\AccountController@restore');

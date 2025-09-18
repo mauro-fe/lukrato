@@ -10,13 +10,13 @@ class DashboardController extends BaseController
     public function dashboard()
     {
         $this->render(
-            'dashboard/index',
+            'admin/dashboard/index',
             [
                 'pageTitle' => 'Dashboard',
                 'username'  => Auth::user()->username ?? '',
                 'menu'      => 'dashboard',
             ],
-            'admin/home/header',
+            'admin/partials/header',
             null
         );
     }

@@ -21,7 +21,7 @@ class ProfileController extends BaseController
         $this->render(
             'admin/profile/index',
             ['user' => $user],
-            'admin/home/header',
+            'admin/partials/header',
             null
         );
     }
