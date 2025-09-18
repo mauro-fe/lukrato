@@ -218,7 +218,7 @@
 
 </script>
 
-<script id="lk-lancamentos-loader">
+<script>
     (() => {
         'use strict';
         if (window.__LK_LANCAMENTOS_LOADER__) return; // evita duplicar
@@ -239,6 +239,18 @@
         const chkAll = $('#chkAll');
         const selInfo = $('#selInfo');
         const selCountSpan = $('#selCount');
+        const monthEl = document.getElementById('currentMonthText');
+        const setMonthLabel = (ym) => {
+            if (!monthEl || !/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return;
+            const [y, m] = ym.split('-').map(Number);
+            monthEl.textContent = new Date(y, m - 1, 1)
+                .toLocaleDateString('pt-BR', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+            monthEl.setAttribute('data-month', ym);
+        };
+
 
         // ===== Utils
         const fmtMoney = (n) => new Intl.NumberFormat('pt-BR', {
@@ -445,6 +457,10 @@
             timer = setTimeout(async () => {
                 const month = (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(0, 7);
                 const tipo = selectTipo?.value || '';
+
+                // >>> atualiza o rótulo aqui <<<
+                setMonthLabel(month);
+
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center">Carregando…</td></tr>`;
                 const items = await fetchLancamentos({
                     month,
@@ -455,10 +471,142 @@
             }, 10);
         }
 
-        document.addEventListener('lukrato:month-changed', load);
+        document.addEventListener('lukrato:month-changed', (e) => {
+            const m = e.detail?.month;
+            if (m) setMonthLabel(m);
+            load();
+        });
+
+
         btnFiltrar && btnFiltrar.addEventListener('click', load);
 
         // primeira carga
+        // primeira carga
+        setMonthLabel(window.LukratoHeader?.getMonth?.() || (new Date()).toISOString().slice(0, 7));
         load();
+
+    })();
+</script>
+<script>
+    (() => {
+        'use strict';
+        if (window.__LK_MONTH_PICKER__) return;
+        window.__LK_MONTH_PICKER__ = true;
+
+        const elText = document.getElementById('currentMonthText');
+        const btnPrev = document.getElementById('prevMonth');
+        const btnNext = document.getElementById('nextMonth');
+        const modalEl = document.getElementById('monthModal');
+
+        // elementos do modal
+        const mpYearLabel = document.getElementById('mpYearLabel');
+        const mpPrevYear = document.getElementById('mpPrevYear');
+        const mpNextYear = document.getElementById('mpNextYear');
+        const mpGrid = document.getElementById('mpGrid');
+        const mpTodayBtn = document.getElementById('mpTodayBtn');
+        const mpInput = document.getElementById('mpInputMonth');
+
+        const STORAGE_KEY = 'lukrato.month.dashboard';
+        const SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const toYM = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const monthLabel = ym => {
+            const [y, m] = ym.split('-').map(Number);
+            return new Date(y, m - 1, 1).toLocaleDateString('pt-BR', {
+                month: 'long',
+                year: 'numeric'
+            });
+        };
+
+        let state = sessionStorage.getItem(STORAGE_KEY) || toYM(new Date());
+        let modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
+
+        const setState = (ym, {
+            silent = false
+        } = {}) => {
+            if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return;
+            state = ym;
+            sessionStorage.setItem(STORAGE_KEY, state);
+            if (elText) {
+                elText.textContent = monthLabel(state);
+                elText.setAttribute('data-month', state);
+            }
+            if (!silent) {
+                document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
+                    detail: {
+                        month: state
+                    }
+                }));
+            }
+        };
+
+        const shiftMonth = (delta) => {
+            const [y, m] = state.split('-').map(Number);
+            const d = new Date(y, (m - 1) + delta, 1);
+            setState(toYM(d));
+        };
+
+        const buildGrid = () => {
+            if (!mpYearLabel || !mpGrid) return;
+            mpYearLabel.textContent = modalYear;
+            let html = '';
+            for (let i = 0; i < 12; i++) {
+                const ym = `${modalYear}-${String(i+1).padStart(2,'0')}`;
+                const active = ym === state ? 'btn-warning text-dark fw-bold' : 'btn-outline-light';
+                html += `<div class="col-4">
+        <button type="button" class="mp-month btn w-100 py-3 ${active}" data-val="${ym}">${SHORT[i]}</button>
+      </div>`;
+            }
+            mpGrid.innerHTML = html;
+            mpGrid.querySelectorAll('.mp-month').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setState(btn.getAttribute('data-val'));
+                    bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+                });
+            });
+        };
+
+        // header buttons
+        btnPrev?.addEventListener('click', e => {
+            e.preventDefault();
+            shiftMonth(-1);
+        });
+        btnNext?.addEventListener('click', e => {
+            e.preventDefault();
+            shiftMonth(+1);
+        });
+
+        // modal wiring
+        modalEl?.addEventListener('show.bs.modal', () => {
+            modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
+            if (mpInput) mpInput.value = state;
+            buildGrid();
+        });
+        mpPrevYear?.addEventListener('click', () => {
+            modalYear--;
+            buildGrid();
+        });
+        mpNextYear?.addEventListener('click', () => {
+            modalYear++;
+            buildGrid();
+        });
+        mpTodayBtn?.addEventListener('click', () => {
+            const nowYM = toYM(new Date());
+            setState(nowYM);
+            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+        });
+        mpInput?.addEventListener('change', e => {
+            const ym = e.target.value;
+            if (/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
+                setState(ym);
+                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+            }
+        });
+
+        // API pública e boot
+        window.LukratoHeader = {
+            getMonth: () => state,
+            setMonth: (ym) => setState(ym)
+        };
+        setState(state); // inicializa label e dispara o evento 1x
     })();
 </script>
