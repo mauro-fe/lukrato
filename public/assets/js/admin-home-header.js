@@ -205,8 +205,14 @@
     if (form && !form.dataset.bound) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (form.dataset.submitting === '1') return;   // <-- guard
+            form.dataset.submitting = '1';
+            const btnSubmit = document.querySelector('button[form="formLancamento"][type="submit"]');
+            btnSubmit && (btnSubmit.disabled = true);
+
             try {
-                const tipo = $('#lanTipo').value;          // 'receita' | 'despesa'
+                const tipo = $('#lanTipo').value;
                 const data = $('#lanData').value;
                 const valor = parseMoney($('#lanValor').value);
                 const catId = $('#lanCategoria').value || null;
@@ -218,15 +224,13 @@
                     return;
                 }
 
-                // conta (opcional): usa o seletor do header/modal
                 const contaId = document.getElementById('headerConta')?.value || '';
-
                 const payload = {
                     tipo, data, valor,
                     categoria_id: catId ? Number(catId) : null,
                     descricao: desc || null,
                     observacao: obs || null,
-                    ...(contaId ? { conta_id: Number(contaId) } : {}) // só envia se tiver
+                    ...(contaId ? { conta_id: Number(contaId) } : {})
                 };
 
                 await apiCreate(payload);
@@ -234,17 +238,21 @@
                 Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1300, showConfirmButton: false });
                 toggleModal(false);
 
-                // reativos
-                window.refreshDashboard && window.refreshDashboard();
-                window.refreshReports && window.refreshReports();
-                window.fetchLancamentos && window.fetchLancamentos();
+                // avisa só por evento (evita chamar 2x)
+                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                    detail: { resource: 'transactions' }
+                }));
             } catch (err) {
                 console.error(err);
                 Swal.fire('Erro', err.message || 'Falha ao salvar', 'error');
+            } finally {
+                form.dataset.submitting = '0';
+                btnSubmit && (btnSubmit.disabled = false);
             }
         });
         form.dataset.bound = '1';
     }
+
 
 
     // ---------- Logout confirm ----------
