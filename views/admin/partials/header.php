@@ -3,7 +3,6 @@ $pageTitle = $pageTitle ?? 'Painel Administrativo';
 $username  = $username  ?? 'usuário';
 $menu      = $menu      ?? '';
 
-// Fix
 $u    = 'admin';
 $base = BASE_URL;
 ?>
@@ -30,9 +29,9 @@ $base = BASE_URL;
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
     <style>
-        option {
-            background-color: #1c2c3c;
-        }
+    option {
+        background-color: #1c2c3c;
+    }
     </style>
 </head>
 
@@ -161,58 +160,58 @@ $base = BASE_URL;
         <?php loadPageJs('admin-home-header'); ?>
         <?php loadPageJs(); ?>
         <script>
-            (function() {
-                const root = document.documentElement;
-                const btn = document.getElementById("toggleTheme");
+        (function() {
+            const root = document.documentElement;
+            const btn = document.getElementById("toggleTheme");
 
-                // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
-                const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
-                const ENDPOINT = BASE_URL + 'api/user/theme';
-                const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
+            // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
+            const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
+            const ENDPOINT = BASE_URL + 'api/user/theme';
+            const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
 
-                // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
-                const cached = localStorage.getItem("theme");
-                if (cached) applyTheme(cached, false);
+            // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
+            const cached = localStorage.getItem("theme");
+            if (cached) applyTheme(cached, false);
 
-                // 2) busca do backend (fonte da verdade)
-                fetch(ENDPOINT, {
-                        credentials: 'include'
-                    })
-                    .then(r => r.ok ? r.json() : Promise.reject(r))
-                    .then(j => applyTheme(j?.theme || cached || 'light', false))
-                    .catch(() => applyTheme(cached || 'light', false));
+            // 2) busca do backend (fonte da verdade)
+            fetch(ENDPOINT, {
+                    credentials: 'include'
+                })
+                .then(r => r.ok ? r.json() : Promise.reject(r))
+                .then(j => applyTheme(j?.theme || cached || 'light', false))
+                .catch(() => applyTheme(cached || 'light', false));
 
-                // 3) clique alterna e salva no backend
-                btn?.addEventListener("click", () => {
-                    const current = root.getAttribute("data-theme") || 'light';
-                    const next = current === 'dark' ? 'light' : 'dark';
-                    applyTheme(next, true);
-                });
+            // 3) clique alterna e salva no backend
+            btn?.addEventListener("click", () => {
+                const current = root.getAttribute("data-theme") || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                applyTheme(next, true);
+            });
 
-                function applyTheme(theme, persist) {
-                    root.setAttribute("data-theme", theme);
-                    localStorage.setItem("theme", theme);
-                    updateIcon(theme);
+            function applyTheme(theme, persist) {
+                root.setAttribute("data-theme", theme);
+                localStorage.setItem("theme", theme);
+                updateIcon(theme);
 
-                    if (persist) {
-                        fetch(ENDPOINT, {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-Token': CSRF
-                            },
-                            body: JSON.stringify({
-                                theme
-                            })
-                        }).catch(err => console.error('Falha ao salvar tema:', err));
-                    }
+                if (persist) {
+                    fetch(ENDPOINT, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': CSRF
+                        },
+                        body: JSON.stringify({
+                            theme
+                        })
+                    }).catch(err => console.error('Falha ao salvar tema:', err));
                 }
+            }
 
-                function updateIcon(theme) {
-                    const btnEl = document.getElementById("toggleTheme");
-                    if (!btnEl) return;
-                    btnEl.classList.toggle('dark', theme === 'dark');
-                }
-            })();
+            function updateIcon(theme) {
+                const btnEl = document.getElementById("toggleTheme");
+                if (!btnEl) return;
+                btnEl.classList.toggle('dark', theme === 'dark');
+            }
+        })();
         </script>

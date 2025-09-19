@@ -116,7 +116,7 @@ function redirectToLogin(): void
 function redirectToUserDashboard(): void
 {
     if (isset($_SESSION['usuario_id']) || isset($_SESSION['admin_username'])) {
-        header('Location: ' . BASE_URL . 'dashboard'); // ← simples
+        header('Location: ' . BASE_URL . 'dashboard');
     } else {
         session_destroy();
         redirectToLogin();

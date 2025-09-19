@@ -10,7 +10,6 @@ use Exception;
 
 class CategoryController extends BaseController
 {
-    /** GET /api/categorias?tipo=receita|despesa|transferencia */
     public function index(): void
     {
         try {
@@ -20,13 +19,12 @@ class CategoryController extends BaseController
             $q = Categoria::forUser($this->adminId)->orderBy('nome', 'asc');
             if ($tipo) $q->where('tipo', $tipo);
 
-            Response::success($q->get()); // 200 + payload padrão
+            Response::success($q->get());
         } catch (Exception $e) {
             Response::error('Falha ao listar categorias', 500);
         }
     }
 
-    /** POST /api/categorias  (nome, tipo, cor) */
     public function store(): void
     {
         try {
@@ -50,7 +48,6 @@ class CategoryController extends BaseController
                 return;
             }
 
-            // evita duplicidade (case-insensitive) por nome+tipo do mesmo usuário
             $dup = Categoria::forUser($this->adminId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
                 ->where('tipo', $data['tipo'])
@@ -67,14 +64,12 @@ class CategoryController extends BaseController
                 'tipo'    => $data['tipo'],
             ]);
 
-            Response::success($cat); // 200
+            Response::success($cat);
         } catch (Exception $e) {
             Response::error('Falha ao criar categoria', 500);
         }
     }
 
-    /** POST /api/categorias/{id}/delete */
-    // Application/Controllers/Api/CategoryController.php
     public function delete(array $params = []): void
     {
         try {

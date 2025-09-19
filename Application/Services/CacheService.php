@@ -19,7 +19,6 @@ class CacheService
                 'timeout' => 0.5,
             ]);
 
-            // Tenta pingar o Redis — se falhar, ignora e continua
             $this->redis->ping();
             $this->isRedisConnected = true;
         } catch (\Exception $e) {

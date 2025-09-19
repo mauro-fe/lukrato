@@ -222,7 +222,6 @@ function parseRequestRoute(): string
     $parsedUrl = parse_url($requestUri);
     $route = $parsedUrl['path'] ?? '/';
 
-    // Normaliza a rota
     $route = '/' . trim($route, '/');
     if ($route === '//') {
         $route = '/';

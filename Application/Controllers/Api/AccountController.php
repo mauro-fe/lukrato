@@ -9,21 +9,16 @@ use Application\Models\Lancamento;
 
 class AccountController
 {
-    /** GET /api/accounts[?only_active=1] */
     public function index(): void
     {
         $userId       = Auth::id();
 
-        // ?archived=1 -> só arquivadas
-        // ?only_active=1 -> só ativas (padrão = 1, exceto se archived=1)
         $archived     = (int)($_GET['archived'] ?? 0) === 1;
         $onlyActive   = (int)($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
 
-        // ?with_balances=1&month=YYYY-MM  (opcional)
         $withBalances = (int)($_GET['with_balances'] ?? 0) === 1;
         $month        = trim((string)($_GET['month'] ?? date('Y-m')));
 
-        // ---- filtro base
         $q = Conta::forUser($userId);
         if ($archived) {
             $q->arquivadas();
@@ -33,7 +28,6 @@ class AccountController
 
         $rows = $q->orderBy('nome')->get();
 
-        // ---- extras: saldos/movimentos até o fim do mês informado
         $extras = [];
         if ($withBalances && $rows->count()) {
             $dt = \DateTime::createFromFormat('Y-m', $month);
@@ -48,7 +42,6 @@ class AccountController
             $initById = $rows->pluck('saldo_inicial', 'id')
                 ->map(fn($v) => (float)$v)->all();
 
-            // receitas (não-transferência)
             $rec = Lancamento::where('user_id', $userId)
                 ->whereIn('conta_id', $ids)
                 ->where('eh_transferencia', 0)
@@ -57,7 +50,6 @@ class AccountController
                 ->selectRaw('conta_id, SUM(valor) as tot')
                 ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
 
-            // despesas (não-transferência)
             $des = Lancamento::where('user_id', $userId)
                 ->whereIn('conta_id', $ids)
                 ->where('eh_transferencia', 0)
@@ -66,7 +58,6 @@ class AccountController
                 ->selectRaw('conta_id, SUM(valor) as tot')
                 ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
 
-            // transferências recebidas
             $tin = Lancamento::where('user_id', $userId)
                 ->whereIn('conta_id_destino', $ids)
                 ->where('eh_transferencia', 1)
@@ -74,7 +65,6 @@ class AccountController
                 ->selectRaw('conta_id_destino as cid, SUM(valor) as tot')
                 ->groupBy('cid')->pluck('tot', 'cid')->all();
 
-            // transferências enviadas
             $tout = Lancamento::where('user_id', $userId)
                 ->whereIn('conta_id', $ids)
                 ->where('eh_transferencia', 1)
@@ -97,7 +87,6 @@ class AccountController
             }
         }
 
-        // ---- saída
         Response::json($rows->map(function ($c) use ($extras) {
             $x = $extras[$c->id] ?? null;
             return [
@@ -116,7 +105,6 @@ class AccountController
     }
 
 
-    /** POST /api/accounts */
     public function store(): void
     {
         $data = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -127,7 +115,6 @@ class AccountController
             return;
         }
 
-        // saneia moeda e tipo
         $moeda = strtoupper(trim((string)($data['moeda'] ?? 'BRL')));
         $allowedMoedas = ['BRL', 'USD', 'EUR'];
         if (!in_array($moeda, $allowedMoedas, true)) $moeda = 'BRL';
@@ -140,7 +127,7 @@ class AccountController
             'instituicao'   => $data['instituicao'] ?? null,
             'moeda'         => $moeda,
             'saldo_inicial' => round((float)($data['saldo_inicial'] ?? 0), 2),
-            'tipo_id'       => $tipoId,  // novo
+            'tipo_id'       => $tipoId,
             'ativo'         => 1,
         ]);
         $conta->save();
@@ -148,9 +135,6 @@ class AccountController
         Response::json(['ok' => true, 'id' => (int) $conta->id]);
     }
 
-    // ... index(), store() ficam como estão
-
-    /** PUT /api/accounts/{id} */
     public function update(int $id): void
     {
         $conta = Conta::forUser(Auth::id())->find($id);
@@ -175,13 +159,11 @@ class AccountController
         Response::json(['ok' => true, 'ativo' => (bool)$conta->ativo]);
     }
 
-    /** DELETE /api/accounts/{id}  -> alias de arquivar (compat.) */
     public function destroy(int $id): void
     {
         $this->archive($id);
     }
 
-    /** PATCH /api/accounts/{id}/archive */
     public function archive(int $id): void
     {
         $conta = Conta::forUser(Auth::id())->find($id);
@@ -194,7 +176,6 @@ class AccountController
         Response::json(['ok' => true]);
     }
 
-    /** PATCH /api/accounts/{id}/restore */
     public function restore(int $id): void
     {
         $conta = Conta::forUser(Auth::id())->find($id);
@@ -207,9 +188,7 @@ class AccountController
         Response::json(['ok' => true]);
     }
 
-    // Application\Controllers\Api\AccountController.php
 
-    /** POST /api/accounts/{id}/delete  (exclusão definitiva) */
     public function hardDelete(int $id): void
     {
         $uid   = Auth::id();
@@ -220,7 +199,6 @@ class AccountController
             return;
         }
 
-        // Verifica vínculos em lançamentos (saída, entrada via transferência)
         $temLanc = Lancamento::where('user_id', $uid)
             ->where(function ($q) use ($id) {
                 $q->where('conta_id', $id)
@@ -236,7 +214,6 @@ class AccountController
             return;
         }
 
-        // Exclusão física
         $conta->delete();
 
         Response::json(['ok' => true]);

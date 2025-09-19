@@ -11,31 +11,23 @@ class LogService
     private const LOG_DIR = BASE_PATH . '/storage/logs';
     private static ?Logger $logger = null;
 
-    /**
-     * Inicializa o logger se ainda não estiver instanciado.
-     *
-     * @return Logger
-     */
+
     private static function getLogger(): Logger
     {
         if (!self::$logger) {
             $logFilePath = self::getLogFilePath();
 
-            // Garante que o diretório existe
             $logDir = dirname($logFilePath);
             if (!is_dir($logDir)) {
                 mkdir($logDir, 0775, true);
             }
 
-            // Cria o handler do Monolog
             $stream = new StreamHandler($logFilePath, Logger::DEBUG);
 
-            // Define o formato personalizado da mensagem
             $output = "[%datetime%] [%level_name%]: %message% %context%\n";
             $formatter = new LineFormatter($output, "Y-m-d H:i:s", true, true);
             $stream->setFormatter($formatter);
 
-            // Cria o logger e adiciona o handler
             self::$logger = new Logger('app');
             self::$logger->pushHandler($stream);
         }

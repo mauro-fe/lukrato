@@ -1,11 +1,9 @@
 <?php
-// views/admin/profile/edit.php
 $pageTitle = "Editar Perfil";
 $admin_username = $_SESSION['admin_username'] ?? 'admin';
 ?>
 
 <main class="main-content position-relative border-radius-lg">
-    <!-- Navbar -->
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-sm border-radius-xl bg-white" id="navbarBlur"
         navbar-scroll="true">
         <div class="container-fluid py-1 px-3">
@@ -44,18 +42,15 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                     </div>
 
                     <div class="card-body p-4">
-                        <!-- CORREÇÃO: URL atualizada para o novo controller -->
                         <form id="form-profile" action="<?= BASE_URL ?>admin/<?= $admin_username ?>/perfil/salvar"
                             method="POST" autocomplete="off" novalidate>
 
                             <div class="row">
-                                <!-- Coluna Esquerda - Dados Pessoais -->
                                 <div class="col-md-6">
                                     <h5 class="text-primary mb-3">
                                         <i class="fas fa-user me-2"></i>Dados Pessoais
                                     </h5>
 
-                                    <!-- Username -->
                                     <div class="form-group mb-3">
                                         <label for="username" class="form-label">
                                             Nome de Usuário <span class="text-danger">*</span>
@@ -72,7 +67,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                         </div>
                                     </div>
 
-                                    <!-- Nome Completo -->
                                     <div class="form-group mb-3">
                                         <label for="nome_completo" class="form-label">
                                             Nome Completo <span class="text-danger">*</span>
@@ -89,7 +83,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                         </div>
                                     </div>
 
-                                    <!-- Email -->
                                     <div class="form-group mb-3">
                                         <label for="email" class="form-label">
                                             E-mail <span class="text-danger">*</span>
@@ -105,7 +98,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                         </div>
                                     </div>
 
-                                    <!-- Telefone -->
                                     <div class="form-group mb-3">
                                         <label for="telefone" class="form-label">Telefone</label>
                                         <div class="input-group">
@@ -117,13 +109,11 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                     </div>
                                 </div>
 
-                                <!-- Coluna Direita - Dados da Clínica -->
                                 <div class="col-md-6">
                                     <h5 class="text-primary mb-3">
                                         <i class="fas fa-clinic-medical me-2"></i>Dados da Clínica
                                     </h5>
 
-                                    <!-- Nome da Clínica -->
                                     <div class="form-group mb-3">
                                         <label for="nome_clinica" class="form-label">Nome da Clínica</label>
                                         <div class="input-group">
@@ -135,7 +125,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                         </div>
                                     </div>
 
-                                    <!-- Razão Social -->
                                     <div class="form-group mb-3">
                                         <label for="razao_social" class="form-label">Razão Social</label>
                                         <div class="input-group">
@@ -147,7 +136,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                         </div>
                                     </div>
 
-                                    <!-- CNPJ -->
                                     <div class="form-group mb-3">
                                         <label for="cnpj" class="form-label">CNPJ</label>
                                         <div class="input-group">
@@ -158,7 +146,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                         </div>
                                     </div>
 
-                                    <!-- Informações Adicionais -->
                                     <div class="alert alert-info">
                                         <i class="fas fa-info-circle me-2"></i>
                                         <small>
@@ -169,7 +156,6 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                                 </div>
                             </div>
 
-                            <!-- Botões de Ação -->
                             <div class="d-flex justify-content-between align-items-center mt-4">
                                 <a href="<?= BASE_URL ?>admin/<?= $admin_username ?>/perfil"
                                     class="btn btn-outline-secondary">
@@ -189,27 +175,27 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
 
 <!-- Exibir mensagens se houver -->
 <?php if (isset($error) && !empty($error)): ?>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Erro!',
-                text: '<?= htmlspecialchars($error) ?>',
-                confirmButtonColor: '#e74a3b'
-            });
-        });
-    </script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro!',
+        text: '<?= htmlspecialchars($error) ?>',
+        confirmButtonColor: '#e74a3b'
+    });
+});
+</script>
 <?php endif; ?>
 
 <?php if (isset($success) && !empty($success)): ?>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            Swal.fire({
-                icon: 'success',
-                title: 'Sucesso!',
-                text: '<?= htmlspecialchars($success) ?>',
-                confirmButtonColor: '#28a745'
-            });
-        });
-    </script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: '<?= htmlspecialchars($success) ?>',
+        confirmButtonColor: '#28a745'
+    });
+});
+</script>
 <?php endif; ?>

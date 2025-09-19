@@ -26,12 +26,7 @@ if (!function_exists('escape')) {
 }
 
 if (!function_exists('csrf_token')) {
-    /**
-     * Retorna apenas o valor do token CSRF (sem HTML)
-     *
-     * @param string $tokenId
-     * @return string
-     */
+
     function csrf_token(string $tokenId = 'default'): string
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -43,12 +38,7 @@ if (!function_exists('csrf_token')) {
 }
 
 if (!function_exists('csrf_input')) {
-    /**
-     * Gera o input HTML de token CSRF
-     *
-     * @param string $tokenId
-     * @return string
-     */
+
     function csrf_input(string $tokenId = 'default'): string
     {
         $token = csrf_token($tokenId);
@@ -58,7 +48,6 @@ if (!function_exists('csrf_input')) {
 if (!function_exists('loadPageCss')) {
     function loadPageCss(?string $name = null): void
     {
-        // se vier um nome, usa; senão cai no current_view
         $view = $name ?: ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
@@ -66,7 +55,6 @@ if (!function_exists('loadPageCss')) {
         $abs     = __DIR__ . '/../../public/' . $cssPath;
 
         if (file_exists($abs)) {
-            // cache-busting simples pelo mtime do arquivo
             $v = filemtime($abs) ?: time();
             echo '<link rel="stylesheet" href="' . BASE_URL . $cssPath . '?v=' . $v . '">' . PHP_EOL;
         }
@@ -79,11 +67,9 @@ if (!function_exists('loadPageJs')) {
 
     function loadPageJs(?string $view = null): void
     {
-        // 1) origem do nome
         $view = $view ?? ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
-        // 2) candidatos
         $candidates = [];
         $candidates[] = 'assets/js/' . $view . '.js';
         $candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
@@ -93,7 +79,6 @@ if (!function_exists('loadPageJs')) {
             $candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
         }
 
-        // 3) injeta o primeiro que existir
         $publicRoot = __DIR__ . '/../../public/';
         foreach ($candidates as $jsPath) {
             if (file_exists($publicRoot . $jsPath)) {

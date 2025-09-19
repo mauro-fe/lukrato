@@ -113,156 +113,155 @@ if (!empty($user->data_nascimento)) {
 </div>
 
 <script>
-    (() => {
-        const BASE = (() => {
-            const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-            let base = meta;
-            if (!base) {
-                const m = location.pathname.match(/^(.*\/public\/)/);
-                base = m ? (location.origin + m[1]) : (location.origin + '/');
-            }
-            if (base && !/\/public\/?$/.test(base)) {
-                const m2 = location.pathname.match(/^(.*\/public\/)/);
-                if (m2) base = location.origin + m2[1];
-            }
-            return base.replace(/\/?$/, '/');
-        })();
-
-        const form = document.getElementById('profileForm');
-        const inputAva = document.getElementById('avatarInput');
-        const imgPrev = document.getElementById('avatarPreview');
-        const btnCancel = document.getElementById('btnCancel');
-
-        // ===== Máscaras simples (sem libs) =====
-        const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
-
-        function maskCPF(v) {
-            v = onlyDigits(v).slice(0, 11);
-            let out = '';
-            if (v.length > 9) out = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1.$2.$3-$4');
-            else if (v.length > 6) out = v.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
-            else if (v.length > 3) out = v.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
-            else out = v;
-            return out;
+(() => {
+    const BASE = (() => {
+        const meta = document.querySelector('meta[name="base-url"]')?.content || '';
+        let base = meta;
+        if (!base) {
+            const m = location.pathname.match(/^(.*\/public\/)/);
+            base = m ? (location.origin + m[1]) : (location.origin + '/');
         }
-
-        function maskPhone(v) {
-            v = onlyDigits(v).slice(0, 11);
-            if (v.length <= 10) {
-                return v
-                    .replace(/^(\d{0,2})/, '($1')
-                    .replace(/^\((\d{2})(\d)/, '($1) $2')
-                    .replace(/(\d{4})(\d)/, '$1-$2');
-            } else {
-                return v
-                    .replace(/^(\d{0,2})/, '($1')
-                    .replace(/^\((\d{2})(\d)/, '($1) $2')
-                    .replace(/(\d{5})(\d)/, '$1-$2');
-            }
+        if (base && !/\/public\/?$/.test(base)) {
+            const m2 = location.pathname.match(/^(.*\/public\/)/);
+            if (m2) base = location.origin + m2[1];
         }
-
-        const $cpf = document.getElementById('cpf');
-        const $tel = document.getElementById('telefone');
-
-        if ($cpf) {
-            $cpf.addEventListener('input', () => $cpf.value = maskCPF($cpf.value));
-            if ($cpf.value) $cpf.value = maskCPF($cpf.value);
-        }
-
-        if ($tel) {
-            $tel.addEventListener('input', () => $tel.value = maskPhone($tel.value));
-            if ($tel.value) $tel.value = maskPhone($tel.value);
-        }
-
-        // Preview do avatar
-        inputAva?.addEventListener('change', () => {
-            const f = inputAva.files?.[0];
-            if (!f) return;
-            if (!f.type.match(/^image\//)) return;
-            const url = URL.createObjectURL(f);
-            if (imgPrev) {
-                imgPrev.src = url;
-                imgPrev.onload = () => URL.revokeObjectURL(url);
-            }
-        });
-
-        // Botão cancelar
-        btnCancel?.addEventListener('click', () => {
-            if (history.length > 1) {
-                history.back();
-            } else {
-                location.href = BASE + 'dashboard';
-            }
-        });
-
-        // Validações
-        function validateBeforeSubmit(fd) {
-            const rawCPF = (fd.get('cpf') || '').toString();
-            if (rawCPF && onlyDigits(rawCPF).length !== 11) {
-                throw new Error('CPF inválido. Verifique e tente novamente.');
-            }
-
-            const ns = (fd.get('nova_senha') || '').toString();
-            const cs = (fd.get('conf_senha') || '').toString();
-            if (ns || cs) {
-                if (ns.length < 6) throw new Error('A nova senha deve ter ao menos 6 caracteres.');
-                if (ns !== cs) throw new Error('A confirmação de senha não confere.');
-            }
-
-            const dn = (fd.get('data_nascimento') || '').toString();
-            if (dn && new Date(dn) > new Date()) {
-                throw new Error('A data de nascimento não pode ser futura.');
-            }
-        }
-
-        // Submit do formulário
-        form?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Adiciona estado de loading
-            form.classList.add('form-loading');
-            const submitBtn = form.querySelector('.btn-primary');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Salvando...';
-
-            const fd = new FormData(form);
-
-            try {
-                validateBeforeSubmit(fd);
-
-                const r = await fetch(`${BASE}api/profile`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: fd
-                });
-
-                const j = await r.json().catch(() => null);
-                if (!r.ok || j?.status === 'error') {
-                    throw new Error(j?.message || 'Falha ao salvar.');
-                }
-
-                // Feedback de sucesso
-                window.Swal?.fire?.({
-                    icon: 'success',
-                    title: 'Perfil atualizado com sucesso!',
-                    text: 'Suas informações foram salvas.',
-                    confirmButtonColor: '#e67e22'
-                });
-
-            } catch (err) {
-                console.error(err);
-                window.Swal?.fire?.({
-                    icon: 'error',
-                    title: 'Erro ao salvar',
-                    text: err.message || 'Erro ao salvar perfil',
-                    confirmButtonColor: '#e74c3c'
-                });
-            } finally {
-                // Remove estado de loading
-                form.classList.remove('form-loading');
-                submitBtn.textContent = originalText;
-            }
-        });
+        return base.replace(/\/?$/, '/');
     })();
-    
+
+    const form = document.getElementById('profileForm');
+    const inputAva = document.getElementById('avatarInput');
+    const imgPrev = document.getElementById('avatarPreview');
+    const btnCancel = document.getElementById('btnCancel');
+
+    // ===== Máscaras simples (sem libs) =====
+    const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
+
+    function maskCPF(v) {
+        v = onlyDigits(v).slice(0, 11);
+        let out = '';
+        if (v.length > 9) out = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1.$2.$3-$4');
+        else if (v.length > 6) out = v.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
+        else if (v.length > 3) out = v.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
+        else out = v;
+        return out;
+    }
+
+    function maskPhone(v) {
+        v = onlyDigits(v).slice(0, 11);
+        if (v.length <= 10) {
+            return v
+                .replace(/^(\d{0,2})/, '($1')
+                .replace(/^\((\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{4})(\d)/, '$1-$2');
+        } else {
+            return v
+                .replace(/^(\d{0,2})/, '($1')
+                .replace(/^\((\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{5})(\d)/, '$1-$2');
+        }
+    }
+
+    const $cpf = document.getElementById('cpf');
+    const $tel = document.getElementById('telefone');
+
+    if ($cpf) {
+        $cpf.addEventListener('input', () => $cpf.value = maskCPF($cpf.value));
+        if ($cpf.value) $cpf.value = maskCPF($cpf.value);
+    }
+
+    if ($tel) {
+        $tel.addEventListener('input', () => $tel.value = maskPhone($tel.value));
+        if ($tel.value) $tel.value = maskPhone($tel.value);
+    }
+
+    // Preview do avatar
+    inputAva?.addEventListener('change', () => {
+        const f = inputAva.files?. [0];
+        if (!f) return;
+        if (!f.type.match(/^image\//)) return;
+        const url = URL.createObjectURL(f);
+        if (imgPrev) {
+            imgPrev.src = url;
+            imgPrev.onload = () => URL.revokeObjectURL(url);
+        }
+    });
+
+    // Botão cancelar
+    btnCancel?.addEventListener('click', () => {
+        if (history.length > 1) {
+            history.back();
+        } else {
+            location.href = BASE + 'dashboard';
+        }
+    });
+
+    // Validações
+    function validateBeforeSubmit(fd) {
+        const rawCPF = (fd.get('cpf') || '').toString();
+        if (rawCPF && onlyDigits(rawCPF).length !== 11) {
+            throw new Error('CPF inválido. Verifique e tente novamente.');
+        }
+
+        const ns = (fd.get('nova_senha') || '').toString();
+        const cs = (fd.get('conf_senha') || '').toString();
+        if (ns || cs) {
+            if (ns.length < 6) throw new Error('A nova senha deve ter ao menos 6 caracteres.');
+            if (ns !== cs) throw new Error('A confirmação de senha não confere.');
+        }
+
+        const dn = (fd.get('data_nascimento') || '').toString();
+        if (dn && new Date(dn) > new Date()) {
+            throw new Error('A data de nascimento não pode ser futura.');
+        }
+    }
+
+    // Submit do formulário
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Adiciona estado de loading
+        form.classList.add('form-loading');
+        const submitBtn = form.querySelector('.btn-primary');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Salvando...';
+
+        const fd = new FormData(form);
+
+        try {
+            validateBeforeSubmit(fd);
+
+            const r = await fetch(`${BASE}api/profile`, {
+                method: 'POST',
+                credentials: 'include',
+                body: fd
+            });
+
+            const j = await r.json().catch(() => null);
+            if (!r.ok || j?.status === 'error') {
+                throw new Error(j?.message || 'Falha ao salvar.');
+            }
+
+            // Feedback de sucesso
+            window.Swal?.fire?.({
+                icon: 'success',
+                title: 'Perfil atualizado com sucesso!',
+                text: 'Suas informações foram salvas.',
+                confirmButtonColor: '#e67e22'
+            });
+
+        } catch (err) {
+            console.error(err);
+            window.Swal?.fire?.({
+                icon: 'error',
+                title: 'Erro ao salvar',
+                text: err.message || 'Erro ao salvar perfil',
+                confirmButtonColor: '#e74c3c'
+            });
+        } finally {
+            // Remove estado de loading
+            form.classList.remove('form-loading');
+            submitBtn.textContent = originalText;
+        }
+    });
+})();
 </script>
