@@ -6,7 +6,7 @@ use Application\Controllers\BaseController;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
 
-class ProfileController extends BaseController
+class PerfilController extends BaseController
 {
     public function index(): void
     {
@@ -15,8 +15,7 @@ class ProfileController extends BaseController
         $user = Usuario::find(Auth::id()) ?? Auth::user();
 
         $this->render(
-            'admin/profile/index',
-            ['user' => $user],
+            'admin/perfil/index',[],
             'admin/partials/header',
             null
         );

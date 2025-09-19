@@ -7,7 +7,7 @@ use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Illuminate\Database\Capsule\Manager as DB;
 
-class ProfileApiController
+class PerfilController
 {
     public function update(): void
     {

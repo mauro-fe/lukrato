@@ -6,7 +6,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Illuminate\Database\Capsule\Manager as DB;
 
-class TransactionsController
+class TransacoesController
 {
 
     public function index(): void

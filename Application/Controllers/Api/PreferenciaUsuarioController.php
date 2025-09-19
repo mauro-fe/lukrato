@@ -5,7 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Models\Usuario;
 
-class UserPreferenceController extends BaseController
+class PreferenciaUsuarioController extends BaseController
 {
     public function show(): void
     {

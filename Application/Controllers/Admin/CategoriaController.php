@@ -4,7 +4,7 @@ namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
 
-class CategoryController extends BaseController
+class CategoriaController extends BaseController
 {
     public function index(?string $username = null): void
     {

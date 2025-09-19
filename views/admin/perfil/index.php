@@ -230,7 +230,7 @@ if (!empty($user->data_nascimento)) {
         try {
             validateBeforeSubmit(fd);
 
-            const r = await fetch(`${BASE}api/profile`, {
+            const r = await fetch(`${BASE}api/perfil`, {
                 method: 'POST',
                 credentials: 'include',
                 body: fd

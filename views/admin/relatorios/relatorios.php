@@ -1,319 +1,319 @@
 <style>
-.container {
-    padding: 0;
-}
-
-.lk-h {
-    margin-bottom: 20px;
-}
-
-.lk-titlebar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-3);
-    margin-bottom: var(--spacing-3);
-}
-
-.lk-t {
-    font-size: 28px;
-    color: var(--color-primary);
-    margin-left: 20px;
-    font-weight: 700;
-}
-
-.lk-controls {
-    display: flex;
-    gap: var(--spacing-3);
-    flex-wrap: wrap;
-    margin-top: 0;
-    padding: 0 24px;
-}
-
-.lk-seg {
-    border: 2px solid var(--glass-border);
-    padding: 6px;
-    border-radius: 999px;
-    display: flex;
-    gap: 6px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    height: 44px;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-backdrop);
-}
-
-.lk-seg button {
-    border: 0;
-    background: transparent;
-    padding: 10px 14px;
-    border-radius: 999px;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--color-text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    line-height: 1;
-    height: 32px;
-}
-
-.lk-seg button.active {
-    color: var(--color-primary);
-}
-
-/* ====== Dropdown base ====== */
-.lk-sel {
-    position: relative;
-}
-
-.lk-sel span {
-    color: var(--color-primary);
-}
-
-.lk-sel>button {
-    border: 2px solid var(--glass-border);
-    height: 44px;
-    border-radius: 999px;
-    padding: 0 16px;
-    display: flex;
-    background-color: var(--glass-bg);
-    backdrop-filter: var(--glass-backdrop);
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    cursor: pointer;
-    color: var(--color-text);
-}
-
-.lk-menu {
-    position: absolute;
-    top: 52px;
-    left: 0;
-    border: 2px solid var(--glass-border);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    min-width: 260px;
-    padding: 8px 0;
-    display: none;
-    z-index: 10;
-    background: var(--color-surface);
-    color: var(--color-text);
-}
-
-.lk-menu.open {
-    display: block;
-}
-
-.lk-menu>button {
-    width: 90%;
-    text-align: center;
-    margin: auto;
-    border: 0;
-    border-radius: 20px;
-    padding: 10px 14px;
-    cursor: pointer;
-    background: var(--glass-bg);
-    color: var(--color-text);
-    margin-top: 5px;
-}
-
-.lk-menu>button:hover {
-    background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
-}
-
-/* ======================= Month Selector (dentro do header) ======================= */
-.dash-lk-header .month-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-
-}
-
-.dash-lk-header .month-nav-btn {
-    background: none;
-    border: 0;
-    color: var(--branco);
-    cursor: pointer;
-
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-}
-
-.dash-lk-header .month-nav-btn:hover {
-    background-color: var(--glass-bg);
-    color: var(--branco);
-}
-
-.dash-lk-header .month-display {
-    position: relative;
-}
-
-.dash-lk-header .month-dropdown-btn {
-    background: none;
-    border: 0;
-    color: var(--color-primary);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    font-weight: 600;
-    min-width: 160px;
-    justify-content: space-between;
-}
-
-
-
-.dash-lk-header .month-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    width: 260px;
-    background: var(--azul);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    max-height: 320px;
-    overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: var(--transition-fast);
-    padding: 6px;
-}
-
-.dash-lk-header .month-dropdown.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.dash-lk-header .month-dropdown .year-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 4px 0 8px;
-}
-
-.dash-lk-header .month-dropdown .year-label {
-    grid-column: 1 / -1;
-    font-weight: 700;
-    color: var(--claro);
-    padding: 6px 8px;
-    opacity: 0.85;
-}
-
-.dash-lk-header .month-dropdown .m-btn {
-    background: none;
-    border: 1px solid var(--glass-border);
-    color: var(--branco);
-    padding: 8px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: var(--transition-fast);
-    text-align: center;
-    font-size: var(--font-size-sm);
-}
-
-.dash-lk-header .month-dropdown .m-btn:hover {
-    background-color: var(--glass-bg);
-}
-
-.dash-lk-header .month-dropdown .m-btn.is-current {
-    border-color: var(--laranja);
-    box-shadow: 0 0 0 1px var(--laranja) inset;
-}
-
-
-
-/* ====== Cards/gráficos ====== */
-.lk-card {
-    border: 2px solid var(--glass-border);
-    background: var(--glass-bg);
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    padding: 18px;
-    overflow: hidden;
-    margin: 0 24px;
-    color: var(--color-text);
-    backdrop-filter: var(--glass-backdrop);
-}
-
-.lk-card+.lk-card {
-    margin-top: 16px;
-}
-
-.lk-chart {
-    padding: 20px 24px;
-}
-
-.lk-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 80px 28px;
-    text-align: center;
-    color: var(--color-text);
-}
-
-.lk-empty h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 8px 0 0;
-    color: var(--color-text);
-}
-
-.lk-empty p {
-    font-size: 14px;
-    margin: 0;
-    color: var(--color-text-muted);
-}
-
-.lk-empty img {
-    width: 180px;
-    max-width: 50vw;
-    opacity: .9;
-}
-
-.lk-loading {
-    padding: 40px;
-    text-align: center;
-    color: var(--color-text);
-}
-
-/* ====== Responsivo ====== */
-@media (max-width: 720px) {
-    .lk-controls {
-        padding: 0 16px;
+    .container {
+        padding: 0;
     }
 
-    .lk-card {
-        margin: 0 16px;
+    .lk-h {
+        margin-bottom: 20px;
     }
 
     .lk-titlebar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-3);
+        margin-bottom: var(--spacing-3);
     }
 
-    .lk-period,
-    .lk-sel>button,
-    .lk-seg {
-        width: 100%;
+    .lk-t {
+        font-size: 28px;
+        color: var(--color-primary);
+        margin-left: 20px;
+        font-weight: 700;
     }
-}
+
+    .lk-controls {
+        display: flex;
+        gap: var(--spacing-3);
+        flex-wrap: wrap;
+        margin-top: 0;
+        padding: 0 24px;
+    }
+
+    .lk-seg {
+        border: 2px solid var(--glass-border);
+        padding: 6px;
+        border-radius: 999px;
+        display: flex;
+        gap: 6px;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+        height: 44px;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-backdrop);
+    }
+
+    .lk-seg button {
+        border: 0;
+        background: transparent;
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--color-text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        line-height: 1;
+        height: 32px;
+    }
+
+    .lk-seg button.active {
+        color: var(--color-primary);
+    }
+
+    /* ====== Dropdown base ====== */
+    .lk-sel {
+        position: relative;
+    }
+
+    .lk-sel span {
+        color: var(--color-primary);
+    }
+
+    .lk-sel>button {
+        border: 2px solid var(--glass-border);
+        height: 44px;
+        border-radius: 999px;
+        padding: 0 16px;
+        display: flex;
+        background-color: var(--glass-bg);
+        backdrop-filter: var(--glass-backdrop);
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+        cursor: pointer;
+        color: var(--color-text);
+    }
+
+    .lk-menu {
+        position: absolute;
+        top: 52px;
+        left: 0;
+        border: 2px solid var(--glass-border);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+        min-width: 260px;
+        padding: 8px 0;
+        display: none;
+        z-index: 10;
+        background: var(--color-surface);
+        color: var(--color-text);
+    }
+
+    .lk-menu.open {
+        display: block;
+    }
+
+    .lk-menu>button {
+        width: 90%;
+        text-align: center;
+        margin: auto;
+        border: 0;
+        border-radius: 20px;
+        padding: 10px 14px;
+        cursor: pointer;
+        background: var(--glass-bg);
+        color: var(--color-text);
+        margin-top: 5px;
+    }
+
+    .lk-menu>button:hover {
+        background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
+    }
+
+    /* ======================= Month Selector (dentro do header) ======================= */
+    .dash-lk-header .month-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+
+    }
+
+    .dash-lk-header .month-nav-btn {
+        background: none;
+        border: 0;
+        color: var(--branco);
+        cursor: pointer;
+
+        border-radius: var(--radius-sm);
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+    }
+
+    .dash-lk-header .month-nav-btn:hover {
+        background-color: var(--glass-bg);
+        color: var(--branco);
+    }
+
+    .dash-lk-header .month-display {
+        position: relative;
+    }
+
+    .dash-lk-header .month-dropdown-btn {
+        background: none;
+        border: 0;
+        color: var(--color-primary);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-weight: 600;
+        min-width: 160px;
+        justify-content: space-between;
+    }
+
+
+
+    .dash-lk-header .month-dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        width: 260px;
+        background: var(--azul);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        max-height: 320px;
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: var(--transition-fast);
+        padding: 6px;
+    }
+
+    .dash-lk-header .month-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dash-lk-header .month-dropdown .year-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px 0 8px;
+    }
+
+    .dash-lk-header .month-dropdown .year-label {
+        grid-column: 1 / -1;
+        font-weight: 700;
+        color: var(--claro);
+        padding: 6px 8px;
+        opacity: 0.85;
+    }
+
+    .dash-lk-header .month-dropdown .m-btn {
+        background: none;
+        border: 1px solid var(--glass-border);
+        color: var(--branco);
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: var(--transition-fast);
+        text-align: center;
+        font-size: var(--font-size-sm);
+    }
+
+    .dash-lk-header .month-dropdown .m-btn:hover {
+        background-color: var(--glass-bg);
+    }
+
+    .dash-lk-header .month-dropdown .m-btn.is-current {
+        border-color: var(--laranja);
+        box-shadow: 0 0 0 1px var(--laranja) inset;
+    }
+
+
+
+    /* ====== Cards/gráficos ====== */
+    .lk-card {
+        border: 2px solid var(--glass-border);
+        background: var(--glass-bg);
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+        padding: 18px;
+        overflow: hidden;
+        margin: 0 24px;
+        color: var(--color-text);
+        backdrop-filter: var(--glass-backdrop);
+    }
+
+    .lk-card+.lk-card {
+        margin-top: 16px;
+    }
+
+    .lk-chart {
+        padding: 20px 24px;
+    }
+
+    .lk-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 80px 28px;
+        text-align: center;
+        color: var(--color-text);
+    }
+
+    .lk-empty h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 8px 0 0;
+        color: var(--color-text);
+    }
+
+    .lk-empty p {
+        font-size: 14px;
+        margin: 0;
+        color: var(--color-text-muted);
+    }
+
+    .lk-empty img {
+        width: 180px;
+        max-width: 50vw;
+        opacity: .9;
+    }
+
+    .lk-loading {
+        padding: 40px;
+        text-align: center;
+        color: var(--color-text);
+    }
+
+    /* ====== Responsivo ====== */
+    @media (max-width: 720px) {
+        .lk-controls {
+            padding: 0 16px;
+        }
+
+        .lk-card {
+            margin: 0 16px;
+        }
+
+        .lk-titlebar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .lk-period,
+        .lk-sel>button,
+        .lk-seg {
+            width: 100%;
+        }
+    }
 </style>
 
 <div class="lk-wrap container pt-4">
@@ -431,663 +431,667 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-(function() {
-    // Carrega Chart.js se necessário
-    function ensureChart() {
-        return new Promise((resolve, reject) => {
-            if (window.Chart) return resolve();
-            const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
-            s.onload = () => resolve();
-            s.onerror = () => reject(new Error('Falha ao carregar Chart.js'));
-            document.head.appendChild(s);
-        });
-    }
-
-    /* =================== THEME / CORES DO LUKRATO PARA CHART.JS =================== */
-    function getTheme() {
-        const css = getComputedStyle(document.documentElement);
-        const v = (k, fallback) => (css.getPropertyValue(k) || fallback).trim();
-
-        const brand = {
-            primary: v('--color-primary', '#E67E22'),
-            text: v('--color-text', '#EAF2FF'),
-            textMute: v('--color-text-muted', '#94A3B8'),
-            surface: v('--color-surface', '#0F2233'),
-            green: '#2ECC71',
-            orange: '#E67E22',
-            yellow: '#F39C12',
-            blue: '#2C3E50',
-            gray: '#BDC3C7',
-            red: '#E74C3C',
-            purple: '#9B59B6',
-            cyan: '#1ABC9C'
-        };
-        const palette = ['#E67E22', '#2C3E50', '#2ECC71', '#BDC3C7', '#F39C12', '#9B59B6', '#1ABC9C', '#E74C3C'];
-        return {
-            brand,
-            palette
-        };
-    }
-
-    function hexToRgba(hex, a = .25) {
-        const m = hex.replace('#', '');
-        const n = parseInt(m, 16);
-        const r = (m.length === 3) ? ((n >> 8) & 0xF) * 17 : (n >> 16) & 255;
-        const g = (m.length === 3) ? ((n >> 4) & 0xF) * 17 : (n >> 8) & 255;
-        const b = (m.length === 3) ? (n & 0xF) * 17 : n & 255;
-        return `rgba(${r},${g},${b},${a})`;
-    }
-    const THEME = getTheme();
-
-    function applyChartDefaults() {
-        if (!window.Chart) return;
-        Chart.defaults.color = THEME.brand.text;
-        Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
-        Chart.defaults.plugins.title.color = THEME.brand.text;
-        Chart.defaults.plugins.legend.labels.color = THEME.brand.textMute;
-    }
-    /* ============================================================================== */
-
-    const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro',
-        'outubro', 'novembro', 'dezembro'
-    ];
-    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-    const fmt = v => new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(Number(v || 0));
-
-    const st = {
-        view: 'pizza',
-        type: 'despesas_por_categoria',
-        d: new Date(),
-        chart: null,
-        accounts: [],
-        accountId: null,
-        modalYear: new Date().getFullYear()
-    };
-
-    const $ = sel => document.querySelector(sel);
-    const $$ = sel => Array.from(document.querySelectorAll(sel));
-    const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
-
-    const base = '<?= BASE_URL ?>';
-
-    const currentMonthTextEl = $('#currentMonthText');
-    const prevBtn = $('#prevMonth');
-    const nextBtn = $('#nextMonth');
-
-    function label(d) {
-        return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
-    }
-
-    function sync() {
-        if (currentMonthTextEl) currentMonthTextEl.textContent = label(st.d);
-    }
-    sync();
-
-    // Navegação pelas setas
-    on(prevBtn, 'click', () => {
-        st.d.setMonth(st.d.getMonth() - 1);
-        sync();
-        load();
-    });
-    on(nextBtn, 'click', () => {
-        st.d.setMonth(st.d.getMonth() + 1);
-        sync();
-        load();
-    });
-
-    // ===== Modal de mês =====
-    const yearPrev = $('#mpPrevYear');
-    const yearNext = $('#mpNextYear');
-    const yearLabel = $('#mpYearLabel');
-    const monthsGrid = $('#mpGrid');
-    const inputMonth = $('#mpInputMonth');
-    const todayBtn = $('#mpTodayBtn');
-
-    function renderMonthsGrid() {
-        if (!monthsGrid || !yearLabel) return;
-        monthsGrid.innerHTML = '';
-        yearLabel.textContent = String(st.modalYear);
-
-        for (let m = 0; m < 12; m++) {
-            const col = document.createElement('div');
-            col.className = 'col-4';
-
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'btn btn-outline-light w-100';
-            b.textContent = cap(monthNames[m]);
-
-            // destaque mês atual escolhido
-            if (st.d.getFullYear() === st.modalYear && st.d.getMonth() === m) {
-                b.classList.add('active');
-                b.style.borderColor = 'var(--color-primary, #E67E22)';
-                b.style.background = 'rgba(230,126,34,.15)';
-            }
-
-            b.addEventListener('click', () => {
-                st.d = new Date(st.modalYear, m, 1);
-                sync();
-                load();
-                try {
-                    const modalEl = document.getElementById('monthModal');
-                    const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
-                    modal?.hide();
-                } catch {}
+    (function() {
+        // Carrega Chart.js se necessário
+        function ensureChart() {
+            return new Promise((resolve, reject) => {
+                if (window.Chart) return resolve();
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
+                s.onload = () => resolve();
+                s.onerror = () => reject(new Error('Falha ao carregar Chart.js'));
+                document.head.appendChild(s);
             });
-
-            col.appendChild(b);
-            monthsGrid.appendChild(col);
         }
-    }
 
-    on(yearPrev, 'click', () => {
-        st.modalYear--;
-        renderMonthsGrid();
-    });
-    on(yearNext, 'click', () => {
-        st.modalYear++;
-        renderMonthsGrid();
-    });
+        /* =================== THEME / CORES DO LUKRATO PARA CHART.JS =================== */
+        function getTheme() {
+            const css = getComputedStyle(document.documentElement);
+            const v = (k, fallback) => (css.getPropertyValue(k) || fallback).trim();
 
-    // “Hoje”
-    on(todayBtn, 'click', () => {
-        const now = new Date();
-        st.modalYear = now.getFullYear();
-        st.d = new Date(st.modalYear, now.getMonth(), 1);
+            const brand = {
+                primary: v('--color-primary', '#E67E22'),
+                text: v('--color-text', '#EAF2FF'),
+                textMute: v('--color-text-muted', '#94A3B8'),
+                surface: v('--color-surface', '#0F2233'),
+                green: '#2ECC71',
+                orange: '#E67E22',
+                yellow: '#F39C12',
+                blue: '#2C3E50',
+                gray: '#BDC3C7',
+                red: '#E74C3C',
+                purple: '#9B59B6',
+                cyan: '#1ABC9C'
+            };
+            const palette = ['#E67E22', '#2C3E50', '#2ECC71', '#BDC3C7', '#F39C12', '#9B59B6', '#1ABC9C', '#E74C3C'];
+            return {
+                brand,
+                palette
+            };
+        }
+
+        function hexToRgba(hex, a = .25) {
+            const m = hex.replace('#', '');
+            const n = parseInt(m, 16);
+            const r = (m.length === 3) ? ((n >> 8) & 0xF) * 17 : (n >> 16) & 255;
+            const g = (m.length === 3) ? ((n >> 4) & 0xF) * 17 : (n >> 8) & 255;
+            const b = (m.length === 3) ? (n & 0xF) * 17 : n & 255;
+            return `rgba(${r},${g},${b},${a})`;
+        }
+        const THEME = getTheme();
+
+        function applyChartDefaults() {
+            if (!window.Chart) return;
+            Chart.defaults.color = THEME.brand.text;
+            Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
+            Chart.defaults.plugins.title.color = THEME.brand.text;
+            Chart.defaults.plugins.legend.labels.color = THEME.brand.textMute;
+        }
+        /* ============================================================================== */
+
+        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro',
+            'outubro', 'novembro', 'dezembro'
+        ];
+        const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+        const fmt = v => new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(Number(v || 0));
+
+        const st = {
+            view: 'pizza',
+            type: 'despesas_por_categoria',
+            includeTransfers: false,
+            d: new Date(),
+            chart: null,
+            accounts: [],
+            accountId: null,
+            modalYear: new Date().getFullYear()
+        };
+
+        const $ = sel => document.querySelector(sel);
+        const $$ = sel => Array.from(document.querySelectorAll(sel));
+        const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
+
+        const base = '<?= BASE_URL ?>';
+
+        const currentMonthTextEl = $('#currentMonthText');
+        const prevBtn = $('#prevMonth');
+        const nextBtn = $('#nextMonth');
+
+        function label(d) {
+            return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
+        }
+
+        function sync() {
+            if (currentMonthTextEl) currentMonthTextEl.textContent = label(st.d);
+        }
         sync();
-        load();
-        try {
-            const modalEl = document.getElementById('monthModal');
-            const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
-            modal?.hide();
-        } catch {}
-    });
 
-    // <input type="month">
-    on(inputMonth, 'change', () => {
-        const ym = inputMonth.value; // formato yyyy-mm
-        if (!/^\d{4}-\d{2}$/.test(ym)) return;
-        const [y, m] = ym.split('-').map(Number);
-        st.modalYear = y;
-        st.d = new Date(y, m - 1, 1);
-        sync();
-        load();
-        try {
-            const modalEl = document.getElementById('monthModal');
-            const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
-            modal?.hide();
-        } catch {}
-    });
-
-    // Ao abrir o modal, alinhar o ano mostrado e redesenhar a grade
-    document.getElementById('monthModal')?.addEventListener('shown.bs.modal', () => {
-        st.modalYear = st.d.getFullYear();
-        // preencher <input type="month"> com o mês atual selecionado
-        if (inputMonth) {
-            const y = st.d.getFullYear();
-            const m = String(st.d.getMonth() + 1).padStart(2, '0');
-            inputMonth.value = `${y}-${m}`;
-        }
-        renderMonthsGrid();
-    });
-
-    // ===== Seletor de tipo (pizza) =====
-    const selType = $('#typeSelect');
-    const typeBtn = $('#typeBtn');
-    const typeMenu = selType?.querySelector('.lk-menu');
-
-    on(typeBtn, 'click', () => {
-        if (!typeMenu) return;
-        typeMenu.classList.toggle('open');
-        typeBtn.setAttribute('aria-expanded', String(typeMenu.classList.contains('open')));
-    });
-
-    document.addEventListener('click', (e) => {
-        if (selType && typeMenu && !selType.contains(e.target)) {
-            typeMenu.classList.remove('open');
-            if (typeBtn) typeBtn.setAttribute('aria-expanded', 'false');
-        }
-    });
-
-    (typeMenu ? typeMenu.querySelectorAll('button') : []).forEach((b) =>
-        on(b, 'click', () => {
-            st.type = b.dataset.type;
-            const lb = typeBtn ? typeBtn.querySelector('.lb') : null;
-            if (lb) lb.textContent = b.textContent; // <-- sem optional chaining do lado esquerdo
-            typeMenu.classList.remove('open');
-            if (typeBtn) typeBtn.setAttribute('aria-expanded', 'false');
-            if (st.view === 'pizza') load();
-        })
-    );
-
-    // ===== Abas =====
-    const accountSelectWrap = $('#accountSelect');
-
-    $$('#tabs button').forEach((b) =>
-        on(b, 'click', () => {
-            $$('#tabs button').forEach((x) => {
-                x.classList.remove('active');
-                x.setAttribute('aria-pressed', 'false');
-            });
-            b.classList.add('active');
-            b.setAttribute('aria-pressed', 'true');
-            st.view = b.dataset.view;
-
-            if (selType) selType.style.display = (st.view === 'pizza') ? '' : 'none';
-            if (accountSelectWrap) accountSelectWrap.style.display = '';
+        // Navegação pelas setas
+        on(prevBtn, 'click', () => {
+            st.d.setMonth(st.d.getMonth() - 1);
+            sync();
             load();
-        })
-    );
-    if (selType) selType.style.display = (st.view === 'pizza') ? '' : 'none';
+        });
+        on(nextBtn, 'click', () => {
+            st.d.setMonth(st.d.getMonth() + 1);
+            sync();
+            load();
+        });
 
-    // ===== Seletor de Conta =====
-    const accountBtn = $('#accountBtn');
-    const accountMenu = accountSelectWrap?.querySelector('.lk-menu');
+        // ===== Modal de mês =====
+        const yearPrev = $('#mpPrevYear');
+        const yearNext = $('#mpNextYear');
+        const yearLabel = $('#mpYearLabel');
+        const monthsGrid = $('#mpGrid');
+        const inputMonth = $('#mpInputMonth');
+        const todayBtn = $('#mpTodayBtn');
 
-    on(accountBtn, 'click', () => {
-        if (!accountMenu) return;
-        accountMenu.classList.toggle('open');
-        accountBtn.setAttribute('aria-expanded', String(accountMenu.classList.contains('open')));
-    });
+        function renderMonthsGrid() {
+            if (!monthsGrid || !yearLabel) return;
+            monthsGrid.innerHTML = '';
+            yearLabel.textContent = String(st.modalYear);
 
-    document.addEventListener('click', (e) => {
-        if (accountSelectWrap && accountMenu && !accountSelectWrap.contains(e.target)) {
-            accountMenu.classList.remove('open');
-            if (accountBtn) accountBtn.setAttribute('aria-expanded', 'false');
-        }
-    });
+            for (let m = 0; m < 12; m++) {
+                const col = document.createElement('div');
+                col.className = 'col-4';
 
-    async function loadAccounts() {
-        if (!accountSelectWrap || !accountMenu || !accountBtn) return;
-        try {
-            const r = await fetch(`${base}api/accounts`, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            if (!r.ok) throw new Error('Falha ao carregar contas');
-            const json = await r.json();
-
-            st.accounts = (json.items || json || []).map(a => ({
-                id: Number(a.id),
-                nome: a.nome || a.apelido || a.instituicao || `Conta #${a.id}`
-            }));
-
-            accountMenu.innerHTML = '';
-            const btnAll = document.createElement('button');
-            btnAll.textContent = 'Todas as contas';
-            on(btnAll, 'click', () => {
-                st.accountId = null;
-                const lb = accountBtn ? accountBtn.querySelector('.lb') : null;
-                if (lb) lb.textContent = 'Todas as contas';
-                accountMenu.classList.remove('open');
-                accountBtn.setAttribute('aria-expanded', 'false');
-                load();
-            });
-            accountMenu.appendChild(btnAll);
-
-            st.accounts.forEach(acc => {
                 const b = document.createElement('button');
-                b.textContent = acc.nome;
-                on(b, 'click', () => {
-                    st.accountId = acc.id;
+                b.type = 'button';
+                b.className = 'btn btn-outline-light w-100';
+                b.textContent = cap(monthNames[m]);
+
+                // destaque mês atual escolhido
+                if (st.d.getFullYear() === st.modalYear && st.d.getMonth() === m) {
+                    b.classList.add('active');
+                    b.style.borderColor = 'var(--color-primary, #E67E22)';
+                    b.style.background = 'rgba(230,126,34,.15)';
+                }
+
+                b.addEventListener('click', () => {
+                    st.d = new Date(st.modalYear, m, 1);
+                    sync();
+                    load();
+                    try {
+                        const modalEl = document.getElementById('monthModal');
+                        const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+                        modal?.hide();
+                    } catch {}
+                });
+
+                col.appendChild(b);
+                monthsGrid.appendChild(col);
+            }
+        }
+
+        on(yearPrev, 'click', () => {
+            st.modalYear--;
+            renderMonthsGrid();
+        });
+        on(yearNext, 'click', () => {
+            st.modalYear++;
+            renderMonthsGrid();
+        });
+
+        // “Hoje”
+        on(todayBtn, 'click', () => {
+            const now = new Date();
+            st.modalYear = now.getFullYear();
+            st.d = new Date(st.modalYear, now.getMonth(), 1);
+            sync();
+            load();
+            try {
+                const modalEl = document.getElementById('monthModal');
+                const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+                modal?.hide();
+            } catch {}
+        });
+
+        // <input type="month">
+        on(inputMonth, 'change', () => {
+            const ym = inputMonth.value; // formato yyyy-mm
+            if (!/^\d{4}-\d{2}$/.test(ym)) return;
+            const [y, m] = ym.split('-').map(Number);
+            st.modalYear = y;
+            st.d = new Date(y, m - 1, 1);
+            sync();
+            load();
+            try {
+                const modalEl = document.getElementById('monthModal');
+                const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
+                modal?.hide();
+            } catch {}
+        });
+
+        // Ao abrir o modal, alinhar o ano mostrado e redesenhar a grade
+        document.getElementById('monthModal')?.addEventListener('shown.bs.modal', () => {
+            st.modalYear = st.d.getFullYear();
+            // preencher <input type="month"> com o mês atual selecionado
+            if (inputMonth) {
+                const y = st.d.getFullYear();
+                const m = String(st.d.getMonth() + 1).padStart(2, '0');
+                inputMonth.value = `${y}-${m}`;
+            }
+            renderMonthsGrid();
+        });
+
+        // ===== Seletor de tipo (pizza) =====
+        const selType = $('#typeSelect');
+        const typeBtn = $('#typeBtn');
+        const typeMenu = selType?.querySelector('.lk-menu');
+
+        on(typeBtn, 'click', () => {
+            if (!typeMenu) return;
+            typeMenu.classList.toggle('open');
+            typeBtn.setAttribute('aria-expanded', String(typeMenu.classList.contains('open')));
+        });
+
+        document.addEventListener('click', (e) => {
+            if (selType && typeMenu && !selType.contains(e.target)) {
+                typeMenu.classList.remove('open');
+                if (typeBtn) typeBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        (typeMenu ? typeMenu.querySelectorAll('button') : []).forEach((b) =>
+            on(b, 'click', () => {
+                st.type = b.dataset.type;
+                const lb = typeBtn ? typeBtn.querySelector('.lb') : null;
+                if (lb) lb.textContent = b.textContent; // <-- sem optional chaining do lado esquerdo
+                typeMenu.classList.remove('open');
+                if (typeBtn) typeBtn.setAttribute('aria-expanded', 'false');
+                if (st.view === 'pizza') load();
+            })
+        );
+
+        // ===== Abas =====
+        const accountSelectWrap = $('#accountSelect');
+
+        $$('#tabs button').forEach((b) =>
+            on(b, 'click', () => {
+                $$('#tabs button').forEach((x) => {
+                    x.classList.remove('active');
+                    x.setAttribute('aria-pressed', 'false');
+                });
+                b.classList.add('active');
+                b.setAttribute('aria-pressed', 'true');
+                st.view = b.dataset.view;
+
+                if (selType) selType.style.display = (st.view === 'pizza') ? '' : 'none';
+                if (accountSelectWrap) accountSelectWrap.style.display = '';
+                load();
+            })
+        );
+        if (selType) selType.style.display = (st.view === 'pizza') ? '' : 'none';
+
+        // ===== Seletor de Conta =====
+        const accountBtn = $('#accountBtn');
+        const accountMenu = accountSelectWrap?.querySelector('.lk-menu');
+
+        on(accountBtn, 'click', () => {
+            if (!accountMenu) return;
+            accountMenu.classList.toggle('open');
+            accountBtn.setAttribute('aria-expanded', String(accountMenu.classList.contains('open')));
+        });
+
+        document.addEventListener('click', (e) => {
+            if (accountSelectWrap && accountMenu && !accountSelectWrap.contains(e.target)) {
+                accountMenu.classList.remove('open');
+                if (accountBtn) accountBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        async function loadAccounts() {
+            if (!accountSelectWrap || !accountMenu || !accountBtn) return;
+            try {
+                const r = await fetch(`${base}api/accounts`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                if (!r.ok) throw new Error('Falha ao carregar contas');
+                const json = await r.json();
+
+                st.accounts = (json.items || json || []).map(a => ({
+                    id: Number(a.id),
+                    nome: a.nome || a.apelido || a.instituicao || `Conta #${a.id}`
+                }));
+
+                accountMenu.innerHTML = '';
+                const btnAll = document.createElement('button');
+                btnAll.textContent = 'Todas as contas';
+                on(btnAll, 'click', () => {
+                    st.accountId = null;
                     const lb = accountBtn ? accountBtn.querySelector('.lb') : null;
-                    if (lb) lb.textContent = acc.nome;
+                    if (lb) lb.textContent = 'Todas as contas';
                     accountMenu.classList.remove('open');
                     accountBtn.setAttribute('aria-expanded', 'false');
                     load();
                 });
-                accountMenu.appendChild(b);
-            });
+                accountMenu.appendChild(btnAll);
 
-            accountSelectWrap.style.display = '';
-        } catch (e) {
-            console.warn('Contas: não foi possível carregar.', e);
-            accountSelectWrap.style.display = 'none';
+                st.accounts.forEach(acc => {
+                    const b = document.createElement('button');
+                    b.textContent = acc.nome;
+                    on(b, 'click', () => {
+                        st.accountId = acc.id;
+                        const lb = accountBtn ? accountBtn.querySelector('.lb') : null;
+                        if (lb) lb.textContent = acc.nome;
+                        accountMenu.classList.remove('open');
+                        accountBtn.setAttribute('aria-expanded', 'false');
+                        load();
+                    });
+                    accountMenu.appendChild(b);
+                });
+
+                accountSelectWrap.style.display = '';
+            } catch (e) {
+                console.warn('Contas: não foi possível carregar.', e);
+                accountSelectWrap.style.display = 'none';
+            }
         }
-    }
 
-    // ---- APIs ----
-    async function fetchData() {
-        const y = st.d.getFullYear();
-        const m = String(st.d.getMonth() + 1).padStart(2, '0');
+        // ---- APIs ----
+        async function fetchData() {
+            const y = st.d.getFullYear();
+            const m = String(st.d.getMonth() + 1).padStart(2, '0');
 
-        const type =
-            st.view === 'linha' ? 'saldo_mensal' :
-            st.view === 'barras' ? 'receitas_despesas_diario' :
-            st.view === 'evolucao' ? 'evolucao_12m' :
-            st.view === 'contas' ? 'receitas_despesas_por_conta' :
-            st.type;
+            const type =
+                st.view === 'linha' ? 'saldo_mensal' :
+                st.view === 'barras' ? 'receitas_despesas_diario' :
+                st.view === 'evolucao' ? 'evolucao_12m' :
+                st.view === 'contas' ? 'receitas_despesas_por_conta' :
+                st.type;
 
-        const params = new URLSearchParams({
-            type,
-            year: String(y),
-            month: String(m)
-        });
-        if (st.accountId) params.set('account_id', String(st.accountId));
-
-        const url = `${base}api/reports?${params.toString()}`;
-        try {
-            const r = await fetch(url, {
-                headers: {
-                    'Accept': 'application/json'
-                },
-                credentials: 'include'
+            const params = new URLSearchParams({
+                type,
+                year: String(y),
+                month: String(m)
             });
-            if (!r.ok) return {
-                labels: [],
-                values: []
-            };
-            return await r.json();
-        } catch (e) {
-            console.error(e);
-            return {
-                labels: [],
-                values: []
-            };
+            if (st.accountId) params.set('account_id', String(st.accountId));
+
+            const url = `${base}api/reports?${params.toString()}`;
+            try {
+                const r = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                const json = await r.json();
+
+                // 🔽 NOVO: lida com os dois formatos (embrulhado ou não)
+                const payload = (json && typeof json === 'object' && 'status' in json && 'data' in json) ?
+                    json.data :
+                    json;
+
+                return payload;
+            } catch (e) {
+                console.error(e);
+                return {
+                    labels: [],
+                    values: []
+                };
+            }
         }
-    }
 
-    // UI helpers
-    function setArea(html) {
-        $('#area').innerHTML = html;
-    }
+        // UI helpers
+        function setArea(html) {
+            $('#area').innerHTML = html;
+        }
 
-    function loading() {
-        setArea('<div class="lk-loading">Carregando…</div>');
-    }
+        function loading() {
+            setArea('<div class="lk-loading">Carregando…</div>');
+        }
 
-    function empty() {
-        setArea(`
+        function empty() {
+            setArea(`
       <div class="lk-empty">
         <img src="https://cdn.jsdelivr.net/gh/alohe/illustrations/undraw_clipboard.svg" alt="Sem dados">
         <h3>Nenhum dado encontrado</h3>
         <p>Altere o período, o tipo ou a conta.</p>
       </div>
     `);
-    }
-
-    function destroyChart() {
-        if (st.chart) {
-            st.chart.destroy();
-            st.chart = null;
         }
-    }
 
-    // =================== DESENHOS ===================
-    function drawPie(d) {
-        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-        destroyChart();
-        const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
-        const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
-            'Despesas por categorias';
-        const colors = (d.values || []).map((_, i) => THEME.palette[i % THEME.palette.length]);
-
-        st.chart = new Chart($('#c'), {
-            type: 'doughnut',
-            data: {
-                labels: d.labels || [],
-                datasets: [{
-                    label: titulo,
-                    data: d.values || [],
-                    backgroundColor: colors,
-                    borderColor: THEME.brand.surface,
-                    borderWidth: 2,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    title: {
-                        display: true,
-                        text: `${titulo} • Total ${fmt(ttl)}`
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (c) => `${c.label}: ${fmt(c.parsed)}`
-                        }
-                    }
-                },
-                maintainAspectRatio: false,
-                cutout: '60%'
+        function destroyChart() {
+            if (st.chart) {
+                st.chart.destroy();
+                st.chart = null;
             }
-        });
-    }
+        }
 
-    function drawLine(d) {
-        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-        destroyChart();
-        const color = THEME.brand.primary;
+        // =================== DESENHOS ===================
+        function drawPie(d) {
+            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+            destroyChart();
+            const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
+            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
+                'Despesas por categorias';
+            const colors = (d.values || []).map((_, i) => THEME.palette[i % THEME.palette.length]);
 
-        st.chart = new Chart($('#c'), {
-            type: 'line',
-            data: {
-                labels: d.labels || [],
-                datasets: [{
-                    label: 'Saldo diário (receitas - despesas)',
-                    data: (d.values || []).map(Number),
-                    tension: .3,
-                    borderWidth: 2,
-                    borderColor: color,
-                    pointRadius: 2,
-                    backgroundColor: hexToRgba(color, .20),
-                    fill: true
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (c) => fmt(c.parsed.y)
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Saldo do mês (diário)'
-                    }
+            st.chart = new Chart($('#c'), {
+                type: 'doughnut',
+                data: {
+                    labels: d.labels || [],
+                    datasets: [{
+                        label: titulo,
+                        data: d.values || [],
+                        backgroundColor: colors,
+                        borderColor: THEME.brand.surface,
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
                 },
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255,255,255,.06)'
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         },
-                        ticks: {
-                            color: THEME.brand.textMute
+                        title: {
+                            display: true,
+                            text: `${titulo} • Total ${fmt(ttl)}`
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => `${c.label}: ${fmt(c.parsed)}`
+                            }
                         }
                     },
-                    y: {
-                        grid: {
-                            color: 'rgba(255,255,255,.06)'
+                    maintainAspectRatio: false,
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function drawLine(d) {
+            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+            destroyChart();
+            const color = THEME.brand.primary;
+
+            st.chart = new Chart($('#c'), {
+                type: 'line',
+                data: {
+                    labels: d.labels || [],
+                    datasets: [{
+                        label: 'Saldo diário (receitas - despesas)',
+                        data: (d.values || []).map(Number),
+                        tension: .3,
+                        borderWidth: 2,
+                        borderColor: color,
+                        pointRadius: 2,
+                        backgroundColor: hexToRgba(color, .20),
+                        fill: true
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         },
-                        ticks: {
-                            color: THEME.brand.textMute,
-                            callback: (v) => fmt(v)
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => fmt(c.parsed.y)
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Saldo do mês (diário)'
+                        }
+                    },
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute,
+                                callback: (v) => fmt(v)
+                            }
                         }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    function drawBars(d) {
-        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-        destroyChart();
+        function drawBars(d) {
+            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+            destroyChart();
 
-        const rec = THEME.brand.green;
-        const des = THEME.brand.orange;
+            const rec = THEME.brand.green;
+            const des = THEME.brand.orange;
 
-        st.chart = new Chart($('#c'), {
-            type: 'bar',
-            data: {
-                labels: d.labels || [],
-                datasets: [{
-                        label: 'Receitas',
-                        data: (d.receitas || []).map(Number),
-                        backgroundColor: hexToRgba(rec, .55),
-                        borderColor: rec,
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Despesas',
-                        data: (d.despesas || []).map(Number),
-                        backgroundColor: hexToRgba(des, .55),
-                        borderColor: des,
-                        borderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (c) => fmt(c.parsed.y)
+            st.chart = new Chart($('#c'), {
+                type: 'bar',
+                data: {
+                    labels: d.labels || [],
+                    datasets: [{
+                            label: 'Receitas',
+                            data: (d.receitas || []).map(Number),
+                            backgroundColor: hexToRgba(rec, .55),
+                            borderColor: rec,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Despesas',
+                            data: (d.despesas || []).map(Number),
+                            backgroundColor: hexToRgba(des, .55),
+                            borderColor: des,
+                            borderWidth: 2
                         }
-                    }
+                    ]
                 },
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255,255,255,.06)'
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         },
-                        ticks: {
-                            color: THEME.brand.textMute
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => fmt(c.parsed.y)
+                            }
                         }
                     },
-                    y: {
-                        grid: {
-                            color: 'rgba(255,255,255,.06)'
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute
+                            }
                         },
-                        ticks: {
-                            color: THEME.brand.textMute,
-                            callback: (v) => fmt(v)
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute,
+                                callback: (v) => fmt(v)
+                            }
                         }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    function drawLine12m(d) {
-        setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-        destroyChart();
-        const color = THEME.brand.cyan;
+        function drawLine12m(d) {
+            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
+            destroyChart();
+            const color = THEME.brand.cyan;
 
-        st.chart = new Chart($('#c'), {
-            type: 'line',
-            data: {
-                labels: d.labels || [],
-                datasets: [{
-                    label: 'Saldo mensal',
-                    data: (d.values || []).map(Number),
-                    tension: .3,
-                    borderWidth: 2,
-                    borderColor: color,
-                    pointRadius: 2,
-                    backgroundColor: hexToRgba(color, .18),
-                    fill: true
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (c) => fmt(c.parsed.y)
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Evolução dos últimos 12 meses'
-                    }
+            st.chart = new Chart($('#c'), {
+                type: 'line',
+                data: {
+                    labels: d.labels || [],
+                    datasets: [{
+                        label: 'Saldo mensal',
+                        data: (d.values || []).map(Number),
+                        tension: .3,
+                        borderWidth: 2,
+                        borderColor: color,
+                        pointRadius: 2,
+                        backgroundColor: hexToRgba(color, .18),
+                        fill: true
+                    }]
                 },
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255,255,255,.06)'
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         },
-                        ticks: {
-                            color: THEME.brand.textMute
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => fmt(c.parsed.y)
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evolução dos últimos 12 meses'
                         }
                     },
-                    y: {
-                        grid: {
-                            color: 'rgba(255,255,255,.06)'
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute
+                            }
                         },
-                        ticks: {
-                            color: THEME.brand.textMute,
-                            callback: (v) => fmt(v)
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,.06)'
+                            },
+                            ticks: {
+                                color: THEME.brand.textMute,
+                                callback: (v) => fmt(v)
+                            }
                         }
                     }
                 }
-            }
-        });
-    }
-    // =======================================================================
+            });
+        }
+        // =======================================================================
 
-    // Loader principal
-    async function load() {
-        loading();
-        try {
-            await ensureChart();
-            applyChartDefaults();
-            if (!st.accounts.length) {
-                await loadAccounts();
-            }
-            const d = await fetchData();
-            if (!d || !d.labels || !d.labels.length) {
+        // Loader principal
+        async function load() {
+            loading();
+            try {
+                await ensureChart();
+                applyChartDefaults();
+                if (!st.accounts.length) {
+                    await loadAccounts();
+                }
+                const d = await fetchData();
+                if (!d || !d.labels || !d.labels.length) {
+                    empty();
+                    return;
+                }
+
+                if (st.view === 'pizza') drawPie(d);
+                else if (st.view === 'linha') drawLine(d);
+                else if (st.view === 'barras' || st.view === 'contas') drawBars(d);
+                else if (st.view === 'evolucao') drawLine12m(d);
+            } catch (e) {
+                console.error(e);
                 empty();
-                return;
             }
-
-            if (st.view === 'pizza') drawPie(d);
-            else if (st.view === 'linha') drawLine(d);
-            else if (st.view === 'barras' || st.view === 'contas') drawBars(d);
-            else if (st.view === 'evolucao') drawLine12m(d);
-        } catch (e) {
-            console.error(e);
-            empty();
         }
-    }
 
-    load();
+        load();
 
-    // Helpers globais
-    window.refreshReports = function() {
-        load();
-    };
-    window.setReportsMonth = function(ym) {
-        if (!/^\d{4}-\d{2}$/.test(ym)) return;
-        const [y, m] = ym.split('-').map(Number);
-        st.d = new Date(y, m - 1, 1);
-        sync();
-        load();
-    };
-    window.setReportsView = function(view) {
-        const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
-        if (btn) btn.click();
-    };
-    window.setReportsType = function(type) {
-        const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
-        if (b) b.click();
-    };
-})();
+        // Helpers globais
+        window.refreshReports = function() {
+            load();
+        };
+        window.setReportsMonth = function(ym) {
+            if (!/^\d{4}-\d{2}$/.test(ym)) return;
+            const [y, m] = ym.split('-').map(Number);
+            st.d = new Date(y, m - 1, 1);
+            sync();
+            load();
+        };
+        window.setReportsView = function(view) {
+            const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
+            if (btn) btn.click();
+        };
+        window.setReportsType = function(type) {
+            const b = document.querySelector(`.lk-menu button[data-type="${type}"]`);
+            if (b) b.click();
+        };
+    })();
 </script>

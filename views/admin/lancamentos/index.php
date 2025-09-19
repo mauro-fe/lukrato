@@ -197,8 +197,6 @@
         <td>${it.descricao || '-'}</td>
         <td class="text-end">${fmtMoney(it.valor)}</td>
         <td class="text-nowrap" style="width:120px">
-          <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" title="Editar">Editar</button>
-          
             <button class="lk-btn danger btn-del" title="Excluir" data-action="delete">
                     <i class="fas fa-trash"></i>
                     </button>

@@ -7,7 +7,7 @@ use Application\Models\Conta;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 
-class AccountController
+class ContasController
 {
     public function index(): void
     {

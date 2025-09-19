@@ -8,7 +8,7 @@ use Application\Core\Response;
 use GUMP;
 use Exception;
 
-class CategoryController extends BaseController
+class CategoriaController extends BaseController
 {
     public function index(): void
     {
