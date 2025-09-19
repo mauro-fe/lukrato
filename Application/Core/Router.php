@@ -21,9 +21,6 @@ class Router
         ];
     }
 
-    /**
-     * Ponto de entrada do roteador.
-     */
     public static function run(string $requestedPath, string $requestMethod): void
     {
         $routeContext = null;
@@ -48,10 +45,6 @@ class Router
         }
     }
 
-    /**
-     * Encontra a rota correspondente à requisição.
-     * @return array{route: array, params: array}|null
-     */
     private static function findMatchingRoute(string $path, string $method): ?array
     {
         $path = $path === '' ? '/' : trim($path, '/');
@@ -68,16 +61,12 @@ class Router
         return null;
     }
 
-    /**
-     * Executa os middlewares associados à rota.
-     */
     private static function executeMiddlewares(array $middlewareNames, Request $request): void
     {
         if (empty($middlewareNames)) {
             return;
         }
 
-        // registry deve retornar um array ['alias' => ClassName::class]
         $registry = require BASE_PATH . '/Application/Middlewares/RegistryMiddleware.php';
 
         foreach ($middlewareNames as $name) {
@@ -87,29 +76,22 @@ class Router
 
             $middlewareClass = $registry[$name];
 
-            // Exemplo: 'ratelimit' precisa de dependência
             if ($name === 'ratelimit') {
                 (new $middlewareClass(new CacheService()))->handle($request);
             } else {
-                // Middlewares estáticos: public static function handle(Request $r)
                 $middlewareClass::handle($request);
             }
         }
     }
 
-    /**
-     * Executa o callback (closure ou Controller@metodo).
-     */
     private static function executeCallback(array $route, array $params, Request $request): void
     {
-        // Closure: injeta Request como primeiro parâmetro
         if (is_callable($route['callback'])) {
             array_unshift($params, $request);
             call_user_func_array($route['callback'], $params);
             return;
         }
 
-        // Formato "Controller/Path@metodo" relativo a Application\Controllers\
         if (is_string($route['callback'])) {
             [$controllerPath, $method] = explode('@', $route['callback']);
             $controllerNs = 'Application\\Controllers\\' . str_replace('/', '\\', $controllerPath);
@@ -142,9 +124,6 @@ class Router
         throw new \Exception('Callback da rota inválido.');
     }
 
-    /**
-     * Trata exceções de autenticação/validação.
-     */
     private static function handleAuthOrValidationException(\Exception $e): void
     {
         if ($e instanceof AuthException) {
@@ -164,9 +143,6 @@ class Router
         }
     }
 
-    /**
-     * Trata exceções genéricas (500 em prod, detalhado em dev).
-     */
     public static function handleException(\Throwable $e, ?array $routeContext): void
     {
         LogService::critical('Erro fatal no Router', [
@@ -191,9 +167,6 @@ class Router
         exit;
     }
 
-    /**
-     * 404 Not Found padrão.
-     */
     private static function handleNotFound(): void
     {
         http_response_code(404);

@@ -1,48 +1,24 @@
 <?php
 
-/**
- * Front Controller - Ponto de entrada da aplicação
- *
- * Este arquivo gerencia todas as requisições HTTP e as direciona
- * para os controladores apropriados através do sistema de rotas.
- */
-
-// ============================================================================
-// CONFIGURAÇÕES INICIAIS
-// ============================================================================
-
-// Timezone padrão
 date_default_timezone_set('America/Sao_Paulo');
 
-// Configurações de sessão
 ini_set('session.cookie_lifetime', 0);
 ini_set('session.use_only_cookies', 1);
 
-// Definição de constantes
 define('BASE_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', realpath(__DIR__));
 
 
-// ============================================================================
-// CARREGAMENTO DE DEPENDÊNCIAS
-// ============================================================================
-
-// Autoloader do Composer
 $autoloadPath = BASE_PATH . '/vendor/autoload.php';
 if (!file_exists($autoloadPath)) {
     die('Erro: Execute "composer install" para instalar as dependências.');
 }
 require_once $autoloadPath;
 
-// Variáveis de ambiente
 if (file_exists(BASE_PATH . '/.env')) {
     $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
     $dotenv->load();
 }
-
-// ============================================================================
-// CONFIGURAÇÃO DE AMBIENTE
-// ============================================================================
 
 $environment = $_ENV['APP_ENV'] ?? 'production';
 
@@ -52,35 +28,15 @@ if ($environment === 'development') {
     configureProductionEnvironment();
 }
 
-// ============================================================================
-// CONFIGURAÇÃO DE SESSÃO E SEGURANÇA
-// ============================================================================
 
 configureSession();
 configureSecurityHeaders();
-
-// ============================================================================
-// CARREGAMENTO DE ARQUIVOS DE CONFIGURAÇÃO
-// ============================================================================
-
 loadConfigurationFiles();
-
-// ============================================================================
-// PROCESSAMENTO DE REQUISIÇÕES
-// ============================================================================
-
 processRequest($environment);
 
-// ============================================================================
-// FUNÇÕES AUXILIARES
-// ============================================================================
-
-/**
- * Configura o ambiente de desenvolvimento
- */
 function configureDevelopmentEnvironment(): void
 {
-    ini_set('display_errors', 0); // ← importante desativar para capturar e formatar corretamente
+    ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
     error_reporting(E_ALL & ~E_DEPRECATED);
 
@@ -132,17 +88,12 @@ function configureDevelopmentEnvironment(): void
     });
 }
 
-
-/**
- * Configura o ambiente de produção
- */
 function configureProductionEnvironment(): void
 {
     ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
     error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 
-    // Handler de erros customizado
     set_error_handler(function ($severity, $message, $file, $line) {
         error_log("Error: [$severity] $message in $file on line $line");
 
@@ -155,7 +106,6 @@ function configureProductionEnvironment(): void
         return false;
     });
 
-    // Handler de exceções não tratadas
     set_exception_handler(function (\Throwable $e) {
         error_log(
             "Unhandled Exception: " . $e->getMessage() .
@@ -164,7 +114,6 @@ function configureProductionEnvironment(): void
                 "\n" . $e->getTraceAsString()
         );
 
-        // Detecta se é requisição AJAX (ou Content-Type: application/json)
         $isAjax = (
             isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
@@ -177,11 +126,10 @@ function configureProductionEnvironment(): void
             http_response_code(500);
             header('Content-Type: application/json; charset=utf-8');
 
-            // Garante que nenhum HTML será exibido
             echo json_encode([
                 'status' => 'error',
                 'message' => 'Erro inesperado no servidor.',
-                'details' => $e->getMessage() // se quiser ocultar essa linha em produção, remova
+                'details' => $e->getMessage()
             ]);
         } else {
             http_response_code(500);
@@ -197,10 +145,6 @@ function configureProductionEnvironment(): void
     });
 }
 
-
-/**
- * Configura a sessão com parâmetros seguros
- */
 function configureSession(): void
 {
     if (session_status() !== PHP_SESSION_NONE) {
@@ -222,30 +166,13 @@ function configureSession(): void
     session_start();
 }
 
-/**
- * Configura headers de segurança
- */
 function configureSecurityHeaders(): void
 {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: DENY');
     header('X-XSS-Protection: 1; mode=block');
-    // header('Referrer-Policy: strict-origin-when-cross-origin');
-
-    // CSP comentado - descomentar e ajustar conforme necessário
-    /*
-    header("Content-Security-Policy: default-src 'self'; " .
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://demos.creative-tim.com https://kit.fontawesome.com https://code.jquery.com https://cdn.datatables.net https://buttons.github.io; " .
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://demos.creative-tim.com https://cdn.datatables.net; " .
-        "img-src 'self' data:; " .
-        "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://demos.creative-tim.com https://kit.fontawesome.com; " .
-        "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://kit.fontawesome.com;");
-    */
 }
 
-/**
- * Carrega arquivos de configuração necessários
- */
 function loadConfigurationFiles(): void
 {
     $configPath = BASE_PATH . '/config/config.php';
@@ -263,10 +190,6 @@ function loadConfigurationFiles(): void
 
 use Application\Core\Router;
 
-
-/**
- * Processa a requisição HTTP atual
- */
 function processRequest(string $environment): void
 {
 
@@ -280,15 +203,11 @@ function processRequest(string $environment): void
     }
 }
 
-/**
- * Analisa e normaliza a rota da requisição
- */
 function parseRequestRoute(): string
 {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
     $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 
-    // Remove o caminho base da URI
     $basePath = str_replace('/index.php', '', dirname($scriptName));
     $basePath = rtrim($basePath, '/');
 
@@ -300,7 +219,6 @@ function parseRequestRoute(): string
         $requestUri = substr($requestUri, strlen($basePath));
     }
 
-    // Extrai apenas o path da URL
     $parsedUrl = parse_url($requestUri);
     $route = $parsedUrl['path'] ?? '/';
 
@@ -313,9 +231,6 @@ function parseRequestRoute(): string
     return $route;
 }
 
-/**
- * Trata erros durante o processamento da requisição
- */
 function handleRequestError(\Throwable $e, string $environment): void
 {
     if ($environment === 'development') {

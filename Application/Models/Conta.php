@@ -26,33 +26,28 @@ class Conta extends Model
         'ativo'         => 'bool',
     ];
 
-    // Dono da conta
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
-    // Lançamentos “normais” (receita/despesa) desta conta
     public function lancamentos()
     {
         return $this->hasMany(Lancamento::class, 'conta_id');
     }
 
-    // Transferências recebidas
     public function transferenciasRecebidas()
     {
         return $this->hasMany(Lancamento::class, 'conta_destino_id')
             ->where('eh_transferencia', 1);
     }
 
-    // Transferências enviadas
     public function transferenciasEnviadas()
     {
         return $this->hasMany(Lancamento::class, 'conta_id')
             ->where('eh_transferencia', 1);
     }
 
-    // ---- SCOPES ----
     public function scopeForUser($q, int $userId)
     {
         return $q->where('user_id', $userId);

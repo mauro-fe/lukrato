@@ -9,7 +9,6 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class ProfileApiController
 {
-    // POST /api/profile (multipart/form-data)
     public function update(): void
     {
         try {
@@ -19,13 +18,12 @@ class ProfileApiController
                 return;
             }
 
-            // ===== Helpers =====
             $onlyDigits = fn(string $s) => preg_replace('/\D+/', '', $s);
 
             $cpfIsValid = function (?string $cpf) use ($onlyDigits): bool {
                 $cpf = $onlyDigits((string)$cpf);
                 if (strlen($cpf) !== 11) return false;
-                if (preg_match('/^(\d)\1{10}$/', $cpf)) return false; // todos iguais
+                if (preg_match('/^(\d)\1{10}$/', $cpf)) return false;
 
                 for ($t = 9; $t < 11; $t++) {
                     $d = 0;
@@ -47,23 +45,20 @@ class ProfileApiController
             $sanitizePhone = function (?string $tel) use ($onlyDigits): ?string {
                 $tel = $onlyDigits((string)$tel);
                 if ($tel === '') return null;
-                if (!in_array(strlen($tel), [10, 11], true)) return null; // 10 fixo, 11 celular
+                if (!in_array(strlen($tel), [10, 11], true)) return null;
                 return $tel;
             };
 
-            // ===== Entrada =====
             $nome     = trim((string)($_POST['nome']  ?? $user->nome ?? ''));
             $email    = trim((string)($_POST['email'] ?? $user->email ?? ''));
             // username é opcional
             $username = trim((string)($_POST['username'] ?? ($user->username ?? '')));
 
-            // Novos campos
             $rawCpf            = (string)($_POST['cpf']             ?? ($user->cpf ?? ''));
             $rawDataNascimento = (string)($_POST['data_nascimento'] ?? ($user->data_nascimento ?? ''));
             $rawTelefone       = (string)($_POST['telefone']        ?? ($user->telefone ?? ''));
             $sexo              = (string)($_POST['sexo']            ?? ($user->sexo ?? ''));
 
-            // ===== Validações =====
             if ($nome === '') {
                 Response::json(['status' => 'error', 'message' => 'Nome é obrigatório.'], 422);
                 return;
@@ -107,7 +102,6 @@ class ProfileApiController
                 return;
             }
 
-            // Troca de senha (opcional)
             $current = (string)($_POST['senha_atual'] ?? '');
             $nova    = (string)($_POST['nova_senha']  ?? '');
             $conf    = (string)($_POST['conf_senha']  ?? '');
@@ -141,17 +135,14 @@ class ProfileApiController
                 return;
             }
 
-            // ===== Persistência (transação) =====
             DB::connection()->beginTransaction();
 
-            // Campos básicos
             $user->nome  = $nome;
             $user->email = $email;
             if ($username !== '') {
                 $user->username = $username;
             }
 
-            // Novos campos (armazenar somente dígitos onde faz sentido)
             if ($cpf !== '' || isset($_POST['cpf'])) {
                 $user->cpf = $cpf !== '' ? $cpf : null;
             }
@@ -165,7 +156,6 @@ class ProfileApiController
                 $user->sexo = $sexo !== '' ? $sexo : null;
             }
 
-            // Senha (se trocada)
             if ($nova !== '' && $nova === $conf) {
                 $user->password = password_hash($nova, PASSWORD_DEFAULT);
             }

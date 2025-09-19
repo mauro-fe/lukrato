@@ -3,8 +3,7 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-use Illuminate\Database\Capsule\Manager as DB;
-use Application\Core\Response as HttpResponse;
+
 
 class RelatoriosController extends BaseController
 {

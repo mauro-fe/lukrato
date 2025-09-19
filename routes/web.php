@@ -1,39 +1,13 @@
 <?php
 
-/**
- * Definição de Rotas da Aplicação
- */
-
 use Application\Core\Router;
 
-// ============================================================================
-// ROTAS PÚBLICAS / AUTENTICAÇÃO (simples)
-// ============================================================================
+
 registerAuthRoutes();
-
-// ============================================================================
-// ROTAS SIMPLES (sem /admin/{username})
-// ============================================================================
 registerSimpleRoutes();
-
-// ============================================================================
-// ROTAS ADMINISTRATIVAS LEGACY (mantidas por compatibilidade)
-// ============================================================================
 registerFinanceRoutes();
-
-// ============================================================================
-// REDIRECIONAMENTOS E FALLBACKS
-// ============================================================================
 registerRedirectRoutes();
 
-
-// ============================================================================
-// FUNÇÕES DE REGISTRO
-// ============================================================================
-
-/**
- * Rotas de autenticação (simples)
- */
 function registerAuthRoutes(): void
 {
     Router::add('GET',  'login',        'Auth\LoginController@login');
@@ -42,12 +16,8 @@ function registerAuthRoutes(): void
     Router::add('POST', 'register/criar', 'Auth\RegisterController@store');
 }
 
-/**
- * Rotas SIMPLES de app (sem username na URL)
- */
 function registerSimpleRoutes(): void
 {
-    // Dashboard / páginas simples
     Router::add('GET', 'dashboard',    'Admin\DashboardController@dashboard', ['auth']);
     Router::add('GET', 'lancamentos',  'Admin\LancamentoController@index',    ['auth']);
     Router::add('GET', 'relatorios',   'Admin\RelatoriosController@view',           ['auth']);
@@ -55,7 +25,6 @@ function registerSimpleRoutes(): void
     Router::add('GET',  'config',      'Admin\ConfigController@index', ['auth']);
     Router::add('POST', 'api/config',  'Api\ConfigController@update',  ['auth', 'csrf']);
 
-    // API Dashboard/Reports já existentes
     Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
     Router::add('GET',  'api/options',                 'Api\FinanceApiController@options',      ['auth']);
     Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']);
@@ -70,34 +39,22 @@ function registerSimpleRoutes(): void
     Router::add('POST', 'api/accounts/{id}/restore', 'Api\AccountController@restore');
     Router::add('GET', 'contas/arquivadas', 'Admin\AccountsController@archived');
     Router::add('POST', 'api/accounts/{id}/delete',  'Api\AccountController@hardDelete');
-
-
-    // Página Contas
     Router::add('GET', 'contas', 'Admin\AccountsController@index', ['auth']);
-
-    // ===== API de Contas (NOVAS) =====
-    // REST "bonito"
-    // registerSimpleRoutes()
     Router::add('GET',    'api/accounts',          'Api\AccountController@index',  ['auth']);
-    Router::add('POST',   'api/accounts',          'Api\AccountController@store',  ['auth']);   // sem 'csrf'
-    Router::add('PUT',    'api/accounts/{id}',     'Api\AccountController@update', ['auth']);   // sem 'csrf'
-    Router::add('DELETE', 'api/accounts/{id}',     'Api\AccountController@destroy', ['auth']);   // sem 'csrf'
-
-    // Fallbacks para ambientes sem PUT/DELETE (úteis se seu Router/Apache não aceitarem)
+    Router::add('POST',   'api/accounts',          'Api\AccountController@store',  ['auth']);
+    Router::add('PUT',    'api/accounts/{id}',     'Api\AccountController@update', ['auth']);
+    Router::add('DELETE', 'api/accounts/{id}',     'Api\AccountController@destroy', ['auth']);
     Router::add('POST',    'api/accounts/{id:\d+}/update', 'Api\AccountController@update',  ['auth', 'csrf']);
     Router::add('POST',    'api/accounts/{id:\d+}/delete', 'Api\AccountController@destroy', ['auth', 'csrf']);
 
-    // Perfil
     Router::add('GET',  'perfil',      'Admin\ProfileController@index', ['auth']);
     Router::add('POST', 'api/profile', 'Api\ProfileApiController@update', ['auth', 'csrf']);
 
-    // web.php
     Router::add('GET',  'categorias',                'Admin\CategoryController@index');
 
     Router::add('GET',  'api/categorias',                'Api\CategoryController@index');
     Router::add('POST', 'api/categorias',                'Api\CategoryController@store');
     Router::add('POST', 'api/categorias/{id:\d+}/delete', 'Api\CategoryController@delete');
-    // (opcional) fallback:
     Router::add('POST', 'api/categorias/delete',         'Api\CategoryController@delete');
 
     Router::add('GET',  '/api/user/theme', 'Api\UserPreferenceController@show');
@@ -105,9 +62,6 @@ function registerSimpleRoutes(): void
 }
 
 
-/**
- * Finance (legado com username na URL)
- */
 function registerFinanceRoutes(): void
 {
     Router::add('GET',  'admin/{username}/home',               'Admin\DashboardController@index', ['auth']);
@@ -125,12 +79,8 @@ function registerFinanceRoutes(): void
     Router::add('POST', 'admin/{username}/transactions',           'Admin\TransactionController@store', ['auth', 'csrf']);
 }
 
-/**
- * Fallbacks + redirecionamentos
- */
 function registerRedirectRoutes(): void
 {
-    // Home -> se logado vai para dashboard simples; senão login
     Router::add('GET', '', function () {
         redirectToUserDashboard();
     });
@@ -138,12 +88,10 @@ function registerRedirectRoutes(): void
         redirectToUserDashboard();
     });
 
-    // Compat antigo: /admin -> login simples
     Router::add('GET', 'admin', function () {
         redirectToLogin();
     });
 
-    // Compat de rotas antigas:
     Router::add('GET', 'admin/login', function () {
         header('Location: ' . BASE_URL . 'login');
         exit;
@@ -159,18 +107,12 @@ function registerRedirectRoutes(): void
 }
 
 
-// ============================================================================
-// HELPERS DE REDIRECIONAMENTO
-// ============================================================================
-
-/** Login simples */
 function redirectToLogin(): void
 {
-    header('Location: ' . BASE_URL . 'login'); // ← simples (antes era admin/login)
+    header('Location: ' . BASE_URL . 'login');
     exit;
 }
 
-/** Para o dashboard simples, se logado */
 function redirectToUserDashboard(): void
 {
     if (isset($_SESSION['usuario_id']) || isset($_SESSION['admin_username'])) {

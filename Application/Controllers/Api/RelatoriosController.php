@@ -10,7 +10,6 @@ class RelatoriosController extends BaseController
 {
 
 
-    // GET /api/reports/overview?month=YYYY-MM[&tipo=receita|despesa][&account_id=]
     public function overview(): void
     {
         $this->requireAuth();
@@ -19,27 +18,25 @@ class RelatoriosController extends BaseController
         $from = "$y-$m-01";
         $to   = date('Y-m-t', strtotime($from));
 
-        $tipoFiltro = $this->request->get('tipo'); // opcional
+        $tipoFiltro = $this->request->get('tipo');
         $acc        = $this->request->get('account_id');
         $accId      = is_null($acc) || $acc === '' ? null : (int)$acc;
 
-        // Totais por tipo
         $base = DB::table('lancamentos')
             ->whereBetween('data', [$from, $to])
             ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0); // <— NOVO
+            ->where('eh_saldo_inicial', 0);
         if ($tipoFiltro) $base->where('tipo', $tipoFiltro);
         if ($accId)      $base->where('conta_id', $accId);
 
         $totalReceitas = (clone $base)->where('tipo', 'receita')->sum('valor');
         $totalDespesas = (clone $base)->where('tipo', 'despesa')->sum('valor');
 
-        // Por categoria
         $porCategoria = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->whereBetween('l.data', [$from, $to])
             ->where('l.eh_transferencia', 0)
-            ->where('l.eh_saldo_inicial', 0) // <— NOVO
+            ->where('l.eh_saldo_inicial', 0)
             ->when($tipoFiltro, fn($q) => $q->where('l.tipo', $tipoFiltro))
             ->when($accId, fn($q) => $q->where('l.conta_id', $accId))
             ->selectRaw('l.categoria_id, COALESCE(c.nome,"—") as categoria, l.tipo, SUM(l.valor) as total')
@@ -85,7 +82,6 @@ class RelatoriosController extends BaseController
         ]);
     }
 
-    // GET /api/reports/table?month=YYYY-MM[&tipo=][&account_id=]
     public function table(): void
     {
         $this->requireAuth();
@@ -131,7 +127,6 @@ class RelatoriosController extends BaseController
         ]);
     }
 
-    // GET /api/reports/timeseries?month=YYYY-MM[&tipo=][&account_id=]
     public function timeseries(): void
     {
         $this->requireAuth();
@@ -165,7 +160,7 @@ class RelatoriosController extends BaseController
         $acum = 0.0;
 
         foreach ($rows as $r) {
-            $labels[]   = (string)$r->dia; // YYYY-MM-DD
+            $labels[]   = (string)$r->dia;
             $receitas[] = (float)$r->receitas;
             $despesas[] = (float)$r->despesas;
             $acum += ((float)$r->receitas - (float)$r->despesas);

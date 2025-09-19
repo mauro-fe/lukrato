@@ -21,7 +21,6 @@ class LoginController extends BaseController
         $this->authService = new AuthService();
     }
 
-    /** Exibe o formulário de login (se já autenticado, redireciona) */
     public function login(): void
     {
         if ($this->isAuthenticated()) {
@@ -31,7 +30,6 @@ class LoginController extends BaseController
         $this->renderLoginForm();
     }
 
-    /** Processa tentativa de login via AJAX (POST) */
     public function processLogin(): void
     {
         $this->prepareJsonResponse();
@@ -45,21 +43,14 @@ class LoginController extends BaseController
         $credentials = ['email' => '', 'password' => ''];
 
         try {
-            // 1) CSRF
             $this->validateCsrfToken();
 
-            // 2) credenciais
             $credentials = $this->getLoginCredentials();
 
-            // 3) rate limit
             $this->applyRateLimit();
 
-            // 4) autenticar
-            // AuthService->login DEVE setar a sessão de usuário (ex.: Auth::login($user))
-            // e retornar o path de redirect (ex.: 'dashboard')
             $result = $this->authService->login($credentials['email'], $credentials['password']);
 
-            // CSRF cleanup após sucesso
             $this->clearOldCsrfTokens();
 
             $this->respondLoginSuccess($result['redirect'] ?? (BASE_URL . 'dashboard'));
@@ -75,18 +66,15 @@ class LoginController extends BaseController
         }
     }
 
-    /** Logout */
     public function logout(): void
     {
         $this->authService->logout();
-        // Redireciona pro /login com “toaster” via localStorage (mantive seu padrão)
         echo "<script>
             localStorage.setItem('logout_success', '1');
             window.location.href = '" . BASE_URL . "login';
         </script>";
     }
 
-    // ========================= RENDER/REDIRECT =========================
 
     private function redirectToDashboard(): void
     {
@@ -98,14 +86,12 @@ class LoginController extends BaseController
         $data = [
             'error'      => $this->getError(),
             'success'    => $this->getSuccess(),
-            'csrf_token' => \Application\Middlewares\CsrfMiddleware::generateToken('login_form'),
+            'csrf_token' => CsrfMiddleware::generateToken('login_form'),
         ];
 
-        // View atual do seu projeto de login
         $this->render('admin/admins/login', $data, null, 'admin/footer');
     }
 
-    // ========================= PROCESSAMENTO =========================
 
     private function prepareJsonResponse(): void
     {
@@ -123,7 +109,6 @@ class LoginController extends BaseController
     private function validateCsrfToken(): void
     {
         $request = new Request();
-        // Token name deve bater com csrf_input('login_form') do HTML
         CsrfMiddleware::handle($request, 'login_form');
     }
 
@@ -143,8 +128,6 @@ class LoginController extends BaseController
         $rateLimiter->handle($request, 'login:' . $identifier);
     }
 
-    // ========================= RESPOSTAS JSON =========================
-
     private function respondError(string $message, array $errors = []): void
     {
         $response = ['status' => 'error', 'message' => $message];
@@ -154,7 +137,6 @@ class LoginController extends BaseController
 
     private function respondLoginSuccess(string $redirectUrl): void
     {
-        // aceita caminho relativo ou absoluto
         $url = filter_var($redirectUrl, FILTER_VALIDATE_URL) ? $redirectUrl : (BASE_URL . ltrim($redirectUrl, '/'));
         echo json_encode([
             'status'   => 'success',
@@ -167,8 +149,6 @@ class LoginController extends BaseController
     {
         unset($_SESSION['csrf_tokens']);
     }
-
-    // ========================= ERROS =========================
 
     private function handleValidationException(ValidationException $e, string $email): void
     {

@@ -7,19 +7,12 @@ use Application\Core\Exceptions\ValidationException;
 
 class Request
 {
-    /** Dados apenas da query string (GET) */
     private array $query = [];
-    /** Dados apenas do corpo (POST/JSON/PUT/PATCH/DELETE) */
     private array $body = [];
-    /** Dados mesclados (query + body) */
     private array $data = [];
-    /** Arquivos */
     private array $files = [];
-    /** Método HTTP */
     private string $method;
-    /** Cabeçalhos normalizados (lowercase) */
     private array $headers = [];
-    /** Cache do JSON decodificado (se houver) */
     private ?array $json = null;
 
     public function __construct()
@@ -31,9 +24,6 @@ class Request
         $this->parseData();
     }
 
-    // ==========================
-    // Básico
-    // ==========================
     public function method(): string
     {
         return $this->method;
@@ -66,9 +56,6 @@ class Request
             && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
 
-    // ==========================
-    // Headers
-    // ==========================
     public function header(string $key): ?string
     {
         $k = strtolower(str_replace('_', '-', $key));
@@ -101,39 +88,23 @@ class Request
         return stripos($accept, 'application/json') !== false;
     }
 
-    // ==========================
-    // Dados (GET/POST/JSON)
-    // ==========================
-
-    /**
-     * Dados SOMENTE da query string (GET)
-     */
     public function query(string $key = null, $default = null)
     {
         if ($key === null) return $this->query;
         return $this->query[$key] ?? $default;
     }
 
-    /**
-     * Dados SOMENTE do corpo (POST/PUT/PATCH/DELETE form/json)
-     */
     public function post(string $key = null, $default = null)
     {
         if ($key === null) return $this->body;
         return $this->body[$key] ?? $default;
     }
 
-    /**
-     * Dados mesclados (query + body) – equivalente ao que você chamava de get()
-     */
     public function get(string $key, $default = null)
     {
         return $this->data[$key] ?? $default;
     }
 
-    /**
-     * Alias conveniente: sem argumentos retorna tudo; com chave, retorna o valor.
-     */
     public function input(string $key = null, $default = null)
     {
         if ($key === null) return $this->data;

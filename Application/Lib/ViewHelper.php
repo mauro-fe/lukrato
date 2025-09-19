@@ -1,9 +1,8 @@
 <?php
 
-namespace Application\Lib; // <--- CORRIGIDO O NAMESPACE
+namespace Application\Lib;
 
-
-use Application\Lib\Auth; // <--- ADICIONADO para acessar dados de sessão de forma centralizada
+use Application\Lib\Auth;
 
 class ViewHelper
 {
@@ -68,9 +67,4 @@ class ViewHelper
     {
         return BASE_URL . ltrim($path, '/');
     }
-
-    // public static function url(string $path = ''): string
-    // {
-    //     return BASE_URL . ltrim($path, '/');
-    // }
 }

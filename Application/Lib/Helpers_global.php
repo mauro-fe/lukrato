@@ -76,63 +76,46 @@ if (!function_exists('loadPageCss')) {
 
 
 if (!function_exists('loadPageJs')) {
-    /**
-     * Carrega dinamicamente um arquivo JS baseado na view atual
-     * ou em um nome passado manualmente.
-     *
-     * Regras de resolução (na ordem):
-     *   1) assets/js/{view}.js                     // mesma estrutura de pastas
-     *   2) assets/js/{view-com-hifens}.js         // barras/contra-barras -> hífens
-     *   3) assets/js/{pacote-da-pasta}.js         // opcional: junta pastas, sem o último segmento
-     *
-     * Ex.: view = "admin/partials/header"
-     *   -> assets/js/admin/partials/header.js
-     *   -> assets/js/admin-home-header.js
-     *   -> assets/js/admin-home.js
-     *
-     * Uso:
-     *   <?php loadPageJs(); ?> // usa $GLOBALS['current_view']
-* <?php loadPageJs('admin/partials/header'); ?>
-*/
-function loadPageJs(?string $view = null): void
-{
-// 1) origem do nome
-$view = $view ?? ($GLOBALS['current_view'] ?? '');
-if ($view === '') return;
 
-// 2) candidatos
-$candidates = [];
-$candidates[] = 'assets/js/' . $view . '.js';
-$candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
+    function loadPageJs(?string $view = null): void
+    {
+        // 1) origem do nome
+        $view = $view ?? ($GLOBALS['current_view'] ?? '');
+        if ($view === '') return;
 
-$parts = preg_split('#[\\/]+#', $view);
-if ($parts && count($parts) >= 2) {
-$candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
-}
+        // 2) candidatos
+        $candidates = [];
+        $candidates[] = 'assets/js/' . $view . '.js';
+        $candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
 
-// 3) injeta o primeiro que existir
-$publicRoot = __DIR__ . '/../../public/';
-foreach ($candidates as $jsPath) {
-if (file_exists($publicRoot . $jsPath)) {
-echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
-return;
-}
-}
-}
+        $parts = preg_split('#[\\/]+#', $view);
+        if ($parts && count($parts) >= 2) {
+            $candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
+        }
+
+        // 3) injeta o primeiro que existir
+        $publicRoot = __DIR__ . '/../../public/';
+        foreach ($candidates as $jsPath) {
+            if (file_exists($publicRoot . $jsPath)) {
+                echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
+                return;
+            }
+        }
+    }
 }
 
 
 
 function buscarValor($respostas, string $chave): ?string
 {
-if ($respostas instanceof \Illuminate\Support\Collection) {
-$respostas = $respostas->all();
-}
+    if ($respostas instanceof \Illuminate\Support\Collection) {
+        $respostas = $respostas->all();
+    }
 
-foreach ($respostas as $resposta) {
-if ($resposta->chave === $chave) {
-return $resposta->valor;
-}
-}
-return null;
+    foreach ($respostas as $resposta) {
+        if ($resposta->chave === $chave) {
+            return $resposta->valor;
+        }
+    }
+    return null;
 }

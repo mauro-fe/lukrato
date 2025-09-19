@@ -9,12 +9,11 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class LancamentosController
 {
-    // GET /api/lancamentos?month=YYYY-MM[&account_id=][&tipo=receita|despesa][&limit=500]
     public function index(): void
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::error('Não autenticado', 401); // helper do teu Response
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -68,12 +67,10 @@ class LancamentosController
             'eh_transferencia' => (bool)$r->eh_transferencia,
             'categoria'        => (string)$r->categoria,
             'conta'            => (string)$r->conta,
-        ])->values()->all(); // <-- array puro
-
-        Response::success($out); // ou: Response::jsonBody($out)->send();
+        ])->values()->all();
+        Response::success($out);
     }
 
-    // DELETE /api/lancamentos/{id}
     public function destroy(int $id): void
     {
         $uid = Auth::id();
@@ -83,7 +80,7 @@ class LancamentosController
         }
 
         $t = Lancamento::where('user_id', $uid)
-            ->where('id', $id)               // find() ignoraria o where anterior
+            ->where('id', $id)
             ->first();
 
         if (!$t) {

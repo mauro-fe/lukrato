@@ -1,13 +1,9 @@
 <?php
-$pageTitle = $pageTitle ?? 'Painel Administrativo';
-$username  = $username  ?? 'usuário';
-$menu      = $menu      ?? 'dashboard';
 $base      = rtrim(BASE_URL ?? '/', '/') . '/';
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<?php if (function_exists('loadPageCss')) loadPageCss(); ?>
 
 <?php
 $active = function (string $key) use ($menu) {

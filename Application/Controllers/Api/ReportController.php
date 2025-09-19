@@ -33,7 +33,6 @@ class ReportController extends BaseController
         $end    = (clone $start)->endOfMonth()->endOfDay();
         $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
 
-        // Escopo: registros sem user_id (NULL) + do usuário
         $userScope = function ($q) use ($userId) {
             $q->where(function ($q2) use ($userId) {
                 $q2->whereNull('lancamentos.user_id');
@@ -43,7 +42,6 @@ class ReportController extends BaseController
             });
         };
 
-        // Filtro de conta (quando existir coluna)
         $accountScope = function ($q) use ($accId) {
             if ($accId) {
                 $q->where('lancamentos.conta_id', $accId);
@@ -51,7 +49,6 @@ class ReportController extends BaseController
         };
 
         switch ($type) {
-            // ------------------ PIZZA: DESPESAS POR CATEGORIA ------------------
             case 'despesas_por_categoria': {
                     $data = Lancamento::query()
                         ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
@@ -79,7 +76,6 @@ class ReportController extends BaseController
                     return;
                 }
 
-                // ------------------ PIZZA: RECEITAS POR CATEGORIA ------------------
             case 'receitas_por_categoria': {
                     $data = Lancamento::query()
                         ->leftJoin('categorias', 'categorias.id', '=', 'lancamentos.categoria_id')
@@ -107,7 +103,6 @@ class ReportController extends BaseController
                     return;
                 }
 
-                // ------------------ LINHA: SALDO MENSAL (por dia) ------------------
             case 'saldo_mensal': {
                     $data = Lancamento::query()
                         ->select(DB::raw('DATE(lancamentos.data) as dia'))
@@ -140,7 +135,6 @@ class ReportController extends BaseController
                     return;
                 }
 
-                // --------- BARRAS: RECEITAS x DESPESAS (por dia) -------------------
             case 'receitas_despesas_diario': {
                     $rows = Lancamento::query()
                         ->selectRaw('DATE(lancamentos.data) as dia')
@@ -176,7 +170,6 @@ class ReportController extends BaseController
                     return;
                 }
 
-                // --------- LINHA: EVOLUÇÃO 12 MESES (saldo por mês) ----------------
             case 'evolucao_12m': {
                     $ini = (clone $start)->subMonthsNoOverflow(11)->startOfMonth();
                     $fim = (clone $end);
@@ -211,14 +204,10 @@ class ReportController extends BaseController
                     return;
                 }
 
-                // --------- BARRAS POR CONTA (no mês) — inclui saldo_inicial e saldo_mes
             case 'receitas_despesas_por_conta': {
                     $rows = DB::table('contas')
-                        // contas do usuário logado
                         ->when($userId, fn($q) => $q->where('contas.user_id', $userId))
-                        // filtra conta específica se fornecida
                         ->when($accId, fn($q) => $q->where('contas.id', $accId))
-                        // left join nos lançamentos do período + escopo de usuário
                         ->leftJoin('lancamentos', function ($j) use ($start, $end, $userId) {
                             $j->on('lancamentos.conta_id', '=', 'contas.id')
                                 ->whereBetween('lancamentos.data', [$start, $end]);

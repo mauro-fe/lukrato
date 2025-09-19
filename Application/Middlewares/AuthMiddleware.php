@@ -3,7 +3,7 @@
 namespace Application\Middlewares;
 
 use Application\Lib\Auth;
-use Application\Core\Request; // Para receber a instância de Request
+use Application\Core\Request;
 use Application\Core\Exceptions\AuthException;
 
 class AuthMiddleware

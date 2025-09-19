@@ -12,8 +12,8 @@ abstract class BaseController
 {
     protected View $view;
     protected Auth $auth;
-    protected ?int $adminId = null;          // agora espelha Auth::id()
-    protected ?string $adminUsername = null; // agora vem de Auth::user()
+    protected ?int $adminId = null;
+    protected ?string $adminUsername = null;
     protected Request $request;
     protected Response $response;
 
@@ -110,9 +110,6 @@ abstract class BaseController
         return $x;
     }
 
-    // Application/Controllers/BaseController.php
-
-    // ...
 
     protected function getJson(string $key = null, $default = null)
     {

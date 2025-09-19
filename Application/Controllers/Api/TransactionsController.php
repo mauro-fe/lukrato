@@ -8,15 +8,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class TransactionsController
 {
-    /**
-     * GET /api/transactions?month=YYYY-MM&limit=N[&account_id=]
-     * Retorna lançamentos do mês com:
-     * - categoria (objeto)
-     * - conta (objeto)
-     * - conta_destino (objeto, quando houver)
-     * - conta_nome / conta_destino_nome (campos planos)
-     * - conta_label (ex.: "Sicoob → Banco do Brasil" para transferências)
-     */
+
     public function index(): void
     {
         $userId = Auth::id();
@@ -38,12 +30,11 @@ class TransactionsController
 
         $q = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
-            ->leftJoin('contas as co', 'co.id', '=', 'l.conta_id')             // conta origem
-            ->leftJoin('contas as cd', 'cd.id', '=', 'l.conta_id_destino')     // conta destino
+            ->leftJoin('contas as co', 'co.id', '=', 'l.conta_id')
+            ->leftJoin('contas as cd', 'cd.id', '=', 'l.conta_id_destino')
             ->where('l.user_id', $userId)
             ->whereBetween('l.data', [$from, $to])
             ->when($accId, function ($w) use ($accId) {
-                // mostra lançamentos da conta e transferências em que ela participa
                 $w->where(function ($s) use ($accId) {
                     $s->where('l.conta_id', $accId)->orWhere('l.conta_id_destino', $accId);
                 });
@@ -64,7 +55,6 @@ class TransactionsController
         $out = $rows->map(function ($t) {
             $isTransfer = (int)$t->eh_transferencia === 1;
 
-            // label amigável para coluna "Conta"
             $label = $isTransfer
                 ? (($t->conta_origem_nome ?: '—') . ' → ' . ($t->conta_destino_nome ?: '—'))
                 : ($t->conta_origem_nome ?: '—');
@@ -78,13 +68,11 @@ class TransactionsController
                 'observacao'       => (string)($t->observacao ?? ''),
                 'eh_transferencia' => $isTransfer,
 
-                // Categoria como objeto (compatível com seu JS)
                 'categoria'        => $t->categoria_id ? [
                     'id'   => (int)$t->categoria_id,
                     'nome' => (string)$t->categoria_nome
                 ] : null,
 
-                // Objetos de conta (origem/destino)
                 'conta'            => $t->conta_id ? [
                     'id'   => (int)$t->conta_id,
                     'nome' => (string)$t->conta_origem_nome
@@ -94,7 +82,6 @@ class TransactionsController
                     'nome' => (string)$t->conta_destino_nome
                 ] : null,
 
-                // Campos planos + label pronto
                 'conta_nome'          => (string)($t->conta_origem_nome ?? ''),
                 'conta_destino_nome'  => (string)($t->conta_destino_nome ?? ''),
                 'conta_label'         => $label,

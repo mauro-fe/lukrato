@@ -12,7 +12,6 @@ use Application\Lib\Auth;
 
 class FinanceApiController
 {
-    // GET /api/dashboard/metrics?month=YYYY-MM
     public function metrics(): void
     {
         $uid = Auth::id();
@@ -25,7 +24,6 @@ class FinanceApiController
             $start = Carbon::createMidnightDate((int)$y, (int)$m, 1);
             $end   = $start->copy()->endOfMonth();
 
-            // Somatórios do mês (ignora transferências)
             $receitas = (float) Lancamento::whereBetween('data', [$start, $end])
                 ->when($uid, fn($q) => $q->where('user_id', $uid))
                 ->where('tipo', 'receita')
@@ -40,7 +38,6 @@ class FinanceApiController
 
             $resultado = $receitas - $despesas;
 
-            // Acumulado até o fim do mês (ignora transferências)
             $acumRec = (float) Lancamento::where('data', '<=', $end)
                 ->when($uid, fn($q) => $q->where('user_id', $uid))
                 ->where('tipo', 'receita')
@@ -54,7 +51,7 @@ class FinanceApiController
                 ->sum('valor');
 
             Response::json([
-                'saldo'          => $resultado,         // saldo do mês (igual ao resultado)
+                'saldo'          => $resultado,
                 'receitas'       => $receitas,
                 'despesas'       => $despesas,
                 'resultado'      => $resultado,
@@ -65,7 +62,6 @@ class FinanceApiController
         }
     }
 
-    // GET /api/dashboard/transactions?month=YYYY-MM&limit=50
     public function transactions(): void
     {
         $uid = Auth::id();
@@ -108,13 +104,11 @@ class FinanceApiController
         }
     }
 
-    // GET /api/options  → categorias (user + globais) e contas ativas
     public function options(): void
     {
         $uid = Auth::id();
 
         try {
-            // categorias do usuário OU globais (user_id NULL)
             $baseCats = fn($tipo) => Categoria::where(function ($q) use ($uid) {
                 $q->whereNull('user_id')->orWhere('user_id', $uid);
             })
@@ -141,7 +135,6 @@ class FinanceApiController
         }
     }
 
-    // POST /api/transactions  (receita/despesa)
     public function store(): void
     {
         try {
@@ -150,7 +143,6 @@ class FinanceApiController
 
             $uid  = Auth::id();
 
-            // ---- validações básicas
             $tipo = strtolower(trim((string)($data['tipo'] ?? 'despesa')));
             if (!in_array($tipo, ['receita', 'despesa'], true)) {
                 Response::json(['status' => 'error', 'message' => 'Tipo inválido.'], 422);
@@ -164,24 +156,20 @@ class FinanceApiController
                 return;
             }
 
-            // valor
             $valor = $data['valor'] ?? 0;
             if (is_string($valor)) {
                 $s = trim(str_replace(['R$', ' ', '.'], ['', '', ''], $valor));
                 $s = str_replace(',', '.', $s);
                 $valor = is_numeric($s) ? (float)$s : null;
             }
-            // ★ exigir > 0 (não aceitar 0)
             if (!is_numeric($valor) || $valor <= 0) {
                 Response::json(['status' => 'error', 'message' => 'Valor deve ser maior que zero.'], 422);
                 return;
             }
             $valor = round((float)$valor, 2);
 
-            // categoria (opcional, mas se vier precisa ser compatível e do usuário/globais)
             $categoriaId = $data['categoria_id'] ?? null;
             if ($categoriaId !== null && $categoriaId !== '') {
-                // ★ valida escopo (user_id = $uid ou NULL)
                 $cat = Categoria::where('id', (int)$categoriaId)
                     ->where(function ($q) use ($uid) {
                         $q->whereNull('user_id')->orWhere('user_id', $uid);
@@ -200,7 +188,6 @@ class FinanceApiController
                 $categoriaId = null;
             }
 
-            // conta (opcional, mas se vier tem que ser do usuário)
             $contaId = $data['conta_id'] ?? null;
             if ($contaId !== null && $contaId !== '') {
                 $contaId = (int)$contaId;
@@ -235,7 +222,7 @@ class FinanceApiController
     public function transfer(): void
     {
         try {
-            $uid  = \Application\Lib\Auth::id();
+            $uid  = Auth::id();
             $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
             // -------- validações --------
@@ -246,7 +233,6 @@ class FinanceApiController
                 return;
             }
 
-            // valor > 0
             $valor = $data['valor'] ?? 0;
             if (is_string($valor)) {
                 $s = str_replace(['R$', ' ', '.'], ['', '', ''], trim($valor));
@@ -268,21 +254,20 @@ class FinanceApiController
                 return;
             }
 
-            $origem  = \Application\Models\Conta::forUser($uid)->find($origemId);
-            $destino = \Application\Models\Conta::forUser($uid)->find($destinoId);
+            $origem  = Conta::forUser($uid)->find($origemId);
+            $destino = Conta::forUser($uid)->find($destinoId);
             if (!$origem || !$destino) {
                 Response::json(['status' => 'error', 'message' => 'Conta de origem ou destino inválida.'], 422);
                 return;
             }
 
-            // -------- gravação --------
             $t = new Lancamento();
             $t->user_id           = $uid;
-            $t->tipo              = Lancamento::TIPO_TRANSFERENCIA; // "transferencia"
+            $t->tipo              = Lancamento::TIPO_TRANSFERENCIA;
             $t->data              = $dataStr;
             $t->categoria_id      = null;
-            $t->conta_id          = $origemId;        // origem
-            $t->conta_id_destino  = $destinoId;       // destino
+            $t->conta_id          = $origemId;
+            $t->conta_id_destino  = $destinoId;
             $t->descricao         = isset($data['descricao'])  ? trim((string)$data['descricao'])  : null;
             $t->observacao        = isset($data['observacao']) ? trim((string)$data['observacao']) : null;
             $t->valor             = $valor;

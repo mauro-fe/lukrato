@@ -12,11 +12,7 @@ class ProfileController extends BaseController
     {
         $this->requireAuth();
 
-        // força buscar do DB para garantir que venham cpf/telefone/data_nascimento/sexo
         $user = Usuario::find(Auth::id()) ?? Auth::user();
-
-        // se quiser, atualize a sessão com o user completo:
-
 
         $this->render(
             'admin/profile/index',

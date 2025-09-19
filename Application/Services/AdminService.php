@@ -7,13 +7,7 @@ use Application\Core\Exceptions\ValidationException;
 
 class AdminService
 {
-    /**
-     * Valida campos que devem ser únicos ao atualizar o perfil.
-     *
-     * @param int $adminId ID do admin atual
-     * @param array $dados Dados validados do formulário
-     * @throws ValidationException
-     */
+
     public function validateUniqueFields(int $adminId, array $dados): void
     {
         $erros = [];

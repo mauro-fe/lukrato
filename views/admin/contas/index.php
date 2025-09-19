@@ -3,16 +3,12 @@
         <h3>Contas</h3>
     </div>
 
-    <!-- Estatísticas -->
     <div class="stats-grid pt-5" id="statsContainer">
         <div class="stat-card">
             <div class="stat-value" id="totalContas">0</div>
             <div class="stat-label">Total de Contas</div>
         </div>
-        <!-- <div class="stat-card">
-            <div class="stat-value" id="contasAtivas">0</div>
-            <div class="stat-label">Contas Ativas</div>
-        </div> -->
+
         <div class="stat-card">
             <div class="stat-value" id="saldoTotal">R$ 0,00</div>
             <div class="stat-label">Saldo Total</div>
@@ -31,10 +27,8 @@
         </div>
 
 
-        <!-- GRID DE CONTAS -->
         <div class="lk-card">
             <div class="acc-grid" id="accountsGrid" aria-live="polite">
-                <!-- skeleton inicial -->
                 <div class="acc-skeleton"></div>
                 <div class="acc-skeleton"></div>
                 <div class="acc-skeleton"></div>
@@ -43,7 +37,6 @@
 
     </div>
 
-    <!-- Modal Criar/Editar -->
     <div class="lk-modal" id="modalConta" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle">
         <div class="lk-modal-card">
             <div class="lk-modal-h">
@@ -66,29 +59,12 @@
                             <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa"
                                 required>
                         </div>
-                        <!-- <div class="lk-field">
-                            <label for="moeda">Moeda</label>
-                            <select id="moeda" name="moeda">
-                                <option value="BRL">BRL (R$)</option>
-                                <option value="USD">USD ($)</option>
-                                <option value="EUR">EUR (€)</option>
-                            </select>
-                        </div> -->
                         <div class="lk-field">
                             <label for="saldo_inicial">Saldo inicial</label>
                             <input id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal"
                                 placeholder="0,00">
                         </div>
-                        <!-- <div class="lk-field">
-                            <label for="tipo_id">Tipo (opcional)</label>
-                            <select id="tipo_id" name="tipo_id">
-                                <option value="">—</option>
-                                <option value="1">Conta Corrente</option>
-                                <option value="2">Carteira</option>
-                                <option value="3">Poupança</option>
-                                <option value="4">Cartão Pré-pago</option>
-                            </select>
-                        </div> -->
+
                     </div>
                     <div class="lk-modal-f">
                         <button type="button" class="btn btn-light" id="btnCancel">Cancelar</button>
@@ -98,7 +74,6 @@
             </div>
         </div>
     </div>
-    <!-- Modal: Lançar na conta -->
     <div class="lk-modal" id="modalLancConta" role="dialog" aria-modal="true" aria-labelledby="modalLancContaTitle">
         <div class="lk-modal-card">
             <div class="lk-modal-h">
@@ -233,12 +208,9 @@
         const fSaldo = $('#saldo_inicial');
         const fTipo = $('#tipo_id');
 
-        // Stats
         const totalContas = $('#totalContas');
-        // const contasAtivas = $('#contasAtivas');
         const saldoTotal = $('#saldoTotal');
 
-        // ===== Modal Conta (criar/editar) =====
         function openModal(edit = false, data = null) {
             modal.classList.add('open');
             document.body.style.overflow = 'hidden';
@@ -255,7 +227,6 @@
                 modalTitle.textContent = 'Nova conta';
                 inputId.value = '';
                 form.reset();
-                // fMoeda.value = 'BRL';
                 fSaldo.value = '';
             }
             setTimeout(() => fNome.focus(), 40);
@@ -286,15 +257,12 @@
             load();
         });
 
-        // Submit Conta
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
                 nome: (fNome.value || '').trim(),
                 instituicao: (fInst.value || '').trim(),
-                // moeda: fMoeda.value || 'BRL',
                 saldo_inicial: parseMoneyBR(fSaldo.value || '0'),
-                // tipo_id: fTipo.value ? Number(fTipo.value) : null
             };
             if (!payload.nome) return Swal.fire('Atenção', 'Nome obrigatório.', 'warning');
 
@@ -343,7 +311,6 @@
             }
         });
 
-        // ===== Stats =====
         function updateStats(rows) {
             const total = rows ? rows.length : 0;
             const ativas = rows ? rows.filter(a => a.ativo).length : 0;
@@ -361,8 +328,6 @@
         }
 
 
-        // ========= DELETE extraído para função =========
-        // Arquivar conta (confirma antes)
         async function handleArchiveAccount(id) {
             const {
                 isConfirmed

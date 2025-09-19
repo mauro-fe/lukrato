@@ -60,7 +60,6 @@ class View
         return ob_get_clean();
     }
 
-    /** Helper estático opcional para quem quiser chamar de uma vez */
     public static function renderPage(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): string
     {
         $v = new self($viewPath, $data);

@@ -13,14 +13,12 @@ class AuthService
 {
     public const SESSION_TIMEOUT = 3600;
 
-    // Application/Services/AuthService.php
 
     public function login(string $email, string $password): array
     {
         $request = new Request();
         $ip = $request->ip() ?? 'unknown';
 
-        // 1) entrada (nunca logar senha)
         LogService::info('Login start', ['email' => trim(strtolower($email)), 'ip' => $ip]);
 
         if (empty($email) || empty($password)) {
@@ -30,21 +28,18 @@ class AuthService
 
         $email = trim(strtolower($email));
 
-        // 2) consulta no banco (sem depender do scope, pra evitar “undefined method”)
-        $usuario = \Application\Models\Usuario::whereRaw('LOWER(email) = ?', [$email])->first();
+        $usuario = Usuario::whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (!$usuario) {
             LogService::warning('Login failed: user not found', ['email' => $email, 'ip' => $ip]);
             throw new \Exception('Credenciais inválidas.');
         }
 
-        // 3) verificação de senha
         if (!password_verify($password, $usuario->senha)) {
             LogService::warning('Login failed: wrong password', ['email' => $email, 'ip' => $ip, 'user_id' => $usuario->id]);
             throw new \Exception('Credenciais inválidas.');
         }
 
-        // 4) sessão e aliases de compat
         Auth::login($usuario);
         session_regenerate_id(true);
 

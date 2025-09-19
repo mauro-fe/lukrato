@@ -6,7 +6,6 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
-use Illuminate\Database\Capsule\Manager as DB;
 
 class DashboardController
 {

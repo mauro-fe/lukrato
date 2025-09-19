@@ -8,8 +8,6 @@ class Response
     private array $headers = [];
     private string $content = '';
 
-    /* ========= API FLUENTE (instância) ========= */
-
     public function setStatusCode(int $code): self
     {
         $this->statusCode = $code;
@@ -34,13 +32,8 @@ class Response
         return $this;
     }
 
-    /**
-     * Define corpo JSON (não envia). Use ->send() para enviar.
-     */
     public function jsonBody($data, int $statusCode = 200): self
     {
-        // debug opcional; remova se não quiser escrever arquivo
-        // @file_put_contents('json_debug.txt', json_encode($data));
 
         $this->statusCode = $statusCode;
         $this->header('Content-Type', 'application/json; charset=utf-8');
@@ -117,10 +110,6 @@ class Response
         exit;
     }
 
-    /* ========= ATAIS ESTÁTICOS (conveniência) =========
-       Estes proxies evitam o aviso “non static method should not be called
-       statically” do seu editor e padronizam o uso nos controllers.
-    */
 
     public static function json($data, int $statusCode = 200): void
     {

@@ -11,28 +11,24 @@ class Usuario extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
 
-    // Inclui os novos campos e username (opcional)
     protected $fillable = [
         'nome',
         'email',
-        'senha',           // campo físico no banco
+        'senha',
         'theme_preference',
-        'username',        // opcional
-        'cpf',             // só dígitos
-        'telefone',        // só dígitos (10/11)
-        'data_nascimento', // DATE (Y-m-d)
-        'sexo',            // 'M','F','O','N' ou null
+        'username',
+        'cpf',
+        'telefone',
+        'data_nascimento',
+        'sexo',
     ];
 
-    // Esconde senha nas respostas JSON
     protected $hidden = ['senha', 'password'];
 
-    // Cast da data para padrão Y-m-d
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
     ];
 
-    // ---- RELAÇÕES ----
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
@@ -48,7 +44,6 @@ class Usuario extends Model
         return $this->hasMany(Conta::class, 'user_id');
     }
 
-    // ---- BOOT ----
     protected static function boot()
     {
         parent::boot();
@@ -87,7 +82,6 @@ class Usuario extends Model
         });
     }
 
-    // ---- SCOPES ----
     public function scopeByEmail($query, string $email)
     {
         return $query->whereRaw('LOWER(email) = ?', [trim(strtolower($email))]);
@@ -103,7 +97,6 @@ class Usuario extends Model
         return $query->where('cpf', preg_replace('/\D+/', '', $cpf));
     }
 
-    // ---- MUTATORS ----
     public function setSenhaAttribute($value): void
     {
         if ($value === null || $value === '') {
@@ -112,17 +105,14 @@ class Usuario extends Model
 
         $val = (string) $value;
 
-        // Se já parecer hash, mantém
         if (self::valueLooksHashed($val)) {
             $this->attributes['senha'] = $val;
             return;
         }
 
-        // Gera hash
         $this->attributes['senha'] = password_hash($val, PASSWORD_BCRYPT);
     }
 
-    // Alias para compatibilizar $user->password no controller
     public function setPasswordAttribute($value): void
     {
         $this->setSenhaAttribute($value);
@@ -135,33 +125,28 @@ class Usuario extends Model
 
     private static function valueLooksHashed(string $value): bool
     {
-        // Evita funções de PHP 8 aqui
         $prefix = substr($value, 0, 4);
         if ($prefix === '$2y$' || $prefix === '$2a$') {
-            return true; // bcrypt
+            return true;
         }
         if (substr($value, 0, 9) === '$argon2i' || substr($value, 0, 10) === '$argon2id') {
-            return true; // argon2
+            return true;
         }
 
-        // password_get_info é seguro; se "algo" != 0, já é hash suportado
         $info = password_get_info($value);
         return !empty($info) && !empty($info['algo']) && $info['algo'] !== 0;
     }
 
-    // ---- ACCESSORS ----
     public function getPrimeiroNomeAttribute(): string
     {
         $p = trim((string) $this->nome);
         return $p === '' ? '' : explode(' ', $p)[0];
     }
 
-    // ---- AUTH SIMPLES ----
     public static function authenticate(string $email, string $password): ?self
     {
         $user = self::byEmail($email)->first();
 
-        // verifica contra 'senha' (coluna física); alias 'password' existe se precisar
         if ($user && password_verify($password, $user->senha)) {
             return $user;
         }

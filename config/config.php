@@ -1,35 +1,14 @@
 <?php
 
-/**
- * Configurações da Aplicação
- *
- * Este arquivo centraliza todas as configurações principais da aplicação,
- * incluindo banco de dados, caminhos e configurações do Eloquent ORM.
- */
-
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-// ============================================================================
-// CONSTANTES DE CONFIGURAÇÃO
-// ============================================================================
 
 defineApplicationConstants();
 defineDatabaseConstants();
 definePathConstants();
-
-// ============================================================================
-// CONFIGURAÇÃO DO BANCO DE DADOS
-// ============================================================================
-
 configureDatabaseConnection();
 
-// ============================================================================
-// FUNÇÕES DE CONFIGURAÇÃO
-// ============================================================================
 
-/**
- * Define constantes gerais da aplicação
- */
 function defineApplicationConstants(): void
 {
     if (!defined('APP_NAME')) {
@@ -41,9 +20,6 @@ function defineApplicationConstants(): void
     }
 }
 
-/**
- * Define constantes de configuração do banco de dados
- */
 function defineDatabaseConstants(): void
 {
     define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
@@ -52,9 +28,6 @@ function defineDatabaseConstants(): void
     define('DB_NAME', $_ENV['DB_NAME'] ?? 'lukrato');
 }
 
-/**
- * Define constantes de caminhos da aplicação
- */
 function definePathConstants(): void
 {
     if (!defined('BASE_PATH')) {
@@ -66,14 +39,10 @@ function definePathConstants(): void
     }
 }
 
-/**
- * Configura e inicializa a conexão com o banco de dados usando Eloquent
- */
 function configureDatabaseConnection(): void
 {
     $capsule = new Capsule;
 
-    // Configuração da conexão principal
     $capsule->addConnection([
         'driver'    => 'mysql',
         'host'      => DB_HOST,
@@ -90,8 +59,6 @@ function configureDatabaseConnection(): void
         ]
     ]);
 
-
-    // Inicializar o Eloquent ORM
     $capsule->setAsGlobal();
     $capsule->bootEloquent();
 }

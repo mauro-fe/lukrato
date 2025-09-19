@@ -1,16 +1,16 @@
 <?php
 
-namespace Application\Middlewares; // <--- ADICIONADO O NAMESPACE AQUI
+namespace Application\Middlewares;
 
-use Application\Core\Request; // Para receber a instância de Request
+use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
 
-use Application\Services\CacheService; // Para usar o Redis para persistir o estado
+use Application\Services\CacheService;
 
 class RateLimitMiddleware
 {
-    private const MAX_ATTEMPTS = 60; // Número máximo de requisições
-    private const TIME_WINDOW = 60; // Janela de tempo em segundos
+    private const MAX_ATTEMPTS = 60;
+    private const TIME_WINDOW = 60;
 
     private CacheService $cacheService;
 
