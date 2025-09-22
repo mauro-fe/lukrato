@@ -13,7 +13,7 @@ function registerAuthRoutes(): void
     Router::add('GET',  'login',        'Auth\LoginController@login');
     Router::add('POST', 'login/entrar', 'Auth\LoginController@processLogin');
     Router::add('GET',  'logout',       'Auth\LoginController@logout');
-    Router::add('POST', 'register/criar', 'Auth\RegisterController@store');
+    Router::add('POST', 'register/criar', 'Auth\RegistroController@store');
 }
 
 function registerSimpleRoutes(): void
@@ -25,16 +25,16 @@ function registerSimpleRoutes(): void
     Router::add('GET',  'config',      'Admin\ConfigController@index', ['auth']);
     Router::add('POST', 'api/config',  'Api\ConfigController@update',  ['auth', 'csrf']);
 
-    Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceApiController@metrics',      ['auth']);
-    Router::add('GET',  'api/options',                 'Api\FinanceApiController@options',      ['auth']);
-    Router::add('POST', 'api/transactions',            'Api\FinanceApiController@store',        ['auth']);
+    Router::add('GET',  'api/dashboard/metrics',       'Api\FinanceiroController@metrics',      ['auth']);
+    Router::add('GET',  'api/options',                 'Api\FinanceiroController@options',      ['auth']);
+    Router::add('POST', 'api/transactions',            'Api\FinanceiroController@store',        ['auth']);
     Router::add('GET',  'api/reports/overview',        'Api\RelatoriosController@overview',         ['auth']);
     Router::add('GET',  'api/reports/table',           'Api\RelatoriosController@table',            ['auth']);
     Router::add('GET',  'api/reports/timeseries',      'Api\RelatoriosController@timeseries',       ['auth']);
     Router::add('GET',  'api/reports',                 'Api\RelatoriosController@index',            ['auth']); // compat
     Router::add('GET',  'api/lancamentos',             'Api\LancamentosController@index');
     Router::add('DELETE', 'api/lancamentos/{id}', 'Api\LancamentosController@destroy');
-    Router::add('POST', 'api/transfers',  'Api\FinanceApiController@transfer');
+    Router::add('POST', 'api/transfers',  'Api\FinanceiroController@transfer');
     Router::add('POST', 'api/accounts/{id}/archive', 'Api\ContasController@archive');
     Router::add('POST', 'api/accounts/{id}/restore', 'Api\ContasController@restore');
     Router::add('GET', 'contas/arquivadas', 'Admin\ContasController@archived');

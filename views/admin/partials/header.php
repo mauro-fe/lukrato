@@ -29,9 +29,9 @@ $base = BASE_URL;
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
     <style>
-    option {
-        background-color: #1c2c3c;
-    }
+        option {
+            background-color: #1c2c3c;
+        }
     </style>
 </head>
 
@@ -43,7 +43,10 @@ $base = BASE_URL;
     $aria   = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
     };
-    ?>
+    ?><button id="globalMenuBtn" class="mobile-menu-fab" aria-label="Abrir menu" aria-expanded="false">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+
 
     <aside class="sidebar no-glass" id="sidebar-main">
         <div class="sidebar-header">
@@ -51,14 +54,14 @@ $base = BASE_URL;
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-
-        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Abrir/Fechar menu">
+        <button id="headerMenuBtn" class="header-menu-btn" aria-label="Abrir menu" aria-expanded="false">
             <i class="fas fa-bars"></i>
         </button>
         <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema">
             <i class="fas fa-sun"></i>
             <i class="fas fa-moon"></i>
         </button>
+
         <nav class="sidebar-nav">
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?>><i class="fas fa-home"></i><span>Dashboard</span></a>
@@ -71,10 +74,10 @@ $base = BASE_URL;
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
                 <?= $aria('categorias')  ?>><i class="fas fa-tags"></i><span>Categorias</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
-                <?= $aria('perfil')      ?>><i class="fas fa-user-circle"></i><span>Perfil</span></a>
+                <?= $aria('perfil') ?>><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout"><i class="fas fa-sign-out-alt"></i>
-                Sair</a>
+                <span>Sair</span></a>
         </nav>
 
         <!-- FAB -->
@@ -160,58 +163,144 @@ $base = BASE_URL;
         <?php loadPageJs('admin-home-header'); ?>
         <?php loadPageJs(); ?>
         <script>
-        (function() {
-            const root = document.documentElement;
-            const btn = document.getElementById("toggleTheme");
+            (function() {
+                const root = document.documentElement;
+                const btn = document.getElementById("toggleTheme");
 
-            // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
-            const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
-            const ENDPOINT = BASE_URL + 'api/user/theme';
-            const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
+                // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
+                const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
+                const ENDPOINT = BASE_URL + 'api/user/theme';
+                const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
 
-            // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
-            const cached = localStorage.getItem("theme");
-            if (cached) applyTheme(cached, false);
+                // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
+                const cached = localStorage.getItem("theme");
+                if (cached) applyTheme(cached, false);
 
-            // 2) busca do backend (fonte da verdade)
-            fetch(ENDPOINT, {
-                    credentials: 'include'
-                })
-                .then(r => r.ok ? r.json() : Promise.reject(r))
-                .then(j => applyTheme(j?.theme || cached || 'light', false))
-                .catch(() => applyTheme(cached || 'light', false));
+                // 2) busca do backend (fonte da verdade)
+                fetch(ENDPOINT, {
+                        credentials: 'include'
+                    })
+                    .then(r => r.ok ? r.json() : Promise.reject(r))
+                    .then(j => applyTheme(j?.theme || cached || 'light', false))
+                    .catch(() => applyTheme(cached || 'light', false));
 
-            // 3) clique alterna e salva no backend
-            btn?.addEventListener("click", () => {
-                const current = root.getAttribute("data-theme") || 'light';
-                const next = current === 'dark' ? 'light' : 'dark';
-                applyTheme(next, true);
-            });
+                // 3) clique alterna e salva no backend
+                btn?.addEventListener("click", () => {
+                    const current = root.getAttribute("data-theme") || 'light';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    applyTheme(next, true);
+                });
 
-            function applyTheme(theme, persist) {
-                root.setAttribute("data-theme", theme);
-                localStorage.setItem("theme", theme);
-                updateIcon(theme);
+                function applyTheme(theme, persist) {
+                    root.setAttribute("data-theme", theme);
+                    localStorage.setItem("theme", theme);
+                    updateIcon(theme);
 
-                if (persist) {
-                    fetch(ENDPOINT, {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': CSRF
-                        },
-                        body: JSON.stringify({
-                            theme
-                        })
-                    }).catch(err => console.error('Falha ao salvar tema:', err));
+                    if (persist) {
+                        fetch(ENDPOINT, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': CSRF
+                            },
+                            body: JSON.stringify({
+                                theme
+                            })
+                        }).catch(err => console.error('Falha ao salvar tema:', err));
+                    }
                 }
-            }
 
-            function updateIcon(theme) {
-                const btnEl = document.getElementById("toggleTheme");
-                if (!btnEl) return;
-                btnEl.classList.toggle('dark', theme === 'dark');
-            }
-        })();
+                function updateIcon(theme) {
+                    const btnEl = document.getElementById("toggleTheme");
+                    if (!btnEl) return;
+                    btnEl.classList.toggle('dark', theme === 'dark');
+                }
+            })();
+        </script>
+        <script>
+            (function() {
+                const sidebar = document.getElementById('sidebar-main');
+                const toggle = document.getElementById('sidebarToggle'); // já existe
+                const headerBtn = document.getElementById('headerMenuBtn'); // se você adicionou antes
+                const globalBtn = document.getElementById('globalMenuBtn'); // NOVO
+                const rootEl = document.documentElement;
+
+                function applyCollapsedState(isCollapsed) {
+                    sidebar.classList.toggle('collapsed', isCollapsed);
+                    rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
+                }
+
+                function syncAria(isOpenMobile) {
+                    const expanded = isOpenMobile ? 'true' : 'false';
+                    globalBtn?.setAttribute('aria-expanded', expanded);
+                    headerBtn?.setAttribute('aria-expanded', expanded);
+                    toggle?.setAttribute('aria-expanded', expanded);
+                    globalBtn?.classList.toggle('is-open', isOpenMobile);
+                }
+
+                function handleResponsive() {
+                    const w = window.innerWidth;
+
+                    if (w <= 992) {
+                        // mobile: usa slide-in; mostra o botão global
+                        applyCollapsedState(false);
+                        sidebar.classList.remove('collapsed');
+                        globalBtn?.style.setProperty('display', 'inline-flex');
+                        // começa fechado
+                        sidebar.classList.remove('open');
+                        syncAria(false);
+                    } else if (w <= 1200) {
+                        // médio: colapsa (ícones) e esconde botão global
+                        globalBtn?.style.setProperty('display', 'none');
+                        sidebar.classList.remove('open');
+                        applyCollapsedState(true);
+                        syncAria(false);
+                    } else {
+                        // desktop largo: expandido, sem botão global
+                        globalBtn?.style.setProperty('display', 'none');
+                        sidebar.classList.remove('open');
+                        applyCollapsedState(false);
+                        syncAria(false);
+                    }
+                }
+
+                function onMenuClick() {
+                    if (window.innerWidth <= 992) {
+                        // mobile: abre/fecha a sidebar por cima
+                        const willOpen = !sidebar.classList.contains('open');
+                        sidebar.classList.toggle('open', willOpen);
+                        syncAria(willOpen);
+                    } else if (window.innerWidth <= 1200) {
+                        // médio: alterna colapsado/expandido
+                        const willCollapse = !sidebar.classList.contains('collapsed');
+                        applyCollapsedState(willCollapse);
+                    } else {
+                        // desktop: opcional colapso
+                        const willCollapse = !sidebar.classList.contains('collapsed');
+                        applyCollapsedState(willCollapse);
+                    }
+                }
+
+                // listeners
+                globalBtn?.addEventListener('click', onMenuClick);
+                document.getElementById('sidebarToggle')?.addEventListener('click', onMenuClick);
+                document.getElementById('headerMenuBtn')?.addEventListener('click', onMenuClick);
+
+                // fecha sidebar mobile ao tocar fora
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth > 992) return;
+                    const hitSidebar = sidebar.contains(e.target);
+                    const hitToggles = globalBtn?.contains(e.target) ||
+                        document.getElementById('sidebarToggle')?.contains(e.target) ||
+                        document.getElementById('headerMenuBtn')?.contains(e.target);
+                    if (!hitSidebar && !hitToggles) {
+                        sidebar.classList.remove('open');
+                        syncAria(false);
+                    }
+                });
+
+                window.addEventListener('resize', handleResponsive);
+                handleResponsive();
+            })();
         </script>

@@ -98,3 +98,7 @@
 
 <?php loadPageJs(); ?>
 <script src="<?= BASE_URL ?>/assets/js/admin-admins-login.js" defer></script>
+
+<script>
+    window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
+</script>

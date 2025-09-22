@@ -7,7 +7,7 @@ use Application\Core\Response;
 use Application\Models\Usuario;
 use GUMP;
 
-class RegisterController extends BaseController
+class RegistroController extends BaseController
 {
     public function __construct()
     {
@@ -16,15 +16,19 @@ class RegisterController extends BaseController
 
     public function showForm(): void
     {
-        $this->view->render('auth/register');
+        $this->render('auth/register');
     }
 
     public function store(): void
     {
+        $nome  = (string) $this->request->post('name');
+        $email = strtolower(trim((string) $this->request->post('email')));
+        $senha = (string) $this->request->post('password');
+
         $data = [
-            'nome'              => (string) $this->request->post('name'),
-            'email'             => (string) $this->request->post('email'),
-            'senha'             => (string) $this->request->post('password'),
+            'nome'              => $nome,
+            'email'             => $email,
+            'senha'             => $senha,
             'senha_confirmacao' => (string) $this->request->post('password_confirmation'),
         ];
 
@@ -42,67 +46,54 @@ class RegisterController extends BaseController
 
         $valid = $gump->run($data);
         if ($valid === false) {
-            $this->fail($this->mapErrorsForUi($gump->get_errors_array()));
+            $errors = $this->mapErrorsForUi($gump->get_errors_array());
+            if ($this->request->isAjax()) {
+                Response::validationError($errors);
+                return;
+            }
+            $_SESSION['form_errors'] = $errors;
+            $this->response->redirect(BASE_URL . 'register')->send();
             return;
         }
 
-        if (Usuario::byEmail($data['email'])->exists()) {
-            $this->fail(['email' => 'E-mail já cadastrado.']);
+        if (Usuario::byEmail($email)->exists()) {
+            $errors = ['email' => 'E-mail já cadastrado.'];
+            if ($this->request->isAjax()) {
+                Response::validationError($errors);
+                return;
+            }
+            $_SESSION['form_errors'] = $errors;
+            $this->response->redirect(BASE_URL . 'register')->send();
             return;
         }
 
         try {
             $user = new Usuario();
-            $user->nome  = $data['nome'];
-            $user->email = strtolower(trim($data['email']));
-
-            $raw = (string) $data['senha'];
-            $user->senha = password_get_info($raw)['algo'] !== 0
-                ? $raw
-                : password_hash($raw, PASSWORD_BCRYPT);
+            $user->nome  = $nome;
+            $user->email = $email;
+            $user->senha = password_hash($senha, PASSWORD_BCRYPT);
 
             $user->save();
 
-
             if ($this->request->isAjax()) {
-                Response::json([
-                    'status'   => 'success',
+                Response::success([
                     'message'  => 'Conta criada com sucesso!',
-                    'redirect' => BASE_URL . 'login',
-                ], 200);
+                    'redirect' => rtrim(BASE_URL, '/') . '/login',
+                ]);
+
                 return;
             }
 
-            $this->response
-                ->setStatusCode(302)
-                ->header('Location', BASE_URL . 'login')
-                ->send();
+            $this->response->redirect(BASE_URL . 'login')->send();
         } catch (\Throwable $e) {
             if ($this->request->isAjax()) {
-                Response::json([
-                    'errors' => [
-                        'general' => 'Falha ao cadastrar: ' . $e->getMessage(),
-                        'where'   => $e->getFile() . ':' . $e->getLine(),
-                    ]
-                ], 500);
+                Response::error('Falha ao cadastrar. Tente novamente mais tarde.', 500, [
+                    'hint' => 'registration_failed'
+                ]);
                 return;
             }
             throw $e;
         }
-    }
-
-    private function fail(array $errors): void
-    {
-        if ($this->request->isAjax()) {
-            Response::json(['errors' => $errors], 422);
-            return;
-        }
-
-        $_SESSION['form_errors'] = $errors;
-        $this->response
-            ->setStatusCode(302)
-            ->header('Location', BASE_URL . 'login')
-            ->send();
     }
 
     private function mapErrorsForUi(array $errors): array

@@ -203,6 +203,8 @@ h3 {
   outline-offset: 2px;
 }
 
+
+
 /* =========================================================
  * Sidebar
  * =======================================================*/
@@ -293,6 +295,115 @@ h3 {
   outline-offset: 2px;
 }
 
+/* ===== Sidebar colapsada (somente ícones) ===== */
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* Oculta os textos dos itens, mantém apenas os ícones */
+.sidebar.collapsed .nav-item span {
+  display: none;
+}
+
+/* Centraliza os ícones e estreita o padding */
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+/* Mantém os ícones alinhados */
+.sidebar.collapsed .nav-item i {
+  width: auto;
+  font-size: 18px;
+}
+
+/* Logo menor no modo colapsado */
+.sidebar.collapsed .logo img {
+  max-width: 40px !important;
+}
+
+/* Header e conteúdo ajustam a margem quando colapsado (versão com classe no <html>) */
+.sidebar-collapsed .lk-header {
+  left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Botão de menu no header (sempre visível em telas menores) */
+.header-menu-btn {
+  display: none;
+  border: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+
+  position: relative;
+  transition: background var(--transition-fast);
+  color: var(--color-text);
+  margin-left: 25px;
+  margin-top: 20px;
+}
+
+/* Mostra o botão quando precisa (até 1200px) */
+@media (max-width: 1200px) {
+  .header-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* botão some por padrão no desktop */
+.mobile-menu-fab {
+  display: none;
+}
+
+/* mobile: sempre visível */
+@media (max-width: 992px) {
+  .mobile-menu-fab {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 4000;
+    /* acima de tudo */
+    transition: transform var(--transition-fast), background var(--transition-fast);
+  }
+
+  .mobile-menu-fab:active {
+    transform: scale(0.96);
+  }
+
+  /* estado quando a sidebar está aberta: troca o ícone via rotate */
+  .mobile-menu-fab.is-open i {
+    transform: rotate(90deg);
+  }
+}
+
+
+/* Z-index pra garantir que fica por cima */
+.lk-header .header-menu-btn {
+  z-index: 1200;
+}
+
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -336,32 +447,6 @@ h3 {
   font-size: 18px;
 }
 
-/* =========================================================
- * Header fixo
- * =======================================================*/
-.lk-header {
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  width: calc(100% - var(--sidebar-width));
-  height: var(--header-height);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--spacing-6);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  border-bottom: 1px solid var(--glass-border);
-  transition: left 0.3s ease, width 0.3s ease;
-}
-
-.lk-header .header-left,
-.lk-header .header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-}
 
 /* Seletor de mês no header */
 .month-picker-nav {

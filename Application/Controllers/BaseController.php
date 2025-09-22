@@ -7,6 +7,7 @@ use Application\Lib\Auth;
 use Application\Core\Response;
 use Application\Core\Request;
 use Application\Services\LogService;
+use Application\Services\CacheService;
 
 abstract class BaseController
 {
@@ -17,78 +18,102 @@ abstract class BaseController
     protected Request $request;
     protected Response $response;
 
+    protected ?CacheService $cache = null;
+
+    private ?array $jsonBodyCache = null;
+
     public function __construct()
     {
         $this->auth     = new Auth();
         $this->request  = new Request();
         $this->response = new Response();
+
+        $this->cache    = class_exists(CacheService::class) ? new CacheService() : null;
     }
 
-    /** Exige usuário autenticado; se não, manda para /login */
     protected function requireAuth(): void
     {
         if (!Auth::isLoggedIn()) {
             $this->redirect('login');
         }
-
-        // Fonte da verdade = Auth
         $this->adminId       = Auth::id();
         $user                = Auth::user();
         $this->adminUsername = $user->username ?? $user->nome ?? null;
 
-        // Segurança: se por alguma razão não houver id/username, força logout
         if (empty($this->adminId) || empty($this->adminUsername)) {
             $this->auth->logout();
             $this->redirect('login');
         }
     }
 
-    /** Verifica se está autenticado */
+    /** Auth para rotas de API (responde 401 JSON) */
+    protected function requireAuthApi(): void
+    {
+        if (!Auth::isLoggedIn()) {
+            $this->response
+                ->jsonBody(['error' => 'Não autenticado'], 401)
+                ->send();
+        }
+        $this->adminId       = Auth::id();
+        $user                = Auth::user();
+        $this->adminUsername = $user->username ?? $user->nome ?? null;
+        if (empty($this->adminId) || empty($this->adminUsername)) {
+            $this->auth->logout();
+            $this->response
+                ->jsonBody(['error' => 'Sessão inválida'], 401)
+                ->send();
+        }
+    }
+
     protected function isAuthenticated(): bool
     {
         return Auth::isLoggedIn();
     }
 
-    /** Render com header/footer opcionais */
     protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
     {
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
+        if ($footer) $view->setFooter($footer); 
         echo $view->render();
     }
 
-    /** Atalho para páginas do admin com header/footer padrão */
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
-        $this->render($viewPath, $data, 'admin/partials/header', 'admin/footer');
+        $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
     }
 
-    /** Redirect helper */
     protected function redirect(string $path): void
     {
         $url = filter_var($path, FILTER_VALIDATE_URL)
             ? $path
-            : BASE_URL . ltrim($path, '/');
+            : rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
 
         $this->response->redirect($url)->send();
     }
 
-    // Helpers diversos (mantidos)
     protected function getPost(string $key, $default = null)
     {
-        // CORRIGIDO: ler exclusivamente POST
         return $this->request->post($key, $default);
     }
     protected function getQuery(string $key, $default = null)
     {
         return $this->request->get($key, $default);
     }
+
     protected function sanitize($value): string
     {
-        return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars(trim((string)$value), ENT_QUOTES, 'UTF-8');
     }
 
-    // Flash
+    protected function sanitizeDeep($value)
+    {
+        if (is_array($value)) {
+            return array_map([$this, 'sanitizeDeep'], $value);
+        }
+        return is_string($value) ? $this->sanitize($value) : $value;
+    }
+
     protected function setError(string $message): void
     {
         $_SESSION['error'] = $message;
@@ -110,22 +135,32 @@ abstract class BaseController
         return $x;
     }
 
-
     protected function getJson(string $key = null, $default = null)
     {
-        $raw = file_get_contents('php://input') ?: '';
-        if ($raw === '') return $key ? $default : [];
-        $json = json_decode($raw, true);
-        if (json_last_error() !== JSON_ERROR_NONE) return $key ? $default : [];
-        if ($key === null) return $json;
-        return $json[$key] ?? $default;
+        if ($this->jsonBodyCache === null) {
+            $raw = file_get_contents('php://input') ?: '';
+            $this->jsonBodyCache = $raw !== '' ? json_decode($raw, true) : [];
+            if (!is_array($this->jsonBodyCache)) {
+                $this->jsonBodyCache = [];
+            }
+        }
+        if ($key === null) return $this->jsonBodyCache;
+        return $this->jsonBodyCache[$key] ?? $default;
     }
+
+    protected function ok(array $payload = [], int $status = 200): void
+    {
+        Response::success($payload, $status); 
+    }
+    protected function fail(string $message, int $status = 400, array $extra = []): void
+    {
+        Response::error($message, $status, $extra);
+    }
+
     protected function failAndLog(\Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = []): void
     {
-        // gera um ID pra correlacionar client ↔ server
         $rid = bin2hex(random_bytes(6));
 
-        // contexto do log
         $ctx = array_merge([
             'request_id' => $rid,
             'type'       => get_class($e),
@@ -138,10 +173,8 @@ abstract class BaseController
             'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
         ], $extra);
 
-        // manda pro Monolog
         LogService::error($userMessage, $ctx);
 
-        // responde pro client (sem vazar detalhes sensíveis)
         $this->response->jsonBody([
             'error'      => $userMessage,
             'request_id' => $rid,

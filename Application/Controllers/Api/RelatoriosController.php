@@ -41,7 +41,6 @@ class RelatoriosController extends BaseController
         return preg_match('/\d+/', $raw, $m) ? (int)$m[0] : null;
     }
 
-    /** Clausula de escopo por usuário (aceita null => pega NULL e do usuário). */
     private function applyUserScope($q, ?int $userId)
     {
         return $q->where(function ($q2) use ($userId) {
@@ -87,8 +86,6 @@ class RelatoriosController extends BaseController
         return $map[$t] ?? $t;
     }
 
-    /* ------------ Endpoint único (igual ao que você curtia) ------------ */
-
     public function index(): void
     {
         $this->requireAuth();
@@ -97,29 +94,27 @@ class RelatoriosController extends BaseController
             [,, $start, $end] = $this->resolvePeriod();
             $type  = $this->normalizeType((string)($this->request->get('type') ?? 'despesas_por_categoria'));
             $accId = $this->accountId();
-            $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
+            $userId = $this->adminId;
+
 
             switch ($type) {
-                /* -------- PIZZA: DESPESAS/RECEITAS POR CATEGORIA -------- */
                 case 'despesas_por_categoria':
                 case 'receitas_por_categoria': {
                         $alvo = $type === 'despesas_por_categoria' ? 'despesa' : 'receita';
                         $accId = $this->accountId();
-                        $userId = $this->adminId ?? ($_SESSION['usuario_id'] ?? null);
+                        $userId = $this->adminId;
 
-                        // Quando NÃO há conta selecionada, ignoramos transferências (evita contagem dupla)
+
                         if (!$accId) {
                             $data = DB::table('lancamentos as l')
                                 ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
                                 ->whereBetween('l.data', [$start, $end])
-                                ->where('l.eh_transferencia', 0)
                                 ->where('l.eh_saldo_inicial', 0)
+                                ->where('l.eh_transferencia', 0) // << ignora transferências no “por categoria”
                                 ->where('l.tipo', $alvo)
-                                ->when(true, function ($q) use ($userId) {
-                                    $q->where(function ($q2) use ($userId) {
-                                        $q2->whereNull('l.user_id');
-                                        if (!empty($userId)) $q2->orWhere('l.user_id', $userId);
-                                    });
+                                ->where('l.conta_id', $accId)
+                                ->where(function ($q2) use ($userId) {
+                                    $q2->whereNull('l.user_id')->orWhere('l.user_id', $userId);
                                 })
                                 ->selectRaw('COALESCE(c.id, 0) as cat_id')
                                 ->selectRaw("COALESCE(MAX(c.nome), 'Sem categoria') as label")
@@ -128,9 +123,6 @@ class RelatoriosController extends BaseController
                                 ->orderByDesc('total')
                                 ->get();
                         } else {
-                            // Com conta selecionada: inclui transferências mapeadas para a conta.
-                            // - Despesa: saída de transferência (conta_id = conta)
-                            // - Receita: entrada de transferência (conta_id_destino = conta)
                             $data = DB::table('lancamentos as l')
                                 ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
                                 ->whereBetween('l.data', [$start, $end])
@@ -141,16 +133,11 @@ class RelatoriosController extends BaseController
                                         if (!empty($userId)) $q2->orWhere('l.user_id', $userId);
                                     });
                                 })
-                                // Filtro da conta, aceitando:
-                                //   - lançamentos normais da própria conta
-                                //   - E transferências de/para a conta, conforme o alvo
                                 ->where(function ($w) use ($accId, $alvo) {
-                                    // lançamentos normais na conta
                                     $w->where(function ($q) use ($accId) {
                                         $q->where('l.eh_transferencia', 0)
                                             ->where('l.conta_id', $accId);
                                     });
-                                    // + transferências para esta conta (receita) ou desta conta (despesa)
                                     $w->orWhere(function ($q) use ($accId, $alvo) {
                                         $q->where('l.eh_transferencia', 1);
                                         if ($alvo === 'receita') {
@@ -160,9 +147,6 @@ class RelatoriosController extends BaseController
                                         }
                                     });
                                 })
-                                // Filtra o tipo de visão:
-                                // - lançamentos normais pelo tipo
-                                // - transferências entram independente de tipo, mas serão rotuladas como "Transferência"
                                 ->where(function ($w) use ($alvo) {
                                     $w->where(function ($q) use ($alvo) {
                                         $q->where('l.eh_transferencia', 0)
@@ -170,7 +154,6 @@ class RelatoriosController extends BaseController
                                     })
                                         ->orWhere('l.eh_transferencia', 1);
                                 })
-                                // Rótulo: quando transferência, usar "Transferência"; senão, nome da categoria
                                 ->selectRaw('
                 CASE
                     WHEN l.eh_transferencia = 1 THEN "Transferência"
@@ -178,7 +161,6 @@ class RelatoriosController extends BaseController
                 END as label
             ')
                                 ->selectRaw('SUM(l.valor) as total')
-                                // Group by “é transferência?” + categoria-id para agrupar nomes corretamente
                                 ->selectRaw('COALESCE(c.id, 0) as cat_id, l.eh_transferencia as is_transf')
                                 ->groupBy('is_transf', 'cat_id')
                                 ->orderByDesc('total')
@@ -199,23 +181,26 @@ class RelatoriosController extends BaseController
                         return;
                     }
 
-
-                    /* -------- LINHA: SALDO DIÁRIO -------- */
                 case 'saldo_mensal': {
                         $base = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers)
                             ->select(DB::raw('DATE(lancamentos.data) as dia'))
-                            ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as total")
+                            ->selectRaw("
+            SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as delta
+        ")
                             ->groupBy(DB::raw('DATE(lancamentos.data)'))
                             ->orderBy('dia')
-                            ->get();
+                            ->get()
+                            ->keyBy('dia');
 
                         $labels = [];
                         $values = [];
+                        $running = 0.0;
                         $cursor = clone $start;
                         while ($cursor <= $end) {
                             $d = $cursor->toDateString();
                             $labels[] = $cursor->format('d/m');
-                            $values[] = (float) ($base->firstWhere('dia', $d)->total ?? 0);
+                            $running += (float)($base[$d]->delta ?? 0);
+                            $values[] = $running;
                             $cursor->addDay();
                         }
 
@@ -225,12 +210,12 @@ class RelatoriosController extends BaseController
                             'start'  => $start->toDateString(),
                             'end'    => $end->toDateString(),
                             'type'   => $type,
-                            'total'  => array_sum($values),
+                            'total'  => end($values) ?: 0,
                         ]);
                         return;
                     }
 
-                    /* -------- BARRAS: RECEITAS x DESPESAS DIÁRIO -------- */
+
                 case 'receitas_despesas_diario': {
                         $rows = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers)
                             ->selectRaw('DATE(lancamentos.data) as dia')
@@ -263,7 +248,6 @@ class RelatoriosController extends BaseController
                         return;
                     }
 
-                    /* -------- LINHA: EVOLUÇÃO 12 MESES -------- */
                 case 'evolucao_12m': {
                         $ini = (clone $start)->subMonthsNoOverflow(11)->startOfMonth();
                         $fim = (clone $end);
@@ -296,19 +280,12 @@ class RelatoriosController extends BaseController
                         return;
                     }
 
-                    /* -------- BARRAS: RECEITAS x DESPESAS POR CONTA -------- */
                 case 'receitas_despesas_por_conta': {
                         $rows = DB::table('contas')
-                            // escopo de usuário
                             ->when($userId, fn($q) => $q->where('contas.user_id', $userId))
-                            // filtro de uma conta específica
                             ->when($accId, fn($q) => $q->where('contas.id', $accId))
-
-                            // JOIN em lançamentos cobrindo:
-                            // - lançamentos da própria conta (conta_id = contas.id)
-                            // - OU transferências cuja conta_destino é esta conta (conta_id_destino = contas.id)
                             ->leftJoin('lancamentos as l', function ($j) use ($start, $end, $userId) {
-                                $j->on(DB::raw('1'), '=', DB::raw('1'))  // truque p/ poder usar OR no ON
+                                $j->on(DB::raw('1'), '=', DB::raw('1'))
                                     ->whereBetween('l.data', [$start, $end])
                                     ->where('l.eh_saldo_inicial', 0)
                                     ->where(function ($w) {
@@ -317,46 +294,39 @@ class RelatoriosController extends BaseController
                                                 $w2->where('l.eh_transferencia', 1)
                                                     ->whereColumn('l.conta_id_destino', 'contas.id');
                                             });
+                                    })
+                                    ->where(function ($q2) use ($userId) {
+                                        $q2->whereNull('l.user_id')->orWhere('l.user_id', $userId);
                                     });
-
-                                // escopo de usuário nos lançamentos
-                                $j->where(function ($q2) use ($userId) {
-                                    $q2->whereNull('l.user_id')
-                                        ->orWhere('l.user_id', $userId);
-                                });
                             })
-
+                            ->selectRaw('contas.id as conta_id')
                             ->selectRaw("COALESCE(contas.nome, contas.instituicao, 'Sem conta') as conta")
-
-                            // RECEITAS = receitas normais da própria conta  + entradas de transferência
                             ->selectRaw("
-            SUM(
-                CASE
-                    WHEN l.eh_transferencia = 0 AND l.tipo = 'receita' AND l.conta_id = contas.id
-                        THEN l.valor
-                    WHEN l.eh_transferencia = 1 AND l.conta_id_destino = contas.id
-                        THEN l.valor
-                    ELSE 0
-                END
-            ) as receitas
-        ")
-
-                            // DESPESAS = despesas normais da própria conta + saídas de transferência
+        SUM(
+            CASE
+                WHEN l.eh_transferencia = 0 AND l.tipo = 'receita' AND l.conta_id = contas.id
+                    THEN l.valor
+                WHEN l.eh_transferencia = 1 AND l.conta_id_destino = contas.id
+                    THEN l.valor
+                ELSE 0
+            END
+        ) as receitas
+    ")
                             ->selectRaw("
-            SUM(
-                CASE
-                    WHEN l.eh_transferencia = 0 AND l.tipo = 'despesa' AND l.conta_id = contas.id
-                        THEN l.valor
-                    WHEN l.eh_transferencia = 1 AND l.conta_id = contas.id
-                        THEN l.valor
-                    ELSE 0
-                END
-            ) as despesas
-        ")
-
-                            ->groupBy('conta')
+        SUM(
+            CASE
+                WHEN l.eh_transferencia = 0 AND l.tipo = 'despesa' AND l.conta_id = contas.id
+                    THEN l.valor
+                WHEN l.eh_transferencia = 1 AND l.conta_id = contas.id
+                    THEN l.valor
+                ELSE 0
+            END
+        ) as despesas
+    ")
+                            ->groupBy('conta_id', 'conta')
                             ->orderBy('conta')
                             ->get();
+
 
                         Response::success([
                             'labels'   => $rows->pluck('conta')->values()->all(),
@@ -377,7 +347,6 @@ class RelatoriosController extends BaseController
         } catch (\InvalidArgumentException $e) {
             Response::validationError(['month' => $e->getMessage()]);
         } catch (\Throwable $e) {
-            // Logue $e->getMessage() / $e->getTraceAsString() no seu logger se tiver
             Response::error('Erro ao gerar relatório.', 500, ['exception' => $e->getMessage()]);
         }
     }

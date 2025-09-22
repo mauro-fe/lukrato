@@ -5,8 +5,6 @@ namespace Application\Controllers\Api;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Illuminate\Database\Capsule\Manager as DB;
-
-// Models
 use Application\Models\Usuario;
 use Application\Models\Sexo;
 use Application\Models\TipoDocumento;
@@ -25,7 +23,6 @@ class PerfilController
                 return;
             }
 
-            // helpers locais
             $digits = fn(string $s) => preg_replace('/\D+/', '', $s);
 
             $cpfIsValid = function (?string $cpf) use ($digits): bool {
@@ -44,7 +41,6 @@ class PerfilController
             $parseDate = function (?string $d): ?string {
                 if (!$d) return null;
                 $d = trim($d);
-                // aceita dd/mm/aaaa e yyyy-mm-dd
                 if (preg_match('~^\d{2}/\d{2}/\d{4}$~', $d)) {
                     [$dd, $mm, $yy] = explode('/', $d);
                     if (checkdate((int)$mm, (int)$dd, (int)$yy)) return sprintf('%04d-%02d-%02d', $yy, $mm, $dd);
@@ -54,7 +50,6 @@ class PerfilController
                 return $ts ? date('Y-m-d', $ts) : null;
             };
 
-            // mapeia label/abreviação do sexo para nm_sexo
             $mapSexo = function (?string $s): ?string {
                 $s = strtoupper(trim((string)$s));
                 if ($s === '' || $s === 'SELECIONE') return null;
@@ -67,18 +62,16 @@ class PerfilController
                 };
             };
 
-            // extrai DDD + número (aceita (44) 99999-1234, 44999991234 etc.)
             $splitPhone = function (?string $raw) use ($digits): array {
                 $num = $digits((string)$raw);
                 if ($num === '' || !in_array(strlen($num), [10, 11], true)) {
-                    return [null, null]; // ddd, local
+                    return [null, null]; 
                 }
                 $ddd = substr($num, 0, 2);
                 $local = substr($num, 2);
                 return [$ddd, $local];
             };
 
-            // ---- coleta inputs
             $nome     = trim((string)($_POST['nome']            ?? $user->nome ?? ''));
             $email    = trim((string)($_POST['email']           ?? $user->email ?? ''));
             $username = trim((string)($_POST['username']        ?? $user->username ?? ''));
@@ -87,7 +80,6 @@ class PerfilController
             $rawSexo  = (string)($_POST['sexo']                 ?? '');
             $rawNasc  = (string)($_POST['data_nascimento']      ?? '');
 
-            // validações básicas
             if ($nome === '') {
                 Response::validationError(['nome' => 'Nome é obrigatório.']);
                 return;
@@ -126,9 +118,8 @@ class PerfilController
                 return;
             }
 
-            $sexoLabel = $mapSexo($rawSexo); // ex.: 'Masculino' | null
+            $sexoLabel = $mapSexo($rawSexo); 
 
-            // unicidade
             if (Usuario::where('email', $email)->where('id', '!=', $user->id)->exists()) {
                 Response::validationError(['email' => 'Este e-mail já está em uso.']);
                 return;
@@ -152,7 +143,6 @@ class PerfilController
                 }
             }
 
-            // ---- transação
             DB::connection()->transaction(function () use (
                 $user,
                 $nome,
@@ -164,7 +154,6 @@ class PerfilController
                 $dddCode,
                 $foneLocal
             ) {
-                // a) Usuario (+ sexo)
                 $user->nome = $nome;
                 $user->email = $email;
                 if ($username !== '') $user->username = $username;
@@ -176,14 +165,12 @@ class PerfilController
                 } else {
                     $user->id_sexo = null;
                 }
-                // opcional: zere colunas antigas (se ainda existirem) para evitar confusão
                 if (property_exists($user, 'cpf')) $user->cpf = null;
                 if (property_exists($user, 'telefone')) $user->telefone = null;
                 if (property_exists($user, 'sexo')) $user->sexo = null;
 
                 $user->save();
 
-                // b) CPF (documentos)
                 $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
                 if ($cpf !== '') {
                     Documento::updateOrCreate(
@@ -191,16 +178,13 @@ class PerfilController
                         ['numero' => $cpf]
                     );
                 } else {
-                    // se vier vazio e existir, remove
                     Documento::where('id_usuario', $user->id)
                         ->where('id_tipo', $tipoCpf->id_tipo)
                         ->delete();
                 }
 
-                // c) Telefone (+ DDD)
                 if ($dddCode !== null && $foneLocal !== null) {
                     $ddd = Ddd::firstOrCreate(['codigo' => $dddCode]);
-                    // regra simples: mantém um telefone “principal”
                     $tel = Telefone::where('id_usuario', $user->id)->orderBy('id_telefone')->first();
                     if ($tel) {
                         $tel->numero = $foneLocal;
@@ -216,12 +200,10 @@ class PerfilController
                         ]);
                     }
                 } else {
-                    // se campo foi enviado vazio, você pode optar por apagar o telefone principal
-                    // Telefone::where('id_usuario', $user->id)->delete();
+                   
                 }
             });
 
-            // monta payload de retorno já “normalizado”
             $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
             $cpfAtual = Documento::where('id_usuario', $user->id)
                 ->where('id_tipo', $tipoCpf->id_tipo)
