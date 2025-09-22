@@ -216,136 +216,81 @@ $base = BASE_URL;
             })();
         </script>
         <script>
-            (() => {
-                const root = document.documentElement;
+            (function() {
+                const rootEl = document.documentElement;
                 const sidebar = document.getElementById('sidebar-main');
                 const edgeBtn = document.getElementById('edgeMenuBtn');
                 const backdrop = document.getElementById('sidebarBackdrop');
 
                 if (!sidebar || !edgeBtn || !backdrop) return;
 
-                // ---------------------------
-                // Helpers de acessibilidade
-                // ---------------------------
-                function setAriaExpanded(el, v) {
-                    el.setAttribute('aria-expanded', String(!!v));
-                }
-
-                function setAriaHidden(el, v) {
-                    el.setAttribute('aria-hidden', String(!!v));
-                }
-
-                // ---------------------------
-                // Estados
-                // ---------------------------
-                function openMobile() {
-                    sidebar.classList.add('open');
-                    root.classList.add('sidebar-open-mobile');
-                    backdrop.style.display = 'block';
-                    setAriaExpanded(edgeBtn, true);
-                    setAriaHidden(sidebar, false);
-                    // trava scroll do body opcional:
-                    document.body.style.overflow = 'hidden';
+                function applyCollapsedState(isCollapsed) {
+                    sidebar.classList.toggle('collapsed', isCollapsed);
+                    rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
+                    if (window.innerWidth > 992) {
+                        edgeBtn.setAttribute('aria-expanded', String(!isCollapsed));
+                    }
                 }
 
                 function closeMobile() {
                     sidebar.classList.remove('open');
-                    root.classList.remove('sidebar-open-mobile');
-                    backdrop.style.display = 'none';
-                    setAriaExpanded(edgeBtn, false);
-                    setAriaHidden(sidebar, true);
-                    document.body.style.overflow = '';
+                    rootEl.classList.remove('sidebar-open-mobile');
+                    edgeBtn.setAttribute('aria-expanded', 'false');
                 }
-
-                function applyCollapsedState(isCollapsed) {
-                    // estado desktop/tablet
-                    sidebar.classList.toggle('collapsed', isCollapsed);
-                    root.classList.toggle('sidebar-collapsed', isCollapsed);
-
-                    // garante que estado mobile está limpo
-                    sidebar.classList.remove('open');
-                    root.classList.remove('sidebar-open-mobile');
-                    backdrop.style.display = 'none';
-
-                    // aria no desktop: expanded = !collapsed
-                    if (window.innerWidth > 992) setAriaExpanded(edgeBtn, !isCollapsed);
-                }
-
-                // ---------------------------
-                // Responsivo
-                // ---------------------------
-                const mqMobile = window.matchMedia('(max-width: 992px)');
-                const mqNarrow = window.matchMedia('(max-width: 1200px)');
 
                 function handleResponsive() {
-                    if (mqMobile.matches) {
-                        // mobile: começa fechado
-                        closeMobile();
+                    const w = window.innerWidth;
+                    if (w <= 992) {
+                        // mobile: começa fechada
+                        rootEl.classList.remove('sidebar-collapsed');
                         sidebar.classList.remove('collapsed');
-                        root.classList.remove('sidebar-collapsed');
-                    } else if (mqNarrow.matches) {
+                        closeMobile();
+                    } else if (w <= 1200) {
                         // tablet/desktop estreito: colapsada
+                        closeMobile();
                         applyCollapsedState(true);
                     } else {
                         // desktop largo: expandida
+                        closeMobile();
                         applyCollapsedState(false);
                     }
                 }
 
-                // ---------------------------
-                // Interações
-                // ---------------------------
-                function onEdgeClick(e) {
-                    e.preventDefault();
-                    if (mqMobile.matches) {
+                function onEdgeClick() {
+                    if (window.innerWidth <= 992) {
                         const willOpen = !sidebar.classList.contains('open');
-                        willOpen ? openMobile() : closeMobile();
+                        sidebar.classList.toggle('open', willOpen);
+                        rootEl.classList.toggle('sidebar-open-mobile', willOpen);
+                        edgeBtn.setAttribute('aria-expanded', String(willOpen));
                     } else {
                         const willCollapse = !sidebar.classList.contains('collapsed');
                         applyCollapsedState(willCollapse);
                     }
                 }
 
-                // Fechar por clique fora e no backdrop (mobile)
-                function onDocClick(e) {
-                    if (!mqMobile.matches) return;
-                    const isInsideSidebar = sidebar.contains(e.target);
-                    const isBtn = edgeBtn.contains(e.target);
-                    const isBackdrop = backdrop === e.target || backdrop.contains(e.target);
-                    if (isBackdrop || (!isInsideSidebar && !isBtn)) closeMobile();
-                }
+                // Fechar tocando fora (mobile)
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth > 992) return;
+                    const hitSidebar = sidebar.contains(e.target);
+                    const hitBtn = edgeBtn.contains(e.target);
+                    const hitBackdrop = backdrop.contains(e.target);
+                    if (!hitSidebar && !hitBtn) {
+                        closeMobile();
+                    }
+                    if (hitBackdrop) {
+                        closeMobile();
+                    }
+                });
 
-                // Esc fecha no mobile
-                function onKeydown(e) {
-                    if (e.key === 'Escape' && mqMobile.matches) closeMobile();
-                }
+                // Fechar com ESC no mobile
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && window.innerWidth <= 992) {
+                        closeMobile();
+                    }
+                });
 
-                // Debounce leve p/ resize
-                let rAF = 0;
-
-                function onResize() {
-                    cancelAnimationFrame(rAF);
-                    rAF = requestAnimationFrame(handleResponsive);
-                }
-
-                // ---------------------------
-                // Init
-                // ---------------------------
-                // liga atributos iniciais
-                edgeBtn.setAttribute('aria-controls', 'sidebar-main');
-                setAriaHidden(sidebar, true);
-                setAriaExpanded(edgeBtn, false);
-
-                // listeners
                 edgeBtn.addEventListener('click', onEdgeClick);
-                backdrop.addEventListener('click', closeMobile);
-                document.addEventListener('click', onDocClick);
-                document.addEventListener('keydown', onKeydown);
-                window.addEventListener('resize', onResize);
-                mqMobile.addEventListener?.('change', handleResponsive);
-                mqNarrow.addEventListener?.('change', handleResponsive);
-
-                // estado inicial
+                window.addEventListener('resize', handleResponsive);
                 handleResponsive();
             })();
         </script>

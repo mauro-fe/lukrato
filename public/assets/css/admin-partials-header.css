@@ -901,13 +901,13 @@ h3 {
     position: sticky;
     /* ou fixed, se preferir */
     top: 0;
-    z-index: 3000;
+    z-index: 3000 !important;
     /* acima do conteúdo (1) e do backdrop padrão (invisível) */
   }
 
   /* Quando a sidebar estiver aberta, o backdrop deve ficar acima do header */
   .sidebar-open-mobile .lk-header {
-    z-index: 9996;
+    z-index: 9996 !important;
     /* menor que o backdrop (9997) */
   }
 }
@@ -923,3 +923,4 @@ h3 {
     display: block;
   }
 }
+
