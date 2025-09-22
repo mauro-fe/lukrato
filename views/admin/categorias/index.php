@@ -25,8 +25,6 @@
         color: var(--color-text)
     }
 
-
-
     .table-container {
         width: 100%;
         background: var(--glass-bg);
@@ -261,7 +259,8 @@
             const nome = (fd.get('nome') || '').toString().trim();
             const tipo = (fd.get('tipo') || '').toString().trim();
             if (nome.length < 2) return alertError('Informe um nome com pelo menos 2 caracteres.');
-            if (!['receita', 'despesa', 'transferencia'].includes(tipo)) return alertError('Selecione um tipo válido.');
+            if (!['receita', 'despesa', 'transferencia'].includes(tipo)) return alertError(
+                'Selecione um tipo válido.');
 
             try {
                 const j = await tryFetch('categorias', {
@@ -269,7 +268,8 @@
                     body: fd
                 });
                 if (j.status !== 'success') {
-                    const msg = j.message || (j.errors ? Object.values(j.errors).join('\n') : 'Falha ao criar categoria');
+                    const msg = j.message || (j.errors ? Object.values(j.errors).join('\n') :
+                        'Falha ao criar categoria');
                     return alertError(msg);
                 }
 
