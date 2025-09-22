@@ -4,8 +4,15 @@ namespace Application\Controllers\Api;
 
 use Application\Core\Response;
 use Application\Lib\Auth;
-use Application\Models\Usuario;
 use Illuminate\Database\Capsule\Manager as DB;
+
+// Models
+use Application\Models\Usuario;
+use Application\Models\Sexo;
+use Application\Models\TipoDocumento;
+use Application\Models\Documento;
+use Application\Models\Telefone;
+use Application\Models\Ddd;
 
 class PerfilController
 {
@@ -14,174 +21,236 @@ class PerfilController
         try {
             $user = Auth::user();
             if (!$user) {
-                Response::json(['status' => 'error', 'message' => 'Não autenticado'], 401);
+                Response::error('Não autenticado', 401);
                 return;
             }
 
-            $onlyDigits = fn(string $s) => preg_replace('/\D+/', '', $s);
+            // helpers locais
+            $digits = fn(string $s) => preg_replace('/\D+/', '', $s);
 
-            $cpfIsValid = function (?string $cpf) use ($onlyDigits): bool {
-                $cpf = $onlyDigits((string)$cpf);
+            $cpfIsValid = function (?string $cpf) use ($digits): bool {
+                $cpf = $digits((string)$cpf);
                 if (strlen($cpf) !== 11) return false;
                 if (preg_match('/^(\d)\1{10}$/', $cpf)) return false;
-
                 for ($t = 9; $t < 11; $t++) {
                     $d = 0;
-                    for ($c = 0; $c < $t; $c++) {
-                        $d += (int)$cpf[$c] * (($t + 1) - $c);
-                    }
+                    for ($c = 0; $c < $t; $c++) $d += (int)$cpf[$c] * (($t + 1) - $c);
                     $d = ((10 * $d) % 11) % 10;
                     if ((int)$cpf[$t] !== $d) return false;
                 }
                 return true;
             };
 
-            $normalizeDate = function (?string $d): ?string {
+            $parseDate = function (?string $d): ?string {
                 if (!$d) return null;
+                $d = trim($d);
+                // aceita dd/mm/aaaa e yyyy-mm-dd
+                if (preg_match('~^\d{2}/\d{2}/\d{4}$~', $d)) {
+                    [$dd, $mm, $yy] = explode('/', $d);
+                    if (checkdate((int)$mm, (int)$dd, (int)$yy)) return sprintf('%04d-%02d-%02d', $yy, $mm, $dd);
+                    return null;
+                }
                 $ts = strtotime($d);
                 return $ts ? date('Y-m-d', $ts) : null;
             };
 
-            $sanitizePhone = function (?string $tel) use ($onlyDigits): ?string {
-                $tel = $onlyDigits((string)$tel);
-                if ($tel === '') return null;
-                if (!in_array(strlen($tel), [10, 11], true)) return null;
-                return $tel;
+            // mapeia label/abreviação do sexo para nm_sexo
+            $mapSexo = function (?string $s): ?string {
+                $s = strtoupper(trim((string)$s));
+                if ($s === '' || $s === 'SELECIONE') return null;
+                return match ($s) {
+                    'M', 'MASCULINO'        => 'Masculino',
+                    'F', 'FEMININO'         => 'Feminino',
+                    'O', 'OUTRO'            => 'Outro',
+                    'N', 'NAO INFORMADO', 'NÃO INFORMADO', 'NAOINFORMADO' => 'Não informado',
+                    default                 => null
+                };
             };
 
-            $nome     = trim((string)($_POST['nome']  ?? $user->nome ?? ''));
-            $email    = trim((string)($_POST['email'] ?? $user->email ?? ''));
-            // username é opcional
-            $username = trim((string)($_POST['username'] ?? ($user->username ?? '')));
+            // extrai DDD + número (aceita (44) 99999-1234, 44999991234 etc.)
+            $splitPhone = function (?string $raw) use ($digits): array {
+                $num = $digits((string)$raw);
+                if ($num === '' || !in_array(strlen($num), [10, 11], true)) {
+                    return [null, null]; // ddd, local
+                }
+                $ddd = substr($num, 0, 2);
+                $local = substr($num, 2);
+                return [$ddd, $local];
+            };
 
-            $rawCpf            = (string)($_POST['cpf']             ?? ($user->cpf ?? ''));
-            $rawDataNascimento = (string)($_POST['data_nascimento'] ?? ($user->data_nascimento ?? ''));
-            $rawTelefone       = (string)($_POST['telefone']        ?? ($user->telefone ?? ''));
-            $sexo              = (string)($_POST['sexo']            ?? ($user->sexo ?? ''));
+            // ---- coleta inputs
+            $nome     = trim((string)($_POST['nome']            ?? $user->nome ?? ''));
+            $email    = trim((string)($_POST['email']           ?? $user->email ?? ''));
+            $username = trim((string)($_POST['username']        ?? $user->username ?? ''));
+            $rawCpf   = (string)($_POST['cpf']                  ?? '');
+            $rawTel   = (string)($_POST['telefone']             ?? '');
+            $rawSexo  = (string)($_POST['sexo']                 ?? '');
+            $rawNasc  = (string)($_POST['data_nascimento']      ?? '');
 
+            // validações básicas
             if ($nome === '') {
-                Response::json(['status' => 'error', 'message' => 'Nome é obrigatório.'], 422);
+                Response::validationError(['nome' => 'Nome é obrigatório.']);
                 return;
             }
             if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                Response::json(['status' => 'error', 'message' => 'E-mail inválido.'], 422);
+                Response::validationError(['email' => 'E-mail inválido.']);
                 return;
             }
-
             if ($username !== '' && strlen($username) < 3) {
-                Response::json(['status' => 'error', 'message' => 'Username deve ter ao menos 3 caracteres.'], 422);
+                Response::validationError(['username' => 'Min. 3 caracteres.']);
                 return;
             }
 
-            $cpf = $onlyDigits($rawCpf);
+            $cpf = $digits($rawCpf);
             if ($cpf !== '' && !$cpfIsValid($cpf)) {
-                Response::json(['status' => 'error', 'message' => 'CPF inválido.'], 422);
+                Response::validationError(['cpf' => 'CPF inválido.']);
                 return;
             }
 
-            $dataNascimento = $normalizeDate($rawDataNascimento);
-            if ($rawDataNascimento !== '' && !$dataNascimento) {
-                Response::json(['status' => 'error', 'message' => 'Data de nascimento inválida.'], 422);
-                return;
-            }
-            if ($dataNascimento && strtotime($dataNascimento) > strtotime('today')) {
-                Response::json(['status' => 'error', 'message' => 'Data de nascimento não pode ser futura.'], 422);
-                return;
-            }
-
-            $telefone = $sanitizePhone($rawTelefone);
-            if ($rawTelefone !== '' && !$telefone) {
-                Response::json(['status' => 'error', 'message' => 'Telefone inválido. Informe DDD + número.'], 422);
-                return;
-            }
-
-            $sexo = strtoupper(trim($sexo));
-            $allowedSexo = ['', 'M', 'F', 'O', 'N'];
-            if (!in_array($sexo, $allowedSexo, true)) {
-                Response::json(['status' => 'error', 'message' => 'Valor de sexo inválido.'], 422);
-                return;
-            }
-
-            $current = (string)($_POST['senha_atual'] ?? '');
-            $nova    = (string)($_POST['nova_senha']  ?? '');
-            $conf    = (string)($_POST['conf_senha']  ?? '');
-
-            if ($nova !== '' || $conf !== '') {
-                if ($nova !== $conf) {
-                    Response::json(['status' => 'error', 'message' => 'Confirmação de senha não confere.'], 422);
+            $nasc = null;
+            if ($rawNasc !== '') {
+                $nasc = $parseDate($rawNasc);
+                if (!$nasc) {
+                    Response::validationError(['data_nascimento' => 'Data inválida.']);
                     return;
                 }
-                if (strlen($nova) < 6) {
-                    Response::json(['status' => 'error', 'message' => 'Nova senha deve ter pelo menos 6 caracteres.'], 422);
-                    return;
-                }
-                if (!password_verify($current, $user->password)) {
-                    Response::json(['status' => 'error', 'message' => 'Senha atual incorreta.'], 422);
+                if (strtotime($nasc) > strtotime('today')) {
+                    Response::validationError(['data_nascimento' => 'Data no futuro não permitida.']);
                     return;
                 }
             }
 
-            // Unicidade
+            [$dddCode, $foneLocal] = $splitPhone($rawTel);
+            if ($rawTel !== '' && ($dddCode === null || $foneLocal === null)) {
+                Response::validationError(['telefone' => 'Telefone inválido. Use DDD + número.']);
+                return;
+            }
+
+            $sexoLabel = $mapSexo($rawSexo); // ex.: 'Masculino' | null
+
+            // unicidade
             if (Usuario::where('email', $email)->where('id', '!=', $user->id)->exists()) {
-                Response::json(['status' => 'error', 'message' => 'Este e-mail já está em uso.'], 422);
+                Response::validationError(['email' => 'Este e-mail já está em uso.']);
                 return;
             }
-            if ($username !== '' && Usuario::where('username', $username)->where('id', '!=', $user->id)->exists()) {
-                Response::json(['status' => 'error', 'message' => 'Este username já está em uso.'], 422);
+            if (
+                $username !== '' &&
+                Usuario::where('username', $username)->where('id', '!=', $user->id)->exists()
+            ) {
+                Response::validationError(['username' => 'Este username já está em uso.']);
                 return;
             }
-            if ($cpf !== '' && Usuario::where('cpf', $cpf)->where('id', '!=', $user->id)->exists()) {
-                Response::json(['status' => 'error', 'message' => 'Este CPF já está em uso.'], 422);
-                return;
+            if ($cpf !== '') {
+                $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
+                $cpfEmUso = Documento::where('numero', $cpf)
+                    ->where('id_tipo', $tipoCpf->id_tipo)
+                    ->where('id_usuario', '!=', $user->id)
+                    ->exists();
+                if ($cpfEmUso) {
+                    Response::validationError(['cpf' => 'Este CPF já está em uso.']);
+                    return;
+                }
             }
 
-            DB::connection()->beginTransaction();
+            // ---- transação
+            DB::connection()->transaction(function () use (
+                $user,
+                $nome,
+                $email,
+                $username,
+                $nasc,
+                $sexoLabel,
+                $cpf,
+                $dddCode,
+                $foneLocal
+            ) {
+                // a) Usuario (+ sexo)
+                $user->nome = $nome;
+                $user->email = $email;
+                if ($username !== '') $user->username = $username;
+                $user->data_nascimento = $nasc;
 
-            $user->nome  = $nome;
-            $user->email = $email;
-            if ($username !== '') {
-                $user->username = $username;
+                if ($sexoLabel !== null) {
+                    $sexo = Sexo::firstOrCreate(['nm_sexo' => $sexoLabel]);
+                    $user->id_sexo = $sexo->id_sexo;
+                } else {
+                    $user->id_sexo = null;
+                }
+                // opcional: zere colunas antigas (se ainda existirem) para evitar confusão
+                if (property_exists($user, 'cpf')) $user->cpf = null;
+                if (property_exists($user, 'telefone')) $user->telefone = null;
+                if (property_exists($user, 'sexo')) $user->sexo = null;
+
+                $user->save();
+
+                // b) CPF (documentos)
+                $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
+                if ($cpf !== '') {
+                    Documento::updateOrCreate(
+                        ['id_usuario' => $user->id, 'id_tipo' => $tipoCpf->id_tipo],
+                        ['numero' => $cpf]
+                    );
+                } else {
+                    // se vier vazio e existir, remove
+                    Documento::where('id_usuario', $user->id)
+                        ->where('id_tipo', $tipoCpf->id_tipo)
+                        ->delete();
+                }
+
+                // c) Telefone (+ DDD)
+                if ($dddCode !== null && $foneLocal !== null) {
+                    $ddd = Ddd::firstOrCreate(['codigo' => $dddCode]);
+                    // regra simples: mantém um telefone “principal”
+                    $tel = Telefone::where('id_usuario', $user->id)->orderBy('id_telefone')->first();
+                    if ($tel) {
+                        $tel->numero = $foneLocal;
+                        $tel->id_ddd = $ddd->id_ddd;
+                        $tel->tipo   = $tel->tipo ?? 'celular';
+                        $tel->save();
+                    } else {
+                        Telefone::create([
+                            'id_usuario' => $user->id,
+                            'numero'     => $foneLocal,
+                            'id_ddd'     => $ddd->id_ddd,
+                            'tipo'       => 'celular',
+                        ]);
+                    }
+                } else {
+                    // se campo foi enviado vazio, você pode optar por apagar o telefone principal
+                    // Telefone::where('id_usuario', $user->id)->delete();
+                }
+            });
+
+            // monta payload de retorno já “normalizado”
+            $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
+            $cpfAtual = Documento::where('id_usuario', $user->id)
+                ->where('id_tipo', $tipoCpf->id_tipo)
+                ->value('numero');
+
+            $tel = Telefone::where('id_usuario', $user->id)->orderBy('id_telefone')->first();
+            $telefoneFmt = null;
+            if ($tel) {
+                $ddd = $tel->id_ddd ? Ddd::find($tel->id_ddd)?->codigo : null;
+                $telefoneFmt = $ddd ? sprintf('(%s) %s', $ddd, $tel->numero) : $tel->numero;
             }
 
-            if ($cpf !== '' || isset($_POST['cpf'])) {
-                $user->cpf = $cpf !== '' ? $cpf : null;
-            }
-            if ($rawTelefone !== '' || isset($_POST['telefone'])) {
-                $user->telefone = $telefone ?? null;
-            }
-            if ($rawDataNascimento !== '' || isset($_POST['data_nascimento'])) {
-                $user->data_nascimento = $dataNascimento ?? null;
-            }
-            if (isset($_POST['sexo'])) {
-                $user->sexo = $sexo !== '' ? $sexo : null;
-            }
+            $sexoTxt = $user->id_sexo ? (Sexo::find($user->id_sexo)?->nm_sexo ?? null) : null;
 
-            if ($nova !== '' && $nova === $conf) {
-                $user->password = password_hash($nova, PASSWORD_DEFAULT);
-            }
-
-            $user->save();
-            DB::connection()->commit();
-
-            Response::json([
-                'ok'   => true,
+            Response::success([
+                'message' => 'Perfil atualizado com sucesso',
                 'user' => [
                     'id'              => (int)$user->id,
                     'nome'            => (string)$user->nome,
                     'email'           => (string)$user->email,
                     'username'        => (string)($user->username ?? ''),
-                    'cpf'             => (string)($user->cpf ?? ''),
-                    'telefone'        => (string)($user->telefone ?? ''),
                     'data_nascimento' => (string)($user->data_nascimento ?? ''),
-                    'sexo'            => (string)($user->sexo ?? ''),
+                    'sexo'            => (string)($sexoTxt ?? ''),
+                    'cpf'             => (string)($cpfAtual ?? ''),
+                    'telefone'        => (string)($telefoneFmt ?? ''),
                 ]
             ]);
         } catch (\Throwable $e) {
-            try {
-                DB::connection()->rollBack();
-            } catch (\Throwable $_) {
-            }
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 }
