@@ -43,7 +43,10 @@ $base = BASE_URL;
     $aria   = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
     };
-    ?><button id="globalMenuBtn" class="mobile-menu-fab" aria-label="Abrir menu" aria-expanded="false">
+
+    ?>
+
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true" title="Fechar/Abrir menu">
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
@@ -54,29 +57,22 @@ $base = BASE_URL;
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-        <button id="headerMenuBtn" class="header-menu-btn" aria-label="Abrir menu" aria-expanded="false">
-            <i class="fas fa-bars"></i>
-        </button>
-        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema">
-            <i class="fas fa-sun"></i>
-            <i class="fas fa-moon"></i>
-        </button>
-
+        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
         <nav class="sidebar-nav">
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
-                <?= $aria('dashboard')   ?>><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
             <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>"
-                <?= $aria('contas')      ?>><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
+                <?= $aria('contas')      ?> title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?>><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
+                <?= $aria('lancamentos') ?> title="Lançamentos"><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
-                <?= $aria('relatorios')  ?>><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
+                <?= $aria('relatorios')  ?> title="Relatórios"><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
-                <?= $aria('categorias')  ?>><i class="fas fa-tags"></i><span>Categorias</span></a>
+                <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
-                <?= $aria('perfil') ?>><i class="fas fa-user-circle"></i><span>Perfil</span></a>
+                <?= $aria('perfil') ?> title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
-            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout"><i class="fas fa-sign-out-alt"></i>
+            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i class="fas fa-sign-out-alt"></i>
                 <span>Sair</span></a>
         </nav>
 
@@ -97,6 +93,7 @@ $base = BASE_URL;
 
         </div>
     </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
         <div class="container-fluid lk-page">
@@ -219,88 +216,136 @@ $base = BASE_URL;
             })();
         </script>
         <script>
-            (function() {
+            (() => {
+                const root = document.documentElement;
                 const sidebar = document.getElementById('sidebar-main');
-                const toggle = document.getElementById('sidebarToggle'); // já existe
-                const headerBtn = document.getElementById('headerMenuBtn'); // se você adicionou antes
-                const globalBtn = document.getElementById('globalMenuBtn'); // NOVO
-                const rootEl = document.documentElement;
+                const edgeBtn = document.getElementById('edgeMenuBtn');
+                const backdrop = document.getElementById('sidebarBackdrop');
+
+                if (!sidebar || !edgeBtn || !backdrop) return;
+
+                // ---------------------------
+                // Helpers de acessibilidade
+                // ---------------------------
+                function setAriaExpanded(el, v) {
+                    el.setAttribute('aria-expanded', String(!!v));
+                }
+
+                function setAriaHidden(el, v) {
+                    el.setAttribute('aria-hidden', String(!!v));
+                }
+
+                // ---------------------------
+                // Estados
+                // ---------------------------
+                function openMobile() {
+                    sidebar.classList.add('open');
+                    root.classList.add('sidebar-open-mobile');
+                    backdrop.style.display = 'block';
+                    setAriaExpanded(edgeBtn, true);
+                    setAriaHidden(sidebar, false);
+                    // trava scroll do body opcional:
+                    document.body.style.overflow = 'hidden';
+                }
+
+                function closeMobile() {
+                    sidebar.classList.remove('open');
+                    root.classList.remove('sidebar-open-mobile');
+                    backdrop.style.display = 'none';
+                    setAriaExpanded(edgeBtn, false);
+                    setAriaHidden(sidebar, true);
+                    document.body.style.overflow = '';
+                }
 
                 function applyCollapsedState(isCollapsed) {
+                    // estado desktop/tablet
                     sidebar.classList.toggle('collapsed', isCollapsed);
-                    rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
+                    root.classList.toggle('sidebar-collapsed', isCollapsed);
+
+                    // garante que estado mobile está limpo
+                    sidebar.classList.remove('open');
+                    root.classList.remove('sidebar-open-mobile');
+                    backdrop.style.display = 'none';
+
+                    // aria no desktop: expanded = !collapsed
+                    if (window.innerWidth > 992) setAriaExpanded(edgeBtn, !isCollapsed);
                 }
 
-                function syncAria(isOpenMobile) {
-                    const expanded = isOpenMobile ? 'true' : 'false';
-                    globalBtn?.setAttribute('aria-expanded', expanded);
-                    headerBtn?.setAttribute('aria-expanded', expanded);
-                    toggle?.setAttribute('aria-expanded', expanded);
-                    globalBtn?.classList.toggle('is-open', isOpenMobile);
-                }
+                // ---------------------------
+                // Responsivo
+                // ---------------------------
+                const mqMobile = window.matchMedia('(max-width: 992px)');
+                const mqNarrow = window.matchMedia('(max-width: 1200px)');
 
                 function handleResponsive() {
-                    const w = window.innerWidth;
-
-                    if (w <= 992) {
-                        // mobile: usa slide-in; mostra o botão global
-                        applyCollapsedState(false);
+                    if (mqMobile.matches) {
+                        // mobile: começa fechado
+                        closeMobile();
                         sidebar.classList.remove('collapsed');
-                        globalBtn?.style.setProperty('display', 'inline-flex');
-                        // começa fechado
-                        sidebar.classList.remove('open');
-                        syncAria(false);
-                    } else if (w <= 1200) {
-                        // médio: colapsa (ícones) e esconde botão global
-                        globalBtn?.style.setProperty('display', 'none');
-                        sidebar.classList.remove('open');
+                        root.classList.remove('sidebar-collapsed');
+                    } else if (mqNarrow.matches) {
+                        // tablet/desktop estreito: colapsada
                         applyCollapsedState(true);
-                        syncAria(false);
                     } else {
-                        // desktop largo: expandido, sem botão global
-                        globalBtn?.style.setProperty('display', 'none');
-                        sidebar.classList.remove('open');
+                        // desktop largo: expandida
                         applyCollapsedState(false);
-                        syncAria(false);
                     }
                 }
 
-                function onMenuClick() {
-                    if (window.innerWidth <= 992) {
-                        // mobile: abre/fecha a sidebar por cima
+                // ---------------------------
+                // Interações
+                // ---------------------------
+                function onEdgeClick(e) {
+                    e.preventDefault();
+                    if (mqMobile.matches) {
                         const willOpen = !sidebar.classList.contains('open');
-                        sidebar.classList.toggle('open', willOpen);
-                        syncAria(willOpen);
-                    } else if (window.innerWidth <= 1200) {
-                        // médio: alterna colapsado/expandido
-                        const willCollapse = !sidebar.classList.contains('collapsed');
-                        applyCollapsedState(willCollapse);
+                        willOpen ? openMobile() : closeMobile();
                     } else {
-                        // desktop: opcional colapso
                         const willCollapse = !sidebar.classList.contains('collapsed');
                         applyCollapsedState(willCollapse);
                     }
                 }
+
+                // Fechar por clique fora e no backdrop (mobile)
+                function onDocClick(e) {
+                    if (!mqMobile.matches) return;
+                    const isInsideSidebar = sidebar.contains(e.target);
+                    const isBtn = edgeBtn.contains(e.target);
+                    const isBackdrop = backdrop === e.target || backdrop.contains(e.target);
+                    if (isBackdrop || (!isInsideSidebar && !isBtn)) closeMobile();
+                }
+
+                // Esc fecha no mobile
+                function onKeydown(e) {
+                    if (e.key === 'Escape' && mqMobile.matches) closeMobile();
+                }
+
+                // Debounce leve p/ resize
+                let rAF = 0;
+
+                function onResize() {
+                    cancelAnimationFrame(rAF);
+                    rAF = requestAnimationFrame(handleResponsive);
+                }
+
+                // ---------------------------
+                // Init
+                // ---------------------------
+                // liga atributos iniciais
+                edgeBtn.setAttribute('aria-controls', 'sidebar-main');
+                setAriaHidden(sidebar, true);
+                setAriaExpanded(edgeBtn, false);
 
                 // listeners
-                globalBtn?.addEventListener('click', onMenuClick);
-                document.getElementById('sidebarToggle')?.addEventListener('click', onMenuClick);
-                document.getElementById('headerMenuBtn')?.addEventListener('click', onMenuClick);
+                edgeBtn.addEventListener('click', onEdgeClick);
+                backdrop.addEventListener('click', closeMobile);
+                document.addEventListener('click', onDocClick);
+                document.addEventListener('keydown', onKeydown);
+                window.addEventListener('resize', onResize);
+                mqMobile.addEventListener?.('change', handleResponsive);
+                mqNarrow.addEventListener?.('change', handleResponsive);
 
-                // fecha sidebar mobile ao tocar fora
-                document.addEventListener('click', (e) => {
-                    if (window.innerWidth > 992) return;
-                    const hitSidebar = sidebar.contains(e.target);
-                    const hitToggles = globalBtn?.contains(e.target) ||
-                        document.getElementById('sidebarToggle')?.contains(e.target) ||
-                        document.getElementById('headerMenuBtn')?.contains(e.target);
-                    if (!hitSidebar && !hitToggles) {
-                        sidebar.classList.remove('open');
-                        syncAria(false);
-                    }
-                });
-
-                window.addEventListener('resize', handleResponsive);
+                // estado inicial
                 handleResponsive();
             })();
         </script>

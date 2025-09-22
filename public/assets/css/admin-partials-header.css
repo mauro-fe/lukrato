@@ -1,6 +1,285 @@
-/* ===============================
-   Modal: Selecionar mês (Lukrato)
-   =============================== */
+/* =========================================================
+ * ROOT / TOKENS
+ * =======================================================*/
+:root {
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+}
+
+/* =========================================================
+ * RESET / BASE
+ * =======================================================*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: var(--color-bg) !important;
+  color: var(--color-text);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+*:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.container {
+  padding: var(--container-padding);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+h3 {
+  color: var(--color-primary);
+  font-weight: bold;
+  margin: auto;
+}
+
+.fade-in {
+  animation: fadeIn .5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+ * HEADER CONTROLS (menu lateral & tema)
+ * =======================================================*/
+.header-menu-btn,
+.theme-toggle {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background var(--transition-fast);
+  color: var(--color-text);
+  margin-left: 25px;
+  margin-top: 20px;
+}
+
+.lk-header .header-menu-btn {
+  z-index: 1200;
+}
+
+.theme-toggle:hover {
+  background: var(--glass-border);
+}
+
+.theme-toggle i {
+  position: absolute;
+  font-size: 18px;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.theme-toggle i.fa-sun {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+.theme-toggle i.fa-moon {
+  opacity: 0;
+  transform: rotate(-90deg);
+}
+
+.theme-toggle.dark i.fa-sun {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+.theme-toggle.dark i.fa-moon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+/* =========================================================
+ * EDGE MENU BUTTON (flutuante no canto)
+ * =======================================================*/
+.edge-menu-btn {
+  position: fixed;
+  top: 12px;
+  left: calc(var(--sidebar-width) + 8px);
+  /* desktop expandido */
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  z-index: 6000;
+  transition: left .25s ease, transform .15s ease, background var(--transition-fast);
+}
+
+.edge-menu-btn:active {
+  transform: scale(.96);
+}
+
+.sidebar-collapsed .edge-menu-btn {
+  left: calc(var(--sidebar-collapsed-width) + 8px);
+}
+
+/* =========================================================
+ * SIDEBAR
+ * =======================================================*/
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-right: 1px solid var(--glass-border);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.logo img {
+  max-width: 150px !important;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: var(--spacing-4) 0;
+}
+
+/* Itens do menu */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: var(--transition-fast);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.nav-item i {
+  font-size: var(--font-size-lg);
+  width: 20px;
+  color: currentColor;
+}
+
+.nav-item:hover {
+  background: var(--glass-bg);
+  color: var(--color-text);
+}
+
+/* ATIVO: texto/ícone laranja + marcador à esquerda */
+.sidebar-nav .nav-item.active,
+.sidebar-nav .nav-item[aria-current="page"] {
+  color: var(--laranja);
+  background: transparent;
+  font-weight: 700;
+  border-left: 3px solid var(--laranja);
+}
+
+.sidebar-nav .nav-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.sidebar-nav .nav-item.active::before,
+.sidebar-nav .nav-item[aria-current="page"]::before {
+  background: var(--laranja);
+}
+
+.sidebar-nav .nav-item:focus-visible {
+  outline: 2px solid var(--laranja);
+  outline-offset: 2px;
+}
+
+/* Sidebar colapsada */
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .nav-item span {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+.sidebar.collapsed .nav-item i {
+  width: auto;
+  font-size: 18px;
+}
+
+.sidebar.collapsed .logo img {
+  max-width: 40px !important;
+}
+
+/* Quando <html> tem classe global de colapsado */
+.sidebar-collapsed .lk-header {
+  left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* =========================================================
+ * MAIN CONTENT
+ * =======================================================*/
+.main-content {
+  margin-left: var(--sidebar-width);
+  padding-top: var(--header-height);
+  min-height: 100vh;
+  transition: margin-left .3s ease;
+}
+
+/* =========================================================
+ * MONTH PICKER (Modal de mês)
+ * =======================================================*/
 #monthModal .modal-content {
   background: var(--color-surface) !important;
   color: var(--color-text);
@@ -32,7 +311,7 @@
   opacity: 1;
 }
 
-/* Botões principais */
+/* Botões */
 #monthModal .btn {
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
@@ -86,7 +365,6 @@
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
   color: var(--color-primary) !important;
-
 }
 
 .mp-month {
@@ -100,27 +378,19 @@
   background: #e67e2233 !important;
 }
 
-
-
 /* =========================================================
- * Base
+ * PERÍODO / NAV DE MÊS (header inline)
  * =======================================================*/
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 .lk-period {
   margin-top: 20px;
   margin-right: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 44px;
+  padding: 6px 8px;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  padding: 6px 8px;
-  height: 44px;
   box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
@@ -128,327 +398,10 @@
 }
 
 .month-nav-btn:hover {
-  background-color: var(--glass-bg);
+  background: var(--glass-bg);
   color: var(--branco);
 }
 
-html {
-  font-size: 16px;
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: var(--font-primary);
-  background-color: var(--color-bg) !important;
-  color: var(--color-text);
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-
-h3 {
-  color: var(--color-primary);
-  font-weight: bold;
-  margin: auto;
-}
-
-*:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.container {
-  padding: var(--container-padding);
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===== ATIVO: só texto e ícone laranja (#E67E22) ===== */
-.sidebar-nav .nav-item.active,
-.sidebar-nav .nav-item[aria-current="page"] {
-  background: transparent !important;
-  color: #e67e22 !important;
-  font-weight: 700;
-  border-left-color: transparent !important;
-}
-
-.sidebar-nav .nav-item.active i,
-.sidebar-nav .nav-item[aria-current="page"] i {
-  color: #e67e22 !important;
-}
-
-/* Indicador vertical desativado */
-.sidebar-nav .nav-item::before {
-  content: none;
-}
-
-/* Foco acessível */
-.sidebar-nav .nav-item:focus-visible {
-  outline: 2px solid #e67e22;
-  outline-offset: 2px;
-}
-
-
-
-/* =========================================================
- * Sidebar
- * =======================================================*/
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: var(--sidebar-width);
-  height: 100vh;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  border-right: 1px solid var(--glass-border);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  padding: var(--spacing-6);
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.logo img {
-  max-width: 150px !important;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: var(--spacing-4) 0;
-}
-
-/* Barra superior do aside */
-.sidebar-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Itens do menu: base */
-.sidebar-nav .nav-item {
-  position: relative;
-  color: #cfd8e3;
-  /* cinza claro */
-  background: transparent;
-  border-left: 3px solid transparent;
-  /* guia para o ativo */
-}
-
-/* Ícones herdam a cor do link */
-.sidebar-nav .nav-item i {
-  color: currentColor;
-}
-
-/* Hover sutil */
-.sidebar-nav .nav-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--branco);
-}
-
-/* ATIVO: texto + ícone laranja, sem bloco */
-.sidebar-nav .nav-item.active,
-.sidebar-nav .nav-item[aria-current="page"] {
-  color: var(--laranja);
-  background: transparent;
-  /* sobrescreve teu .nav-item.active antigo */
-  font-weight: 700;
-  border-left-color: var(--laranja);
-}
-
-/* Indicador vertical (opcional, bonito no dark) */
-.sidebar-nav .nav-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 6px;
-  background: transparent;
-}
-
-.sidebar-nav .nav-item.active::before,
-.sidebar-nav .nav-item[aria-current="page"]::before {
-  background: var(--laranja);
-}
-
-/* Foco acessível no teclado */
-.sidebar-nav .nav-item:focus-visible {
-  outline: 2px solid var(--laranja);
-  outline-offset: 2px;
-}
-
-/* ===== Sidebar colapsada (somente ícones) ===== */
-.sidebar.collapsed {
-  width: var(--sidebar-collapsed-width);
-}
-
-/* Oculta os textos dos itens, mantém apenas os ícones */
-.sidebar.collapsed .nav-item span {
-  display: none;
-}
-
-/* Centraliza os ícones e estreita o padding */
-.sidebar.collapsed .nav-item {
-  justify-content: center;
-  padding: var(--spacing-4);
-}
-
-/* Mantém os ícones alinhados */
-.sidebar.collapsed .nav-item i {
-  width: auto;
-  font-size: 18px;
-}
-
-/* Logo menor no modo colapsado */
-.sidebar.collapsed .logo img {
-  max-width: 40px !important;
-}
-
-/* Header e conteúdo ajustam a margem quando colapsado (versão com classe no <html>) */
-.sidebar-collapsed .lk-header {
-  left: var(--sidebar-collapsed-width);
-  width: calc(100% - var(--sidebar-collapsed-width));
-}
-
-.sidebar-collapsed .main-content {
-  margin-left: var(--sidebar-collapsed-width);
-}
-
-/* Botão de menu no header (sempre visível em telas menores) */
-.header-menu-btn {
-  display: none;
-  border: none;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: var(--glass-backdrop);
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  cursor: pointer;
-
-  position: relative;
-  transition: background var(--transition-fast);
-  color: var(--color-text);
-  margin-left: 25px;
-  margin-top: 20px;
-}
-
-/* Mostra o botão quando precisa (até 1200px) */
-@media (max-width: 1200px) {
-  .header-menu-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-/* botão some por padrão no desktop */
-.mobile-menu-fab {
-  display: none;
-}
-
-/* mobile: sempre visível */
-@media (max-width: 992px) {
-  .mobile-menu-fab {
-    position: fixed;
-    top: max(12px, env(safe-area-inset-top));
-    left: max(12px, env(safe-area-inset-left));
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-backdrop);
-    color: var(--color-text);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    z-index: 4000;
-    /* acima de tudo */
-    transition: transform var(--transition-fast), background var(--transition-fast);
-  }
-
-  .mobile-menu-fab:active {
-    transform: scale(0.96);
-  }
-
-  /* estado quando a sidebar está aberta: troca o ícone via rotate */
-  .mobile-menu-fab.is-open i {
-    transform: rotate(90deg);
-  }
-}
-
-
-/* Z-index pra garantir que fica por cima */
-.lk-header .header-menu-btn {
-  z-index: 1200;
-}
-
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4) var(--spacing-6);
-  color: var(--color-text);
-  text-decoration: none;
-  transition: var(--transition-fast);
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-}
-
-.nav-item:hover {
-  background-color: var(--glass-bg);
-  color: var(--color-text);
-}
-
-.nav-item.active {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
-}
-
-.nav-item i {
-  font-size: var(--font-size-lg);
-  width: 20px;
-}
-
-/* Toggle (mobile) */
-.sidebar-toggle {
-  display: none;
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1100;
-  background: var(--color-secondary);
-  color: var(--color-surface);
-  border: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-
-/* Seletor de mês no header */
 .month-picker-nav {
   display: flex;
   align-items: center;
@@ -456,48 +409,7 @@ h3 {
 }
 
 /* =========================================================
- * Main Content
- * =======================================================*/
-.main-content {
-  margin-left: var(--sidebar-width);
-  padding-top: var(--header-height);
-  min-height: 100vh;
-  transition: margin-left 0.3s ease;
-}
-
-/* =========================================================
- * Mobile
- * =======================================================*/
-@media (max-width: 992px) {
-  .sidebar {
-    left: -260px;
-    width: 240px;
-    background: var(--color-surface);
-    transition: left 0.3s ease;
-    z-index: 1000;
-  }
-
-  .sidebar.open {
-    left: 0;
-  }
-
-  .lk-header {
-    left: 0;
-    width: 100%;
-  }
-
-  .main-content {
-    margin-left: 0;
-    padding-top: var(--header-height);
-  }
-
-  .sidebar-toggle {
-    display: block;
-  }
-}
-
-/* =========================================================
- * Modal básico (LK) — CENTRALIZADO
+ * MODAL GENÉRICO (LK) — CENTRALIZADO
  * =======================================================*/
 .lkh-modal {
   position: fixed;
@@ -520,14 +432,14 @@ h3 {
 .lkh-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, .5);
   backdrop-filter: blur(4px);
 }
 
 .lkh-modal-content {
   position: relative;
   left: 30%;
-  /* (mantive seu posicionamento) */
+  /* mantém teu posicionamento */
   background: var(--color-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
@@ -536,7 +448,7 @@ h3 {
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  transform: scale(0.95);
+  transform: scale(.95);
   transition: var(--transition-normal);
   z-index: 1;
   color: var(--color-text);
@@ -546,13 +458,22 @@ h3 {
   transform: scale(1);
 }
 
-/* Header / Body / Footer do modal */
-.lkh-modal-header {
+.lkh-modal-header,
+.lkh-modal-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-6);
+}
+
+.lkh-modal-header {
   border-bottom: 1px solid var(--glass-border);
+}
+
+.lkh-modal-footer {
+  gap: var(--spacing-3);
+  border-top: 1px solid var(--glass-border);
+  justify-content: flex-end;
 }
 
 .lkh-modal-header h2 {
@@ -573,49 +494,19 @@ h3 {
   padding: var(--spacing-6);
 }
 
-.lkh-modal-footer {
-  display: flex;
-  gap: var(--spacing-3);
-  padding: var(--spacing-6);
-  border-top: 1px solid var(--glass-border);
-  justify-content: flex-end;
-}
-
-/* Formulário no modal */
-.form-group {
-  margin-bottom: var(--spacing-4);
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: var(--spacing-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.form-input,
-.form-select {
-  width: 100%;
-  padding: var(--spacing-3);
-  background-color: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-family: var(--font-primary);
-  font-size: var(--font-size-base);
-  backdrop-filter: var(--glass-backdrop);
-}
-
+/* =========================================================
+ * FORM / CONTROLS
+ * =======================================================*/
 .form-group {
   margin-bottom: var(--spacing-5);
 }
 
 .form-group label {
   display: block;
+  margin-bottom: var(--spacing-2);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--branco);
-  margin-bottom: var(--spacing-2);
 }
 
 .form-input,
@@ -628,6 +519,7 @@ h3 {
   color: var(--branco);
   font-size: var(--font-size-base);
   transition: var(--transition-fast);
+  backdrop-filter: var(--glass-backdrop);
 }
 
 .form-input:focus,
@@ -649,6 +541,7 @@ h3 {
   color: var(--branco);
 }
 
+/* Checkbox custom */
 .checkbox-label {
   display: flex;
   align-items: center;
@@ -664,7 +557,7 @@ h3 {
   height: 20px;
   border: 1px solid var(--color-text-muted);
   border-radius: var(--radius-sm);
-  background-color: var(--glass-bg);
+  background: var(--glass-bg);
   transition: var(--transition-fast);
 }
 
@@ -673,11 +566,11 @@ h3 {
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
-  background-color: var(--color-success);
+  background: var(--color-success);
   border-color: var(--color-success);
 }
 
-/* Botões */
+/* Buttons */
 .btn {
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-sm);
@@ -687,18 +580,18 @@ h3 {
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
+  background: var(--color-primary);
   border: 1px solid var(--color-primary);
   color: var(--color-surface);
 }
 
 .btn-primary:hover {
-  background-color: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
+  background: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
   border-color: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
 }
 
 .btn-ghost {
-  background-color: transparent;
+  background: transparent;
   border: 1px solid var(--glass-border);
   color: var(--color-text-muted);
 }
@@ -708,21 +601,18 @@ h3 {
   border-color: var(--color-text);
 }
 
-/* BTN */
 .lk-btn {
   height: 44px;
   padding: 0 var(--spacing-5);
   border-radius: var(--radius-md);
   font-weight: 700;
-  cursor: pointer;
-  user-select: none;
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-2);
   border: 1px solid transparent;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast), background var(--transition-fast),
-    border-color var(--transition-fast), color var(--transition-fast);
+  user-select: none;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .lk-btn.ghost {
@@ -732,18 +622,18 @@ h3 {
 }
 
 .lk-btn.ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, .06);
   border-color: var(--laranja);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .15);
   transform: translateY(-1px);
 }
 
 .lk-btn i {
-  font-size: 0.95em;
+  font-size: .95em;
 }
 
 .btn-del {
-  background-color: var(--color-primary);
+  background: var(--color-primary);
   transition: var(--transition-normal);
   color: var(--color-text);
 }
@@ -752,7 +642,9 @@ h3 {
   color: var(--color-bg) !important;
 }
 
-/* Calendário dentro do modal */
+/* =========================================================
+ * CALENDÁRIO (dentro de modais)
+ * =======================================================*/
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -776,12 +668,12 @@ h3 {
 }
 
 .calendar-day:hover:not(.selected) {
-  background-color: var(--glass-bg);
+  background: var(--glass-bg);
 }
 
 .calendar-day.muted {
   color: var(--color-text-muted);
-  opacity: 0.6;
+  opacity: .6;
 }
 
 .calendar-day.today {
@@ -789,13 +681,13 @@ h3 {
 }
 
 .calendar-day.selected {
-  background-color: var(--color-primary);
+  background: var(--color-primary);
   color: var(--color-surface);
   font-weight: bold;
 }
 
 /* =========================================================
- * FAB (Floating Action Button) — canto inferior esquerdo
+ * FAB (Floating Action Button)
  * =======================================================*/
 .fab-container {
   position: fixed;
@@ -808,9 +700,7 @@ h3 {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg,
-      var(--color-primary),
-      var(--color-warning));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
   border: none;
   color: var(--color-surface);
   font-size: 20px;
@@ -819,7 +709,7 @@ h3 {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
-  transition: transform 0.2s ease;
+  transition: transform .2s ease;
 }
 
 .fab:hover {
@@ -830,22 +720,21 @@ h3 {
   transform: rotate(45deg);
 }
 
-/* Menu do FAB abrindo para a direita (horizontal) */
 .fab-menu {
   position: absolute;
   left: 72px;
   bottom: 0;
   display: none;
-  background-color: var(--color-surface);
-  padding: 10px;
-  border-radius: 30px;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
+  background: var(--color-surface);
+  padding: 10px;
+  border-radius: 30px;
   opacity: 0;
   visibility: hidden;
   transform: translateX(-10px);
-  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+  transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
   color: var(--color-text);
@@ -883,7 +772,108 @@ h3 {
   color: var(--branco);
 }
 
-/* Mobile — aproxima o menu */
+/* =========================================================
+ * BACKDROP MOBILE (quando sidebar aberta)
+ * =======================================================*/
+.sidebar-backdrop {
+  display: none;
+}
+
+/* =========================================================
+ * RESPONSIVO
+ * =======================================================*/
+
+/* <= 1200px: mostra botão do header */
+@media (max-width: 1200px) {
+  .header-menu-btn {
+    display: flex;
+  }
+}
+
+/* <= 992px: comportamento mobile */
+@media (max-width: 992px) {
+
+  /* Sidebar por cima do conteúdo */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    width: 240px;
+    background: var(--color-surface);
+    transition: left .3s ease;
+    z-index: 9998;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  /* Conteúdo abaixo da sidebar */
+  .main-content {
+    margin-left: 0;
+    padding-top: var(--header-height);
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar-open-mobile .main-content {
+    z-index: 0;
+  }
+
+  /* FAB mobile */
+  .mobile-menu-fab {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 4000;
+    transition: transform var(--transition-fast), background var(--transition-fast);
+  }
+
+  .mobile-menu-fab:active {
+    transform: scale(.96);
+  }
+
+  .mobile-menu-fab.is-open i {
+    transform: rotate(90deg);
+  }
+
+  /* Edge button acompanha sidebar */
+  .edge-menu-btn {
+    left: 12px;
+    z-index: 9999;
+  }
+
+  .sidebar-open-mobile .edge-menu-btn {
+    left: calc(240px + 8px);
+  }
+
+  /* Backdrop */
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    backdrop-filter: blur(2px);
+    z-index: 9997;
+    /* abaixo da sidebar, acima do conteúdo */
+  }
+
+  .sidebar-open-mobile .sidebar-backdrop {
+    display: block;
+  }
+}
+
+/* FAB menu — ajuste em telas bem pequenas */
 @media (max-width: 520px) {
   .fab-menu {
     left: 60px;
@@ -896,63 +886,40 @@ h3 {
   }
 }
 
-/* Responsivo do modal */
+/* Modal genérico responsivo */
 @media (max-width: 768px) {
   .lkh-modal-content {
     width: 95%;
     margin: var(--spacing-4);
+    left: 0;
   }
 }
 
-.theme-toggle {
-  border: none;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: var(--glass-backdrop);
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: background var(--transition-fast);
-  color: var(--color-text);
-  margin-left: 25px;
-  margin-top: 20px;
+/* Header sempre visível no mobile quando a sidebar NÃO está aberta */
+@media (max-width: 992px) {
+  .lk-header {
+    position: sticky;
+    /* ou fixed, se preferir */
+    top: 0;
+    z-index: 3000;
+    /* acima do conteúdo (1) e do backdrop padrão (invisível) */
+  }
+
+  /* Quando a sidebar estiver aberta, o backdrop deve ficar acima do header */
+  .sidebar-open-mobile .lk-header {
+    z-index: 9996;
+    /* menor que o backdrop (9997) */
+  }
 }
 
-.theme-toggle:hover {
-  background: var(--glass-border);
+/* default */
+.sidebar-backdrop {
+  display: none;
 }
 
-/* Ícones */
-.theme-toggle i {
-  position: absolute;
-  font-size: 18px;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-/* Sol aparece no light */
-.theme-toggle i.fa-sun {
-  opacity: 1;
-  transform: rotate(0deg);
-}
-
-/* Lua fica invisível no light */
-.theme-toggle i.fa-moon {
-  opacity: 0;
-  transform: rotate(-90deg);
-}
-
-/* Dark mode: inverte */
-.theme-toggle.dark i.fa-sun {
-  opacity: 0;
-  transform: rotate(90deg);
-}
-
-.theme-toggle.dark i.fa-moon {
-  opacity: 1;
-  transform: rotate(0deg);
+/* mostra quando a sidebar está aberta */
+@media (max-width: 992px) {
+  .sidebar.open+.sidebar-backdrop {
+    display: block;
+  }
 }
