@@ -5,7 +5,19 @@ $menu      = $menu      ?? '';
 
 $u    = 'admin';
 $base = BASE_URL;
+
 ?>
+<?php
+
+use Application\Middlewares\CsrfMiddleware;
+
+$csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
+?>
+<meta name="csrf" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
+<script>
+    window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+</script>
+
 <!DOCTYPE html>
 <html lang="pt-BR" lang="pt-BR" data-theme="dark">
 
@@ -46,7 +58,8 @@ $base = BASE_URL;
 
     ?>
 
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true" title="Fechar/Abrir menu">
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true"
+        title="Fechar/Abrir menu">
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
@@ -57,22 +70,26 @@ $base = BASE_URL;
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
+        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i
+                class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
         <nav class="sidebar-nav">
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
-            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>"
-                <?= $aria('contas')      ?> title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
+            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>" <?= $aria('contas')      ?>
+                title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos"><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
+                <?= $aria('lancamentos') ?> title="Lançamentos"><i
+                    class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
-                <?= $aria('relatorios')  ?> title="Relatórios"><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
+                <?= $aria('relatorios')  ?> title="Relatórios"><i
+                    class="fas fa-chart-bar"></i><span>Relatórios</span></a>
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
                 <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
-            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
-                <?= $aria('perfil') ?> title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
+            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>" <?= $aria('perfil') ?>
+                title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
-            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i class="fas fa-sign-out-alt"></i>
+            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i
+                    class="fas fa-sign-out-alt"></i>
                 <span>Sair</span></a>
         </nav>
 

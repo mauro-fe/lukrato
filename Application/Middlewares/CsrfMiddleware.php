@@ -4,6 +4,8 @@ namespace Application\Middlewares;
 
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
+use Application\Services\LogService;
+use Application\Lib\Auth;
 
 
 class CsrfMiddleware
@@ -100,9 +102,22 @@ class CsrfMiddleware
         // ], true));
 
         $token = $request->get('csrf_token') ?: $request->header('X-CSRF-TOKEN');
-
         if (!self::validateToken((string)$token, $tokenId)) {
-            // file_put_contents('debug_csrf_tokenId.txt', $tokenId);
+            // log detalhado
+
+
+            LogService::warning('CSRF inválido', [
+                'user_id'   => Auth::id(),
+                'token_id'  => $tokenId,
+                'expected'  => isset($_SESSION['csrf_tokens'][$tokenId]['value'])
+                    ? substr($_SESSION['csrf_tokens'][$tokenId]['value'], 0, 8) . '…'
+                    : null,
+                'provided'  => isset($token)
+                    ? substr($token, 0, 8) . '…'
+                    : null,
+                'url'       => ($_SERVER['REQUEST_METHOD'] ?? '-') . ' ' . ($_SERVER['REQUEST_URI'] ?? '-'),
+                'has_cookie' => isset($_COOKIE[session_name()]),
+            ]);
 
             throw new ValidationException([
                 'csrf_token' => "Token CSRF inválido ou expirado (tokenId: $tokenId). Recarregue a página."

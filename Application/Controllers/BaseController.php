@@ -46,22 +46,20 @@ abstract class BaseController
         }
     }
 
-    /** Auth para rotas de API (responde 401 JSON) */
     protected function requireAuthApi(): void
     {
         if (!Auth::isLoggedIn()) {
-            $this->response
-                ->jsonBody(['error' => 'Não autenticado'], 401)
-                ->send();
+            $this->response->jsonBody(['error' => 'Não autenticado'], 401)->send();
+            return;
         }
-        $this->adminId       = Auth::id();
-        $user                = Auth::user();
+        $this->adminId = Auth::id();
+        $user = Auth::user();
         $this->adminUsername = $user->username ?? $user->nome ?? null;
+
         if (empty($this->adminId) || empty($this->adminUsername)) {
             $this->auth->logout();
-            $this->response
-                ->jsonBody(['error' => 'Sessão inválida'], 401)
-                ->send();
+            $this->response->jsonBody(['error' => 'Sessão inválida'], 401)->send();
+            return;
         }
     }
 
@@ -74,7 +72,7 @@ abstract class BaseController
     {
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
-        if ($footer) $view->setFooter($footer); 
+        if ($footer) $view->setFooter($footer);
         echo $view->render();
     }
 
@@ -150,7 +148,7 @@ abstract class BaseController
 
     protected function ok(array $payload = [], int $status = 200): void
     {
-        Response::success($payload, $status); 
+        Response::success($payload, $status);
     }
     protected function fail(string $message, int $status = 400, array $extra = []): void
     {

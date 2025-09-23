@@ -1,6 +1,7 @@
 
 // ====== BASE_URL a partir do <meta name="base-url"> ======
 (function () {
+
     const m = document.querySelector('meta[name="base-url"]');
     let base = (m && m.content) ? m.content : (location.origin + '/');
     if (!/\/$/.test(base)) base += '/';
@@ -9,6 +10,7 @@
 
 // ====== App (FAB, Modal, Options, Submit) ======
 (function () {
+
     const BASE = window.BASE_URL || '/';
     const $ = (s, sc = document) => sc.querySelector(s);
     const $$ = (s, sc = document) => Array.from(sc.querySelectorAll(s));
@@ -23,13 +25,28 @@
         return isNaN(n) ? 0 : Number(n.toFixed(2));
     }
     async function fetchJSON(url, opts = {}) {
-        const r = await fetch(url, { credentials: 'include', ...opts });
+        const method = (opts.method || 'GET').toUpperCase();
+        const headers = new Headers(opts.headers || {});
+        const csrf = window.CSRF || document.querySelector('meta[name="csrf"]')?.content || '';
+
+        if (method !== 'GET') {
+            if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+            if (csrf) headers.set('X-CSRF-TOKEN', csrf);
+        }
+
+        const r = await fetch(url, { credentials: 'include', ...opts, headers });
         let payload = null; try { payload = await r.json(); } catch { }
-        if (!r.ok || (payload && (payload.error || payload.status === 'error'))) {
+        if (!r.ok) {
+            if (r.status === 403) throw new Error('Sessão expirada ou CSRF inválido. Recarregue a página e tente novamente.');
+            if (r.status === 422) throw new Error(payload?.message || 'Dados inválidos.');
+            throw new Error(payload?.message || payload?.error || `Erro ${r.status}`);
+        }
+        if (payload && (payload.error || payload.status === 'error')) {
             throw new Error(payload?.message || payload?.error || 'Erro na requisição');
         }
         return payload;
     }
+
     const apiOptions = () => fetchJSON(BASE + 'api/options');
     const apiCreate = (payload) => fetchJSON(BASE + 'api/transactions', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)

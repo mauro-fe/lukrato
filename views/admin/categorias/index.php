@@ -1,4 +1,3 @@
-
 <section class="container">
     <h3 class="c-title">Categorias</h3>
     <div class="c-card mt-4">
@@ -131,6 +130,8 @@
                 alertError(e.message);
             }
         }
+
+
 
         filtro.addEventListener('change', load);
 
