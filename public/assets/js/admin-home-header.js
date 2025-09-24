@@ -26,12 +26,18 @@
     }
     async function fetchJSON(url, opts = {}) {
         const method = (opts.method || 'GET').toUpperCase();
-        const headers = new Headers(opts.headers || {});
-        const csrf = window.CSRF || document.querySelector('meta[name="csrf"]')?.content || '';
+        const headers = Object.assign({}, opts.headers || {});
+        const isJson = (headers['Content-Type'] || headers['content-type'] || '').includes('application/json');
 
-        if (method !== 'GET') {
-            if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-            if (csrf) headers.set('X-CSRF-TOKEN', csrf);
+        // injeta CSRF para POST/PUT/DELETE com JSON
+        if (method !== 'GET' && isJson) {
+            const token = LK.getCSRF();
+            headers['X-CSRF-TOKEN'] = token;
+
+            // mescla o payload com os campos de CSRF
+            let payload = {};
+            try { payload = opts.body ? JSON.parse(opts.body) : {}; } catch { payload = {}; }
+            opts.body = JSON.stringify({ ...payload, _token: token, csrf_token: token });
         }
 
         const r = await fetch(url, { credentials: 'include', ...opts, headers });
@@ -49,9 +55,10 @@
 
     const apiOptions = () => fetchJSON(BASE + 'api/options');
     const apiCreate = (payload) => fetchJSON(BASE + 'api/transactions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
     });
-
     // --- API: contas ativas ---
     const apiAccounts = () => fetchJSON(BASE + 'api/accounts?only_active=1');
 

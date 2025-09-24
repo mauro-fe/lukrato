@@ -98,17 +98,17 @@ function registerAppRoutes(): void
         Router::add('POST',    'api/accounts/{id:\d+}/restore', 'Api\ContasController@restore', ['auth', 'csrf']);
         Router::add('POST',    'api/accounts/{id:\d+}/delete', 'Api\ContasController@hardDelete', ['auth', 'csrf']);
 
-        Router::add('POST',    'api/accounts/{id:\d+}/update', 'Api\ContasController@update',  ['auth', 'csrf']);
-        Router::add('POST',    'api/accounts/{id:\d+}/destroy', 'Api\ContasController@destroy', ['auth', 'csrf']);
+        Router::add('POST',    '/api/accounts/{id:\d+}/update', 'Api\ContasController@update',  ['auth', 'csrf']);
+        Router::add('POST',    '/api/accounts/{id:\d+}/destroy', 'Api\ContasController@destroy', ['auth', 'csrf']); // (se quiser)
 
-        Router::add('GET',  'api/categorias',                   'Api\CategoriaController@index',  ['auth']);
-        Router::add('POST', 'api/categorias',                   'Api\CategoriaController@store',  ['auth', 'csrf']);
+        Router::add('GET',  '/api/categorias',                   'Api\CategoriaController@index',  ['auth']);
+        Router::add('POST', '/api/categorias',                   'Api\CategoriaController@store',  ['auth', 'csrf']);
 
-        Router::add('POST', 'api/categorias/{id:\d+}/delete',   'Api\CategoriaController@delete', ['auth', 'csrf']);
-        Router::add('POST', 'api/categorias/delete',            'Api\CategoriaController@delete', ['auth', 'csrf']);
+        Router::add('POST', '/api/categorias/{id:\d+}/delete',   'Api\CategoriaController@delete', ['auth', 'csrf']);
+        Router::add('POST', '/api/categorias/delete',            'Api\CategoriaController@delete', ['auth', 'csrf']);
 
-        Router::add('GET',  'api/user/theme', 'Api\PreferenciaUsuarioController@show',   ['auth']);
-        Router::add('POST', 'api/user/theme', 'Api\PreferenciaUsuarioController@update', ['auth', 'csrf']);
+        Router::add('GET',  '/api/user/theme', 'Api\PreferenciaUsuarioController@show',   ['auth']);
+        Router::add('POST', '/api/user/theme', 'Api\PreferenciaUsuarioController@update', ['auth', 'csrf']);
     }
 
 

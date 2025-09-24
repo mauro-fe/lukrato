@@ -26,14 +26,27 @@ if (!function_exists('escape')) {
 }
 
 if (!function_exists('csrf_token')) {
-
     function csrf_token(string $tokenId = 'default'): string
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
 
-        return CsrfMiddleware::generateToken($tokenId);
+        // Cache por request para evitar múltiplas gerações no mesmo carregamento
+        static $cache = [];
+        if (isset($cache[$tokenId]) && is_string($cache[$tokenId]) && $cache[$tokenId] !== '') {
+            return $cache[$tokenId];
+        }
+
+        // Reutiliza token existente na sessão quando disponível
+        if (isset($_SESSION['csrf_tokens'][$tokenId]['value']) && is_string($_SESSION['csrf_tokens'][$tokenId]['value'])) {
+            $cache[$tokenId] = (string) $_SESSION['csrf_tokens'][$tokenId]['value'];
+            return $cache[$tokenId];
+        }
+
+        // Caso não exista, gera um novo
+        $cache[$tokenId] = CsrfMiddleware::generateToken($tokenId);
+        return $cache[$tokenId];
     }
 }
 
@@ -43,6 +56,18 @@ if (!function_exists('csrf_input')) {
     {
         $token = csrf_token($tokenId);
         return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+    }
+}
+
+if (!function_exists('csrf_meta')) {
+    function csrf_meta(string $tokenId = 'default'): string
+    {
+        $token = csrf_token($tokenId);
+        $tokenEsc = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
+        $idEsc = htmlspecialchars($tokenId, ENT_QUOTES, 'UTF-8');
+
+        return '<meta name="csrf-token" content="' . $tokenEsc . '">' . PHP_EOL
+            . '<meta name="csrf-token-id" content="' . $idEsc . '">';
     }
 }
 if (!function_exists('loadPageCss')) {

@@ -22,6 +22,16 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 <html lang="pt-BR" lang="pt-BR" data-theme="dark">
 
 <head>
+    <?= csrf_meta('default') ?>
+    <script>
+        // helpers globais
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.getCSRF = () =>
+            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+            document.querySelector('input[name="_token"]')?.value || '';
+        LK.apiBase = LK.getBase() + 'api/';
+    </script>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,7 +39,6 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -181,10 +190,10 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                 const root = document.documentElement;
                 const btn = document.getElementById("toggleTheme");
 
-                // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
-                const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
+                const BASE_URL = LK.getBase();
                 const ENDPOINT = BASE_URL + 'api/user/theme';
-                const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
+                const CSRF = LK.getCSRF();
+
 
                 // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
                 const cached = localStorage.getItem("theme");
@@ -211,18 +220,22 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                     updateIcon(theme);
 
                     if (persist) {
+                        const token = LK.getCSRF();
                         fetch(ENDPOINT, {
                             method: 'POST',
                             credentials: 'include',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-Token': CSRF
+                                'X-CSRF-TOKEN': token
                             },
                             body: JSON.stringify({
-                                theme
+                                theme,
+                                _token: token,
+                                csrf_token: token
                             })
                         }).catch(err => console.error('Falha ao salvar tema:', err));
                     }
+
                 }
 
                 function updateIcon(theme) {
