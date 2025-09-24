@@ -50,7 +50,8 @@ class AuthService
 
         LogService::info('Login success', ['user_id' => $usuario->id, 'ip' => $ip]);
 
-        $redirect = Helpers::baseUrl('admin/' . $_SESSION['admin_username'] . '/dashboard');
+        // Redireciona para o dashboard padrão (sem slug no caminho)
+        $redirect = Helpers::baseUrl('dashboard');
 
         return ['usuario' => $usuario, 'redirect' => $redirect];
     }

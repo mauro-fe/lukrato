@@ -10,6 +10,16 @@ $base = BASE_URL;
 <html lang="pt-BR" lang="pt-BR" data-theme="dark">
 
 <head>
+    <?= csrf_meta('default') ?>
+    <script>
+        // helpers globais
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.getCSRF = () =>
+            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+            document.querySelector('input[name="_token"]')?.value || '';
+        LK.apiBase = LK.getBase() + 'api/';
+    </script>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,7 +27,6 @@ $base = BASE_URL;
 
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -46,7 +55,8 @@ $base = BASE_URL;
 
     ?>
 
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true" title="Fechar/Abrir menu">
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true"
+        title="Fechar/Abrir menu">
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
@@ -57,22 +67,26 @@ $base = BASE_URL;
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
+        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i
+                class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
         <nav class="sidebar-nav">
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
-            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>"
-                <?= $aria('contas')      ?> title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
+            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>" <?= $aria('contas')      ?>
+                title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos"><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
+                <?= $aria('lancamentos') ?> title="Lançamentos"><i
+                    class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
-                <?= $aria('relatorios')  ?> title="Relatórios"><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
+                <?= $aria('relatorios')  ?> title="Relatórios"><i
+                    class="fas fa-chart-bar"></i><span>Relatórios</span></a>
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
                 <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
-            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
-                <?= $aria('perfil') ?> title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
+            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>" <?= $aria('perfil') ?>
+                title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
-            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i class="fas fa-sign-out-alt"></i>
+            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i
+                    class="fas fa-sign-out-alt"></i>
                 <span>Sair</span></a>
         </nav>
 
@@ -164,10 +178,10 @@ $base = BASE_URL;
                 const root = document.documentElement;
                 const btn = document.getElementById("toggleTheme");
 
-                // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
-                const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
+                const BASE_URL = LK.getBase();
                 const ENDPOINT = BASE_URL + 'api/user/theme';
-                const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
+                const CSRF = LK.getCSRF();
+
 
                 // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
                 const cached = localStorage.getItem("theme");
@@ -194,18 +208,22 @@ $base = BASE_URL;
                     updateIcon(theme);
 
                     if (persist) {
+                        const token = LK.getCSRF();
                         fetch(ENDPOINT, {
                             method: 'POST',
                             credentials: 'include',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-Token': CSRF
+                                'X-CSRF-TOKEN': token
                             },
                             body: JSON.stringify({
-                                theme
+                                theme,
+                                _token: token,
+                                csrf_token: token
                             })
                         }).catch(err => console.error('Falha ao salvar tema:', err));
                     }
+
                 }
 
                 function updateIcon(theme) {

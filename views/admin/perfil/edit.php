@@ -10,8 +10,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                     <li class="breadcrumb-item text-sm">
-                        <a href="<?= BASE_URL ?>admin/<?= $admin_username ?>/perfil"
-                            class="text-muted"><?= $admin_username ?></a>
+                        <a href="<?= BASE_URL ?>perfil" class="text-muted"><?= $admin_username ?></a>
                     </li>
                     <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Editar Perfil</li>
                 </ol>
@@ -20,7 +19,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
 
             <ul class="navbar-nav justify-content-end">
                 <li class="nav-item d-flex align-items-center">
-                    <a href="<?= BASE_URL ?>admin/logout" class="nav-link text-body font-weight-bold px-0">
+                    <a href="<?= BASE_URL ?>logout" class="nav-link text-body font-weight-bold px-0">
                         <button class="d-sm-inline d-none btn btn-primary mt-3 ms-3">
                             <i class="fas fa-sign-out-alt me-1"></i>Sair
                         </button>
@@ -42,8 +41,9 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                     </div>
 
                     <div class="card-body p-4">
-                        <form id="form-profile" action="<?= BASE_URL ?>admin/<?= $admin_username ?>/perfil/salvar"
+                        <form id="form-profile" action="<?= BASE_URL ?>api/perfil"
                             method="POST" autocomplete="off" novalidate>
+                            <?= csrf_input() ?>
 
                             <div class="row">
                                 <div class="col-md-6">
@@ -157,7 +157,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'admin';
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mt-4">
-                                <a href="<?= BASE_URL ?>admin/<?= $admin_username ?>/perfil"
+                                <a href="<?= BASE_URL ?>perfil"
                                     class="btn btn-outline-secondary">
                                     <i class="fas fa-arrow-left me-1"></i>Cancelar
                                 </a>

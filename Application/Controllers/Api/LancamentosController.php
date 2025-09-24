@@ -46,7 +46,7 @@ class LancamentosController
                 $s->where('l.conta_id', $accId)
                     ->orWhere('l.conta_id_destino', $accId);
             }))
-            ->when($tipo, fn($w) => $w->where('l.tipo', $tipo)) // aplica filtro do select
+            ->when($tipo, fn($w) => $w->where('l.tipo', $tipo))
             ->whereRaw('COALESCE(l.eh_saldo_inicial, 0) = 0')
             ->orderBy('l.data', 'desc')
             ->orderBy('l.id',   'desc')

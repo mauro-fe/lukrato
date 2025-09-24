@@ -23,18 +23,35 @@
         return isNaN(n) ? 0 : Number(n.toFixed(2));
     }
     async function fetchJSON(url, opts = {}) {
-        const r = await fetch(url, { credentials: 'include', ...opts });
+        const method = (opts.method || 'GET').toUpperCase();
+        const headers = Object.assign({}, opts.headers || {});
+        const isJson = (headers['Content-Type'] || headers['content-type'] || '').includes('application/json');
+
+        // injeta CSRF para POST/PUT/DELETE com JSON
+        if (method !== 'GET' && isJson) {
+            const token = LK.getCSRF();
+            headers['X-CSRF-TOKEN'] = token;
+
+            // mescla o payload com os campos de CSRF
+            let payload = {};
+            try { payload = opts.body ? JSON.parse(opts.body) : {}; } catch { payload = {}; }
+            opts.body = JSON.stringify({ ...payload, _token: token, csrf_token: token });
+        }
+
+        const r = await fetch(url, { credentials: 'include', ...opts, headers });
         let payload = null; try { payload = await r.json(); } catch { }
         if (!r.ok || (payload && (payload.error || payload.status === 'error'))) {
             throw new Error(payload?.message || payload?.error || 'Erro na requisição');
         }
         return payload;
     }
+
     const apiOptions = () => fetchJSON(BASE + 'api/options');
     const apiCreate = (payload) => fetchJSON(BASE + 'api/transactions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
     });
-
     // --- API: contas ativas ---
     const apiAccounts = () => fetchJSON(BASE + 'api/accounts?only_active=1');
 
