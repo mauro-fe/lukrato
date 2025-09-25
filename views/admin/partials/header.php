@@ -72,7 +72,6 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
-
     <aside class="sidebar no-glass" id="sidebar-main">
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
