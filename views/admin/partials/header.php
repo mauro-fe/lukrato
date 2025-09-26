@@ -3,6 +3,23 @@ $pageTitle = $pageTitle ?? 'Painel Administrativo';
 $username  = $username  ?? 'usuário';
 $menu      = $menu      ?? '';
 
+if ($menu === '' && isset($GLOBALS['current_view'])) {
+    $candidate = '';
+    $parts = explode('-', (string) ($GLOBALS['current_view'] ?? ''));
+    if (!empty($parts)) {
+        if (($parts[0] ?? '') === 'admin') {
+            $candidate = $parts[1] ?? '';
+        } else {
+            $candidate = $parts[0] ?? '';
+        }
+    }
+    $allowed = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
+    if ($candidate !== '' && in_array($candidate, $allowed, true)) {
+        $menu = $candidate;
+    }
+}
+
+
 $u    = 'admin';
 $base = BASE_URL;
 
@@ -19,7 +36,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 </script>
 
 <!DOCTYPE html>
-<html lang="pt-BR" lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="dark" class="sidebar-collapsed">
 
 <head>
     <?= csrf_meta('default') ?>
@@ -67,12 +84,12 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 
     ?>
 
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true"
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
         title="Fechar/Abrir menu">
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
-    <aside class="sidebar no-glass" id="sidebar-main">
+    <aside class="sidebar no-glass collapsed" id="sidebar-main">
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
@@ -270,18 +287,14 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                 function handleResponsive() {
                     const w = window.innerWidth;
                     if (w <= 992) {
-                        // mobile: começa fechada
+                        // mobile: comeca fechada
                         rootEl.classList.remove('sidebar-collapsed');
                         sidebar.classList.remove('collapsed');
                         closeMobile();
-                    } else if (w <= 1200) {
-                        // tablet/desktop estreito: colapsada
+                    } else {
+                        // desktop/tablet: icones por padrao
                         closeMobile();
                         applyCollapsedState(true);
-                    } else {
-                        // desktop largo: expandida
-                        closeMobile();
-                        applyCollapsedState(false);
                     }
                 }
 

@@ -17,11 +17,13 @@ class PerfilController
     public function update(): void
     {
         try {
-            $user = Auth::user();
-            if (!$user) {
+            $sessionUser = Auth::user();
+            if (!$sessionUser) {
                 Response::error('Não autenticado', 401);
                 return;
             }
+            $user = Usuario::findOrFail((int)$sessionUser->id);
+
 
             $digits = fn(string $s) => preg_replace('/\D+/', '', $s);
 
@@ -54,32 +56,34 @@ class PerfilController
                 $s = strtoupper(trim((string)$s));
                 if ($s === '' || $s === 'SELECIONE') return null;
                 return match ($s) {
-                    'M', 'MASCULINO'        => 'Masculino',
-                    'F', 'FEMININO'         => 'Feminino',
-                    'O', 'OUTRO'            => 'Outro',
+                    'M', 'MASCULINO' => 'Masculino',
+                    'F', 'FEMININO'  => 'Feminino',
+                    'O', 'OUTRO'     => 'Outro',
                     'N', 'NAO INFORMADO', 'NÃO INFORMADO', 'NAOINFORMADO' => 'Não informado',
-                    default                 => null
+                    default          => null
                 };
             };
 
             $splitPhone = function (?string $raw) use ($digits): array {
                 $num = $digits((string)$raw);
                 if ($num === '' || !in_array(strlen($num), [10, 11], true)) {
-                    return [null, null]; 
+                    return [null, null];
                 }
                 $ddd = substr($num, 0, 2);
                 $local = substr($num, 2);
                 return [$ddd, $local];
             };
 
-            $nome     = trim((string)($_POST['nome']            ?? $user->nome ?? ''));
-            $email    = trim((string)($_POST['email']           ?? $user->email ?? ''));
-            $username = trim((string)($_POST['username']        ?? $user->username ?? ''));
-            $rawCpf   = (string)($_POST['cpf']                  ?? '');
-            $rawTel   = (string)($_POST['telefone']             ?? '');
-            $rawSexo  = (string)($_POST['sexo']                 ?? '');
-            $rawNasc  = (string)($_POST['data_nascimento']      ?? '');
+            // Normaliza inputs
+            $nome     = trim((string)($_POST['nome']      ?? $user->nome ?? ''));
+            $email    = mb_strtolower(trim((string)($_POST['email'] ?? $user->email ?? '')));
+            $username = trim((string)($_POST['username']  ?? $user->username ?? ''));
+            $rawCpf   = (string)($_POST['cpf']            ?? '');
+            $rawTel   = (string)($_POST['telefone']       ?? '');
+            $rawSexo  = (string)($_POST['sexo']           ?? '');
+            $rawNasc  = (string)($_POST['data_nascimento'] ?? '');
 
+            // Validações básicas
             if ($nome === '') {
                 Response::validationError(['nome' => 'Nome é obrigatório.']);
                 return;
@@ -93,12 +97,14 @@ class PerfilController
                 return;
             }
 
+            // CPF
             $cpf = $digits($rawCpf);
             if ($cpf !== '' && !$cpfIsValid($cpf)) {
                 Response::validationError(['cpf' => 'CPF inválido.']);
                 return;
             }
 
+            // Data
             $nasc = null;
             if ($rawNasc !== '') {
                 $nasc = $parseDate($rawNasc);
@@ -112,22 +118,21 @@ class PerfilController
                 }
             }
 
+            // Telefone
             [$dddCode, $foneLocal] = $splitPhone($rawTel);
             if ($rawTel !== '' && ($dddCode === null || $foneLocal === null)) {
                 Response::validationError(['telefone' => 'Telefone inválido. Use DDD + número.']);
                 return;
             }
 
-            $sexoLabel = $mapSexo($rawSexo); 
+            $sexoLabel = $mapSexo($rawSexo);
 
-            if (Usuario::where('email', $email)->where('id', '!=', $user->id)->exists()) {
+            // Unicidade (case-insensitive)
+            if (Usuario::whereRaw('LOWER(email) = ?', [$email])->where('id', '!=', $user->id)->exists()) {
                 Response::validationError(['email' => 'Este e-mail já está em uso.']);
                 return;
             }
-            if (
-                $username !== '' &&
-                Usuario::where('username', $username)->where('id', '!=', $user->id)->exists()
-            ) {
+            if ($username !== '' && Usuario::whereRaw('LOWER(username) = ?', [mb_strtolower($username)])->where('id', '!=', $user->id)->exists()) {
                 Response::validationError(['username' => 'Este username já está em uso.']);
                 return;
             }
@@ -152,8 +157,10 @@ class PerfilController
                 $sexoLabel,
                 $cpf,
                 $dddCode,
-                $foneLocal
+                $foneLocal,
+                $rawTel
             ) {
+                // --- USUÁRIO (somente colunas existentes) ---
                 $user->nome = $nome;
                 $user->email = $email;
                 if ($username !== '') $user->username = $username;
@@ -165,12 +172,11 @@ class PerfilController
                 } else {
                     $user->id_sexo = null;
                 }
-                if (property_exists($user, 'cpf')) $user->cpf = null;
-                if (property_exists($user, 'telefone')) $user->telefone = null;
-                if (property_exists($user, 'sexo')) $user->sexo = null;
 
+                // Não setar cpf/telefone/sexo diretamente no Usuario!
                 $user->save();
 
+                // --- CPF em DOCUMENTOS ---
                 $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
                 if ($cpf !== '') {
                     Documento::updateOrCreate(
@@ -183,9 +189,14 @@ class PerfilController
                         ->delete();
                 }
 
-                if ($dddCode !== null && $foneLocal !== null) {
+                // --- TELEFONE principal ---
+                $tel = Telefone::where('id_usuario', $user->id)->orderBy('id_telefone')->first();
+
+                if ($rawTel === '') {
+                    // Se veio vazio, remove telefone principal (opcional)
+                    if ($tel) $tel->delete();
+                } else {
                     $ddd = Ddd::firstOrCreate(['codigo' => $dddCode]);
-                    $tel = Telefone::where('id_usuario', $user->id)->orderBy('id_telefone')->first();
                     if ($tel) {
                         $tel->numero = $foneLocal;
                         $tel->id_ddd = $ddd->id_ddd;
@@ -199,11 +210,10 @@ class PerfilController
                             'tipo'       => 'celular',
                         ]);
                     }
-                } else {
-                   
                 }
             });
 
+            // Monta retorno consistente
             $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
             $cpfAtual = Documento::where('id_usuario', $user->id)
                 ->where('id_tipo', $tipoCpf->id_tipo)
@@ -232,7 +242,7 @@ class PerfilController
                 ]
             ]);
         } catch (\Throwable $e) {
-            Response::error($e->getMessage(), 500);
+            Response::error('Erro interno', 500, ['exception' => $e->getMessage()]);
         }
     }
 }

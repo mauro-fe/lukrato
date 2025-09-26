@@ -63,8 +63,8 @@ class Usuario extends Model
     // Telefone "principal": o primeiro cadastrado
     public function telefonePrincipal()
     {
-        return $this->hasOne(Telefone::class, 'id_usuario')
-            ->oldestOfMany();
+        return $this->hasOne(Telefone::class, 'id_usuario', 'id')
+            ->orderBy('id_telefone');
     }
 
     // -------- Helpers de leitura (opcional, úteis no controller/API) --------
@@ -165,3 +165,4 @@ class Usuario extends Model
         return null;
     }
 }
+

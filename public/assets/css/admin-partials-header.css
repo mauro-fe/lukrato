@@ -122,12 +122,11 @@ h3 {
  * =======================================================*/
 .edge-menu-btn {
   position: fixed;
-  top: 12px;
-  left: calc(var(--sidebar-width) + 8px);
-  /* desktop expandido */
+  top: 18px;
+  left: calc(var(--sidebar-width) - 58px);
   width: 42px;
   height: 42px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
@@ -137,17 +136,27 @@ h3 {
   justify-content: center;
   font-size: 18px;
   z-index: 6000;
-  transition: left .25s ease, transform .15s ease, background var(--transition-fast);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
+  transition: left .25s ease, transform .15s ease, background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.edge-menu-btn:hover {
+  background: var(--glass-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+}
+
+.edge-menu-btn:focus-visible {
+  outline: 2px solid var(--laranja);
+  outline-offset: 3px;
 }
 
 .edge-menu-btn:active {
-  transform: scale(.96);
+  transform: scale(.95);
 }
 
 .sidebar-collapsed .edge-menu-btn {
-  left: calc(var(--sidebar-collapsed-width) + 8px);
+  left: calc(var(--sidebar-collapsed-width) - 58px);
 }
-
 /* =========================================================
  * SIDEBAR
  * =======================================================*/
@@ -850,12 +859,13 @@ h3 {
 
   /* Edge button acompanha sidebar */
   .edge-menu-btn {
-    left: 12px;
+    left: 16px;
+    top: max(16px, env(safe-area-inset-top));
     z-index: 9999;
   }
 
   .sidebar-open-mobile .edge-menu-btn {
-    left: calc(240px + 8px);
+    left: calc(240px - 58px);
   }
 
   /* Backdrop */
@@ -923,4 +933,3 @@ h3 {
     display: block;
   }
 }
-

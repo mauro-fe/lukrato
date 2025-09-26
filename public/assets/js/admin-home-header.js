@@ -291,19 +291,33 @@
         }).then(r => { if (r.isConfirmed) window.location.href = url; });
     });
 
-    // ---------- Sidebar ativo (apenas texto + Ã­cone em laranja) ----------
+    // ---------- Sidebar ativo (apenas texto + ícone em laranja) ----------
     (function initSidebarActive() {
         const links = $$('.sidebar .nav-item[href]');
-        const here = location.pathname.replace(/\/+$/, '');
-        // Se o PHP jÃ¡ marcou algum ativo, respeita
-        let hasActive = !!document.querySelector('.sidebar .nav-item.active,[aria-current="page"]');
+        const normalize = (p) => (p || '').replace(/\/+$/, '');
+        const here = normalize(location.pathname);
 
-        // Marca pelo URL atual se nada veio do PHP
+        let hasActive = false;
+        const currentActives = Array.from(document.querySelectorAll('.sidebar .nav-item.active,[aria-current="page"]'));
+
+        currentActives.forEach(link => {
+            if (!link || link.id === 'btn-logout' || link.hasAttribute('data-no-active')) return;
+            try {
+                const path = normalize(new URL(link.getAttribute('href'), location.origin).pathname);
+                if (path && (path === here || (path !== '/' && here.startsWith(path + '/')))) {
+                    hasActive = true;
+                    return;
+                }
+            } catch { }
+            link.classList.remove('active');
+            link.removeAttribute('aria-current');
+        });
+
         if (!hasActive) {
             links.forEach(a => {
                 if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;
                 try {
-                    const path = new URL(a.getAttribute('href'), location.origin).pathname.replace(/\/+$/, '');
+                    const path = normalize(new URL(a.getAttribute('href'), location.origin).pathname);
                     if (path && (path === here || (path !== '/' && here.startsWith(path + '/')))) {
                         a.classList.add('active');
                         a.setAttribute('aria-current', 'page');
@@ -313,7 +327,7 @@
             });
         }
 
-        // MantÃ©m visual ativo ao clicar (SPA / antes do reload)
+        // Mantém visual ativo ao clicar (SPA / antes do reload)
         links.forEach(a => {
             a.addEventListener('click', () => {
                 if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;
