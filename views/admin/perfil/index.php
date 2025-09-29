@@ -1,31 +1,7 @@
 <?php
 $pageTitle = $pageTitle ?? 'Meu Perfil';
 $menu      = $menu ?? 'perfil';
-$user      = $user ?? null;
-
-$avatarUrl = $user && !empty($user->avatar)
-    ? rtrim(BASE_URL, '/') . '/' . $user->avatar
-    : rtrim(BASE_URL, '/') . '/assets/img/avatar-placeholder.png';
-
-function esc($v)
-{
-    return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8');
-}
-/** @var \Application\Models\Usuario|null $user */
-
-$rawNasc = $user?->data_nascimento ?? null;
-$dtNasc  = '';
-if (!empty($rawNasc)) {
-    $ts = strtotime((string)$rawNasc);
-    if ($ts) $dtNasc = date('Y-m-d', $ts);
-}
-
-if (!empty($user->data_nascimento)) {
-    $ts = strtotime((string)$user->data_nascimento);
-    if ($ts) $dtNasc = date('Y-m-d', $ts);
-}
 ?>
-
 
 <div class="profile-container container">
     <div class="profile-header">
@@ -38,41 +14,40 @@ if (!empty($user->data_nascimento)) {
         <form id="profileForm" class="profile-form">
             <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
-            <!-- DADOS BÁSICOS -->
+            <!-- DADOS BASICOS -->
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">Nome completo</label>
-                    <input class="form-input" name="nome" type="text" value="<?= esc($user->nome ?? '') ?>" required>
+                    <label class="form-label" for="nome">Nome completo</label>
+                    <input class="form-input" id="nome" name="nome" type="text" value="" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">E-mail</label>
-                    <input class="form-input" name="email" type="email" value="<?= esc($user->email ?? '') ?>" required>
+                    <label class="form-label" for="email">E-mail</label>
+                    <input class="form-input" id="email" name="email" type="email" value="" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">CPF</label>
+                    <label class="form-label" for="cpf">CPF</label>
                     <input class="form-input" id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14"
-                        placeholder="000.000.000-00" value="<?= esc($user->cpf ?? '') ?>">
+                        placeholder="000.000.000-00" value="">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Data de nascimento</label>
+                    <label class="form-label" for="data_nascimento">Data de nascimento</label>
                     <input class="form-input" id="data_nascimento" name="data_nascimento" type="date"
-                        value="<?= esc($dtNasc) ?>" max="<?= date('Y-m-d') ?>">
+                        value="" max="<?= date('Y-m-d') ?>">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Telefone</label>
+                    <label class="form-label" for="telefone">Telefone</label>
                     <input class="form-input" id="telefone" name="telefone" type="tel" inputmode="tel" maxlength="15"
-                        placeholder="(00) 00000-0000" value="<?= esc($user->telefone ?? '') ?>">
+                        placeholder="(00) 00000-0000" value="">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Sexo</label>
+                    <label class="form-label" for="sexo">Sexo</label>
                     <select class="form-input form-select" name="sexo" id="sexo">
-                        <?php $sx = $user->sexo ?? ''; ?>
-                        <option value="" <?= $sx === '' ? 'selected' : '' ?>>Selecione</option>
-                        <option value="M" <?= $sx === 'M' ? 'selected' : '' ?>>Masculino</option>
-                        <option value="F" <?= $sx === 'F' ? 'selected' : '' ?>>Feminino</option>
-                        <option value="O" <?= $sx === 'O' ? 'selected' : '' ?>>Outro</option>
-                        <option value="N" <?= $sx === 'N' ? 'selected' : '' ?>>Prefiro não informar</option>
+                        <option value="" selected>Selecione</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                        <option value="O">Outro</option>
+                        <option value="N">Prefiro nao informar</option>
                     </select>
                 </div>
             </div>
@@ -83,30 +58,30 @@ if (!empty($user->data_nascimento)) {
             <h3 class="section-title">Alterar senha</h3>
             <div class="password-grid">
                 <div class="form-group">
-                    <label class="form-label">Senha atual</label>
-                    <input class="form-input" name="senha_atual" type="password" autocomplete="current-password">
+                    <label class="form-label" for="senha_atual">Senha atual</label>
+                    <input class="form-input" id="senha_atual" name="senha_atual" type="password" autocomplete="current-password">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Nova senha</label>
-                    <input class="form-input" name="nova_senha" type="password" autocomplete="new-password"
+                    <label class="form-label" for="nova_senha">Nova senha</label>
+                    <input class="form-input" id="nova_senha" name="nova_senha" type="password" autocomplete="new-password"
                         minlength="6">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Confirmar senha</label>
-                    <input class="form-input" name="conf_senha" type="password" autocomplete="new-password"
+                    <label class="form-label" for="conf_senha">Confirmar senha</label>
+                    <input class="form-input" id="conf_senha" name="conf_senha" type="password" autocomplete="new-password"
                         minlength="6">
                 </div>
             </div>
 
             <!-- Upload de avatar (oculto) -->
             <div class="form-group" style="display: none;">
-                <label class="form-label">Avatar</label>
+                <label class="form-label" for="avatarInput">Avatar</label>
                 <input class="form-input" type="file" id="avatarInput" name="avatar" accept="image/*">
             </div>
 
             <div class="form-actions">
                 <button type="button" class="btn btn-ghost" id="btnCancel">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar alterações</button>
+                <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
             </div>
         </form>
     </div>
@@ -127,13 +102,28 @@ if (!empty($user->data_nascimento)) {
         }
         return base.replace(/\/?$/, '/');
     })();
+    const API = `${BASE}api/`;
 
     const form = document.getElementById('profileForm');
     const inputAva = document.getElementById('avatarInput');
     const imgPrev = document.getElementById('avatarPreview');
     const btnCancel = document.getElementById('btnCancel');
 
-    // ===== Máscaras simples (sem libs) =====
+    const fieldNome = document.getElementById('nome');
+    const fieldEmail = document.getElementById('email');
+    const fieldCpf = document.getElementById('cpf');
+    const fieldData = document.getElementById('data_nascimento');
+    const fieldTelefone = document.getElementById('telefone');
+    const fieldSexo = document.getElementById('sexo');
+
+    const placeholderAvatar = `${BASE}assets/img/avatar-placeholder.png`;
+    const resolveAvatarUrl = (value) => {
+        if (!value) return placeholderAvatar;
+        if (/^https?:/i.test(value)) return value;
+        return `${BASE}${String(value).replace(/^\//, '')}`;
+    };
+
+    // Mascaras simples
     const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
 
     function maskCPF(v) {
@@ -153,32 +143,28 @@ if (!empty($user->data_nascimento)) {
                 .replace(/^(\d{0,2})/, '($1')
                 .replace(/^\((\d{2})(\d)/, '($1) $2')
                 .replace(/(\d{4})(\d)/, '$1-$2');
-        } else {
-            return v
-                .replace(/^(\d{0,2})/, '($1')
-                .replace(/^\((\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{5})(\d)/, '$1-$2');
         }
+        return v
+            .replace(/^(\d{0,2})/, '($1')
+            .replace(/^\((\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2');
     }
 
-    const $cpf = document.getElementById('cpf');
-    const $tel = document.getElementById('telefone');
-
-    if ($cpf) {
-        $cpf.addEventListener('input', () => $cpf.value = maskCPF($cpf.value));
-        if ($cpf.value) $cpf.value = maskCPF($cpf.value);
+    if (fieldCpf) {
+        fieldCpf.addEventListener('input', () => {
+            fieldCpf.value = maskCPF(fieldCpf.value);
+        });
     }
 
-    if ($tel) {
-        $tel.addEventListener('input', () => $tel.value = maskPhone($tel.value));
-        if ($tel.value) $tel.value = maskPhone($tel.value);
+    if (fieldTelefone) {
+        fieldTelefone.addEventListener('input', () => {
+            fieldTelefone.value = maskPhone(fieldTelefone.value);
+        });
     }
 
-    // Preview do avatar
     inputAva?.addEventListener('change', () => {
-        const f = inputAva.files?. [0];
-        if (!f) return;
-        if (!f.type.match(/^image\//)) return;
+        const f = inputAva.files?.[0];
+        if (!f || !f.type.match(/^image\//)) return;
         const url = URL.createObjectURL(f);
         if (imgPrev) {
             imgPrev.src = url;
@@ -186,7 +172,6 @@ if (!empty($user->data_nascimento)) {
         }
     });
 
-    // Botão cancelar
     btnCancel?.addEventListener('click', () => {
         if (history.length > 1) {
             history.back();
@@ -195,42 +180,72 @@ if (!empty($user->data_nascimento)) {
         }
     });
 
-    // Validações
     function validateBeforeSubmit(fd) {
         const rawCPF = (fd.get('cpf') || '').toString();
         if (rawCPF && onlyDigits(rawCPF).length !== 11) {
-            throw new Error('CPF inválido. Verifique e tente novamente.');
+            throw new Error('CPF invalido. Verifique e tente novamente.');
         }
 
         const ns = (fd.get('nova_senha') || '').toString();
         const cs = (fd.get('conf_senha') || '').toString();
         if (ns || cs) {
             if (ns.length < 6) throw new Error('A nova senha deve ter ao menos 6 caracteres.');
-            if (ns !== cs) throw new Error('A confirmação de senha não confere.');
+            if (ns !== cs) throw new Error('A confirmacao de senha nao confere.');
         }
 
         const dn = (fd.get('data_nascimento') || '').toString();
         if (dn && new Date(dn) > new Date()) {
-            throw new Error('A data de nascimento não pode ser futura.');
+            throw new Error('A data de nascimento nao pode ser futura.');
         }
     }
 
-    // Submit do formulário
+    async function loadProfile() {
+        if (!form) return;
+        try {
+            const res = await fetch(`${API}perfil`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            const j = await res.json().catch(() => null);
+            if (!res.ok || j?.status !== 'success') {
+                throw new Error(j?.message || 'Falha ao carregar perfil.');
+            }
+            const user = j?.data?.user || {};
+
+            if (fieldNome) fieldNome.value = user.nome || '';
+            if (fieldEmail) fieldEmail.value = user.email || '';
+            if (fieldCpf) fieldCpf.value = user.cpf || '';
+            if (fieldData) fieldData.value = user.data_nascimento || '';
+            if (fieldTelefone) fieldTelefone.value = user.telefone || '';
+            if (fieldSexo) fieldSexo.value = user.sexo || '';
+            if (imgPrev) imgPrev.src = resolveAvatarUrl(user.avatar);
+        } catch (err) {
+            console.error(err);
+            window.Swal?.fire?.({
+                icon: 'error',
+                title: 'Erro ao carregar',
+                text: err.message || 'Nao foi possivel carregar o perfil.',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    }
+
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        // Adiciona estado de loading
         form.classList.add('form-loading');
         const submitBtn = form.querySelector('.btn-primary');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Salvando...';
+        const originalText = submitBtn?.textContent || '';
+        if (submitBtn) submitBtn.textContent = 'Salvando...';
 
         const fd = new FormData(form);
 
         try {
             validateBeforeSubmit(fd);
 
-            const r = await fetch(`${BASE}api/perfil`, {
+            const r = await fetch(`${API}perfil`, {
                 method: 'POST',
                 credentials: 'include',
                 body: fd
@@ -241,27 +256,28 @@ if (!empty($user->data_nascimento)) {
                 throw new Error(j?.message || 'Falha ao salvar.');
             }
 
-            // Feedback de sucesso
             window.Swal?.fire?.({
                 icon: 'success',
                 title: 'Perfil atualizado com sucesso!',
-                text: 'Suas informações foram salvas.',
+                text: 'Suas informacoes foram salvas.',
                 confirmButtonColor: '#e67e22'
             });
 
+            await loadProfile();
         } catch (err) {
             console.error(err);
             window.Swal?.fire?.({
                 icon: 'error',
                 title: 'Erro ao salvar',
-                text: err.message || 'Erro ao salvar perfil',
+                text: err.message || 'Erro ao salvar perfil.',
                 confirmButtonColor: '#e74c3c'
             });
         } finally {
-            // Remove estado de loading
             form.classList.remove('form-loading');
-            submitBtn.textContent = originalText;
+            if (submitBtn) submitBtn.textContent = originalText;
         }
     });
+
+    loadProfile();
 })();
 </script>

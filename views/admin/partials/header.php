@@ -95,9 +95,12 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i
-                class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
         <nav class="sidebar-nav">
+            <button id="toggleTheme" type="button" class="nav-item theme-toggle" aria-label="Alternar tema"
+                title="Modo claro/escuro">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </button>
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
             <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>" <?= $aria('contas')      ?>

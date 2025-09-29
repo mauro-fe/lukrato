@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Application\Core\Router;
 
@@ -55,7 +55,6 @@ function registerAppRoutes(): void
     Router::add('GET',  'config',             'Admin\ConfigController@index',        ['auth']);
     Router::add('POST', 'api/config',         'Api\ConfigController@update',         ['auth', 'csrf']);
     Router::add('GET',  'perfil',             'Admin\PerfilController@index',        ['auth']);
-    Router::add('POST', 'api/perfil',         'Api\PerfilController@update',         ['auth', 'csrf']);
     Router::add('GET',  'contas',             'Admin\ContasController@index',        ['auth']);
     Router::add('GET',  'contas/arquivadas',  'Admin\ContasController@archived',     ['auth']);
     Router::add('GET',  'categorias',         'Admin\CategoriaController@index',     ['auth']);
@@ -63,18 +62,16 @@ function registerAppRoutes(): void
     Router::add('GET',  'admin/home',               'Admin\DashboardController@index',   ['auth']);
     Router::add('GET',  'admin/dashboard-financas', 'Admin\DashboardController@index',   ['auth']);
     Router::add('GET',  'admin/accounts',           'Admin\ContasController@index',      ['auth']);
-    Router::add('POST', 'admin/accounts',           'Admin\ContasController@store',      ['auth', 'csrf']);
-    Router::add('POST', 'admin/accounts/{id}/delete', 'Admin\ContasController@destroy',   ['auth', 'csrf']);
     Router::add('GET',  'admin/categories',         'Admin\CategoriaController@index',   ['auth']);
-    Router::add('POST', 'admin/categories',         'Admin\CategoriaController@store',   ['auth', 'csrf']);
-    Router::add('POST', 'admin/categories/{id}/delete', 'Admin\CategoriaController@destroy', ['auth', 'csrf']);
     Router::add('GET',  'admin/transactions',       'Admin\TransactionController@index', ['auth']);
-    Router::add('POST', 'admin/transactions',       'Admin\TransactionController@store', ['auth', 'csrf']);
 
 
 
     function registerApiRoutes(): void
     {
+        Router::add('GET',  'api/perfil',             'Api\PerfilController@show',   ['auth']);
+        Router::add('POST', 'api/perfil',             'Api\PerfilController@update', ['auth', 'csrf']);
+
         Router::add('GET',  'api/dashboard/metrics',   'Api\FinanceiroController@metrics',   ['auth']);
         Router::add('GET',  'api/options',             'Api\FinanceiroController@options',   ['auth']);
 
