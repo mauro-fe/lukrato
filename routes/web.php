@@ -81,27 +81,27 @@ function registerAppRoutes(): void
         Router::add('GET',  'api/reports',             'Api\RelatoriosController@index',     ['auth']);
 
         Router::add('GET',     'api/lancamentos',          'Api\LancamentosController@index',   ['auth']);
-        Router::add('DELETE',  'api/lancamentos/{id:\d+}', 'Api\LancamentosController@destroy', ['auth', 'csrf']);
+        Router::add('DELETE',  'api/lancamentos/{id}', 'Api\LancamentosController@destroy', ['auth', 'csrf']);
 
         Router::add('POST', 'api/transactions',  'Api\FinanceiroController@store',    ['auth', 'csrf']);
         Router::add('POST', 'api/transfers',     'Api\FinanceiroController@transfer', ['auth', 'csrf']);
 
         Router::add('GET',     'api/accounts',                 'Api\ContasController@index',   ['auth']);
         Router::add('POST',    'api/accounts',                 'Api\ContasController@store',   ['auth', 'csrf']);
-        Router::add('PUT',     'api/accounts/{id:\d+}',        'Api\ContasController@update',  ['auth', 'csrf']);
-        Router::add('DELETE',  'api/accounts/{id:\d+}',        'Api\ContasController@destroy', ['auth', 'csrf']);
+        Router::add('PUT',     'api/accounts/{id}',        'Api\ContasController@update',  ['auth', 'csrf']);
+        Router::add('DELETE',  'api/accounts/{id}',        'Api\ContasController@destroy', ['auth', 'csrf']);
 
-        Router::add('POST',    'api/accounts/{id:\d+}/archive', 'Api\ContasController@archive', ['auth', 'csrf']);
-        Router::add('POST',    'api/accounts/{id:\d+}/restore', 'Api\ContasController@restore', ['auth', 'csrf']);
-        Router::add('POST',    'api/accounts/{id:\d+}/delete', 'Api\ContasController@hardDelete', ['auth', 'csrf']);
+        Router::add('POST',    'api/accounts/{id}/archive', 'Api\ContasController@archive', ['auth', 'csrf']);
+        Router::add('POST',    'api/accounts/{id}/restore', 'Api\ContasController@restore', ['auth', 'csrf']);
+        Router::add('POST',    'api/accounts/{id}/delete', 'Api\ContasController@hardDelete', ['auth', 'csrf']);
 
-        Router::add('POST',    '/api/accounts/{id:\d+}/update', 'Api\ContasController@update',  ['auth', 'csrf']);
-        Router::add('POST',    '/api/accounts/{id:\d+}/destroy', 'Api\ContasController@destroy', ['auth', 'csrf']); // (se quiser)
+        Router::add('POST',    '/api/accounts/{id}/update', 'Api\ContasController@update',  ['auth', 'csrf']);
+        Router::add('POST',    '/api/accounts/{id}/destroy', 'Api\ContasController@destroy', ['auth', 'csrf']); // (se quiser)
 
         Router::add('GET',  '/api/categorias',                   'Api\CategoriaController@index',  ['auth']);
         Router::add('POST', '/api/categorias',                   'Api\CategoriaController@store',  ['auth', 'csrf']);
 
-        Router::add('POST', '/api/categorias/{id:\d+}/delete',   'Api\CategoriaController@delete', ['auth', 'csrf']);
+        Router::add('POST', '/api/categorias/{id}/delete',   'Api\CategoriaController@delete', ['auth', 'csrf']);
         Router::add('POST', '/api/categorias/delete',            'Api\CategoriaController@delete', ['auth', 'csrf']);
 
         Router::add('GET',  '/api/user/theme', 'Api\PreferenciaUsuarioController@show',   ['auth']);
