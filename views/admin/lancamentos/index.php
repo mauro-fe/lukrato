@@ -268,10 +268,12 @@
 
         async function apiDeleteOne(id) {
             try {
+                const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
                 const res = await fetch(`${ENDPOINT}/${encodeURIComponent(id)}`, {
                     method: 'DELETE',
                     headers: {
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token
                     }
                 });
                 return res.ok;
@@ -282,15 +284,16 @@
 
         async function apiBulkDelete(ids) {
             try {
+                const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
+                const payload = { ids, _token: token, csrf_token: token };
                 const res = await fetch(`${ENDPOINT}delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token
                     },
-                    body: JSON.stringify({
-                        ids
-                    })
+                    body: JSON.stringify(payload)
                 });
                 if (res.ok) return true;
             } catch {}

@@ -4,7 +4,7 @@ namespace Application\Middlewares;
 
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
-
+use Application\Services\LogService;
 
 class CsrfMiddleware
 {
@@ -13,9 +13,6 @@ class CsrfMiddleware
 
     /**
      * Gera um novo token CSRF para um identificador específico (formulário).
-     *
-     * @param string $tokenId
-     * @return string
      */
     public static function generateToken(string $tokenId = 'default'): string
     {
@@ -34,7 +31,7 @@ class CsrfMiddleware
         $token = bin2hex(random_bytes(32));
         $_SESSION['csrf_tokens'][$tokenId] = [
             'value' => $token,
-            'time' => time()
+            'time'  => time(),
         ];
 
         return $token;
@@ -42,10 +39,6 @@ class CsrfMiddleware
 
     /**
      * Valida o token CSRF para um identificador de formulário.
-     *
-     * @param string $token
-     * @param string $tokenId
-     * @return bool
      */
     public static function validateToken(string $token, string $tokenId = 'default'): bool
     {
@@ -69,47 +62,103 @@ class CsrfMiddleware
             return false;
         }
 
-        return hash_equals($stored['value'], $token);
+        return hash_equals((string) $stored['value'], (string) $token);
     }
 
     /**
-     * Middleware de validação global (usa 'default' como tokenId)
+     * Middleware de validação global (usa 'default' como tokenId por padrão)
      *
-     * @param Request $request
      * @throws ValidationException
      */
     public static function handle(Request $request, string $tokenId = 'default'): void
     {
-
-        // file_put_contents('debug_session_id.txt', session_id());
-
-
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
 
-        if (!in_array($request->method(), ['POST', 'PUT', 'DELETE'])) {
+        // Métodos "seguros"
+        $method = strtoupper($request->method());
+        if (in_array($method, ['GET', 'HEAD', 'OPTIONS'], true)) {
             return;
         }
 
-        // file_put_contents('debug_csrf.txt', print_r([
-        //     'tokenId' => $tokenId,
-        //     'session_tokens' => $_SESSION['csrf_tokens'] ?? null,
-        //     'post_token' => $request->get('csrf_token'),
-        //     'header_token' => $request->header('X-CSRF-TOKEN'),
-        // ], true));
+        // Extração tolerante de token (body form, header, json)
+        [$token, $source] = self::extractToken($request);
 
-        $token = $request->get('csrf_token') ?: $request->header('X-CSRF-TOKEN');
+        // Validação
+        $valid = is_string($token) && self::validateToken($token, $tokenId);
 
-        if (!self::validateToken((string)$token, $tokenId)) {
-            // file_put_contents('debug_csrf_tokenId.txt', $tokenId);
+        if (!$valid) {
+            // Dados para log (sem vazar valor do token)
+            $expected = $_SESSION['csrf_tokens'][$tokenId]['value'] ?? null;
 
+            LogService::warning('CSRF bloqueado', [
+                'tokenId'        => $tokenId,
+                'method'         => $method,
+                'path'           => $_SERVER['REQUEST_URI'] ?? null,
+                'content_type'   => $_SERVER['CONTENT_TYPE'] ?? null,
+                'has_token'      => $token ? true : false,
+                'token_source'   => $source, // 'body', 'header', 'json', 'none'
+                'expected_len'   => is_string($expected) ? strlen($expected) : null,
+                'provided_len'   => is_string($token) ? strlen($token) : null,
+                'reason'         => !isset($_SESSION['csrf_tokens'][$tokenId]) ? 'missing_expected'
+                    : ($token ? 'mismatch_or_expired' : 'missing_client_token'),
+                'session_id'     => session_id(),
+                'user_id'        => $_SESSION['user_id'] ?? $_SESSION['admin_id'] ?? null,
+            ]);
+
+            // Mensagem clara para o cliente
             throw new ValidationException([
-                'csrf_token' => "Token CSRF inválido ou expirado (tokenId: $tokenId). Recarregue a página."
+                'csrf_token' => "Token CSRF inválido ou expirado (tokenId: {$tokenId}). Recarregue a página."
             ], 403);
         }
     }
 
+    /**
+     * Tenta extrair o token do request (form, header e json). Retorna [token, source].
+     */
+    private static function extractToken(Request $request): array
+    {
+        // 1) Tentativas em parâmetros (form/query)
+        //   - aceita 'csrf_token' e '_token'
+        $token = (string) ($request->get('csrf_token') ?? $request->get('_token') ?? '');
+
+        if ($token !== '') {
+            return [$token, 'body'];
+        }
+
+        // 2) Headers (variações comuns)
+        $headersToCheck = [
+            'X-CSRF-TOKEN',
+            'X-CSRF-Token',
+            'X-Csrf-Token',
+        ];
+        foreach ($headersToCheck as $h) {
+            $hv = $request->header($h);
+            if (is_string($hv) && $hv !== '') {
+                return [$hv, 'header'];
+            }
+        }
+        // fallback direto do PHP (caso framework não normalize)
+        $hv = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (is_string($hv) && $hv !== '') {
+            return [$hv, 'header'];
+        }
+
+        // 3) JSON body (para fetch com application/json)
+        $raw = file_get_contents('php://input');
+        if (is_string($raw) && $raw !== '') {
+            $json = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+                $jToken = (string) ($json['csrf_token'] ?? $json['_token'] ?? '');
+                if ($jToken !== '') {
+                    return [$jToken, 'json'];
+                }
+            }
+        }
+
+        return ['', 'none'];
+    }
 
     /**
      * Remove tokens expirados da sessão

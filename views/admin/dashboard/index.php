@@ -14,7 +14,9 @@ $aria   = function (string $key) use ($menu) {
 };
 ?>
 
-<section class="container">
+
+
+<section class="container dashboard-page">
     <div>
         <h3>Dashboard</h3>
     </div>
@@ -590,14 +592,14 @@ $aria   = function (string $key) use ($menu) {
                         const contaTxt = getContaLabel(t);
 
                         tr.innerHTML = `
-  <td>${dateBR(t.data)}</td>
-  <td>${String(t.tipo||'').replace(/_/g,' ')}</td>
-  <td>${categoriaTxt}</td>
-  <td>${contaTxt}</td>
-  <td>${t.descricao || t.observacao || '—'}</td>
-  <td style="font-weight:700;color:${color}">${money(Number(t.valor)||0)}</td>
-  <td class="text-end">
-    <button class="lk-btn danger btn-del" title="Excluir" aria-label="Excluir">
+  <td data-label="Data">${dateBR(t.data)}</td>
+  <td data-label="Tipo">${(String(t.tipo||'').replace(/_/g,' ') || '--')}</td>
+  <td data-label="Categoria">${categoriaTxt}</td>
+  <td data-label="Conta">${contaTxt}</td>
+  <td data-label="Descricao">${t.descricao || t.observacao || '--'}</td>
+  <td data-label="Valor" style="font-weight:700;color:${color}">${money(Number(t.valor)||0)}</td>
+  <td data-label="Acoes" class="text-end">
+    <button type="button" class="lk-btn danger btn-del" data-id="${t.id}" title="Excluir" aria-label="Excluir lancamento">
       <i class="fas fa-trash"></i>
     </button>
   </td>`;

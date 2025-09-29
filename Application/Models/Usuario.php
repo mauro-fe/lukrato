@@ -28,7 +28,6 @@ class Usuario extends Model
         'data_nascimento' => 'date:Y-m-d',
     ];
 
-
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
@@ -63,8 +62,8 @@ class Usuario extends Model
 
     public function telefonePrincipal()
     {
-        return $this->hasOne(Telefone::class, 'id_usuario')
-            ->oldestOfMany();
+        return $this->hasOne(Telefone::class, 'id_usuario', 'id')
+            ->orderBy('id_telefone');
     }
 
     public function getCpfNumeroAttribute(): ?string

@@ -1,6 +1,7 @@
 
 // ====== BASE_URL a partir do <meta name="base-url"> ======
 (function () {
+
     const m = document.querySelector('meta[name="base-url"]');
     let base = (m && m.content) ? m.content : (location.origin + '/');
     if (!/\/$/.test(base)) base += '/';
@@ -9,6 +10,7 @@
 
 // ====== App (FAB, Modal, Options, Submit) ======
 (function () {
+
     const BASE = window.BASE_URL || '/';
     const $ = (s, sc = document) => sc.querySelector(s);
     const $$ = (s, sc = document) => Array.from(sc.querySelectorAll(s));
@@ -23,18 +25,40 @@
         return isNaN(n) ? 0 : Number(n.toFixed(2));
     }
     async function fetchJSON(url, opts = {}) {
-        const r = await fetch(url, { credentials: 'include', ...opts });
+        const method = (opts.method || 'GET').toUpperCase();
+        const headers = Object.assign({}, opts.headers || {});
+        const isJson = (headers['Content-Type'] || headers['content-type'] || '').includes('application/json');
+
+        // injeta CSRF para POST/PUT/DELETE com JSON
+        if (method !== 'GET' && isJson) {
+            const token = LK.getCSRF();
+            headers['X-CSRF-TOKEN'] = token;
+
+            // mescla o payload com os campos de CSRF
+            let payload = {};
+            try { payload = opts.body ? JSON.parse(opts.body) : {}; } catch { payload = {}; }
+            opts.body = JSON.stringify({ ...payload, _token: token, csrf_token: token });
+        }
+
+        const r = await fetch(url, { credentials: 'include', ...opts, headers });
         let payload = null; try { payload = await r.json(); } catch { }
-        if (!r.ok || (payload && (payload.error || payload.status === 'error'))) {
+        if (!r.ok) {
+            if (r.status === 403) throw new Error('Sessão expirada ou CSRF inválido. Recarregue a página e tente novamente.');
+            if (r.status === 422) throw new Error(payload?.message || 'Dados inválidos.');
+            throw new Error(payload?.message || payload?.error || `Erro ${r.status}`);
+        }
+        if (payload && (payload.error || payload.status === 'error')) {
             throw new Error(payload?.message || payload?.error || 'Erro na requisição');
         }
         return payload;
     }
+
     const apiOptions = () => fetchJSON(BASE + 'api/options');
     const apiCreate = (payload) => fetchJSON(BASE + 'api/transactions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
     });
-
     // --- API: contas ativas ---
     const apiAccounts = () => fetchJSON(BASE + 'api/accounts?only_active=1');
 
@@ -267,19 +291,33 @@
         }).then(r => { if (r.isConfirmed) window.location.href = url; });
     });
 
-    // ---------- Sidebar ativo (apenas texto + ícone em laranja) ----------
+    // ---------- Sidebar ativo (apenas texto + �cone em laranja) ----------
     (function initSidebarActive() {
         const links = $$('.sidebar .nav-item[href]');
-        const here = location.pathname.replace(/\/+$/, '');
-        // Se o PHP já marcou algum ativo, respeita
-        let hasActive = !!document.querySelector('.sidebar .nav-item.active,[aria-current="page"]');
+        const normalize = (p) => (p || '').replace(/\/+$/, '');
+        const here = normalize(location.pathname);
 
-        // Marca pelo URL atual se nada veio do PHP
+        let hasActive = false;
+        const currentActives = Array.from(document.querySelectorAll('.sidebar .nav-item.active,[aria-current="page"]'));
+
+        currentActives.forEach(link => {
+            if (!link || link.id === 'btn-logout' || link.hasAttribute('data-no-active')) return;
+            try {
+                const path = normalize(new URL(link.getAttribute('href'), location.origin).pathname);
+                if (path && (path === here || (path !== '/' && here.startsWith(path + '/')))) {
+                    hasActive = true;
+                    return;
+                }
+            } catch { }
+            link.classList.remove('active');
+            link.removeAttribute('aria-current');
+        });
+
         if (!hasActive) {
             links.forEach(a => {
                 if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;
                 try {
-                    const path = new URL(a.getAttribute('href'), location.origin).pathname.replace(/\/+$/, '');
+                    const path = normalize(new URL(a.getAttribute('href'), location.origin).pathname);
                     if (path && (path === here || (path !== '/' && here.startsWith(path + '/')))) {
                         a.classList.add('active');
                         a.setAttribute('aria-current', 'page');
@@ -289,7 +327,7 @@
             });
         }
 
-        // Mantém visual ativo ao clicar (SPA / antes do reload)
+        // Mant�m visual ativo ao clicar (SPA / antes do reload)
         links.forEach(a => {
             a.addEventListener('click', () => {
                 if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;

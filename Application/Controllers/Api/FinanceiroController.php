@@ -10,7 +10,7 @@ use Application\Models\Conta;
 use Carbon\Carbon;
 use Application\Lib\Auth;
 
-class FinanceApiController
+class FinanceiroController
 {
     public function metrics(): void
     {

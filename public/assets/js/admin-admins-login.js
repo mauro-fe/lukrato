@@ -1,3 +1,5 @@
+
+
 document.addEventListener('DOMContentLoaded', () => {
     /* ===================== TABS ===================== */
     const card = document.querySelector('.auth-tabs-card');
@@ -137,8 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (window.Swal) Swal.fire({ icon: 'success', title: 'Login bem-sucedido!', timer: 1200, showConfirmButton: false });
                     else showMessage('success', 'Login realizado! Redirecionando…');
                     setTimeout(() => {
-                        window.location.href = data.redirect || (window.BASE_URL ? BASE_URL + 'dashboard' : '/dashboard');
+                        window.location.href = (data && data.redirect) ? data.redirect : (BASE_URL + 'login');
                     }, 1200);
+
                 } else {
                     if (data?.field === 'password') {
                         showFieldErrorById('password', data.message || 'Senha incorreta.');
@@ -229,7 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // SUCESSO
                 if (resp.ok && data) {
                     if (boxOk) boxOk.textContent = data.message || 'Conta criada com sucesso!';
-                    setTimeout(() => { window.location.href = data.redirect || (window.BASE_URL ? BASE_URL + 'dashboard' : '/dashboard'); }, 800);
+                    setTimeout(() => {
+                        window.location.href = (data && data.redirect) ? data.redirect : (BASE_URL + 'login');
+                    }, 800);
+
                     return;
                 }
 
