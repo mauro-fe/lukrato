@@ -5,6 +5,7 @@ namespace Application\Models;
 use Illuminate\Database\Eloquent\Model;
 use Application\Services\LogService;
 
+
 class Usuario extends Model
 {
     protected $table = 'usuarios';
@@ -18,7 +19,7 @@ class Usuario extends Model
         'theme_preference',
         'username',
         'data_nascimento',
-        'id_sexo',              // ✅ novo: FK para sexos
+        'id_sexo',
     ];
 
     protected $hidden = ['senha', 'password'];
@@ -27,7 +28,7 @@ class Usuario extends Model
         'data_nascimento' => 'date:Y-m-d',
     ];
 
-    // ----------------- Relacionamentos já existentes -----------------
+
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
@@ -41,35 +42,31 @@ class Usuario extends Model
         return $this->hasMany(Conta::class, 'user_id');
     }
 
-    // ----------------- Novos/ajustados -----------------
     public function sexo()
     {
-        return $this->belongsTo(\Application\Models\Sexo::class, 'id_sexo', 'id_sexo');
+        return $this->belongsTo(Sexo::class, 'id_sexo', 'id_sexo');
     }
     public function documentos()
     {
-        return $this->hasMany(\Application\Models\Documento::class, 'id_usuario');
+        return $this->hasMany(Documento::class, 'id_usuario');
     }
     public function telefones()
     {
-        return $this->hasMany(\Application\Models\Telefone::class, 'id_usuario');
+        return $this->hasMany(Telefone::class, 'id_usuario');
     }
 
-    // CPF (documento do tipo CPF)
     public function cpfDocumento()
     {
-        return $this->hasOne(\Application\Models\Documento::class, 'id_usuario')
+        return $this->hasOne(Documento::class, 'id_usuario')
             ->whereHas('tipo', fn($q) => $q->where('ds_tipo', 'CPF'));
     }
 
-    // Telefone "principal": o primeiro cadastrado
     public function telefonePrincipal()
     {
-        return $this->hasOne(\Application\Models\Telefone::class, 'id_usuario')
-            ->oldestOfMany(); // requer Eloquent >= 8.x; se não tiver, troque por orderBy('id_telefone')
+        return $this->hasOne(Telefone::class, 'id_usuario')
+            ->oldestOfMany();
     }
 
-    // -------- Helpers de leitura (opcional, úteis no controller/API) --------
     public function getCpfNumeroAttribute(): ?string
     {
         return $this->cpfDocumento()->value('numero');
@@ -83,31 +80,6 @@ class Usuario extends Model
         return $ddd ? sprintf('(%s) %s', $ddd, $tel->numero) : $tel->numero;
     }
 
-    // ----------------- Boot: limpo (sem normalizar cpf/telefone/sexo) -----------------
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function (Usuario $u) {
-            if (!empty($u->email))  $u->email = trim(strtolower($u->email));
-            if (isset($u->nome))    $u->nome  = trim((string)$u->nome);
-
-            if (!empty($u->data_nascimento)) {
-                $ts = strtotime((string)$u->data_nascimento);
-                $u->data_nascimento = $ts ? date('Y-m-d', $ts) : null;
-            }
-
-            // hash de senha garantido
-            if ($u->isDirty('senha')) {
-                $raw = (string) $u->senha;
-                if ($raw !== '' && !self::valueLooksHashed($raw)) {
-                    $u->attributes['senha'] = password_hash($raw, PASSWORD_BCRYPT);
-                }
-            }
-        });
-    }
-
-    // ----------------- Scopes úteis -----------------
     public function scopeByEmail($query, string $email)
     {
         return $query->whereRaw('LOWER(email) = ?', [trim(strtolower($email))]);
@@ -118,14 +90,12 @@ class Usuario extends Model
         return $query->where('username', trim($username));
     }
 
-    // se ainda precisar buscar por CPF, agora via join com documentos
     public function scopeByCpf($query, string $cpf)
     {
         $cpf = preg_replace('/\D+/', '', $cpf);
         return $query->whereHas('cpfDocumento', fn($q) => $q->where('numero', $cpf));
     }
 
-    // ----------------- Senha -----------------
     public function setSenhaAttribute($value): void
     {
         if ($value === null || $value === '') return;
@@ -152,7 +122,6 @@ class Usuario extends Model
         return !empty($info) && !empty($info['algo']) && $info['algo'] !== 0;
     }
 
-    // ----------------- Ajudinhas -----------------
     public function getPrimeiroNomeAttribute(): string
     {
         $p = trim((string) $this->nome);

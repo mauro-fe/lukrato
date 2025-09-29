@@ -56,10 +56,10 @@ class RegisterController extends BaseController
             $user->nome  = $data['nome'];
             $user->email = strtolower(trim($data['email']));
 
-            $raw = (string) $data['senha'];
-            $user->senha = password_get_info($raw)['algo'] !== 0
-                ? $raw
-                : password_hash($raw, PASSWORD_BCRYPT);
+            $senhaRaw = (string) $data['senha'];
+            $user->senha = password_get_info($senhaRaw)['algo'] !== 0
+                ? $senhaRaw
+                : password_hash($senhaRaw, PASSWORD_BCRYPT);
 
             $user->save();
 

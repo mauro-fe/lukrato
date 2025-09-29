@@ -1,6 +1,7 @@
 <?php loadPageCss(); ?>
-
+<link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
 <main class="lukrato-auth">
+
     <div class="login-wrapper">
         <section class="login-left">
             <div class="brand">
