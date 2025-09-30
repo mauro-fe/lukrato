@@ -200,7 +200,6 @@ class FinanceiroController
                 $contaId = null;
             }
 
-            // ---- persiste
             $t = new Lancamento();
             $t->user_id          = $uid;
             $t->tipo             = $tipo;
@@ -225,7 +224,6 @@ class FinanceiroController
             $uid  = Auth::id();
             $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-            // -------- validações --------
             $dataStr = (string)($data['data'] ?? date('Y-m-d'));
             $dt = \DateTime::createFromFormat('Y-m-d', $dataStr);
             if (!$dt || $dt->format('Y-m-d') !== $dataStr) {
