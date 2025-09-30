@@ -18,7 +18,7 @@ class Usuario extends Model
         'theme_preference',
         'username',
         'data_nascimento',
-        'id_sexo',              // ✅ novo: FK para sexos
+        'id_sexo',
     ];
 
     protected $hidden = ['senha', 'password'];
@@ -27,7 +27,6 @@ class Usuario extends Model
         'data_nascimento' => 'date:Y-m-d',
     ];
 
-    // ----------------- Relacionamentos já existentes -----------------
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
@@ -44,29 +43,28 @@ class Usuario extends Model
     // ----------------- Novos/ajustados -----------------
     public function sexo()
     {
-        return $this->belongsTo(\Application\Models\Sexo::class, 'id_sexo', 'id_sexo');
+        return $this->belongsTo(Sexo::class, 'id_sexo', 'id_sexo');
     }
     public function documentos()
     {
-        return $this->hasMany(\Application\Models\Documento::class, 'id_usuario');
+        return $this->hasMany(Documento::class, 'id_usuario');
     }
     public function telefones()
     {
-        return $this->hasMany(\Application\Models\Telefone::class, 'id_usuario');
+        return $this->hasMany(Telefone::class, 'id_usuario');
     }
 
-    // CPF (documento do tipo CPF)
     public function cpfDocumento()
     {
-        return $this->hasOne(\Application\Models\Documento::class, 'id_usuario')
+        return $this->hasOne(Documento::class, 'id_usuario')
             ->whereHas('tipo', fn($q) => $q->where('ds_tipo', 'CPF'));
     }
 
     // Telefone "principal": o primeiro cadastrado
     public function telefonePrincipal()
     {
-        return $this->hasOne(\Application\Models\Telefone::class, 'id_usuario')
-            ->oldestOfMany(); // requer Eloquent >= 8.x; se não tiver, troque por orderBy('id_telefone')
+        return $this->hasOne(Telefone::class, 'id_usuario', 'id')
+            ->orderBy('id_telefone');
     }
 
     // -------- Helpers de leitura (opcional, úteis no controller/API) --------
@@ -167,3 +165,4 @@ class Usuario extends Model
         return null;
     }
 }
+

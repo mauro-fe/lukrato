@@ -46,22 +46,20 @@ abstract class BaseController
         }
     }
 
-    /** Auth para rotas de API (responde 401 JSON) */
     protected function requireAuthApi(): void
     {
         if (!Auth::isLoggedIn()) {
-            $this->response
-                ->jsonBody(['error' => 'Não autenticado'], 401)
-                ->send();
+            $this->response->jsonBody(['error' => 'Não autenticado'], 401)->send();
+            return;
         }
-        $this->adminId       = Auth::id();
-        $user                = Auth::user();
+        $this->adminId = Auth::id();
+        $user = Auth::user();
         $this->adminUsername = $user->username ?? $user->nome ?? null;
+
         if (empty($this->adminId) || empty($this->adminUsername)) {
             $this->auth->logout();
-            $this->response
-                ->jsonBody(['error' => 'Sessão inválida'], 401)
-                ->send();
+            $this->response->jsonBody(['error' => 'Sessão inválida'], 401)->send();
+            return;
         }
     }
 
@@ -72,9 +70,16 @@ abstract class BaseController
 
     protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
     {
+        if (!array_key_exists('menu', $data) || $data['menu'] === null || $data['menu'] === '') {
+            $inferred = $this->inferMenuFromView($viewPath);
+            if ($inferred !== null) {
+                $data['menu'] = $inferred;
+            }
+        }
+
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
-        if ($footer) $view->setFooter($footer); 
+        if ($footer) $view->setFooter($footer);
         echo $view->render();
     }
 
@@ -150,7 +155,7 @@ abstract class BaseController
 
     protected function ok(array $payload = [], int $status = 200): void
     {
-        Response::success($payload, $status); 
+        Response::success($payload, $status);
     }
     protected function fail(string $message, int $status = 400, array $extra = []): void
     {
@@ -180,4 +185,30 @@ abstract class BaseController
             'request_id' => $rid,
         ], $status)->send();
     }
+
+    protected function inferMenuFromView(string $viewPath): ?string
+    {
+        $trimmed = trim($viewPath, '/');
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $segments = preg_split('#[\\/]+#', $trimmed);
+        if (!$segments || ($segments[0] ?? '') !== 'admin') {
+            return null;
+        }
+
+        $map = [
+            'dashboard'   => 'dashboard',
+            'contas'      => 'contas',
+            'lancamentos' => 'lancamentos',
+            'relatorios'  => 'relatorios',
+            'categorias'  => 'categorias',
+            'perfil'      => 'perfil',
+        ];
+
+        $section = $segments[1] ?? null;
+        return $section !== null ? ($map[$section] ?? null) : null;
+    }
+
 }

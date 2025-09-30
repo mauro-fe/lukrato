@@ -3,13 +3,52 @@ $pageTitle = $pageTitle ?? 'Painel Administrativo';
 $username  = $username  ?? 'usuário';
 $menu      = $menu      ?? '';
 
+if ($menu === '' && isset($GLOBALS['current_view'])) {
+    $candidate = '';
+    $parts = explode('-', (string) ($GLOBALS['current_view'] ?? ''));
+    if (!empty($parts)) {
+        if (($parts[0] ?? '') === 'admin') {
+            $candidate = $parts[1] ?? '';
+        } else {
+            $candidate = $parts[0] ?? '';
+        }
+    }
+    $allowed = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
+    if ($candidate !== '' && in_array($candidate, $allowed, true)) {
+        $menu = $candidate;
+    }
+}
+
+
 $u    = 'admin';
 $base = BASE_URL;
+
 ?>
+<?php
+
+use Application\Middlewares\CsrfMiddleware;
+
+$csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
+?>
+<meta name="csrf" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
+<script>
+    window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+</script>
+
 <!DOCTYPE html>
-<html lang="pt-BR" lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="dark" class="sidebar-collapsed">
 
 <head>
+    <?= csrf_meta('default') ?>
+    <script>
+        // helpers globais
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.getCSRF = () =>
+            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+            document.querySelector('input[name="_token"]')?.value || '';
+        LK.apiBase = LK.getBase() + 'api/';
+    </script>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,7 +56,6 @@ $base = BASE_URL;
 
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -46,33 +84,40 @@ $base = BASE_URL;
 
     ?>
 
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="true" title="Fechar/Abrir menu">
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
+        title="Fechar/Abrir menu">
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
-
-    <aside class="sidebar no-glass" id="sidebar-main">
+    <aside class="sidebar no-glass collapsed" id="sidebar-main">
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-        <button id="toggleTheme" class="theme-toggle" aria-label="Alternar tema" title="Modo claro/escuro"> <i class="fas fa-sun"></i> <i class="fas fa-moon"></i> </button>
         <nav class="sidebar-nav">
+            <button id="toggleTheme" type="button" class="nav-item theme-toggle" aria-label="Alternar tema"
+                title="Modo claro/escuro">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </button>
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
-            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>"
-                <?= $aria('contas')      ?> title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
+            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>" <?= $aria('contas')      ?>
+                title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos"><i class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
+                <?= $aria('lancamentos') ?> title="Lançamentos"><i
+                    class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
-                <?= $aria('relatorios')  ?> title="Relatórios"><i class="fas fa-chart-bar"></i><span>Relatórios</span></a>
+                <?= $aria('relatorios')  ?> title="Relatórios"><i
+                    class="fas fa-chart-bar"></i><span>Relatórios</span></a>
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
                 <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
-            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>"
-                <?= $aria('perfil') ?> title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
+            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>" <?= $aria('perfil') ?>
+                title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
-            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i class="fas fa-sign-out-alt"></i>
+            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i
+                    class="fas fa-sign-out-alt"></i>
                 <span>Sair</span></a>
         </nav>
 
@@ -164,10 +209,10 @@ $base = BASE_URL;
                 const root = document.documentElement;
                 const btn = document.getElementById("toggleTheme");
 
-                // BASE_URL robusta (cai para /lukrato/public/; ajusta se teu BASE_URL já vem certo)
-                const BASE_URL = (window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
+                const BASE_URL = LK.getBase();
                 const ENDPOINT = BASE_URL + 'api/user/theme';
-                const CSRF = window.CSRF || (document.querySelector('meta[name="csrf"]')?.content) || '';
+                const CSRF = LK.getCSRF();
+
 
                 // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
                 const cached = localStorage.getItem("theme");
@@ -194,18 +239,22 @@ $base = BASE_URL;
                     updateIcon(theme);
 
                     if (persist) {
+                        const token = LK.getCSRF();
                         fetch(ENDPOINT, {
                             method: 'POST',
                             credentials: 'include',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-Token': CSRF
+                                'X-CSRF-TOKEN': token
                             },
                             body: JSON.stringify({
-                                theme
+                                theme,
+                                _token: token,
+                                csrf_token: token
                             })
                         }).catch(err => console.error('Falha ao salvar tema:', err));
                     }
+
                 }
 
                 function updateIcon(theme) {
@@ -216,136 +265,77 @@ $base = BASE_URL;
             })();
         </script>
         <script>
-            (() => {
-                const root = document.documentElement;
+            (function() {
+                const rootEl = document.documentElement;
                 const sidebar = document.getElementById('sidebar-main');
                 const edgeBtn = document.getElementById('edgeMenuBtn');
                 const backdrop = document.getElementById('sidebarBackdrop');
 
                 if (!sidebar || !edgeBtn || !backdrop) return;
 
-                // ---------------------------
-                // Helpers de acessibilidade
-                // ---------------------------
-                function setAriaExpanded(el, v) {
-                    el.setAttribute('aria-expanded', String(!!v));
-                }
-
-                function setAriaHidden(el, v) {
-                    el.setAttribute('aria-hidden', String(!!v));
-                }
-
-                // ---------------------------
-                // Estados
-                // ---------------------------
-                function openMobile() {
-                    sidebar.classList.add('open');
-                    root.classList.add('sidebar-open-mobile');
-                    backdrop.style.display = 'block';
-                    setAriaExpanded(edgeBtn, true);
-                    setAriaHidden(sidebar, false);
-                    // trava scroll do body opcional:
-                    document.body.style.overflow = 'hidden';
+                function applyCollapsedState(isCollapsed) {
+                    sidebar.classList.toggle('collapsed', isCollapsed);
+                    rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
+                    if (window.innerWidth > 992) {
+                        edgeBtn.setAttribute('aria-expanded', String(!isCollapsed));
+                    }
                 }
 
                 function closeMobile() {
                     sidebar.classList.remove('open');
-                    root.classList.remove('sidebar-open-mobile');
-                    backdrop.style.display = 'none';
-                    setAriaExpanded(edgeBtn, false);
-                    setAriaHidden(sidebar, true);
-                    document.body.style.overflow = '';
+                    rootEl.classList.remove('sidebar-open-mobile');
+                    edgeBtn.setAttribute('aria-expanded', 'false');
                 }
-
-                function applyCollapsedState(isCollapsed) {
-                    // estado desktop/tablet
-                    sidebar.classList.toggle('collapsed', isCollapsed);
-                    root.classList.toggle('sidebar-collapsed', isCollapsed);
-
-                    // garante que estado mobile está limpo
-                    sidebar.classList.remove('open');
-                    root.classList.remove('sidebar-open-mobile');
-                    backdrop.style.display = 'none';
-
-                    // aria no desktop: expanded = !collapsed
-                    if (window.innerWidth > 992) setAriaExpanded(edgeBtn, !isCollapsed);
-                }
-
-                // ---------------------------
-                // Responsivo
-                // ---------------------------
-                const mqMobile = window.matchMedia('(max-width: 992px)');
-                const mqNarrow = window.matchMedia('(max-width: 1200px)');
 
                 function handleResponsive() {
-                    if (mqMobile.matches) {
-                        // mobile: começa fechado
-                        closeMobile();
+                    const w = window.innerWidth;
+                    if (w <= 992) {
+                        // mobile: comeca fechada
+                        rootEl.classList.remove('sidebar-collapsed');
                         sidebar.classList.remove('collapsed');
-                        root.classList.remove('sidebar-collapsed');
-                    } else if (mqNarrow.matches) {
-                        // tablet/desktop estreito: colapsada
-                        applyCollapsedState(true);
+                        closeMobile();
                     } else {
-                        // desktop largo: expandida
-                        applyCollapsedState(false);
+                        // desktop/tablet: icones por padrao
+                        closeMobile();
+                        applyCollapsedState(true);
                     }
                 }
 
-                // ---------------------------
-                // Interações
-                // ---------------------------
-                function onEdgeClick(e) {
-                    e.preventDefault();
-                    if (mqMobile.matches) {
+                function onEdgeClick() {
+                    if (window.innerWidth <= 992) {
                         const willOpen = !sidebar.classList.contains('open');
-                        willOpen ? openMobile() : closeMobile();
+                        sidebar.classList.toggle('open', willOpen);
+                        rootEl.classList.toggle('sidebar-open-mobile', willOpen);
+                        edgeBtn.setAttribute('aria-expanded', String(willOpen));
                     } else {
                         const willCollapse = !sidebar.classList.contains('collapsed');
                         applyCollapsedState(willCollapse);
                     }
                 }
 
-                // Fechar por clique fora e no backdrop (mobile)
-                function onDocClick(e) {
-                    if (!mqMobile.matches) return;
-                    const isInsideSidebar = sidebar.contains(e.target);
-                    const isBtn = edgeBtn.contains(e.target);
-                    const isBackdrop = backdrop === e.target || backdrop.contains(e.target);
-                    if (isBackdrop || (!isInsideSidebar && !isBtn)) closeMobile();
-                }
+                // Fechar tocando fora (mobile)
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth > 992) return;
+                    const hitSidebar = sidebar.contains(e.target);
+                    const hitBtn = edgeBtn.contains(e.target);
+                    const hitBackdrop = backdrop.contains(e.target);
+                    if (!hitSidebar && !hitBtn) {
+                        closeMobile();
+                    }
+                    if (hitBackdrop) {
+                        closeMobile();
+                    }
+                });
 
-                // Esc fecha no mobile
-                function onKeydown(e) {
-                    if (e.key === 'Escape' && mqMobile.matches) closeMobile();
-                }
+                // Fechar com ESC no mobile
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && window.innerWidth <= 992) {
+                        closeMobile();
+                    }
+                });
 
-                // Debounce leve p/ resize
-                let rAF = 0;
-
-                function onResize() {
-                    cancelAnimationFrame(rAF);
-                    rAF = requestAnimationFrame(handleResponsive);
-                }
-
-                // ---------------------------
-                // Init
-                // ---------------------------
-                // liga atributos iniciais
-                edgeBtn.setAttribute('aria-controls', 'sidebar-main');
-                setAriaHidden(sidebar, true);
-                setAriaExpanded(edgeBtn, false);
-
-                // listeners
                 edgeBtn.addEventListener('click', onEdgeClick);
-                backdrop.addEventListener('click', closeMobile);
-                document.addEventListener('click', onDocClick);
-                document.addEventListener('keydown', onKeydown);
-                window.addEventListener('resize', onResize);
-                mqMobile.addEventListener?.('change', handleResponsive);
-                mqNarrow.addEventListener?.('change', handleResponsive);
-
-                // estado inicial
+                window.addEventListener('resize', handleResponsive);
                 handleResponsive();
             })();
         </script>

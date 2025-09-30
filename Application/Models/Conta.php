@@ -15,13 +15,11 @@ class Conta extends Model
         'instituicao',
         'moeda',
         'tipo_id',
-        'saldo_inicial',
         'ativo',
     ];
 
     protected $casts = [
         'user_id'       => 'int',
-        'saldo_inicial' => 'float',
         'tipo_id',
         'ativo'         => 'bool',
     ];
@@ -38,7 +36,7 @@ class Conta extends Model
 
     public function transferenciasRecebidas()
     {
-        return $this->hasMany(Lancamento::class, 'conta_destino_id')
+        return $this->hasMany(Lancamento::class, 'conta_id_destino')
             ->where('eh_transferencia', 1);
     }
 
