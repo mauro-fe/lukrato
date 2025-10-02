@@ -47,15 +47,15 @@ class LancamentosController
                     ->orWhere('l.conta_id_destino', $accId);
             }))
             ->when($tipo, fn($w) => $w->where('l.tipo', $tipo))
-            ->whereRaw('COALESCE(l.eh_saldo_inicial, 0) = 0')
             ->orderBy('l.data', 'desc')
-            ->orderBy('l.id',   'desc')
+            ->orderBy('l.id', 'desc')
             ->limit($limit);
 
         $rows = $q->selectRaw('
             l.id, l.data, l.tipo, l.valor, l.descricao, l.eh_transferencia,
-            COALESCE(c.nome,"—") as categoria,
-            COALESCE(a.instituicao, a.nome, "—") as conta
+            COALESCE(c.nome, "") as categoria,
+            COALESCE(a.instituicao, a.nome, "") as conta,
+            COALESCE(l.eh_saldo_inicial, 0) as eh_saldo_inicial
         ')->get();
 
         $out = $rows->map(fn($r) => [
@@ -64,10 +64,12 @@ class LancamentosController
             'tipo'             => (string)$r->tipo,
             'valor'            => (float)$r->valor,
             'descricao'        => (string)($r->descricao ?? ''),
-            'eh_transferencia' => (bool)$r->eh_transferencia,
+            'eh_transferencia' => (bool) ($r->eh_transferencia ?? 0),
+            'eh_saldo_inicial' => (bool)($r->eh_saldo_inicial ?? 0),
             'categoria'        => (string)$r->categoria,
             'conta'            => (string)$r->conta,
         ])->values()->all();
+
         Response::success($out);
     }
 

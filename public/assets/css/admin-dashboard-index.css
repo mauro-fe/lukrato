@@ -765,3 +765,11 @@
   /* fundo global */
 }
 
+#transactionsTableBody tr[data-initial="1"] {
+  background: rgba(230, 126, 34, 0.08);
+  font-style: italic;
+}
+
+#transactionsTableBody tr[data-initial="1"] .text-muted {
+  color: var(--color-text-muted, #94a3b8);
+}

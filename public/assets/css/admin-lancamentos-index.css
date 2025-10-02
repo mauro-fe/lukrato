@@ -349,3 +349,11 @@ Seu CSS existente .page-header {
 .fw-bold {
   font-weight: 700 !important;
 }
+#tbodyLancamentos tr[data-initial="1"] {
+  background: rgba(230, 126, 34, 0.08);
+  font-style: italic;
+}
+
+#tbodyLancamentos tr[data-initial="1"] .text-muted {
+  color: var(--color-text-muted, #94a3b8);
+}

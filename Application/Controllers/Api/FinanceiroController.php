@@ -82,7 +82,7 @@ class FinanceiroController
                 ->orderBy('data', 'desc')
                 ->orderBy('id', 'desc')
                 ->limit($limit)
-                ->get(['id', 'data', 'tipo', 'categoria_id', 'descricao', 'observacao', 'valor']);
+                ->get(['id', 'data', 'tipo', 'categoria_id', 'descricao', 'observacao', 'valor', 'eh_transferencia', 'eh_saldo_inicial']);
 
             $out = $rows->map(function ($t) {
                 return [
@@ -92,6 +92,8 @@ class FinanceiroController
                     'descricao'  => (string) ($t->descricao ?? ''),
                     'observacao' => (string) ($t->observacao ?? ''),
                     'valor'      => (float)  $t->valor,
+                    'eh_transferencia' => (bool) ($t->eh_transferencia ?? 0),
+                    'eh_saldo_inicial' => (bool) ($t->eh_saldo_inicial ?? 0),
                     'categoria'  => $t->categoria
                         ? ['id' => (int)$t->categoria->id, 'nome' => (string)$t->categoria->nome]
                         : null,

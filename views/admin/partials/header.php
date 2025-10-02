@@ -1,21 +1,34 @@
-<?php
+﻿<?php
 $pageTitle = $pageTitle ?? 'Painel Administrativo';
-$username  = $username  ?? 'usuário';
+$username  = $username  ?? 'usuario';
 $menu      = $menu      ?? '';
-
+$allowedMenus = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
 if ($menu === '' && isset($GLOBALS['current_view'])) {
-    $candidate = '';
-    $parts = explode('-', (string) ($GLOBALS['current_view'] ?? ''));
-    if (!empty($parts)) {
+    $candidate = (string) ($GLOBALS['current_view'] ?? '');
+    if ($candidate !== '') {
+        $parts = explode('-', $candidate);
         if (($parts[0] ?? '') === 'admin') {
             $candidate = $parts[1] ?? '';
         } else {
             $candidate = $parts[0] ?? '';
         }
+        if ($candidate !== '' && in_array($candidate, $allowedMenus, true)) {
+            $menu = $candidate;
+        }
     }
-    $allowed = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
-    if ($candidate !== '' && in_array($candidate, $allowed, true)) {
-        $menu = $candidate;
+}
+
+if ($menu === '' && isset($_SERVER['REQUEST_URI'])) {
+    $uriPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '';
+    $uriPath = trim($uriPath, '/');
+    $basePath = parse_url((string) BASE_URL, PHP_URL_PATH) ?? '';
+    $basePath = trim($basePath, '/');
+    if ($basePath !== '' && strncmp($uriPath, $basePath, strlen($basePath)) === 0) {
+        $uriPath = trim(substr($uriPath, strlen($basePath)), '/');
+    }
+    $segment = explode('/', $uriPath)[0] ?? '';
+    if ($segment !== '' && in_array($segment, $allowedMenus, true)) {
+        $menu = $segment;
     }
 }
 
