@@ -340,7 +340,7 @@
 
     // Excluir individual
     tbody?.addEventListener('click', async (e) => {
-        const btn = (e.target.closest && e.target.closest('.btn-del')) || null;\n        if (!btn || btn.disabled || btn.dataset.disabled === '1') return;
+        const btn = (e.target.closest && e.target.closest('.btn-del')) || null; if (!btn || btn.disabled || btn.dataset.disabled === '1') return;
 
         const tr = e.target.closest('tr');
         const id = tr?.getAttribute('data-id');

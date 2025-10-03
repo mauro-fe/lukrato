@@ -46,7 +46,7 @@ h3 {
 }
 
 .fade-in {
-  animation: fadeIn .5s ease-in-out;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
@@ -136,13 +136,14 @@ h3 {
   justify-content: center;
   font-size: 18px;
   z-index: 6000;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
-  transition: left .25s ease, transform .15s ease, background var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  transition: left 0.25s ease, transform 0.15s ease,
+    background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .edge-menu-btn:hover {
   background: var(--glass-border);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
 }
 
 .edge-menu-btn:focus-visible {
@@ -151,7 +152,7 @@ h3 {
 }
 
 .edge-menu-btn:active {
-  transform: scale(.95);
+  transform: scale(0.95);
 }
 
 .sidebar-collapsed .edge-menu-btn {
@@ -283,7 +284,7 @@ h3 {
   margin-left: var(--sidebar-width);
   padding-top: var(--header-height);
   min-height: 100vh;
-  transition: margin-left .3s ease;
+  transition: margin-left 0.3s ease;
 }
 
 /* =========================================================
@@ -313,7 +314,7 @@ h3 {
 
 #monthModal .btn-close {
   filter: invert(var(--color-text));
-  opacity: .8;
+  opacity: 0.8;
 }
 
 #monthModal .btn-close:hover {
@@ -400,7 +401,7 @@ h3 {
   padding: 6px 8px;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
+  box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   color: var(--color-text);
@@ -441,7 +442,7 @@ h3 {
 .lkh-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, .5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
 
@@ -457,7 +458,7 @@ h3 {
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  transform: scale(.95);
+  transform: scale(0.95);
   transition: var(--transition-normal);
   z-index: 1;
   color: var(--color-text);
@@ -574,7 +575,7 @@ h3 {
   display: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
   background: var(--color-success);
   border-color: var(--color-success);
 }
@@ -621,7 +622,9 @@ h3 {
   border: 1px solid transparent;
   user-select: none;
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .lk-btn.ghost {
@@ -631,14 +634,14 @@ h3 {
 }
 
 .lk-btn.ghost:hover {
-  background: rgba(255, 255, 255, .06);
+  background: rgba(255, 255, 255, 0.06);
   border-color: var(--laranja);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, .15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
 }
 
 .lk-btn i {
-  font-size: .95em;
+  font-size: 0.95em;
 }
 
 .btn-del {
@@ -682,7 +685,7 @@ h3 {
 
 .calendar-day.muted {
   color: var(--color-text-muted);
-  opacity: .6;
+  opacity: 0.6;
 }
 
 .calendar-day.today {
@@ -709,7 +712,11 @@ h3 {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-warning)
+  );
   border: none;
   color: var(--color-surface);
   font-size: 20px;
@@ -718,7 +725,7 @@ h3 {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
-  transition: transform .2s ease;
+  transition: transform 0.2s ease;
 }
 
 .fab:hover {
@@ -743,7 +750,7 @@ h3 {
   opacity: 0;
   visibility: hidden;
   transform: translateX(-10px);
-  transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
   color: var(--color-text);
@@ -801,16 +808,15 @@ h3 {
 
 /* <= 992px: comportamento mobile */
 @media (max-width: 992px) {
-
   /* Sidebar por cima do conteúdo */
   .sidebar {
     position: fixed;
     left: -260px;
     width: 240px;
     background: var(--color-surface);
-    transition: left .3s ease;
+    transition: left 0.3s ease;
     z-index: 9998;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   }
 
   .sidebar.open {
@@ -846,11 +852,12 @@ h3 {
     justify-content: center;
     font-size: 18px;
     z-index: 4000;
-    transition: transform var(--transition-fast), background var(--transition-fast);
+    transition: transform var(--transition-fast),
+      background var(--transition-fast);
   }
 
   .mobile-menu-fab:active {
-    transform: scale(.96);
+    transform: scale(0.96);
   }
 
   .mobile-menu-fab.is-open i {
@@ -872,7 +879,7 @@ h3 {
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .35);
+    background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(2px);
     z-index: 9997;
     /* abaixo da sidebar, acima do conteúdo */
@@ -929,7 +936,7 @@ h3 {
 
 /* mostra quando a sidebar está aberta */
 @media (max-width: 992px) {
-  .sidebar.open+.sidebar-backdrop {
+  .sidebar.open + .sidebar-backdrop {
     display: block;
   }
 }

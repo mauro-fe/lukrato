@@ -6,6 +6,7 @@ registerAuthRoutes();
 registerRedirectRoutes();
 registerAppRoutes();
 registerApiRoutes();
+planos();
 
 
 function registerAuthRoutes(): void
@@ -106,6 +107,14 @@ function registerAppRoutes(): void
 
         Router::add('GET',  '/api/user/theme', 'Api\PreferenciaUsuarioController@show',   ['auth']);
         Router::add('POST', '/api/user/theme', 'Api\PreferenciaUsuarioController@update', ['auth', 'csrf']);
+    }
+
+    function planos()
+    {
+        Router::add('GET',  '/billing',                         'Admin\\BillingController@index');
+        Router::add('POST', '/api/billing/pagarme/checkout',    'Api\\BillingController@createCheckout');   // cria link/checkout da assinatura
+        Router::add('POST', '/api/webhooks/pagarme',            'Api\\WebhookController@pagarme');          // público
+
     }
 
 

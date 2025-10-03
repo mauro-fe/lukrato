@@ -1,8 +1,4 @@
-<?php
-$base      = rtrim(BASE_URL ?? '/', '/') . '/';
-?>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+﻿<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 
 <?php
@@ -13,9 +9,6 @@ $aria   = function (string $key) use ($menu) {
     return $menu === $key ? ' aria-current="page"' : '';
 };
 ?>
-
-
-
 <section class="container dashboard-page">
     <div>
         <h3>Dashboard</h3>
@@ -106,7 +99,7 @@ $aria   = function (string $key) use ($menu) {
                     <div class="empty-state" id="emptyState" style="display:none;">
                         <div class="empty-icon"><i class="fas fa-receipt"></i></div>
                         <h3>Nenhum lançamento encontrado</h3>
-                        <p>Adicione sua primeira transação clicando no botão + no canto inferior direito</p>
+                        <p>Adicione sua primeira transação clicando no botão + no canto inferior esquerdo</p>
                     </div>
                     <table class="table" id="transactionsTable">
                         <thead>
@@ -201,13 +194,13 @@ $aria   = function (string $key) use ($menu) {
         };
 
         const dateBR = iso => {
-            if (!iso) return '—';
+            if (!iso) return '-';
             try {
                 const d = String(iso).split(/[T\s]/)[0];
                 const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
+                return m ? `${m[3]}/${m[2]}/${m[1]}` : '-';
             } catch {
-                return '—';
+                return '-';
             }
         };
 
@@ -249,33 +242,48 @@ $aria   = function (string $key) use ($menu) {
         }
 
         async function apiDeleteLancamento(id) {
-            const rawBase = (window.BASE_URL || '/').replace(/\/?$/, '/');
+            const csrf =
+                document.querySelector('meta[name="csrf-token"]')?.content ||
+                document.querySelector('input[name="csrf_token"]')?.value ||
+                '';
+
+            const commonHeaders = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...(csrf ? {
+                    'X-CSRF-Token': csrf
+                } : {}),
+            };
+
+            // Use sempre a BASE jÃ¡ calculada no topo do arquivo
             const tries = [{
-                    url: `${rawBase}api/lancamentos/${id}`,
+                    url: `${BASE}api/lancamentos/${id}`,
                     opt: {
                         method: 'DELETE'
                     }
                 },
                 {
-                    url: `${rawBase}index.php/api/lancamentos/${id}`,
+                    url: `${BASE}index.php/api/lancamentos/${id}`,
                     opt: {
                         method: 'DELETE'
                     }
                 },
+
+                // (opcionais) fallbacks por POST caso vocÃª decida expor uma rota alternativa sem DELETE
                 {
-                    url: `${rawBase}api/lancamentos/${id}/delete`,
+                    url: `${BASE}api/lancamentos/${id}/delete`,
                     opt: {
                         method: 'POST'
                     }
                 },
                 {
-                    url: `${rawBase}index.php/api/lancamentos/${id}/delete`,
+                    url: `${BASE}index.php/api/lancamentos/${id}/delete`,
                     opt: {
                         method: 'POST'
                     }
                 },
                 {
-                    url: `${rawBase}api/lancamentos/delete`,
+                    url: `${BASE}api/lancamentos/delete`,
                     opt: {
                         method: 'POST',
                         body: JSON.stringify({
@@ -284,7 +292,7 @@ $aria   = function (string $key) use ($menu) {
                     }
                 },
                 {
-                    url: `${rawBase}index.php/api/lancamentos/delete`,
+                    url: `${BASE}index.php/api/lancamentos/delete`,
                     opt: {
                         method: 'POST',
                         body: JSON.stringify({
@@ -293,26 +301,24 @@ $aria   = function (string $key) use ($menu) {
                     }
                 },
             ];
+
             for (const t of tries) {
                 try {
                     const r = await fetch(t.url, {
                         credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
+                        headers: commonHeaders,
                         ...t.opt
                     });
                     if (r.ok) return await r.json();
+                    // se nÃ£o for 404, jÃ¡ mostre o erro da API
                     if (r.status !== 404) {
                         const j = await r.json().catch(() => ({}));
                         throw new Error(j?.message || `HTTP ${r.status}`);
                     }
                 } catch (_) {}
             }
-            throw new Error('Endpoint de exclusão não encontrado. Verifique as rotas.');
+            throw new Error('Endpoint de exclusÃ£o nÃ£o encontrado. Verifique as rotas.');
         }
-
 
         const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
         const apiAccountsBalances = (m) =>
@@ -374,7 +380,7 @@ $aria   = function (string $key) use ($menu) {
                     year: 'numeric'
                 });
             } catch {
-                return '—';
+                return '-';
             }
         };
         const addMonths = (m, d) => {
@@ -508,13 +514,13 @@ $aria   = function (string $key) use ($menu) {
         /* ============ Renderizadores ============ */
         async function renderKPIs() {
             try {
-                // busca métricas + saldos das contas em paralelo
+                // busca mÃ©tricas + saldos das contas em paralelo
                 const [k, contas] = await Promise.all([
                     apiMetrics(currentMonth),
                     apiAccountsBalances(currentMonth)
                 ]);
 
-                // preenche os demais KPIs com o que vier das métricas
+                // preenche os demais KPIs com o que vier das mÃ©tricas
                 const map = {
                     receitasValue: 'receitas',
                     despesasValue: 'despesas',
@@ -528,7 +534,7 @@ $aria   = function (string $key) use ($menu) {
                     if (el) el.textContent = money(k[key] || 0);
                 });
 
-                // **Saldo Atual**: soma de todas as contas (saldoAtual se existir, senão saldoInicial)
+                // **Saldo Atual**: soma de todas as contas (saldoAtual se existir, senÃ£o saldoInicial)
                 const totalSaldo = (Array.isArray(contas) ? contas : []).reduce((sum, c) => {
                     const v = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial || 0);
                     return sum + (isFinite(v) ? v : 0);
@@ -550,18 +556,18 @@ $aria   = function (string $key) use ($menu) {
         }
 
 
-        // aceita string ("Sicredi") OU objetos com instituicao/nome, e formata transferência "origem → destino"
+        // aceita string ("Sicredi") OU objetos com instituicao/nome, e formata transferÃªncia "origem â†’ destino"
         function getContaLabel(t) {
             // se vier string pronta
             if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim();
-            // preferir instituição, depois nome
+            // preferir instituiÃ§Ã£o, depois nome
             const origem = t.conta_instituicao ?? t.conta_nome ?? t.conta?.instituicao ?? t.conta?.nome ?? null;
             const destino = t.conta_destino_instituicao ?? t.conta_destino_nome ?? t.conta_destino?.instituicao ?? t
                 .conta_destino?.nome ?? null;
-            if (t.eh_transferencia && (origem || destino)) return `${origem || '—'} → ${destino || '—'}`;
-            // rótulo pronto do backend, se existir
+            if (t.eh_transferencia && (origem || destino)) return `${origem || '-'} -’ ${destino || '-”'}`;
+            // rÃ³tulo pronto do backend, se existir
             if (t.conta_label && String(t.conta_label).trim()) return String(t.conta_label).trim();
-            return origem || '—';
+            return origem || '-';
         }
 
         async function renderTable() {
@@ -582,13 +588,15 @@ $aria   = function (string $key) use ($menu) {
 
                 if (hasData) {
                     list.forEach(t => {
-                        // dentro de renderTable(), onde você monta cada linha
+                        // dentro de renderTable(), onde vocÃª monta cada linha
                         const tr = document.createElement('tr');
                         tr.setAttribute('data-id', t.id); // <-- ADICIONE ESTA LINHA
                         const tipo = String(t.tipo || '').toLowerCase();
                         const color = (tipo === 'receita') ? 'var(--verde, #27ae60)' :
-                            (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' : 'var(--laranja, #f39c12)');
-                        const categoriaTxt = t.categoria_nome ?? (typeof t.categoria === 'string' ? t.categoria : t.categoria?.nome) ?? '—';
+                            (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' :
+                                'var(--laranja, #f39c12)');
+                        const categoriaTxt = t.categoria_nome ?? (typeof t.categoria === 'string' ? t
+                            .categoria : t.categoria?.nome) ?? '-”';
                         const contaTxt = getContaLabel(t);
 
                         tr.innerHTML = `
@@ -614,7 +622,7 @@ $aria   = function (string $key) use ($menu) {
             }
         }
 
-        // Clique no botão excluir dentro da tabela de "Últimos Lançamentos" (Dashboard)
+        // Clique no botÃ£o excluir dentro da tabela de "Ãšltimos LanÃ§amentos" (Dashboard)
         document.getElementById('transactionsTableBody')?.addEventListener('click', async (e) => {
             const btn = e.target.closest?.('.btn-del');
             if (!btn) return;
@@ -627,7 +635,7 @@ $aria   = function (string $key) use ($menu) {
                 await ensureSwal();
 
                 const confirm = await Swal.fire({
-                    title: 'Excluir lançamento?',
+                    title: 'Excluir lanÃ§amento?',
                     text: 'Essa ação não pode ser desfeita.',
                     icon: 'warning',
                     showCancelButton: true,
@@ -650,12 +658,12 @@ $aria   = function (string $key) use ($menu) {
                 Swal.close();
                 toast('success', 'Lançamento excluído');
 
-                // remove a linha imediatamente para dar feedback…
+                // remove a linha imediatamente para dar feedbackâ€¦
                 tr.remove();
 
-                // …e atualiza os cards/ gráfico/ tabela
+                // â€¦e atualiza os cards/ grÃ¡fico/ tabela
                 await window.refreshDashboard?.();
-                // avisa outras telas (como /lancamentos) que houve mudança
+                // avisa outras telas (como /lancamentos) que houve mudanÃ§a
                 document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
             } catch (err) {
                 console.error(err);
@@ -700,7 +708,7 @@ $aria   = function (string $key) use ($menu) {
                 const data = {
                     labels,
                     datasets: [{
-                        label: 'Resultado do Mês',
+                        label: 'Resultado do mês',
                         data: series,
                         borderColor: '#E67E22',
                         backgroundColor: grad,
@@ -771,6 +779,14 @@ $aria   = function (string $key) use ($menu) {
             await Promise.allSettled([renderKPIs(), renderTable(), drawChart()]);
         }
         window.refreshDashboard = renderAll;
+
+        document.addEventListener('lukrato:data-changed', async () => {
+            try {
+                await renderAll();
+            } catch (err) {
+                console.error('Dashboard refresh falhou:', err);
+            }
+        });
 
         /* Boot */
         if (document.readyState === 'loading') {

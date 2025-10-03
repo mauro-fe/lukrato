@@ -1,315 +1,308 @@
 .container {
-    padding: 0;
+  padding: 0;
 }
 
 .lk-h {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .lk-titlebar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-3);
-    margin-bottom: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
 }
 
 .lk-t {
-    font-size: 28px;
-    color: var(--color-primary);
-    margin-left: 20px;
-    font-weight: 700;
+  font-size: 28px;
+  color: var(--color-primary);
+  margin-left: 20px;
+  font-weight: 700;
 }
 
 .lk-controls {
-    display: flex;
-    gap: var(--spacing-3);
-    flex-wrap: wrap;
-    margin-top: 0;
-    padding: 0 24px;
+  display: flex;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  margin-top: 0;
+  padding: 0 24px;
 }
 
 .lk-seg {
-    border: 2px solid var(--glass-border);
-    padding: 6px;
-    border-radius: 999px;
-    display: flex;
-    gap: 6px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    height: 44px;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-backdrop);
+  border: 2px solid var(--glass-border);
+  padding: 6px;
+  border-radius: 999px;
+  display: flex;
+  gap: 6px;
+  box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+  height: 44px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
 }
 
 .lk-seg button {
-    border: 0;
-    background: transparent;
-    padding: 10px 14px;
-    border-radius: 999px;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--color-text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    line-height: 1;
-    height: 32px;
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+  height: 32px;
 }
 
 .lk-seg button.active {
-    color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* ====== Dropdown base ====== */
 .lk-sel {
-    position: relative;
+  position: relative;
 }
 
 .lk-sel span {
-    color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-.lk-sel>button {
-    border: 2px solid var(--glass-border);
-    height: 44px;
-    border-radius: 999px;
-    padding: 0 16px;
-    display: flex;
-    background-color: var(--glass-bg);
-    backdrop-filter: var(--glass-backdrop);
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    cursor: pointer;
-    color: var(--color-text);
+.lk-sel > button {
+  border: 2px solid var(--glass-border);
+  height: 44px;
+  border-radius: 999px;
+  padding: 0 16px;
+  display: flex;
+  background-color: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+  cursor: pointer;
+  color: var(--color-text);
 }
 
 .lk-menu {
-    position: absolute;
-    top: 52px;
-    left: 0;
-    border: 2px solid var(--glass-border);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    min-width: 260px;
-    padding: 8px 0;
-    display: none;
-    z-index: 10;
-    background: var(--color-surface);
-    color: var(--color-text);
+  position: absolute;
+  top: 52px;
+  left: 0;
+  border: 2px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+  min-width: 260px;
+  padding: 8px 0;
+  display: none;
+  z-index: 10;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .lk-menu.open {
-    display: block;
+  display: block;
 }
 
-.lk-menu>button {
-    width: 90%;
-    text-align: center;
-    margin: auto;
-    border: 0;
-    border-radius: 20px;
-    padding: 10px 14px;
-    cursor: pointer;
-    background: var(--glass-bg);
-    color: var(--color-text);
-    margin-top: 5px;
+.lk-menu > button {
+  width: 90%;
+  text-align: center;
+  margin: auto;
+  border: 0;
+  border-radius: 20px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--glass-bg);
+  color: var(--color-text);
+  margin-top: 5px;
 }
 
-.lk-menu>button:hover {
-    background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
+.lk-menu > button:hover {
+  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
 }
 
 /* ======================= Month Selector (dentro do header) ======================= */
 .dash-lk-header .month-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dash-lk-header .month-nav-btn {
-    background: none;
-    border: 0;
-    color: var(--branco);
-    cursor: pointer;
-
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
+  background: none;
+  border: 0;
+  color: var(--branco);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .dash-lk-header .month-nav-btn:hover {
-    background-color: var(--glass-bg);
-    color: var(--branco);
+  background-color: var(--glass-bg);
+  color: var(--branco);
 }
 
 .dash-lk-header .month-display {
-    position: relative;
+  position: relative;
 }
 
 .dash-lk-header .month-dropdown-btn {
-    background: none;
-    border: 0;
-    color: var(--color-primary);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    font-weight: 600;
-    min-width: 160px;
-    justify-content: space-between;
+  background: none;
+  border: 0;
+  color: var(--color-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 600;
+  min-width: 160px;
+  justify-content: center;
 }
 
-
-
 .dash-lk-header .month-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    width: 260px;
-    background: var(--azul);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    max-height: 320px;
-    overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: var(--transition-fast);
-    padding: 6px;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 260px;
+  background: var(--azul);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-height: 320px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: var(--transition-fast);
+  padding: 6px;
 }
 
 .dash-lk-header .month-dropdown.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .dash-lk-header .month-dropdown .year-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 4px 0 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px 0 8px;
 }
 
 .dash-lk-header .month-dropdown .year-label {
-    grid-column: 1 / -1;
-    font-weight: 700;
-    color: var(--claro);
-    padding: 6px 8px;
-    opacity: 0.85;
+  grid-column: 1 / -1;
+  font-weight: 700;
+  color: var(--claro);
+  padding: 6px 8px;
+  opacity: 0.85;
 }
 
 .dash-lk-header .month-dropdown .m-btn {
-    background: none;
-    border: 1px solid var(--glass-border);
-    color: var(--branco);
-    padding: 8px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: var(--transition-fast);
-    text-align: center;
-    font-size: var(--font-size-sm);
+  background: none;
+  border: 1px solid var(--glass-border);
+  color: var(--branco);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: center;
+  font-size: var(--font-size-sm);
 }
 
 .dash-lk-header .month-dropdown .m-btn:hover {
-    background-color: var(--glass-bg);
+  background-color: var(--glass-bg);
 }
 
 .dash-lk-header .month-dropdown .m-btn.is-current {
-    border-color: var(--laranja);
-    box-shadow: 0 0 0 1px var(--laranja) inset;
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 1px var(--laranja) inset;
 }
-
-
 
 /* ====== Cards/gráficos ====== */
 .lk-card {
-    border: 2px solid var(--glass-border);
-    background: var(--glass-bg);
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, .06);
-    padding: 18px;
-    overflow: hidden;
-    margin: 0 24px;
-    color: var(--color-text);
-    backdrop-filter: var(--glass-backdrop);
+  border: 2px solid var(--glass-border);
+  background: var(--glass-bg);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+  padding: 18px;
+  overflow: hidden;
+  margin: 0 24px;
+  color: var(--color-text);
+  backdrop-filter: var(--glass-backdrop);
 }
 
-.lk-card+.lk-card {
-    margin-top: 16px;
+.lk-card + .lk-card {
+  margin-top: 16px;
 }
 
 .lk-chart {
-    padding: 20px 24px;
+  padding: 20px 24px;
 }
 
 .lk-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 80px 28px;
-    text-align: center;
-    color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 28px;
+  text-align: center;
+  color: var(--color-text);
 }
 
 .lk-empty h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 8px 0 0;
-    color: var(--color-text);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 8px 0 0;
+  color: var(--color-text);
 }
 
 .lk-empty p {
-    font-size: 14px;
-    margin: 0;
-    color: var(--color-text-muted);
+  font-size: 14px;
+  margin: 0;
+  color: var(--color-text-muted);
 }
 
 .lk-empty img {
-    width: 180px;
-    max-width: 50vw;
-    opacity: .9;
+  width: 180px;
+  max-width: 50vw;
+  opacity: 0.9;
 }
 
 .lk-loading {
-    padding: 40px;
-    text-align: center;
-    color: var(--color-text);
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text);
 }
 
 /* ====== Responsivo ====== */
 @media (max-width: 720px) {
-    .lk-controls {
-        padding: 0 16px;
-    }
+  .lk-controls {
+    padding: 0 16px;
+  }
 
-    .lk-card {
-        margin: 0 16px;
-    }
+  .lk-card {
+    margin: 0 16px;
+  }
 
-    .lk-titlebar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
+  .lk-titlebar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 
-    .lk-period,
-    .lk-sel>button,
-    .lk-seg {
-        width: 100%;
-    }
+  .lk-period,
+  .lk-sel > button,
+  .lk-seg {
+    width: 100%;
+  }
 }

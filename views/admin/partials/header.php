@@ -3,36 +3,6 @@ $pageTitle = $pageTitle ?? 'Painel Administrativo';
 $username  = $username  ?? 'usuario';
 $menu      = $menu      ?? '';
 $allowedMenus = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
-if ($menu === '' && isset($GLOBALS['current_view'])) {
-    $candidate = (string) ($GLOBALS['current_view'] ?? '');
-    if ($candidate !== '') {
-        $parts = explode('-', $candidate);
-        if (($parts[0] ?? '') === 'admin') {
-            $candidate = $parts[1] ?? '';
-        } else {
-            $candidate = $parts[0] ?? '';
-        }
-        if ($candidate !== '' && in_array($candidate, $allowedMenus, true)) {
-            $menu = $candidate;
-        }
-    }
-}
-
-if ($menu === '' && isset($_SERVER['REQUEST_URI'])) {
-    $uriPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '';
-    $uriPath = trim($uriPath, '/');
-    $basePath = parse_url((string) BASE_URL, PHP_URL_PATH) ?? '';
-    $basePath = trim($basePath, '/');
-    if ($basePath !== '' && strncmp($uriPath, $basePath, strlen($basePath)) === 0) {
-        $uriPath = trim(substr($uriPath, strlen($basePath)), '/');
-    }
-    $segment = explode('/', $uriPath)[0] ?? '';
-    if ($segment !== '' && in_array($segment, $allowedMenus, true)) {
-        $menu = $segment;
-    }
-}
-
-
 $u    = 'admin';
 $base = BASE_URL;
 
@@ -68,7 +38,6 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <title><?= $pageTitle ?></title>
 
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
-    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -76,6 +45,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
@@ -109,7 +79,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
             </a>
         </div>
         <nav class="sidebar-nav">
-            <button id="toggleTheme" type="button" class="nav-item theme-toggle" aria-label="Alternar tema"
+            <button id="toggleTheme" type="button" class="nav-item theme-toggle mb-3" aria-label="Alternar tema"
                 title="Modo claro/escuro">
                 <i class="fas fa-sun"></i>
                 <i class="fas fa-moon"></i>

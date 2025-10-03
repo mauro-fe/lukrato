@@ -19,12 +19,20 @@ class Usuario extends Model
         'username',
         'data_nascimento',
         'id_sexo',
+        'plano',
+        'anuncios_desativados',
+        'gateway',
+        'pagarme_cliente_id',
+        'pagarme_assinatura_id',
+        'plano_renova_em',
     ];
 
     protected $hidden = ['senha', 'password'];
 
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
+        'anuncios_desativados' => 'boolean',
+        'plano_renova_em' => 'datetime',
     ];
 
     public function categorias()
@@ -164,5 +172,46 @@ class Usuario extends Model
         LogService::warning('Tentativa de login inválida', ['email' => $email]);
         return null;
     }
-}
 
+    public function isSemAnuncios(): bool
+    {
+        return $this->anuncios_desativados === true;
+    }
+
+    // Helper: verificar se está no plano gratuito
+    public function isGratuito(): bool
+    {
+        return $this->plano === 'gratuito';
+    }
+    // === ALIASES EM INGLÊS PARA COMPATIBILIDADE ===
+
+    // ads_disabled -> anuncios_desativados
+    public function getAdsDisabledAttribute(): bool
+    {
+        return (bool) ($this->attributes['anuncios_desativados'] ?? 0);
+    }
+
+    public function setAdsDisabledAttribute($value): void
+    {
+        $this->attributes['anuncios_desativados'] = (int) ((bool) $value);
+    }
+
+    // plan_renews_at -> plano_renova_em
+    public function getPlanRenewsAtAttribute(): ?string
+    {
+        // retorna ISO simples para a view/js (ou ajuste para o formato que preferir)
+        if (empty($this->attributes['plano_renova_em'])) return null;
+        $ts = strtotime((string) $this->attributes['plano_renova_em']);
+        return $ts ? date('Y-m-d H:i:s', $ts) : null;
+    }
+
+    public function setPlanRenewsAtAttribute($value): void
+    {
+        if (empty($value)) {
+            $this->attributes['plano_renova_em'] = null;
+            return;
+        }
+        $ts = is_numeric($value) ? (int)$value : strtotime((string)$value);
+        $this->attributes['plano_renova_em'] = $ts ? date('Y-m-d H:i:s', $ts) : null;
+    }
+}
