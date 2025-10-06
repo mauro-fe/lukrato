@@ -1,70 +1,73 @@
-<section class="container">
-    <h3>Lançamentos</h3>
-    <header class="dash-lk-header">
-        <div class="header-left">
-            <div class="month-selector">
-                <div class="lk-period">
-                    <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal"
-                        data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
-                        <span id="currentMonthText">Carregando...</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="month-display">
-                        <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+<section class="lan-page">
+    <div class="lan-header">
+        <h3 class="lan-title">Lancamentos</h3>
+        <header class="dash-lk-header">
+            <div class="header-left">
+                <div class="month-selector">
+                    <div class="lk-period">
+                        <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mes anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal" data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
+                            <span id="currentMonthText">Carregando...</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="month-display">
+                            <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+                        </div>
+                        <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Proximo mes">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
-                    <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
                 </div>
             </div>
+        </header>
+        <div class="lan-filter">
+            <div class="type-filter" role="group" aria-label="Filtro por tipo">
+                <label for="filtroTipo" class="sr-only">Tipo</label>
+                <select id="filtroTipo" class="lk-select btn btn-primary">
+                    <option value="">Todos</option>
+                    <option value="receita">Receitas</option>
+                    <option value="despesa">Despesas</option>
+                </select>
+                <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <button id="btnExcluirSel" type="button" class="lk-btn danger btn" disabled>
+                    <i class="fas fa-trash"></i> Excluir selecionados
+                </button>
+                <small id="selInfo" class="text-muted d-none">
+                    <span id="selCount">0</span> selecionado(s)
+                </small>
+            </div>
         </div>
-    </header>
-    <div class="header-right">
-        <div class="type-filter" role="group" aria-label="Filtro por tipo">
-            <label for="filtroTipo" class="sr-only">Tipo</label>
-            <select id="filtroTipo" class="lk-select btn btn-primary">
-                <option value="">Todos</option>
-                <option value="receita">Receitas</option>
-                <option value="despesa">Despesas</option>
-            </select>
-            <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
-                <i class="fas fa-filter"></i> Filtrar
-            </button>
-            <button id="btnExcluirSel" type="button" class="lk-btn danger btn ms-2" disabled>
-                <i class="fas fa-trash"></i> Excluir selecionados
-            </button>
-            <small id="selInfo" class="text-muted ms-2 d-none">
-                <span id="selCount">0</span> selecionado(s)
-            </small>
-        </div>
-        <section class="table-container mt-5">
-            <table class="lukrato-table" id="tabelaLancamentos">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="width:36px">
-                            <input type="checkbox" id="chkAll" aria-label="Selecionar todos">
-                        </th>
-                        <th>Data</th>
-                        <th>Tipo</th>
-                        <th>Categoria</th>
-                        <th>Conta</th>
-                        <th>Descrição</th>
-                        <th class="text-right">Valor</th>
-                        <th style="width:82px">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyLancamentos">
-                    <tr>
-                        <td colspan="8" class="text-center">Carregando…</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
     </div>
+
+    <section class="table-container">
+        <table class="lukrato-table" id="tabelaLancamentos">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width:36px">
+                        <input type="checkbox" id="chkAll" aria-label="Selecionar todos">
+                    </th>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Categoria</th>
+                    <th>Conta</th>
+                    <th>Descricao</th>
+                    <th class="text-right">Valor</th>
+                    <th style="width:82px">Acoes</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyLancamentos">
+                <tr>
+                    <td colspan="8" class="text-center">Carregando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
 </section>
+
 <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
@@ -285,7 +288,11 @@
         async function apiBulkDelete(ids) {
             try {
                 const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
-                const payload = { ids, _token: token, csrf_token: token };
+                const payload = {
+                    ids,
+                    _token: token,
+                    csrf_token: token
+                };
                 const res = await fetch(`${ENDPOINT}delete`, {
                     method: 'POST',
                     headers: {

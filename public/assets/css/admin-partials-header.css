@@ -28,15 +28,15 @@ body {
   overflow-x: hidden;
 }
 
-*:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
 .container {
   padding: var(--container-padding);
   max-width: 1400px;
   margin: 0 auto;
+}
+
+*:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 h3 {
@@ -275,16 +275,6 @@ h3 {
 
 .sidebar-collapsed .main-content {
   margin-left: var(--sidebar-collapsed-width);
-}
-
-/* =========================================================
- * MAIN CONTENT
- * =======================================================*/
-.main-content {
-  margin-left: var(--sidebar-width);
-  padding-top: var(--header-height);
-  min-height: 100vh;
-  transition: margin-left 0.3s ease;
 }
 
 /* =========================================================
@@ -938,5 +928,52 @@ h3 {
 @media (max-width: 992px) {
   .sidebar.open + .sidebar-backdrop {
     display: block;
+  }
+}
+/* ====== Layout Alignment ====== */
+.main-content {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  padding-block-start: max(var(--header-height), clamp(32px, 5vw, 56px));
+  padding-block-end: clamp(32px, 5vw, 56px);
+  padding-inline-start: clamp(24px, 6vw, 48px);
+  padding-inline-end: calc(clamp(24px, 6vw, 48px) + var(--sidebar-width));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content > * {
+  width: min(100%, 1200px);
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+  padding-inline-end: calc(clamp(24px, 6vw, 48px) + var(--sidebar-collapsed-width));
+}
+
+@media (max-width: 1200px) {
+  .main-content {
+    padding-block-start: max(var(--header-height), clamp(28px, 6vw, 48px));
+    padding-block-end: clamp(28px, 6vw, 48px);
+  }
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding-block-start: max(var(--header-height), clamp(24px, 6vw, 40px));
+    padding-block-end: clamp(24px, 6vw, 40px);
+    padding-inline: clamp(16px, 6vw, 32px);
+  }
+
+  .main-content > * {
+    width: 100%;
   }
 }

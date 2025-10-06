@@ -1,4 +1,35 @@
-Seu CSS existente .page-header {
+.lan-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.lan-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.lan-title {
+  font-size: clamp(24px, 2.6vw, 32px);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.lan-controls {
+  display: flex;
+flex-direction: column;
+  gap: var(--spacing-4);
+  align-items: center;
+}
+
+.lan-filter {
+  display: flex;
+  justify-content: flex-start;
+}
+.page-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
@@ -129,9 +160,27 @@ Seu CSS existente .page-header {
 
 .type-filter {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
 }
+
+.type-filter select {
+  min-width: 180px;
+}
+
+.type-filter .lk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-filter small {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
 
 .btn:hover {
   transform: translateY(-2px);
@@ -265,6 +314,16 @@ Seu CSS existente .page-header {
 }
 
 /* Responsividade */
+@media (max-width: 1200px) {
+  .lan-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .lan-filter {
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 992px) {
   .dash-lk-header {
     flex-direction: column;
@@ -273,35 +332,45 @@ Seu CSS existente .page-header {
   }
 
   .type-filter {
-    width: 100%;
+    justify-content: flex-start;
   }
 
-  .type-filter > * {
-    flex: 1 1 auto;
-  }
-
-  .lk-btn {
-    width: auto;
-  }
-
-  .month-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .type-filter select {
+    flex: 1 1 180px;
   }
 }
 
+@media (max-width: 768px) {
+  .lan-controls {
+    gap: var(--spacing-3);
+  }
+
+  .type-filter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-2);
+  }
+
+  .type-filter select,
+  .type-filter .lk-btn,
+  .type-filter small {
+    width: 100%;
+  }
+
+  .type-filter small {
+    text-align: left;
+  }
+}
 @media (max-width: 576px) {
   .page-header h1 {
     font-size: var(--font-size-xl);
   }
 
   .lukrato-table {
-    min-width: 600px;
-  }
-
-  .container {
-    padding: 1rem;
+    min-width: 520px;
   }
 }
+
 
 /* Badge styles para tipos */
 .badge {

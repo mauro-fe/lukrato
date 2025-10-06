@@ -32,7 +32,7 @@
 .lk-seg {
   border: 2px solid var(--glass-border);
   padding: 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   display: flex;
   gap: 6px;
   box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
@@ -227,7 +227,7 @@
   box-shadow: 0 0 0 1px var(--laranja) inset;
 }
 
-/* ====== Cards/gráficos ====== */
+/* ====== Cards/graficos ====== */
 .lk-card {
   border: 2px solid var(--glass-border);
   background: var(--glass-bg);
@@ -285,6 +285,47 @@
 }
 
 /* ====== Responsivo ====== */
+@media (max-width: 1024px) {
+  .lk-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lk-seg {
+    width: 100%;
+    height: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .lk-seg button {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+
+  .lk-sel,
+  #accountSelect {
+    width: 100%;
+  }
+
+  .lk-sel > button {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dash-lk-header .month-selector {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .dash-lk-header .month-dropdown-btn {
+    min-width: auto;
+  }
+}
+
 @media (max-width: 720px) {
   .lk-controls {
     padding: 0 16px;
@@ -292,6 +333,11 @@
 
   .lk-card {
     margin: 0 16px;
+    padding: 16px;
+  }
+
+  .lk-chart {
+    padding: 16px;
   }
 
   .lk-titlebar {
@@ -304,5 +350,58 @@
   .lk-sel > button,
   .lk-seg {
     width: 100%;
+  }
+
+  .lk-seg button {
+    min-width: 140px;
+  }
+
+  .dash-lk-header .month-selector {
+    justify-content: space-between;
+  }
+
+  .dash-lk-header .month-nav-btn {
+    flex: 0 0 44px;
+  }
+
+  .dash-lk-header .month-dropdown-btn {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .lk-wrap.container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .lk-controls {
+    padding: 0 12px;
+  }
+
+  .lk-card {
+    margin: 0 12px;
+  }
+
+  .lk-seg {
+    padding: 8px;
+  }
+
+  .lk-seg button {
+    flex: 1 1 100%;
+  }
+
+  .lk-menu {
+    width: 100%;
+    max-width: calc(100vw - 32px);
+  }
+
+  .dash-lk-header .month-selector {
+    gap: 8px;
+  }
+
+  .dash-lk-header .month-dropdown {
+    width: calc(100vw - 32px);
   }
 }

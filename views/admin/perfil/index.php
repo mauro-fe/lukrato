@@ -3,7 +3,7 @@ $pageTitle = $pageTitle ?? 'Meu Perfil';
 $menu      = $menu ?? 'perfil';
 ?>
 
-<div class="profile-container container">
+<div class="profile-container">
     <div class="profile-header">
         <div>
             <h1 class="profile-title">Meu Perfil</h1>

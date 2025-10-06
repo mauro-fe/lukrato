@@ -1,5 +1,5 @@
 
-<div class="lk-wrap container pt-4">
+<div class="lk-wrap">
     <div class="lk-h">
         <div class="lk-t">
             <h3>Relatórios</h3>

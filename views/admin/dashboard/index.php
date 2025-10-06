@@ -9,7 +9,7 @@ $aria   = function (string $key) use ($menu) {
     return $menu === $key ? ' aria-current="page"' : '';
 };
 ?>
-<section class="container dashboard-page">
+<section class="dashboard-page">
     <div>
         <h3>Dashboard</h3>
     </div>

@@ -56,7 +56,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     </style>
 </head>
 
-<body class="g-sidenav-show bg-gray-100">
+<body class="body-content">
     <?php
     $active = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -123,8 +123,8 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
-        <div class="container-fluid lk-page">
+    <main class="main-content">
+        <div class="lk-page">
             <!-- Modal Único -->
             <div class="lkh-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle"
                 aria-hidden="true">
