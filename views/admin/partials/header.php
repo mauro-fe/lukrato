@@ -15,7 +15,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 ?>
 <meta name="csrf" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
 <script>
-    window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 </script>
 
 <!DOCTYPE html>
@@ -24,13 +24,13 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 <head>
     <?= csrf_meta('default') ?>
     <script>
-        // helpers globais
-        window.LK = window.LK || {};
-        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-        LK.getCSRF = () =>
-            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
-            document.querySelector('input[name="_token"]')?.value || '';
-        LK.apiBase = LK.getBase() + 'api/';
+    // helpers globais
+    window.LK = window.LK || {};
+    LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+    LK.getCSRF = () =>
+        document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+        document.querySelector('input[name="_token"]')?.value || '';
+    LK.apiBase = LK.getBase() + 'api/';
     </script>
 
     <meta charset="utf-8" />
@@ -50,13 +50,13 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
     <style>
-        option {
-            background-color: #1c2c3c;
-        }
+    option {
+        background-color: #1c2c3c;
+    }
     </style>
 </head>
 
-<body class="body-content">
+<body class="g-sidenav-show bg-gray-100">
     <?php
     $active = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -123,8 +123,8 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-    <main class="main-content">
-        <div class="lk-page">
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
+        <div class="container-fluid lk-page">
             <!-- Modal Único -->
             <div class="lkh-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle"
                 aria-hidden="true">
@@ -188,137 +188,137 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
         <?php loadPageJs('admin-home-header'); ?>
         <?php loadPageJs(); ?>
         <script>
-            (function() {
-                const root = document.documentElement;
-                const btn = document.getElementById("toggleTheme");
+        (function() {
+            const root = document.documentElement;
+            const btn = document.getElementById("toggleTheme");
 
-                const BASE_URL = LK.getBase();
-                const ENDPOINT = BASE_URL + 'api/user/theme';
-                const CSRF = LK.getCSRF();
+            const BASE_URL = LK.getBase();
+            const ENDPOINT = BASE_URL + 'api/user/theme';
+            const CSRF = LK.getCSRF();
 
 
-                // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
-                const cached = localStorage.getItem("theme");
-                if (cached) applyTheme(cached, false);
+            // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
+            const cached = localStorage.getItem("theme");
+            if (cached) applyTheme(cached, false);
 
-                // 2) busca do backend (fonte da verdade)
-                fetch(ENDPOINT, {
-                        credentials: 'include'
-                    })
-                    .then(r => r.ok ? r.json() : Promise.reject(r))
-                    .then(j => applyTheme(j?.theme || cached || 'light', false))
-                    .catch(() => applyTheme(cached || 'light', false));
+            // 2) busca do backend (fonte da verdade)
+            fetch(ENDPOINT, {
+                    credentials: 'include'
+                })
+                .then(r => r.ok ? r.json() : Promise.reject(r))
+                .then(j => applyTheme(j?.theme || cached || 'light', false))
+                .catch(() => applyTheme(cached || 'light', false));
 
-                // 3) clique alterna e salva no backend
-                btn?.addEventListener("click", () => {
-                    const current = root.getAttribute("data-theme") || 'light';
-                    const next = current === 'dark' ? 'light' : 'dark';
-                    applyTheme(next, true);
-                });
+            // 3) clique alterna e salva no backend
+            btn?.addEventListener("click", () => {
+                const current = root.getAttribute("data-theme") || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                applyTheme(next, true);
+            });
 
-                function applyTheme(theme, persist) {
-                    root.setAttribute("data-theme", theme);
-                    localStorage.setItem("theme", theme);
-                    updateIcon(theme);
+            function applyTheme(theme, persist) {
+                root.setAttribute("data-theme", theme);
+                localStorage.setItem("theme", theme);
+                updateIcon(theme);
 
-                    if (persist) {
-                        const token = LK.getCSRF();
-                        fetch(ENDPOINT, {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': token
-                            },
-                            body: JSON.stringify({
-                                theme,
-                                _token: token,
-                                csrf_token: token
-                            })
-                        }).catch(err => console.error('Falha ao salvar tema:', err));
-                    }
-
+                if (persist) {
+                    const token = LK.getCSRF();
+                    fetch(ENDPOINT, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token
+                        },
+                        body: JSON.stringify({
+                            theme,
+                            _token: token,
+                            csrf_token: token
+                        })
+                    }).catch(err => console.error('Falha ao salvar tema:', err));
                 }
 
-                function updateIcon(theme) {
-                    const btnEl = document.getElementById("toggleTheme");
-                    if (!btnEl) return;
-                    btnEl.classList.toggle('dark', theme === 'dark');
-                }
-            })();
+            }
+
+            function updateIcon(theme) {
+                const btnEl = document.getElementById("toggleTheme");
+                if (!btnEl) return;
+                btnEl.classList.toggle('dark', theme === 'dark');
+            }
+        })();
         </script>
         <script>
-            (function() {
-                const rootEl = document.documentElement;
-                const sidebar = document.getElementById('sidebar-main');
-                const edgeBtn = document.getElementById('edgeMenuBtn');
-                const backdrop = document.getElementById('sidebarBackdrop');
+        (function() {
+            const rootEl = document.documentElement;
+            const sidebar = document.getElementById('sidebar-main');
+            const edgeBtn = document.getElementById('edgeMenuBtn');
+            const backdrop = document.getElementById('sidebarBackdrop');
 
-                if (!sidebar || !edgeBtn || !backdrop) return;
+            if (!sidebar || !edgeBtn || !backdrop) return;
 
-                function applyCollapsedState(isCollapsed) {
-                    sidebar.classList.toggle('collapsed', isCollapsed);
-                    rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
-                    if (window.innerWidth > 992) {
-                        edgeBtn.setAttribute('aria-expanded', String(!isCollapsed));
-                    }
+            function applyCollapsedState(isCollapsed) {
+                sidebar.classList.toggle('collapsed', isCollapsed);
+                rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
+                if (window.innerWidth > 992) {
+                    edgeBtn.setAttribute('aria-expanded', String(!isCollapsed));
                 }
+            }
 
-                function closeMobile() {
-                    sidebar.classList.remove('open');
-                    rootEl.classList.remove('sidebar-open-mobile');
-                    edgeBtn.setAttribute('aria-expanded', 'false');
+            function closeMobile() {
+                sidebar.classList.remove('open');
+                rootEl.classList.remove('sidebar-open-mobile');
+                edgeBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            function handleResponsive() {
+                const w = window.innerWidth;
+                if (w <= 992) {
+                    // mobile: comeca fechada
+                    rootEl.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('collapsed');
+                    closeMobile();
+                } else {
+                    // desktop/tablet: icones por padrao
+                    closeMobile();
+                    applyCollapsedState(true);
                 }
+            }
 
-                function handleResponsive() {
-                    const w = window.innerWidth;
-                    if (w <= 992) {
-                        // mobile: comeca fechada
-                        rootEl.classList.remove('sidebar-collapsed');
-                        sidebar.classList.remove('collapsed');
-                        closeMobile();
-                    } else {
-                        // desktop/tablet: icones por padrao
-                        closeMobile();
-                        applyCollapsedState(true);
-                    }
+            function onEdgeClick() {
+                if (window.innerWidth <= 992) {
+                    const willOpen = !sidebar.classList.contains('open');
+                    sidebar.classList.toggle('open', willOpen);
+                    rootEl.classList.toggle('sidebar-open-mobile', willOpen);
+                    edgeBtn.setAttribute('aria-expanded', String(willOpen));
+                } else {
+                    const willCollapse = !sidebar.classList.contains('collapsed');
+                    applyCollapsedState(willCollapse);
                 }
+            }
 
-                function onEdgeClick() {
-                    if (window.innerWidth <= 992) {
-                        const willOpen = !sidebar.classList.contains('open');
-                        sidebar.classList.toggle('open', willOpen);
-                        rootEl.classList.toggle('sidebar-open-mobile', willOpen);
-                        edgeBtn.setAttribute('aria-expanded', String(willOpen));
-                    } else {
-                        const willCollapse = !sidebar.classList.contains('collapsed');
-                        applyCollapsedState(willCollapse);
-                    }
+            // Fechar tocando fora (mobile)
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth > 992) return;
+                const hitSidebar = sidebar.contains(e.target);
+                const hitBtn = edgeBtn.contains(e.target);
+                const hitBackdrop = backdrop.contains(e.target);
+                if (!hitSidebar && !hitBtn) {
+                    closeMobile();
                 }
+                if (hitBackdrop) {
+                    closeMobile();
+                }
+            });
 
-                // Fechar tocando fora (mobile)
-                document.addEventListener('click', (e) => {
-                    if (window.innerWidth > 992) return;
-                    const hitSidebar = sidebar.contains(e.target);
-                    const hitBtn = edgeBtn.contains(e.target);
-                    const hitBackdrop = backdrop.contains(e.target);
-                    if (!hitSidebar && !hitBtn) {
-                        closeMobile();
-                    }
-                    if (hitBackdrop) {
-                        closeMobile();
-                    }
-                });
+            // Fechar com ESC no mobile
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && window.innerWidth <= 992) {
+                    closeMobile();
+                }
+            });
 
-                // Fechar com ESC no mobile
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && window.innerWidth <= 992) {
-                        closeMobile();
-                    }
-                });
-
-                edgeBtn.addEventListener('click', onEdgeClick);
-                window.addEventListener('resize', handleResponsive);
-                handleResponsive();
-            })();
+            edgeBtn.addEventListener('click', onEdgeClick);
+            window.addEventListener('resize', handleResponsive);
+            handleResponsive();
+        })();
         </script>
