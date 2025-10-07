@@ -31,6 +31,28 @@ class ContasController
         $rows = $q->orderBy('nome')->get();
 
         $extras = [];
+        $saldoIniciais = [];
+        $ids = $rows->pluck('id')->all();
+
+        if ($rows->count()) {
+            $saldoIniciais = Lancamento::where('user_id', $userId)
+                ->whereIn('conta_id', $ids)
+                ->where('eh_saldo_inicial', 1)
+                ->selectRaw("
+                    conta_id,
+                    SUM(
+                        CASE
+                            WHEN tipo = ?
+                                THEN -valor
+                            ELSE valor
+                        END
+                    ) as total
+                ", [Lancamento::TIPO_DESPESA])
+                ->groupBy('conta_id')
+                ->pluck('total', 'conta_id')
+                ->all();
+        }
+
         if ($withBalances && $rows->count()) {
             $dt = \DateTime::createFromFormat('Y-m', $month);
             if (!$dt || $dt->format('Y-m') !== $month) {
@@ -39,8 +61,6 @@ class ContasController
             $ate = (new \DateTimeImmutable($dt->format('Y-m-01')))
                 ->modify('last day of this month')
                 ->format('Y-m-d');
-
-            $ids = $rows->pluck('id')->all();
 
             // RECEITAS (não transferência) até a data
             $rec = Lancamento::where('user_id', $userId)
@@ -87,11 +107,12 @@ class ContasController
                     // Obs: abaixo são totais até a data. Se quiser "do mês", troque por BETWEEN no 1º e último dia do mês.
                     'entradasMes' => $r + $i,
                     'saidasMes'   => $d + $o,
+                    'saldoInicial' => (float)($saldoIniciais[$cid] ?? 0),
                 ];
             }
         }
 
-        Response::json($rows->map(function ($c) use ($extras) {
+        Response::json($rows->map(function ($c) use ($extras, $saldoIniciais) {
             $x = $extras[$c->id] ?? null;
             return [
                 'id'            => (int)$c->id,
@@ -99,7 +120,8 @@ class ContasController
                 'instituicao'   => (string)($c->instituicao ?? ''),
                 'moeda'         => (string)($c->moeda ?? 'BRL'),
                 // Mantido por compatibilidade, mas agora vem sempre 0 (não existe mais coluna).
-                'saldoInicial'  => 0.0,
+                'saldoInicial'  => $x ? (float)$x['saldoInicial'] : (float)($saldoIniciais[$c->id] ?? 0),
+                // saldo inicial calculado a partir do lançamento dedicado (caso exista)
                 'saldoAtual'    => $x ? (float)$x['saldoAtual']  : null,
                 'entradasMes'   => $x ? (float)$x['entradasMes'] : 0.0,
                 'saidasMes'     => $x ? (float)$x['saidasMes']   : 0.0,

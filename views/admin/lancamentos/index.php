@@ -1,44 +1,46 @@
 <section class="lan-page">
     <div class="lan-header">
         <h3 class="lan-title">Lancamentos</h3>
-        <header class="dash-lk-header">
-            <div class="header-left">
-                <div class="month-selector">
-                    <div class="lk-period">
-                        <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mes anterior">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal" data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
-                            <span id="currentMonthText">Carregando...</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="month-display">
-                            <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+        <div class="lan-controls">
+            <header class="dash-lk-header">
+                <div class="header-left">
+                    <div class="month-selector">
+                        <div class="lk-period">
+                            <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mes anterior">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal" data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
+                                <span id="currentMonthText">Carregando...</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="month-display">
+                                <div class="month-dropdown" id="monthDropdown" role="menu"></div>
+                            </div>
+                            <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Proximo mes">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
                         </div>
-                        <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Proximo mes">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
                     </div>
                 </div>
-            </div>
-        </header>
-        <div class="lan-filter">
-            <div class="type-filter" role="group" aria-label="Filtro por tipo">
-                <label for="filtroTipo" class="sr-only">Tipo</label>
-                <select id="filtroTipo" class="lk-select btn btn-primary">
-                    <option value="">Todos</option>
-                    <option value="receita">Receitas</option>
-                    <option value="despesa">Despesas</option>
-                </select>
-                <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
-                    <i class="fas fa-filter"></i> Filtrar
-                </button>
-                <button id="btnExcluirSel" type="button" class="lk-btn danger btn" disabled>
-                    <i class="fas fa-trash"></i> Excluir selecionados
-                </button>
-                <small id="selInfo" class="text-muted d-none">
-                    <span id="selCount">0</span> selecionado(s)
-                </small>
+            </header>
+            <div class="lan-filter">
+                <div class="type-filter" role="group" aria-label="Filtro por tipo">
+                    <label for="filtroTipo" class="sr-only">Tipo</label>
+                    <select id="filtroTipo" class="lk-select btn btn-primary">
+                        <option value="">Todos</option>
+                        <option value="receita">Receitas</option>
+                        <option value="despesa">Despesas</option>
+                    </select>
+                    <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <button id="btnExcluirSel" type="button" class="lk-btn danger btn" disabled>
+                        <i class="fas fa-trash"></i> Excluir selecionados
+                    </button>
+                    <small id="selInfo" class="text-muted d-none">
+                        <span id="selCount">0</span> selecionado(s)
+                    </small>
+                </div>
             </div>
         </div>
     </div>

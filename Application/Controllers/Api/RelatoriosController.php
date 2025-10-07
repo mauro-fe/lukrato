@@ -51,11 +51,21 @@ class RelatoriosController extends BaseController
         });
     }
 
-    private function baseLancamentos(Carbon $start, Carbon $end, ?int $accId, ?int $userId, bool $includeTransfers = false)
+    private function baseLancamentos(
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
+        ?int $userId,
+        bool $includeTransfers = false,
+        bool $includeSaldoInicial = false
+    )
     {
         $q = Lancamento::query()
-            ->whereBetween('lancamentos.data', [$start, $end])
-            ->where('lancamentos.eh_saldo_inicial', 0);
+            ->whereBetween('lancamentos.data', [$start, $end]);
+
+        if (!$includeSaldoInicial) {
+            $q->where('lancamentos.eh_saldo_inicial', 0);
+        }
 
         if (!$includeTransfers) {
             $q->where('lancamentos.eh_transferencia', 0);
@@ -182,7 +192,7 @@ class RelatoriosController extends BaseController
                     }
 
                 case 'saldo_mensal': {
-                        $base = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers)
+                        $base = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers, true)
                             ->select(DB::raw('DATE(lancamentos.data) as dia'))
                             ->selectRaw("
             SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as delta
@@ -217,7 +227,7 @@ class RelatoriosController extends BaseController
 
 
                 case 'receitas_despesas_diario': {
-                        $rows = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers)
+                        $rows = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers, true)
                             ->selectRaw('DATE(lancamentos.data) as dia')
                             ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE 0 END) as receitas")
                             ->selectRaw("SUM(CASE WHEN lancamentos.tipo='despesa' THEN lancamentos.valor ELSE 0 END) as despesas")
@@ -252,7 +262,7 @@ class RelatoriosController extends BaseController
                         $ini = (clone $start)->subMonthsNoOverflow(11)->startOfMonth();
                         $fim = (clone $end);
 
-                        $rows = $this->baseLancamentos($ini, $fim, $accId, $userId, $includeTransfers)
+                        $rows = $this->baseLancamentos($ini, $fim, $accId, $userId, $includeTransfers, true)
                             ->selectRaw("DATE_FORMAT(lancamentos.data, '%Y-%m-01') as mes")
                             ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as saldo")
                             ->groupBy('mes')
@@ -287,7 +297,6 @@ class RelatoriosController extends BaseController
                             ->leftJoin('lancamentos as l', function ($j) use ($start, $end, $userId) {
                                 $j->on(DB::raw('1'), '=', DB::raw('1'))
                                     ->whereBetween('l.data', [$start, $end])
-                                    ->where('l.eh_saldo_inicial', 0)
                                     ->where(function ($w) {
                                         $w->whereColumn('l.conta_id', 'contas.id')
                                             ->orWhere(function ($w2) {
