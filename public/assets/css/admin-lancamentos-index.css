@@ -20,7 +20,6 @@
 
 .lan-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--spacing-4);
   align-items: flex-start;
 }
@@ -53,12 +52,8 @@
 .dash-lk-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 /* ======================= Month Selector (dentro do header) ======================= */
@@ -171,14 +166,6 @@
   justify-content: flex-start;
   gap: var(--spacing-3);
   padding: var(--spacing-4);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-}
-
-.type-filter select {
-  min-width: 180px;
-  flex: 1 1 220px;
 }
 
 .type-filter .lk-btn {
@@ -192,7 +179,6 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
-
 
 .btn:hover {
   transform: translateY(-2px);
@@ -357,20 +343,16 @@
     gap: var(--spacing-3);
   }
 
-
   .type-filter {
     flex-direction: column;
     align-items: stretch;
     gap: var(--spacing-2);
-
   }
-
 
   .type-filter select,
   .type-filter .lk-btn,
   .type-filter small {
     width: 100%;
-
   }
 
   .type-filter small {
@@ -386,7 +368,6 @@
     min-width: 520px;
   }
 }
-
 
 /* Badge styles para tipos */
 .badge {
