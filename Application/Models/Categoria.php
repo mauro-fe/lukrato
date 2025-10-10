@@ -9,6 +9,7 @@ class Categoria extends Model
     protected $table = 'categorias';
     protected $fillable = ['nome', 'tipo', 'user_id'];
     protected $casts = ['user_id' => 'int'];
+    public $timestamps = false;
 
     public function usuario()
     {

@@ -26,12 +26,21 @@
                 </div>
             </header>
             <div class="lan-filter">
-                <div class="type-filter" role="group" aria-label="Filtro por tipo">
+                <div class="type-filter" role="group" aria-label="Filtros">
                     <label for="filtroTipo" class="sr-only">Tipo</label>
                     <select id="filtroTipo" class="lk-select btn btn-primary">
                         <option value="">Todos</option>
                         <option value="receita">Receitas</option>
                         <option value="despesa">Despesas</option>
+                    </select>
+                    <label for="filtroCategoria" class="sr-only">Categoria</label>
+                    <select id="filtroCategoria" class="lk-select btn btn-primary">
+                        <option value="">Todas as categorias</option>
+                        <option value="none">Sem categoria</option>
+                    </select>
+                    <label for="filtroConta" class="sr-only">Conta</label>
+                    <select id="filtroConta" class="lk-select btn btn-primary">
+                        <option value="">Todas as contas</option>
                     </select>
                     <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
                         <i class="fas fa-filter"></i> Filtrar
@@ -121,6 +130,8 @@
     const $ = (s) => document.querySelector(s);
     const tbody = $('#tbodyLancamentos');
     const selectTipo = $('#filtroTipo');
+    const selectCategoria = $('#filtroCategoria');
+    const selectConta = $('#filtroConta');
     const btnFiltrar = $('#btnFiltrar');
     const btnExcluirSel = $('#btnExcluirSel');
     const chkAll = $('#chkAll');
@@ -148,6 +159,85 @@
         const d = new Date(iso);
         return isNaN(d) ? '-' : d.toLocaleDateString('pt-BR');
     };
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[m] || m));
+
+    const normalizeDataList = (payload) => {
+        if (!payload) return [];
+        if (Array.isArray(payload)) return payload;
+        if (payload && Array.isArray(payload.data)) return payload.data;
+        return [];
+    };
+
+    const fetchJsonList = async (url) => {
+        try {
+            const res = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!res.ok) return [];
+            const body = await res.json().catch(() => null);
+            return normalizeDataList(body);
+        } catch {
+            return [];
+        }
+    };
+
+    async function loadFilterOptions() {
+        const categoriaPromise = selectCategoria ? fetchJsonList(`${rawBase}api/categorias`) : Promise.resolve([]);
+        const contaPromise = selectConta ? fetchJsonList(`${rawBase}api/accounts?only_active=1`) : Promise.resolve([]);
+
+        if (selectCategoria) {
+            selectCategoria.innerHTML = '<option value="">Todas as categorias</option><option value="none">Sem categoria</option>';
+        }
+        if (selectConta) {
+            selectConta.innerHTML = '<option value="">Todas as contas</option>';
+        }
+
+        const [categorias, contas] = await Promise.all([categoriaPromise, contaPromise]);
+
+        if (selectCategoria && categorias.length) {
+            const items = categorias
+                .map((cat) => ({
+                    id: Number(cat?.id ?? 0),
+                    nome: String(cat?.nome ?? '').trim()
+                }))
+                .filter((cat) => Number.isFinite(cat.id) && cat.id > 0 && cat.nome);
+
+            items.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+
+            const options = items
+                .map((cat) => `<option value="${cat.id}">${escapeHtml(cat.nome)}</option>`)
+                .join('');
+            selectCategoria.insertAdjacentHTML('beforeend', options);
+        }
+
+        if (selectConta && contas.length) {
+            const items = contas
+                .map((acc) => {
+                    const id = Number(acc?.id ?? 0);
+                    const nome = String(acc?.nome ?? '').trim();
+                    const instituicao = String(acc?.instituicao ?? '').trim();
+                    const label = nome || instituicao;
+                    return { id, label };
+                })
+                .filter((acc) => Number.isFinite(acc.id) && acc.id > 0 && acc.label);
+
+            items.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
+
+            const options = items
+                .map((acc) => `<option value="${acc.id}">${escapeHtml(acc.label)}</option>`)
+                .join('');
+            selectConta.insertAdjacentHTML('beforeend', options);
+        }
+    }
 
     const hasSwal = !!window.Swal;
     const ask = async (title, text = '') => {
@@ -251,11 +341,19 @@
     async function fetchLancamentos({
         month,
         tipo = '',
+        categoria = '',
+        conta = '',
         limit = 500
     }) {
         const qs = new URLSearchParams();
         if (month) qs.set('month', month);
         if (tipo) qs.set('tipo', tipo);
+        if (categoria !== undefined && categoria !== null && categoria !== '') {
+            qs.set('categoria_id', categoria);
+        }
+        if (conta !== undefined && conta !== null && conta !== '') {
+            qs.set('account_id', conta);
+        }
         qs.set('limit', String(limit));
         try {
             const res = await fetch(`${ENDPOINT}?${qs.toString()}`, {
@@ -341,7 +439,9 @@
         timer = setTimeout(async () => {
             const month = (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(
                 0, 7);
-            const tipo = selectTipo?.value || '';
+            const tipo = selectTipo ? selectTipo.value : '';
+            const categoria = selectCategoria ? selectCategoria.value : '';
+            const conta = selectConta ? selectConta.value : '';
 
             setMonthLabel(month);
 
@@ -349,6 +449,8 @@
             const items = await fetchLancamentos({
                 month,
                 tipo,
+                categoria,
+                conta,
                 limit: 500
             });
             renderRows(items);
@@ -363,6 +465,7 @@
 
     btnFiltrar && btnFiltrar.addEventListener('click', load);
 
+    loadFilterOptions();
     setMonthLabel(window.LukratoHeader?.getMonth?.() || (new Date()).toISOString().slice(0, 7));
     load();
 

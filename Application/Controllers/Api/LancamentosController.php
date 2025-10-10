@@ -30,6 +30,22 @@ class LancamentosController
         $accId = isset($_GET['account_id']) && $_GET['account_id'] !== ''
             ? (int) $_GET['account_id'] : null;
 
+        $categoriaParam = $_GET['categoria_id'] ?? '';
+        $categoriaId = null;
+        $categoriaIsNull = false;
+        if ($categoriaParam !== '') {
+            if (in_array($categoriaParam, ['none', 'null'], true)) {
+                $categoriaIsNull = true;
+            } elseif (is_numeric($categoriaParam)) {
+                $categoriaParam = (int) $categoriaParam;
+                if ($categoriaParam === 0) {
+                    $categoriaIsNull = true;
+                } elseif ($categoriaParam > 0) {
+                    $categoriaId = $categoriaParam;
+                }
+            }
+        }
+
         $tipo = $_GET['tipo'] ?? null;
         $tipo = in_array($tipo, ['receita', 'despesa'], true) ? $tipo : null;
 
@@ -46,15 +62,24 @@ class LancamentosController
                 $s->where('l.conta_id', $accId)
                     ->orWhere('l.conta_id_destino', $accId);
             }))
+            ->when($categoriaIsNull, fn($w) => $w->whereNull('l.categoria_id'))
+            ->when($categoriaId, fn($w) => $w->where('l.categoria_id', $categoriaId))
             ->when($tipo, fn($w) => $w->where('l.tipo', $tipo))
             ->orderBy('l.data', 'desc')
             ->orderBy('l.id', 'desc')
             ->limit($limit);
 
         $rows = $q->selectRaw('
-            l.id, l.data, l.tipo, l.valor, l.descricao, l.eh_transferencia,
+            l.id,
+            l.data,
+            l.tipo,
+            l.valor,
+            l.descricao,
+            l.eh_transferencia,
             COALESCE(c.nome, "") as categoria,
-            COALESCE(a.instituicao, a.nome, "") as conta,
+            COALESCE(a.nome, a.instituicao, "") as conta,
+            COALESCE(a.nome, "") as conta_nome,
+            COALESCE(a.instituicao, "") as conta_instituicao,
             COALESCE(l.eh_saldo_inicial, 0) as eh_saldo_inicial
         ')->get();
 
@@ -68,6 +93,8 @@ class LancamentosController
             'eh_saldo_inicial' => (bool)($r->eh_saldo_inicial ?? 0),
             'categoria'        => (string)$r->categoria,
             'conta'            => (string)$r->conta,
+            'conta_nome'       => (string)$r->conta_nome,
+            'conta_instituicao'=> (string)$r->conta_instituicao,
         ])->values()->all();
 
         Response::success($out);
