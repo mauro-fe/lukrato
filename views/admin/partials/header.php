@@ -1,25 +1,8 @@
-<?php
+﻿<?php
 $pageTitle = $pageTitle ?? 'Painel Administrativo';
-$username  = $username  ?? 'usuário';
+$username  = $username  ?? 'usuario';
 $menu      = $menu      ?? '';
-
-if ($menu === '' && isset($GLOBALS['current_view'])) {
-    $candidate = '';
-    $parts = explode('-', (string) ($GLOBALS['current_view'] ?? ''));
-    if (!empty($parts)) {
-        if (($parts[0] ?? '') === 'admin') {
-            $candidate = $parts[1] ?? '';
-        } else {
-            $candidate = $parts[0] ?? '';
-        }
-    }
-    $allowed = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
-    if ($candidate !== '' && in_array($candidate, $allowed, true)) {
-        $menu = $candidate;
-    }
-}
-
-
+$allowedMenus = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
 $u    = 'admin';
 $base = BASE_URL;
 
@@ -55,7 +38,6 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <title><?= $pageTitle ?></title>
 
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
-    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -63,6 +45,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
@@ -73,7 +56,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     </style>
 </head>
 
-<body class="g-sidenav-show bg-gray-100">
+<body class="body-content">
     <?php
     $active = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -96,7 +79,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
             </a>
         </div>
         <nav class="sidebar-nav">
-            <button id="toggleTheme" type="button" class="nav-item theme-toggle" aria-label="Alternar tema"
+            <button id="toggleTheme" type="button" class="nav-item theme-toggle mb-3" aria-label="Alternar tema"
                 title="Modo claro/escuro">
                 <i class="fas fa-sun"></i>
                 <i class="fas fa-moon"></i>
@@ -140,8 +123,8 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
-        <div class="container-fluid lk-page">
+    <main class="main-content">
+        <div class="lk-page">
             <!-- Modal Único -->
             <div class="lkh-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle"
                 aria-hidden="true">

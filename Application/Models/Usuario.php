@@ -20,12 +20,20 @@ class Usuario extends Model
         'username',
         'data_nascimento',
         'id_sexo',
+        'plano',
+        'anuncios_desativados',
+        'gateway',
+        'pagarme_cliente_id',
+        'pagarme_assinatura_id',
+        'plano_renova_em',
     ];
 
     protected $hidden = ['senha', 'password'];
 
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
+        'anuncios_desativados' => 'boolean',
+        'plano_renova_em' => 'datetime',
     ];
 
     public function categorias()

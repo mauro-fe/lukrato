@@ -1,4 +1,4 @@
-<div class="container">
+<div>
     <div class="lk-acc-title">
         <h3>Contas</h3>
     </div>

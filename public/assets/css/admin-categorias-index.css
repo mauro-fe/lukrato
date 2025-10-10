@@ -1,3 +1,45 @@
+.c-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-5);
+}
+
+.c-title {
+    font-size: clamp(24px, 2.6vw, 32px);
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.c-form {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(140px, auto);
+    gap: var(--spacing-3);
+    align-items: stretch;
+    margin: var(--spacing-4) 0;
+}
+
+.c-form .btn {
+    min-width: 140px;
+    border-radius: var(--radius-sm, 8px);
+    white-space: nowrap;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.c-filter {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+    margin: var(--spacing-4) 0;
+}
+
+.c-filter .c-select {
+    max-width: 240px;
+}
 .c-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border, #1f29371a);
@@ -25,6 +67,7 @@
 
 .table-container {
     width: 100%;
+    margin: var(--spacing-4) 0;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
@@ -112,4 +155,59 @@
     border-radius: 50%;
     margin-right: .4rem;
     vertical-align: middle
+}
+
+@media (max-width: 1200px) {
+    .c-form {
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(140px, auto);
+    }
+}
+
+@media (max-width: 1024px) {
+    .c-form {
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .c-form .btn {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+    }
+}
+
+@media (max-width: 720px) {
+    .c-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .c-form .btn {
+        width: 100%;
+    }
+
+    .lukrato-table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 560px) {
+    .c-form {
+        grid-template-columns: 1fr;
+    }
+
+    .c-form .btn {
+        justify-self: stretch;
+    }
+
+    .c-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .c-filter .c-select {
+        width: 100%;
+        max-width: none;
+    }
+
+    .lukrato-table {
+        min-width: 520px;
+    }
 }

@@ -1,8 +1,7 @@
-<section class="container">
+<section class="c-page">
     <h3 class="c-title">Categorias</h3>
     <div class="c-card mt-4">
-        <form id="formNova" class="row"
-            style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:var(--spacing-3);margin:var(--spacing-4) 0;">
+        <form id="formNova" class="c-form">
             <?= csrf_input('default') ?>
             <input class="c-input" name="nome" placeholder="Nome da categoria" required />
             <select class="c-select" name="tipo" required>
@@ -12,9 +11,9 @@
             <button class="btn lk-select btn-primary" type="submit">Adicionar</button>
         </form>
     </div>
-    <div class="py-4">
+    <div class="c-filter">
         <label class="c-muted">Filtrar por tipo:</label>
-        <select id="filtroTipo" class="c-select" style="max-width:240px">
+        <select id="filtroTipo" class="c-select">
             <option value="">Todos</option>
             <option value="receita">Receita</option>
             <option value="despesa">Despesa</option>

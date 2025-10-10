@@ -1,4 +1,4 @@
-<div class="container" id="archivedAccountsPage">
+<div id="archivedAccountsPage">
     <div class="lk-acc-title d-flex align-items-center gap-3">
         <h3 class="mb-0">Contas arquivadas</h3>
         <a class="btn btn-light" href="<?= BASE_URL ?>contas">
