@@ -4,6 +4,8 @@ namespace Application\Controllers\Api;
 
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Models\Categoria;
+use Application\Models\Conta;
 use Application\Models\Lancamento;
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -75,6 +77,10 @@ class LancamentosController
             l.tipo,
             l.valor,
             l.descricao,
+            l.observacao,
+            l.categoria_id,
+            l.conta_id,
+            l.conta_id_destino,
             l.eh_transferencia,
             COALESCE(c.nome, "") as categoria,
             COALESCE(a.nome, a.instituicao, "") as conta,
@@ -89,6 +95,10 @@ class LancamentosController
             'tipo'             => (string)$r->tipo,
             'valor'            => (float)$r->valor,
             'descricao'        => (string)($r->descricao ?? ''),
+            'observacao'       => (string)($r->observacao ?? ''),
+            'categoria_id'     => isset($r->categoria_id) && (int)$r->categoria_id > 0 ? (int)$r->categoria_id : null,
+            'conta_id'         => isset($r->conta_id) && (int)$r->conta_id > 0 ? (int)$r->conta_id : null,
+            'conta_id_destino' => isset($r->conta_id_destino) && (int)$r->conta_id_destino > 0 ? (int)$r->conta_id_destino : null,
             'eh_transferencia' => (bool) ($r->eh_transferencia ?? 0),
             'eh_saldo_inicial' => (bool)($r->eh_saldo_inicial ?? 0),
             'categoria'        => (string)$r->categoria,
@@ -98,6 +108,143 @@ class LancamentosController
         ])->values()->all();
 
         Response::success($out);
+    }
+
+    public function update(int $id): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Não autenticado', 401);
+            return;
+        }
+
+        $payload = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($payload)) {
+            $payload = $_POST ?? [];
+        }
+
+        /** @var Lancamento|null $lancamento */
+        $lancamento = Lancamento::where('user_id', $userId)
+            ->where('id', $id)
+            ->first();
+
+        if (!$lancamento) {
+            Response::error('Lançamento não encontrado', 404);
+            return;
+        }
+
+        if ((int)($lancamento->eh_saldo_inicial ?? 0) === 1) {
+            Response::error('Não é possível editar o saldo inicial.', 422);
+            return;
+        }
+
+        if ((int)($lancamento->eh_transferencia ?? 0) === 1) {
+            Response::error('Não é possível editar uma transferência.', 422);
+            return;
+        }
+
+        $errors = [];
+
+        $tipo = strtolower(trim((string)($payload['tipo'] ?? $lancamento->tipo ?? '')));
+        if (!in_array($tipo, [Lancamento::TIPO_RECEITA, Lancamento::TIPO_DESPESA], true)) {
+            $errors['tipo'] = 'Tipo inválido.';
+        }
+
+        $data = (string)($payload['data'] ?? $lancamento->data ?? '');
+        if (!$data || !preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
+            $errors['data'] = 'Data inválida. Use o formato YYYY-MM-DD.';
+        }
+
+        $valorRaw = $payload['valor'] ?? $lancamento->valor ?? 0;
+        if (is_string($valorRaw)) {
+            $s = trim($valorRaw);
+            $s = str_replace(['R$', ' '], '', $s);
+            $s = str_replace('.', '', $s);
+            $s = str_replace(',', '.', $s);
+            $valorRaw = $s;
+        }
+        if (!is_numeric($valorRaw)) {
+            $errors['valor'] = 'Valor inválido.';
+        }
+        $valor = (float)$valorRaw;
+        if (!is_finite($valor)) {
+            $errors['valor'] = 'Valor inválido.';
+        }
+        if ($valor < 0) {
+            $valor = abs($valor);
+        }
+        $valor = round($valor, 2);
+
+        $descricao = trim((string)($payload['descricao'] ?? $lancamento->descricao ?? ''));
+        if (mb_strlen($descricao) > 190) {
+            $descricao = mb_substr($descricao, 0, 190);
+        }
+
+        $observacao = trim((string)($payload['observacao'] ?? $lancamento->observacao ?? ''));
+        if (mb_strlen($observacao) > 500) {
+            $observacao = mb_substr($observacao, 0, 500);
+        }
+
+        $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
+        if ($categoriaId === '' || $categoriaId === null) {
+            $categoriaId = null;
+        } else {
+            $categoriaId = (int)$categoriaId;
+            if ($categoriaId > 0) {
+                $categoriaExiste = Categoria::forUser($userId)->where('id', $categoriaId)->exists();
+                if (!$categoriaExiste) {
+                    $errors['categoria_id'] = 'Categoria inválida.';
+                }
+            } else {
+                $categoriaId = null;
+            }
+        }
+
+        $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id;
+        if ($contaId === '' || $contaId === null) {
+            $errors['conta_id'] = 'Conta obrigatória.';
+        } else {
+            $contaId = (int)$contaId;
+            $contaExiste = Conta::forUser($userId)->where('id', $contaId)->exists();
+            if (!$contaExiste) {
+                $errors['conta_id'] = 'Conta inválida.';
+            }
+        }
+
+        if (!empty($errors)) {
+            Response::validationError($errors);
+            return;
+        }
+
+        $lancamento->tipo = $tipo;
+        $lancamento->data = $data;
+        $lancamento->valor = $valor;
+        $lancamento->descricao = $descricao;
+        $lancamento->observacao = $observacao;
+        $lancamento->categoria_id = $categoriaId;
+        $lancamento->conta_id = $contaId;
+        $lancamento->conta_id_destino = null;
+        $lancamento->eh_transferencia = 0;
+        $lancamento->save();
+
+        $lancamento->refresh()->loadMissing(['categoria', 'conta']);
+
+        Response::success([
+            'id'               => (int)$lancamento->id,
+            'data'             => $lancamento->data instanceof \DateTimeInterface ? $lancamento->data->format('Y-m-d') : (string)$lancamento->data,
+            'tipo'             => (string)$lancamento->tipo,
+            'valor'            => (float)$lancamento->valor,
+            'descricao'        => (string)($lancamento->descricao ?? ''),
+            'observacao'       => (string)($lancamento->observacao ?? ''),
+            'categoria_id'     => $lancamento->categoria_id ? (int)$lancamento->categoria_id : null,
+            'conta_id'         => $lancamento->conta_id ? (int)$lancamento->conta_id : null,
+            'eh_transferencia' => (bool)$lancamento->eh_transferencia,
+            'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
+            'categoria'        => $lancamento->categoria->nome ?? '',
+            'categoria_nome'   => $lancamento->categoria->nome ?? '',
+            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+        ]);
     }
 
     public function destroy(int $id): void

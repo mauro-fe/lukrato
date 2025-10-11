@@ -101,8 +101,8 @@ class PerfilController
 
             if (
                 Usuario::whereRaw('LOWER(email) = ?', [$email])
-                    ->where('id', '!=', $user->id)
-                    ->exists()
+                ->where('id', '!=', $user->id)
+                ->exists()
             ) {
                 Response::validationError(['email' => 'Este e-mail ja esta em uso.']);
                 return;
@@ -111,8 +111,8 @@ class PerfilController
             if (
                 $username !== '' &&
                 Usuario::whereRaw('LOWER(username) = ?', [mb_strtolower($username)])
-                    ->where('id', '!=', $user->id)
-                    ->exists()
+                ->where('id', '!=', $user->id)
+                ->exists()
             ) {
                 Response::validationError(['username' => 'Este username ja esta em uso.']);
                 return;

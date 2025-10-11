@@ -91,9 +91,9 @@ $aria   = function (string $key) use ($menu) {
                 </div>
             </section>
 
-            <section class="card table-card">
+            <section class="card table-card mb-5">
                 <div class="card-header">
-                    <h2 class="card-title">Últimos Lançamentos</h2>
+                    <h2 class="card-title">5 Últimos Lançamentos</h2>
                 </div>
                 <div class="table-container">
                     <div class="empty-state" id="emptyState" style="display:none;">
@@ -324,7 +324,7 @@ $aria   = function (string $key) use ($menu) {
         const apiAccountsBalances = (m) =>
             getJSON(`${BASE}api/accounts?with_balances=1&month=${encodeURIComponent(m)}&only_active=1`);
 
-        async function apiTransactionsSmart(m, l = 50) {
+        async function apiTransactionsSmart(m, l = 5) {
             const urlLanc = `${BASE}api/lancamentos?month=${encodeURIComponent(m)}&limit=${l}`;
             try {
                 const data = await getJSON(urlLanc);
@@ -579,7 +579,7 @@ $aria   = function (string $key) use ($menu) {
             try {
 
 
-                const list = await apiTransactionsSmart(currentMonth, 50);
+                const list = await apiTransactionsSmart(currentMonth, 5);
                 tbody.innerHTML = '';
 
                 const hasData = Array.isArray(list) && list.length > 0;

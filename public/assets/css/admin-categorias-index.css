@@ -1,213 +1,642 @@
 .c-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
 }
 
 .c-title {
-    font-size: clamp(24px, 2.6vw, 32px);
-    font-weight: 700;
-    color: var(--color-primary);
+  font-size: clamp(24px, 2.6vw, 32px);
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 .c-form {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(140px, auto);
-    gap: var(--spacing-3);
-    align-items: stretch;
-    margin: var(--spacing-4) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
+      140px,
+      auto
+    );
+  gap: var(--spacing-3);
+  align-items: stretch;
+  margin: var(--spacing-4) 0;
 }
 
 .c-form .btn {
-    min-width: 140px;
-    border-radius: var(--radius-sm, 8px);
-    white-space: nowrap;
-    justify-self: end;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+  min-width: 140px;
+  border-radius: var(--radius-sm, 8px);
+  white-space: nowrap;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 .c-filter {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-3);
-    flex-wrap: wrap;
-    margin: var(--spacing-4) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  margin: var(--spacing-4) 0;
 }
 
 .c-filter .c-select {
-    max-width: 240px;
+  max-width: 240px;
 }
 .c-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border, #1f29371a);
-    border-radius: var(--radius-sm, 8px);
-    padding: var(--spacing-4)
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border, #1f29371a);
+  border-radius: var(--radius-sm, 8px);
+  padding: var(--spacing-4);
 }
 
 .c-muted {
-    color: var(--color-text-muted)
+  color: var(--color-text-muted);
 }
 
 .c-input,
 .c-select {
-    width: 100%;
-    padding: var(--spacing-3);
-    border-radius: var(--radius-sm, 8px);
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    color: var(--color-text)
+  width: 100%;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--color-text);
 }
 
 .c-input::placeholder {
-    color: var(--color-text)
+  color: var(--color-text);
 }
 
 .table-container {
-    width: 100%;
-    margin: var(--spacing-4) 0;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
-    overflow-x: auto;
+  width: 100%;
+  margin: var(--spacing-4) 0;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  overflow-x: auto;
 }
 
 .lukrato-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 720px;
-    color: var(--branco);
-    overflow: hidden;
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  color: var(--branco);
+  overflow: hidden;
 }
 
 .lukrato-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    text-align: left;
-    font-size: var(--font-size-sm);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--cinza);
-    background: rgba(255, 255, 255, 0.04);
-    border-bottom: 1px solid var(--glass-border);
-    padding: var(--spacing-4) var(--spacing-6);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cinza);
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--glass-border);
+  padding: var(--spacing-4) var(--spacing-6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .lukrato-table tbody td {
-    padding: var(--spacing-4) var(--spacing-6);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    vertical-align: middle;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
 }
 
 .lukrato-table tbody tr:nth-child(even) td {
-    background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .lukrato-table tbody tr:hover td {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(2px);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(2px);
 }
 
 .text-right {
-    text-align: right;
+  text-align: right;
 }
 
 .text-center {
-    text-align: center;
+  text-align: center;
 }
 
 .lukrato-table tbody td[colspan] {
-    color: var(--cinza);
-    font-weight: 600;
-    padding: var(--spacing-6);
+  color: var(--cinza);
+  font-weight: 600;
+  padding: var(--spacing-6);
 }
 
 .tag {
-    display: inline-block;
-    padding: .1rem .5rem;
-    border-radius: 999px;
-    text-transform: capitalize
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  text-transform: capitalize;
 }
 
 .tag-receita {
-    background: rgba(46, 204, 113, .18)
+  background: rgba(46, 204, 113, 0.18);
 }
 
 .tag-despesa {
-    background: rgba(230, 126, 34, .18)
+  background: rgba(230, 126, 34, 0.18);
 }
 
 .tag-transferencia {
-    background: rgba(52, 152, 219, .18)
+  background: rgba(52, 152, 219, 0.18);
 }
 
 .color-dot {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: .4rem;
-    vertical-align: middle
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  vertical-align: middle;
 }
 
 @media (max-width: 1200px) {
-    .c-form {
-        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(140px, auto);
-    }
+  .c-form {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
+        140px,
+        auto
+      );
+  }
 }
 
 @media (max-width: 1024px) {
-    .c-form {
-        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
-    }
+  .c-form {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
 
-    .c-form .btn {
-        grid-column: 1 / -1;
-        justify-self: stretch;
-    }
+  .c-form .btn {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
 }
 
 @media (max-width: 720px) {
-    .c-form {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .c-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-    .c-form .btn {
-        width: 100%;
-    }
+  .c-form .btn {
+    width: 100%;
+  }
 
-    .lukrato-table {
-        min-width: 600px;
-    }
+  .lukrato-table {
+    min-width: 600px;
+  }
 }
 
 @media (max-width: 560px) {
-    .c-form {
-        grid-template-columns: 1fr;
-    }
+  .c-form {
+    grid-template-columns: 1fr;
+  }
 
-    .c-form .btn {
-        justify-self: stretch;
-    }
+  .c-form .btn {
+    justify-self: stretch;
+  }
 
-    .c-filter {
-        flex-direction: column;
-        align-items: stretch;
-    }
+  .c-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-    .c-filter .c-select {
-        width: 100%;
-        max-width: none;
-    }
+  .c-filter .c-select {
+    width: 100%;
+    max-width: none;
+  }
 
-    .lukrato-table {
-        min-width: 520px;
-    }
+  .lukrato-table {
+    min-width: 520px;
+  }
+}
+
+/* =========================================================
+ * EDITAR CATEGORIA (Modal)
+ * =======================================================*/
+#modalEditCategoria .modal-content {
+  background: var(--color-surface) !important;
+  color: var(--color-text);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-primary);
+}
+
+#modalEditCategoria .modal-header,
+#modalEditCategoria .modal-footer {
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+}
+
+#modalEditCategoria .modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+#modalEditCategoria .btn-close {
+  filter: invert(var(--color-text));
+  opacity: 0.8;
+}
+#modalEditCategoria .btn-close:hover {
+  opacity: 1;
+}
+
+/* Botões */
+#modalEditCategoria .btn {
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
+}
+
+#modalEditCategoria .btn-outline-secondary,
+#modalEditCategoria .btn-outline-light {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+}
+
+#modalEditCategoria .btn-outline-secondary:hover,
+#modalEditCategoria .btn-outline-light:hover {
+  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-primary) 20%);
+  color: var(--branco) !important;
+  border-color: var(--color-primary);
+}
+
+#modalEditCategoria .btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--branco);
+}
+#modalEditCategoria .btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* Inputs e selects */
+#modalEditCategoria .form-label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  margin-bottom: 0.25rem;
+}
+
+#modalEditCategoria .form-control,
+#modalEditCategoria .form-select {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+#modalEditCategoria .form-control::placeholder {
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+
+#modalEditCategoria .form-control:focus,
+#modalEditCategoria .form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
+  color: var(--color-primary) !important;
+}
+
+/* =======================
+   Tabulator - Theme by tokens
+   ======================= */
+:root {
+  /* utilitários (sem hardcode de cores, usando color-mix) */
+  --_hover-row: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  --_even-row: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  --_primary-weak: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  --_primary-weak-2: color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+
+/* Container básico */
+.table-container {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  margin-bottom: 50px;
+}
+
+/* Raiz do Tabulator */
+.table-container .tabulator {
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-base);
+  min-width: 720px;
+}
+
+/* Header */
+.table-container .tabulator .tabulator-header {
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+}
+
+.table-container .tabulator .tabulator-header .tabulator-col {
+  background: transparent;
+  border-right: 1px solid
+    color-mix(in srgb, var(--glass-border) 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+.table-container .tabulator .tabulator-header .tabulator-col:hover {
+  background: var(--color-primary) !important;
+  color: var(--color-text);
+}
+
+.table-container .tabulator .tabulator-header .tabulator-col:last-child {
+  border-right: 0;
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-col-content {
+  padding: var(--spacing-2) var(--spacing-4);
+  line-height: 1.2;
+}
+
+/* Filtros no header */
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter {
+  margin-top: var(--spacing-2);
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  input,
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  select {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  box-sizing: border-box;
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Corpo */
+.table-container .tabulator .tabulator-table {
+  background: transparent !important;
+}
+
+.table-container .tabulator .tabulator-row {
+  background: transparent;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--glass-border) 60%, transparent);
+  transition: transform var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.table-container .tabulator .tabulator-row:nth-child(even),
+.table-container .tabulator .tabulator-row.tabulator-row-even {
+  background: var(--_even-row);
+}
+
+.table-container .tabulator .tabulator-row:hover {
+  background: var(--color-primary);
+  transform: translateX(2px);
+}
+
+.table-container .tabulator .tabulator-row .tabulator-cell {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-right: 0;
+  background: transparent;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.table-container .tabulator .tabulator-row .tabulator-cell:first-child {
+  text-align: center;
+}
+
+/* Selecionado */
+.table-container .tabulator .tabulator-row.tabulator-selected {
+  background: var(--_primary-weak) !important;
+  box-shadow: inset 0 0 0 1px var(--_primary-weak-2);
+}
+
+.table-container .tabulator .tabulator-row.tabulator-selected .tabulator-cell {
+  color: var(--color-text);
+}
+
+/* Botão de ação dentro da célula */
+.table-container .tabulator .tabulator-row .tabulator-cell .lk-btn.danger {
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--spacing-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  border: none;
+  color: var(--color-text);
+}
+
+.table-container
+  .tabulator
+  .tabulator-row
+  .tabulator-cell
+  .lk-btn.danger:hover {
+  background-color: var(--color-text) !important;
+  color: var(--color-surface) !important;
+}
+
+/* Placeholder (vazio) */
+.table-container .tabulator .tabulator-placeholder {
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  padding: var(--spacing-6);
+}
+
+/* Footer & paginacao */
+.table-container .tabulator .tabulator-footer {
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+  border-top: 1px solid var(--glass-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-3) var(--spacing-6);
+  gap: var(--spacing-4);
+}
+
+.table-container .tabulator .tabulator-footer .tabulator-page-size,
+.table-container .tabulator .tabulator-footer .tabulator-page {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-text);
+  padding: 0 var(--spacing-3);
+  height: 36px;
+  line-height: 1;
+  gap: var(--spacing-2);
+}
+
+.table-container .tabulator .tabulator-footer .tabulator-page-size select {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  height: 100%;
+  padding: 0;
+  outline: none;
+}
+
+.table-container .tabulator .tabulator-footer .tabulator-page.active {
+  background: var(--_primary-weak);
+  border-color: var(--_primary-weak-2);
+  color: var(--color-text);
+}
+
+.table-container
+  .tabulator
+  .tabulator-footer
+  .tabulator-page:not(.disabled):hover,
+.table-container .tabulator .tabulator-footer .tabulator-page-size:hover {
+  background: var(--_primary-weak);
+  border-color: var(--_primary-weak-2);
+}
+
+.table-container .tabulator .tabulator-pages {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.table-container .tabulator .tabulator-paginator {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.table-container .tabulator .tabulator-paginator button {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-text);
+  padding: 0 var(--spacing-3);
+  line-height: 1;
+  transition: background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.table-container .tabulator .tabulator-paginator button:hover:not([disabled]) {
+  background: var(--_primary-weak);
+  border-color: var(--_primary-weak-2);
+}
+
+/* === SCROLLBAR do Tabulator (apenas dentro da tabela) === */
+.table-container .tabulator .tabulator-tableholder {
+  /* Firefox */
+  scrollbar-width: thin; /* auto | thin | none */
+  scrollbar-color: var(--color-primary) transparent; /* thumb | track */
+}
+
+/* WebKit (Chrome/Edge/Opera/Safari) */
+.table-container .tabulator .tabulator-tableholder::-webkit-scrollbar {
+  width: 10px; /* largura da barra vertical */
+  height: 10px; /* altura da barra horizontal */
+}
+
+.table-container .tabulator .tabulator-tableholder::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.table-container .tabulator .tabulator-tableholder::-webkit-scrollbar-thumb {
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 55%,
+    var(--color-surface)
+  );
+  border-radius: var(--radius-md);
+  border: 2px solid color-mix(in srgb, var(--color-surface) 85%, transparent); /* “caminho” */
+}
+
+.table-container
+  .tabulator
+  .tabulator-tableholder::-webkit-scrollbar-thumb:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 75%,
+    var(--color-surface)
+  );
+}
+
+/* opcional: cantinho onde barra H encontra a V */
+.table-container .tabulator .tabulator-tableholder::-webkit-scrollbar-corner {
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+}
+
+/* Badges alinhadas ao tema */
+.badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge.bg-success {
+  background-color: var(--color-success) !important;
+}
+.badge.bg-danger {
+  background-color: var(--color-danger) !important;
+}
+
+.text-success {
+  color: var(--color-success) !important;
+}
+.text-danger {
+  color: var(--color-danger) !important;
+}
+
+/* Botões genéricos seguindo token */
+.lk-btn {
+  background-color: var(--color-primary) !important;
+}
+.btn:focus {
+  background-color: var(--color-primary);
+}
+.btn:hover {
+  transform: translateY(-2px);
 }

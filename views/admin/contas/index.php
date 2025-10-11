@@ -165,9 +165,6 @@
             </div>
         </div>
     </div>
-
-
-    </section>
 </div>
 <script>
     (function initAccountsPage() {
@@ -783,7 +780,8 @@
                 (conta.saldoInicial || 0);
             modalTr.dataset.saldoDisponivel = String(saldoDisponivel);
             trOrigemId.value = String(conta.id);
-            trOrigemNome.value = `${conta.nome} ${conta.instituicao ? '— ' + conta.instituicao : ''} (Saldo: R$ ${formatMoneyBR(saldoDisponivel)})`;
+            trOrigemNome.value =
+                `${conta.nome} ${conta.instituicao ? '— ' + conta.instituicao : ''} (Saldo: R$ ${formatMoneyBR(saldoDisponivel)})`;
 
             if (trData && 'valueAsDate' in trData) trData.valueAsDate = new Date();
             else if (trData) trData.value = new Date().toISOString().slice(0, 10);
@@ -832,7 +830,8 @@
                 const valor = parseMoneyBR(trValor.value);
 
                 if (!destinoId || !origemId || origemId === destinoId)
-                    return Swal.fire('Atenção', 'Selecione contas de origem e destino diferentes.', 'warning');
+                    return Swal.fire('Atenção', 'Selecione contas de origem e destino diferentes.',
+                        'warning');
 
                 if (!trData.value || !valor || valor <= 0)
                     return Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning');

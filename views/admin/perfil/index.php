@@ -10,7 +10,7 @@ $menu      = $menu ?? 'perfil';
             <p class="profile-subtitle">Atualize seus dados da conta</p>
         </div>
     </div>
-    <div class="profile-card">
+    <div class="profile-card mb-5">
         <form id="profileForm" class="profile-form">
             <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
@@ -32,8 +32,8 @@ $menu      = $menu ?? 'perfil';
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="data_nascimento">Data de nascimento</label>
-                    <input class="form-input" id="data_nascimento" name="data_nascimento" type="date"
-                        value="" max="<?= date('Y-m-d') ?>">
+                    <input class="form-input" id="data_nascimento" name="data_nascimento" type="date" value=""
+                        max="<?= date('Y-m-d') ?>">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="telefone">Telefone</label>
@@ -59,17 +59,18 @@ $menu      = $menu ?? 'perfil';
             <div class="password-grid">
                 <div class="form-group">
                     <label class="form-label" for="senha_atual">Senha atual</label>
-                    <input class="form-input" id="senha_atual" name="senha_atual" type="password" autocomplete="current-password">
+                    <input class="form-input" id="senha_atual" name="senha_atual" type="password"
+                        autocomplete="current-password">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="nova_senha">Nova senha</label>
-                    <input class="form-input" id="nova_senha" name="nova_senha" type="password" autocomplete="new-password"
-                        minlength="6">
+                    <input class="form-input" id="nova_senha" name="nova_senha" type="password"
+                        autocomplete="new-password" minlength="6">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="conf_senha">Confirmar senha</label>
-                    <input class="form-input" id="conf_senha" name="conf_senha" type="password" autocomplete="new-password"
-                        minlength="6">
+                    <input class="form-input" id="conf_senha" name="conf_senha" type="password"
+                        autocomplete="new-password" minlength="6">
                 </div>
             </div>
 
@@ -88,196 +89,196 @@ $menu      = $menu ?? 'perfil';
 </div>
 
 <script>
-(() => {
-    const BASE = (() => {
-        const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-        let base = meta;
-        if (!base) {
-            const m = location.pathname.match(/^(.*\/public\/)/);
-            base = m ? (location.origin + m[1]) : (location.origin + '/');
+    (() => {
+        const BASE = (() => {
+            const meta = document.querySelector('meta[name="base-url"]')?.content || '';
+            let base = meta;
+            if (!base) {
+                const m = location.pathname.match(/^(.*\/public\/)/);
+                base = m ? (location.origin + m[1]) : (location.origin + '/');
+            }
+            if (base && !/\/public\/?$/.test(base)) {
+                const m2 = location.pathname.match(/^(.*\/public\/)/);
+                if (m2) base = location.origin + m2[1];
+            }
+            return base.replace(/\/?$/, '/');
+        })();
+        const API = `${BASE}api/`;
+
+        const form = document.getElementById('profileForm');
+        const inputAva = document.getElementById('avatarInput');
+        const imgPrev = document.getElementById('avatarPreview');
+        const btnCancel = document.getElementById('btnCancel');
+
+        const fieldNome = document.getElementById('nome');
+        const fieldEmail = document.getElementById('email');
+        const fieldCpf = document.getElementById('cpf');
+        const fieldData = document.getElementById('data_nascimento');
+        const fieldTelefone = document.getElementById('telefone');
+        const fieldSexo = document.getElementById('sexo');
+
+        const placeholderAvatar = `${BASE}assets/img/avatar-placeholder.png`;
+        const resolveAvatarUrl = (value) => {
+            if (!value) return placeholderAvatar;
+            if (/^https?:/i.test(value)) return value;
+            return `${BASE}${String(value).replace(/^\//, '')}`;
+        };
+
+        // Mascaras simples
+        const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
+
+        function maskCPF(v) {
+            v = onlyDigits(v).slice(0, 11);
+            let out = '';
+            if (v.length > 9) out = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1.$2.$3-$4');
+            else if (v.length > 6) out = v.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
+            else if (v.length > 3) out = v.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
+            else out = v;
+            return out;
         }
-        if (base && !/\/public\/?$/.test(base)) {
-            const m2 = location.pathname.match(/^(.*\/public\/)/);
-            if (m2) base = location.origin + m2[1];
-        }
-        return base.replace(/\/?$/, '/');
-    })();
-    const API = `${BASE}api/`;
 
-    const form = document.getElementById('profileForm');
-    const inputAva = document.getElementById('avatarInput');
-    const imgPrev = document.getElementById('avatarPreview');
-    const btnCancel = document.getElementById('btnCancel');
-
-    const fieldNome = document.getElementById('nome');
-    const fieldEmail = document.getElementById('email');
-    const fieldCpf = document.getElementById('cpf');
-    const fieldData = document.getElementById('data_nascimento');
-    const fieldTelefone = document.getElementById('telefone');
-    const fieldSexo = document.getElementById('sexo');
-
-    const placeholderAvatar = `${BASE}assets/img/avatar-placeholder.png`;
-    const resolveAvatarUrl = (value) => {
-        if (!value) return placeholderAvatar;
-        if (/^https?:/i.test(value)) return value;
-        return `${BASE}${String(value).replace(/^\//, '')}`;
-    };
-
-    // Mascaras simples
-    const onlyDigits = (s) => (s || '').replace(/\D+/g, '');
-
-    function maskCPF(v) {
-        v = onlyDigits(v).slice(0, 11);
-        let out = '';
-        if (v.length > 9) out = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1.$2.$3-$4');
-        else if (v.length > 6) out = v.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
-        else if (v.length > 3) out = v.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
-        else out = v;
-        return out;
-    }
-
-    function maskPhone(v) {
-        v = onlyDigits(v).slice(0, 11);
-        if (v.length <= 10) {
+        function maskPhone(v) {
+            v = onlyDigits(v).slice(0, 11);
+            if (v.length <= 10) {
+                return v
+                    .replace(/^(\d{0,2})/, '($1')
+                    .replace(/^\((\d{2})(\d)/, '($1) $2')
+                    .replace(/(\d{4})(\d)/, '$1-$2');
+            }
             return v
                 .replace(/^(\d{0,2})/, '($1')
                 .replace(/^\((\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{4})(\d)/, '$1-$2');
+                .replace(/(\d{5})(\d)/, '$1-$2');
         }
-        return v
-            .replace(/^(\d{0,2})/, '($1')
-            .replace(/^\((\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{5})(\d)/, '$1-$2');
-    }
 
-    if (fieldCpf) {
-        fieldCpf.addEventListener('input', () => {
-            fieldCpf.value = maskCPF(fieldCpf.value);
+        if (fieldCpf) {
+            fieldCpf.addEventListener('input', () => {
+                fieldCpf.value = maskCPF(fieldCpf.value);
+            });
+        }
+
+        if (fieldTelefone) {
+            fieldTelefone.addEventListener('input', () => {
+                fieldTelefone.value = maskPhone(fieldTelefone.value);
+            });
+        }
+
+        inputAva?.addEventListener('change', () => {
+            const f = inputAva.files?.[0];
+            if (!f || !f.type.match(/^image\//)) return;
+            const url = URL.createObjectURL(f);
+            if (imgPrev) {
+                imgPrev.src = url;
+                imgPrev.onload = () => URL.revokeObjectURL(url);
+            }
         });
-    }
 
-    if (fieldTelefone) {
-        fieldTelefone.addEventListener('input', () => {
-            fieldTelefone.value = maskPhone(fieldTelefone.value);
+        btnCancel?.addEventListener('click', () => {
+            if (history.length > 1) {
+                history.back();
+            } else {
+                location.href = BASE + 'dashboard';
+            }
         });
-    }
 
-    inputAva?.addEventListener('change', () => {
-        const f = inputAva.files?.[0];
-        if (!f || !f.type.match(/^image\//)) return;
-        const url = URL.createObjectURL(f);
-        if (imgPrev) {
-            imgPrev.src = url;
-            imgPrev.onload = () => URL.revokeObjectURL(url);
-        }
-    });
+        function validateBeforeSubmit(fd) {
+            const rawCPF = (fd.get('cpf') || '').toString();
+            if (rawCPF && onlyDigits(rawCPF).length !== 11) {
+                throw new Error('CPF invalido. Verifique e tente novamente.');
+            }
 
-    btnCancel?.addEventListener('click', () => {
-        if (history.length > 1) {
-            history.back();
-        } else {
-            location.href = BASE + 'dashboard';
-        }
-    });
+            const ns = (fd.get('nova_senha') || '').toString();
+            const cs = (fd.get('conf_senha') || '').toString();
+            if (ns || cs) {
+                if (ns.length < 6) throw new Error('A nova senha deve ter ao menos 6 caracteres.');
+                if (ns !== cs) throw new Error('A confirmacao de senha nao confere.');
+            }
 
-    function validateBeforeSubmit(fd) {
-        const rawCPF = (fd.get('cpf') || '').toString();
-        if (rawCPF && onlyDigits(rawCPF).length !== 11) {
-            throw new Error('CPF invalido. Verifique e tente novamente.');
+            const dn = (fd.get('data_nascimento') || '').toString();
+            if (dn && new Date(dn) > new Date()) {
+                throw new Error('A data de nascimento nao pode ser futura.');
+            }
         }
 
-        const ns = (fd.get('nova_senha') || '').toString();
-        const cs = (fd.get('conf_senha') || '').toString();
-        if (ns || cs) {
-            if (ns.length < 6) throw new Error('A nova senha deve ter ao menos 6 caracteres.');
-            if (ns !== cs) throw new Error('A confirmacao de senha nao confere.');
-        }
-
-        const dn = (fd.get('data_nascimento') || '').toString();
-        if (dn && new Date(dn) > new Date()) {
-            throw new Error('A data de nascimento nao pode ser futura.');
-        }
-    }
-
-    async function loadProfile() {
-        if (!form) return;
-        try {
-            const res = await fetch(`${API}perfil`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
+        async function loadProfile() {
+            if (!form) return;
+            try {
+                const res = await fetch(`${API}perfil`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const j = await res.json().catch(() => null);
+                if (!res.ok || j?.status !== 'success') {
+                    throw new Error(j?.message || 'Falha ao carregar perfil.');
                 }
-            });
-            const j = await res.json().catch(() => null);
-            if (!res.ok || j?.status !== 'success') {
-                throw new Error(j?.message || 'Falha ao carregar perfil.');
+                const user = j?.data?.user || {};
+
+                if (fieldNome) fieldNome.value = user.nome || '';
+                if (fieldEmail) fieldEmail.value = user.email || '';
+                if (fieldCpf) fieldCpf.value = user.cpf || '';
+                if (fieldData) fieldData.value = user.data_nascimento || '';
+                if (fieldTelefone) fieldTelefone.value = user.telefone || '';
+                if (fieldSexo) fieldSexo.value = user.sexo || '';
+                if (imgPrev) imgPrev.src = resolveAvatarUrl(user.avatar);
+            } catch (err) {
+                console.error(err);
+                window.Swal?.fire?.({
+                    icon: 'error',
+                    title: 'Erro ao carregar',
+                    text: err.message || 'Nao foi possivel carregar o perfil.',
+                    confirmButtonColor: '#e74c3c'
+                });
             }
-            const user = j?.data?.user || {};
-
-            if (fieldNome) fieldNome.value = user.nome || '';
-            if (fieldEmail) fieldEmail.value = user.email || '';
-            if (fieldCpf) fieldCpf.value = user.cpf || '';
-            if (fieldData) fieldData.value = user.data_nascimento || '';
-            if (fieldTelefone) fieldTelefone.value = user.telefone || '';
-            if (fieldSexo) fieldSexo.value = user.sexo || '';
-            if (imgPrev) imgPrev.src = resolveAvatarUrl(user.avatar);
-        } catch (err) {
-            console.error(err);
-            window.Swal?.fire?.({
-                icon: 'error',
-                title: 'Erro ao carregar',
-                text: err.message || 'Nao foi possivel carregar o perfil.',
-                confirmButtonColor: '#e74c3c'
-            });
         }
-    }
 
-    form?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        form.classList.add('form-loading');
-        const submitBtn = form.querySelector('.btn-primary');
-        const originalText = submitBtn?.textContent || '';
-        if (submitBtn) submitBtn.textContent = 'Salvando...';
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            form.classList.add('form-loading');
+            const submitBtn = form.querySelector('.btn-primary');
+            const originalText = submitBtn?.textContent || '';
+            if (submitBtn) submitBtn.textContent = 'Salvando...';
 
-        const fd = new FormData(form);
+            const fd = new FormData(form);
 
-        try {
-            validateBeforeSubmit(fd);
+            try {
+                validateBeforeSubmit(fd);
 
-            const r = await fetch(`${API}perfil`, {
-                method: 'POST',
-                credentials: 'include',
-                body: fd
-            });
+                const r = await fetch(`${API}perfil`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
 
-            const j = await r.json().catch(() => null);
-            if (!r.ok || j?.status === 'error') {
-                throw new Error(j?.message || 'Falha ao salvar.');
+                const j = await r.json().catch(() => null);
+                if (!r.ok || j?.status === 'error') {
+                    throw new Error(j?.message || 'Falha ao salvar.');
+                }
+
+                window.Swal?.fire?.({
+                    icon: 'success',
+                    title: 'Perfil atualizado com sucesso!',
+                    text: 'Suas informacoes foram salvas.',
+                    confirmButtonColor: '#e67e22'
+                });
+
+                await loadProfile();
+            } catch (err) {
+                console.error(err);
+                window.Swal?.fire?.({
+                    icon: 'error',
+                    title: 'Erro ao salvar',
+                    text: err.message || 'Erro ao salvar perfil.',
+                    confirmButtonColor: '#e74c3c'
+                });
+            } finally {
+                form.classList.remove('form-loading');
+                if (submitBtn) submitBtn.textContent = originalText;
             }
+        });
 
-            window.Swal?.fire?.({
-                icon: 'success',
-                title: 'Perfil atualizado com sucesso!',
-                text: 'Suas informacoes foram salvas.',
-                confirmButtonColor: '#e67e22'
-            });
-
-            await loadProfile();
-        } catch (err) {
-            console.error(err);
-            window.Swal?.fire?.({
-                icon: 'error',
-                title: 'Erro ao salvar',
-                text: err.message || 'Erro ao salvar perfil.',
-                confirmButtonColor: '#e74c3c'
-            });
-        } finally {
-            form.classList.remove('form-loading');
-            if (submitBtn) submitBtn.textContent = originalText;
-        }
-    });
-
-    loadProfile();
-})();
+        loadProfile();
+    })();
 </script>

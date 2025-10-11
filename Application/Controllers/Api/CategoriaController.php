@@ -108,6 +108,105 @@ class CategoriaController extends BaseController
         }
     }
 
+    public function update($routeParam = null): void
+    {
+        try {
+            $this->requireAuth();
+
+            $id = 0;
+            if (is_array($routeParam) && isset($routeParam['id'])) {
+                $id = (int) $routeParam['id'];
+            } elseif (is_string($routeParam) || is_int($routeParam)) {
+                $id = (int) $routeParam;
+            }
+            if ($id <= 0 && isset($_POST['id'])) {
+                $id = (int) $_POST['id'];
+            }
+            if ($id <= 0) {
+                Response::validationError(['id' => 'ID invǭlido']);
+                return;
+            }
+
+            $categoria = Categoria::forUser($this->adminId)->find($id);
+            if (!$categoria) {
+                Response::error('Categoria nǜo encontrada.', 404);
+                return;
+            }
+
+            $payload = $this->request->post();
+            if (empty($payload)) {
+                $payload = $this->getJson() ?? [];
+            }
+
+            // remove campos de controle
+            unset($payload['_token'], $payload['csrf_token']);
+
+            $gump = new GUMP();
+            $_POST = $gump->sanitize($payload ?? []);
+
+            $gump->validation_rules([
+                'nome' => 'required|min_len,2|max_len,100',
+                'tipo' => 'required|contains_list,receita;despesa;transferencia',
+            ]);
+            $gump->filter_rules([
+                'nome' => 'trim|sanitize_string',
+                'tipo' => 'trim',
+            ]);
+
+            $data = $gump->run($_POST);
+            if (!$data) {
+                LogService::warning('Valida��ǜo falhou ao atualizar categoria', [
+                    'user_id' => $this->adminId,
+                    'errors'  => $gump->get_errors_array(),
+                    'payload' => $payload,
+                    'categoria_id' => $id,
+                ]);
+                Response::validationError($gump->get_errors_array());
+                return;
+            }
+
+            $dup = Categoria::forUser($this->adminId)
+                ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
+                ->where('tipo', $data['tipo'])
+                ->where('id', '!=', $categoria->id)
+                ->first();
+
+            if ($dup) {
+                LogService::info('Tentativa de atualizar categoria para um nome duplicado', [
+                    'user_id'      => $this->adminId,
+                    'categoria_id' => $categoria->id,
+                    'nome'         => $data['nome'],
+                    'tipo'         => $data['tipo'],
+                    'duplicada_id' => $dup->id,
+                ]);
+                Response::error('Categoria jǭ existe.', 409);
+                return;
+            }
+
+            $categoria->nome = $data['nome'];
+            $categoria->tipo = $data['tipo'];
+            $categoria->save();
+
+            LogService::info('Categoria atualizada', [
+                'user_id'      => $this->adminId,
+                'categoria_id' => $categoria->id,
+                'nome'         => $categoria->nome,
+                'tipo'         => $categoria->tipo,
+            ]);
+
+            Response::success($categoria->fresh());
+        } catch (Exception $e) {
+            LogService::error('Falha ao atualizar categoria', [
+                'user_id'   => $this->adminId ?? null,
+                'payload'   => $this->request->post() ?? [],
+                'routeParam'=> $routeParam,
+                'exception' => $e->getMessage(),
+            ]);
+
+            Response::error('Falha ao atualizar categoria', 500);
+        }
+    }
+
     public function delete($routeParam = null): void
     {
         try {

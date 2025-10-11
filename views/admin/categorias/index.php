@@ -1,3 +1,4 @@
+﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 <section class="c-page">
     <h3 class="c-title">Categorias</h3>
     <div class="c-card mt-4">
@@ -22,45 +23,79 @@
         </select>
     </div>
     <section class="table-container">
-        <table class="lukrato-table" id="tblCats">
-            <!-- THEAD com a coluna "Cor" incluída -->
-            <thead>
-                <tr class="c-card">
-                    <th>Nome</th>
-                    <th>Tipo</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-
-            <tbody></tbody>
-        </table>
+        <div id="tabCategorias"></div>
     </section>
 </section>
 
+<div class="modal fade" id="modalEditCategoria" tabindex="-1" aria-labelledby="modalEditCategoriaLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+        <div class="modal-content bg-dark text-light border-0 rounded-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="modalEditCategoriaLabel">Editar categoria</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body pt-0">
+                <div id="editCategoriaAlert" class="alert alert-danger d-none" role="alert"></div>
+
+                <form id="formEditCategoria" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label text-light small mb-1" for="editCategoriaNome">Nome</label>
+                        <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary"
+                            id="editCategoriaNome" name="nome" placeholder="Nome da categoria" required minlength="2"
+                            maxlength="100">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-light small mb-1" for="editCategoriaTipo">Tipo</label>
+                        <select class="form-select form-select-sm bg-dark text-light border-secondary"
+                            id="editCategoriaTipo" name="tipo" required>
+                            <option value="receita">Receita</option>
+                            <option value="despesa">Despesa</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary btn-sm" form="formEditCategoria">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (() => {
-    // ========= BASE E API =========
+    'use strict';
+
     function getCsrfToken() {
         return document.querySelector('input[name="_token"]')?.value ||
-            document.querySelector('meta[name="csrf-token"]')?.content ||
-            '';
+            document.querySelector('meta[name="csrf-token"]')?.content || '';
     }
 
-    // BASE da API (usa sua meta)
     const BASE = (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
     const API = `${BASE}api/`;
+    const catCache = new Map();
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[m] || m));
 
-    // ========= CSRF =========
-    const getCsrf = () =>
-        document.querySelector('input[name="_token"]')?.value ||
-        document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const getCsrf = () => getCsrfToken();
 
-    // ========= FETCH HELPER (injeta CSRF e cookies) =========
     async function tryFetch(path, opts = {}) {
         const url = `${API}${path}`.replace(/([^:])\/{2,}/g, '$1/');
         opts.credentials = 'include';
-
         const method = (opts.method || 'GET').toUpperCase();
         const isBodyless = method === 'GET' || method === 'HEAD';
         const hasFormData = (opts.body && typeof FormData !== 'undefined' && opts.body instanceof FormData);
@@ -86,21 +121,16 @@
 
         const res = await fetch(url, opts);
         const ct = res.headers.get('content-type') || '';
-        const data = ct.includes('application/json') ? await res.json() : {
-            status: 'error',
-            message: await res.text()
-        };
+        const data = ct.includes('application/json') ? await res.json() : { status: 'error', message: await res.text() };
 
         if (!res.ok) {
-            if (res.status === 403) throw new Error(
-                'Acesso negado (403). Possível falha de CSRF ou sessão expirada.');
-            if (res.status === 404) throw new Error('Endpoint não encontrado (404): ' + url);
+            if (res.status === 403) throw new Error('Acesso negado (403). Possivel falha de CSRF ou sessao expirada.');
+            if (res.status === 404) throw new Error('Endpoint nao encontrado (404): ' + url);
             throw new Error(data?.message || `Erro ${res.status}`);
         }
         return data;
     }
 
-    // ========= UI HELPERS =========
     const toast = (icon, title) => Swal.fire({
         toast: true,
         position: 'top-end',
@@ -110,71 +140,145 @@
         icon,
         title
     });
-    const alertError = (msg) => Swal.fire({
-        icon: 'error',
-        title: 'Ops...',
-        text: msg || 'Algo deu errado.'
-    });
-    const confirmDel = (title = 'Remover?') =>
-        Swal.fire({
-            icon: 'warning',
-            title,
-            text: 'Esta ação não pode ser desfeita.',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, remover',
-            cancelButtonText: 'Cancelar'
-        }).then(r => r.isConfirmed);
+    const alertError = (msg) => Swal.fire({ icon: 'error', title: 'Ops...', text: msg || 'Algo deu errado.' });
+    const confirmDel = (title = 'Remover?') => Swal.fire({
+        icon: 'warning',
+        title,
+        text: 'Esta acao nao pode ser desfeita.',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, remover',
+        cancelButtonText: 'Cancelar'
+    }).then(r => r.isConfirmed);
 
-    // ========= DOM =========
     const $ = (s, sc = document) => sc.querySelector(s);
-    const tbody = $('#tblCats tbody');
     const filtro = $('#filtroTipo');
     const form = $('#formNova');
+    const tabContainer = document.getElementById('tabCategorias');
+    const modalEditEl = document.getElementById('modalEditCategoria');
+    let modalEdit = null;
+    if (modalEditEl && window.bootstrap?.Modal) {
+        modalEdit = window.bootstrap.Modal.getOrCreateInstance(modalEditEl);
+    }
+    const ensureModalEdit = () => {
+        if (modalEdit) return modalEdit;
+        if (!modalEditEl) return null;
+        if (window.bootstrap?.Modal) {
+            modalEdit = window.bootstrap.Modal.getOrCreateInstance(modalEditEl);
+            return modalEdit;
+        }
+        return null;
+    };
+    const formEdit = document.getElementById('formEditCategoria');
+    const inputEditNome = document.getElementById('editCategoriaNome');
+    const selectEditTipo = document.getElementById('editCategoriaTipo');
+    const editAlert = document.getElementById('editCategoriaAlert');
+    let editingId = null;
 
-    function row(cat) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-      <td style="padding:var(--spacing-3)"><strong>${cat.nome}</strong></td>
-      <td style="padding:var(--spacing-3)"><span class="tag tag-${cat.tipo}">${cat.tipo}</span></td>
-      <td style="padding:var(--spacing-3);text-align:right">
-        <button class="lk-btn danger btn-del" data-del="${cat.id}" title="Excluir" aria-label="Excluir">
-          <i class="fas fa-trash"></i>
-        </button>
-      </td>`;
-        return tr;
+    const clearEditAlert = () => {
+        if (!editAlert) return;
+        editAlert.classList.add('d-none');
+        editAlert.textContent = '';
+    };
+    const showEditAlert = (msg) => {
+        if (!editAlert) return;
+        editAlert.textContent = msg;
+        editAlert.classList.remove('d-none');
+    };
+
+    let table = null;
+    function ensureTable() {
+        if (table || !tabContainer) return table;
+        table = new Tabulator(tabContainer, {
+            height: '520px',
+            layout: 'fitColumns',
+            placeholder: 'Nenhuma categoria encontrada.',
+            index: 'id',
+            columns: [
+                {
+                    title: 'Nome',
+                    field: 'nome',
+                    headerFilter: 'input',
+                    headerFilterPlaceholder: 'Filtrar nome',
+                    formatter: (cell) => escapeHtml(String(cell.getValue() || ''))
+                },
+                {
+                    title: 'Tipo',
+                    field: 'tipo',
+                    headerFilter: 'select',
+                    headerFilterParams: {
+                        values: {
+                            '': 'Todos',
+                            receita: 'Receita',
+                            despesa: 'Despesa'
+                        }
+                    },
+                    formatter: (cell) => {
+                        const value = String(cell.getValue() || '').toLowerCase();
+                        if (value === 'receita') return 'Receita';
+                        if (value === 'despesa') return 'Despesa';
+                        return value ? value.charAt(0).toUpperCase() + value.slice(1) : '-';
+                    }
+                },
+                {
+                    title: 'Acoes',
+                    field: 'acoes',
+                    headerSort: false,
+                    hozAlign: 'center',
+                    width: 140,
+                    formatter: () => {
+                        return '<div class="d-flex justify-content-center gap-2">' +
+                            '<button type="button" class="lk-btn ghost btn-edit" data-action="edit" title="Editar"><i class="fas fa-edit"></i></button>' +
+                            '<button type="button" class="lk-btn danger btn-del" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    },
+                    cellClick: async (e, cell) => {
+                        const btn = e.target.closest('button[data-action]');
+                        if (!btn) return;
+                        const action = btn.getAttribute('data-action');
+                        const rowData = cell.getRow().getData();
+                        const id = rowData?.id;
+                        if (!id) return;
+                        if (action === 'edit') {
+                            await handleEditCategoria(id);
+                        } else if (action === 'delete') {
+                            await handleDeleteCategoria(id);
+                        }
+                    }
+                }
+            ]
+        });
+        return table;
     }
 
     async function load() {
-        tbody.innerHTML = '';
-        const q = filtro.value ? `?tipo=${encodeURIComponent(filtro.value)}` : '';
+        const q = filtro?.value ? `?tipo=${encodeURIComponent(filtro.value)}` : '';
         try {
             const j = await tryFetch(`categorias${q}`);
-            if (j.status !== 'success') return alertError(j.message || 'Falha ao carregar categorias');
-            (j.data || []).forEach(c => tbody.appendChild(row(c)));
-            if ((j.data || []).length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML =
-                    `<td colspan="4" class="c-muted" style="padding:var(--spacing-4)">Nenhuma categoria encontrada.</td>`;
-                tbody.appendChild(tr);
-            }
+            if (j.status !== 'success') throw new Error(j.message || 'Falha ao carregar categorias');
+            const items = Array.isArray(j.data) ? j.data : [];
+            catCache.clear();
+            items.forEach((c) => {
+                const id = c?.id;
+                if (id !== undefined && id !== null) {
+                    catCache.set(String(id), c);
+                }
+            });
+            ensureTable()?.setData(items);
         } catch (e) {
             alertError(e.message);
+            ensureTable()?.setData([]);
         }
     }
 
+    filtro?.addEventListener('change', load);
 
-
-    filtro.addEventListener('change', load);
-
-    form.addEventListener('submit', async (e) => {
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fd = new FormData(form);
-
         const nome = (fd.get('nome') || '').toString().trim();
         const tipo = (fd.get('tipo') || '').toString().trim();
         if (nome.length < 2) return alertError('Informe um nome com pelo menos 2 caracteres.');
-        if (!['receita', 'despesa', 'transferencia'].includes(tipo)) return alertError(
-            'Selecione um tipo válido.');
+        if (!['receita', 'despesa', 'transferencia'].includes(tipo)) return alertError('Selecione um tipo valido.');
 
         try {
             const j = await tryFetch('categorias', {
@@ -182,68 +286,121 @@
                 body: fd
             });
             if (j.status !== 'success') {
-                const msg = j.message || (j.errors ? Object.values(j.errors).join('\n') :
-                    'Falha ao criar categoria');
-                return alertError(msg);
+                const msg = j.message || (j.errors ? Object.values(j.errors).join('\n') : 'Falha ao criar categoria');
+                throw new Error(msg);
             }
             form.reset();
             toast('success', 'Categoria adicionada!');
             await load();
             document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
-                detail: {
-                    resource: 'categorias',
-                    action: 'create',
-                    id: j.data?.id ?? null
-                }
+                detail: { resource: 'categorias', action: 'create', id: j.data?.id ?? null }
             }));
-        } catch (e) {
-            alertError(e.message);
-        }
-    });
-    tbody.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.btn-del[data-del]');
-        if (!btn) return;
-
-        const id = btn.getAttribute('data-del');
-        if (!(await confirmDel('Deseja remover esta categoria?'))) return;
-
-        try {
-            // pega token da página
-            const token =
-                document.querySelector('input[name="_token"]')?.value ||
-                document.querySelector('input[name="csrf_token"]')?.value ||
-                document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-            const fd = new FormData();
-            // envie com AMBOS os nomes — garante compatibilidade
-            fd.append('_token', token);
-            fd.append('csrf_token', token);
-
-            const res = await fetch(`${API}categorias/${id}/delete`, {
-                method: 'POST',
-                body: fd,
-                credentials: 'include',
-                // use exatamente este header em CAIXA ALTA
-                headers: {
-                    'X-CSRF-TOKEN': token
-                }
-            });
-
-            const ct = res.headers.get('content-type') || '';
-            const j = ct.includes('application/json') ? await res.json() : {
-                status: 'error',
-                message: await res.text()
-            };
-
-            if (!res.ok || j.status !== 'success') throw new Error(j.message || `Erro ${res.status}`);
-
-            toast('success', 'Categoria removida!');
-            await load();
         } catch (err) {
             alertError(err.message);
         }
     });
 
+    async function handleEditCategoria(id) {
+        const cat = catCache.get(String(id));
+        if (!cat) {
+            alertError('Categoria nao encontrada.');
+            return;
+        }
+        const modal = ensureModalEdit();
+        if (!modal) {
+            alertError('Modal indisponivel.');
+            return;
+        }
+        editingId = String(id);
+        clearEditAlert();
+        if (inputEditNome) inputEditNome.value = cat.nome || '';
+        if (selectEditTipo) {
+            const tipo = ['receita', 'despesa', 'transferencia'].includes(cat.tipo) ? cat.tipo : 'despesa';
+            selectEditTipo.value = tipo;
+        }
+        modal.show();
+    }
+
+    async function handleDeleteCategoria(id) {
+        const confirmed = await confirmDel('Deseja remover esta categoria?');
+        if (!confirmed) return;
+        try {
+            const token = getCsrf();
+            const fd = new FormData();
+            if (token) {
+                fd.append('_token', token);
+                fd.append('csrf_token', token);
+            }
+            const res = await fetch(`${API}categorias/${encodeURIComponent(id)}/delete`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-TOKEN': token
+                }
+            });
+            const ct = res.headers.get('content-type') || '';
+            const j = ct.includes('application/json') ? await res.json() : { status: 'error', message: await res.text() };
+            if (!res.ok || j.status !== 'success') throw new Error(j.message || `Erro ${res.status}`);
+            toast('success', 'Categoria removida!');
+            await load();
+        } catch (err) {
+            alertError(err.message);
+        }
+    }
+
+    modalEditEl?.addEventListener('hidden.bs.modal', () => {
+        editingId = null;
+        clearEditAlert();
+        formEdit?.reset();
+    });
+
+    formEdit?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        if (!editingId) return;
+        clearEditAlert();
+        const submitBtn = formEdit.querySelector('button[type="submit"]');
+        submitBtn?.setAttribute('disabled', 'disabled');
+
+        const nome = (inputEditNome?.value || '').trim();
+        const tipo = (selectEditTipo?.value || '').trim();
+
+        if (nome.length < 2) {
+            showEditAlert('Informe um nome com pelo menos 2 caracteres.');
+            submitBtn?.removeAttribute('disabled');
+            return;
+        }
+        if (!['receita', 'despesa', 'transferencia'].includes(tipo)) {
+            showEditAlert('Selecione um tipo valido.');
+            submitBtn?.removeAttribute('disabled');
+            return;
+        }
+
+        try {
+            const j = await tryFetch(`categorias/${encodeURIComponent(editingId)}`, {
+                method: 'PUT',
+                body: { nome, tipo }
+            });
+            if (j.status !== 'success') throw new Error(j.message || 'Falha ao atualizar categoria.');
+            ensureModalEdit()?.hide();
+            toast('success', 'Categoria atualizada!');
+            await load();
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: { resource: 'categorias', action: 'update', id: Number(editingId) }
+            }));
+        } catch (err) {
+            showEditAlert(err.message || 'Falha ao atualizar categoria.');
+        } finally {
+            submitBtn?.removeAttribute('disabled');
+        }
+    });
+
+    ensureTable();
     load();
 })();
 </script>
+
+
+
+
+

@@ -220,6 +220,117 @@ class FinanceiroController
         }
     }
 
+    public function update($routeParam = null): void
+    {
+        try {
+            $uid = Auth::id();
+            if (!$uid) {
+                Response::json(['status' => 'error', 'message' => 'Nǜo autenticado'], 401);
+                return;
+            }
+
+            $id = 0;
+            if (is_array($routeParam) && isset($routeParam['id'])) {
+                $id = (int)$routeParam['id'];
+            } elseif (is_string($routeParam) || is_int($routeParam)) {
+                $id = (int)$routeParam;
+            }
+            if ($id <= 0) {
+                Response::json(['status' => 'error', 'message' => 'ID invǭlido.'], 422);
+                return;
+            }
+
+            $lanc = Lancamento::where('user_id', $uid)->find($id);
+            if (!$lanc) {
+                Response::json(['status' => 'error', 'message' => 'Lan��amento nǜo encontrado.'], 404);
+                return;
+            }
+            if ((int)($lanc->eh_transferencia ?? 0) === 1) {
+                Response::json(['status' => 'error', 'message' => 'Transfer��ncias nǜo podem ser editadas aqui.'], 422);
+                return;
+            }
+            if ((int)($lanc->eh_saldo_inicial ?? 0) === 1) {
+                Response::json(['status' => 'error', 'message' => 'Saldo inicial nǜo pode ser editado.'], 422);
+                return;
+            }
+
+            $raw  = file_get_contents('php://input');
+            $data = json_decode($raw, true) ?: [];
+            unset($data['_token'], $data['csrf_token']);
+
+            $tipo = strtolower(trim((string)($data['tipo'] ?? $lanc->tipo ?? 'despesa')));
+            if (!in_array($tipo, ['receita', 'despesa'], true)) {
+                Response::json(['status' => 'error', 'message' => 'Tipo invǭlido.'], 422);
+                return;
+            }
+
+            $dataStr = (string)($data['data'] ?? $lanc->data ?? date('Y-m-d'));
+            $dt = \DateTime::createFromFormat('Y-m-d', $dataStr);
+            if (!$dt || $dt->format('Y-m-d') !== $dataStr) {
+                Response::json(['status' => 'error', 'message' => 'Data invǭlida (YYYY-MM-DD).'], 422);
+                return;
+            }
+
+            $valor = $data['valor'] ?? $lanc->valor ?? 0;
+            if (is_string($valor)) {
+                $s = trim(str_replace(['R$', ' ', '.'], ['', '', ''], $valor));
+                $s = str_replace(',', '.', $s);
+                $valor = is_numeric($s) ? (float)$s : null;
+            }
+            if (!is_numeric($valor) || $valor <= 0) {
+                Response::json(['status' => 'error', 'message' => 'Valor deve ser maior que zero.'], 422);
+                return;
+            }
+            $valor = round((float)$valor, 2);
+
+            $categoriaId = $data['categoria_id'] ?? $lanc->categoria_id;
+            if ($categoriaId !== null && $categoriaId !== '') {
+                $categoriaId = (int)$categoriaId;
+                $cat = Categoria::where('id', $categoriaId)
+                    ->where(function ($q) use ($uid) {
+                        $q->whereNull('user_id')->orWhere('user_id', $uid);
+                    })
+                    ->first();
+
+                if (!$cat) {
+                    Response::json(['status' => 'error', 'message' => 'Categoria invǭlida.'], 422);
+                    return;
+                }
+                if (!in_array($cat->tipo, ['ambas', $tipo], true)) {
+                    Response::json(['status' => 'error', 'message' => 'Categoria incompat��vel com o tipo.'], 422);
+                    return;
+                }
+            } else {
+                $categoriaId = null;
+            }
+
+            $contaId = $data['conta_id'] ?? $lanc->conta_id;
+            if ($contaId !== null && $contaId !== '') {
+                $contaId = (int)$contaId;
+                $contaOk = Conta::forUser($uid)->find($contaId);
+                if (!$contaOk) {
+                    Response::json(['status' => 'error', 'message' => 'Conta invǭlida.'], 422);
+                    return;
+                }
+            } else {
+                $contaId = null;
+            }
+
+            $lanc->tipo         = $tipo;
+            $lanc->data         = $dataStr;
+            $lanc->valor        = $valor;
+            $lanc->categoria_id = $categoriaId;
+            $lanc->conta_id     = $contaId;
+            $lanc->descricao    = isset($data['descricao']) ? trim((string)$data['descricao']) : null;
+            $lanc->observacao   = isset($data['observacao']) ? trim((string)$data['observacao']) : null;
+            $lanc->save();
+
+            Response::json(['ok' => true, 'id' => (int)$lanc->id]);
+        } catch (\Throwable $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function transfer(): void
     {
         try {

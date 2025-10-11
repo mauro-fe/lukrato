@@ -1,4 +1,3 @@
-
 <div class="lk-wrap">
     <div class="lk-h">
         <div class="lk-t">
@@ -67,7 +66,7 @@
         </div>
     </div>
 
-    <div class="lk-card">
+    <div class="lk-card mb-5">
         <div id="area"></div>
     </div>
 </div>

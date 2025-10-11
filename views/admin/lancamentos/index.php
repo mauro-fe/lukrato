@@ -1,3 +1,4 @@
+﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 <section class="lan-page">
     <div class="lan-header">
         <h3 class="lan-title">Lancamentos</h3>
@@ -57,35 +58,70 @@
     </div>
 
     <section class="table-container">
-        <table class="lukrato-table" id="tabelaLancamentos">
-            <thead>
-                <tr>
-                    <th class="text-center" style="width:36px">
-                        <input type="checkbox" id="chkAll" aria-label="Selecionar todos">
-                    </th>
-                    <th>Data</th>
-                    <th>Tipo</th>
-                    <th>Categoria</th>
-                    <th>Conta</th>
-                    <th>Descricao</th>
-                    <th class="text-right">Valor</th>
-                    <th style="width:82px">Acoes</th>
-                </tr>
-            </thead>
-            <tbody id="tbodyLancamentos">
-                <tr>
-                    <td colspan="8" class="text-center">Carregando...</td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="tabLancamentos"></div>
     </section>
 </section>
+
+<div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLancamentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:540px">
+        <div class="modal-content bg-dark text-light border-0 rounded-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="modalLancamentoLabel">Editar lancamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div id="editLancAlert" class="alert alert-danger d-none" role="alert"></div>
+                <form id="formLancamento" novalidate>
+                    <div class="mb-3">
+                        <label for="editLancData" class="form-label text-light small mb-1">Data</label>
+                        <input type="date" class="form-control form-control-sm bg-dark text-light border-secondary" id="editLancData" required>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="editLancTipo" class="form-label text-light small mb-1">Tipo</label>
+                            <select class="form-select form-select-sm bg-dark text-light border-secondary" id="editLancTipo" required>
+                                <option value="receita">Receita</option>
+                                <option value="despesa">Despesa</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editLancConta" class="form-label text-light small mb-1">Conta</label>
+                            <select class="form-select form-select-sm bg-dark text-light border-secondary" id="editLancConta" required></select>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label for="editLancCategoria" class="form-label text-light small mb-1">Categoria</label>
+                        <select class="form-select form-select-sm bg-dark text-light border-secondary" id="editLancCategoria"></select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="editLancValor" class="form-label text-light small mb-1">Valor</label>
+                            <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary" id="editLancValor" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editLancDescricao" class="form-label text-light small mb-1">Descricao</label>
+                            <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" id="editLancDescricao" maxlength="190">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label for="editLancObs" class="form-label text-light small mb-1">Observacao</label>
+                        <textarea class="form-control form-control-sm bg-dark text-light border-secondary" id="editLancObs" rows="3" maxlength="500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary btn-sm" form="formLancamento">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
             <div class="modal-header border-0">
-                <h5 class="modal-title" id="monthModalLabel">Selecionar mês</h5>
+                <h5 class="modal-title" id="monthModalLabel">Selecionar mes</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Fechar"></button>
             </div>
@@ -96,7 +132,7 @@
                             <i class="fas fa-chevron-left"></i>
                         </button>
                         <span class="px-3 fw-semibold" id="mpYearLabel">2024</span>
-                        <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear" title="Próximo ano">
+                        <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear" title="Proximo ano">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
@@ -114,8 +150,8 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script>
 (() => {
     'use strict';
@@ -128,16 +164,30 @@
     const ENDPOINT = `${rawBase}api/lancamentos`;
 
     const $ = (s) => document.querySelector(s);
-    const tbody = $('#tbodyLancamentos');
+    const tabContainer = document.getElementById('tabLancamentos');
     const selectTipo = $('#filtroTipo');
     const selectCategoria = $('#filtroCategoria');
     const selectConta = $('#filtroConta');
     const btnFiltrar = $('#btnFiltrar');
     const btnExcluirSel = $('#btnExcluirSel');
-    const chkAll = $('#chkAll');
     const selInfo = $('#selInfo');
     const selCountSpan = $('#selCount');
     const monthEl = document.getElementById('currentMonthText');
+    const modalLancEl = document.getElementById('modalLancamento');
+    let modalLanc = null;
+    const formLanc = document.getElementById('formLancamento');
+    const editLancAlert = document.getElementById('editLancAlert');
+    const inputLancData = document.getElementById('editLancData');
+    const selectLancTipo = document.getElementById('editLancTipo');
+    const selectLancConta = document.getElementById('editLancConta');
+    const selectLancCategoria = document.getElementById('editLancCategoria');
+    const inputLancValor = document.getElementById('editLancValor');
+    const inputLancDescricao = document.getElementById('editLancDescricao');
+    const inputLancObs = document.getElementById('editLancObs');
+
+    let editingLancamentoId = null;
+    let categoriaOptions = [];
+    let contaOptions = [];
     const setMonthLabel = (ym) => {
         if (!monthEl || !/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return;
         const [y, m] = ym.split('-').map(Number);
@@ -149,7 +199,252 @@
         monthEl.setAttribute('data-month', ym);
     };
 
+    const ensureLancModal = () => {
+        if (modalLanc) return modalLanc;
+        if (!modalLancEl) return null;
+        if (window.bootstrap?.Modal) {
+            modalLanc = window.bootstrap.Modal.getOrCreateInstance(modalLancEl);
+            return modalLanc;
+        }
+        return null;
+    };
 
+    const clearLancAlert = () => {
+        if (!editLancAlert) return;
+        editLancAlert.classList.add('d-none');
+        editLancAlert.textContent = '';
+    };
+
+    const showLancAlert = (msg) => {
+        if (!editLancAlert) return;
+        editLancAlert.textContent = msg;
+        editLancAlert.classList.remove('d-none');
+    };
+
+    function populateCategoriaSelect(select, tipo, selectedId) {
+        if (!select) return;
+        const normalized = (tipo || '').toLowerCase();
+        const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
+        select.innerHTML = '<option value="">Sem categoria</option>';
+        const items = categoriaOptions.filter((item) => {
+            if (!normalized) return true;
+            return item.tipo === normalized;
+        });
+        items.forEach((item) => {
+            const opt = document.createElement('option');
+            opt.value = String(item.id);
+            opt.textContent = item.nome;
+            opt.dataset.tipo = item.tipo || '';
+            if (currentValue && String(item.id) === currentValue) opt.selected = true;
+            select.appendChild(opt);
+        });
+        if (currentValue && select.value !== currentValue) {
+            const fallback = document.createElement('option');
+            fallback.value = currentValue;
+            fallback.textContent = 'Categoria indisponivel';
+            fallback.selected = true;
+            select.appendChild(fallback);
+        }
+    }
+
+    function populateContaSelect(select, selectedId) {
+        if (!select) return;
+        const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
+        select.innerHTML = '<option value="">Selecione</option>';
+        contaOptions.forEach((item) => {
+            const opt = document.createElement('option');
+            opt.value = String(item.id);
+            opt.textContent = item.label;
+            if (currentValue && String(item.id) === currentValue) opt.selected = true;
+            select.appendChild(opt);
+        });
+        if (currentValue && select.value !== currentValue) {
+            const fallback = document.createElement('option');
+            fallback.value = currentValue;
+            fallback.textContent = 'Conta indisponivel';
+            fallback.selected = true;
+            select.appendChild(fallback);
+        }
+    }
+
+    // Tabulator: instancia
+    let table = null;
+    function ensureTable() {
+        if (table || !tabContainer) return table;
+        table = new Tabulator(tabContainer, {
+            height: "520px",
+            layout: "fitColumns",
+            placeholder: "Sem lancamentos para o periodo",
+            selectable: true,
+            index: "id",
+            pagination: "local",
+            paginationSize: 25,
+            paginationSizeSelector: [10, 25, 50, 100],
+            rowFormatter: (row) => {
+                const data = row.getData();
+                row.getElement().setAttribute('data-id', data?.id ?? '');
+                if (isSaldoInicial(data)) {
+                    row.getElement()?.classList.add('lk-row-inicial');
+                }
+            },
+            selectableCheck: (row) => !isSaldoInicial(row.getData()),
+            columns: [
+                {
+                    formatter: "rowSelection",
+                    titleFormatter: "rowSelection",
+                    hozAlign: "center",
+                    headerSort: false,
+                    width: 44,
+                    cellClick: (e, cell) => {
+                        const data = cell.getRow().getData();
+                        if (isSaldoInicial(data)) {
+                            e.preventDefault();
+                            cell.getRow().deselect();
+                        }
+                    },
+                    cellRendered: (cell) => {
+                        const data = cell.getRow().getData();
+                        if (isSaldoInicial(data)) {
+                            cell.getElement().classList.add('lk-cell-select-disabled');
+                        }
+                    }
+                },
+                {
+                    title: "Data",
+                    field: "data",
+                    sorter: "date",
+                    hozAlign: "left",
+                    width: 130,
+                    mutator: (value, data) => data.data || data.created_at,
+                    formatter: (cell) => fmtDate(cell.getValue()),
+                    headerFilter: "input",
+                    headerFilterPlaceholder: "Filtrar data"
+                },
+                {
+                    title: "Tipo",
+                    field: "tipo",
+                    width: 120,
+                    formatter: (cell) => {
+                        const t = String(cell.getValue() || '-');
+                        return t.charAt(0).toUpperCase() + t.slice(1);
+                    },
+                    headerFilter: "select",
+                    headerFilterParams: {
+                        values: {
+                            "": "Todos",
+                            receita: "Receitas",
+                            despesa: "Despesas"
+                        }
+                    }
+                },
+                {
+                    title: "Categoria",
+                    field: "categoria_nome",
+                    widthGrow: 1,
+                    formatter: (cell) => cell.getValue() || cell.getRow().getData().categoria || '-',
+                    headerFilter: "input",
+                    headerFilterPlaceholder: "Filtrar categoria"
+                },
+                {
+                    title: "Conta",
+                    field: "conta_nome",
+                    widthGrow: 1,
+                    formatter: (cell) => cell.getValue() || cell.getRow().getData().conta || '-',
+                    headerFilter: "input",
+                    headerFilterPlaceholder: "Filtrar conta"
+                },
+                {
+                    title: "Descricao",
+                    field: "descricao",
+                    widthGrow: 2,
+                    formatter: (cell) => cell.getValue() || '-',
+                    headerFilter: "input",
+                    headerFilterPlaceholder: "Filtrar descricao"
+                },
+                {
+                    title: "Valor",
+                    field: "valor",
+                    hozAlign: "right",
+                    width: 150,
+                    formatter: (cell) => fmtMoney(cell.getValue()),
+                    headerFilter: "input",
+                    headerFilterPlaceholder: "Filtrar valor"
+                },
+                {
+                    title: "Acoes",
+                    field: "actions",
+                    headerSort: false,
+                    hozAlign: "center",
+                    width: 120,
+                    formatter: (cell) => {
+                        const data = cell.getRow().getData();
+                        if (isSaldoInicial(data)) return '';
+                        const buttons = [];
+                        if (canEditLancamento(data)) {
+                            buttons.push('<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>');
+                        }
+                        buttons.push('<button class="lk-btn danger" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>');
+                        return `<div class="lk-actions">${buttons.join('')}</div>`;
+                    },
+                    cellClick: async (e, cell) => {
+                        const row = cell.getRow();
+                        const data = row.getData();
+                        const btn = e.target.closest('button[data-action]');
+                        if (!btn) return;
+                        const action = btn.getAttribute('data-action');
+                        if (action === 'edit') {
+                            if (!canEditLancamento(data)) return;
+                            openEditLancamento(data);
+                            return;
+                        }
+                        if (action === 'delete') {
+                            const id = data?.id;
+                            if (!id || isSaldoInicial(data)) return;
+                            const ok = await ask('Excluir lancamento?', 'Essa acao nao pode ser desfeita.');
+                            if (!ok) return;
+                            btn.disabled = true;
+                            const okDel = await apiDeleteOne(id);
+                            btn.disabled = false;
+                            if (okDel) {
+                                row.delete();
+                                toast('Excluido.');
+                                updateSelectionInfo();
+                            } else {
+                                toast('Falha ao excluir.', 'error');
+                            }
+                        }
+                    }
+                }
+            ]
+        });
+        table.on("rowSelectionChanged", (_data, rows) => {
+            if (Array.isArray(rows)) {
+                rows.forEach((row) => {
+                    if (isSaldoInicial(row.getData())) {
+                        row.deselect();
+                    }
+                });
+            }
+            updateSelectionInfo();
+        });
+        return table;
+    }
+
+
+
+    function isSaldoInicial(data) {
+        if (!data) return false;
+        const tipo = String(data?.tipo || '').toLowerCase();
+        const descricao = String(data?.descricao || '').toLowerCase();
+        if (tipo === 'saldo_inicial' || tipo === 'saldo inicial') return true;
+        return descricao.includes('saldo inicial');
+    }
+    function isTransferencia(data) {
+        return Boolean(data?.eh_transferencia);
+    }
+    function canEditLancamento(data) {
+        return !isSaldoInicial(data) && !isTransferencia(data);
+    }
     const fmtMoney = (n) => new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
@@ -204,38 +499,44 @@
         const [categorias, contas] = await Promise.all([categoriaPromise, contaPromise]);
 
         if (selectCategoria && categorias.length) {
-            const items = categorias
+            categoriaOptions = categorias
                 .map((cat) => ({
                     id: Number(cat?.id ?? 0),
-                    nome: String(cat?.nome ?? '').trim()
+                    nome: String(cat?.nome ?? '').trim(),
+                    tipo: String(cat?.tipo ?? '').trim().toLowerCase()
                 }))
-                .filter((cat) => Number.isFinite(cat.id) && cat.id > 0 && cat.nome);
+                .filter((cat) => Number.isFinite(cat.id) && cat.id > 0 && cat.nome)
+                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
 
-            items.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
-
-            const options = items
+            const options = categoriaOptions
                 .map((cat) => `<option value="${cat.id}">${escapeHtml(cat.nome)}</option>`)
                 .join('');
             selectCategoria.insertAdjacentHTML('beforeend', options);
         }
 
         if (selectConta && contas.length) {
-            const items = contas
+            contaOptions = contas
                 .map((acc) => {
                     const id = Number(acc?.id ?? 0);
                     const nome = String(acc?.nome ?? '').trim();
                     const instituicao = String(acc?.instituicao ?? '').trim();
                     const label = nome || instituicao;
-                    return { id, label };
+                    return { id, label: label || `Conta #${id}` };
                 })
-                .filter((acc) => Number.isFinite(acc.id) && acc.id > 0 && acc.label);
+                .filter((acc) => Number.isFinite(acc.id) && acc.id > 0 && acc.label)
+                .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
 
-            items.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
-
-            const options = items
+            const options = contaOptions
                 .map((acc) => `<option value="${acc.id}">${escapeHtml(acc.label)}</option>`)
                 .join('');
             selectConta.insertAdjacentHTML('beforeend', options);
+        }
+
+        if (selectLancConta) {
+            populateContaSelect(selectLancConta, selectLancConta.value || null);
+        }
+        if (selectLancCategoria) {
+            populateCategoriaSelect(selectLancCategoria, selectLancTipo?.value || '', selectLancCategoria.value || null);
         }
     }
 
@@ -252,7 +553,7 @@
             });
             return r.isConfirmed;
         }
-        return confirm(title || 'Confirmar exclusão?');
+        return confirm(title || 'Confirmar exclusao?');
     };
     const toast = (msg, icon = 'success') => {
         if (hasSwal) Swal.fire({
@@ -264,80 +565,54 @@
             title: msg
         });
     };
-
-    function renderEmpty() {
-        tbody.innerHTML =
-            `<tr><td colspan="8" class="text-center text-muted">Sem lançamentos para o período</td></tr>`;
-        if (btnExcluirSel) btnExcluirSel.disabled = true;
-        if (selInfo) selInfo.classList.add('d-none');
-        if (chkAll) chkAll.checked = false;
-    }
-
     function updateSelectionInfo() {
-        const checks = tbody.querySelectorAll('.row-check:checked');
-        const count = checks.length;
+        const t = ensureTable();
+        const selected = t ? t.getSelectedRows().filter(row => !isSaldoInicial(row.getData())) : [];
+        const count = selected.length;
         if (selCountSpan) selCountSpan.textContent = String(count);
-        if (btnExcluirSel) btnExcluirSel.disabled = count === 0;
-        if (selInfo) selInfo.classList.toggle('d-none', count === 0);
-        if (chkAll) chkAll.checked = count > 0 && count === tbody.querySelectorAll('.row-check').length;
+        if (btnExcluirSel) {
+            btnExcluirSel.toggleAttribute("disabled", count === 0);
+        }
+        if (selInfo) selInfo.classList.toggle("d-none", count === 0);
     }
+
+    function openEditLancamento(data) {
+        const modal = ensureLancModal();
+        if (!modal || !canEditLancamento(data)) return;
+        editingLancamentoId = data?.id ?? null;
+        if (!editingLancamentoId) return;
+        clearLancAlert();
+
+        if (inputLancData) inputLancData.value = (data?.data || '').slice(0, 10);
+        if (selectLancTipo) {
+            const tipo = String(data?.tipo || '').toLowerCase();
+            if (["receita", "despesa"].includes(tipo)) {
+                selectLancTipo.value = tipo;
+            } else {
+                selectLancTipo.value = 'despesa';
+            }
+        }
+
+        populateContaSelect(selectLancConta, data?.conta_id ?? null);
+        populateCategoriaSelect(selectLancCategoria, selectLancTipo?.value || '', data?.categoria_id ?? null);
+
+        if (inputLancValor) {
+            const valor = Math.abs(Number(data?.valor ?? 0));
+            inputLancValor.value = Number.isFinite(valor) ? valor.toFixed(2) : '';
+        }
+        if (inputLancDescricao) inputLancDescricao.value = data?.descricao || '';
+        if (inputLancObs) inputLancObs.value = data?.observacao || '';
+
+        modal.show();
+    }
+
 
     function renderRows(items) {
-        if (!Array.isArray(items) || items.length === 0) return renderEmpty();
-        const rows = items.map(it => `
-      <tr data-id="${it.id ?? ''}">
-        <td class="text-center" style="width:36px"><input type="checkbox" class="row-check" aria-label="Selecionar"></td>
-        <td>${fmtDate(it.data || it.created_at)}</td>
-        <td>${(it.tipo||'-').toString().replace(/^./, m=>m.toUpperCase())}</td>
-        <td>${it.categoria_nome || it.categoria || '-'}</td>
-        <td>${it.conta_nome || it.conta || '-'}</td>
-        <td>${it.descricao || '-'}</td>
-        <td class="text-end">${fmtMoney(it.valor)}</td>
-        <td class="text-nowrap" style="width:120px">
-            <button class="lk-btn danger btn-del" title="Excluir" data-action="delete">
-                    <i class="fas fa-trash"></i>
-                    </button>
-        </td>
-      </tr>
-    `).join('');
-        tbody.innerHTML = rows;
-        wireRowEvents();
+        const grid = ensureTable();
+        if (!grid) return;
+        grid.setData(Array.isArray(items) ? items : []);
         updateSelectionInfo();
     }
-
-    function wireRowEvents() {
-        tbody.addEventListener('click', async (ev) => {
-            const btn = ev.target.closest('button[data-action="delete"]');
-            if (!btn) return;
-            const tr = btn.closest('tr');
-            const id = tr?.getAttribute('data-id');
-            if (!id) return;
-
-            const ok = await ask('Excluir lançamento?', 'Essa ação não pode ser desfeita.');
-            if (!ok) return;
-
-            btn.disabled = true;
-            const okDel = await apiDeleteOne(id);
-            btn.disabled = false;
-
-            if (okDel) {
-                tr.remove();
-                toast('Excluído.');
-                if (!tbody.querySelector('tr')) renderEmpty();
-                updateSelectionInfo();
-            } else {
-                toast('Falha ao excluir.', 'error');
-            }
-        });
-
-        tbody.querySelectorAll('.row-check').forEach(cb => cb.addEventListener('change', updateSelectionInfo));
-    }
-
-    chkAll && chkAll.addEventListener('change', () => {
-        tbody.querySelectorAll('.row-check').forEach(cb => cb.checked = chkAll.checked);
-        updateSelectionInfo();
-    });
-
     async function fetchLancamentos({
         month,
         tipo = '',
@@ -409,14 +684,91 @@
         const results = await Promise.all(ids.map(apiDeleteOne));
         return results.every(Boolean);
     }
+    selectLancTipo?.addEventListener('change', () => {
+        populateCategoriaSelect(selectLancCategoria, selectLancTipo.value, selectLancCategoria?.value || '');
+    });
+
+    modalLancEl?.addEventListener('hidden.bs.modal', () => {
+        editingLancamentoId = null;
+        formLanc?.reset?.();
+        clearLancAlert();
+    });
+
+    formLanc?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        if (!editingLancamentoId) return;
+        clearLancAlert();
+
+        const dataValue = inputLancData?.value || '';
+        const tipoValue = selectLancTipo?.value || '';
+        const contaValue = selectLancConta?.value || '';
+        const categoriaValue = selectLancCategoria?.value || '';
+        let valorValue = inputLancValor?.value || '';
+        const descricaoValue = (inputLancDescricao?.value || '').trim();
+        const obsValue = (inputLancObs?.value || '').trim();
+
+        if (!dataValue) return showLancAlert('Informe a data do lancamento.');
+        if (!tipoValue) return showLancAlert('Selecione o tipo do lancamento.');
+        if (!contaValue) return showLancAlert('Selecione a conta.');
+
+        valorValue = valorValue.replace(/\s+/g, '').replace(',', '.');
+        const valorFloat = Math.abs(Number(valorValue));
+        if (!Number.isFinite(valorFloat)) return showLancAlert('Informe um valor valido.');
+
+        const payload = {
+            data: dataValue,
+            tipo: tipoValue,
+            valor: Number(valorFloat.toFixed(2)),
+            descricao: descricaoValue,
+            observacao: obsValue,
+            conta_id: Number(contaValue),
+            categoria_id: categoriaValue ? Number(categoriaValue) : null
+        };
+
+        const submitBtn = formLanc.querySelector('button[type="submit"]');
+        submitBtn?.setAttribute('disabled', 'disabled');
+
+        const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
+
+        try {
+            const res = await fetch(`${ENDPOINT}/${encodeURIComponent(editingLancamentoId)}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token
+                },
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json().catch(() => null);
+            if (!res.ok || (json && json.status !== 'success')) {
+                const msg = json?.message || (json?.errors ? Object.values(json.errors).join('\n') : 'Falha ao atualizar lancamento.');
+                throw new Error(msg);
+            }
+            ensureLancModal()?.hide();
+            toast('success', 'Lancamento atualizado!');
+            await load();
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: {
+                    resource: 'transactions',
+                    action: 'update',
+                    id: Number(editingLancamentoId)
+                }
+            }));
+        } catch (err) {
+            showLancAlert(err.message || 'Falha ao atualizar lancamento.');
+        } finally {
+            submitBtn?.removeAttribute('disabled');
+        }
+    });
 
     btnExcluirSel && btnExcluirSel.addEventListener('click', async () => {
-        const checks = [...tbody.querySelectorAll('.row-check:checked')];
-        if (checks.length === 0) return;
-
-        const ids = checks.map(cb => cb.closest('tr')?.getAttribute('data-id')).filter(Boolean);
-        const ok = await ask(`Excluir ${ids.length} lançamento(s)?`,
-            'Essa ação não pode ser desfeita.');
+        const t = ensureTable();
+        const rows = t ? t.getSelectedRows() : [];
+        const eligibleRows = rows.filter(r => !isSaldoInicial(r.getData()));
+        const ids = eligibleRows.map(r => r.getData()?.id).filter(Boolean);
+        if (!ids.length) return;
+        const ok = await ask(`Excluir ${ids.length} lancamento(s)?`, 'Essa acao nao pode ser desfeita.');
         if (!ok) return;
 
         btnExcluirSel.disabled = true;
@@ -424,15 +776,13 @@
         btnExcluirSel.disabled = false;
 
         if (done) {
-            ids.forEach(id => tbody.querySelector(`tr[data-id="${CSS.escape(id)}"]`)?.remove());
-            toast('Itens excluídos.');
-            if (!tbody.querySelector('tr')) renderEmpty();
+            eligibleRows.forEach(r => r.delete());
+            toast('Itens excluidos.');
             updateSelectionInfo();
         } else {
-            toast('Alguns itens não foram excluídos.', 'error');
+            toast('Alguns itens nao foram excluidos.', 'error');
         }
     });
-
     let timer = null;
     async function load() {
         clearTimeout(timer);
@@ -445,7 +795,11 @@
 
             setMonthLabel(month);
 
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center">Carregando…</td></tr>`;
+            const t2 = ensureTable();
+            if (t2) {
+                t2.replaceData([]);
+                updateSelectionInfo();
+            }
             const items = await fetchLancamentos({
                 month,
                 tipo,
@@ -460,6 +814,7 @@
     document.addEventListener('lukrato:data-changed', (e) => {
         const res = e.detail?.resource;
         if (!res || res === 'transactions') load();
+        if (res === 'categorias' || res === 'accounts') loadFilterOptions();
     });
 
 
@@ -590,3 +945,36 @@
     setState(state);
 })();
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

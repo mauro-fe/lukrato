@@ -82,9 +82,12 @@ function registerAppRoutes(): void
         Router::add('GET',  'api/reports',             'Api\RelatoriosController@index',     ['auth']);
 
         Router::add('GET',     'api/lancamentos',          'Api\LancamentosController@index',   ['auth']);
-        Router::add('DELETE',  'api/lancamentos/{id}', 'Api\LancamentosController@destroy', ['auth', 'csrf']);
+        Router::add('PUT',     'api/lancamentos/{id}',     'Api\LancamentosController@update',  ['auth', 'csrf']);
+        Router::add('DELETE',  'api/lancamentos/{id}',     'Api\LancamentosController@destroy', ['auth', 'csrf']);
 
         Router::add('POST', 'api/transactions',  'Api\FinanceiroController@store',    ['auth', 'csrf']);
+        Router::add('PUT',  'api/transactions/{id}', 'Api\FinanceiroController@update', ['auth', 'csrf']);
+        Router::add('POST', 'api/transactions/{id}/update', 'Api\FinanceiroController@update', ['auth', 'csrf']);
         Router::add('POST', 'api/transfers',     'Api\FinanceiroController@transfer', ['auth', 'csrf']);
 
         Router::add('GET',     'api/accounts',                 'Api\ContasController@index',   ['auth']);
@@ -101,6 +104,8 @@ function registerAppRoutes(): void
 
         Router::add('GET',  '/api/categorias',                   'Api\CategoriaController@index',  ['auth']);
         Router::add('POST', '/api/categorias',                   'Api\CategoriaController@store',  ['auth', 'csrf']);
+        Router::add('PUT',  '/api/categorias/{id}',              'Api\CategoriaController@update', ['auth', 'csrf']);
+        Router::add('POST', '/api/categorias/{id}/update',        'Api\CategoriaController@update', ['auth', 'csrf']);
 
         Router::add('POST', '/api/categorias/{id}/delete',   'Api\CategoriaController@delete', ['auth', 'csrf']);
         Router::add('POST', '/api/categorias/delete',            'Api\CategoriaController@delete', ['auth', 'csrf']);
