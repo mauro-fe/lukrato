@@ -1,3 +1,9 @@
+.cont-page {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
 /* ===== Accounts (usando tokens de tema) ===== */
 
 .lk-accounts-wrap {

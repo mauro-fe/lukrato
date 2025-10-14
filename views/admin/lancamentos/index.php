@@ -11,8 +11,7 @@
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                             <button class="month-dropdown-btn" id="monthDropdownBtn" type="button"
-                                data-bs-toggle="modal" data-bs-target="#monthModal" aria-haspopup="true"
-                                aria-expanded="false">
+                                aria-haspopup="true" aria-expanded="false">
                                 <span id="currentMonthText">Carregando...</span>
                                 <i class="fas fa-chevron-down"></i>
                             </button>
@@ -161,8 +160,6 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
-</script>
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script>
     (() => {
@@ -872,8 +869,30 @@
         const elText = document.getElementById('currentMonthText');
         const btnPrev = document.getElementById('prevMonth');
         const btnNext = document.getElementById('nextMonth');
+        const btnOpen = document.getElementById('monthDropdownBtn');
         const modalEl = document.getElementById('monthModal');
+        const ensureMonthModal = () => {
+            if (!modalEl || !window.bootstrap?.Modal) return null;
+            if (modalEl.parentElement && modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+            return window.bootstrap.Modal.getOrCreateInstance(modalEl);
+        };
+        const bootstrapReady = () => {
+            ensureMonthModal();
+        };
+        if (document.readyState === 'complete') bootstrapReady();
+        else window.addEventListener('load', bootstrapReady, { once: true });
 
+        modalEl?.addEventListener('shown.bs.modal', () => {
+            modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
+            if (mpInput) mpInput.value = state;
+            buildGrid();
+        });
+        btnOpen?.addEventListener('click', (e) => {
+            e.preventDefault();
+            ensureMonthModal()?.show();
+        });
         const mpYearLabel = document.getElementById('mpYearLabel');
         const mpPrevYear = document.getElementById('mpPrevYear');
         const mpNextYear = document.getElementById('mpNextYear');
@@ -935,7 +954,7 @@
             mpGrid.querySelectorAll('.mp-month').forEach(btn => {
                 btn.addEventListener('click', () => {
                     setState(btn.getAttribute('data-val'));
-                    bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+                    ensureMonthModal()?.hide();
                 });
             });
         };
@@ -949,11 +968,6 @@
             shiftMonth(+1);
         });
 
-        modalEl?.addEventListener('show.bs.modal', () => {
-            modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
-            if (mpInput) mpInput.value = state;
-            buildGrid();
-        });
         mpPrevYear?.addEventListener('click', () => {
             modalYear--;
             buildGrid();
@@ -965,20 +979,20 @@
         mpTodayBtn?.addEventListener('click', () => {
             const nowYM = toYM(new Date());
             setState(nowYM);
-            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+            ensureMonthModal()?.hide();
         });
         mpInput?.addEventListener('change', e => {
             const ym = e.target.value;
             if (/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
                 setState(ym);
-                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+                ensureMonthModal()?.hide();
             }
         });
 
-        window.LukratoHeader = {
+        window.LukratoHeader = Object.assign({}, window.LukratoHeader, {
             getMonth: () => state,
             setMonth: (ym) => setState(ym)
-        };
+        });
         setState(state);
     })();
 </script>

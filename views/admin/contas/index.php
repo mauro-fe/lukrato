@@ -1,4 +1,4 @@
-<div>
+<div class="cont-page">
     <div class="lk-acc-title">
         <h3>Contas</h3>
     </div>

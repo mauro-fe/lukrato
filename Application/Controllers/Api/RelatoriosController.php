@@ -51,6 +51,64 @@ class RelatoriosController extends BaseController
         });
     }
 
+    private function applyAccountFilter($q, ?int $accId, bool $includeTransfers)
+    {
+        if (empty($accId)) {
+            return $q;
+        }
+
+        if ($includeTransfers) {
+            return $q->where(function ($w) use ($accId) {
+                $w->where('lancamentos.conta_id', $accId)
+                    ->orWhere(function ($w2) use ($accId) {
+                        $w2->where('lancamentos.eh_transferencia', 1)
+                            ->where('lancamentos.conta_id_destino', $accId);
+                    });
+            });
+        }
+
+        return $q->where('lancamentos.conta_id', $accId);
+    }
+
+    private function deltaExpression(?int $accId, string $alias = 'delta'): array
+    {
+        $alias = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $alias) ? $alias : 'delta';
+
+        if ($accId) {
+            $expr = "
+                SUM(
+                    CASE
+                        WHEN lancamentos.eh_transferencia = 1 THEN
+                            CASE
+                                WHEN lancamentos.conta_id = ? THEN -lancamentos.valor
+                                WHEN lancamentos.conta_id_destino = ? THEN lancamentos.valor
+                                ELSE 0
+                            END
+                        ELSE
+                            CASE
+                                WHEN lancamentos.tipo = 'receita' THEN lancamentos.valor
+                                WHEN lancamentos.tipo = 'despesa' THEN -lancamentos.valor
+                                ELSE 0
+                            END
+                    END
+                ) as {$alias}
+            ";
+            return [$expr, [$accId, $accId]];
+        }
+
+        $expr = "
+            SUM(
+                CASE
+                    WHEN lancamentos.eh_transferencia = 1 THEN 0
+                    WHEN lancamentos.tipo = 'receita' THEN lancamentos.valor
+                    WHEN lancamentos.tipo = 'despesa' THEN -lancamentos.valor
+                    ELSE 0
+                END
+            ) as {$alias}
+        ";
+        return [$expr, []];
+    }
+
     private function baseLancamentos(
         Carbon $start,
         Carbon $end,
@@ -60,6 +118,8 @@ class RelatoriosController extends BaseController
         bool $includeSaldoInicial = false
     )
     {
+        $useTransfers = $includeTransfers || !empty($accId);
+
         $q = Lancamento::query()
             ->whereBetween('lancamentos.data', [$start, $end]);
 
@@ -67,16 +127,33 @@ class RelatoriosController extends BaseController
             $q->where('lancamentos.eh_saldo_inicial', 0);
         }
 
-        if (!$includeTransfers) {
+        if (!$useTransfers) {
             $q->where('lancamentos.eh_transferencia', 0);
         }
 
         $this->applyUserScope($q, $userId);
 
-        if ($accId) {
-            $q->where('lancamentos.conta_id', $accId);
-        }
+        $this->applyAccountFilter($q, $accId, $useTransfers);
+
         return $q;
+    }
+
+    private function saldoAte(Carbon $ate, ?int $accId, ?int $userId, bool $includeTransfers): float
+    {
+        $useTransfers = $includeTransfers || !empty($accId);
+
+        $q = Lancamento::query()
+            ->where('lancamentos.data', '<=', $ate)
+            ->selectRaw(...$this->deltaExpression($accId, 'saldo'));
+
+        if (!$useTransfers) {
+            $q->where('lancamentos.eh_transferencia', 0);
+        }
+
+        $this->applyUserScope($q, $userId);
+        $this->applyAccountFilter($q, $accId, $useTransfers);
+
+        return (float) ($q->value('saldo') ?? 0.0);
     }
 
 
@@ -122,7 +199,6 @@ class RelatoriosController extends BaseController
                                 ->where('l.eh_saldo_inicial', 0)
                                 ->where('l.eh_transferencia', 0) // << ignora transferências no “por categoria”
                                 ->where('l.tipo', $alvo)
-                                ->where('l.conta_id', $accId)
                                 ->where(function ($q2) use ($userId) {
                                     $q2->whereNull('l.user_id')->orWhere('l.user_id', $userId);
                                 })
@@ -192,19 +268,26 @@ class RelatoriosController extends BaseController
                     }
 
                 case 'saldo_mensal': {
-                        $base = $this->baseLancamentos($start, $end, $accId, $userId, $includeTransfers, true)
+                        $useTransfers = $includeTransfers || !empty($accId);
+
+                        $base = $this->baseLancamentos($start, $end, $accId, $userId, $useTransfers, true)
                             ->select(DB::raw('DATE(lancamentos.data) as dia'))
-                            ->selectRaw("
-            SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as delta
-        ")
+                            ->selectRaw(...$this->deltaExpression($accId, 'delta'))
                             ->groupBy(DB::raw('DATE(lancamentos.data)'))
                             ->orderBy('dia')
                             ->get()
                             ->keyBy('dia');
 
+                        $saldoAnterior = $this->saldoAte(
+                            (clone $start)->subDay()->endOfDay(),
+                            $accId,
+                            $userId,
+                            $useTransfers
+                        );
+
                         $labels = [];
                         $values = [];
-                        $running = 0.0;
+                        $running = $saldoAnterior;
                         $cursor = clone $start;
                         while ($cursor <= $end) {
                             $d = $cursor->toDateString();
@@ -262,21 +345,31 @@ class RelatoriosController extends BaseController
                         $ini = (clone $start)->subMonthsNoOverflow(11)->startOfMonth();
                         $fim = (clone $end);
 
-                        $rows = $this->baseLancamentos($ini, $fim, $accId, $userId, $includeTransfers, true)
+                        $useTransfers = $includeTransfers || !empty($accId);
+
+                        $rows = $this->baseLancamentos($ini, $fim, $accId, $userId, $useTransfers, true)
                             ->selectRaw("DATE_FORMAT(lancamentos.data, '%Y-%m-01') as mes")
-                            ->selectRaw("SUM(CASE WHEN lancamentos.tipo='receita' THEN lancamentos.valor ELSE -lancamentos.valor END) as saldo")
+                            ->selectRaw(...$this->deltaExpression($accId, 'saldo'))
                             ->groupBy('mes')
                             ->orderBy('mes')
                             ->get();
 
+                        $saldoAnterior = $this->saldoAte(
+                            (clone $ini)->subDay()->endOfDay(),
+                            $accId,
+                            $userId,
+                            $useTransfers
+                        );
 
                         $labels = [];
                         $values = [];
+                        $running = $saldoAnterior;
                         $cursor = clone $ini;
                         while ($cursor <= $fim) {
                             $ym = $cursor->format('Y-m-01');
                             $labels[] = $cursor->format('m/Y');
-                            $values[] = (float) ($rows->firstWhere('mes', $ym)->saldo ?? 0);
+                            $running += (float) ($rows->firstWhere('mes', $ym)->saldo ?? 0);
+                            $values[] = $running;
                             $cursor->addMonth();
                         }
 

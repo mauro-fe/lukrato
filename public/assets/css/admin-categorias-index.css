@@ -5,7 +5,6 @@
 }
 
 .c-title {
-  font-size: clamp(24px, 2.6vw, 32px);
   font-weight: 700;
   color: var(--color-primary);
 }

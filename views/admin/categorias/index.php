@@ -1,6 +1,8 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 <section class="c-page">
-    <h3 class="c-title">Categorias</h3>
+    <div class="text-start">
+        <h3 class="c-title">Categorias</h3>
+    </div>
     <div class="c-card mt-4">
         <h6>Crie sua categoria</h6>
 
@@ -14,14 +16,7 @@
             <button class="btn lk-select btn-primary" type="submit">Adicionar</button>
         </form>
     </div>
-    <div class="c-filter">
-        <label class="c-muted">Filtrar por tipo:</label>
-        <select id="filtroTipo" class="c-select">
-            <option value="">Todos</option>
-            <option value="receita">Receita</option>
-            <option value="despesa">Despesa</option>
-        </select>
-    </div>
+
     <div class="container-table">
         <section class="table-container">
             <div id="tabCategorias"></div>
@@ -219,7 +214,7 @@
                         formatter: (cell) => escapeHtml(String(cell.getValue() || ''))
                     },
                     {
-                        title: 'Tipo',
+                        title: 'Filtrar por Tipo',
                         field: 'tipo',
                         headerFilter: 'select',
                         headerFilterParams: {
