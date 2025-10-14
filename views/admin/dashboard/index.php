@@ -17,7 +17,8 @@ $aria   = function (string $key) use ($menu) {
         <div class="header-left">
             <div class="month-selector">
                 <div class="lk-period">
-                    <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
+                    <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior"
+                        title="Mês anterior">
                         <i class="fas fa-chevron-left"></i>
                     </button>
 
@@ -30,7 +31,8 @@ $aria   = function (string $key) use ($menu) {
                         <div class="month-dropdown" id="monthDropdown" role="menu"></div>
                     </div>
 
-                    <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
+                    <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês"
+                        title="Próximo mês">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
@@ -63,6 +65,13 @@ $aria   = function (string $key) use ($menu) {
                     </div>
                     <div class="kpi-value despesas" id="despesasValue">R$ 0,00</div>
                 </div>
+                <div class="card kpi-card" id="saldoMesCard">
+                    <div class="card-header">
+                        <div class="kpi-icon saldo"><i class="fas fa-balance-scale"></i></div><span
+                            class="kpi-title">Saldo do Mês</span>
+                    </div>
+                    <div class="kpi-value" id="saldoMesValue">R$ 0,00</div>
+                </div>
             </section>
 
             <section class="charts-grid">
@@ -74,7 +83,7 @@ $aria   = function (string $key) use ($menu) {
                             aria-label="Gráfico de evolução do saldo"></canvas></div>
                 </div>
 
-                <div class="card summary-card">
+                <!-- <div class="card summary-card">
                     <div class="card-header">
                         <h2 class="card-title">Resumo Mensal</h2>
                     </div>
@@ -88,7 +97,7 @@ $aria   = function (string $key) use ($menu) {
                         <div class="summary-item"><span class="summary-label">Saldo Acumulado</span><span
                                 class="summary-value" id="saldoAcumulado">R$ 0,00</span></div>
                     </div>
-                </div>
+                </div> -->
             </section>
 
             <section class="card table-card mb-5">
@@ -317,7 +326,7 @@ $aria   = function (string $key) use ($menu) {
                     }
                 } catch (_) {}
             }
-            throw new Error('Endpoint de exclusÃ£o nÃ£o encontrado. Verifique as rotas.');
+            throw new Error('Endpoint de exclusão não encontrado. Verifique as rotas.');
         }
 
         const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
@@ -340,6 +349,27 @@ $aria   = function (string $key) use ($menu) {
         const $label = $('#currentMonthText');
         const btnOpen = $('#monthDropdownBtn');
         const modalEl = $('#monthModal');
+        const ensureMonthModal = () => {
+            if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return null;
+            try {
+                if (modalEl.parentElement && modalEl.parentElement !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
+                return bootstrap.Modal.getOrCreateInstance(modalEl);
+            } catch {
+                return null;
+            }
+        };
+        ensureMonthModal();
+        modalEl?.addEventListener('shown.bs.modal', () => {
+            try {
+                modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
+                buildGrid();
+                if (mpInput) mpInput.value = currentMonth;
+            } catch (err) {
+                console.error(err);
+            }
+        });
         const mpYearLabel = $('#mpYearLabel');
         const mpPrevYear = $('#mpPrevYear');
         const mpNextYear = $('#mpNextYear');
@@ -436,9 +466,7 @@ $aria   = function (string $key) use ($menu) {
                     const v = btn.getAttribute('data-val');
                     if (!v) return;
                     try {
-                        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                            bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
-                        }
+                        ensureMonthModal()?.hide();
                     } catch {}
                     setLocalMonth(v);
                     await renderAll();
@@ -461,7 +489,7 @@ $aria   = function (string $key) use ($menu) {
             const now = new Date();
             const today = yymm(new Date(now.getFullYear(), now.getMonth(), 1));
             try {
-                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+                ensureMonthModal()?.hide();
             } catch {}
             setLocalMonth(today);
             renderAll();
@@ -470,7 +498,7 @@ $aria   = function (string $key) use ($menu) {
             const v = String(e.target.value || '');
             if (!/^\d{4}-\d{2}$/.test(v)) return;
             try {
-                bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
+                ensureMonthModal()?.hide();
             } catch {}
             setLocalMonth(v);
             await renderAll();
@@ -481,9 +509,7 @@ $aria   = function (string $key) use ($menu) {
                 modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
                 buildGrid();
                 if (mpInput) mpInput.value = currentMonth;
-                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                    bootstrap.Modal.getOrCreateInstance(modalEl)?.show();
-                }
+                ensureMonthModal()?.show();
             } catch (err) {
                 console.error(err);
             }
@@ -527,6 +553,7 @@ $aria   = function (string $key) use ($menu) {
                     totalReceitas: 'receitas',
                     totalDespesas: 'despesas',
                     resultadoMes: 'resultado',
+                    saldoMesValue: 'resultado',
                     saldoAcumulado: 'saldoAcumulado'
                 };
                 Object.entries(map).forEach(([id, key]) => {
@@ -545,7 +572,8 @@ $aria   = function (string $key) use ($menu) {
 
             } catch (e) {
                 console.error('KPIs:', e);
-                ['saldoValue', 'receitasValue', 'despesasValue', 'totalReceitas', 'totalDespesas', 'resultadoMes',
+                ['saldoValue', 'receitasValue', 'despesasValue', 'saldoMesValue', 'totalReceitas', 'totalDespesas',
+                    'resultadoMes',
                     'saldoAcumulado'
                 ]
                 .forEach(id => {

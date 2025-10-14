@@ -200,6 +200,19 @@
         const currentMonthTextEl = $('#currentMonthText');
         const prevBtn = $('#prevMonth');
         const nextBtn = $('#nextMonth');
+        const monthModalEl = document.getElementById('monthModal');
+        const ensureMonthModal = () => {
+            if (!monthModalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return null;
+            try {
+                if (monthModalEl.parentElement && monthModalEl.parentElement !== document.body) {
+                    document.body.appendChild(monthModalEl);
+                }
+                return bootstrap.Modal.getOrCreateInstance(monthModalEl);
+            } catch {
+                return null;
+            }
+        };
+        ensureMonthModal();
 
         function label(d) {
             return cap(monthNames[d.getMonth()]) + ' ' + d.getFullYear();
@@ -256,9 +269,7 @@
                     sync();
                     load();
                     try {
-                        const modalEl = document.getElementById('monthModal');
-                        const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
-                        modal?.hide();
+                        ensureMonthModal()?.hide();
                     } catch {}
                 });
 
@@ -284,9 +295,7 @@
             sync();
             load();
             try {
-                const modalEl = document.getElementById('monthModal');
-                const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
-                modal?.hide();
+                ensureMonthModal()?.hide();
             } catch {}
         });
 
@@ -300,14 +309,13 @@
             sync();
             load();
             try {
-                const modalEl = document.getElementById('monthModal');
-                const modal = window.bootstrap?.Modal.getOrCreateInstance(modalEl);
-                modal?.hide();
+                ensureMonthModal()?.hide();
             } catch {}
         });
 
         // Ao abrir o modal, alinhar o ano mostrado e redesenhar a grade
-        document.getElementById('monthModal')?.addEventListener('shown.bs.modal', () => {
+        ensureMonthModal();
+        monthModalEl?.addEventListener('shown.bs.modal', () => {
             st.modalYear = st.d.getFullYear();
             // preencher <input type="month"> com o mês atual selecionado
             if (inputMonth) {

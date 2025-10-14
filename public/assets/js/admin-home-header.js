@@ -1,5 +1,5 @@
-
-// ====== BASE_URL a partir do <meta name="base-url"> ======
+﻿
+// ====== BASE_URL - partir do <meta name="base-url"> ======
 (function () {
 
     const m = document.querySelector('meta[name="base-url"]');
@@ -43,12 +43,12 @@
         const r = await fetch(url, { credentials: 'include', ...opts, headers });
         let payload = null; try { payload = await r.json(); } catch { }
         if (!r.ok) {
-            if (r.status === 403) throw new Error('Sessão expirada ou CSRF inválido. Recarregue a página e tente novamente.');
-            if (r.status === 422) throw new Error(payload?.message || 'Dados inválidos.');
+            if (r.status === 403) throw new Error('Sessao expirada ou CSRF invalido. Recarregue a pagina e tente novamente.');
+            if (r.status === 422) throw new Error(payload?.message || 'Dados invalidos.');
             throw new Error(payload?.message || payload?.error || `Erro ${r.status}`);
         }
         if (payload && (payload.error || payload.status === 'error')) {
-            throw new Error(payload?.message || payload?.error || 'Erro na requisição');
+            throw new Error(payload?.message || payload?.error || 'Erro na requisicao');
         }
         return payload;
     }
@@ -69,17 +69,17 @@
 
         try {
             const contas = await apiAccounts(); // [{id, nome, instituicao, ...}]
-            const keep = sel.value; // tenta preservar seleção atual
+            const keep = sel.value; // tenta preservar selecao atual
 
             sel.innerHTML = '<option value="">Todas as contas (opcional)</option>';
             contas.forEach(c => {
                 const op = document.createElement('option');
                 op.value = c.id;
-                op.textContent = c.instituicao ? `${c.nome} — ${c.instituicao}` : c.nome;
+                op.textContent = c.instituicao ? `${c.nome} - ${c.instituicao}` : c.nome;
                 sel.appendChild(op);
             });
 
-            // restaura: prioridade = sessionStorage > seleção anterior > vazio
+            // restaura: prioridade = sessionStorage > selecao anterior > vazio
             const saved = sessionStorage.getItem('lukrato.account_id') || keep || '';
             if (saved) sel.value = saved;
 
@@ -88,13 +88,13 @@
                 if (v) sessionStorage.setItem('lukrato.account_id', v);
                 else sessionStorage.removeItem('lukrato.account_id');
 
-                // avisa quem quiser reagir (dashboard/relatórios/etc.)
+                // avisa quem quiser reagir (dashboard/relatArios/etc.)
                 document.dispatchEvent(new CustomEvent('lukrato:account-changed', {
                     detail: { account_id: v ? Number(v) : null }
                 }));
             };
 
-            // expõe helper (se quiser usar em outros scripts)
+            // expAe helper (se quiser usar em outros scripts)
             window.LukratoHeader = Object.assign({}, window.LukratoHeader, {
                 getAccountId: () => {
                     const v = document.getElementById('headerConta')?.value || '';
@@ -107,7 +107,7 @@
     }
 
 
-    // ---------- cache de opções ----------
+    // ---------- cache de opcoes ----------
     let optionsCache = null;
     async function ensureOptions() {
         if (optionsCache) return optionsCache;
@@ -125,32 +125,57 @@
         menu.classList.toggle('active', open);
     });
 
-    // ---------- Modal open/close ----------
-    const modal = $('#modalLancamento');
-    const modalBackdropClickOrClose = (e) =>
-        e.target.closest('.lkh-modal-close,[data-dismiss="modal"]') ||
-        e.target.classList.contains('lkh-modal-backdrop');
+    // ---------- Modal de novo lancamento ----------
+    const modalLancamentoEl = document.getElementById('modalLancamento');
+    let modalLancamentoInstance = null;
 
-    function toggleModal(open) {
-        if (!modal) return;
-        modal.classList.toggle('active', !!open);
-        modal.setAttribute('aria-hidden', String(!open));
-        modal.style.display = open ? 'block' : '';
-        document.body.style.overflow = open ? 'hidden' : '';
-
-        if (open) {
-            initHeaderAccountPicker(); // <-- garante que o <select> de conta seja preenchido/atualizado
-            const today = new Date().toISOString().slice(0, 10);
-            $('#lanData').value = today;
-            $('#lanValor').value = '';
-            $('#lanDescricao').value = '';
-            $('#lanObservacao') && ($('#lanObservacao').value = '');
-            $('#lanPago') && ($('#lanPago').checked = false);
-            initModalFieldsOnce();
-            (modal.querySelector('input,select,textarea') || {}).focus?.();
+    const ensureLancamentoModal = () => {
+        if (!modalLancamentoEl || !window.bootstrap?.Modal) return null;
+        if (modalLancamentoEl.parentElement && modalLancamentoEl.parentElement !== document.body) {
+            document.body.appendChild(modalLancamentoEl);
         }
-    }
+        modalLancamentoInstance = window.bootstrap.Modal.getOrCreateInstance(modalLancamentoEl);
+        return modalLancamentoInstance;
+    };
 
+    const resetLancamentoForm = () => {
+        const today = new Date().toISOString().slice(0, 10);
+        const dataInput = $('#lanData');
+        if (dataInput) dataInput.value = today;
+        const tipoSelect = $('#lanTipo');
+        if (tipoSelect && !tipoSelect.value) tipoSelect.value = 'despesa';
+        $('#lanValor') && ($('#lanValor').value = '');
+        $('#lanDescricao') && ($('#lanDescricao').value = '');
+        $('#lanObservacao') && ($('#lanObservacao').value = '');
+        $('#lanPago') && ($('#lanPago').checked = false);
+        const alertBox = document.getElementById('novoLancAlert');
+        if (alertBox) {
+            alertBox.classList.add('d-none');
+            alertBox.textContent = '';
+        }
+    };
+
+    modalLancamentoEl?.addEventListener('show.bs.modal', () => {
+        initHeaderAccountPicker();
+        initModalFieldsOnce();
+        resetLancamentoForm();
+    });
+
+    modalLancamentoEl?.addEventListener('shown.bs.modal', () => {
+        const firstField = modalLancamentoEl.querySelector('input, select, textarea');
+        firstField?.focus?.();
+    });
+
+    modalLancamentoEl?.addEventListener('hidden.bs.modal', () => {
+        const form = document.getElementById('formNovoLancamento');
+        form?.reset?.();
+        $('#lanValor') && ($('#lanValor').value = '');
+        menu?.classList.remove('active');
+        fab?.classList.remove('active');
+        fab?.setAttribute('aria-expanded', 'false');
+    });
+
+    ensureLancamentoModal();
 
     // abre pelo menu do FAB
     $$('.fab-menu-item[data-open-modal]').forEach(btn => {
@@ -158,27 +183,13 @@
             const type = btn.getAttribute('data-open-modal');
             if (type === 'receita' || type === 'despesa') $('#lanTipo').value = type;
             else $('#lanTipo').value = 'despesa';
-            toggleModal(true);
-            initHeaderAccountPicker();
-            menu.classList.remove('active');
-            fab.classList.remove('active');
-            fab.setAttribute('aria-expanded', 'false');
+            ensureLancamentoModal()?.show();
+            menu?.classList.remove('active');
+            fab?.classList.remove('active');
+            fab?.setAttribute('aria-expanded', 'false');
         });
     });
-
-    // fechar modal (botão X, backdrop)
-    document.addEventListener('click', (e) => {
-        if (modalBackdropClickOrClose(e)) {
-            e.preventDefault();
-            toggleModal(false);
-        }
-    });
-    // ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal?.classList.contains('active')) toggleModal(false);
-    });
-
-    // ---------- máscara leve de dinheiro ----------
+    // ---------- mascara leve de dinheiro ----------
     $('#lanValor')?.addEventListener('blur', () => {
         $('#lanValor').value = brl(parseMoney($('#lanValor').value));
     });
@@ -202,7 +213,7 @@
     }
 
     async function initModalFieldsOnce() {
-        if (!modal) return;
+        if (!modalLancamentoEl) return;
         const tipoSel = $('#lanTipo');
         const catSel = $('#lanCategoria');
 
@@ -225,14 +236,14 @@
 
     // ---------- submit ----------
     // ---------- submit ----------
-    const form = $('#formLancamento');
+    const form = document.getElementById('formNovoLancamento');
     if (form && !form.dataset.bound) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             if (form.dataset.submitting === '1') return;   // <-- guard
             form.dataset.submitting = '1';
-            const btnSubmit = document.querySelector('button[form="formLancamento"][type="submit"]');
+            const btnSubmit = document.querySelector('button[form="formNovoLancamento"][type="submit"]');
             btnSubmit && (btnSubmit.disabled = true);
 
             try {
@@ -244,7 +255,7 @@
                 const obs = $('#lanObservacao') ? $('#lanObservacao').value : '';
 
                 if (!data || !valor || valor <= 0) {
-                    Swal.fire('Atenção', 'Preencha data e valor válidos.', 'warning');
+                    Swal.fire('Atencao', 'Preencha data e valor validos.', 'warning');
                     return;
                 }
 
@@ -260,15 +271,21 @@
                 await apiCreate(payload);
 
                 Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1300, showConfirmButton: false });
-                toggleModal(false);
+                ensureLancamentoModal()?.hide();
 
-                // avisa só por evento (evita chamar 2x)
+                // avisa sA por evento (evita chamar 2x)
                 document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
                     detail: { resource: 'transactions' }
                 }));
             } catch (err) {
                 console.error(err);
-                Swal.fire('Erro', err.message || 'Falha ao salvar', 'error');
+                const alertBox = document.getElementById('novoLancAlert');
+                if (alertBox) {
+                    alertBox.textContent = err.message || 'Falha ao salvar';
+                    alertBox.classList.remove('d-none');
+                } else {
+                    Swal.fire('Erro', err.message || 'Falha ao salvar', 'error');
+                }
             } finally {
                 form.dataset.submitting = '0';
                 btnSubmit && (btnSubmit.disabled = false);
@@ -285,13 +302,13 @@
         e.preventDefault();
         const url = a.getAttribute('href'); if (!url) return;
         Swal.fire({
-            title: 'Deseja realmente sair?', text: 'Sua sessão será encerrada.',
+            title: 'Deseja realmente sair?', text: 'Sua sessao sera encerrada.',
             icon: 'warning', showCancelButton: true, confirmButtonText: 'Sim, sair',
             cancelButtonText: 'Cancelar', confirmButtonColor: '#e74c3c'
         }).then(r => { if (r.isConfirmed) window.location.href = url; });
     });
 
-    // ---------- Sidebar ativo (apenas texto + �cone em laranja) ----------
+    // ---------- Sidebar ativo (apenas texto + icone em laranja) ----------
     (function initSidebarActive() {
         const links = $$('.sidebar .nav-item[href]');
         const normalize = (p) => (p || '').replace(/\/+$/, '');
@@ -327,7 +344,7 @@
             });
         }
 
-        // Mant�m visual ativo ao clicar (SPA / antes do reload)
+        // Mantem visual ativo ao clicar (SPA / antes do reload)
         links.forEach(a => {
             a.addEventListener('click', () => {
                 if (a.id === 'btn-logout' || a.hasAttribute('data-no-active')) return;

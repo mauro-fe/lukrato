@@ -12,7 +12,7 @@ configureDatabaseConnection();
 function defineApplicationConstants(): void
 {
     if (!defined('APP_NAME')) {
-        define('APP_NAME', $_ENV['APP_NAME'] ?? 'Anamnese Pro');
+        define('APP_NAME', $_ENV['APP_NAME'] ?? 'Lukrato');
     }
 
     if (!defined('BASE_URL')) {

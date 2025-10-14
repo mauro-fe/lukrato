@@ -15,7 +15,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 ?>
 <meta name="csrf" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
 <script>
-window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+    window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 </script>
 
 <!DOCTYPE html>
@@ -24,20 +24,20 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 <head>
     <?= csrf_meta('default') ?>
     <script>
-    // helpers globais
-    window.LK = window.LK || {};
-    LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    LK.getCSRF = () =>
-        document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
-        document.querySelector('input[name="_token"]')?.value || '';
-    LK.apiBase = LK.getBase() + 'api/';
+        // helpers globais
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.getCSRF = () =>
+            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+            document.querySelector('input[name="_token"]')?.value || '';
+        LK.apiBase = LK.getBase() + 'api/';
     </script>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $pageTitle ?></title>
-
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -45,14 +45,13 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
-    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
     <style>
-    option {
-        background-color: #1c2c3c;
-    }
+        option {
+            background-color: #1c2c3c;
+        }
     </style>
 </head>
 
@@ -125,200 +124,230 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
         <div class="container-fluid lk-page">
-            <!-- Modal Único -->
-            <div class="lkh-modal" id="modalLancamento" role="dialog" aria-labelledby="modalLancamentoTitle"
+            <!-- Modal: Novo lancamento -->
+            <div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLancamentoTitle"
                 aria-hidden="true">
-                <div class="lkh-modal-backdrop"></div>
-                <div class="lkh-modal-content">
-                    <div class="lkh-modal-header">
-                        <h2 id="modalLancamentoTitle">Novo Lançamento</h2>
-                        <button class="lkh-modal-close" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
-                    </div>
-
-                    <form class="lkh-modal-body" id="formLancamento" novalidate>
-                        <div class="form-group">
-                            <label for="lanTipo">Tipo</label>
-                            <select id="lanTipo" class="form-select" required>
-                                <option value="despesa">Despesa</option>
-                                <option value="receita">Receita</option>
-                            </select>
+                <div class="modal-dialog modal-dialog-centered" style="max-width:540px">
+                    <div class="modal-content bg-dark text-light border-0 rounded-3">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title" id="modalLancamentoTitle">Novo lancamento</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Fechar"></button>
                         </div>
 
-                        <div class="form-group">
-                            <label for="lanData">Data</label>
-                            <input type="date" id="lanData" class="form-input" required>
+                        <div class="modal-body pt-0">
+                            <div id="novoLancAlert" class="alert alert-danger d-none" role="alert"></div>
+                            <form id="formNovoLancamento" novalidate>
+                                <div class="row g-3">
+
+                                    <div class="mb-3">
+                                        <label for="lanData" class="form-label text-light small mb-1">Data</label>
+                                        <input type="date" id="lanData"
+                                            class="form-control form-control-sm bg-dark text-light border-secondary"
+                                            required>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lanTipo" class="form-label text-light small mb-1">Tipo</label>
+                                        <select id="lanTipo"
+                                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                                            required>
+                                            <option value="despesa">Despesa</option>
+                                            <option value="receita">Receita</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lanCategoria"
+                                            class="form-label text-light small mb-1">Categoria</label>
+                                        <select id="lanCategoria"
+                                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                                            required>
+                                            <option value="">Selecione uma categoria</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="headerConta" class="form-label text-light small mb-1">Conta</label>
+                                        <select id="headerConta"
+                                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                                            autocomplete="off">
+                                            <option value="">Todas as contas (opcional)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3 mb-3">
+                                        <label for="lanValor" class="form-label text-light small mb-1">Valor</label>
+                                        <input type="text" id="lanValor"
+                                            class="form-control form-control-sm bg-dark text-light border-secondary money-mask"
+                                            placeholder="R$ 0,00" required>
+                                    </div>
+
+                                    <div class="col-md-9 mb-3">
+                                        <label for="lanDescricao"
+                                            class="form-label text-light small mb-1">Descricao</label>
+                                        <input type="text" id="lanDescricao"
+                                            class="form-control form-control-sm bg-dark text-light border-secondary"
+                                            placeholder="Descricao do lancamento (opcional)">
+                                    </div>
+
+                                    <!-- 
+                                    <div class="mb-3">
+                                        <label for="lanObservacao"
+                                            class="form-label text-light small mb-1">Observacao</label>
+                                        <textarea id="lanObservacao"
+                                            class="form-control form-control-sm bg-dark text-light border-secondary"
+                                            rows="3" maxlength="500"
+                                            placeholder="Detalhes adicionais (opcional)"></textarea>
+                                    </div> -->
+
+                                </div>
+                            </form>
                         </div>
 
-                        <div class="form-group">
-                            <label for="lanCategoria">Categoria</label>
-                            <select id="lanCategoria" class="form-select" required>
-                                <option value="">Selecione uma categoria</option>
-                            </select>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" form="formNovoLancamento"
+                                class="btn btn-primary btn-sm">Salvar</button>
                         </div>
-                        <!-- Conta (opcional) -->
-                        <div class="form-group">
-                            <label for="headerConta">Conta</label>
-                            <select id="headerConta" class="form-select form-select-sm" autocomplete="off">
-                                <option value="">Todas as contas (opcional)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lanDescricao">Descrição</label>
-                            <input type="text" id="lanDescricao" class="form-input"
-                                placeholder="Descrição do lançamento (opcional)" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lanValor">Valor</label>
-                            <input type="text" id="lanValor" class="form-input money-mask" placeholder="R$ 0,00"
-                                required />
-                        </div>
-                    </form>
-
-                    <div class="lkh-modal-footer">
-                        <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" form="formLancamento" class="btn btn-primary">Salvar</button>
                     </div>
                 </div>
             </div>
-        </div>
+            <?php loadPageJs('admin-home-header'); ?>
+            <?php loadPageJs(); ?>
+            <script>
+                (function() {
+                    const root = document.documentElement;
+                    const btn = document.getElementById("toggleTheme");
+
+                    const BASE_URL = LK.getBase();
+                    const ENDPOINT = BASE_URL + 'api/user/theme';
+                    const CSRF = LK.getCSRF();
 
 
-        <?php loadPageJs('admin-home-header'); ?>
-        <?php loadPageJs(); ?>
-        <script>
-        (function() {
-            const root = document.documentElement;
-            const btn = document.getElementById("toggleTheme");
+                    // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
+                    const cached = localStorage.getItem("theme");
+                    if (cached) applyTheme(cached, false);
 
-            const BASE_URL = LK.getBase();
-            const ENDPOINT = BASE_URL + 'api/user/theme';
-            const CSRF = LK.getCSRF();
-
-
-            // 1) aplica rápido o que estiver no localStorage para evitar "piscar"
-            const cached = localStorage.getItem("theme");
-            if (cached) applyTheme(cached, false);
-
-            // 2) busca do backend (fonte da verdade)
-            fetch(ENDPOINT, {
-                    credentials: 'include'
-                })
-                .then(r => r.ok ? r.json() : Promise.reject(r))
-                .then(j => applyTheme(j?.theme || cached || 'light', false))
-                .catch(() => applyTheme(cached || 'light', false));
-
-            // 3) clique alterna e salva no backend
-            btn?.addEventListener("click", () => {
-                const current = root.getAttribute("data-theme") || 'light';
-                const next = current === 'dark' ? 'light' : 'dark';
-                applyTheme(next, true);
-            });
-
-            function applyTheme(theme, persist) {
-                root.setAttribute("data-theme", theme);
-                localStorage.setItem("theme", theme);
-                updateIcon(theme);
-
-                if (persist) {
-                    const token = LK.getCSRF();
+                    // 2) busca do backend (fonte da verdade)
                     fetch(ENDPOINT, {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': token
-                        },
-                        body: JSON.stringify({
-                            theme,
-                            _token: token,
-                            csrf_token: token
+                            credentials: 'include'
                         })
-                    }).catch(err => console.error('Falha ao salvar tema:', err));
-                }
+                        .then(r => r.ok ? r.json() : Promise.reject(r))
+                        .then(j => applyTheme(j?.theme || cached || 'light', false))
+                        .catch(() => applyTheme(cached || 'light', false));
 
-            }
+                    // 3) clique alterna e salva no backend
+                    btn?.addEventListener("click", () => {
+                        const current = root.getAttribute("data-theme") || 'light';
+                        const next = current === 'dark' ? 'light' : 'dark';
+                        applyTheme(next, true);
+                    });
 
-            function updateIcon(theme) {
-                const btnEl = document.getElementById("toggleTheme");
-                if (!btnEl) return;
-                btnEl.classList.toggle('dark', theme === 'dark');
-            }
-        })();
-        </script>
-        <script>
-        (function() {
-            const rootEl = document.documentElement;
-            const sidebar = document.getElementById('sidebar-main');
-            const edgeBtn = document.getElementById('edgeMenuBtn');
-            const backdrop = document.getElementById('sidebarBackdrop');
+                    function applyTheme(theme, persist) {
+                        root.setAttribute("data-theme", theme);
+                        localStorage.setItem("theme", theme);
+                        updateIcon(theme);
 
-            if (!sidebar || !edgeBtn || !backdrop) return;
+                        if (persist) {
+                            const token = LK.getCSRF();
+                            fetch(ENDPOINT, {
+                                method: 'POST',
+                                credentials: 'include',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': token
+                                },
+                                body: JSON.stringify({
+                                    theme,
+                                    _token: token,
+                                    csrf_token: token
+                                })
+                            }).catch(err => console.error('Falha ao salvar tema:', err));
+                        }
 
-            function applyCollapsedState(isCollapsed) {
-                sidebar.classList.toggle('collapsed', isCollapsed);
-                rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
-                if (window.innerWidth > 992) {
-                    edgeBtn.setAttribute('aria-expanded', String(!isCollapsed));
-                }
-            }
+                    }
 
-            function closeMobile() {
-                sidebar.classList.remove('open');
-                rootEl.classList.remove('sidebar-open-mobile');
-                edgeBtn.setAttribute('aria-expanded', 'false');
-            }
+                    function updateIcon(theme) {
+                        const btnEl = document.getElementById("toggleTheme");
+                        if (!btnEl) return;
+                        btnEl.classList.toggle('dark', theme === 'dark');
+                    }
+                })();
+            </script>
+            <script>
+                (function() {
+                    const rootEl = document.documentElement;
+                    const sidebar = document.getElementById('sidebar-main');
+                    const edgeBtn = document.getElementById('edgeMenuBtn');
+                    const backdrop = document.getElementById('sidebarBackdrop');
 
-            function handleResponsive() {
-                const w = window.innerWidth;
-                if (w <= 992) {
-                    // mobile: comeca fechada
-                    rootEl.classList.remove('sidebar-collapsed');
-                    sidebar.classList.remove('collapsed');
-                    closeMobile();
-                } else {
-                    // desktop/tablet: icones por padrao
-                    closeMobile();
-                    applyCollapsedState(true);
-                }
-            }
+                    if (!sidebar || !edgeBtn || !backdrop) return;
 
-            function onEdgeClick() {
-                if (window.innerWidth <= 992) {
-                    const willOpen = !sidebar.classList.contains('open');
-                    sidebar.classList.toggle('open', willOpen);
-                    rootEl.classList.toggle('sidebar-open-mobile', willOpen);
-                    edgeBtn.setAttribute('aria-expanded', String(willOpen));
-                } else {
-                    const willCollapse = !sidebar.classList.contains('collapsed');
-                    applyCollapsedState(willCollapse);
-                }
-            }
+                    function applyCollapsedState(isCollapsed) {
+                        sidebar.classList.toggle('collapsed', isCollapsed);
+                        rootEl.classList.toggle('sidebar-collapsed', isCollapsed);
+                        if (window.innerWidth > 992) {
+                            edgeBtn.setAttribute('aria-expanded', String(!isCollapsed));
+                        }
+                    }
 
-            // Fechar tocando fora (mobile)
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth > 992) return;
-                const hitSidebar = sidebar.contains(e.target);
-                const hitBtn = edgeBtn.contains(e.target);
-                const hitBackdrop = backdrop.contains(e.target);
-                if (!hitSidebar && !hitBtn) {
-                    closeMobile();
-                }
-                if (hitBackdrop) {
-                    closeMobile();
-                }
-            });
+                    function closeMobile() {
+                        sidebar.classList.remove('open');
+                        rootEl.classList.remove('sidebar-open-mobile');
+                        edgeBtn.setAttribute('aria-expanded', 'false');
+                    }
 
-            // Fechar com ESC no mobile
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && window.innerWidth <= 992) {
-                    closeMobile();
-                }
-            });
+                    function handleResponsive() {
+                        const w = window.innerWidth;
+                        if (w <= 992) {
+                            // mobile: comeca fechada
+                            rootEl.classList.remove('sidebar-collapsed');
+                            sidebar.classList.remove('collapsed');
+                            closeMobile();
+                        } else {
+                            // desktop/tablet: icones por padrao
+                            closeMobile();
+                            applyCollapsedState(true);
+                        }
+                    }
 
-            edgeBtn.addEventListener('click', onEdgeClick);
-            window.addEventListener('resize', handleResponsive);
-            handleResponsive();
-        })();
-        </script>
+                    function onEdgeClick() {
+                        if (window.innerWidth <= 992) {
+                            const willOpen = !sidebar.classList.contains('open');
+                            sidebar.classList.toggle('open', willOpen);
+                            rootEl.classList.toggle('sidebar-open-mobile', willOpen);
+                            edgeBtn.setAttribute('aria-expanded', String(willOpen));
+                        } else {
+                            const willCollapse = !sidebar.classList.contains('collapsed');
+                            applyCollapsedState(willCollapse);
+                        }
+                    }
+
+                    // Fechar tocando fora (mobile)
+                    document.addEventListener('click', (e) => {
+                        if (window.innerWidth > 992) return;
+                        const hitSidebar = sidebar.contains(e.target);
+                        const hitBtn = edgeBtn.contains(e.target);
+                        const hitBackdrop = backdrop.contains(e.target);
+                        if (!hitSidebar && !hitBtn) {
+                            closeMobile();
+                        }
+                        if (hitBackdrop) {
+                            closeMobile();
+                        }
+                    });
+
+                    // Fechar com ESC no mobile
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && window.innerWidth <= 992) {
+                            closeMobile();
+                        }
+                    });
+
+                    edgeBtn.addEventListener('click', onEdgeClick);
+                    window.addEventListener('resize', handleResponsive);
+                    handleResponsive();
+                })();
+            </script>
