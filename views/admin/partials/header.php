@@ -37,7 +37,9 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $pageTitle ?></title>
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
-    <link rel="shortcut icon" href="<?= BASE_URL ?>assets/img/logo.png" type="image/x-icon">
+    <?php $favicon = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1'; ?>
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
