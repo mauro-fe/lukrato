@@ -367,8 +367,18 @@
                         title: "Categoria",
                         field: "categoria_nome",
                         widthGrow: 1,
-                        formatter: (cell) => cell.getValue() || cell.getRow().getData().categoria ||
-                            '-',
+                        mutator: (value, data) => {
+                            const candidate = value ??
+                                data?.categoria ??
+                                data?.categoria_nome ??
+                                (typeof data?.categoria === 'object' ? data?.categoria?.nome : '') ??
+                                '';
+                            if (candidate && typeof candidate === 'object') {
+                                return String(candidate.nome ?? candidate.label ?? candidate.title ?? '');
+                            }
+                            return candidate ? String(candidate) : '';
+                        },
+                        formatter: (cell) => cell.getValue() || '-',
                         headerFilter: "input",
                         headerFilterPlaceholder: "Filtrar categoria"
                     },
@@ -376,7 +386,18 @@
                         title: "Conta",
                         field: "conta_nome",
                         widthGrow: 1,
-                        formatter: (cell) => cell.getValue() || cell.getRow().getData().conta || '-',
+                        mutator: (value, data) => {
+                            const raw = value ??
+                                data?.conta ??
+                                data?.conta_nome ??
+                                (typeof data?.conta === 'object' ? data?.conta?.nome : '') ??
+                                '';
+                            if (raw && typeof raw === 'object') {
+                                return String(raw.nome ?? raw.label ?? raw.title ?? '');
+                            }
+                            return raw ? String(raw) : '';
+                        },
+                        formatter: (cell) => cell.getValue() || '-',
                         headerFilter: "input",
                         headerFilterPlaceholder: "Filtrar conta"
                     },
@@ -384,7 +405,24 @@
                         title: "Descricao",
                         field: "descricao",
                         widthGrow: 2,
+                        mutator: (value, data) => {
+                            let raw = value ??
+                                data?.descricao ??
+                                data?.descricao_titulo ??
+                                (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ??
+                                '';
+                            if (raw && typeof raw === 'object') {
+                                raw = raw.texto ?? raw.value ?? raw.title ?? '';
+                            }
+                            return raw ? String(raw).trim() : '';
+                        },
                         formatter: (cell) => cell.getValue() || '-',
+                        headerFilterFunc: (headerValue, rowValue) => {
+                            const needle = normalizeText(headerValue);
+                            if (!needle) return true;
+                            const hay = normalizeText(rowValue);
+                            return hay.includes(needle);
+                        },
                         headerFilter: "input",
                         headerFilterPlaceholder: "Filtrar descricao"
                     },
@@ -501,6 +539,10 @@
             const d = new Date(iso);
             return isNaN(d) ? '-' : d.toLocaleDateString('pt-BR');
         };
+        const normalizeText = (str) => String(str ?? '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLocaleLowerCase('pt-BR');
 
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({
             '&': '&amp;',

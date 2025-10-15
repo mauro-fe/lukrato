@@ -1480,3 +1480,7 @@ h3 {
 .effect:hover {
   transform: translateY(-2px);
 }
+
+.btn .ripple {
+  display: none !important;
+}

@@ -51,12 +51,6 @@
   gap: var(--spacing-2);
 }
 
-.footer .col-8 > span:not(:last-child)::after {
-  content: "•";
-  color: var(--color-neutral);
-  opacity: 0.7;
-}
-
 /* Links: cor, sublinhado suave no hover, foco acessível */
 .footer a {
   color: var(--laranja);

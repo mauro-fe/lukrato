@@ -6,8 +6,8 @@
         <div class="row">
             <div class="col-8 mx-auto text-center mt-1">
                 <span>© 2025 Lukrato -</span>
-                <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro Felix
-                    </a></span>
+                <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro
+                        Felix</a></span>
                 <span> & <a href="https://github.com/Joseph-0505" target="_blank" rel="noopener"> José Victor</a></span>
             </div>
         </div>

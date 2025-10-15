@@ -24,7 +24,8 @@
   flex-wrap: wrap;
   margin-top: 0;
   padding: 0 24px;
-  z-index: 999;
+  position: relative;
+  z-index: 20;
 }
 
 .lk-seg {
@@ -61,68 +62,44 @@
 /* ====== Dropdown base ====== */
 .lk-sel {
   position: relative;
+  z-index: 25;
+  min-width: 220px;
 }
 
-.lk-sel span {
-  color: var(--color-primary);
-}
-
-.lk-sel > button {
+.lk-sel select.lk-select {
+  width: 100%;
   border: 2px solid var(--glass-border);
   height: 44px;
   border-radius: 999px;
-  padding: 0 16px;
-  display: flex;
+  padding: 0 40px 0 16px;
   background-color: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
-  align-items: center;
-  gap: 10px;
   font-weight: 600;
   box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+  color: var(--color-text);
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.lk-sel select.lk-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
   color: var(--color-text);
 }
 
-.lk-menu {
+.lk-sel::after {
+  content: \"\\f078\";
+  font-family: \"Font Awesome 6 Free\";
+  font-weight: 900;
   position: absolute;
-  top: 52px;
-  left: 0;
-  border: 2px solid var(--glass-border);
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
-  min-width: 260px;
-  padding: 8px 0;
-  display: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  max-height: 300px;
-  overflow-y: scroll;
-  text-align: center;
-  scrollbar-color: var(--color-primary) transparent;
-  z-index: 999 !important;
-}
-
-.lk-menu.open {
-  display: block;
-  z-index: 999 !important;
-}
-
-.lk-menu > button {
-  width: 90%;
-  text-align: center;
-  margin: auto;
-  border: 0;
-  border-radius: 20px;
-  padding: 10px 14px;
-  cursor: pointer;
-  background: var(--glass-bg);
-  color: var(--color-text);
-  margin-top: 5px;
-  z-index: 999 !important;
-}
-
-.lk-menu > button:hover {
-  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-surface) 20%);
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--color-primary);
 }
 
 /* ======================= Month Selector (dentro do header) ======================= */
@@ -310,13 +287,12 @@
   }
 
   .lk-sel,
-  #accountSelect {
+  #accountSelectWrap {
     width: 100%;
   }
 
-  .lk-sel > button {
+  .lk-sel select {
     width: 100%;
-    justify-content: space-between;
   }
 
   .dash-lk-header .month-selector {
@@ -352,7 +328,7 @@
   }
 
   .lk-period,
-  .lk-sel > button,
+  .lk-sel select,
   .lk-seg {
     width: 100%;
   }
@@ -395,11 +371,6 @@
 
   .lk-seg button {
     flex: 1 1 100%;
-  }
-
-  .lk-menu {
-    width: 100%;
-    max-width: calc(100vw - 32px);
   }
 
   .dash-lk-header .month-selector {
