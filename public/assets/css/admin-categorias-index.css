@@ -9,6 +9,14 @@
   color: var(--color-primary);
 }
 
+.c-subtitle {
+  margin: var(--spacing-1) 0 0 0;
+  font-size: var(--font-size-base);
+  font-family: var(--font-primary) !important;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
 .c-form {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
@@ -231,14 +239,6 @@
   color: var(--color-primary);
 }
 
-#modalEditCategoria .btn-close {
-  filter: invert(var(--color-text));
-  opacity: 0.8;
-}
-#modalEditCategoria .btn-close:hover {
-  opacity: 1;
-}
-
 /* Botões */
 #modalEditCategoria .btn {
   border-radius: var(--radius-sm);
@@ -283,6 +283,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
+  padding: var(--spacing-3);
 }
 
 #modalEditCategoria .form-control::placeholder {

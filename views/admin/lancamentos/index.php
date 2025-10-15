@@ -1,17 +1,20 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
+
 <section class="lan-page">
     <div class="lan-header">
-        <h3 class="lan-title">Lancamentos</h3>
+        <div>
+            <h3 class="lan-title">Lancamentos</h3>
+        </div>
         <div class="lan-controls">
             <header class="dash-lk-header">
                 <div class="header-left">
                     <div class="month-selector">
-                        <div class="lk-period">
+                        <div class="lk-period effect">
                             <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mes anterior">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
-                            <button class="month-dropdown-btn" id="monthDropdownBtn" type="button"
-                                aria-haspopup="true" aria-expanded="false">
+                            <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" aria-haspopup="true"
+                                aria-expanded="false">
                                 <span id="currentMonthText">Carregando...</span>
                                 <i class="fas fa-chevron-down"></i>
                             </button>
@@ -25,37 +28,42 @@
                     </div>
                 </div>
             </header>
-            <div class="lan-filter">
-                <div class="type-filter" role="group" aria-label="Filtros">
-                    <label for="filtroTipo" class="sr-only">Tipo</label>
-                    <select id="filtroTipo" class="lk-select btn btn-primary">
-                        <option value="">Todos</option>
-                        <option value="receita">Receitas</option>
-                        <option value="despesa">Despesas</option>
-                    </select>
-                    <label for="filtroCategoria" class="sr-only">Categoria</label>
-                    <select id="filtroCategoria" class="lk-select btn btn-primary">
-                        <option value="">Todas as categorias</option>
-                        <option value="none">Sem categoria</option>
-                    </select>
-                    <label for="filtroConta" class="sr-only">Conta</label>
-                    <select id="filtroConta" class="lk-select btn btn-primary">
-                        <option value="">Todas as contas</option>
-                    </select>
-                    <button id="btnFiltrar" type="button" class="lk-btn ghost btn">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                    <button id="btnExcluirSel" type="button" class="lk-btn danger btn" disabled>
-                        <i class="fas fa-trash"></i> Excluir selecionados
-                    </button>
-                    <small id="selInfo" class="text-muted d-none">
-                        <span id="selCount">0</span> selecionado(s)
-                    </small>
+            <div class="lan-card mt-4" data-aos="fade-up">
+
+                <div class="lan-filter">
+                    <div class="type-filter" role=" group" aria-label="Filtros">
+                        <label for="filtroTipo" class="sr-only">Tipo</label>
+                        <select id="filtroTipo" class="lk-select btn btn-primary" data-aos="fade-right"
+                            data-aos-delay="250">
+                            <option value="">Todos</option>
+                            <option value="receita">Receitas</option>
+                            <option value="despesa">Despesas</option>
+                        </select>
+                        <label for="filtroCategoria" class="sr-only">Categoria</label>
+                        <select id="filtroCategoria" class="lk-select btn btn-primary" data-aos="fade-right">
+                            <option value="">Todas as categorias</option>
+                            <option value="none">Sem categoria</option>
+                        </select>
+                        <label for="filtroConta" class="sr-only">Conta</label>
+                        <select id="filtroConta" class="lk-select btn btn-primary" data-aos="fade-up">
+                            <option value="">Todas as contas</option>
+                        </select>
+                        <button id="btnFiltrar" type="button" class="lk-btn ghost btn" data-aos="fade-left">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        <button id="btnExcluirSel" type="button" class="lk-btn danger btn" data-aos="fade-left"
+                            data-aos-delay="250" disabled>
+                            <i class="fas fa-trash"></i> Excluir selecionados
+                        </button>
+                        <small id="selInfo">
+                            <span id="selCount">0</span> selecionado(s)
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="container-table">
+    <div class="container-table" data-aos="fade-up" data-aos-delay="250">
         <section class="table-container">
             <div id="tabLancamentos"></div>
         </section>
@@ -64,12 +72,11 @@
 
 <div class="modal fade" id="modalEditarLancamento" tabindex="-1" aria-labelledby="modalEditarLancamentoLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:540px">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
             <div class="modal-header border-0">
                 <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar lançamento</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Fechar"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body pt-0">
                 <div id="editLancAlert" class="alert alert-danger d-none" role="alert"></div>
@@ -128,12 +135,11 @@
 </div>
 
 <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:600px;">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
             <div class="modal-header border-0">
                 <h5 class="modal-title" id="monthModalLabel">Selecionar mes</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Fechar"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body pt-0">
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
@@ -282,9 +288,17 @@
         // Tabulator: instancia
         let table = null;
 
-        function ensureTable() {
-            if (table || !tabContainer) return table;
-            table = new Tabulator(tabContainer, {
+        const tableIsActive = (instance) => {
+            if (!instance) return false;
+            const rm = instance.rowManager;
+            if (!rm || !rm.renderer) return false;
+            if (instance.element && instance.element.isConnected === false) return false;
+            return true;
+        };
+
+        const buildTable = () => {
+            if (!tabContainer) return null;
+            const instance = new Tabulator(tabContainer, {
                 height: "520px",
                 layout: "fitColumns",
                 placeholder: "Sem lancamentos para o periodo",
@@ -353,7 +367,8 @@
                         title: "Categoria",
                         field: "categoria_nome",
                         widthGrow: 1,
-                        formatter: (cell) => cell.getValue() || cell.getRow().getData().categoria || '-',
+                        formatter: (cell) => cell.getValue() || cell.getRow().getData().categoria ||
+                            '-',
                         headerFilter: "input",
                         headerFilterPlaceholder: "Filtrar categoria"
                     },
@@ -434,7 +449,7 @@
                     }
                 ]
             });
-            table.on("rowSelectionChanged", (_data, rows) => {
+            instance.on("rowSelectionChanged", (_data, rows) => {
                 if (Array.isArray(rows)) {
                     rows.forEach((row) => {
                         if (isSaldoInicial(row.getData())) {
@@ -444,6 +459,19 @@
                 }
                 updateSelectionInfo();
             });
+            return instance;
+        };
+
+        function ensureTable() {
+            if (!tabContainer) return null;
+            if (!tableIsActive(table)) {
+                try {
+                    if (table && typeof table.destroy === 'function') {
+                        table.destroy();
+                    }
+                } catch (_) {}
+                table = buildTable();
+            }
             return table;
         }
 
@@ -604,7 +632,6 @@
             if (btnExcluirSel) {
                 btnExcluirSel.toggleAttribute("disabled", count === 0);
             }
-            if (selInfo) selInfo.classList.toggle("d-none", count === 0);
         }
 
         function openEditLancamento(data) {
@@ -882,7 +909,9 @@
             ensureMonthModal();
         };
         if (document.readyState === 'complete') bootstrapReady();
-        else window.addEventListener('load', bootstrapReady, { once: true });
+        else window.addEventListener('load', bootstrapReady, {
+            once: true
+        });
 
         modalEl?.addEventListener('shown.bs.modal', () => {
             modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();

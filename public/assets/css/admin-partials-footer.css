@@ -1,0 +1,129 @@
+/* ===============================
+   Footer Lukrato (glass + gradient)
+   =============================== */
+.footer {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-primary);
+  color: var(--color-text-muted);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface) 0%,
+    var(--color-surface-muted) 100%
+  );
+  border-top: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Linha de destaque fina no topo do footer */
+.footer::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--laranja), transparent 60%);
+  opacity: 0.75;
+}
+
+/* Container interno: centra e dá respiro */
+.footer .container {
+  padding-inline: var(--container-padding);
+}
+
+/* Bloco central com texto e divisores automáticos */
+.footer .col-8 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  line-height: 1.6;
+  font-size: var(--font-size-sm);
+}
+
+/* Coloque um separador "•" entre os spans (não após o último) */
+.footer .col-8 > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.footer .col-8 > span:not(:last-child)::after {
+  content: "•";
+  color: var(--color-neutral);
+  opacity: 0.7;
+}
+
+/* Links: cor, sublinhado suave no hover, foco acessível */
+.footer a {
+  color: var(--laranja);
+  text-decoration: none;
+  position: relative;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Sublinhado animado (underline-grow) */
+.footer a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: currentColor;
+  transition: transform var(--transition-normal);
+  border-radius: 999px;
+}
+
+.footer a:hover::after {
+  transform: scaleX(1);
+}
+
+.footer a:hover {
+  color: color-mix(in oklab, var(--laranja) 85%, white 15%);
+  transform: translateY(-1px);
+}
+
+/* Foco visível (teclado): “ring” usando seu token */
+.footer a:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-radius: var(--radius-sm);
+}
+
+/* Modo escuro ajusta contraste do texto do footer */
+:root[data-theme="dark"] .footer {
+  color: color-mix(
+    in oklab,
+    var(--color-text) 80%,
+    var(--color-text-muted) 20%
+  );
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+:root[data-theme="dark"] .footer a:hover {
+  color: color-mix(in oklab, var(--laranja) 80%, white 20%);
+}
+
+/* Responsividade: em telas menores, reduza gaps e fonte */
+@media (max-width: 576px) {
+  .footer .col-8 {
+    gap: var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+  .footer .col-8 > span:not(:last-child)::after {
+    margin-inline: var(--spacing-2);
+  }
+}
+
+/* Respeita usuários com redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .footer a,
+  .footer a::after {
+    transition: none;
+  }
+}

@@ -13,7 +13,7 @@ class DashboardController extends BaseController
             'admin/dashboard/index',
             [],
             'admin/partials/header',
-            null
+            'admin/partials/footer'
         );
     }
 }

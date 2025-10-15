@@ -1,5 +1,5 @@
     <div class="lk-h">
-        <div class="lk-t">
+        <div class="lk-t" data-aos="fade-up">
             <h3>Relatórios</h3>
         </div>
 
@@ -30,7 +30,7 @@
 
         <!-- Controles: Abas + Tipo (pizza) + Conta -->
         <div class="lk-controls pt-4" role="tablist" aria-label="Tipos de relatório">
-            <div class="lk-seg" id="tabs">
+            <div class="lk-seg" id="tabs" data-aos="fade-up-right">
                 <button class="active" data-view="pizza" aria-pressed="true"><i class="fa-solid fa-chart-pie"></i> Por
                     categoria</button>
                 <button data-view="linha" aria-pressed="false"><i class="fa-solid fa-chart-line"></i> Saldo
@@ -43,7 +43,7 @@
             </div>
 
             <!-- tipo (apenas pizza) -->
-            <div class="lk-sel" id="typeSelect">
+            <div class="lk-sel" id="typeSelect" data-aos="fade-up-left">
                 <button id="typeBtn" aria-haspopup="menu" aria-expanded="false">
                     <span class="lb">Despesas por categorias</span> <i class="fa-solid fa-chevron-down"></i>
                 </button>
@@ -65,17 +65,17 @@
         </div>
     </div>
 
-    <div class="lk-card mb-5">
+    <div class="lk-card mb-5" data-aos="fade-up" data-aos-delay="250">
+        <p>Gerencie seus gastos</p>
         <div id="area"></div>
     </div>
     <!-- Modal: Selecionar mês -->
     <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
             <div class="modal-content bg-dark text-light border-0 rounded-3">
                 <div class="modal-header border-0">
                     <h5 class="modal-title" id="monthModalLabel">Selecionar mês</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Fechar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
 
                 <div class="modal-body pt-0">

@@ -14,7 +14,7 @@ class PerfilController extends BaseController
             'admin/perfil/index',
             [],
             'admin/partials/header',
-            null
+            'admin/partials/footer'
         );
     }
 }

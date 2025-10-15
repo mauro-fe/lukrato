@@ -51,6 +51,8 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
     <style>
         option {
             background-color: #1c2c3c;
@@ -125,16 +127,16 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-0">
+    <main class="main-content">
         <div class="container-fluid lk-page">
             <!-- Modal: Novo lancamento -->
             <div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLancamentoTitle"
                 aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" style="max-width:540px">
+                <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
                     <div class="modal-content bg-dark text-light border-0 rounded-3">
                         <div class="modal-header border-0">
                             <h5 class="modal-title" id="modalLancamentoTitle">Novo lancamento</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Fechar"></button>
                         </div>
 

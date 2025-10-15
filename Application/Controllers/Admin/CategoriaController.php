@@ -14,7 +14,7 @@ class CategoriaController extends BaseController
             'admin/categorias/index',
             [],
             'admin/partials/header',
-            null
+            'admin/partials/footer'
         );
     }
 }

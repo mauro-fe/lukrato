@@ -10,13 +10,13 @@ $aria   = function (string $key) use ($menu) {
 };
 ?>
 <section class="dashboard-page">
-    <div>
+    <div data-aos="fade-up">
         <h3>Dashboard</h3>
     </div>
     <header class="dash-lk-header">
         <div class="header-left">
-            <div class="month-selector">
-                <div class="lk-period">
+            <div class="month-selector" data-aos="fade-up">
+                <div class="lk-period  effect">
                     <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior"
                         title="Mês anterior">
                         <i class="fas fa-chevron-left"></i>
@@ -41,8 +41,8 @@ $aria   = function (string $key) use ($menu) {
     </header>
 
     <section class="pt-5">
-        <div class="">
-            <section class="kpi-grid" role="region" aria-label="Indicadores principais">
+        <section class="kpi-grid" role="region" aria-label="Indicadores principais">
+            <div data-aos="flip-left">
                 <div class="card kpi-card" id="saldoCard">
                     <div class="card-header">
                         <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div><span class="kpi-title">Saldo
@@ -50,6 +50,8 @@ $aria   = function (string $key) use ($menu) {
                     </div>
                     <div class="kpi-value" id="saldoValue">R$ 0,00</div>
                 </div>
+            </div>
+            <div data-aos="flip-left">
                 <div class="card kpi-card" id="receitasCard">
                     <div class="card-header">
                         <div class="kpi-icon receitas"><i class="fas fa-arrow-up"></i></div><span
@@ -58,6 +60,8 @@ $aria   = function (string $key) use ($menu) {
                     </div>
                     <div class="kpi-value receitas" id="receitasValue">R$ 0,00</div>
                 </div>
+            </div>
+            <div data-aos="flip-right">
                 <div class="card kpi-card" id="despesasCard">
                     <div class="card-header">
                         <div class="kpi-icon despesas"><i class="fas fa-arrow-down"></i></div><span
@@ -65,25 +69,29 @@ $aria   = function (string $key) use ($menu) {
                     </div>
                     <div class="kpi-value despesas" id="despesasValue">R$ 0,00</div>
                 </div>
-                <div class="card kpi-card" id="saldoMesCard">
+            </div>
+            <div data-aos="flip-right">
+                <div class="card kpi-card" id="saldoMesCard" data-aos="fade-up-left">
                     <div class="card-header">
                         <div class="kpi-icon saldo"><i class="fas fa-balance-scale"></i></div><span
-                            class="kpi-title">Saldo do Mês</span>
+                            class="kpi-title">Saldo
+                            do Mês</span>
                     </div>
                     <div class="kpi-value" id="saldoMesValue">R$ 0,00</div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section class="charts-grid">
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <h2 class="card-title">Evolução Financeira</h2>
-                    </div>
-                    <div class="chart-container"><canvas id="evolutionChart" role="img"
-                            aria-label="Gráfico de evolução do saldo"></canvas></div>
+        <section class="charts-grid" data-aos="fade-up">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h2 class="card-title">Evolução Financeira</h2>
                 </div>
+                <div class="chart-container"><canvas id="evolutionChart" role="img"
+                        aria-label="Gráfico de evolução do saldo"></canvas></div>
+            </div>
 
-                <!-- <div class="card summary-card">
+            <!-- <div class="card summary-card">
                     <div class="card-header">
                         <h2 class="card-title">Resumo Mensal</h2>
                     </div>
@@ -98,44 +106,41 @@ $aria   = function (string $key) use ($menu) {
                                 class="summary-value" id="saldoAcumulado">R$ 0,00</span></div>
                     </div>
                 </div> -->
-            </section>
+        </section>
 
-            <section class="card table-card mb-5">
-                <div class="card-header">
-                    <h2 class="card-title">5 Últimos Lançamentos</h2>
+        <section class="card table-card mb-5" data-aos="fade-up">
+            <div class="card-header">
+                <h2 class="card-title">5 Últimos Lançamentos</h2>
+            </div>
+            <div class="table-container">
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <div class="empty-icon"><i class="fas fa-receipt"></i></div>
+                    <h3>Nenhum lançamento encontrado</h3>
+                    <p>Adicione sua primeira transação clicando no botão + no canto inferior esquerdo</p>
                 </div>
-                <div class="table-container">
-                    <div class="empty-state" id="emptyState" style="display:none;">
-                        <div class="empty-icon"><i class="fas fa-receipt"></i></div>
-                        <h3>Nenhum lançamento encontrado</h3>
-                        <p>Adicione sua primeira transação clicando no botão + no canto inferior esquerdo</p>
-                    </div>
-                    <table class="table" id="transactionsTable">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Categoria</th>
-                                <th>Conta</th>
-                                <th>Descrição</th>
-                                <th>Valor</th>
-                                <th class="text-end">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transactionsTableBody"></tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
+                <table class="table" id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Categoria</th>
+                            <th>Conta</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody"></tbody>
+                </table>
+            </div>
+        </section>
     </section>
-
     <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
             <div class="modal-content bg-dark text-light border-0 rounded-3">
                 <div class="modal-header border-0">
                     <h5 class="modal-title" id="monthModalLabel">Selecionar mês</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Fechar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
 
                 <div class="modal-body pt-0">

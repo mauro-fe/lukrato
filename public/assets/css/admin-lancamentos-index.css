@@ -158,22 +158,21 @@
   border-color: var(--laranja);
   box-shadow: 0 0 0 1px var(--laranja) inset;
 }
+.lan-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border, #1f29371a);
+  border-radius: var(--radius-sm, 8px);
+  padding: var(--spacing-4);
+}
 
 .type-filter {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: var(--spacing-3);
   padding: var(--spacing-4);
-}
-
-.type-filter .lk-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
 }
 
 .type-filter small {
@@ -187,10 +186,6 @@
 
 .btn:focus {
   background-color: var(--color-primary);
-}
-
-.lk-btn {
-  background-color: var(--color-primary) !important;
 }
 
 .sr-only {
@@ -404,15 +399,6 @@
   gap: var(--spacing-2);
 }
 
-.table-container .tabulator .tabulator-row .tabulator-cell .lk-actions .lk-btn {
-  min-height: 36px;
-  border-radius: var(--radius-sm);
-  padding: 0 var(--spacing-3);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
 #modalEditarLancamento .modal-content {
   background: var(--color-surface) !important;
   color: var(--color-text);
@@ -433,15 +419,6 @@
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--color-primary);
-}
-
-#modalEditarLancamento .btn-close {
-  filter: invert(var(--color-text));
-  opacity: 0.8;
-}
-
-#modalEditarLancamento .btn-close:hover {
-  opacity: 1;
 }
 
 /* Botões */
@@ -498,4 +475,85 @@
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
   color: var(--color-primary) !important;
+}
+
+#modalEditarLancamento .modal-content {
+  background: var(--color-surface) !important;
+  color: var(--color-text);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-primary);
+}
+
+#modalEditarLancamento .modal-header,
+#modalEditarLancamento .modal-footer {
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+}
+
+#modalEditarLancamento .modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Botões */
+#modalEditarLancamento .btn {
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
+}
+
+#modalEditarLancamento .btn-outline-secondary,
+#modalEditarLancamento .btn-outline-light {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+}
+
+#modalEditarLancamento .btn-outline-secondary:hover,
+#modalEditarLancamento .btn-outline-light:hover {
+  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-primary) 20%);
+  color: var(--branco) !important;
+  border-color: var(--color-primary);
+}
+
+#modalEditarLancamento .btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--branco);
+}
+#modalEditarLancamento .btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* Inputs e selects */
+#modalEditarLancamento .form-label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  margin-bottom: 0.25rem;
+}
+
+#modalEditarLancamento .form-control,
+#modalEditarLancamento .form-select {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-3);
+}
+
+#modalEditarLancamento .form-control::placeholder {
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+
+#modalEditarLancamento .form-control:focus,
+#modalEditarLancamento .form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
+  color: var(--color-text) !important;
 }

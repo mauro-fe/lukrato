@@ -24,6 +24,7 @@
   flex-wrap: wrap;
   margin-top: 0;
   padding: 0 24px;
+  z-index: 999;
 }
 
 .lk-seg {
@@ -92,17 +93,18 @@
   min-width: 260px;
   padding: 8px 0;
   display: none;
-  z-index: 10;
   background: var(--color-surface);
   color: var(--color-text);
   max-height: 300px;
   overflow-y: scroll;
   text-align: center;
   scrollbar-color: var(--color-primary) transparent;
+  z-index: 999 !important;
 }
 
 .lk-menu.open {
   display: block;
+  z-index: 999 !important;
 }
 
 .lk-menu > button {
@@ -116,6 +118,7 @@
   background: var(--glass-bg);
   color: var(--color-text);
   margin-top: 5px;
+  z-index: 999 !important;
 }
 
 .lk-menu > button:hover {
@@ -239,6 +242,7 @@
   margin: 0 24px;
   color: var(--color-text);
   backdrop-filter: var(--glass-backdrop);
+  z-index: 0 !important;
 }
 
 .lk-card + .lk-card {

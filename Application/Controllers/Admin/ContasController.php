@@ -8,11 +8,11 @@ class ContasController extends BaseController
 {
     public function index(): void
     {
-        $this->render('admin/contas/index', [], 'admin/partials/header', null);
+        $this->render('admin/contas/index', [], 'admin/partials/header', 'admin/partials/footer');
     }
 
     public function archived(): void
     {
-        $this->render('admin/contas/arquivadas', [], 'admin/partials/header', null);
+        $this->render('admin/contas/arquivadas', [], 'admin/partials/header', 'admin/partials/footer');
     }
 }

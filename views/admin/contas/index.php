@@ -1,21 +1,21 @@
 <div class="cont-page">
-    <div class="lk-acc-title">
+    <div class="lk-acc-title" data-aos="fade-up">
         <h3>Contas</h3>
     </div>
 
     <div class="stats-grid pt-5" id="statsContainer">
-        <div class="stat-card">
+        <div class="stat-card" data-aos="flip-left">
             <div class="stat-value" id="totalContas">0</div>
             <div class="stat-label">Total de Contas</div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card" data-aos="flip-right">
             <div class="stat-value" id="saldoTotal">R$ 0,00</div>
             <div class="stat-label">Saldo Total</div>
         </div>
     </div>
 
-    <div class="lk-accounts-wrap">
+    <div class="lk-accounts-wrap" data-aos="fade-up">
         <div class="lk-acc-header">
             <div class="lk-acc-actions">
                 <button class="btn btn-primary" id="btnNovaConta">
@@ -487,6 +487,7 @@
         </button>`;
 
                 const card = document.createElement('div');
+                card.setAttribute('data-aos', 'flip-left');
                 card.className = 'acc-card';
                 card.innerHTML = `
       <div>

@@ -1,10 +1,10 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 <section class="c-page">
-    <div class="text-start">
+    <div class="text-start" data-aos="fade-up">
         <h3 class="c-title">Categorias</h3>
     </div>
-    <div class="c-card mt-4">
-        <h6>Crie sua categoria</h6>
+    <div class="c-card mt-4" data-aos="fade-up">
+        <p class="c-subtitle">Crie sua categoria</p>
 
         <form id="formNova" class="c-form">
             <?= csrf_input('default') ?>
@@ -17,7 +17,7 @@
         </form>
     </div>
 
-    <div class="container-table">
+    <div class="container-table" data-aos="fade-up" data-aos-delay="250">
         <section class="table-container">
             <div id="tabCategorias"></div>
         </section>
@@ -26,12 +26,11 @@
 
 <div class="modal fade" id="modalEditCategoria" tabindex="-1" aria-labelledby="modalEditCategoriaLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
             <div class="modal-header border-0">
                 <h5 class="modal-title" id="modalEditCategoriaLabel">Editar categoria</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Fechar"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
 
             <div class="modal-body pt-0">

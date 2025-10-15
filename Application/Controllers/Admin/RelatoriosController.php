@@ -17,10 +17,9 @@ class RelatoriosController extends BaseController
         $this->requireAuth();
         $this->render(
             'admin/relatorios/relatorios',
-            [], 
+            [],
             'admin/partials/header',
-            null
+            'admin/partials/footer'
         );
     }
-  
 }

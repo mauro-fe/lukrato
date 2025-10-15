@@ -5,42 +5,43 @@ $menu      = $menu ?? 'perfil';
 
 <div class="profile-container">
     <div class="profile-header">
-        <div>
+        <div data-aos="fade-up">
             <h1 class="profile-title">Meu Perfil</h1>
-            <p class="profile-subtitle">Atualize seus dados da conta</p>
         </div>
     </div>
-    <div class="profile-card mb-5">
+    <div class="profile-card mb-5" data-aos="fade-up">
+        <p class="profile-subtitle">Atualize seus dados da conta</p>
+
         <form id="profileForm" class="profile-form">
             <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
             <!-- DADOS BASICOS -->
             <div class="form-grid">
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up-right" data-aos-delay="200">
                     <label class="form-label" for="nome">Nome completo</label>
                     <input class="form-input" id="nome" name="nome" type="text" value="" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="email">E-mail</label>
+                <div class="form-group" data-aos="fade-up" data-aos-delay="300"">
+                    <label class=" form-label" for="email">E-mail</label>
                     <input class="form-input" id="email" name="email" type="email" value="" required>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up-left" data-aos-delay="400">
                     <label class="form-label" for="cpf">CPF</label>
                     <input class="form-input" id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14"
                         placeholder="000.000.000-00" value="">
                 </div>
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up-right" data-aos-delay="500">
                     <label class="form-label" for="data_nascimento">Data de nascimento</label>
                     <input class="form-input" id="data_nascimento" name="data_nascimento" type="date" value=""
                         max="<?= date('Y-m-d') ?>">
                 </div>
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up" data-aos-delay="600">
                     <label class="form-label" for="telefone">Telefone</label>
                     <input class="form-input" id="telefone" name="telefone" type="tel" inputmode="tel" maxlength="15"
                         placeholder="(00) 00000-0000" value="">
                 </div>
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up-left" data-aos-delay="700">
                     <label class="form-label" for="sexo">Sexo</label>
                     <select class="form-input form-select" name="sexo" id="sexo">
                         <option value="" selected>Selecione</option>
@@ -57,32 +58,30 @@ $menu      = $menu ?? 'perfil';
             <!-- TROCA DE SENHA -->
             <h3 class="section-title">Alterar senha</h3>
             <div class="password-grid">
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up-right" data-aos-delay="800">
                     <label class="form-label" for="senha_atual">Senha atual</label>
                     <input class="form-input" id="senha_atual" name="senha_atual" type="password"
                         autocomplete="current-password">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="nova_senha">Nova senha</label>
+                <div class="form-group" data-aos="fade-up" data-aos-delay="900"">
+                    <label class=" form-label" for="nova_senha">Nova senha</label>
                     <input class="form-input" id="nova_senha" name="nova_senha" type="password"
                         autocomplete="new-password" minlength="6">
                 </div>
-                <div class="form-group">
+                <div class="form-group" data-aos="fade-up-left" data-aos-delay="1000">
                     <label class="form-label" for="conf_senha">Confirmar senha</label>
                     <input class="form-input" id="conf_senha" name="conf_senha" type="password"
                         autocomplete="new-password" minlength="6">
                 </div>
             </div>
 
-            <!-- Upload de avatar (oculto) -->
-            <div class="form-group" style="display: none;">
-                <label class="form-label" for="avatarInput">Avatar</label>
-                <input class="form-input" type="file" id="avatarInput" name="avatar" accept="image/*">
-            </div>
-
             <div class="form-actions">
-                <button type="button" class="btn btn-ghost" id="btnCancel">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
+                <div data-aos="fade-up-left" data-aos-delay="1100">
+                    <button type="button" class="btn btn-ghost" id="btnCancel">Cancelar</button>
+                </div>
+                <div data-aos="fade-up-left" data-aos-delay="1200">
+                    <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
+                </div>
             </div>
         </form>
     </div>
