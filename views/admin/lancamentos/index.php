@@ -343,6 +343,16 @@
                         width: 130,
                         mutator: (value, data) => data.data || data.created_at,
                         formatter: (cell) => fmtDate(cell.getValue()),
+                        headerFilterFunc: (headerValue, rowValue) => {
+                            const filter = parseFilterDate(headerValue);
+                            if (!filter) return true;
+                            const value = extractYMD(rowValue);
+                            if (!value) return false;
+                            if (filter.year !== null && value.year !== filter.year) return false;
+                            if (filter.month !== null && value.month !== filter.month) return false;
+                            if (filter.day !== null && value.day !== filter.day) return false;
+                            return true;
+                        },
                         headerFilter: "input",
                         headerFilterPlaceholder: "Filtrar data"
                     },
@@ -432,6 +442,13 @@
                         hozAlign: "right",
                         width: 150,
                         formatter: (cell) => fmtMoney(cell.getValue()),
+                        headerFilterFunc: (headerValue, rowValue) => {
+                            const needle = parseFilterNumber(headerValue);
+                            if (needle === null) return true;
+                            const value = Number(rowValue ?? 0);
+                            if (!Number.isFinite(value)) return false;
+                            return Math.abs(value - needle) < 0.005;
+                        },
                         headerFilter: "input",
                         headerFilterPlaceholder: "Filtrar valor"
                     },
@@ -534,8 +551,85 @@
             style: 'currency',
             currency: 'BRL'
         }).format(Number(n || 0));
+        const parseFilterNumber = (input) => {
+            if (input === undefined || input === null) return null;
+            const raw = String(input).trim();
+            if (!raw) return null;
+            const normalized = raw
+                .replace(/\./g, '')
+                .replace(',', '.');
+            const num = Number(normalized);
+            return Number.isFinite(num) ? num : null;
+        };
+        const parseFilterDate = (input) => {
+            if (input === undefined || input === null) return null;
+            const raw = String(input).trim();
+            if (!raw) return null;
+            if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(raw)) {
+                const [year, month, day] = raw.split('-').map(Number);
+                return normalizeFilterDate(day, month, year);
+            }
+            const cleaned = raw.replace(/[-.]/g, '/');
+            const match = cleaned.match(/^(\d{1,2})(?:\/(\d{1,2})(?:\/(\d{2,4}))?)?$/);
+            if (!match) return null;
+            const day = Number(match[1]);
+            const month = match[2] !== undefined ? Number(match[2]) : null;
+            const year = match[3] !== undefined ? Number(match[3]) : null;
+            return normalizeFilterDate(day, month, year);
+        };
+        const normalizeFilterDate = (day, month, year) => {
+            const safeDay = Number.isFinite(day) ? day : null;
+            const safeMonth = Number.isFinite(month) ? month : null;
+            let safeYear = Number.isFinite(year) ? year : null;
+            if (safeYear !== null && safeYear < 100) safeYear += 2000;
+            if (safeDay !== null && (safeDay < 1 || safeDay > 31)) return null;
+            if (safeMonth !== null && (safeMonth < 1 || safeMonth > 12)) return null;
+            if (safeYear !== null && (safeYear < 1900 || safeYear > 2100)) return null;
+            return {
+                day: safeDay,
+                month: safeMonth,
+                year: safeYear
+            };
+        };
+        const extractYMD = (value) => {
+            if (!value) return null;
+            if (value instanceof Date && !isNaN(value)) {
+                return {
+                    year: value.getFullYear(),
+                    month: value.getMonth() + 1,
+                    day: value.getDate()
+                };
+            }
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (!trimmed) return null;
+                if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+                    const [y, m, d] = trimmed.slice(0, 10).split('-').map(Number);
+                    return normalizeFilterDate(d, m, y);
+                }
+                if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmed)) {
+                    const [d, m, y] = trimmed.split('/').map(Number);
+                    return normalizeFilterDate(d, m, y);
+                }
+            }
+            const d = new Date(value);
+            if (isNaN(d)) return null;
+            return {
+                year: d.getFullYear(),
+                month: d.getMonth() + 1,
+                day: d.getDate()
+            };
+        };
         const fmtDate = (iso) => {
             if (!iso) return '-';
+            if (typeof iso === 'string') {
+                const normalized = iso.trim();
+                const datePart = normalized.includes('T') ? normalized.split('T')[0] : normalized;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+                    const [year, month, day] = datePart.split('-');
+                    if (year && month && day) return `${day}/${month}/${year}`;
+                }
+            }
             const d = new Date(iso);
             return isNaN(d) ? '-' : d.toLocaleDateString('pt-BR');
         };
