@@ -397,6 +397,32 @@
                 }
             }
 
+            // --- helper universal para 401/403 nesta página ---
+            async function handleFetch403(response, base) {
+                // 401: não autenticado -> manda para login
+                if (response.status === 401) {
+                    const here = encodeURIComponent(location.pathname + location.search);
+                    location.href = `${base}login?return=${here}`;
+                    return true;
+                }
+                // 403: proibido -> mostra motivo (ex.: recurso só no plano Pro)
+                if (response.status === 403) {
+                    let msg = 'Acesso não permitido.';
+                    try {
+                        const data = await response.clone().json();
+                        msg = data?.message || msg;
+                    } catch (_) {}
+                    if (typeof Swal !== 'undefined' && Swal.fire) {
+                        await Swal.fire('Acesso restrito', msg, 'warning');
+                    } else {
+                        alert(msg);
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+
             // ---- APIs ----
             async function fetchData() {
                 const y = st.d.getFullYear();

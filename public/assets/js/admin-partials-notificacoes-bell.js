@@ -1,7 +1,7 @@
 // /assets/js/notifications.js
 // Componente de notificações (sininho) — independente e reutilizável
 
-export function initNotificationsBell(userOpts = {}) {
+function initNotificationsBell(userOpts = {}) {
     // ---------- Config ----------
     const findMetaBase = () => {
         const m = document.querySelector('meta[name="base-url"]');
@@ -22,7 +22,7 @@ export function initNotificationsBell(userOpts = {}) {
         // Endpoints (padrão = como sugeri; ajuste se usa /unread-count)
         endpoints: {
             list: 'api/notificacoes',
-            unread: 'api/notificacoes/unread',        // altere p/ 'api/notificacoes/unread-count' se for seu caso
+            unread: 'api/notificacoes/unread-count',        // altere p/ 'api/notificacoes/unread-count' se for seu caso
             markRead: 'api/notificacoes/marcar-lida',
         },
         // Base e CSRF
@@ -286,3 +286,5 @@ export function initNotificationsBell(userOpts = {}) {
         }
     };
 }
+window.LK = window.LK || {};
+window.LK.initNotificationsBell = initNotificationsBell;

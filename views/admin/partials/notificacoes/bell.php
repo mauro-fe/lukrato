@@ -1,3 +1,9 @@
+<style>
+    .hidden {
+        display: none !important;
+    }
+</style>
+
 <?php
 
 /** @var int $initialUnread */

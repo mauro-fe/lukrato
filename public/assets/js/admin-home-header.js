@@ -1,7 +1,7 @@
 ﻿// /assets/js/header.js
 // Comportos do HEADER: seletor de conta, logout confirm, highlight de sidebar
 
-function initHeader(userOpts = {}) {
+export function initHeader(userOpts = {}) {
     const opts = {
         selectors: {
             accountSelect: '#headerConta',              // <select> no topo
@@ -163,32 +163,3 @@ function defaultConfirmLogout() {
     return Promise.resolve(window.confirm('Deseja realmente sair?'));
 }
 
-
-// Expondo inicializador para contextos sem módulos e autoexecução
-if (typeof window !== 'undefined') {
-    const existing = (window.AdminHeader && typeof window.AdminHeader === 'object')
-        ? window.AdminHeader
-        : {};
-    const merged = Object.assign({}, existing, {
-        init: initHeader,
-        initHeader // compatibilidade para chamadas diretas
-    });
-
-    window.AdminHeader = merged;
-    window.initHeader = initHeader;
-
-    if (existing.autoInit !== false) {
-        const options = existing.options || {};
-        const run = () => {
-            const instance = initHeader(options);
-            window.AdminHeader.lastInit = instance;
-            return instance;
-        };
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', run, { once: true });
-        } else {
-            run();
-        }
-    }
-}
