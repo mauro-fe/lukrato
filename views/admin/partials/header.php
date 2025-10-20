@@ -120,6 +120,30 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
         </div>
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <?php include __DIR__ . '/modals/modal_lancamento.php'; ?>
+    <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
     <main class="container">
         <?php include __DIR__ . '/navbar.php'; ?>
         <div class="lk-page">
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Header (sidebar active, logout confirm, seletor de contas)
+                    if (window.LK?.initHeader) {
+                        window.LK.initHeader();
+                    }
+
+                    // Sininho (se você já tem /assets/js/notifications.js com initNotificationsBell)
+                    if (window.initNotificationsBell) {
+                        window.initNotificationsBell({
+                            // se os endpoints forem diferentes, passe aqui
+                        });
+                    }
+
+                    // Modais (abre/fecha via data-open-modal / data-close-modal)
+                    if (window.LK?.initModals) {
+                        window.LK.initModals();
+                    }
+                });
+            </script>
