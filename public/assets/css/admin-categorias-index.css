@@ -330,5 +330,8 @@
   background-color: var(--color-primary);
 }
 .btn:hover {
+  background-color: var(--color-bg);
+  color: #fff;
+  border-color: var(--color-primary);
   transform: translateY(-2px);
 }

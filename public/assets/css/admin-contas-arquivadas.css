@@ -90,11 +90,6 @@
   font-size: var(--font-size-sm);
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
 .btn-primary {
   /* gradiente baseado na cor primária */
   background: linear-gradient(
@@ -147,9 +142,11 @@
 }
 
 .btn-ghost:hover {
-  background: var(--glass-bg);
+  background-color: var(--color-bg);
+  color: #fff;
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
-
 .btn-sm {
   padding: var(--spacing-2) var(--spacing-3);
   font-size: var(--font-size-xs);

@@ -17,14 +17,14 @@ class CategoriaController extends BaseController
             $this->requireAuth();
 
             $tipo = $this->request->get('tipo');
-            $q = Categoria::forUser($this->adminId)->orderBy('nome', 'asc');
+            $q = Categoria::forUser($this->userId)->orderBy('nome', 'asc');
             if ($tipo) $q->where('tipo', $tipo);
 
             Response::success($q->get());
         } catch (Exception $e) {
             // Log de erro
             LogService::error('Falha ao listar categorias', [
-                'user_id' => $this->adminId ?? null,
+                'user_id' => $this->userId ?? null,
                 'exception' => $e->getMessage(),
             ]);
 
@@ -53,7 +53,7 @@ class CategoriaController extends BaseController
             if (!$data) {
                 // Log de validação
                 LogService::warning('Validação falhou ao criar categoria', [
-                    'user_id' => $this->adminId,
+                    'user_id' => $this->userId,
                     'errors'  => $gump->get_errors_array(),
                     'payload' => $_POST,
                 ]);
@@ -62,14 +62,14 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            $dup = Categoria::forUser($this->adminId)
+            $dup = Categoria::forUser($this->userId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
                 ->where('tipo', $data['tipo'])
                 ->first();
 
             if ($dup) {
                 LogService::info('Tentativa de criar categoria duplicada', [
-                    'user_id' => $this->adminId,
+                    'user_id' => $this->userId,
                     'nome'    => $data['nome'],
                     'tipo'    => $data['tipo'],
                     'dup_id'  => $dup->id,
@@ -80,14 +80,14 @@ class CategoriaController extends BaseController
             }
 
             $cat = Categoria::create([
-                'user_id' => $this->adminId,
+                'user_id' => $this->userId,
                 'nome'    => $data['nome'],
                 'tipo'    => $data['tipo'],
             ]);
 
             // Log de criação OK
             LogService::info('Categoria criada', [
-                'user_id'      => $this->adminId,
+                'user_id'      => $this->userId,
                 'categoria_id' => $cat->id,
                 'nome'         => $cat->nome,
                 'tipo'         => $cat->tipo,
@@ -99,7 +99,7 @@ class CategoriaController extends BaseController
         } catch (Exception $e) {
             // Log de exceção
             LogService::error('Falha ao criar categoria', [
-                'user_id'   => $this->adminId ?? null,
+                'user_id'   => $this->userId ?? null,
                 'payload'   => $_POST ?? [],
                 'exception' => $e->getMessage(),
             ]);
@@ -127,7 +127,7 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            $categoria = Categoria::forUser($this->adminId)->find($id);
+            $categoria = Categoria::forUser($this->userId)->find($id);
             if (!$categoria) {
                 Response::error('Categoria nǜo encontrada.', 404);
                 return;
@@ -156,7 +156,7 @@ class CategoriaController extends BaseController
             $data = $gump->run($_POST);
             if (!$data) {
                 LogService::warning('Valida��ǜo falhou ao atualizar categoria', [
-                    'user_id' => $this->adminId,
+                    'user_id' => $this->userId,
                     'errors'  => $gump->get_errors_array(),
                     'payload' => $payload,
                     'categoria_id' => $id,
@@ -165,7 +165,7 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            $dup = Categoria::forUser($this->adminId)
+            $dup = Categoria::forUser($this->userId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
                 ->where('tipo', $data['tipo'])
                 ->where('id', '!=', $categoria->id)
@@ -173,7 +173,7 @@ class CategoriaController extends BaseController
 
             if ($dup) {
                 LogService::info('Tentativa de atualizar categoria para um nome duplicado', [
-                    'user_id'      => $this->adminId,
+                    'user_id'      => $this->userId,
                     'categoria_id' => $categoria->id,
                     'nome'         => $data['nome'],
                     'tipo'         => $data['tipo'],
@@ -188,7 +188,7 @@ class CategoriaController extends BaseController
             $categoria->save();
 
             LogService::info('Categoria atualizada', [
-                'user_id'      => $this->adminId,
+                'user_id'      => $this->userId,
                 'categoria_id' => $categoria->id,
                 'nome'         => $categoria->nome,
                 'tipo'         => $categoria->tipo,
@@ -197,9 +197,9 @@ class CategoriaController extends BaseController
             Response::success($categoria->fresh());
         } catch (Exception $e) {
             LogService::error('Falha ao atualizar categoria', [
-                'user_id'   => $this->adminId ?? null,
+                'user_id'   => $this->userId ?? null,
                 'payload'   => $this->request->post() ?? [],
-                'routeParam'=> $routeParam,
+                'routeParam' => $routeParam,
                 'exception' => $e->getMessage(),
             ]);
 
@@ -232,7 +232,7 @@ class CategoriaController extends BaseController
 
             if ($id <= 0) {
                 LogService::warning('Delete categoria: ID inválido', [
-                    'user_id'    => $this->adminId,
+                    'user_id'    => $this->userId,
                     'routeParam' => $routeParam,
                     'raw_post'   => $_POST,
                 ]);
@@ -241,14 +241,14 @@ class CategoriaController extends BaseController
             }
 
             LogService::info('Tentando excluir categoria', [
-                'user_id'     => $this->adminId,
+                'user_id'     => $this->userId,
                 'categoria_id' => $id,
             ]);
 
-            $cat = Categoria::where('user_id', $this->adminId)->find($id);
+            $cat = Categoria::where('user_id', $this->userId)->find($id);
             if (!$cat) {
                 LogService::warning('Categoria não encontrada/sem permissão para excluir', [
-                    'user_id'     => $this->adminId,
+                    'user_id'     => $this->userId,
                     'categoria_id' => $id,
                 ]);
                 Response::error('Categoria não encontrada.', 404);
@@ -266,14 +266,14 @@ class CategoriaController extends BaseController
             $cat->delete();
 
             LogService::info('Categoria excluída', [
-                'user_id' => $this->adminId,
+                'user_id' => $this->userId,
                 ...$snapshot,
             ]);
 
             Response::success(['deleted' => true]);
         } catch (\Throwable $e) {
             LogService::error('Falha ao excluir categoria', [
-                'user_id'   => $this->adminId ?? null,
+                'user_id'   => $this->userId ?? null,
                 'routeParam' => $routeParam,
                 'payload'   => $_POST ?? [],
                 'exception' => $e->getMessage(),

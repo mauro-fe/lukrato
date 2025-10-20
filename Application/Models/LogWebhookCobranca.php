@@ -6,15 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class LogWebhookCobranca extends Model
 {
-    protected $table = 'log_webhooks_cobranca'; // nome da tabela
+    protected $table = 'log_webhooks_cobranca';
+    protected $fillable = ['provedor', 'tipo_evento', 'payload'];
+    protected $casts = ['payload' => 'array'];
 
-    protected $fillable = [
-        'provedor',
-        'tipo_evento',
-        'payload',
-    ];
-
-    protected $casts = [
-        'payload' => 'array', // converte JSON em array automaticamente
-    ];
+    public $timestamps = false;
 }

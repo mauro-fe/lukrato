@@ -2,11 +2,8 @@
 
 <section class="lan-page">
     <div class="lan-header">
-        <div>
-            <h3 class="lan-title">Lancamentos</h3>
-        </div>
         <div class="lan-controls">
-            <header class="dash-lk-header">
+            <header class="dash-lk-header" data-aos="fade-up">
                 <div class="header-left">
                     <div class="month-selector">
                         <div class="lk-period effect">
@@ -381,10 +378,12 @@
                             const candidate = value ??
                                 data?.categoria ??
                                 data?.categoria_nome ??
-                                (typeof data?.categoria === 'object' ? data?.categoria?.nome : '') ??
+                                (typeof data?.categoria === 'object' ? data?.categoria?.nome :
+                                    '') ??
                                 '';
                             if (candidate && typeof candidate === 'object') {
-                                return String(candidate.nome ?? candidate.label ?? candidate.title ?? '');
+                                return String(candidate.nome ?? candidate.label ?? candidate
+                                    .title ?? '');
                             }
                             return candidate ? String(candidate) : '';
                         },
@@ -419,7 +418,8 @@
                             let raw = value ??
                                 data?.descricao ??
                                 data?.descricao_titulo ??
-                                (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ??
+                                (typeof data?.descricao === 'object' ? data?.descricao?.texto :
+                                    '') ??
                                 '';
                             if (raw && typeof raw === 'object') {
                                 raw = raw.texto ?? raw.value ?? raw.title ?? '';

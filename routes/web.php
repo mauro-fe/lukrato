@@ -59,13 +59,7 @@ function registerAppRoutes(): void
     Router::add('GET',  'contas',             'Admin\ContasController@index',        ['auth']);
     Router::add('GET',  'contas/arquivadas',  'Admin\ContasController@archived',     ['auth']);
     Router::add('GET',  'categorias',         'Admin\CategoriaController@index',     ['auth']);
-
-    Router::add('GET',  'admin/home',               'Admin\DashboardController@index',   ['auth']);
-    Router::add('GET',  'admin/dashboard-financas', 'Admin\DashboardController@index',   ['auth']);
-    Router::add('GET',  'admin/accounts',           'Admin\ContasController@index',      ['auth']);
-    Router::add('GET',  'admin/categories',         'Admin\CategoriaController@index',   ['auth']);
-    Router::add('GET',  'admin/transactions',       'Admin\TransactionController@index', ['auth']);
-
+    Router::add('GET',  'agendamentos',         'Admin\AgendamentoController@index',     ['auth']);
 
 
     function registerApiRoutes(): void
@@ -112,6 +106,15 @@ function registerAppRoutes(): void
 
         Router::add('GET',  '/api/user/theme', 'Api\PreferenciaUsuarioController@show',   ['auth']);
         Router::add('POST', '/api/user/theme', 'Api\PreferenciaUsuarioController@update', ['auth', 'csrf']);
+
+        Router::add('POST', '/api/agendamentos', 'Api\\AgendamentoController@store', ['auth', 'csrf']);
+        Router::add('GET',  '/api/agendamentos', 'Api\\AgendamentoController@index', ['auth']);
+        Router::add('POST', '/api/agendamentos/{id}/status', 'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
+        Router::add('POST', '/api/agendamentos/{id}/cancelar', 'Api\\AgendamentoController@cancel', ['auth', 'csrf']);
+        Router::add('GET',  '/api/notificacoes',                 'Api\\NotificacaoController@index');
+        Router::add('GET',  '/api/notificacoes/unread-count',    'Api\\NotificacaoController@unreadCount');
+        Router::add('POST', '/api/notificacoes/marcar-lida',     'Api\\NotificacaoController@marcarLida');
+        // Router::add('POST', '/api/notificacoes/marcar-todas',    'Api\\NotificacaoController@marcarTodasLidas');
     }
 
     function planos()

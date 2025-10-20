@@ -12,7 +12,7 @@ class PreferenciaUsuarioController extends BaseController
         try {
             $this->requireAuth();
 
-            $user = Usuario::find($this->adminId);
+            $user = Usuario::find($this->userId);
             if (!$user) {
                 $this->response->jsonBody(['error' => 'Usuário não encontrado.'], 404)->send();
                 return;
@@ -54,7 +54,7 @@ class PreferenciaUsuarioController extends BaseController
             }
 
 
-            $user = Usuario::find($this->adminId);
+            $user = Usuario::find($this->userId);
             if (!$user) {
                 $this->response->jsonBody(['error' => 'Usuário não encontrado.'], 404)->send();
                 return;

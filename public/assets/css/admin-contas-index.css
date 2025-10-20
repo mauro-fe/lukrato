@@ -102,11 +102,6 @@
   font-size: var(--font-size-sm);
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
 .btn-primary {
   /* gradiente baseado na cor primária */
   background: linear-gradient(

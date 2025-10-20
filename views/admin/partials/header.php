@@ -1,5 +1,5 @@
 ﻿<?php
-$pageTitle = $pageTitle ?? 'Painel Administrativo';
+
 $username  = $username  ?? 'usuario';
 $menu      = $menu      ?? '';
 $allowedMenus = ['dashboard', 'contas', 'lancamentos', 'relatorios', 'categorias', 'perfil'];
@@ -52,12 +52,6 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
-    <style>
-        option {
-            background-color: #1c2c3c;
-        }
-    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -70,12 +64,6 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
     };
 
     ?>
-
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
-        title="Fechar/Abrir menu">
-        <i class="fas fa-bars" aria-hidden="true"></i>
-    </button>
-
     <aside class="sidebar no-glass collapsed" id="sidebar-main">
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
@@ -83,10 +71,9 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
             </a>
         </div>
         <nav class="sidebar-nav">
-            <button id="toggleTheme" type="button" class="nav-item theme-toggle mb-3" aria-label="Alternar tema"
-                title="Modo claro/escuro">
-                <i class="fas fa-sun"></i>
-                <i class="fas fa-moon"></i>
+            <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
+                title="Fechar/Abrir menu">
+                <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
@@ -95,11 +82,14 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                 <?= $aria('lancamentos') ?> title="Lançamentos"><i
                     class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
+            <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
+                <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
                 <?= $aria('relatorios')  ?> title="Relatórios"><i
                     class="fas fa-chart-bar"></i><span>Relatórios</span></a>
-            <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias')  ?>"
-                <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
+            <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos')  ?>"
+                <?= $aria('agendamentos')  ?> title="Agendamentos"><i
+                    class="fas fa-clock"></i><span>Agendamentos</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>" <?= $aria('perfil') ?>
                 title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
@@ -119,106 +109,21 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                         class="fas fa-arrow-up"></i><span>Receita</span></button>
                 <button class="fab-menu-item" data-open-modal="despesa" role="menuitem"><i
                         class="fas fa-arrow-down"></i><span>Despesa</span></button>
+                <button class="fab-menu-item" data-open-modal="agendamento" role="menuitem">
+                    <i class="fas fa-calendar-plus"></i><span>Agendar</span>
+                </button>
 
             </div>
-
 
         </div>
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-    <main class="main-content">
-        <div class="container-fluid lk-page">
-            <!-- Modal: Novo lancamento -->
-            <div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLancamentoTitle"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
-                    <div class="modal-content bg-dark text-light border-0 rounded-3">
-                        <div class="modal-header border-0">
-                            <h5 class="modal-title" id="modalLancamentoTitle">Novo lancamento</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Fechar"></button>
-                        </div>
+    <main class="container">
+        <?php include __DIR__ . '/navbar.php'; ?>
 
-                        <div class="modal-body pt-0">
-                            <div id="novoLancAlert" class="alert alert-danger d-none" role="alert"></div>
-                            <form id="formNovoLancamento" novalidate>
-                                <div class="row g-3">
+        <div class="lk-page">
 
-                                    <div class="mb-3">
-                                        <label for="lanData" class="form-label text-light small mb-1">Data</label>
-                                        <input type="date" id="lanData"
-                                            class="form-control form-control-sm bg-dark text-light border-secondary"
-                                            required>
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lanTipo" class="form-label text-light small mb-1">Tipo</label>
-                                        <select id="lanTipo"
-                                            class="form-select form-select-sm bg-dark text-light border-secondary"
-                                            required>
-                                            <option value="despesa">Despesa</option>
-                                            <option value="receita">Receita</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lanCategoria"
-                                            class="form-label text-light small mb-1">Categoria</label>
-                                        <select id="lanCategoria"
-                                            class="form-select form-select-sm bg-dark text-light border-secondary"
-                                            required>
-                                            <option value="">Selecione uma categoria</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="headerConta" class="form-label text-light small mb-1">Conta</label>
-                                        <select id="headerConta"
-                                            class="form-select form-select-sm bg-dark text-light border-secondary"
-                                            autocomplete="off">
-                                            <option value="">Todas as contas (opcional)</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-3 mb-3">
-                                        <label for="lanValor" class="form-label text-light small mb-1">Valor</label>
-                                        <input type="text" id="lanValor"
-                                            class="form-control form-control-sm bg-dark text-light border-secondary money-mask"
-                                            placeholder="R$ 0,00" required>
-                                    </div>
-
-                                    <div class="col-md-9 mb-3">
-                                        <label for="lanDescricao"
-                                            class="form-label text-light small mb-1">Descricao</label>
-                                        <input type="text" id="lanDescricao"
-                                            class="form-control form-control-sm bg-dark text-light border-secondary"
-                                            placeholder="Descricao do lancamento (opcional)">
-                                    </div>
-
-                                    <!-- 
-                                    <div class="mb-3">
-                                        <label for="lanObservacao"
-                                            class="form-label text-light small mb-1">Observacao</label>
-                                        <textarea id="lanObservacao"
-                                            class="form-control form-control-sm bg-dark text-light border-secondary"
-                                            rows="3" maxlength="500"
-                                            placeholder="Detalhes adicionais (opcional)"></textarea>
-                                    </div> -->
-
-                                </div>
-                            </form>
-                        </div>
-
-                        <div class="modal-footer border-0 pt-0">
-                            <button type="button" class="btn btn-outline-secondary btn-sm"
-                                data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" form="formNovoLancamento"
-                                class="btn btn-primary btn-sm">Salvar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <?php loadPageJs('admin-home-header'); ?>
             <?php loadPageJs(); ?>
             <script>
@@ -355,4 +260,44 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                     window.addEventListener('resize', handleResponsive);
                     handleResponsive();
                 })();
+            </script>
+
+            <script>
+                // ---- UPGRADE PROMPT (Pro) ----
+                function lkShowUpgrade(message, base) {
+                    const html = `
+    <div class="lk-upgrade text-center">
+      <h3 class="mb-2">Plano Pro necessário</h3>
+      <p class="mb-3">${message || 'Este recurso está disponível apenas no plano Pro.'}</p>
+      <a class="btn btn-primary" href="${base}billing">Fazer upgrade</a>
+    </div>`;
+                    // tenta SweetAlert; se não tiver, injeta na área principal
+                    if (typeof Swal !== 'undefined' && Swal?.fire) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Plano Pro',
+                            html,
+                            showConfirmButton: false,
+                            allowOutsideClick: true
+                        });
+                    } else {
+                        const area = document.getElementById('area') || document.body;
+                        const box = document.createElement('div');
+                        box.innerHTML = html;
+                        area.innerHTML = '';
+                        area.appendChild(box);
+                    }
+                }
+
+                // Intercepta 403 e mostra upgrade. Retorna true se já tratou.
+                async function handleFetch403(response, base) {
+                    if (response.status !== 403) return false;
+                    let msg = 'Recurso disponível apenas no plano Pro.';
+                    try {
+                        const data = await response.clone().json();
+                        if (data?.message) msg = data.message;
+                    } catch (_) {}
+                    lkShowUpgrade(msg, base);
+                    return true;
+                }
             </script>

@@ -3,7 +3,6 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
 
 class DashboardController extends BaseController
 {
@@ -11,7 +10,7 @@ class DashboardController extends BaseController
     {
         $this->render(
             'admin/dashboard/index',
-            [],
+            ['pageTitle' => 'Dashboard', 'subTitle' => 'Controle de Financeiro'],
             'admin/partials/header',
             'admin/partials/footer'
         );

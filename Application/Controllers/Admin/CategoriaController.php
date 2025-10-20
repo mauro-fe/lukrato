@@ -12,7 +12,7 @@ class CategoriaController extends BaseController
 
         $this->render(
             'admin/categorias/index',
-            [],
+            ['pageTitle' => 'Categorias', 'subTitle' => 'Crie e gerencie suas categorias'],
             'admin/partials/header',
             'admin/partials/footer'
         );

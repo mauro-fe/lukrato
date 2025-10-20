@@ -1,7 +1,5 @@
 <div class="cont-page">
-    <div class="lk-acc-title" data-aos="fade-up">
-        <h3>Contas</h3>
-    </div>
+
 
     <div class="stats-grid pt-5" id="statsContainer">
         <div class="stat-card" data-aos="flip-left">

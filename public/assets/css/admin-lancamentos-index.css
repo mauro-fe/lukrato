@@ -75,8 +75,10 @@
 }
 
 .dash-lk-header .month-nav-btn:hover {
-  background-color: var(--glass-bg);
-  color: var(--branco);
+  background-color: var(--color-bg);
+  color: #fff;
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 .dash-lk-header .month-display {
@@ -180,14 +182,6 @@
   color: var(--color-text-muted);
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-}
-
-.btn:focus {
-  background-color: var(--color-primary);
-}
-
 .sr-only {
   position: absolute !important;
   width: 1px;
@@ -222,17 +216,6 @@
 }
 .text-danger {
   color: var(--color-danger) !important;
-}
-
-/* Botões genéricos seguindo token */
-.lk-btn {
-  background-color: var(--color-primary) !important;
-}
-.btn:focus {
-  background-color: var(--color-primary);
-}
-.btn:hover {
-  transform: translateY(-2px);
 }
 
 /* Estado vazio melhorado */
@@ -274,11 +257,11 @@
 }
 
 .empty-state .btn:hover {
-  background: #ea580c;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
+  background-color: var(--color-bg);
+  color: #fff;
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
-
 /* Responsividade */
 @media (max-width: 1200px) {
   .lan-controls {
@@ -366,14 +349,7 @@
 .fw-bold {
   font-weight: 700 !important;
 }
-#tbodyLancamentos tr[data-initial="1"] {
-  background: rgba(230, 126, 34, 0.08);
-  font-style: italic;
-}
 
-#tbodyLancamentos tr[data-initial="1"] .text-muted {
-  color: var(--color-text-muted, #94a3b8);
-}
 .table-container .tabulator .lk-row-inicial {
   opacity: 0.75;
 }
@@ -437,9 +413,10 @@
 
 #modalEditarLancamento .btn-outline-light:hover,
 #modalEditarLancamento .btn-secondary:hover {
-  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-primary) 20%);
-  color: var(--branco) !important;
+  background-color: var(--color-bg);
+  color: #fff;
   border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 /* Grade de meses */
@@ -450,9 +427,10 @@
 }
 
 #modalEditarLancamento #mpGrid .btn:hover {
-  background: color-mix(in srgb, var(--glass-bg) 70%, var(--color-primary) 30%);
+  background-color: var(--color-bg);
+  color: #fff;
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 #modalEditarLancamento #mpGrid .btn.active {
@@ -515,9 +493,10 @@
 
 #modalEditarLancamento .btn-outline-secondary:hover,
 #modalEditarLancamento .btn-outline-light:hover {
-  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-primary) 20%);
-  color: var(--branco) !important;
+  background-color: var(--color-bg);
+  color: #fff;
   border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 #modalEditarLancamento .btn-primary {

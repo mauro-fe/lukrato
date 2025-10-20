@@ -2,6 +2,7 @@
 
 
 <?php
+
 $active = function (string $key) use ($menu) {
     return $menu === $key ? 'active' : '';
 };
@@ -9,10 +10,9 @@ $aria   = function (string $key) use ($menu) {
     return $menu === $key ? ' aria-current="page"' : '';
 };
 ?>
+
 <section class="dashboard-page">
-    <div data-aos="fade-up">
-        <h3>Dashboard</h3>
-    </div>
+
     <header class="dash-lk-header">
         <div class="header-left">
             <div class="month-selector" data-aos="fade-up">

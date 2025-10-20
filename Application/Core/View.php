@@ -35,30 +35,39 @@ class View
     {
         ob_start();
 
+        // Define o identificador da view atual (se você usa em CSS/JS)
         if (isset($this->viewPath)) {
             $relativeViewPath = str_replace(BASE_PATH . '/views/', '', $this->viewPath);
             $viewName = str_replace(['.php', '/', '\\'], ['', '-', '-'], $relativeViewPath);
             $GLOBALS['current_view'] = trim($viewName, '-');
         }
 
+        // 🔹 Torna as variáveis disponíveis DESDE o header (ex.: $pageTitle)
+        // Use EXTR_SKIP para não sobrescrever variáveis internas por acidente.
+        extract($this->data, EXTR_SKIP);
+
+        // 🔹 Disponibiliza a instância da View para os partials (se precisar)
+        $view = $this;
+
+        // Header
         if ($this->header && file_exists($this->header)) {
             include $this->header;
         }
 
-        extract($this->data);
-        $view = $this;
-
+        // View principal
         if (!file_exists($this->viewPath)) {
             throw new \Exception("View file not found: " . $this->viewPath);
         }
         include $this->viewPath;
 
+        // Footer
         if ($this->footer && file_exists($this->footer)) {
             include $this->footer;
         }
 
         return ob_get_clean();
     }
+
 
     public static function renderPage(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): string
     {

@@ -13,7 +13,7 @@
   --font-size-3xl: 1.875rem;
   --sidebar-width: 260px;
   /* se já existir, mantenha o seu valor */
-  --sidebar-collapsed-width: 80px;
+  --sidebar-collapsed-width: 100px;
   /* largura quando recolhida (só ícones) */
 
   /* Espaçamento */

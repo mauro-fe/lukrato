@@ -4,12 +4,8 @@ $menu      = $menu ?? 'perfil';
 ?>
 
 <div class="profile-container">
-    <div class="profile-header">
-        <div data-aos="fade-up">
-            <h1 class="profile-title">Meu Perfil</h1>
-        </div>
-    </div>
-    <div class="profile-card mb-5" data-aos="fade-up">
+
+    <div class="profile-card mt-5" data-aos="fade-up">
         <p class="profile-subtitle">Atualize seus dados da conta</p>
 
         <form id="profileForm" class="profile-form">
@@ -76,9 +72,9 @@ $menu      = $menu ?? 'perfil';
             </div>
 
             <div class="form-actions">
-                <div data-aos="fade-up-left" data-aos-delay="1100">
+                <!-- <div data-aos="fade-up-left" data-aos-delay="1100">
                     <button type="button" class="btn btn-ghost" id="btnCancel">Cancelar</button>
-                </div>
+                </div> -->
                 <div data-aos="fade-up-left" data-aos-delay="1200">
                     <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
                 </div>

@@ -13,7 +13,7 @@ abstract class BaseController
 {
     protected View $view;
     protected Auth $auth;
-    protected ?int $adminId = null;
+    protected ?int $userId = null;
     protected ?string $adminUsername = null;
     protected Request $request;
     protected Response $response;
@@ -36,11 +36,11 @@ abstract class BaseController
         if (!Auth::isLoggedIn()) {
             $this->redirect('login');
         }
-        $this->adminId       = Auth::id();
+        $this->userId       = Auth::id();
         $user                = Auth::user();
         $this->adminUsername = $user->username ?? $user->nome ?? null;
 
-        if (empty($this->adminId) || empty($this->adminUsername)) {
+        if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
             $this->redirect('login');
         }
@@ -52,11 +52,11 @@ abstract class BaseController
             $this->response->jsonBody(['error' => 'Não autenticado'], 401)->send();
             return;
         }
-        $this->adminId = Auth::id();
+        $this->userId = Auth::id();
         $user = Auth::user();
         $this->adminUsername = $user->username ?? $user->nome ?? null;
 
-        if (empty($this->adminId) || empty($this->adminUsername)) {
+        if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
             $this->response->jsonBody(['error' => 'Sessão inválida'], 401)->send();
             return;
@@ -174,7 +174,7 @@ abstract class BaseController
             'line'       => $e->getLine(),
             'trace'      => $e->getTraceAsString(),
             'url'        => ($_SERVER['REQUEST_METHOD'] ?? '-') . ' ' . ($_SERVER['REQUEST_URI'] ?? '-'),
-            'user_id'    => $this->adminId ?? null,
+            'user_id'    => $this->userId ?? null,
             'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
         ], $extra);
 
@@ -210,5 +210,4 @@ abstract class BaseController
         $section = $segments[1] ?? null;
         return $section !== null ? ($map[$section] ?? null) : null;
     }
-
 }

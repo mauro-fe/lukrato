@@ -1,8 +1,6 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 <section class="c-page">
-    <div class="text-start" data-aos="fade-up">
-        <h3 class="c-title">Categorias</h3>
-    </div>
+
     <div class="c-card mt-4" data-aos="fade-up">
         <p class="c-subtitle">Crie sua categoria</p>
 
@@ -239,7 +237,7 @@
                         formatter: () => {
                             return '<div class="d-flex justify-content-center gap-2">' +
                                 '<button type="button" class="lk-btn ghost btn-edit" data-action="edit" title="Editar"><i class="fas fa-edit"></i></button>' +
-                                '<button type="button" class="lk-btn danger btn-del" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                                '<button type="button" class="lk-btn ghost btn-del" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>' +
                                 '</div>';
                         },
                         cellClick: async (e, cell) => {

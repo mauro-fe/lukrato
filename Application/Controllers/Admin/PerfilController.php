@@ -12,7 +12,7 @@ class PerfilController extends BaseController
 
         $this->render(
             'admin/perfil/index',
-            [],
+            ['pageTitle' => 'Perfil', 'subTitle' => 'Matenha seu perfil sempre atualizado'],
             'admin/partials/header',
             'admin/partials/footer'
         );

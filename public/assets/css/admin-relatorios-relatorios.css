@@ -101,6 +101,11 @@
   pointer-events: none;
   color: var(--color-primary);
 }
+.lk-report-area {
+  background-color: var(--glass-bg);
+  border-radius: var(--radius-md);
+  padding: 50px;
+}
 
 /* ======================= Month Selector (dentro do header) ======================= */
 .dash-lk-header .month-selector {

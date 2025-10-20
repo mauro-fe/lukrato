@@ -104,7 +104,7 @@ class LancamentosController
             'categoria'        => (string)$r->categoria,
             'conta'            => (string)$r->conta,
             'conta_nome'       => (string)$r->conta_nome,
-            'conta_instituicao'=> (string)$r->conta_instituicao,
+            'conta_instituicao' => (string)$r->conta_instituicao,
         ])->values()->all();
 
         Response::success($out);

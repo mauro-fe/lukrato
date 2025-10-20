@@ -8,19 +8,19 @@ use Application\Core\Exceptions\ValidationException;
 class AdminService
 {
 
-    public function validateUniqueFields(int $adminId, array $dados): void
+    public function validateUniqueFields(int $userId, array $dados): void
     {
         $erros = [];
 
-        if (isset($dados['username']) && $this->isFieldTaken('username', $dados['username'], $adminId)) {
+        if (isset($dados['username']) && $this->isFieldTaken('username', $dados['username'], $userId)) {
             $erros['username'] = 'Este nome de usuário já está em uso.';
         }
 
-        if (isset($dados['email']) && $this->isFieldTaken('email', $dados['email'], $adminId)) {
+        if (isset($dados['email']) && $this->isFieldTaken('email', $dados['email'], $userId)) {
             $erros['email'] = 'Este e-mail já está em uso.';
         }
 
-        if (isset($dados['cnpj']) && $this->isFieldTaken('cnpj', $dados['cnpj'], $adminId)) {
+        if (isset($dados['cnpj']) && $this->isFieldTaken('cnpj', $dados['cnpj'], $userId)) {
             $erros['cnpj'] = 'Este CNPJ já está cadastrado.';
         }
 
@@ -32,16 +32,16 @@ class AdminService
     /**
      * Valida unicidade de um campo específico.
      *
-     * @param int $adminId
+     * @param int $userId
      * @param string $campo
      * @param string $valor
      * @throws ValidationException
      */
-    public function validateUniqueField(int $adminId, string $campo, string $valor): void
+    public function validateUniqueField(int $userId, string $campo, string $valor): void
     {
         $camposUnicos = ['username', 'email', 'cnpj'];
 
-        if (in_array($campo, $camposUnicos) && $this->isFieldTaken($campo, $valor, $adminId)) {
+        if (in_array($campo, $camposUnicos) && $this->isFieldTaken($campo, $valor, $userId)) {
             throw new ValidationException([
                 $campo => "Este {$campo} já está em uso por outro administrador."
             ], 422);
@@ -53,13 +53,13 @@ class AdminService
      *
      * @param string $campo
      * @param string $valor
-     * @param int $adminId ID do admin atual (a ser ignorado)
+     * @param int $userId ID do admin atual (a ser ignorado)
      * @return bool
      */
-    private function isFieldTaken(string $campo, string $valor, int $adminId): bool
+    private function isFieldTaken(string $campo, string $valor, int $userId): bool
     {
         return Usuario::where($campo, $valor)
-            ->where('id', '!=', $adminId)
+            ->where('id', '!=', $userId)
             ->exists();
     }
 }

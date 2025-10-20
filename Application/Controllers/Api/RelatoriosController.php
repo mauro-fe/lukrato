@@ -7,7 +7,14 @@ use Application\Core\Response;
 use Illuminate\Database\Capsule\Manager as DB;
 use Application\Models\Lancamento;
 use Carbon\Carbon;
+use Application\Services\FeatureGate;
+use Application\Lib\Auth;
 
+$user = Auth::user();
+
+if (!$user->podeAcessar('reports')) {
+    Response::forbidden('Relatórios são exclusivos do plano Pro.');
+}
 class RelatoriosController extends BaseController
 {
 
@@ -116,8 +123,7 @@ class RelatoriosController extends BaseController
         ?int $userId,
         bool $includeTransfers = false,
         bool $includeSaldoInicial = false
-    )
-    {
+    ) {
         $useTransfers = $includeTransfers || !empty($accId);
 
         $q = Lancamento::query()
@@ -181,7 +187,7 @@ class RelatoriosController extends BaseController
             [,, $start, $end] = $this->resolvePeriod();
             $type  = $this->normalizeType((string)($this->request->get('type') ?? 'despesas_por_categoria'));
             $accId = $this->accountId();
-            $userId = $this->adminId;
+            $userId = $this->userId;
 
 
             switch ($type) {
@@ -189,7 +195,7 @@ class RelatoriosController extends BaseController
                 case 'receitas_por_categoria': {
                         $alvo = $type === 'despesas_por_categoria' ? 'despesa' : 'receita';
                         $accId = $this->accountId();
-                        $userId = $this->adminId;
+                        $userId = $this->userId;
 
 
                         if (!$accId) {
