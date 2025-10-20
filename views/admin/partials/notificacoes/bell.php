@@ -2,6 +2,141 @@
     .hidden {
         display: none !important;
     }
+
+
+    /* ===============================
+ * NOTIFICACOES
+ * =============================== */
+    .lk-navbar-notifications {
+        position: relative;
+    }
+
+    #lk-bell {
+        background-color: var(--color-primary);
+        color: var(--color-text);
+        border-radius: var(--radius-md);
+        padding: 8px 12px;
+        font-size: 1rem;
+        transition: all var(--transition-fast);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #lk-bell:hover {
+        background-color: var(--color-bg);
+        color: #fff;
+        border-color: var(--color-primary);
+    }
+
+    #lk-bell:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* Popover container */
+    .lk-popover {
+        position: absolute;
+        top: calc(100% + 10px);
+        /* distancia abaixo do sino */
+        right: 0;
+        width: 300px;
+        z-index: 2000;
+        background: var(--color-surface);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        color: var(--color-text);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    /* Quando visível (controlado pelo JS) */
+    .lk-popover:not(.hidden) {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* Card interno */
+    .lk-popover-card {
+        display: flex;
+        flex-direction: column;
+        max-height: 360px;
+        overflow: hidden;
+    }
+
+    /* Cabeçalho */
+    .lk-popover-h {
+        font-weight: 600;
+        color: var(--color-primary);
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--glass-border);
+        font-size: 0.95rem;
+    }
+
+    /* Corpo (lista de notificações) */
+    .lk-popover-b {
+        max-height: 260px;
+        overflow-y: auto;
+        background: var(--color-surface-muted);
+        padding: 0;
+    }
+
+    /* Item de notificação */
+    .lk-popover-item {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--glass-border);
+        transition: background 0.2s ease;
+    }
+
+    .lk-popover-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* Rodapé */
+    .lk-popover-f {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        border-top: 1px solid var(--glass-border);
+        background: var(--color-surface);
+    }
+
+    /* Botão "Marcar como lidas" */
+    .lk-popover-f .lk-btn {
+        background: var(--color-primary);
+        color: #fff;
+        font-weight: 500;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background var(--transition-fast);
+    }
+
+    .lk-popover-f .lk-btn:hover {
+        background: color-mix(in srgb, var(--color-primary) 90%, black);
+    }
+
+    /* Scroll bonito */
+    .lk-popover-b::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .lk-popover-b::-webkit-scrollbar-thumb {
+        background: var(--glass-border);
+        border-radius: 6px;
+    }
+
+    .lk-popover-b::-webkit-scrollbar-thumb:hover {
+        background: var(--color-primary);
+    }
 </style>
 
 <?php
@@ -160,32 +295,26 @@ $badgeStyle = $initialUnread > 0 ? 'inline-block' : 'none';
 
         // Tolerante a /api/avisos e /api/notifications
         async function fetchList() {
-            const tryUrls = [`${base}api/avisos`, `${base}api/notifications`];
-            let lastErr = null;
-            for (const url of tryUrls) {
-                try {
-                    const r = await fetch(url, {
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    if (await handleFetch403(r)) return [];
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    const j = await r.json();
-                    // aceita {status,data:{items:[]}} | {items:[]} | []
-                    if (Array.isArray(j)) return j;
-                    if (j?.data?.items) return j.data.items;
-                    if (j?.items) return j.items;
-                    if (j?.data) return j.data;
-                    return [];
-                } catch (e) {
-                    lastErr = e;
+            const url = `${base}api/notificacoes`;
+            const r = await fetch(url, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
                 }
-            }
-            console.warn('Falha ao carregar avisos:', lastErr);
-            return [];
+            });
+            if (await handleFetch403(r)) return [];
+
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const j = await r.json();
+
+            // formato do seu Response::success
+            // { status: 'success', data: { itens: [...], unread: N } }
+            const items = j?.data?.itens ?? j?.itens ?? [];
+            const unread = j?.data?.unread ?? j?.unread ?? 0;
+            setBadge(unread);
+            return Array.isArray(items) ? items : [];
         }
+
 
         async function markAllRead() {
             const token = getCSRF();
@@ -195,25 +324,29 @@ $badgeStyle = $initialUnread > 0 ? 'inline-block' : 'none';
                 body.append('csrf_token', token);
             }
 
-            const tryUrls = [
-                `${base}api/avisos/mark-read`, // POST
-                `${base}api/avisos/marcar-lidas`,
-                `${base}api/notifications/mark-read`
-            ];
-            for (const url of tryUrls) {
-                try {
-                    const r = await fetch(url, {
-                        method: 'POST',
-                        body,
-                        credentials: 'include'
-                    });
-                    if (await handleFetch403(r)) return false;
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    return true;
-                } catch (_) {}
-            }
-            return false;
+            const r = await fetch(`${base}api/notificacoes/marcar-todas`, {
+                method: 'POST',
+                body,
+                credentials: 'include'
+            });
+            if (await handleFetch403(r)) return false;
+            return r.ok;
         }
+
+        async function refreshUnread() {
+            try {
+                const r = await fetch(`${base}api/notificacoes/unread`, {
+                    credentials: 'include'
+                });
+                if (await handleFetch403(r)) return;
+                const j = await r.json();
+                setBadge(j?.data?.unread ?? j?.unread ?? 0);
+            } catch {}
+        }
+        // Ex.: atualiza a cada 60s
+        setInterval(refreshUnread, 60000);
+
+
 
         async function loadList() {
             listEl.innerHTML = '<div class="py-3 text-center">Carregando…</div>';

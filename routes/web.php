@@ -127,11 +127,10 @@ function registerApiRoutes(): void
     Router::add('POST', '/api/agendamentos/{id}/status',     'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
     Router::add('POST', '/api/agendamentos/{id}/cancelar',   'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
 
-    // Notificações (seu controller exige auth → adicionar)
-    Router::add('GET',  '/api/notificacoes',              'Api\\NotificacaoController@index',       ['auth']);
-    Router::add('GET',  '/api/notificacoes/unread-count', 'Api\\NotificacaoController@unreadCount', ['auth']);
-    Router::add('POST', '/api/notificacoes/marcar-lida',  'Api\\NotificacaoController@marcarLida',  ['auth', 'csrf']);
-    // Router::add('POST','/api/notificacoes/marcar-todas','Api\\NotificacaoController@marcarTodasLidas', ['auth','csrf']);
+    Router::add('GET',  '/api/notificacoes',           'Api\NotificacaoController@index');
+    Router::add('GET',  '/api/notificacoes/unread',    'Api\NotificacaoController@unreadCount');
+    Router::add('POST', '/api/notificacoes/marcar',    'Api\NotificacaoController@marcarLida');
+    Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\NotificacaoController@marcarTodasLidas');
 }
 
 /* =========================
