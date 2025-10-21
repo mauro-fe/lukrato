@@ -241,6 +241,7 @@
             if (!icon) return;
             icon.className = ''; // limpa as classes antigas
             icon.classList.add(FA_PREFIX, theme === 'dark' ? 'fa-moon' : 'fa-sun');
+            btn?.classList.toggle('dark', theme === 'dark');
         }
 
         function toggleTheme() {

@@ -23,7 +23,6 @@
         backdrop-filter: var(--glass-backdrop);
         border: 1px solid var(--glass-border);
         border-radius: var(--radius-lg);
-        padding: var(--spacing-2);
         box-shadow: var(--shadow-sm);
     }
 
