@@ -15,7 +15,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 ?>
 <meta name="csrf" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
 <script>
-window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+    window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 </script>
 
 <!DOCTYPE html>
@@ -24,13 +24,13 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 <head>
     <?= csrf_meta('default') ?>
     <script>
-    // helpers globais
-    window.LK = window.LK || {};
-    LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    LK.getCSRF = () =>
-        document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
-        document.querySelector('input[name="_token"]')?.value || '';
-    LK.apiBase = LK.getBase() + 'api/';
+        // helpers globais
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.getCSRF = () =>
+            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+            document.querySelector('input[name="_token"]')?.value || '';
+        LK.apiBase = LK.getBase() + 'api/';
     </script>
 
     <meta charset="utf-8" />
@@ -57,9 +57,9 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <script>
-    window.LK = window.LK || {};
-    LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    LK.apiBase = LK.getBase() + 'api/'; // <-- Vai virar: http://localhost/lukrato/public/api/
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.apiBase = LK.getBase() + 'api/'; // <-- Vai virar: http://localhost/lukrato/public/api/
     </script>
 
 </head>
@@ -109,35 +109,19 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
                 <span>Sair</span></a>
         </nav>
 
-        <!-- FAB -->
-        <div class="fab-container">
-            <button class="fab" id="fabButton" aria-label="Adicionar transação" aria-haspopup="true"
-                aria-expanded="false">
-                <i class="fas fa-plus"></i>
-            </button>
-            <div class="fab-menu" id="fabMenu" role="menu">
-                <button class="fab-menu-item" data-open-modal="receita" role="menuitem"><i
-                        class="fas fa-arrow-up"></i><span>Receita</span></button>
-                <button class="fab-menu-item" data-open-modal="despesa" role="menuitem"><i
-                        class="fas fa-arrow-down"></i><span>Despesa</span></button>
-                <button class="fab-menu-item" data-open-modal="agendamento" role="menuitem">
-                    <i class="fas fa-calendar-plus"></i><span>Agendar</span>
-                </button>
-
-            </div>
-        </div>
     </aside>
 
     <?php include __DIR__ . '/modals/modal_lancamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
+    <?php include __DIR__ . '/botao-lancamento_header.php'; ?>
+
     <div class="content-wrapper">
 
         <main class="lk-main">
             <?php include __DIR__ . '/navbar.php'; ?>
-            <div class="lk-page">
 
-                <script>
+            <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     // Header (sidebar active, logout confirm, seletor de contas)
                     if (window.LK?.initHeader) {
@@ -156,8 +140,8 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
                         window.LK.initModals();
                     }
                 });
-                </script>
-                <script>
+            </script>
+            <script>
                 // restaurar
                 (function() {
                     if (localStorage.getItem('lk.sidebar') === '1') {
@@ -172,4 +156,4 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
                         document.body.classList.contains('sidebar-collapsed') ? '1' : '0'
                     );
                 });
-                </script>
+            </script>

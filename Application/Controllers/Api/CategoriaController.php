@@ -4,11 +4,8 @@ namespace Application\Controllers\Api;
 
 use Application\Controllers\BaseController;
 use Application\Models\Categoria;
-use Application\Models\Lancamento;
 use Application\Core\Response;
-use Application\Models\Conta;
 use Application\Services\LogService;
-use Application\Lib\Auth;
 use GUMP;
 use Exception;
 
@@ -20,14 +17,15 @@ class CategoriaController extends BaseController
             $this->requireAuth();
 
             $tipo = $this->request->get('tipo');
-            $q = Categoria::forUser($this->userId)->orderBy('nome', 'asc');
-            if ($tipo) $q->where('tipo', $tipo);
+            $query = Categoria::forUser($this->userId)->orderBy('nome', 'asc');
+            if ($tipo) {
+                $query->where('tipo', $tipo);
+            }
 
-            Response::success($q->get());
+            Response::success($query->get());
         } catch (Exception $e) {
-            // Log de erro
             LogService::error('Falha ao listar categorias', [
-                'user_id' => $this->userId ?? null,
+                'user_id'   => $this->userId ?? null,
                 'exception' => $e->getMessage(),
             ]);
 
@@ -37,88 +35,59 @@ class CategoriaController extends BaseController
 
     public function store(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
+        $payload = [];
+
+        try {
+            $this->requireAuth();
+
+            $payload = $this->getJson() ?? [];
+            if (empty($payload)) {
+                $payload = $this->request->post();
+            }
+
+            $nome = trim((string)($payload['nome'] ?? ''));
+            $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
+            $tiposPermitidos = ['receita', 'despesa', 'transferencia', 'ambas'];
+
+            $erros = [];
+            if (mb_strlen($nome) < 2) {
+                $erros['nome'] = 'Informe um nome com pelo menos 2 caracteres.';
+            }
+            if (!in_array($tipo, $tiposPermitidos, true)) {
+                $erros['tipo'] = 'Tipo inválido.';
+            }
+
+            if ($erros) {
+                Response::validationError($erros);
+                return;
+            }
+
+            $duplicada = Categoria::forUser($this->userId)
+                ->whereRaw('LOWER(nome) = ?', [mb_strtolower($nome)])
+                ->where('tipo', $tipo)
+                ->first();
+
+            if ($duplicada) {
+                Response::error('Categoria já existe.', 409);
+                return;
+            }
+
+            $categoria = new Categoria();
+            $categoria->user_id = $this->userId;
+            $categoria->nome = mb_substr($nome, 0, 100);
+            $categoria->tipo = $tipo;
+            $categoria->save();
+
+            Response::success($categoria->fresh(), 'Categoria criada com sucesso');
+        } catch (Exception $e) {
+            LogService::error('Falha ao criar categoria', [
+                'user_id'   => $this->userId ?? null,
+                'payload'   => $payload,
+                'exception' => $e->getMessage(),
+            ]);
+            Response::error('Falha ao criar categoria', 500);
         }
-
-        $payload = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-        $errors = [];
-
-        $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
-        if (!in_array($tipo, [Lancamento::TIPO_RECEITA, Lancamento::TIPO_DESPESA], true)) {
-            $errors['tipo'] = 'Tipo inválido.';
-        }
-
-        $data = (string)($payload['data'] ?? '');
-        if (!$data || !preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data inválida. Use YYYY-MM-DD.';
-        }
-
-        $valorRaw = $payload['valor'] ?? 0;
-        if (is_string($valorRaw)) {
-            $s = trim($valorRaw);
-            $s = str_replace(['R$', ' '], '', $s);
-            $s = str_replace('.', '', $s);
-            $s = str_replace(',', '.', $s);
-            $valorRaw = $s;
-        }
-        if (!is_numeric($valorRaw)) {
-            $errors['valor'] = 'Valor inválido.';
-        }
-        $valor = round(max(0, (float)$valorRaw), 2);
-
-        $descricao  = trim((string)($payload['descricao']  ?? ''));
-        $observacao = trim((string)($payload['observacao'] ?? ''));
-
-        $categoriaId = $payload['categoria_id'] ?? null;
-        $categoriaId = ($categoriaId === '' || $categoriaId === null) ? null : (int)$categoriaId;
-        if ($categoriaId && !Categoria::forUser($userId)->where('id', $categoriaId)->exists()) {
-            $errors['categoria_id'] = 'Categoria inválida.';
-        }
-
-        $contaId = $payload['conta_id'] ?? null;
-        $contaId = ($contaId === '' || $contaId === null) ? null : (int)$contaId;
-        if (!$contaId || !Conta::forUser($userId)->where('id', $contaId)->exists()) {
-            $errors['conta_id'] = 'Conta obrigatória/ inválida.';
-        }
-
-        if ($errors) {
-            Response::validationError($errors);
-            return;
-        }
-
-        $l = new Lancamento();
-        $l->user_id = $userId;
-        $l->tipo = $tipo;
-        $l->data = $data;
-        $l->valor = $valor;
-        $l->descricao = mb_substr($descricao, 0, 190);
-        $l->observacao = mb_substr($observacao, 0, 500);
-        $l->categoria_id = $categoriaId;
-        $l->conta_id = $contaId;
-        $l->conta_id_destino = null;
-        $l->eh_transferencia = 0;
-        $l->eh_saldo_inicial = 0;
-        $l->save();
-
-        $l->refresh()->loadMissing(['categoria', 'conta']);
-
-        Response::success([
-            'id' => (int)$l->id,
-            'data' => $l->data instanceof \DateTimeInterface ? $l->data->format('Y-m-d') : (string)$l->data,
-            'tipo' => (string)$l->tipo,
-            'valor' => (float)$l->valor,
-            'descricao' => (string)($l->descricao ?? ''),
-            'observacao' => (string)($l->observacao ?? ''),
-            'categoria_id' => $l->categoria_id ? (int)$l->categoria_id : null,
-            'conta_id' => $l->conta_id ? (int)$l->conta_id : null,
-            'categoria' => $l->categoria->nome ?? '',
-            'conta' => $l->conta?->nome ?? $l->conta?->instituicao ?? '',
-        ]);
     }
-
 
     public function update($routeParam = null): void
     {
@@ -135,13 +104,13 @@ class CategoriaController extends BaseController
                 $id = (int) $_POST['id'];
             }
             if ($id <= 0) {
-                Response::validationError(['id' => 'ID invǭlido']);
+                Response::validationError(['id' => 'ID inválido']);
                 return;
             }
 
             $categoria = Categoria::forUser($this->userId)->find($id);
             if (!$categoria) {
-                Response::error('Categoria nǜo encontrada.', 404);
+                Response::error('Categoria não encontrada.', 404);
                 return;
             }
 
@@ -150,7 +119,6 @@ class CategoriaController extends BaseController
                 $payload = $this->getJson() ?? [];
             }
 
-            // remove campos de controle
             unset($payload['_token'], $payload['csrf_token']);
 
             $gump = new GUMP();
@@ -158,16 +126,16 @@ class CategoriaController extends BaseController
 
             $gump->validation_rules([
                 'nome' => 'required|min_len,2|max_len,100',
-                'tipo' => 'required|contains_list,receita;despesa;transferencia',
-            ]);
-            $gump->filter_rules([
-                'nome' => 'trim|sanitize_string',
-                'tipo' => 'trim',
+                'tipo' => 'required|contains_list,receita;despesa;transferencia;ambas',
             ]);
 
-            $data = $gump->run($_POST);
-            if (!$data) {
-                LogService::warning('Valida��ǜo falhou ao atualizar categoria', [
+            $gump->filter_rules([
+                'nome' => 'trim',
+                'tipo' => 'trim|lowercase',
+            ]);
+
+            if (!$gump->run($_POST)) {
+                LogService::warning('Validação falhou ao atualizar categoria', [
                     'user_id' => $this->userId,
                     'errors'  => $gump->get_errors_array(),
                     'payload' => $payload,
@@ -176,6 +144,8 @@ class CategoriaController extends BaseController
                 Response::validationError($gump->get_errors_array());
                 return;
             }
+
+            $data = $gump->get_cleaned_data();
 
             $dup = Categoria::forUser($this->userId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
@@ -191,7 +161,7 @@ class CategoriaController extends BaseController
                     'tipo'         => $data['tipo'],
                     'duplicada_id' => $dup->id,
                 ]);
-                Response::error('Categoria jǭ existe.', 409);
+                Response::error('Categoria já existe.', 409);
                 return;
             }
 
@@ -209,10 +179,10 @@ class CategoriaController extends BaseController
             Response::success($categoria->fresh());
         } catch (Exception $e) {
             LogService::error('Falha ao atualizar categoria', [
-                'user_id'   => $this->userId ?? null,
-                'payload'   => $this->request->post() ?? [],
+                'user_id'    => $this->userId ?? null,
+                'payload'    => $this->request->post() ?? [],
                 'routeParam' => $routeParam,
-                'exception' => $e->getMessage(),
+                'exception'  => $e->getMessage(),
             ]);
 
             Response::error('Falha ao atualizar categoria', 500);
@@ -224,20 +194,16 @@ class CategoriaController extends BaseController
         try {
             $this->requireAuth();
 
-            // aceita tanto a forma antiga (array) quanto string/int vindo do Router
             $id = 0;
 
             if (is_array($routeParam)) {
-                // padrão antigo: delete(array $params)
                 if (isset($routeParam['id'])) {
                     $id = (int) $routeParam['id'];
                 }
             } elseif (is_string($routeParam) || is_int($routeParam)) {
-                // padrão atual do Router: delete('13')
                 $id = (int) $routeParam;
             }
 
-            // fallback: id via POST (ex.: quando não veio id na rota)
             if ($id <= 0 && isset($_POST['id'])) {
                 $id = (int) $_POST['id'];
             }
@@ -253,29 +219,26 @@ class CategoriaController extends BaseController
             }
 
             LogService::info('Tentando excluir categoria', [
-                'user_id'     => $this->userId,
+                'user_id'      => $this->userId,
                 'categoria_id' => $id,
             ]);
 
-            $cat = Categoria::where('user_id', $this->userId)->find($id);
-            if (!$cat) {
-                LogService::warning('Categoria não encontrada/sem permissão para excluir', [
-                    'user_id'     => $this->userId,
+            $categoria = Categoria::where('user_id', $this->userId)->find($id);
+            if (!$categoria) {
+                LogService::warning('Categoria não encontrada ou sem permissão para excluir', [
+                    'user_id'      => $this->userId,
                     'categoria_id' => $id,
                 ]);
                 Response::error('Categoria não encontrada.', 404);
                 return;
             }
 
-            // se houver trava de integridade, trate aqui (409)
-            // if ($cat->lancamentos()->exists()) {
-            //     LogService::info('Bloqueio de exclusão: possui lançamentos vinculados', [...]);
-            //     Response::error('Não é possível excluir: há lançamentos vinculados.', 409);
-            //     return;
-            // }
-
-            $snapshot = ['id' => $cat->id, 'nome' => $cat->nome, 'tipo' => $cat->tipo];
-            $cat->delete();
+            $snapshot = [
+                'id'   => $categoria->id,
+                'nome' => $categoria->nome,
+                'tipo' => $categoria->tipo,
+            ];
+            $categoria->delete();
 
             LogService::info('Categoria excluída', [
                 'user_id' => $this->userId,
@@ -283,14 +246,14 @@ class CategoriaController extends BaseController
             ]);
 
             Response::success(['deleted' => true]);
-        } catch (\Throwable $e) {
+        } catch (Exception $e) {
             LogService::error('Falha ao excluir categoria', [
-                'user_id'   => $this->userId ?? null,
+                'user_id'    => $this->userId ?? null,
                 'routeParam' => $routeParam,
-                'payload'   => $_POST ?? [],
-                'exception' => $e->getMessage(),
+                'payload'    => $_POST ?? [],
+                'exception'  => $e->getMessage(),
             ]);
-            Response::error('Falha ao excluir', 500);
+            Response::error('Falha ao excluir categoria', 500);
         }
     }
 }

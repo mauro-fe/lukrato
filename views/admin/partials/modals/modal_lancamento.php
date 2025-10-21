@@ -117,6 +117,13 @@
             }
         };
 
+        const toArray = (items) => {
+            if (Array.isArray(items)) return items;
+            if (Array.isArray(items?.data)) return items.data;
+            if (Array.isArray(items?.items)) return items.items;
+            return [];
+        };
+
         const clearAndFill = (select, items, getValue, getLabel, placeholder) => {
             select.innerHTML = '';
             if (placeholder) {
@@ -125,7 +132,7 @@
                 opt0.textContent = placeholder;
                 select.appendChild(opt0);
             }
-            (items || []).forEach(it => {
+            toArray(items).forEach(it => {
                 const opt = document.createElement('option');
                 opt.value = getValue(it);
                 opt.textContent = getLabel(it);
@@ -136,7 +143,7 @@
         // ---------------- Loaders ----------------
         // --- carrega CONTAS ---
         const loadContas = async () => {
-            const data = await fetchJSON(API_BASE + 'contas');
+            const data = await fetchJSON(API_BASE + 'accounts');
             clearAndFill($conta, data, it => it.id, it => it.nome, 'Todas as contas (opcional)');
         };
 
@@ -147,7 +154,7 @@
                 data = await fetchJSON(API_BASE + 'categorias' + qs);
             } catch (e) {
                 if (String(e?.message || '').includes('404')) {
-                    data = await fetchJSON(API_BASE + 'categoria' + qs); // fallback se tua rota for singular
+                    data = await fetchJSON(API_BASE + 'categorias' + qs); // fallback se tua rota for singular
                 } else {
                     throw e;
                 }

@@ -1027,3 +1027,201 @@ body.sidebar-collapsed .content-wrapper {
     left: 0;
   }
 }
+
+/* Select ajustado e melhorado */
+
+/* Select personalizado - Estilo moderno */
+.lk-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: var(--spacing-3) var(--spacing-5) var(--spacing-3) var(--spacing-4);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  min-width: 180px;
+  box-shadow: var(--shadow-sm);
+
+  /* Ícone de seta customizado */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-3) center;
+  background-size: 14px;
+}
+
+.lk-select:hover {
+  border-color: var(--color-primary);
+  background-color: color-mix(
+    in srgb,
+    var(--glass-bg) 70%,
+    var(--color-primary) 5%
+  );
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.lk-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--ring), var(--shadow-md);
+  background-color: var(--color-surface);
+}
+
+.lk-select:active {
+  transform: translateY(0);
+}
+
+/* Estilo quando está com a classe btn-primary */
+.lk-select.btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary) 20%)
+  );
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+
+  /* Ícone branco para contraste */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-3) center;
+  background-size: 14px;
+}
+
+.lk-select.btn-primary:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary),
+    color-mix(in srgb, var(--color-secondary) 80%, var(--color-primary) 20%)
+  );
+  border-color: var(--color-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.lk-select.btn-primary:focus {
+  box-shadow: 0 0 0 4px var(--ring), var(--shadow-lg);
+}
+
+/* Options do select */
+.lk-select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--spacing-3);
+  font-weight: 500;
+}
+
+.lk-select option:hover,
+.lk-select option:checked {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Versão disabled */
+.lk-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lk-select:disabled:hover {
+  border-color: var(--glass-border);
+  background-color: var(--glass-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Container para label + select (opcional) */
+.lk-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.lk-select-wrapper label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Variante compacta */
+.lk-select.lk-select-sm {
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  min-width: 140px;
+  background-size: 12px;
+  background-position: right var(--spacing-2) center;
+}
+
+/* Variante grande */
+.lk-select.lk-select-lg {
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-base);
+  min-width: 220px;
+  background-size: 16px;
+  background-position: right var(--spacing-4) center;
+}
+
+/* Tema escuro - ajustes específicos */
+:root[data-theme="dark"] .lk-select option {
+  background: var(--color-surface-muted);
+}
+
+/* Tema claro - ajustes específicos */
+:root[data-theme="light"] .lk-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .lk-select {
+    min-width: 140px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-3);
+  }
+
+  .lk-select.btn-primary {
+    background-size: 12px;
+  }
+}
+
+/* Animação de pulso quando carregando (opcional) */
+.lk-select.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Ícone de loading dentro do select (opcional) */
+.lk-select.loading {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-6.219-8.56'%3E%3C/path%3E%3C/svg%3E");
+  animation: spin 1s linear infinite, pulse 2s ease infinite;
+}
+
+@keyframes spin {
+  from {
+    background-position: right var(--spacing-3) center;
+  }
+
+  to {
+    background-position: right var(--spacing-3) center;
+  }
+}

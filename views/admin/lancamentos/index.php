@@ -120,8 +120,7 @@
         window.__LK_LANCAMENTOS_LOADER__ = true;
 
         const rawBase = (window.BASE_URL || (location.pathname.includes('/public/') ?
-            location.pathname.split('/public/')[0] + '/public/' :
-            '/')).replace(/\/?$/, '/');
+            location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/');
         const ENDPOINT = `${rawBase}api/lancamentos`;
 
         const $ = (s) => document.querySelector(s);
@@ -133,7 +132,8 @@
         const btnExcluirSel = $('#btnExcluirSel');
         const selInfo = $('#selInfo');
         const selCountSpan = $('#selCount');
-        const monthEl = document.getElementById('currentMonthText');
+
+        // ---- modal de edição (NÃO é o de mês)
         const modalEditLancEl = document.getElementById('modalEditarLancamento');
         let modalEditLanc = null;
         const formLanc = document.getElementById('formLancamento');
@@ -149,16 +149,6 @@
         let editingLancamentoId = null;
         let categoriaOptions = [];
         let contaOptions = [];
-        const setMonthLabel = (ym) => {
-            if (!monthEl || !/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return;
-            const [y, m] = ym.split('-').map(Number);
-            monthEl.textContent = new Date(y, m - 1, 1)
-                .toLocaleDateString('pt-BR', {
-                    month: 'long',
-                    year: 'numeric'
-                });
-            monthEl.setAttribute('data-month', ym);
-        };
 
         const ensureLancModal = () => {
             if (modalEditLanc) return modalEditLanc;
@@ -231,7 +221,7 @@
             }
         }
 
-        // Tabulator: instancia
+        // -------- Tabulator
         let table = null;
 
         const tableIsActive = (instance) => {
@@ -328,8 +318,7 @@
                                 data?.categoria ??
                                 data?.categoria_nome ??
                                 (typeof data?.categoria === 'object' ? data?.categoria?.nome :
-                                    '') ??
-                                '';
+                                    '') ?? '';
                             if (candidate && typeof candidate === 'object') {
                                 return String(candidate.nome ?? candidate.label ?? candidate
                                     .title ?? '');
@@ -348,8 +337,7 @@
                             const raw = value ??
                                 data?.conta ??
                                 data?.conta_nome ??
-                                (typeof data?.conta === 'object' ? data?.conta?.nome : '') ??
-                                '';
+                                (typeof data?.conta === 'object' ? data?.conta?.nome : '') ?? '';
                             if (raw && typeof raw === 'object') {
                                 return String(raw.nome ?? raw.label ?? raw.title ?? '');
                             }
@@ -368,8 +356,7 @@
                                 data?.descricao ??
                                 data?.descricao_titulo ??
                                 (typeof data?.descricao === 'object' ? data?.descricao?.texto :
-                                    '') ??
-                                '';
+                                    '') ?? '';
                             if (raw && typeof raw === 'object') {
                                 raw = raw.texto ?? raw.value ?? raw.title ?? '';
                             }
@@ -453,12 +440,11 @@
                     }
                 ]
             });
+
             instance.on("rowSelectionChanged", (_data, rows) => {
                 if (Array.isArray(rows)) {
                     rows.forEach((row) => {
-                        if (isSaldoInicial(row.getData())) {
-                            row.deselect();
-                        }
+                        if (isSaldoInicial(row.getData())) row.deselect();
                     });
                 }
                 updateSelectionInfo();
@@ -470,16 +456,12 @@
             if (!tabContainer) return null;
             if (!tableIsActive(table)) {
                 try {
-                    if (table && typeof table.destroy === 'function') {
-                        table.destroy();
-                    }
+                    if (table && typeof table.destroy === 'function') table.destroy();
                 } catch (_) {}
                 table = buildTable();
             }
             return table;
         }
-
-
 
         function isSaldoInicial(data) {
             if (!data) return false;
@@ -496,6 +478,7 @@
         function canEditLancamento(data) {
             return !isSaldoInicial(data) && !isTransferencia(data);
         }
+
         const fmtMoney = (n) => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
@@ -504,9 +487,7 @@
             if (input === undefined || input === null) return null;
             const raw = String(input).trim();
             if (!raw) return null;
-            const normalized = raw
-                .replace(/\./g, '')
-                .replace(',', '.');
+            const normalized = raw.replace(/\./g, '').replace(',', '.');
             const num = Number(normalized);
             return Number.isFinite(num) ? num : null;
         };
@@ -586,7 +567,6 @@
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toLocaleLowerCase('pt-BR');
-
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({
             '&': '&amp;',
             '<': '&lt;',
@@ -674,13 +654,9 @@
                 selectConta.insertAdjacentHTML('beforeend', options);
             }
 
-            if (selectLancConta) {
-                populateContaSelect(selectLancConta, selectLancConta.value || null);
-            }
-            if (selectLancCategoria) {
-                populateCategoriaSelect(selectLancCategoria, selectLancTipo?.value || '', selectLancCategoria
-                    .value || null);
-            }
+            if (selectLancConta) populateContaSelect(selectLancConta, selectLancConta.value || null);
+            if (selectLancCategoria) populateCategoriaSelect(selectLancCategoria, selectLancTipo?.value || '',
+                selectLancCategoria.value || null);
         }
 
         const hasSwal = !!window.Swal;
@@ -729,11 +705,7 @@
             if (inputLancData) inputLancData.value = (data?.data || '').slice(0, 10);
             if (selectLancTipo) {
                 const tipo = String(data?.tipo || '').toLowerCase();
-                if (["receita", "despesa"].includes(tipo)) {
-                    selectLancTipo.value = tipo;
-                } else {
-                    selectLancTipo.value = 'despesa';
-                }
+                selectLancTipo.value = ["receita", "despesa"].includes(tipo) ? tipo : 'despesa';
             }
 
             populateContaSelect(selectLancConta, data?.conta_id ?? null);
@@ -749,13 +721,13 @@
             modal.show();
         }
 
-
         function renderRows(items) {
             const grid = ensureTable();
             if (!grid) return;
             grid.setData(Array.isArray(items) ? items : []);
             updateSelectionInfo();
         }
+
         async function fetchLancamentos({
             month,
             tipo = '',
@@ -827,6 +799,7 @@
             const results = await Promise.all(ids.map(apiDeleteOne));
             return results.every(Boolean);
         }
+
         selectLancTipo?.addEventListener('change', () => {
             populateCategoriaSelect(selectLancCategoria, selectLancTipo.value, selectLancCategoria?.value ||
                 '');
@@ -929,6 +902,8 @@
                 toast('Alguns itens nao foram excluidos.', 'error');
             }
         });
+
+        // -------- loader
         let timer = null;
         async function load() {
             clearTimeout(timer);
@@ -938,8 +913,6 @@
                 const tipo = selectTipo ? selectTipo.value : '';
                 const categoria = selectCategoria ? selectCategoria.value : '';
                 const conta = selectConta ? selectConta.value : '';
-
-                setMonthLabel(month);
 
                 const t2 = ensureTable();
                 if (t2) {
@@ -957,156 +930,19 @@
             }, 10);
         }
         window.refreshLancamentos = load;
+
+        // reage ao mês escolhido no month-picker.js
+        document.addEventListener('lukrato:month-changed', () => load());
+
         document.addEventListener('lukrato:data-changed', (e) => {
             const res = e.detail?.resource;
             if (!res || res === 'transactions') load();
             if (res === 'categorias' || res === 'accounts') loadFilterOptions();
         });
 
-
         btnFiltrar && btnFiltrar.addEventListener('click', load);
 
         loadFilterOptions();
-        setMonthLabel(window.LukratoHeader?.getMonth?.() || (new Date()).toISOString().slice(0, 7));
         load();
-
-    })();
-</script>
-<script>
-    (() => {
-        'use strict';
-        if (window.__LK_MONTH_PICKER__) return;
-        window.__LK_MONTH_PICKER__ = true;
-
-        const elText = document.getElementById('currentMonthText');
-        const btnPrev = document.getElementById('prevMonth');
-        const btnNext = document.getElementById('nextMonth');
-        const btnOpen = document.getElementById('monthDropdownBtn');
-        const modalEl = document.getElementById('monthModal');
-        const ensureMonthModal = () => {
-            if (!modalEl || !window.bootstrap?.Modal) return null;
-            if (modalEl.parentElement && modalEl.parentElement !== document.body) {
-                document.body.appendChild(modalEl);
-            }
-            return window.bootstrap.Modal.getOrCreateInstance(modalEl);
-        };
-        const bootstrapReady = () => {
-            ensureMonthModal();
-        };
-        if (document.readyState === 'complete') bootstrapReady();
-        else window.addEventListener('load', bootstrapReady, {
-            once: true
-        });
-
-        modalEl?.addEventListener('shown.bs.modal', () => {
-            modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
-            if (mpInput) mpInput.value = state;
-            buildGrid();
-        });
-        btnOpen?.addEventListener('click', (e) => {
-            e.preventDefault();
-            ensureMonthModal()?.show();
-        });
-        const mpYearLabel = document.getElementById('mpYearLabel');
-        const mpPrevYear = document.getElementById('mpPrevYear');
-        const mpNextYear = document.getElementById('mpNextYear');
-        const mpGrid = document.getElementById('mpGrid');
-        const mpTodayBtn = document.getElementById('mpTodayBtn');
-        const mpInput = document.getElementById('mpInputMonth');
-
-        const STORAGE_KEY = 'lukrato.month.dashboard';
-        const SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        const toYM = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        const monthLabel = ym => {
-            const [y, m] = ym.split('-').map(Number);
-            return new Date(y, m - 1, 1).toLocaleDateString('pt-BR', {
-                month: 'long',
-                year: 'numeric'
-            });
-        };
-
-        let state = sessionStorage.getItem(STORAGE_KEY) || toYM(new Date());
-        let modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
-
-        const setState = (ym, {
-            silent = false
-        } = {}) => {
-            if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return;
-            state = ym;
-            sessionStorage.setItem(STORAGE_KEY, state);
-            if (elText) {
-                elText.textContent = monthLabel(state);
-                elText.setAttribute('data-month', state);
-            }
-            if (!silent) {
-                document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
-                    detail: {
-                        month: state
-                    }
-                }));
-            }
-        };
-
-        const shiftMonth = (delta) => {
-            const [y, m] = state.split('-').map(Number);
-            const d = new Date(y, (m - 1) + delta, 1);
-            setState(toYM(d));
-        };
-
-        const buildGrid = () => {
-            if (!mpYearLabel || !mpGrid) return;
-            mpYearLabel.textContent = modalYear;
-            let html = '';
-            for (let i = 0; i < 12; i++) {
-                const ym = `${modalYear}-${String(i+1).padStart(2,'0')}`;
-                const active = ym === state ? 'btn-warning text-dark fw-bold' : 'btn-outline-light';
-                html += `<div class="col-4">
-        <button type="button" class="mp-month btn w-100 py-3 ${active}" data-val="${ym}">${SHORT[i]}</button>
-      </div>`;
-            }
-            mpGrid.innerHTML = html;
-            mpGrid.querySelectorAll('.mp-month').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    setState(btn.getAttribute('data-val'));
-                    ensureMonthModal()?.hide();
-                });
-            });
-        };
-
-        btnPrev?.addEventListener('click', e => {
-            e.preventDefault();
-            shiftMonth(-1);
-        });
-        btnNext?.addEventListener('click', e => {
-            e.preventDefault();
-            shiftMonth(+1);
-        });
-
-        mpPrevYear?.addEventListener('click', () => {
-            modalYear--;
-            buildGrid();
-        });
-        mpNextYear?.addEventListener('click', () => {
-            modalYear++;
-            buildGrid();
-        });
-        mpTodayBtn?.addEventListener('click', () => {
-            const nowYM = toYM(new Date());
-            setState(nowYM);
-            ensureMonthModal()?.hide();
-        });
-        mpInput?.addEventListener('change', e => {
-            const ym = e.target.value;
-            if (/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
-                setState(ym);
-                ensureMonthModal()?.hide();
-            }
-        });
-
-        window.LukratoHeader = Object.assign({}, window.LukratoHeader, {
-            getMonth: () => state,
-            setMonth: (ym) => setState(ym)
-        });
-        setState(state);
     })();
 </script>

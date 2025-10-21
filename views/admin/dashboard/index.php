@@ -12,62 +12,56 @@ $aria   = function (string $key) use ($menu) {
 ?>
 
 <section class="dashboard-page">
-
     <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
-
-
-    <section class="pt-5">
-        <section class="kpi-grid" role="region" aria-label="Indicadores principais">
-            <div data-aos="flip-left">
-                <div class="card kpi-card" id="saldoCard">
-                    <div class="card-header">
-                        <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div><span class="kpi-title">Saldo
-                            Atual</span>
-                    </div>
-                    <div class="kpi-value" id="saldoValue">R$ 0,00</div>
-                </div>
-            </div>
-            <div data-aos="flip-left">
-                <div class="card kpi-card" id="receitasCard">
-                    <div class="card-header">
-                        <div class="kpi-icon receitas"><i class="fas fa-arrow-up"></i></div><span
-                            class="kpi-title">Receitas
-                            do Mês</span>
-                    </div>
-                    <div class="kpi-value receitas" id="receitasValue">R$ 0,00</div>
-                </div>
-            </div>
-            <div data-aos="flip-right">
-                <div class="card kpi-card" id="despesasCard">
-                    <div class="card-header">
-                        <div class="kpi-icon despesas"><i class="fas fa-arrow-down"></i></div><span
-                            class="kpi-title">Despesas do Mês</span>
-                    </div>
-                    <div class="kpi-value despesas" id="despesasValue">R$ 0,00</div>
-                </div>
-            </div>
-            <div data-aos="flip-right">
-                <div class="card kpi-card" id="saldoMesCard" data-aos="fade-up-left">
-                    <div class="card-header">
-                        <div class="kpi-icon saldo"><i class="fas fa-balance-scale"></i></div><span
-                            class="kpi-title">Saldo
-                            do Mês</span>
-                    </div>
-                    <div class="kpi-value" id="saldoMesValue">R$ 0,00</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="charts-grid" data-aos="fade-up">
-            <div class="card chart-card">
+    <section class="kpi-grid" role="region" aria-label="Indicadores principais">
+        <div data-aos="flip-left">
+            <div class="card kpi-card" id="saldoCard">
                 <div class="card-header">
-                    <h2 class="card-title">Evolução Financeira</h2>
+                    <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div><span class="kpi-title">Saldo
+                        Atual</span>
                 </div>
-                <div class="chart-container"><canvas id="evolutionChart" role="img"
-                        aria-label="Gráfico de evolução do saldo"></canvas></div>
+                <div class="kpi-value" id="saldoValue">R$ 0,00</div>
             </div>
+        </div>
+        <div data-aos="flip-left">
+            <div class="card kpi-card" id="receitasCard">
+                <div class="card-header">
+                    <div class="kpi-icon receitas"><i class="fas fa-arrow-up"></i></div><span class="kpi-title">Receitas
+                        do Mês</span>
+                </div>
+                <div class="kpi-value receitas" id="receitasValue">R$ 0,00</div>
+            </div>
+        </div>
+        <div data-aos="flip-right">
+            <div class="card kpi-card" id="despesasCard">
+                <div class="card-header">
+                    <div class="kpi-icon despesas"><i class="fas fa-arrow-down"></i></div><span
+                        class="kpi-title">Despesas do Mês</span>
+                </div>
+                <div class="kpi-value despesas" id="despesasValue">R$ 0,00</div>
+            </div>
+        </div>
+        <div data-aos="flip-right">
+            <div class="card kpi-card" id="saldoMesCard" data-aos="fade-up-left">
+                <div class="card-header">
+                    <div class="kpi-icon saldo"><i class="fas fa-balance-scale"></i></div><span class="kpi-title">Saldo
+                        do Mês</span>
+                </div>
+                <div class="kpi-value" id="saldoMesValue">R$ 0,00</div>
+            </div>
+        </div>
+    </section>
 
-            <!-- <div class="card summary-card">
+    <section class="charts-grid" data-aos="fade-up">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h2 class="card-title">Evolução Financeira</h2>
+            </div>
+            <div class="chart-container"><canvas id="evolutionChart" role="img"
+                    aria-label="Gráfico de evolução do saldo"></canvas></div>
+        </div>
+
+        <!-- <div class="card summary-card">
                     <div class="card-header">
                         <h2 class="card-title">Resumo Mensal</h2>
                     </div>
@@ -82,37 +76,36 @@ $aria   = function (string $key) use ($menu) {
                                 class="summary-value" id="saldoAcumulado">R$ 0,00</span></div>
                     </div>
                 </div> -->
-        </section>
-
-        <section class="card table-card mb-5" data-aos="fade-up">
-            <div class="card-header">
-                <h2 class="card-title">5 Últimos Lançamentos</h2>
-            </div>
-            <div class="table-container">
-                <div class="empty-state" id="emptyState" style="display:none;">
-                    <div class="empty-icon"><i class="fas fa-receipt"></i></div>
-                    <h3>Nenhum lançamento encontrado</h3>
-                    <p>Adicione sua primeira transação clicando no botão + no canto inferior esquerdo</p>
-                </div>
-                <table class="table" id="transactionsTable">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Tipo</th>
-                            <th>Categoria</th>
-                            <th>Conta</th>
-                            <th>Descrição</th>
-                            <th>Valor</th>
-                            <th class="text-end">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionsTableBody"></tbody>
-                </table>
-            </div>
-        </section>
     </section>
 
+    <section class="card table-card mb-5" data-aos="fade-up">
+        <div class="card-header">
+            <h2 class="card-title">5 Últimos Lançamentos</h2>
+        </div>
+        <div class="table-container">
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <div class="empty-icon"><i class="fas fa-receipt"></i></div>
+                <h3>Nenhum lançamento encontrado</h3>
+                <p>Adicione sua primeira transação clicando no botão + no canto inferior esquerdo</p>
+            </div>
+            <table class="table" id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Conta</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsTableBody"></tbody>
+            </table>
+        </div>
+    </section>
 </section>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
@@ -121,6 +114,9 @@ $aria   = function (string $key) use ($menu) {
     (() => {
         'use strict';
 
+        /* ==========================================
+           CONFIGURAÇÕES BÁSICAS
+        ========================================== */
         const BASE = (() => {
             const meta = document.querySelector('meta[name="base-url"]')?.content || '';
             let base = meta;
@@ -172,6 +168,7 @@ $aria   = function (string $key) use ($menu) {
             if (j?.error || j?.status === 'error') throw new Error(j?.message || j?.error || 'Erro na API');
             return j;
         }
+
         async function ensureSwal() {
             if (window.Swal) return;
             await new Promise((resolve, reject) => {
@@ -194,13 +191,16 @@ $aria   = function (string $key) use ($menu) {
             });
         }
 
+        /* ==========================================
+           API HELPERS
+        ========================================== */
         async function apiDeleteLancamento(id) {
             const csrf =
                 document.querySelector('meta[name="csrf-token"]')?.content ||
                 document.querySelector('input[name="csrf_token"]')?.value ||
                 '';
 
-            const commonHeaders = {
+            const headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 ...(csrf ? {
@@ -208,50 +208,35 @@ $aria   = function (string $key) use ($menu) {
                 } : {}),
             };
 
-            // Use sempre a BASE jÃ¡ calculada no topo do arquivo
             const tries = [{
                     url: `${BASE}api/lancamentos/${id}`,
-                    opt: {
-                        method: 'DELETE'
-                    }
+                    method: 'DELETE'
                 },
                 {
                     url: `${BASE}index.php/api/lancamentos/${id}`,
-                    opt: {
-                        method: 'DELETE'
-                    }
+                    method: 'DELETE'
                 },
-
-                // (opcionais) fallbacks por POST caso vocÃª decida expor uma rota alternativa sem DELETE
                 {
                     url: `${BASE}api/lancamentos/${id}/delete`,
-                    opt: {
-                        method: 'POST'
-                    }
+                    method: 'POST'
                 },
                 {
                     url: `${BASE}index.php/api/lancamentos/${id}/delete`,
-                    opt: {
-                        method: 'POST'
-                    }
+                    method: 'POST'
                 },
                 {
                     url: `${BASE}api/lancamentos/delete`,
-                    opt: {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            id
-                        })
-                    }
+                    method: 'POST',
+                    body: JSON.stringify({
+                        id
+                    })
                 },
                 {
                     url: `${BASE}index.php/api/lancamentos/delete`,
-                    opt: {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            id
-                        })
-                    }
+                    method: 'POST',
+                    body: JSON.stringify({
+                        id
+                    })
                 },
             ];
 
@@ -259,238 +244,60 @@ $aria   = function (string $key) use ($menu) {
                 try {
                     const r = await fetch(t.url, {
                         credentials: 'include',
-                        headers: commonHeaders,
-                        ...t.opt
+                        headers,
+                        method: t.method,
+                        body: t.body
                     });
                     if (r.ok) return await r.json();
-                    // se nÃ£o for 404, jÃ¡ mostre o erro da API
                     if (r.status !== 404) {
                         const j = await r.json().catch(() => ({}));
                         throw new Error(j?.message || `HTTP ${r.status}`);
                     }
                 } catch (_) {}
             }
-            throw new Error('Endpoint de exclusão não encontrado. Verifique as rotas.');
+            throw new Error('Endpoint de exclusão não encontrado.');
         }
 
         const apiMetrics = m => getJSON(`${BASE}api/dashboard/metrics?month=${encodeURIComponent(m)}`);
-        const apiAccountsBalances = (m) =>
-            getJSON(`${BASE}api/accounts?with_balances=1&month=${encodeURIComponent(m)}&only_active=1`);
-
-        async function apiTransactionsSmart(m, l = 5) {
-            const urlLanc = `${BASE}api/lancamentos?month=${encodeURIComponent(m)}&limit=${l}`;
+        const apiAccountsBalances = m => getJSON(
+            `${BASE}api/accounts?with_balances=1&month=${encodeURIComponent(m)}&only_active=1`);
+        const apiTransactionsSmart = async (m, l = 5) => {
+            const url1 = `${BASE}api/lancamentos?month=${encodeURIComponent(m)}&limit=${l}`;
             try {
-                const data = await getJSON(urlLanc);
-                if (Array.isArray(data)) return data;
-                return data?.items || data?.data || data?.lancamentos || [];
+                const d = await getJSON(url1);
+                return Array.isArray(d) ? d : (d.items || d.data || d.lancamentos || []);
             } catch {
-                const urlDash = `${BASE}api/dashboard/transactions?month=${encodeURIComponent(m)}&limit=${l}`;
-                return await getJSON(urlDash);
-            }
-        }
-
-        const STORAGE_KEY = 'lukrato.month.dashboard';
-        const $label = $('#currentMonthText');
-        const btnOpen = $('#monthDropdownBtn');
-        const modalEl = $('#monthModal');
-        const ensureMonthModal = () => {
-            if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return null;
-            try {
-                if (modalEl.parentElement && modalEl.parentElement !== document.body) {
-                    document.body.appendChild(modalEl);
-                }
-                return bootstrap.Modal.getOrCreateInstance(modalEl);
-            } catch {
-                return null;
+                const url2 = `${BASE}api/dashboard/transactions?month=${encodeURIComponent(m)}&limit=${l}`;
+                return await getJSON(url2);
             }
         };
-        ensureMonthModal();
-        modalEl?.addEventListener('shown.bs.modal', () => {
-            try {
-                modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
-                buildGrid();
-                if (mpInput) mpInput.value = currentMonth;
-            } catch (err) {
-                console.error(err);
-            }
-        });
-        const mpYearLabel = $('#mpYearLabel');
-        const mpPrevYear = $('#mpPrevYear');
-        const mpNextYear = $('#mpNextYear');
-        const mpGrid = $('#mpGrid');
-        const mpTodayBtn = $('#mpTodayBtn');
-        const mpInput = $('#mpInputMonth');
-        const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-        let currentMonth = (() => {
-            try {
-                return (window.LukratoHeader?.getMonth?.()) || sessionStorage.getItem(STORAGE_KEY) || new Date()
-                    .toISOString().slice(0, 7);
-            } catch {
-                return new Date().toISOString().slice(0, 7);
-            }
-        })();
+        /* ==========================================
+           RENDERIZAÇÕES
+        ========================================== */
+        const $label = $('#currentMonthText');
 
-        let modalYear = (() => {
+        function writeLabel(m) {
+            if (!$label) return;
             try {
-                return Number(currentMonth.split('-')[0]) || new Date().getFullYear();
-            } catch {
-                return new Date().getFullYear();
-            }
-        })();
-
-        function yymm(d) {
-            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        }
-
-        function makeMonthValue(y, i) {
-            return `${y}-${String(i+1).padStart(2,'0')}`;
-        }
-        const monthLabel = m => {
-            try {
-                const [y, mm] = String(m || '').split('-').map(Number);
-                return new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
+                const [y, mm] = String(m).split('-').map(Number);
+                const label = new Date(y, mm - 1, 1).toLocaleDateString('pt-BR', {
                     month: 'long',
                     year: 'numeric'
                 });
+                $label.textContent = label;
             } catch {
-                return '-';
-            }
-        };
-        const addMonths = (m, d) => {
-            try {
-                const [y, mm] = m.split('-').map(Number);
-                const dt = new Date(y, mm - 1 + d, 1);
-                return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
-            } catch {
-                return m;
-            }
-        };
-
-        function writeLabel() {
-            if ($label) $label.textContent = monthLabel(currentMonth);
-        }
-
-        function setLocalMonth(m, {
-            emit = true
-        } = {}) {
-            if (!/^\d{4}-\d{2}$/.test(m)) return;
-            currentMonth = m;
-            try {
-                sessionStorage.setItem(STORAGE_KEY, m);
-            } catch {}
-            writeLabel();
-            if (emit) {
-                try {
-                    document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
-                        detail: {
-                            month: m
-                        }
-                    }));
-                } catch {}
+                $label.textContent = '-';
             }
         }
 
-        function buildGrid() {
-            if (!mpYearLabel || !mpGrid) return;
-            mpYearLabel.textContent = modalYear;
-            let html = '';
-            for (let i = 0; i < 12; i++) {
-                const val = makeMonthValue(modalYear, i);
-                const isCurrent = val === currentMonth;
-                html += `<div class="col-4">
-        <button type="button" class="mp-month btn w-100 py-3 ${isCurrent?'btn-warning text-dark fw-bold':'btn-outline-light'}" data-val="${val}">
-          ${MONTH_NAMES_SHORT[i]}
-        </button>
-      </div>`;
-            }
-            mpGrid.innerHTML = html;
-            mpGrid.querySelectorAll('.mp-month').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const v = btn.getAttribute('data-val');
-                    if (!v) return;
-                    try {
-                        ensureMonthModal()?.hide();
-                    } catch {}
-                    setLocalMonth(v);
-                    await renderAll();
-                });
-            });
-        }
-
-        mpPrevYear?.addEventListener('click', e => {
-            e.preventDefault();
-            modalYear--;
-            buildGrid();
-        });
-        mpNextYear?.addEventListener('click', e => {
-            e.preventDefault();
-            modalYear++;
-            buildGrid();
-        });
-        mpTodayBtn?.addEventListener('click', e => {
-            e.preventDefault();
-            const now = new Date();
-            const today = yymm(new Date(now.getFullYear(), now.getMonth(), 1));
+        async function renderKPIs(month) {
             try {
-                ensureMonthModal()?.hide();
-            } catch {}
-            setLocalMonth(today);
-            renderAll();
-        });
-        mpInput?.addEventListener('change', async e => {
-            const v = String(e.target.value || '');
-            if (!/^\d{4}-\d{2}$/.test(v)) return;
-            try {
-                ensureMonthModal()?.hide();
-            } catch {}
-            setLocalMonth(v);
-            await renderAll();
-        });
-        btnOpen?.addEventListener('click', e => {
-            e.preventDefault();
-            try {
-                modalYear = Number((currentMonth || '').split('-')[0]) || new Date().getFullYear();
-                buildGrid();
-                if (mpInput) mpInput.value = currentMonth;
-                ensureMonthModal()?.show();
-            } catch (err) {
-                console.error(err);
-            }
-        });
-
-        document.getElementById('prevMonth')?.addEventListener('click', async e => {
-            e.preventDefault();
-            setLocalMonth(addMonths(currentMonth, -1));
-            await renderAll();
-        });
-        document.getElementById('nextMonth')?.addEventListener('click', async e => {
-            e.preventDefault();
-            setLocalMonth(addMonths(currentMonth, +1));
-            await renderAll();
-        });
-        document.addEventListener('lukrato:month-changed', async e => {
-            try {
-                const m = e.detail?.month;
-                if (!m || m === currentMonth) return;
-                currentMonth = m;
-                writeLabel();
-                await renderAll();
-            } catch (err) {
-                console.error(err);
-            }
-        });
-
-        /* ============ Renderizadores ============ */
-        async function renderKPIs() {
-            try {
-                // busca mÃ©tricas + saldos das contas em paralelo
                 const [k, contas] = await Promise.all([
-                    apiMetrics(currentMonth),
-                    apiAccountsBalances(currentMonth)
+                    apiMetrics(month),
+                    apiAccountsBalances(month)
                 ]);
 
-                // preenche os demais KPIs com o que vier das mÃ©tricas
                 const map = {
                     receitasValue: 'receitas',
                     despesasValue: 'despesas',
@@ -505,7 +312,6 @@ $aria   = function (string $key) use ($menu) {
                     if (el) el.textContent = money(k[key] || 0);
                 });
 
-                // **Saldo Atual**: soma de todas as contas (saldoAtual se existir, senÃ£o saldoInicial)
                 const totalSaldo = (Array.isArray(contas) ? contas : []).reduce((sum, c) => {
                     const v = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial || 0);
                     return sum + (isFinite(v) ? v : 0);
@@ -513,12 +319,10 @@ $aria   = function (string $key) use ($menu) {
 
                 const saldoEl = document.getElementById('saldoValue');
                 if (saldoEl) saldoEl.textContent = money(totalSaldo);
-
             } catch (e) {
                 console.error('KPIs:', e);
                 ['saldoValue', 'receitasValue', 'despesasValue', 'saldoMesValue', 'totalReceitas', 'totalDespesas',
-                    'resultadoMes',
-                    'saldoAcumulado'
+                    'resultadoMes', 'saldoAcumulado'
                 ]
                 .forEach(id => {
                     const el = document.getElementById(id);
@@ -527,31 +331,23 @@ $aria   = function (string $key) use ($menu) {
             }
         }
 
-
-        // aceita string ("Sicredi") OU objetos com instituicao/nome, e formata transferÃªncia "origem â†’ destino"
         function getContaLabel(t) {
-            // se vier string pronta
             if (typeof t.conta === 'string' && t.conta.trim()) return t.conta.trim();
-            // preferir instituiÃ§Ã£o, depois nome
             const origem = t.conta_instituicao ?? t.conta_nome ?? t.conta?.instituicao ?? t.conta?.nome ?? null;
             const destino = t.conta_destino_instituicao ?? t.conta_destino_nome ?? t.conta_destino?.instituicao ?? t
                 .conta_destino?.nome ?? null;
-            if (t.eh_transferencia && (origem || destino)) return `${origem || '-'} -’ ${destino || '-”'}`;
-            // rÃ³tulo pronto do backend, se existir
+            if (t.eh_transferencia && (origem || destino)) return `${origem || '-'} → ${destino || '-'}`;
             if (t.conta_label && String(t.conta_label).trim()) return String(t.conta_label).trim();
             return origem || '-';
         }
 
-        async function renderTable() {
+        async function renderTable(month) {
             const tbody = document.querySelector('#transactionsTableBody');
             const empty = document.querySelector('#emptyState');
             const table = document.querySelector('#transactionsTable');
 
-
             try {
-
-
-                const list = await apiTransactionsSmart(currentMonth, 5);
+                const list = await apiTransactionsSmart(month, 5);
                 tbody.innerHTML = '';
 
                 const hasData = Array.isArray(list) && list.length > 0;
@@ -560,31 +356,27 @@ $aria   = function (string $key) use ($menu) {
 
                 if (hasData) {
                     list.forEach(t => {
-                        // dentro de renderTable(), onde vocÃª monta cada linha
                         const tr = document.createElement('tr');
-                        tr.setAttribute('data-id', t.id); // <-- ADICIONE ESTA LINHA
+                        tr.setAttribute('data-id', t.id);
                         const tipo = String(t.tipo || '').toLowerCase();
-                        const color = (tipo === 'receita') ? 'var(--verde, #27ae60)' :
-                            (tipo.startsWith('despesa') ? 'var(--vermelho, #e74c3c)' :
-                                'var(--laranja, #f39c12)');
+                        const color = (tipo === 'receita') ? '#27ae60' :
+                            (tipo.startsWith('despesa') ? '#e74c3c' : '#f39c12');
                         const categoriaTxt = t.categoria_nome ?? (typeof t.categoria === 'string' ? t
-                            .categoria : t.categoria?.nome) ?? '-”';
+                            .categoria : t.categoria?.nome) ?? '-';
                         const contaTxt = getContaLabel(t);
-
                         tr.innerHTML = `
-  <td data-label="Data">${dateBR(t.data)}</td>
-  <td data-label="Tipo">${(String(t.tipo||'').replace(/_/g,' ') || '--')}</td>
-  <td data-label="Categoria">${categoriaTxt}</td>
-  <td data-label="Conta">${contaTxt}</td>
-  <td data-label="Descricao">${t.descricao || t.observacao || '--'}</td>
-  <td data-label="Valor" style="font-weight:700;color:${color}">${money(Number(t.valor)||0)}</td>
-  <td data-label="Acoes" class="text-end">
-    <button type="button" class="lk-btn danger btn-del" data-id="${t.id}" title="Excluir" aria-label="Excluir lancamento">
-      <i class="fas fa-trash"></i>
-    </button>
-  </td>`;
+                        <td>${dateBR(t.data)}</td>
+                        <td>${String(t.tipo||'').replace(/_/g,' ')}</td>
+                        <td>${categoriaTxt}</td>
+                        <td>${contaTxt}</td>
+                        <td>${t.descricao || t.observacao || '--'}</td>
+                        <td style="font-weight:700;color:${color}">${money(Number(t.valor)||0)}</td>
+                        <td class="text-end">
+                            <button class="lk-btn danger btn-del" data-id="${t.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>`;
                         tbody.appendChild(tr);
-
                     });
                 }
             } catch (e) {
@@ -594,48 +386,34 @@ $aria   = function (string $key) use ($menu) {
             }
         }
 
-        // Clique no botÃ£o excluir dentro da tabela de "Ãšltimos LanÃ§amentos" (Dashboard)
+        // exclusão rápida na tabela
         document.getElementById('transactionsTableBody')?.addEventListener('click', async (e) => {
-            const btn = e.target.closest?.('.btn-del');
+            const btn = e.target.closest('.btn-del');
             if (!btn) return;
-
             const tr = e.target.closest('tr');
-            const id = btn.getAttribute('data-id') || btn.closest('tr')?.getAttribute('data-id');
+            const id = btn.getAttribute('data-id');
             if (!id) return;
-
             try {
                 await ensureSwal();
-
                 const confirm = await Swal.fire({
-                    title: 'Excluir lanÃ§amento?',
+                    title: 'Excluir lançamento?',
                     text: 'Essa ação não pode ser desfeita.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Sim, excluir',
-                    cancelButtonText: 'Cancelar',
-                    reverseButtons: true,
-                    focusCancel: true
+                    cancelButtonText: 'Cancelar'
                 });
                 if (!confirm.isConfirmed) return;
-
                 Swal.fire({
                     title: 'Excluindo...',
                     didOpen: () => Swal.showLoading(),
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
+                    allowOutsideClick: false
                 });
-
                 await apiDeleteLancamento(Number(id));
-
                 Swal.close();
                 toast('success', 'Lançamento excluído');
-
-                // remove a linha imediatamente para dar feedbackâ€¦
                 tr.remove();
-
-                // â€¦e atualiza os cards/ grÃ¡fico/ tabela
                 await window.refreshDashboard?.();
-                // avisa outras telas (como /lancamentos) que houve mudanÃ§a
                 document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
             } catch (err) {
                 console.error(err);
@@ -643,36 +421,32 @@ $aria   = function (string $key) use ($menu) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
-                    text: (err && err.message) || 'Falha ao excluir'
+                    text: err.message || 'Falha ao excluir'
                 });
             }
         });
 
-
+        /* ==========================================
+           CHART
+        ========================================== */
         let chartInstance = null;
-        async function drawChart() {
+        async function drawChart(month) {
             const canvas = document.getElementById('evolutionChart');
             if (!canvas || typeof Chart === 'undefined') return;
             try {
                 const months = Array.from({
                     length: 6
                 }, (_, i) => {
-                    const [y, m] = currentMonth.split('-').map(Number);
+                    const [y, m] = month.split('-').map(Number);
                     const d = new Date(y, m - 1 - (5 - i), 1);
                     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 });
-                const labels = months.map(m => {
-                    try {
-                        const [yy, mm] = m.split('-').map(Number);
-                        return new Date(yy, mm - 1, 1).toLocaleDateString('pt-BR', {
-                            month: 'short'
-                        });
-                    } catch {
-                        return 'N/A';
-                    }
-                });
+                const labels = months.map(m => new Date(m).toLocaleDateString('pt-BR', {
+                    month: 'short'
+                }));
                 const results = await Promise.allSettled(months.map(m => apiMetrics(m)));
                 const series = results.map(r => r.status === 'fulfilled' ? Number(r.value?.resultado || 0) : 0);
+
                 const ctx = canvas.getContext('2d');
                 const grad = ctx.createLinearGradient(0, 0, 0, 300);
                 grad.addColorStop(0, 'rgba(230,126,34,0.35)');
@@ -686,11 +460,8 @@ $aria   = function (string $key) use ($menu) {
                         backgroundColor: grad,
                         borderWidth: 3,
                         pointBackgroundColor: '#E67E22',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        tension: .35,
-                        fill: true
+                        fill: true,
+                        tension: .35
                     }]
                 };
                 const options = {
@@ -699,32 +470,11 @@ $aria   = function (string $key) use ($menu) {
                     plugins: {
                         legend: {
                             display: false
-                        },
-                        tooltip: {
-                            backgroundColor: '#2C3E50',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            displayColors: false,
-                            callbacks: {
-                                label: (c) => money(c.parsed.y)
-                            }
                         }
                     },
                     scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(189,195,199,.16)'
-                            },
-                            ticks: {
-                                color: '#cfd8e3'
-                            }
-                        },
                         y: {
-                            grid: {
-                                color: 'rgba(189,195,199,.16)'
-                            },
                             ticks: {
-                                color: '#cfd8e3',
                                 callback: v => money(v)
                             }
                         }
@@ -732,7 +482,6 @@ $aria   = function (string $key) use ($menu) {
                 };
                 if (chartInstance) {
                     chartInstance.data = data;
-                    chartInstance.options = options;
                     chartInstance.update();
                 } else {
                     chartInstance = new Chart(ctx, {
@@ -746,31 +495,22 @@ $aria   = function (string $key) use ($menu) {
             }
         }
 
+        /* ==========================================
+           REFRESH PRINCIPAL
+        ========================================== */
         async function renderAll() {
-            writeLabel();
-            await Promise.allSettled([renderKPIs(), renderTable(), drawChart()]);
+            const month = window.LukratoHeader?.getMonth?.() || new Date().toISOString().slice(0, 7);
+            writeLabel(month);
+            await Promise.allSettled([renderKPIs(month), renderTable(month), drawChart(month)]);
         }
         window.refreshDashboard = renderAll;
 
-        document.addEventListener('lukrato:data-changed', async () => {
-            try {
-                await renderAll();
-            } catch (err) {
-                console.error('Dashboard refresh falhou:', err);
-            }
-        });
+        document.addEventListener('lukrato:data-changed', renderAll);
+        document.addEventListener('lukrato:month-changed', renderAll);
 
-        /* Boot */
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', async () => {
-                writeLabel();
-                await renderAll();
-            });
-        } else {
-            setTimeout(async () => {
-                writeLabel();
-                await renderAll();
-            }, 100);
-        }
+        if (document.readyState === 'loading')
+            document.addEventListener('DOMContentLoaded', renderAll);
+        else
+            renderAll();
     })();
 </script>
