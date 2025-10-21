@@ -56,7 +56,7 @@ class RegistroController extends BaseController
             return;
         }
 
-        if (Usuario::byEmail($email)->exists()) {
+        if (Usuario::where('email', $email)->exists()) {
             $errors = ['email' => 'E-mail já cadastrado.'];
             if ($this->request->isAjax()) {
                 Response::validationError($errors);
