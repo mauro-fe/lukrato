@@ -1,5 +1,5 @@
-</div>
 </main>
+</div>
 <?php loadPageCss('admin-partials-footer'); ?>
 
 <footer class="footer">
@@ -9,7 +9,8 @@
                 <span>&copy; 2025 Lukrato -</span>
                 <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro
                         Felix</a></span>
-                <span> & <a href="https://github.com/Joseph-0505" target="_blank" rel="noopener"> Joseph Victor</a></span>
+                <span> & <a href="https://github.com/Joseph-0505" target="_blank" rel="noopener"> Joseph
+                        Victor</a></span>
             </div>
         </div>
     </div>
