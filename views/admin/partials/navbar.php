@@ -204,8 +204,6 @@
             </button>
 
             <?php include __DIR__ . '/notificacoes/bell.php'; ?>
-
-
         </div>
     </div>
 </nav>
