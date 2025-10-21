@@ -65,6 +65,10 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
             height: 100%;
         }
 
+        .sidebar {
+            color: teste;
+        }
+
         /* Wrapper empurrado pela sidebar */
         .content-wrapper {
             margin-left: 240px;
