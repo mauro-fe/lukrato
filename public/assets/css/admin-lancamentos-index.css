@@ -46,120 +46,12 @@
   color: var(--laranja);
 }
 
-.dash-lk-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
 .lk-select-div {
   height: 300px;
 }
 
 /* ======================= Month Selector (dentro do header) ======================= */
 
-.dash-lk-header .month-nav-btn {
-  background: none;
-  border: 0;
-  color: var(--branco);
-  cursor: pointer;
-
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-}
-
-.dash-lk-header .month-nav-btn:hover {
-  background-color: var(--color-bg);
-  color: #fff;
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-}
-
-.dash-lk-header .month-display {
-  position: relative;
-}
-
-.dash-lk-header .month-dropdown-btn {
-  background: none;
-  border: 0;
-  color: var(--color-primary);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-weight: 600;
-  min-width: 160px;
-  justify-content: space-between;
-}
-
-.dash-lk-header .month-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  width: 260px;
-  background: var(--azul);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  z-index: 1000;
-  max-height: 320px;
-  overflow-y: auto;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-8px);
-  transition: var(--transition-fast);
-  padding: 6px;
-}
-
-.dash-lk-header .month-dropdown.active {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.dash-lk-header .month-dropdown .year-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 4px 0 8px;
-}
-
-.dash-lk-header .month-dropdown .year-label {
-  grid-column: 1 / -1;
-  font-weight: 700;
-  color: var(--claro);
-  padding: 6px 8px;
-  opacity: 0.85;
-}
-
-.dash-lk-header .month-dropdown .m-btn {
-  background: none;
-  border: 1px solid var(--glass-border);
-  color: var(--branco);
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  text-align: center;
-  font-size: var(--font-size-sm);
-}
-
-.dash-lk-header .month-dropdown .m-btn:hover {
-  background-color: var(--glass-bg);
-}
-
-.dash-lk-header .month-dropdown .m-btn.is-current {
-  border-color: var(--laranja);
-  box-shadow: 0 0 0 1px var(--laranja) inset;
-}
 .lan-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border, #1f29371a);
@@ -274,12 +166,6 @@
 }
 
 @media (max-width: 992px) {
-  .dash-lk-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
   .type-filter {
     justify-content: flex-start;
   }

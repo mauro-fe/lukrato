@@ -4,8 +4,11 @@ namespace Application\Controllers\Api;
 
 use Application\Controllers\BaseController;
 use Application\Models\Categoria;
+use Application\Models\Lancamento;
 use Application\Core\Response;
+use Application\Models\Conta;
 use Application\Services\LogService;
+use Application\Lib\Auth;
 use GUMP;
 use Exception;
 
@@ -34,79 +37,88 @@ class CategoriaController extends BaseController
 
     public function store(): void
     {
-        try {
-            $this->requireAuth();
-
-            $gump = new GUMP();
-            $_POST = $gump->sanitize($_POST);
-
-            $gump->validation_rules([
-                'nome' => 'required|min_len,2|max_len,100',
-                'tipo' => 'required|contains_list,receita;despesa;transferencia',
-            ]);
-            $gump->filter_rules([
-                'nome' => 'trim|sanitize_string',
-                'tipo' => 'trim',
-            ]);
-
-            $data = $gump->run($_POST);
-            if (!$data) {
-                // Log de validação
-                LogService::warning('Validação falhou ao criar categoria', [
-                    'user_id' => $this->userId,
-                    'errors'  => $gump->get_errors_array(),
-                    'payload' => $_POST,
-                ]);
-
-                Response::validationError($gump->get_errors_array()); // 422
-                return;
-            }
-
-            $dup = Categoria::forUser($this->userId)
-                ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
-                ->where('tipo', $data['tipo'])
-                ->first();
-
-            if ($dup) {
-                LogService::info('Tentativa de criar categoria duplicada', [
-                    'user_id' => $this->userId,
-                    'nome'    => $data['nome'],
-                    'tipo'    => $data['tipo'],
-                    'dup_id'  => $dup->id,
-                ]);
-
-                Response::error('Categoria já existe.', 409);
-                return;
-            }
-
-            $cat = Categoria::create([
-                'user_id' => $this->userId,
-                'nome'    => $data['nome'],
-                'tipo'    => $data['tipo'],
-            ]);
-
-            // Log de criação OK
-            LogService::info('Categoria criada', [
-                'user_id'      => $this->userId,
-                'categoria_id' => $cat->id,
-                'nome'         => $cat->nome,
-                'tipo'         => $cat->tipo,
-                'ip'           => $_SERVER['REMOTE_ADDR'] ?? null,
-                'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? null,
-            ]);
-
-            Response::success($cat);
-        } catch (Exception $e) {
-            // Log de exceção
-            LogService::error('Falha ao criar categoria', [
-                'user_id'   => $this->userId ?? null,
-                'payload'   => $_POST ?? [],
-                'exception' => $e->getMessage(),
-            ]);
-
-            Response::error('Falha ao criar categoria', 500);
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Não autenticado', 401);
+            return;
         }
+
+        $payload = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $errors = [];
+
+        $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
+        if (!in_array($tipo, [Lancamento::TIPO_RECEITA, Lancamento::TIPO_DESPESA], true)) {
+            $errors['tipo'] = 'Tipo inválido.';
+        }
+
+        $data = (string)($payload['data'] ?? '');
+        if (!$data || !preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
+            $errors['data'] = 'Data inválida. Use YYYY-MM-DD.';
+        }
+
+        $valorRaw = $payload['valor'] ?? 0;
+        if (is_string($valorRaw)) {
+            $s = trim($valorRaw);
+            $s = str_replace(['R$', ' '], '', $s);
+            $s = str_replace('.', '', $s);
+            $s = str_replace(',', '.', $s);
+            $valorRaw = $s;
+        }
+        if (!is_numeric($valorRaw)) {
+            $errors['valor'] = 'Valor inválido.';
+        }
+        $valor = round(max(0, (float)$valorRaw), 2);
+
+        $descricao  = trim((string)($payload['descricao']  ?? ''));
+        $observacao = trim((string)($payload['observacao'] ?? ''));
+
+        $categoriaId = $payload['categoria_id'] ?? null;
+        $categoriaId = ($categoriaId === '' || $categoriaId === null) ? null : (int)$categoriaId;
+        if ($categoriaId && !Categoria::forUser($userId)->where('id', $categoriaId)->exists()) {
+            $errors['categoria_id'] = 'Categoria inválida.';
+        }
+
+        $contaId = $payload['conta_id'] ?? null;
+        $contaId = ($contaId === '' || $contaId === null) ? null : (int)$contaId;
+        if (!$contaId || !Conta::forUser($userId)->where('id', $contaId)->exists()) {
+            $errors['conta_id'] = 'Conta obrigatória/ inválida.';
+        }
+
+        if ($errors) {
+            Response::validationError($errors);
+            return;
+        }
+
+        $l = new Lancamento();
+        $l->user_id = $userId;
+        $l->tipo = $tipo;
+        $l->data = $data;
+        $l->valor = $valor;
+        $l->descricao = mb_substr($descricao, 0, 190);
+        $l->observacao = mb_substr($observacao, 0, 500);
+        $l->categoria_id = $categoriaId;
+        $l->conta_id = $contaId;
+        $l->conta_id_destino = null;
+        $l->eh_transferencia = 0;
+        $l->eh_saldo_inicial = 0;
+        $l->save();
+
+        $l->refresh()->loadMissing(['categoria', 'conta']);
+
+        Response::success([
+            'id' => (int)$l->id,
+            'data' => $l->data instanceof \DateTimeInterface ? $l->data->format('Y-m-d') : (string)$l->data,
+            'tipo' => (string)$l->tipo,
+            'valor' => (float)$l->valor,
+            'descricao' => (string)($l->descricao ?? ''),
+            'observacao' => (string)($l->observacao ?? ''),
+            'categoria_id' => $l->categoria_id ? (int)$l->categoria_id : null,
+            'conta_id' => $l->conta_id ? (int)$l->conta_id : null,
+            'categoria' => $l->categoria->nome ?? '',
+            'conta' => $l->conta?->nome ?? $l->conta?->instituicao ?? '',
+        ]);
     }
+
 
     public function update($routeParam = null): void
     {

@@ -13,32 +13,8 @@ $aria   = function (string $key) use ($menu) {
 
 <section class="dashboard-page">
 
-    <header class="dash-lk-header">
-        <div class="header-left">
-            <div class="month-selector" data-aos="fade-up">
-                <div class="lk-period  effect">
-                    <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior"
-                        title="Mês anterior">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
+    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 
-                    <div class="month-display">
-                        <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" aria-haspopup="true"
-                            aria-expanded="false">
-                            <span id="currentMonthText">Carregando...</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="month-dropdown" id="monthDropdown" role="menu"></div>
-                    </div>
-
-                    <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês"
-                        title="Próximo mês">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
 
     <section class="pt-5">
         <section class="kpi-grid" role="region" aria-label="Indicadores principais">
@@ -135,44 +111,7 @@ $aria   = function (string $key) use ($menu) {
             </div>
         </section>
     </section>
-    <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
-            <div class="modal-content bg-dark text-light border-0 rounded-3">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="monthModalLabel">Selecionar mês</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
 
-                <div class="modal-body pt-0">
-                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                        <div class="btn-group" role="group" aria-label="Navegar entre anos">
-                            <button type="button" class="btn btn-outline-light btn-sm" id="mpPrevYear"
-                                title="Ano anterior">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <span class="px-3 fw-semibold" id="mpYearLabel">2024</span>
-                            <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear"
-                                title="Próximo ano">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-light btn-sm" id="mpTodayBtn">Hoje</button>
-                            <input type="month" class="form-control form-control-sm bg-dark text-light border-secondary"
-                                id="mpInputMonth" style="width:165px">
-                        </div>
-                    </div>
-
-                    <div id="mpGrid" class="row g-2"></div>
-                </div>
-
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </section>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

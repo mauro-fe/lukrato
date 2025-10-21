@@ -1,5 +1,7 @@
 </main>
 </div>
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
 <?php loadPageCss('admin-partials-footer'); ?>
 
 <footer class="footer">
