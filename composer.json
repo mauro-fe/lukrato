@@ -9,8 +9,10 @@
     "illuminate/database": "^11.0",
     "illuminate/events": "^11.0",
     "laravel/serializable-closure": "^2.0",
+    "mercadopago/dx-php": "3.6.0",
     "monolog/monolog": "^3.9",
     "nesbot/carbon": "^3.10.1",
+    "pagarme/pagarme-php": "^4.4",
     "phpmailer/phpmailer": "^6.9",
     "predis/predis": "^1.1",
     "tecnickcom/tcpdf": "*",
@@ -49,4 +51,5 @@
     "preferred-install": "dist",
     "sort-packages": true
   }
+  
 }

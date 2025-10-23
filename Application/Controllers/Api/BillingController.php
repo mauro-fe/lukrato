@@ -38,6 +38,7 @@ class BillingController extends BaseController
         try {
             $service = new PagarmeService();
 
+            // Application/Controllers/Api/BillingController.php (createCheckout)
             $result = $service->createPlanSubscription([
                 'id'    => $user->id,
                 'name'  => $user->nome ?? $user->username ?? 'Usuário',
@@ -49,6 +50,12 @@ class BillingController extends BaseController
             if (!empty($result['customer_id']) && empty($user->pagarme_cliente_id)) {
                 $user->pagarme_cliente_id = $result['customer_id'];
                 $user->gateway = 'pagarme';
+                $user->save();
+            }
+
+            // 🔴 NOVO: gravar o id da assinatura no usuário
+            if (!empty($result['subscription_id'])) {
+                $user->pagarme_assinatura_id = $result['subscription_id'];
                 $user->save();
             }
 

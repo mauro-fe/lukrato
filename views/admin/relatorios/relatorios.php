@@ -627,24 +627,46 @@
 
         // --- helper universal para 401/403 nesta página ---
         async function handleFetch403(response, base) {
+            // 401: login
             if (response.status === 401) {
                 const here = encodeURIComponent(location.pathname + location.search);
                 location.href = `${base}login?return=${here}`;
                 return true;
             }
+
+            // redireciona para /billing
+            const goToBilling = () => {
+                location.href = `${base}billing`;
+            };
+
+            // 403: proibido -> mostra “Assinar” + “OK”
             if (response.status === 403) {
                 let msg = 'Acesso não permitido.';
                 try {
                     const data = await response.clone().json();
                     msg = data?.message || msg;
-                } catch (_) {}
+                } catch {}
+
                 if (typeof Swal !== 'undefined' && Swal.fire) {
-                    await Swal.fire('Acesso restrito', msg, 'warning');
+                    const ret = await Swal.fire({
+                        title: 'Acesso restrito',
+                        html: msg,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Assinar',
+                        cancelButtonText: 'OK',
+                        reverseButtons: true,
+                        focusConfirm: true
+                    });
+                    if (ret.isConfirmed) goToBilling();
                 } else {
-                    alert(msg);
+                    if (confirm(`${msg}\n\nIr para a página de assinatura agora?`)) {
+                        goToBilling();
+                    }
                 }
                 return true;
             }
+
             return false;
         }
 
