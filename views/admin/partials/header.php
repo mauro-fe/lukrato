@@ -97,10 +97,13 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
                 <?= $aria('categorias')  ?> title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios')  ?>"
                 <?= $aria('relatorios')  ?> title="Relatórios"><i
-                    class="fas fa-chart-bar"></i><span>Relatórios</span></a>
+                    class="fa fa-pie-chart"></i><span>Relatórios</span></a>
             <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos')  ?>"
                 <?= $aria('agendamentos')  ?> title="Agendamentos"><i
                     class="fas fa-clock"></i><span>Agendamentos</span></a>
+            <a href="<?= BASE_URL ?>investimentos" class="nav-item <?= $active('investimentos')  ?>"
+                <?= $aria('investimentos')  ?> title="Investimentos"><i
+                    class="fa fa-line-chart" aria-hidden="true"></i><span>Investimentos</span></a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil')      ?>" <?= $aria('perfil') ?>
                 title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 

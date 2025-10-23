@@ -66,6 +66,7 @@ function registerAppRoutes(): void
     Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth']);
     Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth']);
     Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth']);
+    Router::add('GET', '/investimentos',      'Admin\\InvestimentosController@index',   ['auth']);
 }
 
 /* =========================
@@ -116,6 +117,29 @@ function registerApiRoutes(): void
     Router::add('POST',  '/api/categorias/{id}/delete',    'Api\\CategoriaController@delete', ['auth', 'csrf']);
     // (Opcional) bulk delete:
     // Router::add('POST','/api/categorias/delete',        'Api\\CategoriaController@delete', ['auth','csrf']);
+
+    // Investimentos
+    Router::add('GET',    '/api/investimentos',                       'Api\InvestimentosController@index');
+    Router::add('GET',    '/api/investimentos/{id}',                  'Api\InvestimentosController@show');
+    Router::add('POST',   '/api/investimentos',                       'Api\InvestimentosController@store');
+    Router::add('POST',   '/api/investimentos/{id}/update',           'Api\InvestimentosController@update');
+    Router::add('POST',   '/api/investimentos/{id}/delete',           'Api\InvestimentosController@destroy');
+    Router::add('POST',   '/api/investimentos/{id}/preco',            'Api\InvestimentosController@atualizarPreco');
+
+    // Categorias
+    Router::add('GET',    '/api/investimentos/categorias',            'Api\InvestimentosController@categorias');
+
+    // Transações
+    Router::add('GET',    '/api/investimentos/{id}/transacoes',       'Api\InvestimentosController@transacoes');
+    Router::add('POST',   '/api/investimentos/{id}/transacoes',       'Api\InvestimentosController@criarTransacao');
+
+    // Proventos
+    Router::add('GET',    '/api/investimentos/{id}/proventos',        'Api\InvestimentosController@proventos');
+    Router::add('POST',   '/api/investimentos/{id}/proventos',        'Api\InvestimentosController@criarProvento');
+
+    // Estatísticas (cards do dashboard)
+    Router::add('GET',    '/api/investimentos/stats',                 'Api\InvestimentosController@stats');
+
 
     // Preferência de tema do usuário
     Router::add('GET',  '/api/user/theme', 'Api\\PreferenciaUsuarioController@show',   ['auth']);
