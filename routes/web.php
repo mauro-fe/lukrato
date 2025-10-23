@@ -140,10 +140,8 @@ function registerBillingRoutes(): void
 {
     // Página do plano
     Router::add('GET',  '/billing',                      'Admin\\BillingController@index',        ['auth']);
-    // Assinatura (checkout/token do cartão vindo do front)
-    Router::add('POST', '/api/billing/pagarme/checkout', 'Api\\BillingController@createCheckout', ['auth', 'csrf']);
-    // Webhook público (sem middleware)
-    Router::add('POST', '/api/webhooks/pagarme',         'Api\\WebhookController@pagarme');
+    Router::add('POST', '/api/mercadopago/checkout', 'Api\MercadoPagoController@createCheckout');
+    Router::add('POST', '/api/webhooks/mercadopago', 'Api\WebhookMercadoPagoController@handle');
 }
 
 /* =========================
