@@ -8,6 +8,8 @@ class Investimento extends Model
 {
     protected $table = 'investimentos';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'user_id',         // ID do usuário dono do investimento
         'categoria_id',    // FK categoria
@@ -75,5 +77,14 @@ class Investimento extends Model
         return $this->valor_investido > 0
             ? round(($this->lucro / $this->valor_investido) * 100, 2)
             : 0.0;
+    }
+    // Filtro por usuário reutilizável
+    public function scopeForUser($query, int $userId)
+    {
+        // Se sua coluna for 'user_id'
+        return $query->where('user_id', $userId);
+
+        // Se na sua base o nome for 'usuario_id', troque para:
+        // return $query->where('usuario_id', $userId);
     }
 }

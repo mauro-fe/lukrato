@@ -1061,8 +1061,8 @@ body.sidebar-collapsed .content-wrapper {
   border-color: var(--color-primary);
   background-color: color-mix(
     in srgb,
-    var(--glass-bg) 70%,
-    var(--color-primary) 5%
+    var(--glass-bg) 5%,
+    var(--color-primary) 70%
   );
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
@@ -1087,7 +1087,7 @@ body.sidebar-collapsed .content-wrapper {
     color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary) 20%)
   );
   border-color: var(--color-primary);
-  color: white;
+  color: var(--color-text);
   font-weight: 600;
   box-shadow: var(--shadow-md);
 
@@ -1099,11 +1099,7 @@ body.sidebar-collapsed .content-wrapper {
 }
 
 .lk-select.btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    var(--color-secondary),
-    color-mix(in srgb, var(--color-secondary) 80%, var(--color-primary) 20%)
-  );
+  background: var(--color-primary);
   border-color: var(--color-secondary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);

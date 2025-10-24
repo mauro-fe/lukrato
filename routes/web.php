@@ -126,6 +126,7 @@ function registerApiRoutes(): void
     Router::add('POST',   '/api/investimentos/{id}/delete',           'Api\InvestimentosController@destroy');
     Router::add('POST',   '/api/investimentos/{id}/preco',            'Api\InvestimentosController@atualizarPreco');
 
+
     // Categorias
     Router::add('GET',    '/api/investimentos/categorias',            'Api\InvestimentosController@categorias');
 
