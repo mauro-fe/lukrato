@@ -187,15 +187,19 @@ class InvestimentosController extends BaseController
             ]);
             $gump->filter_rules([
                 'nome'        => 'trim|sanitize_string',
-                'ticker'      => 'trim|upper',
+                'ticker'      => 'trim|sanitize_string',
                 'quantidade'  => 'trim',
                 'preco_medio' => 'trim',
                 'preco_atual' => 'trim',
                 'observacoes' => 'trim',
             ]);
             $data = $gump->run($data);
+            // Detecta submissão de formulário HTML para decidir entre redirect e JSON
+            $ct = strtolower($this->request->contentType() ?? '');
+            $isFormSubmit = (strpos($ct, 'application/x-www-form-urlencoded') !== false)
+                || (strpos($ct, 'multipart/form-data') !== false);
             if ($data === false) {
-                if (!$this->request->isAjax() && !$this->request->wantsJson()) {
+                if ($isFormSubmit && !$this->request->isAjax()) {
                     $_SESSION['message'] = 'Falha de validacao ao criar investimento.';
                     $_SESSION['message_type'] = 'danger';
                     Response::redirectTo(BASE_URL . 'investimentos');
@@ -210,7 +214,7 @@ class InvestimentosController extends BaseController
             $inv->categoria_id = (int)$data['categoria_id'];
             $inv->conta_id     = !empty($data['conta_id']) ? (int)$data['conta_id'] : null;
             $inv->nome         = (string)$data['nome'];
-            $inv->ticker       = $data['ticker'] ?: null;
+            $inv->ticker       = $data['ticker'] ? strtoupper($data['ticker']) : null;
             $inv->quantidade   = isset($data['quantidade']) ? (float)$data['quantidade'] : 0.0;
             $inv->preco_medio  = isset($data['preco_medio']) ? (float)$data['preco_medio'] : 0.0;
             $inv->preco_atual  = ($data['preco_atual'] !== '' && $data['preco_atual'] !== null) ? (float)$data['preco_atual'] : null;
@@ -218,7 +222,7 @@ class InvestimentosController extends BaseController
             $inv->observacoes  = $data['observacoes'] ?: null;
             $inv->save();
 
-            if (!$this->request->isAjax() && !$this->request->wantsJson()) {
+            if ($isFormSubmit && !$this->request->isAjax()) {
                 $_SESSION['message'] = 'Investimento criado com sucesso!';
                 $_SESSION['message_type'] = 'success';
                 Response::redirectTo(BASE_URL . 'investimentos');
@@ -234,7 +238,7 @@ class InvestimentosController extends BaseController
                 'payload'   => $this->request->all(),
                 'exception' => $e->getMessage(),
             ]);
-            if (!$this->request->isAjax() && !$this->request->wantsJson()) {
+            if ($isFormSubmit && !$this->request->isAjax()) {
                 $_SESSION['message'] = 'Erro ao criar investimento.';
                 $_SESSION['message_type'] = 'danger';
                 Response::redirectTo(BASE_URL . 'investimentos');

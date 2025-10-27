@@ -81,7 +81,7 @@
                     </div>
 
                     <!-- Observações -->
-                    <div class="mt-3">
+                    <div class="mt-3" style="display:none">
                         <label for="notes" class="form-label">Observações</label>
                         <textarea name="observacoes" id="notes" class="form-control" rows="4" placeholder="Adicione observações..."></textarea>
                     </div>

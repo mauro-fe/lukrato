@@ -1,25 +1,19 @@
-<?php
-// Normaliza dados vindos do controller
-$data = (isset($data) && is_array($data)) ? $data : [];
-
-$investments       = $data['investments']       ?? [];
-$totalInvested     = (float)($data['totalInvested']     ?? ($data['totallnvested'] ?? 0));
-$currentValue      = (float)($data['currentValue']      ?? 0);
-$profit            = (float)($data['profit']            ?? ($currentValue - $totalInvested));
-$profitPercentage  = (float)($data['profitPercentage']  ?? ($totalInvested > 0 ? (($profit / $totalInvested) * 100) : 0));
-
-$statsByCategory   = $data['statsByCategory']   ?? ($statsByCategory ?? []);
-$categories        = $categories ?? ($data['categories'] ?? []);
+﻿<?php
+// Garantia de variáveis vindas do controller
+if (!isset($investments))      $investments = [];
+if (!isset($totalInvested))    $totalInvested = 0.0;
+if (!isset($currentValue))     $currentValue = 0.0;
+if (!isset($profit))           $profit = ($currentValue - $totalInvested);
+if (!isset($profitPercentage)) $profitPercentage = ($totalInvested > 0 ? (($profit / $totalInvested) * 100) : 0.0);
+if (!isset($statsByCategory))  $statsByCategory = [];
+if (!isset($categories))       $categories = [];
 ?>
 
-<!-- CSS da página -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-investimentos-index.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-modals-modal_investimentos.css">
 
-
 <div class="main-content">
     <div class="page-header">
-        <!-- Botão laranja -->
         <button
             type="button"
             class="btn-invest"
@@ -30,13 +24,12 @@ $categories        = $categories ?? ($data['categories'] ?? []);
         </button>
     </div>
 
-    <!-- KPIs -->
     <section class="stats-grid">
         <div class="stat-card">
             <div class="stat-ico blue"><i class="fa-solid fa-wallet"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Total Investido</span>
-                <span class="stat-value">R$ <?= number_format($totalInvested, 2, ',', '.') ?></span>
+                <span class="stat-value">R$ <?= number_format((float)$totalInvested, 2, ',', '.') ?></span>
             </div>
         </div>
 
@@ -48,6 +41,7 @@ $categories        = $categories ?? ($data['categories'] ?? []);
             </div>
         </div>
 
+        <!-- Card de Lucro/Prejuízo comentado a pedido
         <div class="stat-card">
             <div class="stat-ico <?= ($profit >= 0 ? 'green' : 'red') ?>">
                 <i class="fa-solid fa-<?= ($profit >= 0 ? 'arrow-up' : 'arrow-down') ?>"></i>
@@ -55,11 +49,12 @@ $categories        = $categories ?? ($data['categories'] ?? []);
             <div class="stat-info">
                 <span class="stat-label">Lucro/Prejuízo</span>
                 <span class="stat-value <?= ($profit >= 0 ? 'positive' : 'negative') ?>">
-                    <?= $profit >= 0 ? '+' : '−' ?>R$ <?= number_format(abs((float)$profit), 2, ',', '.') ?>
+                    <?= $profit >= 0 ? '+' : '-' ?>R$ <?= number_format(abs((float)$profit), 2, ',', '.') ?>
                     (<?= number_format((float)$profitPercentage, 2, ',', '.') ?>%)
                 </span>
             </div>
         </div>
+        -->
 
         <div class="stat-card">
             <div class="stat-ico orange"><i class="fa-solid fa-briefcase"></i></div>
@@ -70,9 +65,7 @@ $categories        = $categories ?? ($data['categories'] ?? []);
         </div>
     </section>
 
-    <!-- Gráfico + Resumo -->
     <section class="content-grid">
-        <!-- Doughnut -->
         <div class="card">
             <div class="card-header">
                 <h3>Distribuição por Categoria</h3>
@@ -82,7 +75,6 @@ $categories        = $categories ?? ($data['categories'] ?? []);
             </div>
         </div>
 
-        <!-- Resumo por Categoria -->
         <div class="card">
             <div class="card-header">
                 <h3>Resumo por Categoria</h3>
@@ -107,7 +99,6 @@ $categories        = $categories ?? ($data['categories'] ?? []);
             </div>
         </div>
 
-        <!-- Tabela -->
         <div class="card full-width">
             <div class="card-header">
                 <h3>Meus Investimentos</h3>
@@ -132,7 +123,7 @@ $categories        = $categories ?? ($data['categories'] ?? []);
                                     <th>Preço Médio</th>
                                     <th>Preço Atual</th>
                                     <th>Valor Total</th>
-                                    <th>Rentabilidade</th>
+                                    <!-- <th>Rentabilidade</th> -->
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -140,8 +131,10 @@ $categories        = $categories ?? ($data['categories'] ?? []);
                                 <?php foreach ($investments as $inv):
                                     $rowInvested   = (float)$inv['quantity'] * (float)$inv['avg_price'];
                                     $rowCurrent    = (float)$inv['quantity'] * (float)($inv['current_price'] ?? $inv['avg_price']);
+                                    /* Rentabilidade comentada
                                     $rowProfit     = $rowCurrent - $rowInvested;
                                     $rowProfitPerc = $rowInvested > 0 ? ($rowProfit / $rowInvested) * 100 : 0;
+                                    */
                                 ?>
                                     <tr>
                                         <td><strong><?= htmlspecialchars($inv['name'] ?? '-') ?></strong></td>
@@ -155,19 +148,19 @@ $categories        = $categories ?? ($data['categories'] ?? []);
                                         <td>R$ <?= number_format((float)$inv['avg_price'], 2, ',', '.') ?></td>
                                         <td>R$ <?= number_format((float)($inv['current_price'] ?? $inv['avg_price']), 2, ',', '.') ?></td>
                                         <td><strong>R$ <?= number_format((float)$rowCurrent, 2, ',', '.') ?></strong></td>
-                                        <td>
-                                            <span class="profit-badge <?= $rowProfit >= 0 ? 'positive' : 'negative' ?>">
-                                                <?= $rowProfit >= 0 ? '+' : '−' ?>R$
-                                                <?= number_format(abs((float)$rowProfit), 2, ',', '.') ?>
-                                                (<?= number_format((float)$rowProfitPerc, 2, ',', '.') ?>%)
+                                        <!-- <td>
+                                            <span class="profit-badge <?= isset($rowProfit) && $rowProfit >= 0 ? 'positive' : 'negative' ?>">
+                                                <?= isset($rowProfit) && $rowProfit >= 0 ? '+' : '-' ?>R$
+                                                <?= isset($rowProfit) ? number_format(abs((float)$rowProfit), 2, ',', '.') : '0,00' ?>
+                                                (<?= isset($rowProfitPerc) ? number_format((float)$rowProfitPerc, 2, ',', '.') : '0,00' ?>%)
                                             </span>
-                                        </td>
+                                        </td> -->
                                         <td>
                                             <div class="action-buttons">
-                                                <a class="btn-icon" href="/investimentos/edit/<?= (int)$inv['id'] ?>" title="Editar">
+                                                <a class="btn-icon" href="/investimentos/edit/<?= (int)$inv['id'] ?>" data-edit data-id="<?= (int)$inv['id'] ?>" title="Editar">
                                                     <i class="fa-regular fa-pen-to-square"></i>
                                                 </a>
-                                                <a class="btn-icon" href="/investimentos/delete/<?= (int)$inv['id'] ?>" data-delete title="Excluir">
+                                                <a class="btn-icon" href="/investimentos/delete/<?= (int)$inv['id'] ?>" data-delete data-id="<?= (int)$inv['id'] ?>" title="Excluir">
                                                     <i class="fa-regular fa-trash-can"></i>
                                                 </a>
                                             </div>
@@ -187,7 +180,6 @@ $categories        = $categories ?? ($data['categories'] ?? []);
     <?php include BASE_PATH . '/views/admin/partials/modals/modal_investimentos.php'; ?>
 <?php endif; ?>
 
-<!-- Gráfico (pizza) -->
 <script>
     (function() {
         const el = document.getElementById('categoryChart');
@@ -240,7 +232,145 @@ $categories        = $categories ?? ($data['categories'] ?? []);
     })();
 </script>
 
-<!-- SweetAlert2: toast para mensagens de sessão -->
+<script>
+    // Handlers em fase de captura para sobrescrever listeners antigos
+    const BASE_URL = '<?= BASE_URL ?>';
+    const cssVars = getComputedStyle(document.documentElement);
+    const ui = {
+        bg: (cssVars.getPropertyValue('--color-surface') || '#1c2c3c').trim(),
+        fg: (cssVars.getPropertyValue('--color-text') || '#ffffff').trim(),
+        ring: (cssVars.getPropertyValue('--ring') || 'rgba(230,126,34,.22)').trim(),
+        danger: (cssVars.getPropertyValue('--color-danger') || '#e74c3c').trim()
+    };
+
+    function toast(title, type = 'success') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: type,
+            title,
+            showConfirmButton: false,
+            timer: 2200,
+            timerProgressBar: true,
+            background: ui.bg,
+            color: ui.fg,
+            didOpen: (t) => {
+                t.addEventListener('mouseenter', Swal.stopTimer);
+                t.addEventListener('mouseleave', Swal.resumeTimer);
+                t.style.boxShadow = `0 0 0 2px ${ui.ring}`;
+                t.style.borderRadius = '12px';
+            }
+        });
+    }
+
+    let editingId = null;
+
+    // Editar: captura antes e impede handlers antigos
+    document.addEventListener('click', async (e) => {
+        const a = e.target.closest('a[data-edit]');
+        if (!a) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const id = a.dataset.id;
+        if (!id) return;
+        editingId = id;
+
+        try {
+            const res = await fetch(`${BASE_URL}api/investimentos/${id}`);
+            const json = await res.json();
+            if (!res.ok || json.error) throw new Error(json.message || 'Falha ao carregar investimento');
+            const d = json.data ?? json;
+
+            const form = document.getElementById('form-investimento');
+            form.action = `${BASE_URL}api/investimentos/${id}/update`;
+            form.method = 'POST';
+            document.getElementById('modalInvestimentosLabel').textContent = 'Editar Investimento';
+
+            document.getElementById('category_id').value = String(d.categoria_id || '');
+            document.getElementById('name').value = d.nome || '';
+            document.getElementById('ticker').value = d.ticker || '';
+            document.getElementById('quantity').value = (d.quantidade ?? '').toString();
+            document.getElementById('avg_price').value = (d.preco_medio ?? '').toString();
+            document.getElementById('current_price').value = (d.preco_atual ?? '').toString();
+            const notesEl = document.getElementById('notes');
+            if (notesEl) notesEl.value = d.observacoes || '';
+
+            const modalEl = document.getElementById('modal-investimentos');
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.show();
+
+            document.getElementById('avg_price').dispatchEvent(new Event('input'));
+        } catch (err) {
+            console.error(err);
+            toast('Falha ao carregar dados do investimento', 'error');
+        }
+    }, true);
+
+    // Reset ao fechar
+    document.getElementById('modal-investimentos')?.addEventListener('hidden.bs.modal', () => {
+        const form = document.getElementById('form-investimento');
+        form.reset();
+        form.action = `${BASE_URL}api/investimentos`;
+        form.method = 'POST';
+        document.getElementById('modalInvestimentosLabel').textContent = 'Novo Investimento';
+        editingId = null;
+    });
+
+    // Submit via fetch
+    document.getElementById('form-investimento')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const fd = new FormData(form);
+        const body = new URLSearchParams();
+        for (const [k, v] of fd.entries()) body.append(k, v);
+        try {
+            const res = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || json.error) throw new Error(json.message || 'Erro ao salvar');
+            toast(editingId ? 'Investimento atualizado!' : 'Investimento criado!');
+            setTimeout(() => window.location.reload(), 900);
+        } catch (err) {
+            console.error(err);
+            toast(err.message || 'Falha ao salvar', 'error');
+        }
+    });
+
+    // Excluir via fetch com captura
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('a[data-delete]');
+        if (!a) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const id = a.dataset.id;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Excluir investimento?',
+            text: 'Esta ação não poderá ser desfeita.',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: ui.danger,
+            background: ui.bg,
+            color: ui.fg
+        }).then(async (r) => {
+            if (!r.isConfirmed) return;
+            try {
+                const res = await fetch(`${BASE_URL}api/investimentos/${id}/delete`, { method: 'POST' });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.error) throw new Error(json.message || 'Erro ao excluir');
+                toast('Excluído com sucesso');
+                setTimeout(() => window.location.reload(), 900);
+            } catch (err) {
+                console.error(err);
+                toast(err.message || 'Falha ao excluir', 'error');
+            }
+        });
+    }, true);
+</script>
 <?php if (isset($_SESSION['message'])): ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -251,7 +381,6 @@ $categories        = $categories ?? ($data['categories'] ?? []);
                 warning: 'warning',
                 info: 'info'
             };
-
             const msg = <?= json_encode($_SESSION['message'], JSON_UNESCAPED_UNICODE) ?>;
             const type = <?= json_encode($_SESSION['message_type'] ?? 'info', JSON_UNESCAPED_UNICODE) ?>;
 
@@ -282,12 +411,10 @@ $categories        = $categories ?? ($data['categories'] ?? []);
     <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
 <?php endif; ?>
 
-<!-- SweetAlert2: confirmação de exclusão -->
 <script>
     document.addEventListener('click', (e) => {
         const a = e.target.closest('a[data-delete]');
         if (!a) return;
-
         e.preventDefault();
 
         const css = getComputedStyle(document.documentElement);
