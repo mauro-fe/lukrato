@@ -103,16 +103,16 @@
                             <label for="lanDescricao">Descrição</label>
                             <input type="text" id="lanDescricao" placeholder="Ex.: Mercado / Salário">
                         </div>
-                        <div class="lk-field">
+                        <div class="lk-field full">
                             <label for="lanValor">Valor</label>
                             <input type="text" id="lanValor" inputmode="decimal" placeholder="0,00" required>
                         </div>
-                        <div class="lk-field">
+                        <!-- <div class="lk-field">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="lanPago">
                                 <span class="checkbox-custom"></span> <span id="lanPagoLabel">Foi pago?</span>
                             </label>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="lk-modal-f">
                         <button type="button" class="btn btn-light" id="lancCancel">Cancelar</button>

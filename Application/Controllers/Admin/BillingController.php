@@ -12,6 +12,11 @@ class BillingController extends BaseController
     {
         $this->requireAuth();
         $user = Auth::user();
-        $this->render('admin/billing/index', ['user' => $user]);
+        $this->render(
+            'admin/billing/index',
+            ['user' => $user, 'pageTitle' => 'Assinar Pro', 'subTitle' => 'Assine o pro e tenha acesso a todas as funcionalidades'],
+            'admin/partials/header',
+            'admin/partials/footer',
+        );
     }
 }

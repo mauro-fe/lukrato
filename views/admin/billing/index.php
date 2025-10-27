@@ -646,6 +646,8 @@
         </div>
     </div>
 </div>
+<?php include __DIR__ . '/modal-pagamento.php'; ?>
+
 <?php if (isset($_GET['status'])): ?>
     <script>
         (function() {
@@ -707,13 +709,27 @@
             return false;
         }
 
+        // Util: pega init_point/sandbox_init_point em qualquer formato
+        function pickInitPoint(j) {
+            const cands = [
+                j?.init_point,
+                j?.sandbox_init_point,
+                j?.body?.init_point,
+                j?.body?.sandbox_init_point,
+                j?.data?.init_point,
+                j?.data?.sandbox_init_point,
+                j?.result?.init_point,
+                j?.result?.sandbox_init_point,
+            ];
+            return cands.find(Boolean) || null;
+        }
+
         btn?.addEventListener('click', async () => {
             setMsg('');
             btn.disabled = true;
             btn.textContent = 'Redirecionando...';
 
             try {
-                // ✅ define a variável resp aqui
                 const resp = await fetch(`${base}api/mercadopago/checkout`, {
                     method: 'POST',
                     headers: {
@@ -727,28 +743,26 @@
 
                 const json = await resp.json().catch(() => ({}));
 
-                if (!resp.ok || json?.status !== 'success') {
+                if (!resp.ok || (json?.status && json?.status !== 'success')) {
                     throw new Error(json?.message || `Erro ${resp.status}`);
                 }
 
-                // procura o link nas duas formas possíveis
-                const initPoint = json?.body?.init_point || json?.init_point;
+                const initPoint = pickInitPoint(json);
                 if (!initPoint) {
                     setMsg('Link de checkout não retornado.', 'error');
-                    console.warn('Resposta do checkout:', json);
+                    console.warn('Resposta do checkout (debug):', json);
                     return;
                 }
 
-                // opcional: feedback antes de sair
+                // opcional: feedback
                 if (typeof Swal !== 'undefined' && Swal.fire) {
                     await Swal.fire({
-                        title: 'Indo para o pagamento...',
-                        timer: 600,
+                        title: 'Indo para o pagamento…',
+                        timer: 500,
                         showConfirmButton: false
                     });
                 }
 
-                // 🚀 redireciona para o checkout do MP
                 window.location.href = initPoint;
 
             } catch (e) {
@@ -759,5 +773,6 @@
                 btn.textContent = 'Assinar Pro';
             }
         });
+
     })();
 </script>

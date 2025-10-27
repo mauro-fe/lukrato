@@ -10,7 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // redireciona para /billing
         const goToBilling = () => {
-            location.href = `${base}billing`;
+            if (typeof openBillingModal === 'function') {
+                openBillingModal();
+            } else {
+                location.href = `${base}billing`;
+            }
         };
 
         // 403: proibido -> mostra “Assinar” + “OK”
