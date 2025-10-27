@@ -9,29 +9,36 @@ use Application\Models\CategoriaInvestimento;
 class InvestimentosController extends BaseController
 {
     /**
-     * Dashboard de Investimentos (cards + gráfico + lista + modal)
+     * Página de Investimentos (cards + gráfico + lista + modal)
      */
     public function index(): void
     {
         $this->requireAuth();
-        $userId = $this->userId;
 
-        // 1) Carrega investimentos do usuário (com categoria)
-        $models = Investimento::with('categoria')
-            ->where('user_id', $userId)                 // troque para 'usuario_id' se necessário
-            ->orderBy('nome', 'asc')
-            ->get();
+        // ID do usuário logado (robusto)
+        $userId = $this->userId ?? ($_SESSION['usuario_id'] ?? $_SESSION['user']['id'] ?? $_SESSION['auth']['id'] ?? null);
 
-        // 2) Converte para o formato que a view usa na tabela
+        // Consulta base
+        $q = Investimento::with('categoria')->orderBy('nome', 'asc');
+
+        // Filtra por usuário se houver id (evita WHERE user_id = NULL)
+        if ($userId !== null) {
+            $q->where('user_id', (int)$userId);
+        }
+
+        $models = $q->get();
+
+        // Monta dados para a view
         $investments   = [];
         $totalInvested = 0.0;
         $currentValue  = 0.0;
 
         foreach ($models as $m) {
-            $qty   = (float)($m->quantidade ?? 0);
-            $pm    = (float)($m->preco_medio ?? 0);
-            $pnow  = (float)($m->preco_atual ?? 0);
-            $cat   = $m->categoria;
+            $qty  = (float)($m->quantidade ?? 0);
+            $pm   = (float)($m->preco_medio ?? 0);
+            // usa preco_atual quando existir; senão, usa pm para os cards/gráfico
+            $pnow = $m->preco_atual !== null ? (float)$m->preco_atual : $pm;
+            $cat  = $m->categoria;
 
             $investments[] = [
                 'id'            => (int)$m->id,
@@ -39,7 +46,7 @@ class InvestimentosController extends BaseController
                 'ticker'        => $m->ticker ?: null,
                 'quantity'      => $qty,
                 'avg_price'     => $pm,
-                'current_price' => $m->preco_atual !== null ? $pnow : null,
+                'current_price' => $m->preco_atual !== null ? (float)$m->preco_atual : null, // null para a tabela
                 'category_name' => $cat?->nome ?? '—',
                 'color'         => $cat?->cor  ?? '#6c757d',
             ];
@@ -48,11 +55,10 @@ class InvestimentosController extends BaseController
             $currentValue  += $qty * $pnow;
         }
 
-        // 3) Cards
         $profit           = $currentValue - $totalInvested;
         $profitPercentage = $totalInvested > 0 ? (($profit / $totalInvested) * 100) : 0.0;
 
-        // 4) Dados do gráfico (pizza) — soma valor atual por categoria
+        // Gráfico (pizza): soma por categoria usando current_price || avg_price
         $by = [];
         foreach ($investments as $i) {
             $cat   = $i['category_name'];
@@ -63,19 +69,18 @@ class InvestimentosController extends BaseController
             }
             $by[$cat]['value'] += $val;
         }
-        $statsByCategory = array_values($by); // array de ['category','value','color']
+        $statsByCategory = array_values($by);
 
-        // 5) Categorias para o modal (select)
+        // Select de categorias no modal
         $categories = CategoriaInvestimento::orderBy('nome', 'asc')
             ->get(['id', 'nome'])
             ->map(fn($c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])
             ->toArray();
 
-        // 6) Títulos da página
+        // Títulos
         $pageTitle = 'Investimentos';
         $subTitle  = 'Gerencie seus investimentos';
 
-        // 7) Pacote de dados para a view
         $data = compact(
             'pageTitle',
             'subTitle',
@@ -88,30 +93,7 @@ class InvestimentosController extends BaseController
             'categories'
         );
 
-        // 8) Render com seu header/footer padrão
-        $this->render(
-            'admin/investimentos/index',
-            $data,
-            'admin/partials/header',
-            'admin/partials/footer'
-        );
-    }
-
-    /**
-     * (Opcional) Página separada para criação
-     * Mantive para compatibilidade caso você use rota /investimentos/novo
-     */
-    public function archived(): void
-    {
-        $this->requireAuth();
-
-        // se quiser uma página separada, renderize o form aqui;
-        // como estamos usando modal, pode só redirecionar pra index.
-        $this->render(
-            'admin/investimentos/index',
-            ['pageTitle' => 'Investimentos', 'subTitle' => 'Gerencie seus investimentos'],
-            'admin/partials/header',
-            'admin/partials/footer'
-        );
+        // Render
+        $this->render('admin/investimentos/index', $data, 'admin/partials/header', 'admin/partials/footer');
     }
 }

@@ -1,170 +1,7 @@
 <?php
 
 /** @var array $categories */ ?>
-<style>
-    .modal-investimentos .modal-content {
-        background: var(--color-surface) !important;
-        color: var(--color-text);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--shadow-lg);
-        font-family: var(--font-primary);
-    }
 
-    .modal-investimentos .modal-header,
-    .modal-investimentos .modal-footer {
-        border: 0;
-        background: transparent;
-        color: var(--color-text);
-    }
-
-    .modal-investimentos .modal-title {
-        font-size: var(--font-size-lg);
-        font-weight: 600;
-        color: var(--color-primary);
-    }
-
-    /* Botões */
-    .modal-investimentos .btn {
-        border-radius: var(--radius-sm);
-        font-size: var(--font-size-sm);
-        transition: var(--transition-fast);
-    }
-
-    .modal-investimentos .btn-outline-light,
-    .modal-investimentos .btn-secondary {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        color: var(--color-text);
-    }
-
-    .modal-investimentos .btn-outline-light:hover,
-    .modal-investimentos .btn-secondary:hover {
-        background-color: var(--color-bg);
-        color: #fff;
-        border-color: var(--color-primary);
-        transform: translateY(-2px);
-    }
-
-    /* Grade de meses */
-    .modal-investimentos #mpGrid .btn {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        color: var(--color-text);
-    }
-
-    .modal-investimentos #mpGrid .btn:hover {
-        background-color: var(--color-bg);
-        color: #fff;
-        border-color: var(--color-primary);
-        transform: translateY(-2px);
-    }
-
-    .modal-investimentos #mpGrid .btn.active {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
-        color: var(--color-primary) !important;
-        box-shadow: 0 0 0 2px var(--ring);
-    }
-
-    /* Input month */
-    .modal-investimentos input[type="month"] {
-        background: var(--color-surface-muted);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-sm);
-        color: var(--color-text);
-    }
-
-    .modal-investimentos input[type="month"]:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--ring);
-        color: var(--color-primary) !important;
-    }
-
-    .modal-investimentos .modal-content {
-        background: var(--color-surface) !important;
-        color: var(--color-text);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--shadow-lg);
-        font-family: var(--font-primary);
-    }
-
-    .modal-investimentos .modal-header,
-    .modal-investimentos .modal-footer {
-        border: 0;
-        background: transparent;
-        color: var(--color-text);
-    }
-
-    .modal-investimentos .modal-title {
-        font-size: var(--font-size-lg);
-        font-weight: 600;
-        color: var(--color-primary);
-    }
-
-    /* Botões */
-    .modal-investimentos .btn {
-        border-radius: var(--radius-sm);
-        font-size: var(--font-size-sm);
-        transition: var(--transition-fast);
-    }
-
-    .modal-investimentos .btn-outline-secondary,
-    .modal-investimentos .btn-outline-light {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        color: var(--color-text);
-    }
-
-    .modal-investimentos .btn-outline-secondary:hover,
-    .modal-investimentos .btn-outline-light:hover {
-        background-color: var(--color-bg);
-        color: #fff;
-        border-color: var(--color-primary);
-        transform: translateY(-2px);
-    }
-
-    .modal-investimentos .btn-primary {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
-        color: var(--branco);
-    }
-
-    .modal-investimentos .btn-primary:hover {
-        filter: brightness(1.1);
-    }
-
-    /* Inputs e selects */
-    .modal-investimentos .form-label {
-        color: var(--color-text);
-        font-size: var(--font-size-sm);
-        margin-bottom: 0.25rem;
-    }
-
-    .modal-investimentos .form-control,
-    .modal-investimentos .form-select {
-        background: var(--color-surface-muted);
-        color: var(--color-text);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-sm);
-        font-size: var(--font-size-sm);
-        padding: var(--spacing-3);
-    }
-
-    .modal-investimentos .form-control::placeholder {
-        color: color-mix(in srgb, var(--color-text) 60%, transparent);
-    }
-
-    .modal-investimentos .form-control:focus,
-    .modal-investimentos .form-select:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--ring);
-        color: var(--color-text) !important;
-    }
-</style>
 <!-- Modal: Novo Investimento (Bootstrap 5) -->
 <div class="modal fade" id="modal-investimentos" tabindex="-1" aria-labelledby="modalInvestimentosLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -178,7 +15,7 @@
 
             <!-- Body -->
             <div class="modal-body">
-                <form action="/api/investimentos" method="POST" class="investment-form" id="form-investimento">
+                <form action="<?= BASE_URL ?>api/investimentos" method="POST" class="investment-form" id="form-investimento">
                     <!-- Linha 1 -->
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -244,7 +81,7 @@
                     </div>
 
                     <!-- Observações -->
-                    <div class="mt-3">
+                    <div class="mt-3" style="display:none">
                         <label for="notes" class="form-label">Observações</label>
                         <textarea name="observacoes" id="notes" class="form-control" rows="4" placeholder="Adicione observações..."></textarea>
                     </div>

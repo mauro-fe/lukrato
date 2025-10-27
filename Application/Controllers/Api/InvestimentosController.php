@@ -12,20 +12,38 @@ use Application\Services\LogService;
 use Exception;
 use GUMP;
 
-/**
- * API de Investimentos (Lukrato)
- *
- * Observações:
- * - Usa triggers do banco para validar venda e recalcular posição/PM.
- * - Campos calculados de resposta: valor_investido, valor_atual, lucro, rentabilidade.
- */
 class InvestimentosController extends BaseController
 {
-    /** Lista investimentos do usuário (filtros opcionais) */
+    /** Resolve o ID do usuário logado de forma robusta (propriedade + fallbacks de sessão). */
+    private function resolveUserId(): ?int
+    {
+        $id = $this->userId
+            ?? ($_SESSION['user']['id'] ?? null)
+            ?? ($_SESSION['auth']['id'] ?? null)
+            ?? ($_SESSION['usuario_id'] ?? null);
+
+        return $id !== null ? (int)$id : null;
+    }
+
+    /** Normaliza números com vírgula para ponto antes das validações/conversões. */
+    private function normalizeNumerics(array &$data, array $keys): void
+    {
+        foreach ($keys as $k) {
+            if (array_key_exists($k, $data) && $data[$k] !== null && $data[$k] !== '') {
+                $data[$k] = str_replace(',', '.', (string)$data[$k]);
+            }
+        }
+    }
+
     public function index(): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
             $q           = trim((string)$this->request->get('q', ''));
             $categoriaId = (int)$this->request->get('categoria_id', 0);
@@ -35,12 +53,14 @@ class InvestimentosController extends BaseController
                 ? $this->request->get('order') : 'nome';
             $dir         = strtolower($this->request->get('dir')) === 'desc' ? 'desc' : 'asc';
 
-            $query = Investimento::where('usuario_id', $this->userId);
+            $query = Investimento::where('user_id', $uid);
 
-            if ($q !== '') $query->where(function ($w) use ($q) {
-                $w->where('nome', 'like', "%{$q}%")
-                    ->orWhere('ticker', 'like', "%{$q}%");
-            });
+            if ($q !== '') {
+                $query->where(function ($w) use ($q) {
+                    $w->where('nome', 'like', "%{$q}%")
+                        ->orWhere('ticker', 'like', "%{$q}%");
+                });
+            }
             if ($categoriaId > 0) $query->where('categoria_id', $categoriaId);
             if ($contaId > 0)     $query->where('conta_id', $contaId);
             if ($ticker !== '')   $query->where('ticker', $ticker);
@@ -54,7 +74,7 @@ class InvestimentosController extends BaseController
                     'id'              => (int)$i->id,
                     'categoria_id'    => (int)$i->categoria_id,
                     'conta_id'        => $i->conta_id ? (int)$i->conta_id : null,
-                    'nome'            => $i->nome,
+                    'nome'            => (string)$i->nome,
                     'ticker'          => $i->ticker,
                     'quantidade'      => (float)$i->quantidade,
                     'preco_medio'     => (float)$i->preco_medio,
@@ -70,22 +90,26 @@ class InvestimentosController extends BaseController
             Response::success(['data' => $items]);
         } catch (Exception $e) {
             LogService::error('Falha ao listar investimentos', [
-                'user_id' => $this->userId ?? null,
+                'user_id'   => $this->resolveUserId(),
                 'exception' => $e->getMessage(),
             ]);
             Response::error('Falha ao listar investimentos', 500);
         }
     }
 
-    /** Detalhe de um investimento */
     public function show(int $id): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $i = Investimento::where('usuario_id', $this->userId)->find($id);
+            $i = Investimento::where('user_id', $uid)->find($id);
             if (!$i) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
@@ -98,7 +122,7 @@ class InvestimentosController extends BaseController
                 'id'              => (int)$i->id,
                 'categoria_id'    => (int)$i->categoria_id,
                 'conta_id'        => $i->conta_id ? (int)$i->conta_id : null,
-                'nome'            => $i->nome,
+                'nome'            => (string)$i->nome,
                 'ticker'          => $i->ticker,
                 'quantidade'      => (float)$i->quantidade,
                 'preco_medio'     => (float)$i->preco_medio,
@@ -112,19 +136,29 @@ class InvestimentosController extends BaseController
             ]);
         } catch (Exception $e) {
             LogService::error('Falha ao buscar investimento', [
-                'user_id' => $this->userId ?? null,
-                'id' => $id,
+                'user_id'   => $this->resolveUserId(),
+                'id'        => $id,
                 'exception' => $e->getMessage(),
             ]);
             Response::error('Falha ao buscar investimento', 500);
         }
     }
 
-    /** Cria um investimento */
     public function store(): void
     {
+        error_log("[DEBUG] Entrou no store() de investimentos");
+
         try {
             $this->requireAuth();
+            $userId = $this->resolveUserId();
+            error_log("[DEBUG] userId resolvido: " . var_export($userId, true));
+
+            if ($userId === null) {
+                $_SESSION['message'] = 'Sessao expirada. Faça login novamente.';
+                $_SESSION['message_type'] = 'danger';
+                Response::redirectTo(BASE_URL . 'investimentos');
+                return;
+            }
 
             $gump = new GUMP();
             $data = [
@@ -132,163 +166,246 @@ class InvestimentosController extends BaseController
                 'conta_id'     => $this->request->post('conta_id'),
                 'nome'         => $this->request->post('nome'),
                 'ticker'       => $this->request->post('ticker'),
+                'quantidade'   => $this->request->post('quantidade'),
+                'preco_medio'  => $this->request->post('preco_medio'),
                 'preco_atual'  => $this->request->post('preco_atual'),
+                'data_compra'  => $this->request->post('data_compra'),
                 'observacoes'  => $this->request->post('observacoes'),
             ];
+            // aceita números com vírgula
+            $this->normalizeNumerics($data, ['quantidade', 'preco_medio', 'preco_atual']);
+
             $gump->validation_rules([
                 'categoria_id' => 'required|integer|min_numeric,1',
                 'conta_id'     => 'integer',
                 'nome'         => 'required|min_len,2|max_len,200',
                 'ticker'       => 'max_len,20',
+                'quantidade'   => 'required|numeric|min_numeric,0.0001',
+                'preco_medio'  => 'required|numeric|min_numeric,0',
                 'preco_atual'  => 'numeric',
+                'data_compra'  => 'date',
             ]);
             $gump->filter_rules([
                 'nome'        => 'trim|sanitize_string',
-                'ticker'      => 'trim|upper',
+                'ticker'      => 'trim|sanitize_string',
+                'quantidade'  => 'trim',
+                'preco_medio' => 'trim',
+                'preco_atual' => 'trim',
                 'observacoes' => 'trim',
             ]);
             $data = $gump->run($data);
+            // Detecta submissão de formulário HTML para decidir entre redirect e JSON
+            $ct = strtolower($this->request->contentType() ?? '');
+            $isFormSubmit = (strpos($ct, 'application/x-www-form-urlencoded') !== false)
+                || (strpos($ct, 'multipart/form-data') !== false);
             if ($data === false) {
+                if ($isFormSubmit && !$this->request->isAjax()) {
+                    $_SESSION['message'] = 'Falha de validacao ao criar investimento.';
+                    $_SESSION['message_type'] = 'danger';
+                    Response::redirectTo(BASE_URL . 'investimentos');
+                    return;
+                }
                 Response::validationError($gump->get_errors_array());
                 return;
             }
 
             $inv = new Investimento();
-            $inv->usuario_id   = $this->userId;
+            $inv->user_id      = $userId; // ESSENCIAL
             $inv->categoria_id = (int)$data['categoria_id'];
             $inv->conta_id     = !empty($data['conta_id']) ? (int)$data['conta_id'] : null;
-            $inv->nome         = $data['nome'];
-            $inv->ticker       = $data['ticker'] ?: null;
-            $inv->preco_atual  = $data['preco_atual'] !== '' ? (float)$data['preco_atual'] : null;
+            $inv->nome         = (string)$data['nome'];
+            $inv->ticker       = $data['ticker'] ? strtoupper($data['ticker']) : null;
+            $inv->quantidade   = isset($data['quantidade']) ? (float)$data['quantidade'] : 0.0;
+            $inv->preco_medio  = isset($data['preco_medio']) ? (float)$data['preco_medio'] : 0.0;
+            $inv->preco_atual  = ($data['preco_atual'] !== '' && $data['preco_atual'] !== null) ? (float)$data['preco_atual'] : null;
+            $inv->data_compra  = !empty($data['data_compra']) ? $data['data_compra'] : null;
+            $inv->observacoes  = $data['observacoes'] ?: null;
             $inv->save();
+
+            if ($isFormSubmit && !$this->request->isAjax()) {
+                $_SESSION['message'] = 'Investimento criado com sucesso!';
+                $_SESSION['message_type'] = 'success';
+                Response::redirectTo(BASE_URL . 'investimentos');
+                return;
+            }
 
             Response::success(['message' => 'Investimento criado com sucesso', 'id' => (int)$inv->id], 201);
         } catch (Exception $e) {
+            error_log('[ERROR INVESTIMENTOS STORE] ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
             LogService::error('Falha ao criar investimento', [
-                'user_id' => $this->userId ?? null,
-                'payload' => $this->request->all(),
+                'user_id'   => $this->resolveUserId(),
+                'payload'   => $this->request->all(),
                 'exception' => $e->getMessage(),
             ]);
+            if ($isFormSubmit && !$this->request->isAjax()) {
+                $_SESSION['message'] = 'Erro ao criar investimento.';
+                $_SESSION['message_type'] = 'danger';
+                Response::redirectTo(BASE_URL . 'investimentos');
+                return;
+            }
             Response::error('Falha ao criar investimento', 500);
         }
     }
 
-    /** Atualiza um investimento */
-    public function update(int $id): void
+    public function update($routeParam = null): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $inv = Investimento::where('usuario_id', $this->userId)->find($id);
+            $id = 0;
+            if (is_array($routeParam) && isset($routeParam['id'])) {
+                $id = (int)$routeParam['id'];
+            } elseif (is_numeric($routeParam)) {
+                $id = (int)$routeParam;
+            }
+            if ($id <= 0) {
+                Response::validationError(['id' => 'ID invalido']);
+                return;
+            }
+
+            $inv = Investimento::where('user_id', $uid)->find($id);
             if (!$inv) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
             $gump = new GUMP();
-            $data = [
-                'categoria_id' => $this->request->post('categoria_id'),
-                'conta_id'     => $this->request->post('conta_id'),
-                'nome'         => $this->request->post('nome'),
-                'ticker'       => $this->request->post('ticker'),
-                'preco_atual'  => $this->request->post('preco_atual'),
-                'observacoes'  => $this->request->post('observacoes'),
-            ];
+            $payload = $this->request->post();
+
+            // normaliza vírgulas
+            $this->normalizeNumerics($payload, ['quantidade', 'preco_medio', 'preco_atual']);
+
             $gump->validation_rules([
-                'categoria_id' => 'required|integer|min_numeric,1',
+                'categoria_id' => 'integer|min_numeric,1',
                 'conta_id'     => 'integer',
-                'nome'         => 'required|min_len,2|max_len,200',
+                'nome'         => 'min_len,2|max_len,200',
                 'ticker'       => 'max_len,20',
+                'quantidade'   => 'numeric|min_numeric,0',
+                'preco_medio'  => 'numeric|min_numeric,0',
                 'preco_atual'  => 'numeric',
+                'data_compra'  => 'date',
             ]);
             $gump->filter_rules([
                 'nome'        => 'trim|sanitize_string',
-                'ticker'      => 'trim|upper',
+                'ticker'      => 'trim|sanitize_string',
                 'observacoes' => 'trim',
             ]);
-            $data = $gump->run($data);
+            $data = $gump->run($payload ?? []);
             if ($data === false) {
                 Response::validationError($gump->get_errors_array());
                 return;
             }
 
-            $inv->categoria_id = (int)$data['categoria_id'];
-            $inv->conta_id     = !empty($data['conta_id']) ? (int)$data['conta_id'] : null;
-            $inv->nome         = $data['nome'];
-            $inv->ticker       = $data['ticker'] ?: null;
-            $inv->preco_atual  = $data['preco_atual'] !== '' ? (float)$data['preco_atual'] : null;
-            $inv->observacoes  = $data['observacoes'] ?: null;
-            $inv->save();
+            foreach (['categoria_id', 'conta_id', 'nome', 'ticker', 'observacoes'] as $f) {
+                if (array_key_exists($f, $data)) $inv->{$f} = $data[$f] !== '' ? $data[$f] : null;
+            }
+            foreach (['quantidade', 'preco_medio', 'preco_atual'] as $f) {
+                if (array_key_exists($f, $data)) $inv->{$f} = $data[$f] !== '' ? (float)$data[$f] : null;
+            }
+            if (array_key_exists('data_compra', $data)) $inv->data_compra = $data['data_compra'] ?: null;
 
+            $inv->save();
             Response::success(['message' => 'Investimento atualizado com sucesso']);
         } catch (Exception $e) {
             LogService::error('Falha ao atualizar investimento', [
-                'user_id' => $this->userId ?? null,
-                'id' => $id,
-                'payload' => $this->request->all(),
+                'user_id'   => $this->resolveUserId(),
+                'payload'   => $this->request->all(),
                 'exception' => $e->getMessage(),
             ]);
             Response::error('Falha ao atualizar investimento', 500);
         }
     }
 
-    /** Exclui um investimento (cascata apaga transações/proventos) */
-    public function destroy(int $id): void
+    public function destroy($routeParam = null): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $inv = Investimento::where('usuario_id', $this->userId)->find($id);
+            $id = 0;
+            if (is_array($routeParam) && isset($routeParam['id'])) {
+                $id = (int)$routeParam['id'];
+            } elseif (is_numeric($routeParam)) {
+                $id = (int)$routeParam;
+            }
+            if ($id <= 0) {
+                Response::validationError(['id' => 'ID invalido']);
+                return;
+            }
+
+            $inv = Investimento::where('user_id', $uid)->find($id);
             if (!$inv) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
             $inv->delete();
-            Response::success(['message' => 'Investimento excluído com sucesso']);
+            Response::success(['message' => 'Investimento excluido com sucesso']);
         } catch (Exception $e) {
             LogService::error('Falha ao excluir investimento', [
-                'user_id' => $this->userId ?? null,
-                'id' => $id,
+                'user_id'   => $this->resolveUserId(),
+                'payload'   => $this->request->all(),
                 'exception' => $e->getMessage(),
             ]);
             Response::error('Falha ao excluir investimento', 500);
         }
     }
 
-    /** Atualiza somente o preço atual */
-    public function atualizarPreco(int $id): void
+    public function atualizarPreco($routeParam = null): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
+
+            $id = 0;
+            if (is_array($routeParam) && isset($routeParam['id'])) $id = (int)$routeParam['id'];
+            elseif (is_numeric($routeParam))                        $id = (int)$routeParam;
+            if ($id <= 0) {
+                Response::validationError(['id' => 'ID invalido']);
+                return;
+            }
+
+            $inv = Investimento::where('user_id', $uid)->find($id);
+            if (!$inv) {
+                Response::error('Investimento nao encontrado', 404);
+                return;
+            }
 
             $preco = $this->request->post('preco_atual');
             if ($preco === null || $preco === '') {
-                Response::validationError(['preco_atual' => 'Informe o preço atual']);
+                Response::validationError(['preco_atual' => 'Informe o preco_atual']);
                 return;
             }
 
-            $inv = Investimento::where('usuario_id', $this->userId)->find($id);
-            if (!$inv) {
-                Response::error('Investimento não encontrado', 404);
-                return;
-            }
-
-            $inv->preco_atual = (float)$preco; // trigger de auditoria registra mudança
+            $preco = (float)str_replace(',', '.', (string)$preco);
+            $inv->preco_atual = $preco;
             $inv->save();
 
-            Response::success(['message' => 'Preço atualizado com sucesso']);
+            Response::success(['message' => 'Preco atualizado com sucesso']);
         } catch (Exception $e) {
-            LogService::error('Falha ao atualizar preço de investimento', [
-                'user_id' => $this->userId ?? null,
-                'id' => $id,
+            LogService::error('Falha ao atualizar preco de investimento', [
+                'user_id'   => $this->resolveUserId(),
+                'payload'   => $this->request->all(),
                 'exception' => $e->getMessage(),
             ]);
-            Response::error('Falha ao atualizar preço', 500);
+            Response::error('Falha ao atualizar preco', 500);
         }
     }
 
-    /** Lista categorias */
     public function categorias(): void
     {
         try {
@@ -296,24 +413,27 @@ class InvestimentosController extends BaseController
             $cats = CategoriaInvestimento::orderBy('nome', 'asc')->get();
             Response::success($cats);
         } catch (Exception $e) {
-            LogService::error('Falha ao listar categorias de investimento', [
-                'user_id' => $this->userId ?? null,
+            LogService::error('Falha ao listar categorias investimento', [
+                'user_id'   => $this->resolveUserId(),
                 'exception' => $e->getMessage(),
             ]);
             Response::error('Falha ao listar categorias', 500);
         }
     }
 
-    /** Lista transações do investimento */
     public function transacoes(int $investimentoId): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            // segurança: investimento deve ser do usuário
-            $exists = Investimento::where('usuario_id', $this->userId)->find($investimentoId);
+            $exists = Investimento::where('user_id', $uid)->find($investimentoId);
             if (!$exists) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
@@ -324,24 +444,28 @@ class InvestimentosController extends BaseController
 
             Response::success($tx);
         } catch (Exception $e) {
-            LogService::error('Falha ao listar transações de investimento', [
-                'user_id' => $this->userId ?? null,
+            LogService::error('Falha ao listar transacoes de investimento', [
+                'user_id'        => $this->resolveUserId(),
                 'investimento_id' => $investimentoId,
-                'exception' => $e->getMessage(),
+                'exception'      => $e->getMessage(),
             ]);
-            Response::error('Falha ao listar transações', 500);
+            Response::error('Falha ao listar transacoes', 500);
         }
     }
 
-    /** Cria transação (compra/venda) */
     public function criarTransacao(int $investimentoId): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $inv = Investimento::where('usuario_id', $this->userId)->find($investimentoId);
+            $inv = Investimento::where('user_id', $uid)->find($investimentoId);
             if (!$inv) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
@@ -354,6 +478,8 @@ class InvestimentosController extends BaseController
                 'data_transacao' => $this->request->post('data_transacao'),
                 'observacoes'    => $this->request->post('observacoes'),
             ];
+            $this->normalizeNumerics($data, ['quantidade', 'preco', 'taxas']);
+
             $gump->validation_rules([
                 'tipo'           => 'required|contains_list,compra;venda',
                 'quantidade'     => 'required|numeric|min_numeric,0.0001',
@@ -379,33 +505,36 @@ class InvestimentosController extends BaseController
             $tx->taxas           = isset($data['taxas']) && $data['taxas'] !== '' ? (float)$data['taxas'] : 0.0;
             $tx->data_transacao  = $data['data_transacao'];
             $tx->observacoes     = $data['observacoes'] ?: null;
-            $tx->save(); // triggers do BD validam/atualizam posição
+            $tx->save();
 
-            Response::success(['message' => 'Transação registrada com sucesso', 'id' => (int)$tx->id], 201);
+            Response::success(['message' => 'Transacao registrada com sucesso', 'id' => (int)$tx->id], 201);
         } catch (Exception $e) {
-            LogService::error('Falha ao criar transação de investimento', [
-                'user_id' => $this->userId ?? null,
+            LogService::error('Falha ao criar transacao de investimento', [
+                'user_id'        => $this->resolveUserId(),
                 'investimento_id' => $investimentoId,
-                'payload' => $this->request->all(),
-                'exception' => $e->getMessage(),
+                'payload'        => $this->request->all(),
+                'exception'      => $e->getMessage(),
             ]);
-            // se vier erro de trigger (SQLSTATE '45000'), propagar mensagem amigável
-            $msg = stripos($e->getMessage(), 'Quantidade indisponível') !== false
-                ? 'Quantidade indisponível para venda'
-                : 'Falha ao registrar transação';
+            $msg = stripos($e->getMessage(), 'Quantidade indispon') !== false
+                ? 'Quantidade indisponivel para venda'
+                : 'Falha ao registrar transacao';
             Response::error($msg, 422);
         }
     }
 
-    /** Lista proventos do investimento */
     public function proventos(int $investimentoId): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $exists = Investimento::where('usuario_id', $this->userId)->find($investimentoId);
+            $exists = Investimento::where('user_id', $uid)->find($investimentoId);
             if (!$exists) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
@@ -417,23 +546,27 @@ class InvestimentosController extends BaseController
             Response::success($items);
         } catch (Exception $e) {
             LogService::error('Falha ao listar proventos', [
-                'user_id' => $this->userId ?? null,
+                'user_id'        => $this->resolveUserId(),
                 'investimento_id' => $investimentoId,
-                'exception' => $e->getMessage(),
+                'exception'      => $e->getMessage(),
             ]);
             Response::error('Falha ao listar proventos', 500);
         }
     }
 
-    /** Cria provento (dividendo/JCP/rendimento) */
     public function criarProvento(int $investimentoId): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $inv = Investimento::where('usuario_id', $this->userId)->find($investimentoId);
+            $inv = Investimento::where('user_id', $uid)->find($investimentoId);
             if (!$inv) {
-                Response::error('Investimento não encontrado', 404);
+                Response::error('Investimento nao encontrado', 404);
                 return;
             }
 
@@ -444,6 +577,8 @@ class InvestimentosController extends BaseController
                 'data_pagamento' => $this->request->post('data_pagamento'),
                 'observacoes'    => $this->request->post('observacoes'),
             ];
+            $this->normalizeNumerics($data, ['valor']);
+
             $gump->validation_rules([
                 'valor'          => 'required|numeric|min_numeric,0.01',
                 'tipo'           => 'required|contains_list,dividendo;jcp;rendimento',
@@ -470,22 +605,26 @@ class InvestimentosController extends BaseController
             Response::success(['message' => 'Provento registrado com sucesso', 'id' => (int)$p->id], 201);
         } catch (Exception $e) {
             LogService::error('Falha ao criar provento', [
-                'user_id' => $this->userId ?? null,
+                'user_id'        => $this->resolveUserId(),
                 'investimento_id' => $investimentoId,
-                'payload' => $this->request->all(),
-                'exception' => $e->getMessage(),
+                'payload'        => $this->request->all(),
+                'exception'      => $e->getMessage(),
             ]);
             Response::error('Falha ao registrar provento', 500);
         }
     }
 
-    /** Estatísticas rápidas para cards do dashboard */
     public function stats(): void
     {
         try {
             $this->requireAuth();
+            $uid = $this->resolveUserId();
+            if ($uid === null) {
+                Response::error('Sessao expirada', 401);
+                return;
+            }
 
-            $itens = Investimento::where('usuario_id', $this->userId)->get();
+            $itens = Investimento::where('user_id', $uid)->get();
             $totInvestido = 0.0;
             $totAtual     = 0.0;
 
@@ -498,18 +637,18 @@ class InvestimentosController extends BaseController
             $rent  = $totInvestido > 0 ? round(($lucro / $totInvestido) * 100, 2) : 0.0;
 
             Response::success([
-                'total_investido' => round($totInvestido, 2),
-                'valor_atual'     => round($totAtual, 2),
-                'lucro'           => round($lucro, 2),
-                'rentabilidade'   => $rent,
+                'total_investido'  => round($totInvestido, 2),
+                'valor_atual'      => round($totAtual, 2),
+                'lucro'            => round($lucro, 2),
+                'rentabilidade'    => $rent,
                 'quantidade_itens' => (int)$itens->count(),
             ]);
         } catch (Exception $e) {
-            LogService::error('Falha ao calcular stats de investimentos', [
-                'user_id' => $this->userId ?? null,
+            LogService::error('Falha ao calcular stats investimentos', [
+                'user_id'   => $this->resolveUserId(),
                 'exception' => $e->getMessage(),
             ]);
-            Response::error('Falha ao calcular estatísticas', 500);
+            Response::error('Falha ao calcular estatisticas', 500);
         }
     }
 }

@@ -9,9 +9,9 @@
         <div class="row">
             <div class="col-8 mx-auto text-center mt-1">
                 <span>&copy; 2025 Lukrato -</span>
-                <span>Desenvolvido por <a href="https://github.com/mauro-fe" target="_blank" rel="noopener">Mauro
+                <span>Desenvolvido por <a href="https://www.linkedin.com/in/mauro-felix-846a08268/" target="_blank" rel="noopener">Mauro
                         Felix</a></span>
-                <span> & <a href="https://github.com/Joseph-0505" target="_blank" rel="noopener"> Joseph
+                <span> & <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank" rel="noopener"> José
                         Victor</a></span>
             </div>
         </div>
