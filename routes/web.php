@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Application\Core\Router;
 
@@ -103,7 +103,7 @@ function registerApiRoutes(): void
     Router::add('GET',   '/api/accounts',               'Api\\ContasController@index',   ['auth']);
     Router::add('POST',  '/api/accounts',               'Api\\ContasController@store',   ['auth', 'csrf']);
     Router::add('PUT',   '/api/accounts/{id}',          'Api\\ContasController@update',  ['auth', 'csrf']);
-    Router::add('DELETE','/api/accounts/{id}',          'Api\\ContasController@delete',  ['auth', 'csrf']);
+    Router::add('DELETE', '/api/accounts/{id}',          'Api\\ContasController@delete',  ['auth', 'csrf']);
     Router::add('POST',  '/api/accounts/archive',       'Api\\ContasController@archive', ['auth', 'csrf']);
     Router::add('POST',  '/api/accounts/unarchive',     'Api\\ContasController@unarchive', ['auth', 'csrf']);
 
@@ -111,7 +111,7 @@ function registerApiRoutes(): void
     Router::add('GET',   '/api/categorias',               'Api\\CategoriaController@index',   ['auth']);
     Router::add('POST',  '/api/categorias',               'Api\\CategoriaController@store',   ['auth', 'csrf']);
     Router::add('PUT',   '/api/categorias/{id}',          'Api\\CategoriaController@update',  ['auth', 'csrf']);
-    Router::add('DELETE','/api/categorias/{id}',          'Api\\CategoriaController@delete',  ['auth', 'csrf']);
+    Router::add('DELETE', '/api/categorias/{id}',          'Api\\CategoriaController@delete',  ['auth', 'csrf']);
     // Router::add('POST','/api/categorias/delete',        'Api\\CategoriaController@delete', ['auth','csrf']);
 
     // Investimentos
@@ -181,4 +181,3 @@ function redirectToUserDashboard(): void
     }
     exit;
 }
-
