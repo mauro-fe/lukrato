@@ -1,4 +1,25 @@
 <?php loadPageCss(); ?>
+<style>
+    .field { position: relative; }
+    .field .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        color: #666;
+    }
+    .field .toggle-password:focus { outline: 2px solid #7aa7ff; outline-offset: 2px; }
+    /* Ensure room for the icon inside the input */
+    .field input[type="password"],
+    .field input[type="text"].is-password-visible {
+        padding-right: 40px;
+    }
+    .field .toggle-password svg { width: 20px; height: 20px; display: block; }
+</style>
 
 <main class="lukrato-auth">
     <div class="login-wrapper">
@@ -39,7 +60,13 @@
 
                         <div class="field">
                             <input type="password" id="password" name="password" placeholder="Senha"
-                                autocomplete="current-password" required />
+                                autocomplete="current-password" required>
+                            <button type="button" class="toggle-password" aria-label="Mostrar senha" data-target="password" title="Mostrar/ocultar senha">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
                             <small class="field-error" id="passwordError"></small>
                         </div>
 
@@ -76,12 +103,24 @@
                         <div class="field">
                             <input type="password" id="reg_password" name="password" placeholder="Senha"
                                 autocomplete="new-password" required />
+                            <button type="button" class="toggle-password" aria-label="Mostrar senha" data-target="reg_password" title="Mostrar/ocultar senha">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
                             <small class="field-error" id="regPasswordError"></small>
                         </div>
 
                         <div class="field">
                             <input type="password" id="reg_password_confirm" name="password_confirmation"
                                 placeholder="Confirmar senha" autocomplete="new-password" required />
+                            <button type="button" class="toggle-password" aria-label="Mostrar senha" data-target="reg_password_confirm" title="Mostrar/ocultar senha">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
                             <small class="field-error" id="regPasswordConfirmError"></small>
                         </div>
 
@@ -102,3 +141,21 @@
 <script>
     window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
 </script>
+<script>
+    (function() {
+        function toggleVisibility(input) {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            input.classList.toggle('is-password-visible', isPassword);
+        }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-password');
+            if (!btn) return;
+            const targetId = btn.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            toggleVisibility(input);
+        });
+    })();
+    </script>
