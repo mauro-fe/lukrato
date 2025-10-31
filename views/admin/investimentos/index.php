@@ -25,7 +25,7 @@ if (!isset($categories))       $categories = [];
     </div>
 
     <section class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" data-aos="flip-left">
             <div class="stat-ico blue"><i class="fa-solid fa-wallet"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Total Investido</span>
@@ -33,7 +33,7 @@ if (!isset($categories))       $categories = [];
             </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card" data-aos="flip-left">
             <div class="stat-ico green"><i class="fa-solid fa-arrow-trend-up"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Valor Atual</span>
@@ -56,7 +56,7 @@ if (!isset($categories))       $categories = [];
         </div>
         -->
 
-        <div class="stat-card">
+        <div class="stat-card" data-aos="flip-left">
             <div class="stat-ico orange"><i class="fa-solid fa-briefcase"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Total de Ativos</span>
@@ -66,7 +66,7 @@ if (!isset($categories))       $categories = [];
     </section>
 
     <section class="content-grid">
-        <div class="card">
+        <div class="card" data-aos="flip-left">
             <div class="card-header">
                 <h3>Distribuição por Categoria</h3>
             </div>
@@ -75,7 +75,7 @@ if (!isset($categories))       $categories = [];
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" data-aos="flip-right">
             <div class="card-header">
                 <h3>Resumo por Categoria</h3>
             </div>
@@ -99,7 +99,7 @@ if (!isset($categories))       $categories = [];
             </div>
         </div>
 
-        <div class="card full-width">
+        <div class="card full-width" data-aos="zoom-in">
             <div class="card-header">
                 <h3>Meus Investimentos</h3>
             </div>
@@ -326,7 +326,13 @@ if (!isset($categories))       $categories = [];
         const body = new URLSearchParams();
         for (const [k, v] of fd.entries()) body.append(k, v);
         try {
-            const res = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body
+            });
             const json = await res.json().catch(() => ({}));
             if (!res.ok || json.error) throw new Error(json.message || 'Erro ao salvar');
             toast(editingId ? 'Investimento atualizado!' : 'Investimento criado!');
@@ -359,7 +365,9 @@ if (!isset($categories))       $categories = [];
         }).then(async (r) => {
             if (!r.isConfirmed) return;
             try {
-                const res = await fetch(`${BASE_URL}api/investimentos/${id}/delete`, { method: 'POST' });
+                const res = await fetch(`${BASE_URL}api/investimentos/${id}/delete`, {
+                    method: 'POST'
+                });
                 const json = await res.json().catch(() => ({}));
                 if (!res.ok || json.error) throw new Error(json.message || 'Erro ao excluir');
                 toast('Excluído com sucesso');
