@@ -136,6 +136,8 @@
 </main>
 
 <?php loadPageJs(); ?>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="<?= BASE_URL ?>/assets/js/admin-admins-login.js" defer></script>
 
 <script>
