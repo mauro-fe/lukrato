@@ -54,4 +54,5 @@ class MercadoPagoController extends BaseController
             Response::error('Falha ao criar checkout: ' . $e->getMessage(), 500);
         }
     }
+    
 }
