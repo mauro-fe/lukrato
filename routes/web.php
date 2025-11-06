@@ -160,6 +160,8 @@ function registerBillingRoutes(): void
     Router::add('GET',  '/billing',                      'Admin\\BillingController@index',        ['auth']);
     Router::add('POST', '/api/mercadopago/checkout', 'Api\\MercadoPagoController@createCheckout');
     Router::add('POST', '/api/webhooks/mercadopago', 'Api\\WebhookMercadoPagoController@handle');
+    Router::add('POST', '/api/mercadopago/pay', 'Api\\MercadoPagoController@pay');
+
 }
 
 /* =========================

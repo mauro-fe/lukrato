@@ -1,5 +1,4 @@
 <?php
-// Application/Services/MercadoPagoService.php
 namespace Application\Services;
 
 use MercadoPago\MercadoPagoConfig;
@@ -20,10 +19,10 @@ final class MercadoPagoService
         LogService::info('MercadoPagoConfig token setado (ok)');
     }
 
-    /** base para callbacks; prefere MP_CALLBACK_BASE se existir */
+    /** Base para callbacks; prefere MP_CALLBACK_BASE se existir */
     private function base(string $path = ''): string
     {
-        $raw = $_ENV['MP_CALLBACK_BASE'] ?? (defined('BASE_URL') ? BASE_URL : '/');
+        $raw  = $_ENV['MP_CALLBACK_BASE'] ?? (defined('BASE_URL') ? BASE_URL : '/');
         $base = rtrim($raw, '/') . '/';
         return $base . ltrim($path, '/');
     }
@@ -35,27 +34,27 @@ final class MercadoPagoService
 
     public function createCheckoutPreference(array $data): array
     {
-        $amount  = (float)($data['amount'] ?? 0);
-        $email   = (string)($data['email'] ?? '');
-        $userId  = (int)($data['user_id'] ?? 0);
-        $title   = (string)($data['title'] ?? 'Assinatura Lukrato Pro');
-        $name    = (string)($data['name'] ?? '');
+        // --- validações mínimas ---
+        $amount = (float)($data['amount'] ?? 0);
+        $email  = (string)($data['email'] ?? '');
+        $userId = (int)($data['user_id'] ?? 0);
+        $title  = (string)($data['title'] ?? 'Assinatura Lukrato Pro');
+        $name   = (string)($data['name'] ?? '');
 
         if ($amount <= 0 || !$email || $userId <= 0) {
-            LogService::error('Preference inválida: amount/email/user_id', compact('amount', 'email', 'userId'));
+            LogService::error('Preference inválida: amount/email/user_id', compact('amount','email','userId'));
             throw new \InvalidArgumentException('Dados inválidos para criar preferência.');
         }
 
-        $client  = new PreferenceClient();
-        $success = $this->base('billing?status=success');
-        $pending = $this->base('billing?status=pending');
-        $failure = $this->base('billing?status=failure');
-        $notify  = $this->base('api/webhooks/mercadopago');
+        $client   = new PreferenceClient();
+        $success  = $this->base('billing?status=success');
+        $pending  = $this->base('billing?status=pending');
+        $failure  = $this->base('billing?status=failure');
+        $notify   = $this->base('api/webhooks/mercadopago');
+        $extRef   = 'user_' . $userId . '_lukrato_' . uniqid();
+        $isSandbox = strtolower($_ENV['MP_ENV'] ?? '') === 'sandbox';
 
-        $externalRef = 'user_' . $userId . '_lukrato_' . uniqid();
-        $isSandbox   = strtolower($_ENV['MP_ENV'] ?? '') === 'sandbox';
-
-        // Força buyer de teste no sandbox
+        // Sandbox: força buyer de teste para evitar seller pagar a si mesmo
         if ($isSandbox) {
             $testBuyer = trim($_ENV['MP_TEST_BUYER_EMAIL'] ?? '');
             if ($testBuyer) {
@@ -74,9 +73,13 @@ final class MercadoPagoService
                 'email' => $email,
                 'name'  => $name,
             ],
-            'back_urls'          => compact('success', 'pending', 'failure'),
+            'back_urls'          => [
+                'success' => $success,
+                'pending' => $pending,
+                'failure' => $failure,
+            ],
             'notification_url'   => $notify,
-            'external_reference' => $externalRef,
+            'external_reference' => $extRef,
             'metadata' => [
                 'user_id'  => $userId,
                 'username' => (string)($data['username'] ?? ''),
@@ -84,11 +87,11 @@ final class MercadoPagoService
             ],
         ];
 
-        // auto_return só com HTTPS
+        // auto_return só com HTTPS nas três back_urls
         if ($this->isHttps($success) && $this->isHttps($pending) && $this->isHttps($failure)) {
             $payload['auto_return'] = 'approved';
         } else {
-            LogService::info('auto_return omitido (URLs não-HTTPS em dev)', compact('success', 'pending', 'failure'));
+            LogService::info('auto_return omitido (URLs não-HTTPS em dev)', compact('success','pending','failure'));
         }
 
         try {
@@ -110,12 +113,13 @@ final class MercadoPagoService
                 'id'                 => $pref->id,
                 'collector_id'       => $pref->collector_id ?? null,
                 'init_point'         => $pref->init_point         ?? null,
-                'init_point' => $pref->init_point ?? null,
-                'external_reference' => $externalRef,
+                'sandbox_init_point' => $pref->sandbox_init_point ?? null,
+                'external_reference' => $extRef,
             ];
 
             LogService::info('MP Preference criada', $out);
             return $out;
+
         } catch (MPApiException $e) {
             $api = method_exists($e, 'getApiResponse') ? $e->getApiResponse() : null;
             LogService::error('MPApiException ao criar preference', [
