@@ -1,4 +1,5 @@
 <?php
+
 namespace Application\Services;
 
 use MercadoPago\MercadoPagoConfig;
@@ -10,13 +11,86 @@ final class MercadoPagoService
 {
     public function __construct()
     {
-        $token = $_ENV['MP_ACCESS_TOKEN'] ?? '';
+        self::configureSdk();
+    }
+
+    private static function currentEnv(): string
+    {
+        return strtolower($_ENV['MP_ENV'] ?? 'production');
+    }
+
+    public static function resolveAccessToken(): string
+    {
+        $live    = trim($_ENV['MP_ACCESS_TOKEN_LIVE'] ?? $_ENV['MP_ACCESS_TOKEN'] ?? '');
+        $sandbox = trim($_ENV['MP_ACCESS_TOKEN_SANDBOX'] ?? $_ENV['MP_TEST_ACCESS_TOKEN'] ?? '');
+
+        return self::currentEnv() === 'sandbox'
+            ? ($sandbox ?: $live)
+            : $live;
+    }
+
+    public static function resolvePublicKey(): string
+    {
+        $env = strtolower($_ENV['MP_ENV'] ?? 'production');
+
+        // pega as duas possibilidades em cada modo
+        $sandbox = trim($_ENV['MP_PUBLIC_KEY_SANDBOX'] ?? ($_ENV['MP_TEST_PUBLIC_KEY'] ?? ''));
+        $live    = trim($_ENV['MP_PUBLIC_KEY_LIVE'] ?? ($_ENV['MP_PUBLIC_KEY'] ?? ''));
+
+        // helper compatível com PHP 7/8
+        $startsWith = function (string $haystack, string $needle): bool {
+            return $needle === '' || strncmp($haystack, $needle, strlen($needle)) === 0;
+        };
+
+        if ($env === 'sandbox') {
+            if ($sandbox) {
+                // apenas avisa se não começar com TEST-
+                if (!$startsWith($sandbox, 'TEST-')) {
+                    LogService::warning('[MP] PUBLIC_KEY sandbox não começa com TEST-', ['prefix' => substr($sandbox, 0, 5)]);
+                }
+                LogService::info('[MP] resolvePublicKey sandbox', ['prefix' => substr($sandbox, 0, 5)]);
+                return $sandbox;
+            }
+            if ($live) {
+                LogService::warning('[MP] faltou sandbox key; usando live como fallback', ['prefix' => substr($live, 0, 7)]);
+                return $live;
+            }
+        } else {
+            if ($live) {
+                if (!$startsWith($live, 'APP_USR-')) {
+                    LogService::warning('[MP] PUBLIC_KEY live não começa com APP_USR-', ['prefix' => substr($live, 0, 7)]);
+                }
+                LogService::info('[MP] resolvePublicKey live', ['prefix' => substr($live, 0, 7)]);
+                return $live;
+            }
+            if ($sandbox) {
+                LogService::warning('[MP] faltou live key; usando sandbox como fallback', ['prefix' => substr($sandbox, 0, 5)]);
+                return $sandbox;
+            }
+        }
+
+        // nada encontrado: NÃO estoure exceção aqui para não derrubar a view
+        LogService::error('[MP] Nenhuma PUBLIC_KEY encontrada no .env', ['env' => $env]);
+        return '';
+    }
+
+
+
+    public static function configureSdk(): void
+    {
+        $token = self::resolveAccessToken();
         if (!$token) {
-            LogService::error('MP_ACCESS_TOKEN ausente no .env');
+            LogService::error('MP access token ausente no .env', ['env' => self::currentEnv()]);
             throw new \RuntimeException('Credenciais do Mercado Pago ausentes.');
         }
+
         MercadoPagoConfig::setAccessToken($token);
-        LogService::info('MercadoPagoConfig token setado (ok)');
+        LogService::info('MercadoPagoConfig token setado (ok)', [
+            'env'          => self::currentEnv(),
+            'token_origin' => self::currentEnv() === 'sandbox' && !empty($_ENV['MP_ACCESS_TOKEN_SANDBOX'])
+                ? 'sandbox'
+                : 'live',
+        ]);
     }
 
     /** Base para callbacks; prefere MP_CALLBACK_BASE se existir */
@@ -42,7 +116,7 @@ final class MercadoPagoService
         $name   = (string)($data['name'] ?? '');
 
         if ($amount <= 0 || !$email || $userId <= 0) {
-            LogService::error('Preference inválida: amount/email/user_id', compact('amount','email','userId'));
+            LogService::error('Preference inválida: amount/email/user_id', compact('amount', 'email', 'userId'));
             throw new \InvalidArgumentException('Dados inválidos para criar preferência.');
         }
 
@@ -91,7 +165,7 @@ final class MercadoPagoService
         if ($this->isHttps($success) && $this->isHttps($pending) && $this->isHttps($failure)) {
             $payload['auto_return'] = 'approved';
         } else {
-            LogService::info('auto_return omitido (URLs não-HTTPS em dev)', compact('success','pending','failure'));
+            LogService::info('auto_return omitido (URLs não-HTTPS em dev)', compact('success', 'pending', 'failure'));
         }
 
         try {
@@ -119,7 +193,6 @@ final class MercadoPagoService
 
             LogService::info('MP Preference criada', $out);
             return $out;
-
         } catch (MPApiException $e) {
             $api = method_exists($e, 'getApiResponse') ? $e->getApiResponse() : null;
             LogService::error('MPApiException ao criar preference', [

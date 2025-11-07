@@ -39,7 +39,6 @@
 <!-- Modal Billing -->
 <div id="billing-modal" class="lk-modal" style="display:none">
   <div class="lk-modal-content">
-    <button class="lk-modal-close" onclick="closeBillingModal()">&times;</button>
 
     <h2>Pagamento Seguro</h2>
     <p>Complete os dados do cartão para ativar o Lukrato PRO</p>
@@ -52,39 +51,69 @@
 </div>
 
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-
 <script>
 (function () {
   const base = '<?= BASE_URL ?>';
-  const PUBLIC_KEY = '<?= $_ENV['MP_PUBLIC_KEY'] ?>';
+
+  // 1) PUBLIC KEY correta (usa a service pra evitar mismatch)
+  const PUBLIC_KEY = '<?= \Application\Services\MercadoPagoService::resolvePublicKey(); ?>';
+  console.log('[MP] PUBLIC_KEY =', PUBLIC_KEY);
+  // alerta útil em dev
+  <?php if (strtolower($_ENV['MP_ENV'] ?? 'production') === 'sandbox'): ?>
+  if (!PUBLIC_KEY.startsWith('TEST-')) {
+    console.warn('[MP] Atenção: PUBLIC_KEY não é TEST- (sandbox). Verifique o .env.');
+  }
+  <?php endif; ?>
+
   const btnAssinar = document.querySelector('#btnAssinar');
 
-  // abre o modal e monta o brick
-  btnAssinar?.addEventListener('click', async () => {
-    openBillingModal();
-    await initCardPaymentBrick(12.00, 'Assinatura Pro Lukrato');
-  });
+  // 3) Singleton de montagem (evita duplicar)
+  let currentBrick = null;
+  let brickMounted = false;
 
   function openBillingModal() {
     document.getElementById('billing-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
   }
   function closeBillingModal() {
     document.getElementById('billing-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    // 4) desmonta ao fechar
+    if (currentBrick?.unmount) currentBrick.unmount();
+    currentBrick = null;
+    brickMounted = false;
   }
+  // fecha ao clicar fora
+  document.getElementById('billing-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'billing-modal') closeBillingModal();
+  });
 
-  let currentBrick = null;
+  btnAssinar?.addEventListener('click', async () => {
+    openBillingModal();
+    if (!brickMounted) {
+      await initCardPaymentBrick(12.00, 'Assinatura Pro Lukrato');
+      brickMounted = true;
+    }
+  });
 
   async function initCardPaymentBrick(amount, title) {
-    // desmonta se já existir
+    // desmonta se já existir por segurança
     if (currentBrick?.unmount) currentBrick.unmount();
 
     const mp = new MercadoPago(PUBLIC_KEY, { locale: 'pt-BR' });
     const bricksBuilder = mp.bricks();
 
+    // 2) e-mail de teste no sandbox (se configurado)
+    const payerEmail = <?= json_encode(
+      (strtolower($_ENV['MP_ENV'] ?? 'production') === 'sandbox')
+        ? ($_ENV['MP_TEST_BUYER_EMAIL'] ?? $user->email)
+        : $user->email
+    ) ?>;
+
     const settings = {
       initialization: {
         amount: amount,
-        payer: { email: <?= json_encode($user->email) ?> }
+        payer: { email: payerEmail }
       },
       customization: {
         visual: { style: { theme: 'default' } },
@@ -94,23 +123,15 @@
         onReady: () => {},
         onError: (error) => {
           console.error(error);
-          Swal?.fire('Erro', 'Falha ao carregar o pagamento.', 'error');
+          window.Swal?.fire('Erro', 'Falha ao carregar o pagamento.', 'error');
         },
         onSubmit: async (cardFormData) => {
           try {
-            // cria o pagamento no backend
             const resp = await fetch(`${base}api/mercadopago/pay`, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': (window.CSRF || '')
-              },
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': (window.CSRF || '') },
               credentials: 'include',
-              body: JSON.stringify({
-                amount: amount,
-                title: title,
-                data: cardFormData
-              })
+              body: JSON.stringify({ amount, title, data: cardFormData })
             });
 
             const json = await resp.json().catch(() => ({}));
@@ -118,30 +139,29 @@
               throw new Error(json?.message || 'Pagamento não autorizado');
             }
 
-            // exibe feedback visual
-            await Swal.fire({
+            await (window.Swal?.fire({
               title: 'Processando...',
               text: 'Confirmando pagamento com o banco',
               icon: 'info',
               timer: 1500,
               showConfirmButton: false
-            });
+            }) ?? Promise.resolve());
 
-            // fecha o modal e atualiza a UI
             closeBillingModal();
-            Swal.fire('Sucesso!', 'Pagamento realizado com sucesso! ✅', 'success');
-            // aqui você pode atualizar o estado do plano na tela sem reload
-            // ex: document.location.reload();
+            window.Swal?.fire('Sucesso!', 'Pagamento realizado com sucesso! ✅', 'success');
 
+            // TODO: aqui você pode marcar o plano como ativo sem recarregar
+            // ou dar location.reload() para simplificar.
           } catch (e) {
             console.error(e);
-            Swal.fire('Erro', e.message || 'Pagamento recusado', 'error');
+            window.Swal?.fire('Erro', e.message || 'Pagamento recusado', 'error');
           }
         }
       }
     };
 
     currentBrick = await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', settings);
+    window.__lkBrickDebug = currentBrick; // útil para debugar no console
   }
 })();
 </script>

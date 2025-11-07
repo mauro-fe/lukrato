@@ -8,8 +8,8 @@ use Application\Services\MercadoPagoService;
 use Application\Services\LogService;
 use Application\Lib\Auth;
 use Exception;
-use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\Exceptions\MPApiException;
 
 class MercadoPagoController extends BaseController
 {
@@ -62,64 +62,109 @@ class MercadoPagoController extends BaseController
         }
     }
     public function pay(): void
-{
-    $this->requireAuthApi();
+    {
+        $this->requireAuthApi();
 
-    try {
-        $user = \Application\Lib\Auth::user();
-        if (!$user) { Response::unauthorized('Usuário não autenticado'); return; }
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                Response::unauthorized('Usuário não autenticado');
+                return;
+            }
 
-        $json   = json_decode(file_get_contents('php://input'), true) ?? [];
-        $amount = (float)($json['amount'] ?? 0);
-        $title  = (string)($json['title'] ?? 'Assinatura Pro Lukrato');
-        $data   = (array)($json['data'] ?? []); // vem do Brick
+            $json   = json_decode(file_get_contents('php://input'), true) ?? [];
+            $amount = (float)($json['amount'] ?? 0);
+            $title  = (string)($json['title'] ?? 'Assinatura Pro Lukrato');
+            $data   = (array)($json['data'] ?? []); // payload do Brick
 
-        if ($amount <= 0 || empty($data['token'])) {
-            Response::validationError(['amount/token' => 'Dados inválidos']);
-            return;
-        }
+            // --- campos que o Brick manda em camelCase ---
+            $token           = (string)($data['token'] ?? '');
+            $paymentMethodId = $data['payment_method_id'] ?? $data['paymentMethodId'] ?? null;
+            $issuerId        = $data['issuer_id'] ?? $data['issuerId'] ?? null;
+            $installments    = (int)($data['installments'] ?? 1);
 
-        MercadoPagoConfig::setAccessToken($_ENV['MP_ACCESS_TOKEN']);
+            // documento (CPF/CNPJ) – sanitiza
+            $idType   = $data['payer']['identification']['type']
+                ?? $data['identificationType'] ?? 'CPF';
+            $idNumber = $data['payer']['identification']['number']
+                ?? $data['identificationNumber'] ?? '';
+            $idNumber = preg_replace('/\D+/', '', (string)$idNumber);
 
-        $notificationUrl = rtrim($_ENV['MP_CALLBACK_BASE'] ?? BASE_URL, '/') . '/api/webhooks/mercadopago';
-        $externalRef     = 'user_' . $user->id . '_lukrato_' . uniqid();
+            if ($amount <= 0 || empty($token) || empty($paymentMethodId)) {
+                Response::validationError([
+                    'amount/token/paymentMethodId' => 'Dados obrigatórios ausentes',
+                ]);
+                return;
+            }
 
-        $payload = [
-            'transaction_amount' => $amount,
-            'token'              => $data['token'],
-            'description'        => $title,
-            'installments'       => (int)($data['installments'] ?? 1),
-            'payment_method_id'  => $data['paymentMethodId'] ?? null,   // ex.: visa
-            'issuer_id'          => $data['issuerId'] ?? null,
-            'capture'            => true,
-            'payer' => [
-                'email' => $data['payer']['email'] ?? $user->email,
-                'identification' => [
-                    'type'   => $data['payer']['identification']['type']   ?? 'CPF',
-                    'number' => $data['payer']['identification']['number'] ?? '',
+            MercadoPagoService::configureSdk();
+
+            $notificationUrl = rtrim($_ENV['MP_CALLBACK_BASE'] ?? BASE_URL, '/') . '/api/webhooks/mercadopago';
+            $externalRef     = 'user_' . $user->id . '_lukrato_' . uniqid();
+
+            $payload = [
+                'transaction_amount' => round($amount, 2),
+                'token'              => $token,
+                'description'        => $title,
+                'installments'       => max(1, $installments),
+                'payment_method_id'  => (string)$paymentMethodId,
+                'capture'            => true,
+                'payer' => [
+                    'email' => $data['payer']['email'] ?? $user->email,
+                    'first_name' => $user->nome ?? $user->username,
+                    'identification' => [
+                        'type'   => $idType,
+                        'number' => $idNumber,
+                    ],
                 ],
-            ],
-            'metadata' => [
-                'user_id'  => $user->id,
-                'username' => $user->username,
-                'origin'   => 'lukrato_bricks',
-            ],
-            'external_reference' => $externalRef,
-            'notification_url'   => $notificationUrl,
-        ];
+                'metadata' => [
+                    'user_id'  => (int)$user->id,
+                    'username' => (string)$user->username,
+                    'origin'   => 'lukrato_bricks',
+                ],
+                'external_reference' => $externalRef,
+                'notification_url'   => $notificationUrl,
+            ];
+            if (!empty($issuerId)) {
+                $payload['issuer_id'] = (int)$issuerId;
+            }
 
-        $client  = new PaymentClient();
-        $payment = $client->create($payload);
+            LogService::info('MP pagamento: preparando payload', [
+                'amount'             => $payload['transaction_amount'],
+                'installments'       => $payload['installments'],
+                'payment_method_id'  => $payload['payment_method_id'],
+                'issuer_id'          => $payload['issuer_id'] ?? null,
+                'external_reference' => $payload['external_reference'],
+                'has_token'          => !empty($payload['token']),
+            ]);
 
-        // Não ative o plano aqui; o webhook vai confirmar (status=approved)
-        Response::success([
-            'payment_id' => $payment->id,
-            'status'     => $payment->status, // approved/pending/rejected
-        ]);
+            $client  = new PaymentClient();
+            $payment = $client->create($payload);
 
-    } catch (\Throwable $e) {
-        LogService::error('Erro pay()', ['ex' => $e->getMessage()]);
-        Response::error('Pagamento recusado/erro', 400);
+            // Não ativa aqui — webhook fará o upgrade quando status=approved
+            Response::success([
+                'payment_id'    => $payment->id,
+                'status'        => $payment->status,
+                'status_detail' => $payment->status_detail ?? null,
+            ]);
+        } catch (MPApiException $e) {
+            $apiResponse = $e->getApiResponse();
+            $statusCode  = $apiResponse ? $apiResponse->getStatusCode() : 400;
+            $raw         = $apiResponse ? $apiResponse->getContent() : null;
+            $body        = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : null);
+
+            LogService::error('MPApiException em pay()', [
+                'http_status' => $statusCode,
+                'message'     => $e->getMessage(),
+                'body'        => $body,
+            ]);
+
+            // mensagem amigável
+            $human = $body['message'] ?? ($body['error'] ?? 'Pagamento recusado pelo Mercado Pago');
+            Response::error($human, 400, ['origin' => 'mercadopago', 'detail' => $body['cause'] ?? $body]);
+        } catch (\Throwable $e) {
+            LogService::error('Erro pay()', ['ex' => $e->getMessage()]);
+            Response::error('Pagamento recusado/erro', 400);
+        }
     }
-}
 }

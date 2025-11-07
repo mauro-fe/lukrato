@@ -6,8 +6,8 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\LogService;
+use Application\Services\MercadoPagoService;
 use Illuminate\Database\Capsule\Manager as DB;
-use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
 use Throwable;
@@ -17,12 +17,12 @@ class WebhookMercadoPagoController extends BaseController
     public function handle(): void
     {
         // 1) Credencial
-        $token = $_ENV['MP_ACCESS_TOKEN'] ?? '';
-        if (!$token) {
+        try {
+            MercadoPagoService::configureSdk();
+        } catch (\Throwable $e) {
             Response::error('MP access token ausente', 500);
             return;
         }
-        MercadoPagoConfig::setAccessToken($token);
 
         // 2) Coleta bruta (para log)
         $raw     = file_get_contents('php://input') ?: '';
