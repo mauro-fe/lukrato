@@ -224,8 +224,17 @@
         // -------- Tabulator
         let table = null;
 
+        const waitForTableReady = (instance) => {
+            if (!instance) return Promise.resolve();
+            if (instance.__lkReadyResolved || !instance.__lkReadyPromise) {
+                return Promise.resolve();
+            }
+            return instance.__lkReadyPromise;
+        };
+
         const tableIsActive = (instance) => {
             if (!instance) return false;
+            if (instance.__lkInitializing) return true;
             const rm = instance.rowManager;
             if (!rm || !rm.renderer) return false;
             if (instance.element && instance.element.isConnected === false) return false;
@@ -449,6 +458,22 @@
                 }
                 updateSelectionInfo();
             });
+
+            instance.__lkInitializing = true;
+            instance.__lkReadyResolved = false;
+            instance.__lkReadyPromise = new Promise((resolve) => {
+                const markReady = () => {
+                    if (instance.__lkReadyResolved) return;
+                    instance.__lkInitializing = false;
+                    instance.__lkReadyResolved = true;
+                    resolve();
+                };
+                instance.on("tableBuilt", markReady);
+                if (instance.rowManager?.renderer) {
+                    markReady();
+                }
+            });
+
             return instance;
         };
 
@@ -687,7 +712,16 @@
 
         function updateSelectionInfo() {
             const t = ensureTable();
-            const selected = t ? t.getSelectedRows().filter(row => !isSaldoInicial(row.getData())) : [];
+            if (!t) {
+                if (selCountSpan) selCountSpan.textContent = '0';
+                btnExcluirSel?.setAttribute('disabled', 'disabled');
+                return;
+            }
+            if (!t.__lkReadyResolved) {
+                waitForTableReady(t).then(() => updateSelectionInfo());
+                return;
+            }
+            const selected = t.getSelectedRows().filter(row => !isSaldoInicial(row.getData()));
             const count = selected.length;
             if (selCountSpan) selCountSpan.textContent = String(count);
             if (btnExcluirSel) {
@@ -721,9 +755,10 @@
             modal.show();
         }
 
-        function renderRows(items) {
+        async function renderRows(items) {
             const grid = ensureTable();
             if (!grid) return;
+            await waitForTableReady(grid);
             grid.setData(Array.isArray(items) ? items : []);
             updateSelectionInfo();
         }
@@ -916,6 +951,7 @@
 
                 const t2 = ensureTable();
                 if (t2) {
+                    await waitForTableReady(t2);
                     t2.replaceData([]);
                     updateSelectionInfo();
                 }
@@ -926,7 +962,7 @@
                     conta,
                     limit: 500
                 });
-                renderRows(items);
+                await renderRows(items);
             }, 10);
         }
         window.refreshLancamentos = load;

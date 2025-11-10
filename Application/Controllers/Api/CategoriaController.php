@@ -131,10 +131,11 @@ class CategoriaController extends BaseController
 
             $gump->filter_rules([
                 'nome' => 'trim',
-                'tipo' => 'trim|lowercase',
+                'tipo' => 'trim|lower_case',
             ]);
 
-            if (!$gump->run($_POST)) {
+            $sanitized = $gump->run($_POST);
+            if ($sanitized === false) {
                 LogService::warning('Validação falhou ao atualizar categoria', [
                     'user_id' => $this->userId,
                     'errors'  => $gump->get_errors_array(),
@@ -145,7 +146,7 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            $data = $gump->get_cleaned_data();
+            $data = $sanitized;
 
             $dup = Categoria::forUser($this->userId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])

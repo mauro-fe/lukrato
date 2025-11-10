@@ -939,7 +939,20 @@ body.sidebar-collapsed .content-wrapper {
  * BACKDROP MOBILE (quando sidebar aberta)
  * =======================================================*/
 .sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 9997;
   display: none;
+}
+
+body.sidebar-open-mobile {
+  overflow: hidden;
+}
+
+body.sidebar-open-mobile .sidebar-backdrop {
+  display: block;
 }
 
 /* =========================================================
@@ -964,7 +977,7 @@ body.sidebar-collapsed .content-wrapper {
     z-index: 9998;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   }
-  .sidebar.open {
+  body.sidebar-open-mobile .sidebar {
     left: 0;
   }
 
@@ -984,18 +997,6 @@ body.sidebar-collapsed .content-wrapper {
   }
   .sidebar-open-mobile .edge-menu-btn {
     left: calc(240px - 58px);
-  }
-
-  .sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(2px);
-    z-index: 9997;
-    display: none;
-  }
-  .sidebar.open + .sidebar-backdrop {
-    display: block;
   }
 
   .content-wrapper {

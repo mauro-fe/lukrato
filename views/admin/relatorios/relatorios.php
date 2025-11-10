@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     /* Segmented Control - Estilo moderno */
     .lk-seg {
         display: flex;
@@ -35,7 +35,7 @@
         background: var(--color-secondary);
     }
 
-    /* Botões do segmented control */
+    /* BotÃµes do segmented control */
     .lk-seg button {
         position: relative;
         display: flex;
@@ -78,7 +78,7 @@
         transform: translateY(-1px);
     }
 
-    /* Ícones */
+    /* Ãcones */
     .lk-seg button i {
         font-size: var(--font-size-base);
         transition: transform var(--transition-normal);
@@ -182,7 +182,7 @@
         justify-content: flex-start;
     }
 
-    /* Badges/contadores nos botões (opcional) */
+    /* Badges/contadores nos botÃµes (opcional) */
     .lk-seg button .badge {
         display: inline-flex;
         align-items: center;
@@ -202,6 +202,18 @@
     .lk-seg button.active .badge {
         background: rgba(255, 255, 255, 0.25);
         color: white;
+    }
+
+    .lk-chart-dual {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-4);
+        align-items: stretch;
+    }
+
+    .lk-chart-dual canvas {
+        width: 100% !important;
+        height: 320px !important;
     }
 
     /* Loading state */
@@ -231,12 +243,12 @@
         pointer-events: none;
     }
 
-    /* Tema escuro - ajustes específicos */
+    /* Tema escuro - ajustes especÃ­ficos */
     :root[data-theme="dark"] .lk-seg {
         box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    /* Tema claro - ajustes específicos */
+    /* Tema claro - ajustes especÃ­ficos */
     :root[data-theme="light"] .lk-seg {
         background: rgba(255, 255, 255, 0.6);
     }
@@ -309,7 +321,7 @@
         }
     }
 
-    /* Animação de entrada */
+    /* AnimaÃ§Ã£o de entrada */
     .lk-seg[data-aos] button {
         opacity: 0;
         transform: translateY(10px);
@@ -383,6 +395,8 @@
                 <button data-view="contas" aria-pressed="false"><i class="fa-solid fa-wallet"></i> Por conta</button>
                 <button data-view="evolucao" aria-pressed="false"><i class="fa-solid fa-timeline"></i> Evolução
                     12m</button>
+                <button data-view="anual" aria-pressed="false"><i class="fa-solid fa-calendar-days"></i> Relatório
+                    anual</button>
             </div>
 
             <!-- tipo (apenas pizza) -->
@@ -416,7 +430,7 @@
 
 <script>
     (function() {
-        // Carrega Chart.js se necessário
+        // Carrega Chart.js se necessÃ¡rio
         function ensureChart() {
             return new Promise((resolve, reject) => {
                 if (window.Chart) return resolve();
@@ -481,7 +495,7 @@
         }).format(Number(v || 0));
         const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-        // Helpers de mês (string YYYY-MM)
+        // Helpers de mÃªs (string YYYY-MM)
         const ymNow = () => new Date().toISOString().slice(0, 7);
         const ymToDate = (ym) => {
             const [y, m] = String(ym || '').split('-').map(Number);
@@ -519,6 +533,18 @@
             accounts: [],
             accountId: null,
             month: (window.LukratoHeader?.getMonth?.()) || ymNow(),
+            lastMonthNonAnnual: (window.LukratoHeader?.getMonth?.()) || ymNow(),
+        };
+        const rememberNonAnnualMonth = () => {
+            if (st.view !== 'anual') {
+                st.lastMonthNonAnnual = st.month;
+            }
+        };
+        const toggleYearPicker = () => {
+            const enabled = st.view === 'anual';
+            document.body.classList.toggle('show-year-picker', enabled);
+            const pickerEl = document.getElementById('yearPicker');
+            if (pickerEl) pickerEl.setAttribute('aria-hidden', enabled ? 'false' : 'true');
         };
 
         const $ = sel => document.querySelector(sel);
@@ -533,26 +559,18 @@
         const nextBtn = $('#nextMonth');
 
         function syncLabel() {
-            if (currentMonthTextEl) currentMonthTextEl.textContent = ymLabel(st.month);
+            if (!currentMonthTextEl) return;
+            if (st.view === 'anual') {
+                const year = st.month.split('-')[0];
+                currentMonthTextEl.textContent = `Ano ${year}`;
+            } else {
+                currentMonthTextEl.textContent = ymLabel(st.month);
+            }
         }
         syncLabel();
+        toggleYearPicker();
 
-        // Navegação pelas setas -> usa LukratoHeader.setMonth
-        on(prevBtn, 'click', () => {
-            const nextYM = addMonthsYM(st.month, -1);
-            window.LukratoHeader?.setMonth?.(nextYM);
-            // também atualiza localmente (caso outra tela não esteja presente)
-            st.month = nextYM;
-            syncLabel();
-            load();
-        });
-        on(nextBtn, 'click', () => {
-            const nextYM = addMonthsYM(st.month, +1);
-            window.LukratoHeader?.setMonth?.(nextYM);
-            st.month = nextYM;
-            syncLabel();
-            load();
-        });
+        // NavegaÃ§Ã£o (setas do header) controlada pelo month-picker global
 
         // ===== Seletor de tipo (pizza) =====
         const typeSelectWrap = $('#typeSelectWrap');
@@ -584,10 +602,37 @@
                 });
                 b.classList.add('active');
                 b.setAttribute('aria-pressed', 'true');
-                st.view = b.dataset.view;
+
+                const previousView = st.view;
+                const targetView = b.dataset.view;
+
+                if (previousView === 'anual' && targetView !== 'anual') {
+                    const fallback = window.LukratoHeader?.getMonth?.() || st.lastMonthNonAnnual || ymNow();
+                    st.month = fallback;
+                    st.lastMonthNonAnnual = fallback;
+                    window.LukratoHeader?.setMonth?.(fallback);
+                }
+
+                st.view = targetView;
+
+                if (st.view === 'anual') {
+                    if (previousView !== 'anual') {
+                        st.lastMonthNonAnnual = st.month;
+                    }
+                    const headerYear = window.LukratoHeader?.getYear?.();
+                    const baseYear = Number.isFinite(headerYear) ? headerYear : Number(st.month.split('-')[0]);
+                    const normalized = `${baseYear}-01`;
+                    if (normalized !== st.month) {
+                        st.month = normalized;
+                    }
+                } else {
+                    rememberNonAnnualMonth();
+                }
 
                 if (typeSelectWrap) typeSelectWrap.style.display = (st.view === 'pizza') ? '' : 'none';
-                if (accountSelectWrap) accountSelectWrap.style.display = '';
+                if (accountSelectWrap) accountSelectWrap.style.display = (st.view === 'contas') ? '' : 'none';
+                toggleYearPicker();
+                syncLabel();
                 load();
             })
         );
@@ -625,7 +670,7 @@
             }
         }
 
-        // --- helper universal para 401/403 nesta página ---
+        // --- helper universal para 401/403 nesta pÃ¡gina ---
         async function handleFetch403(response, base) {
             // 401: login
             if (response.status === 401) {
@@ -639,9 +684,9 @@
                 location.href = `${base}billing`;
             };
 
-            // 403: proibido -> mostra “Assinar” + “OK”
+            // 403: proibido -> mostra â€œAssinarâ€ + â€œOKâ€
             if (response.status === 403) {
-                let msg = 'Acesso não permitido.';
+                let msg = 'Acesso nÃ£o permitido.';
                 try {
                     const data = await response.clone().json();
                     msg = data?.message || msg;
@@ -660,7 +705,7 @@
                     });
                     if (ret.isConfirmed) goToBilling();
                 } else {
-                    if (confirm(`${msg}\n\nIr para a página de assinatura agora?`)) {
+                    if (confirm(`${msg}\n\nIr para a pÃ¡gina de assinatura agora?`)) {
                         goToBilling();
                     }
                 }
@@ -680,6 +725,7 @@
                 st.view === 'barras' ? 'receitas_despesas_diario' :
                 st.view === 'evolucao' ? 'evolucao_12m' :
                 st.view === 'contas' ? 'receitas_despesas_por_conta' :
+                st.view === 'anual' ? 'resumo_anual' :
                 st.type;
 
             const params = new URLSearchParams({
@@ -722,64 +768,105 @@
         }
 
         function loading() {
-            setArea('<div class="lk-loading">Carregando…</div>');
+            setArea('<div class="lk-loading">Carregandoâ€¦</div>');
         }
 
         function empty() {
             setArea(`
       <div class="lk-empty">
         <h3>Nenhum dado encontrado</h3>
-        <p>Altere o período, o tipo ou a conta.</p>
+        <p>Altere o perÃ­odo, o tipo ou a conta.</p>
       </div>`);
         }
 
         function destroyChart() {
-            if (st.chart) {
+            if (!st.chart) return;
+            if (Array.isArray(st.chart)) {
+                st.chart.forEach((chart) => chart?.destroy?.());
+            } else {
                 st.chart.destroy();
-                st.chart = null;
             }
+            st.chart = null;
         }
 
         // =================== DESENHOS ===================
-        function drawPie(d) {
-            setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
-            destroyChart();
-            const ttl = (d.values || []).reduce((a, b) => a + Number(b), 0);
-            const titulo = (st.type === 'receitas_por_categoria') ? 'Receitas por categorias' :
-                'Despesas por categorias';
-            const colors = (d.values || []).map((_, i) => THEME.palette[i % THEME.palette.length]);
+        function drawPie(d, { title } = {}) {
+            const labels = d.labels || [];
+            const values = d.values || [];
+            if (!labels.length) {
+                empty();
+                return;
+            }
 
-            st.chart = new Chart($('#c'), {
-                type: 'doughnut',
-                data: {
-                    labels: d.labels || [],
-                    datasets: [{
-                        label: titulo,
-                        data: d.values || [],
-                        backgroundColor: colors,
-                        borderColor: THEME.brand.surface,
-                        borderWidth: 2,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        title: {
-                            display: true,
-                            text: `${titulo} • Total ${fmt(ttl)}`
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => `${c.label}: ${fmt(c.parsed)}`
-                            }
-                        }
+            const entries = labels.map((label, idx) => ({
+                label,
+                value: Number(values[idx]) || 0,
+                color: THEME.palette[idx % THEME.palette.length]
+            })).filter((entry) => entry.value > 0);
+
+            if (!entries.length) {
+                empty();
+                return;
+            }
+
+            const titulo = title
+                ? title
+                : (st.type === 'receitas_por_categoria' ? 'Receitas por categorias' : 'Despesas por categorias');
+
+            entries.sort((a, b) => b.value - a.value);
+            const mid = Math.ceil(entries.length / 2);
+            const slices = [
+                entries.slice(0, mid),
+                entries.slice(mid)
+            ].filter((chunk) => chunk.length);
+
+            const canvases = slices.map((_, idx) => `
+                <div class="lk-chart">
+                    <canvas id="c${idx}" height="320"></canvas>
+                </div>
+            `).join('');
+            setArea(`<div class="lk-chart-dual">${canvases}</div>`);
+            destroyChart();
+
+            st.chart = slices.map((slice, idx) => {
+                const labelsPart = slice.map((entry) => entry.label);
+                const valuesPart = slice.map((entry) => entry.value);
+                const colorsPart = slice.map((entry) => entry.color);
+                const partTotal = valuesPart.reduce((a, b) => a + Number(b), 0);
+                const partTitle = slices.length > 1 ? `${titulo} · Parte ${idx + 1}` : titulo;
+
+                return new Chart($(`#c${idx}`), {
+                    type: 'doughnut',
+                    data: {
+                        labels: labelsPart,
+                        datasets: [{
+                            label: partTitle,
+                            data: valuesPart,
+                            backgroundColor: colorsPart,
+                            borderColor: THEME.brand.surface,
+                            borderWidth: 2,
+                            hoverOffset: 4
+                        }]
                     },
-                    maintainAspectRatio: false,
-                    cutout: '60%'
-                }
+                    options: {
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: `${partTitle} · Total ${fmt(partTotal)}`
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (c) => `${c.label}: ${fmt(c.parsed)}`
+                                }
+                            }
+                        },
+                        maintainAspectRatio: false,
+                        cutout: '60%'
+                    }
+                });
             });
         }
 
@@ -878,7 +965,13 @@
                             callbacks: {
                                 label: (c) => fmt(c.parsed.y)
                             }
-                        }
+                        },
+                        ...(st.view === 'contas' ? {
+                            title: {
+                                display: true,
+                                text: 'Receitas x despesas por conta'
+                            }
+                        } : {})
                     },
                     maintainAspectRatio: false,
                     scales: {
@@ -905,7 +998,7 @@
         }
 
         function drawLine12m(d) {
-            destroyChart(); // destrói o chart atual antes de trocar o DOM
+            destroyChart(); // destrÃ³i o chart atual antes de trocar o DOM
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
 
             const color = THEME.brand.cyan;
@@ -968,7 +1061,7 @@
 
         // Loader principal
         async function load() {
-            setArea('<div class="lk-loading">Carregando…</div>');
+            setArea('<div class="lk-loading">Carregandoâ€¦</div>');
             try {
                 await ensureChart();
                 applyChartDefaults();
@@ -981,7 +1074,22 @@
                     return;
                 }
 
-                if (st.view === 'pizza') drawPie(d);
+                if (st.view === 'anual') {
+                    const annual = {
+                        labels: d.labels || [],
+                        values: (d.labels || []).map((_, idx) => {
+                            const rec = Number(d.receitas?.[idx] ?? 0);
+                            const des = Number(d.despesas?.[idx] ?? 0);
+                            const total = rec + des;
+                            return total > 0 ? total : 0;
+                        }),
+                    };
+                    if (!annual.values.some((v) => v > 0)) {
+                        empty();
+                        return;
+                    }
+                    drawPie(annual, { title: `Resumo anual ${st.month.split('-')[0]}` });
+                } else if (st.view === 'pizza') drawPie(d);
                 else if (st.view === 'linha') drawLine(d);
                 else if (st.view === 'barras' || st.view === 'contas') drawBars(d);
                 else if (st.view === 'evolucao') drawLine12m(d);
@@ -999,8 +1107,12 @@
         };
         window.setReportsMonth = function(ym) {
             if (!/^\d{4}-\d{2}$/.test(ym)) return;
-            st.month = ym;
-            window.LukratoHeader?.setMonth?.(ym);
+            const normalized = st.view === 'anual' ? `${ym.split('-')[0]}-01` : ym;
+            st.month = normalized;
+            if (st.view !== 'anual') {
+                st.lastMonthNonAnnual = normalized;
+            }
+            window.LukratoHeader?.setMonth?.(normalized);
             syncLabel();
             load();
         };
@@ -1018,11 +1130,26 @@
             if (st.view === 'pizza') load();
         };
 
-        // Reage ao mês global vindo do month-picker.js
+        // Reage ao mÃªs global vindo do month-picker.js
         document.addEventListener('lukrato:month-changed', (e) => {
             const m = e.detail?.month;
-            if (!m || m === st.month) return;
-            st.month = m;
+            if (!m) return;
+            const normalized = st.view === 'anual' ? `${m.split('-')[0]}-01` : m;
+            if (normalized === st.month) return;
+            st.month = normalized;
+            if (st.view !== 'anual') {
+                st.lastMonthNonAnnual = normalized;
+            }
+            syncLabel();
+            load();
+        });
+        document.addEventListener('lukrato:year-changed', (e) => {
+            if (st.view !== 'anual') return;
+            const year = Number(e.detail?.year);
+            if (!Number.isFinite(year)) return;
+            const normalized = `${year}-01`;
+            if (normalized === st.month) return;
+            st.month = normalized;
             syncLabel();
             load();
         });
@@ -1066,3 +1193,4 @@
         window.addEventListener('resize', checkScroll);
     }
 </script>
+

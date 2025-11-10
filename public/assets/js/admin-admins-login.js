@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('loading'); }
 
+            let keepDisabled = false;
             try {
                 const resp = await fetch(loginForm.action, {
                     method: 'POST',
@@ -141,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let data = null; try { data = await resp.json(); } catch { }
 
                 if (resp.ok && data && data.status === 'success') {
+                    keepDisabled = true;
                     showMessage('success', 'Login realizado! Redirecionando...');
                     setTimeout(() => {
                         window.location.href = (data && data.redirect) ? data.redirect : (BASE_URL + 'login');
@@ -160,8 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch {
                 showMessage('error', 'Falha ao conectar. Tente novamente.');
             } finally {
-                loginForm.dataset.loading = '0';
-                if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('loading'); }
+                if (!keepDisabled) {
+                    loginForm.dataset.loading = '0';
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('loading'); }
+                }
             }
         });
 

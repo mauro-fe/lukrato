@@ -12,6 +12,8 @@ use Application\Services\LogService;
 use Exception;
 use GUMP;
 
+
+
 class InvestimentosController extends BaseController
 {
     /** Resolve o ID do usuário logado de forma robusta (propriedade + fallbacks de sessão). */
@@ -37,6 +39,7 @@ class InvestimentosController extends BaseController
 
     public function index(): void
     {
+        
         try {
             $this->requireAuth();
             $uid = $this->resolveUserId();

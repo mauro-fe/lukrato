@@ -5,6 +5,15 @@ namespace Application\Controllers\Admin;
 use Application\Controllers\BaseController;
 use Application\Models\Investimento;
 use Application\Models\CategoriaInvestimento;
+use Application\Lib\Auth;
+use Application\Core\Response;
+
+
+// $user = Auth::user();
+
+// if (!$user->podeAcessar('reports')) {
+//     Response::forbidden('Relatórios são exclusivos do plano Pro.');
+// }
 
 class InvestimentosController extends BaseController
 {

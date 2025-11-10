@@ -339,29 +339,22 @@
         async function handleDeleteCategoria(id) {
             const confirmed = await confirmDel('Deseja remover esta categoria?');
             if (!confirmed) return;
+
             try {
-                const token = getCsrf();
-                const fd = new FormData();
-                if (token) {
-                    fd.append('_token', token);
-                    fd.append('csrf_token', token);
-                }
-                const res = await fetch(`${API}categorias/${encodeURIComponent(id)}/delete`, {
-                    method: 'POST',
-                    body: fd,
-                    credentials: 'include',
-                    headers: {
-                        'X-CSRF-TOKEN': token
-                    }
+                const j = await tryFetch(`categorias/${encodeURIComponent(id)}`, {
+                    method: 'DELETE'
                 });
-                const ct = res.headers.get('content-type') || '';
-                const j = ct.includes('application/json') ? await res.json() : {
-                    status: 'error',
-                    message: await res.text()
-                };
-                if (!res.ok || j.status !== 'success') throw new Error(j.message || `Erro ${res.status}`);
+                if (j.status !== 'success') throw new Error(j.message || 'Falha ao remover categoria.');
+
                 toast('success', 'Categoria removida!');
                 await load();
+                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                    detail: {
+                        resource: 'categorias',
+                        action: 'delete',
+                        id: Number(id)
+                    }
+                }));
             } catch (err) {
                 alertError(err.message);
             }

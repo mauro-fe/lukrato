@@ -82,7 +82,7 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
             </a>
         </div>
         <nav class="sidebar-nav">
-            <button id="btn-toggle-sidebar" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
+            <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
                 title="Fechar/Abrir menu">
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
@@ -142,21 +142,5 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
                 if (window.LK?.initModals) {
                     window.LK.initModals();
                 }
-            });
-            </script>
-            <script>
-            // restaurar
-            (function() {
-                if (localStorage.getItem('lk.sidebar') === '1') {
-                    document.body.classList.add('sidebar-collapsed');
-                }
-            })();
-
-            // toggle
-            document.getElementById('btn-toggle-sidebar')?.addEventListener('click', () => {
-                document.body.classList.toggle('sidebar-collapsed');
-                localStorage.setItem('lk.sidebar',
-                    document.body.classList.contains('sidebar-collapsed') ? '1' : '0'
-                );
             });
             </script>

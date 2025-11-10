@@ -153,28 +153,71 @@
         return Promise.resolve(window.confirm('Deseja realmente sair?'));
     }
     function initSidebarToggle() {
-        const html = document.documentElement;                 // <html>
-        const aside = document.getElementById('sidebar-main');  // <aside id="sidebar-main">
-        const btn = document.getElementById('edgeMenuBtn');   // botão hamburguer
-        if (!aside || !btn) return;
+        const body = document.body;
+        const aside = document.getElementById('sidebar-main');
+        const btn = document.getElementById('edgeMenuBtn') || document.getElementById('btn-toggle-sidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (!aside || !btn || !body) return;
 
-        const KEY = 'lukrato.sidebar_collapsed';
+        const KEY = 'lk.sidebar';
+        const media = window.matchMedia('(max-width: 992px)');
 
-        // restaura estado salvo
-        const saved = localStorage.getItem(KEY);
-        const startCollapsed = saved === null ? true : saved === '1';
-        apply(startCollapsed);
+        const getSavedState = () => {
+            const saved = localStorage.getItem(KEY);
+            return saved === null ? true : saved === '1';
+        };
 
-        btn.addEventListener('click', () => {
-            const willCollapse = !aside.classList.contains('collapsed');
-            apply(willCollapse);
-        });
-
-        function apply(collapsed) {
-            aside.classList.toggle('collapsed', collapsed);
-            html.classList.toggle('sidebar-collapsed', collapsed);
+        const setDesktopState = (collapsed) => {
+            body.classList.toggle('sidebar-collapsed', collapsed);
             btn.setAttribute('aria-expanded', String(!collapsed));
             localStorage.setItem(KEY, collapsed ? '1' : '0');
+        };
+
+        const openMobile = () => {
+            body.classList.add('sidebar-open-mobile');
+            btn.setAttribute('aria-expanded', 'true');
+        };
+
+        const closeMobile = () => {
+            body.classList.remove('sidebar-open-mobile');
+            btn.setAttribute('aria-expanded', 'false');
+        };
+
+        const handleToggle = () => {
+            if (media.matches) {
+                if (body.classList.contains('sidebar-open-mobile')) {
+                    closeMobile();
+                } else {
+                    openMobile();
+                }
+            } else {
+                const next = !body.classList.contains('sidebar-collapsed');
+                setDesktopState(next);
+            }
+        };
+
+        btn.addEventListener('click', handleToggle);
+        backdrop?.addEventListener('click', closeMobile);
+        document.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape' && body.classList.contains('sidebar-open-mobile')) {
+                closeMobile();
+            }
+        });
+
+        const syncState = () => {
+            if (media.matches) {
+                closeMobile();
+            } else {
+                setDesktopState(getSavedState());
+            }
+        };
+
+        syncState();
+        const listener = () => syncState();
+        if (typeof media.addEventListener === 'function') {
+            media.addEventListener('change', listener);
+        } else if (typeof media.addListener === 'function') {
+            media.addListener(listener);
         }
     }
 

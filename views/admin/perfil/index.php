@@ -99,6 +99,26 @@ $menu      = $menu ?? 'perfil';
             return base.replace(/\/?$/, '/');
         })();
         const API = `${BASE}api/`;
+        const extractApiError = (payload, fallback = 'Falha ao salvar.') => {
+            if (!payload) return fallback;
+            const { errors } = payload;
+            if (errors) {
+                if (typeof errors === 'string') return errors;
+                if (Array.isArray(errors)) return errors.filter(Boolean).join('\n');
+                if (typeof errors === 'object') {
+                    const messages = [];
+                    Object.values(errors).forEach((val) => {
+                        if (Array.isArray(val)) {
+                            messages.push(...val.filter(Boolean).map(String));
+                        } else if (val) {
+                            messages.push(String(val));
+                        }
+                    });
+                    if (messages.length) return messages.join('\n');
+                }
+            }
+            return payload.message || fallback;
+        };
 
         const form = document.getElementById('profileForm');
         const inputAva = document.getElementById('avatarInput');
@@ -249,7 +269,7 @@ $menu      = $menu ?? 'perfil';
 
                 const j = await r.json().catch(() => null);
                 if (!r.ok || j?.status === 'error') {
-                    throw new Error(j?.message || 'Falha ao salvar.');
+                    throw new Error(extractApiError(j, 'Falha ao salvar.'));
                 }
 
                 window.Swal?.fire?.({
