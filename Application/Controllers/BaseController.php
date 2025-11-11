@@ -8,37 +8,43 @@ use Application\Core\Response;
 use Application\Core\Request;
 use Application\Services\LogService;
 use Application\Services\CacheService;
+use Throwable; // Importar Throwable para capturar todos os erros
 
 abstract class BaseController
 {
-    protected View $view;
-    protected Auth $auth;
     protected ?int $userId = null;
     protected ?string $adminUsername = null;
-    protected Request $request;
-    protected Response $response;
-
-    protected ?CacheService $cache = null;
-
     private ?array $jsonBodyCache = null;
 
-    public function __construct()
-    {
-        $this->auth     = new Auth();
-        $this->request  = new Request();
-        $this->response = new Response();
-
-        $this->cache    = class_exists(CacheService::class) ? new CacheService() : null;
+    /**
+     * Construtor com Propriedades Promovidas (PHP 8.0).
+     * As dependências são injetadas e atribuídas automaticamente.
+     */
+    public function __construct(
+        protected readonly Auth $auth = new Auth(),
+        protected readonly Request $request = new Request(),
+        protected readonly Response $response = new Response(), // Mantido se $this->response for usado
+        protected ?CacheService $cache = null
+    ) {
+        // Inicializa o cache condicionalmente
+        if ($this->cache === null && class_exists(CacheService::class)) {
+            $this->cache = new CacheService();
+        }
     }
 
+    /**
+     * Exige autenticação para rotas web (redireciona em caso de falha).
+     */
     protected function requireAuth(): void
     {
         if (!Auth::isLoggedIn()) {
             $this->redirect('login');
         }
-        $this->userId       = Auth::id();
-        $user                = Auth::user();
-        $this->adminUsername = $user->username ?? $user->nome ?? null;
+        
+        $this->userId = Auth::id();
+        $user         = Auth::user();
+        // Uso de Null Coalescing para garantir um valor
+        $this->adminUsername = $user?->username ?? $user?->nome ?? null; 
 
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
@@ -46,19 +52,23 @@ abstract class BaseController
         }
     }
 
+    /**
+     * Exige autenticação para rotas de API (retorna JSON 401 em caso de falha).
+     */
     protected function requireAuthApi(): void
     {
         if (!Auth::isLoggedIn()) {
-            $this->response->jsonBody(['error' => 'Não autenticado'], 401)->send();
+            Response::unauthorized('Não autenticado'); // Usa helper de Resposta
             return;
         }
+        
         $this->userId = Auth::id();
-        $user = Auth::user();
-        $this->adminUsername = $user->username ?? $user->nome ?? null;
+        $user         = Auth::user();
+        $this->adminUsername = $user?->username ?? $user?->nome ?? null;
 
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
-            $this->response->jsonBody(['error' => 'Sessão inválida'], 401)->send();
+            Response::unauthorized('Sessão inválida'); // Usa helper de Resposta
             return;
         }
     }
@@ -68,56 +78,99 @@ abstract class BaseController
         return Auth::isLoggedIn();
     }
 
+    /**
+     * Renderiza uma view, opcionalmente com header e footer.
+     */
     protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
     {
-        if (!array_key_exists('menu', $data) || $data['menu'] === null || $data['menu'] === '') {
-            $inferred = $this->inferMenuFromView($viewPath);
-            if ($inferred !== null) {
-                $data['menu'] = $inferred;
-            }
+        // Tenta inferir o item de menu ativo se não for fornecido
+        if (empty($data['menu'])) {
+            $data['menu'] = $this->inferMenuFromView($viewPath) ?? $data['menu'] ?? null;
         }
 
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
         if ($footer) $view->setFooter($footer);
+        
         echo $view->render();
     }
 
+    /**
+     * Helper para renderizar páginas do painel de administração com header/footer padrão.
+     */
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
         $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
     }
 
+    /**
+     * Redireciona o usuário para um caminho interno ou URL completa.
+     */
     protected function redirect(string $path): void
     {
         $url = filter_var($path, FILTER_VALIDATE_URL)
             ? $path
             : rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
 
+        // Usa a instância de Response injetada
         $this->response->redirect($url)->send();
     }
 
-    protected function getPost(string $key, $default = null)
+    // --- Helpers de Request ---
+
+    protected function getPost(string $key, mixed $default = null): mixed
     {
         return $this->request->post($key, $default);
     }
-    protected function getQuery(string $key, $default = null)
+
+    protected function getQuery(string $key, mixed $default = null): mixed
     {
         return $this->request->get($key, $default);
     }
 
-    protected function sanitize($value): string
+    /**
+     * Obtém o corpo da requisição JSON (com cache interno).
+     * @param string|null $key Chave específica para retornar (ou null para o array todo).
+     * @param mixed $default Valor padrão se a chave não existir.
+     */
+    protected function getJson(string $key = null, mixed $default = null): mixed
     {
-        return htmlspecialchars(trim((string)$value), ENT_QUOTES, 'UTF-8');
+        if ($this->jsonBodyCache === null) {
+            $raw = file_get_contents('php://input') ?: '';
+            try {
+                // Uso de JSON_THROW_ON_ERROR (PHP 7.3+) para sanitização
+                $this->jsonBodyCache = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+                if (!is_array($this->jsonBodyCache)) {
+                    $this->jsonBodyCache = [];
+                }
+            } catch (\JsonException $e) {
+                $this->jsonBodyCache = [];
+            }
+        }
+        
+        if ($key === null) {
+            return $this->jsonBodyCache;
+        }
+        
+        return $this->jsonBodyCache[$key] ?? $default;
     }
 
-    protected function sanitizeDeep($value)
+    // --- Helpers de Sanitização ---
+
+    protected function sanitize(string $value): string
+    {
+        return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    }
+
+    protected function sanitizeDeep(mixed $value): mixed
     {
         if (is_array($value)) {
             return array_map([$this, 'sanitizeDeep'], $value);
         }
         return is_string($value) ? $this->sanitize($value) : $value;
     }
+
+    // --- Helpers de Flash Message (Sessão) ---
 
     protected function setError(string $message): void
     {
@@ -140,31 +193,27 @@ abstract class BaseController
         return $x;
     }
 
-    protected function getJson(string $key = null, $default = null)
-    {
-        if ($this->jsonBodyCache === null) {
-            $raw = file_get_contents('php://input') ?: '';
-            $this->jsonBodyCache = $raw !== '' ? json_decode($raw, true) : [];
-            if (!is_array($this->jsonBodyCache)) {
-                $this->jsonBodyCache = [];
-            }
-        }
-        if ($key === null) return $this->jsonBodyCache;
-        return $this->jsonBodyCache[$key] ?? $default;
-    }
+    // --- Helpers de Resposta API ---
 
+    /** Retorna uma resposta de sucesso (200 OK). */
     protected function ok(array $payload = [], int $status = 200): void
     {
         Response::success($payload, $status);
     }
+
+    /** Retorna uma resposta de erro (400 Bad Request / 422 Unprocessable). */
     protected function fail(string $message, int $status = 400, array $extra = []): void
     {
         Response::error($message, $status, $extra);
     }
 
-    protected function failAndLog(\Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = []): void
+    /**
+     * Loga um erro (Throwable) e retorna uma resposta de erro (500 Internal Error)
+     * de forma padronizada.
+     */
+    protected function failAndLog(Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = []): void
     {
-        $rid = bin2hex(random_bytes(6));
+        $rid = bin2hex(random_bytes(6)); // Request ID para rastreamento
 
         $ctx = array_merge([
             'request_id' => $rid,
@@ -180,34 +229,33 @@ abstract class BaseController
 
         LogService::error($userMessage, $ctx);
 
-        $this->response->jsonBody([
-            'error'      => $userMessage,
-            'request_id' => $rid,
-        ], $status)->send();
+        // Padroniza a resposta de erro
+        Response::error($userMessage, $status, ['request_id' => $rid]);
     }
 
+    /**
+     * Tenta inferir o item de menu ativo com base no caminho da view.
+     * Refatorado com 'match' (PHP 8.0).
+     */
     protected function inferMenuFromView(string $viewPath): ?string
     {
         $trimmed = trim($viewPath, '/');
-        if ($trimmed === '') {
-            return null;
-        }
-
         $segments = preg_split('#[\\/]+#', $trimmed);
-        if (!$segments || ($segments[0] ?? '') !== 'admin') {
+
+        // Se não for 'admin' ou não tiver um segundo segmento, retorna null
+        if (($segments[0] ?? null) !== 'admin') {
             return null;
         }
 
-        $map = [
+        // Usa match para mapear o segundo segmento (ex: admin/dashboard/index -> dashboard)
+        return match ($segments[1] ?? null) {
             'dashboard'   => 'dashboard',
             'contas'      => 'contas',
             'lancamentos' => 'lancamentos',
             'relatorios'  => 'relatorios',
             'categorias'  => 'categorias',
             'perfil'      => 'perfil',
-        ];
-
-        $section = $segments[1] ?? null;
-        return $section !== null ? ($map[$section] ?? null) : null;
+            default       => null,
+        };
     }
 }

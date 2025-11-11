@@ -6,99 +6,169 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
+use Illuminate\Database\Eloquent\Builder; // Para tipagem do query builder
+use DateTimeImmutable; // PHP 8+
+use Throwable;
+
+// --- Enums para Constantes (PHP 8.1+) ---
+
+enum LancamentoTipo: string
+{
+    case DESPESA = 'despesa';
+    case RECEITA = 'receita';
+}
 
 class DashboardController
 {
+    /**
+     * Valida e normaliza o mês de entrada.
+     * @param string $monthInput O mês fornecido no formato 'Y-m'.
+     * @return array{month: string, year: int, monthNum: int}
+     */
+    private function normalizeMonth(string $monthInput): array
+    {
+        $dt = \DateTime::createFromFormat('Y-m', $monthInput);
+        
+        if (!$dt || $dt->format('Y-m') !== $monthInput) {
+            $month = date('Y-m');
+            $dt = new \DateTime("$month-01");
+        } else {
+            $month = $dt->format('Y-m');
+        }
+        
+        return [
+            'month' => $month,
+            'year' => (int)$dt->format('Y'),
+            'monthNum' => (int)$dt->format('m'),
+        ];
+    }
+
+    /**
+     * Aplica filtros básicos (usuário, transferências, saldo inicial) a um query builder.
+     * @param int $userId ID do usuário.
+     * @return Builder
+     */
+    private function createBaseQuery(int $userId): Builder
+    {
+        return Lancamento::where('user_id', $userId)
+            ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0);
+    }
+
+    /**
+     * Calcula as métricas financeiras (Receita, Despesa, Resultado) para o mês e conta selecionados.
+     */
     public function metrics(): void
     {
         try {
             $userId = Auth::id();
-            $month  = trim($_GET['month'] ?? date('Y-m'));
-            $accId  = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
-
-            // valida mês
-            $dt = \DateTime::createFromFormat('Y-m', $month);
-            if (!$dt || $dt->format('Y-m') !== $month) {
-                $month = date('Y-m');
-                $dt = new \DateTime("$month-01");
-            }
-            $y = (int)$dt->format('Y');
-            $m = (int)$dt->format('m');
-
-            // receitas/despesas do mês (ignora transferências e saldo inicial)
-            $base = Lancamento::where('user_id', $userId)
-                ->whereYear('data', $y)
-                ->whereMonth('data', $m);
-
-            $receitas = (clone $base)
-                ->where('tipo', 'receita')
-                ->where('eh_transferencia', 0)
-                ->where('eh_saldo_inicial', 0);
-
-            $despesas = (clone $base)
-                ->where('tipo', 'despesa')
-                ->where('eh_transferencia', 0)
-                ->where('eh_saldo_inicial', 0);
-
+            
+            // 1. Parsing e Normalização
+            $monthInput = trim($_GET['month'] ?? date('Y-m'));
+            $accId      = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
+            
+            $normalizedDate = $this->normalizeMonth($monthInput);
+            $y = $normalizedDate['year'];
+            $m = $normalizedDate['monthNum'];
+            $month = $normalizedDate['month'];
+            
+            // 2. Validação da Conta (Se accId for fornecido)
             if ($accId) {
-                $exists = Conta::where('user_id', $userId)->where('id', $accId)->exists();
-                if (!$exists) {
+                if (!Conta::where('user_id', $userId)->where('id', $accId)->exists()) {
                     Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
                     return;
                 }
-                $receitas->where('conta_id', $accId);
-                $despesas->where('conta_id', $accId);
             }
-
-            $sumReceitas = (float)$receitas->sum('valor');
-            $sumDespesas = (float)$despesas->sum('valor');
-            $resultado   = $sumReceitas - $sumDespesas;
-
-            $ate = (new \DateTimeImmutable("$month-01"))->modify('last day of this month')->format('Y-m-d');
+            
+            // --- Cálculo das Métricas Mensais (Receitas / Despesas) ---
+            
+            $monthlyBase = $this->createBaseQuery($userId)
+                ->whereYear('data', $y)
+                ->whereMonth('data', $m);
 
             if ($accId) {
-                $movBase = Lancamento::where('user_id', $userId)
+                $monthlyBase->where('conta_id', $accId);
+            }
+
+            $receitasQuery = (clone $monthlyBase)->where('tipo', LancamentoTipo::RECEITA->value);
+            $despesasQuery = (clone $monthlyBase)->where('tipo', LancamentoTipo::DESPESA->value);
+
+            $sumReceitas = (float)$receitasQuery->sum('valor');
+            $sumDespesas = (float)$despesasQuery->sum('valor');
+            $resultado   = $sumReceitas - $sumDespesas;
+
+            // --- Cálculo do Saldo Acumulado (até o final do mês) ---
+            
+            $ate = (new DateTimeImmutable("$month-01"))
+                ->modify('last day of this month')
+                ->format('Y-m-d');
+            
+            $saldoAcumulado = 0.0;
+
+            if ($accId) {
+                // Cálculo de saldo para UMA conta específica
+                
+                $movBaseAcumulado = Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
-                    ->where('eh_transferencia', 0)
                     ->where('conta_id', $accId);
+                    
+                // Movimento Receita/Despesa (ignora transferência e saldo inicial)
+                $movReceitas = (float)(clone $movBaseAcumulado)
+                    ->where('eh_transferencia', 0)
+                    ->where('tipo', LancamentoTipo::RECEITA->value)
+                    ->sum('valor');
+                    
+                $movDespesas = (float)(clone $movBaseAcumulado)
+                    ->where('eh_transferencia', 0)
+                    ->where('tipo', LancamentoTipo::DESPESA->value)
+                    ->sum('valor');
 
-                $movReceitas = (float)(clone $movBase)->where('tipo', 'receita')->sum('valor');
-                $movDespesas = (float)(clone $movBase)->where('tipo', 'despesa')->sum('valor');
-
-                $transfIn  = (float)Lancamento::where('user_id', $userId)
+                // Transferências ENTRANDO na conta (conta_id_destino)
+                $transfIn = (float)Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('eh_transferencia', 1)
                     ->where('conta_id_destino', $accId)
                     ->sum('valor');
 
+                // Transferências SAINDO da conta (conta_id)
                 $transfOut = (float)Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('eh_transferencia', 1)
                     ->where('conta_id', $accId)
                     ->sum('valor');
+                    
+                // Saldo Acumulado = Receitas - Despesas + Transf In - Transf Out
+                $saldoAcumulado = $movReceitas - $movDespesas + $transfIn - $transfOut;
 
-                $saldo = $movReceitas - $movDespesas + $transfIn - $transfOut;
-                $saldoAcumulado = $saldo;
             } else {
+                // Cálculo de saldo GLOBAL (apenas Receitas/Despesas, ignorando transferências)
+                
                 $movGlobal = Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
-                    ->where('eh_transferencia', 0);
+                    ->where('eh_transferencia', 0); // Transferências globais se anulam
+                    
+                $r = (float)(clone $movGlobal)
+                    ->where('tipo', LancamentoTipo::RECEITA->value)
+                    ->sum('valor');
+                
+                $d = (float)(clone $movGlobal)
+                    ->where('tipo', LancamentoTipo::DESPESA->value)
+                    ->sum('valor');
 
-                $r = (float)(clone $movGlobal)->where('tipo', 'receita')->sum('valor');
-                $d = (float)(clone $movGlobal)->where('tipo', 'despesa')->sum('valor');
-
-                $saldo = $r - $d;
-                $saldoAcumulado = $saldo;
+                $saldoAcumulado = $r - $d;
             }
 
+            // 4. Resposta
             Response::json([
-                'saldo'          => $saldo,
+                'saldo'          => $saldoAcumulado, // Nome original, mas é o saldo acumulado
                 'receitas'       => $sumReceitas,
                 'despesas'       => $sumDespesas,
-                'resultado'      => $resultado,
-                'saldoAcumulado' => $saldoAcumulado,
+                'resultado'      => $resultado, // Resultado (Receitas - Despesas) do MÊS
+                'saldoAcumulado' => $saldoAcumulado, // Mantido por clareza/compatibilidade
             ]);
-        } catch (\Throwable $e) {
+            
+        } catch (Throwable $e) {
+            // Captura qualquer exceção (do PHP 7+ e 8+)
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }

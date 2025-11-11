@@ -52,7 +52,7 @@ $aria   = function (string $key) use ($menu) {
         </div>
     </section>
 
-    <section class="charts-grid" data-aos="fade-up">
+    <section class="charts-grid" data-aos="zoom-in">
         <div class="card chart-card">
             <div class="card-header">
                 <h2 class="card-title">Evolução Financeira</h2>

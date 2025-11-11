@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Core;
 
 use Application\Lib\Helpers;
@@ -7,53 +9,96 @@ use Application\Core\Exceptions\ValidationException;
 
 class Request
 {
-    private array $query = [];
-    private array $body = [];
-    private array $data = [];
-    private array $files = [];
-    private string $method;
-    private array $headers = [];
-    private ?array $json = null;
+    // Propriedades são 'readonly' (PHP 8.1+), definidas uma vez no construtor
+    private readonly array $query;
+    private readonly array $body;
+    private readonly array $data;
+    private readonly array $files;
+    private readonly string $method;
+    private readonly array $headers;
+    private readonly ?array $json;
 
     public function __construct()
     {
         $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
         $this->headers = $this->normalizeHeaders(getallheaders() ?: []);
         $this->files   = $_FILES ?? [];
-
+        
         $this->parseData();
     }
+
+    private function parseData(): void
+    {
+        // 1. Query string (GET)
+        $this->query = $_GET ?? [];
+
+        // 2. Body (POST, PUT, PATCH, JSON)
+        $body = [];
+        $json = null;
+        $contentType = $this->contentType();
+
+        // str_contains (PHP 8.0+)
+        if (str_contains($contentType, 'application/json')) {
+            $raw = file_get_contents('php://input') ?: '';
+            if ($raw) {
+                try {
+                    // JSON_THROW_ON_ERROR (PHP 7.3+)
+                    $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+                    if (is_array($decoded)) {
+                        $json = $decoded;
+                        $body = $decoded;
+                    }
+                } catch (\JsonException $e) {
+                    // JSON malformado, $body continua vazio
+                }
+            }
+        } elseif (str_contains($contentType, 'application/x-www-form-urlencoded') || str_contains($contentType, 'multipart/form-data')) {
+            if ($this->isPost()) {
+                $body = $_POST ?? [];
+            } else {
+                // Lida com PUT/PATCH/DELETE usando x-www-form-urlencoded
+                $raw = file_get_contents('php://input') ?: '';
+                parse_str($raw, $parsed);
+                if (is_array($parsed)) $body = $parsed;
+            }
+        } elseif ($this->isPost()) {
+            // Fallback para POST sem content-type
+            $body = $_POST ?? [];
+        }
+
+        $this->body = $body;
+        $this->json = $json;
+        
+        // 3. Data (junção de Query e Body)
+        // O Body (POST/JSON) tem precedência sobre a Query String (GET)
+        $this->data = array_merge($this->query, $this->body);
+    }
+    
+    private function normalizeHeaders(array $headers): array
+    {
+        $normalized = [];
+        foreach ($headers as $k => $v) {
+            $normalized[strtolower((string)$k)] = (string)$v;
+        }
+        return $normalized;
+    }
+
+    // --- Métodos de Acesso ---
 
     public function method(): string
     {
         return $this->method;
     }
 
-    public function isGet(): bool
-    {
-        return $this->method === 'GET';
-    }
-    public function isPost(): bool
-    {
-        return $this->method === 'POST';
-    }
-    public function isPut(): bool
-    {
-        return $this->method === 'PUT';
-    }
-    public function isPatch(): bool
-    {
-        return $this->method === 'PATCH';
-    }
-    public function isDelete(): bool
-    {
-        return $this->method === 'DELETE';
-    }
+    public function isGet(): bool { return $this->method === 'GET'; }
+    public function isPost(): bool { return $this->method === 'POST'; }
+    public function isPut(): bool { return $this->method === 'PUT'; }
+    public function isPatch(): bool { return $this->method === 'PATCH'; }
+    public function isDelete(): bool { return $this->method === 'DELETE'; }
 
     public function isAjax(): bool
     {
-        return !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
-            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        return strtolower($this->header('x-requested-with') ?? '') === 'xmlhttprequest';
     }
 
     public function header(string $key): ?string
@@ -75,8 +120,7 @@ class Request
     public function bearerToken(): ?string
     {
         $h = $this->header('authorization');
-        if (!$h) return null;
-        if (preg_match('/^Bearer\s+(.+)$/i', $h, $m)) {
+        if ($h && preg_match('/^Bearer\s+(.+)$/i', $h, $m)) {
             return trim($m[1]);
         }
         return null;
@@ -85,27 +129,29 @@ class Request
     public function wantsJson(): bool
     {
         $accept = $this->header('accept') ?? '';
-        return stripos($accept, 'application/json') !== false;
+        return str_contains($accept, 'application/json');
     }
 
-    public function query(string $key = null, $default = null)
+    // --- Acesso a Dados ---
+
+    public function query(string $key = null, mixed $default = null): mixed
     {
         if ($key === null) return $this->query;
         return $this->query[$key] ?? $default;
     }
 
-    public function post(string $key = null, $default = null)
+    public function post(string $key = null, mixed $default = null): mixed
     {
         if ($key === null) return $this->body;
         return $this->body[$key] ?? $default;
     }
 
-    public function get(string $key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         return $this->data[$key] ?? $default;
     }
 
-    public function input(string $key = null, $default = null)
+    public function input(string $key = null, mixed $default = null): mixed
     {
         if ($key === null) return $this->data;
         return $this->data[$key] ?? $default;
@@ -136,9 +182,6 @@ class Request
         return $this->has($key) && $this->data[$key] !== '' && $this->data[$key] !== null;
     }
 
-    // ==========================
-    // Arquivos
-    // ==========================
     public function file(string $key): ?array
     {
         return $this->files[$key] ?? null;
@@ -149,24 +192,25 @@ class Request
         return isset($this->files[$key]) && $this->files[$key]['error'] === UPLOAD_ERR_OK;
     }
 
-    // ==========================
-    // JSON
-    // ==========================
     /**
-     * Retorna corpo JSON decodificado (array) se Content-Type JSON, senão null.
+     * Retorna o corpo JSON decodificado (se o Content-Type for JSON).
      */
     public function json(): ?array
     {
         return $this->json;
     }
 
-    // ==========================
-    // Validação (GUMP)
-    // ==========================
+    // --- Validação ---
+
+    /**
+     * Valida os dados da requisição (query + body).
+     * @throws ValidationException
+     */
     public function validate(array $rules, array $filters = []): array
     {
         $gump = new \GUMP();
 
+        // Adiciona validadores customizados
         $gump->add_validator("cpf_cnpj", function ($field, $input, $param = null) {
             $value = preg_replace('/\D/', '', $input[$field] ?? '');
             if (strlen($value) === 11) return Helpers::isValidCpf($value);
@@ -179,22 +223,16 @@ class Request
 
         $validated = $gump->run($this->data);
         if ($validated === false) {
-            throw new ValidationException($gump->get_errors_array());
+            throw new ValidationException($gump->get_errors_array(), 'Validation failed', 422);
         }
         return $validated;
     }
 
-    // ==========================
-    // Utilidades
-    // ==========================
-    /** Sanitização para SAÍDA (não para entrada) */
-    public function sanitize(string $value): string
-    {
-        return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
-    }
+    // --- Utilidades ---
 
     public function ip(): string
     {
+        // Ordem de verificação, priorizando proxies confiáveis
         $keys = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
         foreach ($keys as $key) {
             if (!empty($_SERVER[$key])) {
@@ -206,57 +244,7 @@ class Request
                 }
             }
         }
+        // Fallback para o IP da conexão direta
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    }
-
-    // ==========================
-    // Internos
-    // ==========================
-    private function parseData(): void
-    {
-        // Query sempre vem do GET
-        $this->query = $_GET ?? [];
-
-        // Corpo: POST/PUT/PATCH/DELETE
-        $this->body = [];
-        $ct = $this->contentType();
-
-        // JSON
-        if (stripos($ct, 'application/json') !== false) {
-            $raw = file_get_contents('php://input') ?: '';
-            $decoded = json_decode($raw, true);
-            if (is_array($decoded)) {
-                $this->json = $decoded;
-                $this->body = $decoded;
-            }
-        }
-        // Form-data ou x-www-form-urlencoded
-        elseif (stripos($ct, 'application/x-www-form-urlencoded') !== false || stripos($ct, 'multipart/form-data') !== false) {
-            if ($this->isPost()) {
-                $this->body = $_POST ?? [];
-            } else {
-                // PUT/PATCH/DELETE com form-encoded
-                $raw = file_get_contents('php://input') ?: '';
-                $parsed = [];
-                parse_str($raw, $parsed);
-                if (is_array($parsed)) $this->body = $parsed;
-            }
-        }
-        // Sem content-type ou métodos simples: tenta POST padrão
-        else {
-            if ($this->isPost()) $this->body = $_POST ?? [];
-        }
-
-        // Mescla final (query tem precedência menor que body)
-        $this->data = array_merge($this->query, $this->body);
-    }
-
-    private function normalizeHeaders(array $headers): array
-    {
-        $normalized = [];
-        foreach ($headers as $k => $v) {
-            $normalized[strtolower($k)] = $v;
-        }
-        return $normalized;
     }
 }

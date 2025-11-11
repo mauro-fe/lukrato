@@ -8,19 +8,174 @@ use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Capsule\Manager;
+use DateTimeImmutable; // PHP 8+ para manipulação de data imutável
+use Throwable; // Para capturar exceções
+use ValueError; // Para tratamento de erro de Enum
+
+// --- Enums (PHP 8.1+) para Tipos e Moedas ---
+
+enum LancamentoTipo: string
+{
+    case DESPESA = 'despesa';
+    case RECEITA = 'receita';
+}
+
+enum Moeda: string
+{
+    case BRL = 'BRL';
+    case USD = 'USD';
+    case EUR = 'EUR';
+
+    public static function listValues(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+}
+
+/**
+ * Serviço de Ajuda para calcular saldos das contas (extraído do Controller).
+ */
+class ContasBalanceService
+{
+    private int $userId;
+    private array $accountIds;
+    private string $endDate;
+
+    public function __construct(int $userId, array $accountIds, string $month)
+    {
+        $this->userId = $userId;
+        $this->accountIds = $accountIds;
+
+        // Determina o último dia do mês para o filtro (usando DateTimeImmutable para clareza)
+        $dt = \DateTime::createFromFormat('Y-m', $month);
+        if (!$dt || $dt->format('Y-m') !== $month) {
+            $dt = new \DateTime(date('Y-m') . '-01');
+        }
+        $this->endDate = (new DateTimeImmutable($dt->format('Y-m-01')))
+            ->modify('last day of this month')
+            ->format('Y-m-d');
+    }
+
+    /**
+     * Calcula o saldo inicial a partir de lançamentos específicos (eh_saldo_inicial = 1).
+     */
+    public function getInitialBalances(): array
+    {
+        if (empty($this->accountIds)) return [];
+
+        return Lancamento::where('user_id', $this->userId)
+            ->whereIn('conta_id', $this->accountIds)
+            ->where('eh_saldo_inicial', 1)
+            ->selectRaw("
+                conta_id,
+                SUM(
+                    CASE
+                        WHEN tipo = ?
+                            THEN -valor
+                        ELSE valor
+                    END
+                ) as total
+            ", [LancamentoTipo::DESPESA->value])
+            ->groupBy('conta_id')
+            ->pluck('total', 'conta_id')
+            ->all();
+    }
+
+    /**
+     * Calcula o movimento de lançamentos até a data final.
+     */
+    public function calculateFinalBalances(array $initialBalances): array
+    {
+        if (empty($this->accountIds)) return [];
+
+        // Note: As 4 queries SQL complexas foram mantidas aqui, pois dependem de lógica de negócio e não de roteamento.
+        
+        // 1. Receitas (não transferência)
+        $rec = Lancamento::where('user_id', $this->userId)
+            ->whereIn('conta_id', $this->accountIds)
+            ->where('eh_transferencia', 0)
+            ->where('data', '<=', $this->endDate)
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->selectRaw('conta_id, SUM(valor) as tot')
+            ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
+
+        // 2. Despesas (não transferência)
+        $des = Lancamento::where('user_id', $this->userId)
+            ->whereIn('conta_id', $this->accountIds)
+            ->where('eh_transferencia', 0)
+            ->where('data', '<=', $this->endDate)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->selectRaw('conta_id, SUM(valor) as tot')
+            ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
+
+        // 3. Transferências Recebidas
+        $tin = Lancamento::where('user_id', $this->userId)
+            ->whereIn('conta_id_destino', $this->accountIds)
+            ->where('eh_transferencia', 1)
+            ->where('data', '<=', $this->endDate)
+            ->selectRaw('conta_id_destino as cid, SUM(valor) as tot')
+            ->groupBy('cid')->pluck('tot', 'cid')->all();
+
+        // 4. Transferências Enviadas
+        $tout = Lancamento::where('user_id', $this->userId)
+            ->whereIn('conta_id', $this->accountIds)
+            ->where('eh_transferencia', 1)
+            ->where('data', '<=', $this->endDate)
+            ->selectRaw('conta_id as cid, SUM(valor) as tot')
+            ->groupBy('cid')->pluck('tot', 'cid')->all();
+
+        $extras = [];
+        foreach ($this->accountIds as $cid) {
+            $r = (float)($rec[$cid] ?? 0);
+            $d = (float)($des[$cid] ?? 0);
+            $i = (float)($tin[$cid] ?? 0);
+            $o = (float)($tout[$cid] ?? 0);
+            $si = (float)($initialBalances[$cid] ?? 0);
+            
+            // Saldo Atual: Saldo Inicial + Receitas - Despesas + Transf. In - Transf. Out
+            $saldoAtual = $si + $r - $d + $i - $o;
+
+            $extras[$cid] = [
+                'saldoAtual'    => $saldoAtual,
+                'entradasTotal' => $r + $i,
+                'saidasTotal'   => $d + $o,
+                'saldoInicial'  => $si,
+            ];
+        }
+
+        return $extras;
+    }
+}
+
 
 class ContasController
 {
+    /**
+     * Obtém dados do request (POST ou JSON).
+     */
+    private function getRequestPayload(): array
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        if (empty($data) && strtolower($_SERVER['REQUEST_METHOD'] ?? '') === 'post') {
+            $data = $_POST;
+        }
+        return $data;
+    }
+
+    /**
+     * Lista as contas do usuário com filtros opcionais e cálculo de saldo.
+     */
     public function index(): void
     {
-        $userId       = Auth::id();
+        $userId = Auth::id();
 
+        // 1. Parsing e tipagem dos parâmetros de query
         $archived     = (int)($_GET['archived'] ?? 0) === 1;
         $onlyActive   = (int)($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
-
         $withBalances = (int)($_GET['with_balances'] ?? 0) === 1;
         $month        = trim((string)($_GET['month'] ?? date('Y-m')));
 
+        // 2. Construção da Query de Contas
         $q = Conta::forUser($userId);
         if ($archived) {
             $q->arquivadas();
@@ -29,131 +184,73 @@ class ContasController
         }
 
         $rows = $q->orderBy('nome')->get();
-
+        $ids = $rows->pluck('id')->all();
+        
         $extras = [];
         $saldoIniciais = [];
-        $ids = $rows->pluck('id')->all();
-
+        
         if ($rows->count()) {
-            $saldoIniciais = Lancamento::where('user_id', $userId)
-                ->whereIn('conta_id', $ids)
-                ->where('eh_saldo_inicial', 1)
-                ->selectRaw("
-                    conta_id,
-                    SUM(
-                        CASE
-                            WHEN tipo = ?
-                                THEN -valor
-                            ELSE valor
-                        END
-                    ) as total
-                ", [Lancamento::TIPO_DESPESA])
-                ->groupBy('conta_id')
-                ->pluck('total', 'conta_id')
-                ->all();
-        }
+            $balanceService = new ContasBalanceService($userId, $ids, $month);
 
-        if ($withBalances && $rows->count()) {
-            $dt = \DateTime::createFromFormat('Y-m', $month);
-            if (!$dt || $dt->format('Y-m') !== $month) {
-                $dt = new \DateTime(date('Y-m') . '-01');
-            }
-            $ate = (new \DateTimeImmutable($dt->format('Y-m-01')))
-                ->modify('last day of this month')
-                ->format('Y-m-d');
+            // 3. Obter Saldo Inicial
+            $saldoIniciais = $balanceService->getInitialBalances();
 
-            // RECEITAS (não transferência) até a data
-            $rec = Lancamento::where('user_id', $userId)
-                ->whereIn('conta_id', $ids)
-                ->where('eh_transferencia', 0)
-                ->where('data', '<=', $ate)
-                ->where('tipo', Lancamento::TIPO_RECEITA)
-                ->selectRaw('conta_id, SUM(valor) as tot')
-                ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
-
-            // DESPESAS (não transferência) até a data
-            $des = Lancamento::where('user_id', $userId)
-                ->whereIn('conta_id', $ids)
-                ->where('eh_transferencia', 0)
-                ->where('data', '<=', $ate)
-                ->where('tipo', Lancamento::TIPO_DESPESA)
-                ->selectRaw('conta_id, SUM(valor) as tot')
-                ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
-
-            // TRANSFERÊNCIAS RECEBIDAS até a data
-            $tin = Lancamento::where('user_id', $userId)
-                ->whereIn('conta_id_destino', $ids)
-                ->where('eh_transferencia', 1)
-                ->where('data', '<=', $ate)
-                ->selectRaw('conta_id_destino as cid, SUM(valor) as tot')
-                ->groupBy('cid')->pluck('tot', 'cid')->all();
-
-            // TRANSFERÊNCIAS ENVIADAS até a data
-            $tout = Lancamento::where('user_id', $userId)
-                ->whereIn('conta_id', $ids)
-                ->where('eh_transferencia', 1)
-                ->where('data', '<=', $ate)
-                ->selectRaw('conta_id as cid, SUM(valor) as tot')
-                ->groupBy('cid')->pluck('tot', 'cid')->all();
-
-            foreach ($ids as $cid) {
-                $r = (float)($rec[$cid]  ?? 0);
-                $d = (float)($des[$cid]  ?? 0);
-                $i = (float)($tin[$cid]  ?? 0);
-                $o = (float)($tout[$cid] ?? 0);
-
-                $extras[$cid] = [
-                    'saldoAtual'  => $r - $d + $i - $o,
-                    // Obs: abaixo são totais até a data. Se quiser "do mês", troque por BETWEEN no 1º e último dia do mês.
-                    'entradasMes' => $r + $i,
-                    'saidasMes'   => $d + $o,
-                    'saldoInicial' => (float)($saldoIniciais[$cid] ?? 0),
-                ];
+            // 4. Calcular Saldo Final e Extras
+            if ($withBalances) {
+                $extras = $balanceService->calculateFinalBalances($saldoIniciais);
             }
         }
 
-        Response::json($rows->map(function ($c) use ($extras, $saldoIniciais) {
-            $x = $extras[$c->id] ?? null;
+        // 5. Mapeamento da Resposta
+        Response::json($rows->map(function (Conta $c) use ($extras, $saldoIniciais) {
+            $cid = (int)$c->id;
+            $x = $extras[$cid] ?? null;
+            $initial = (float)($saldoIniciais[$cid] ?? 0);
+
             return [
-                'id'            => (int)$c->id,
-                'nome'          => (string)$c->nome,
-                'instituicao'   => (string)($c->instituicao ?? ''),
-                'moeda'         => (string)($c->moeda ?? 'BRL'),
-                // Mantido por compatibilidade, mas agora vem sempre 0 (não existe mais coluna).
-                'saldoInicial'  => $x ? (float)$x['saldoInicial'] : (float)($saldoIniciais[$c->id] ?? 0),
-                // saldo inicial calculado a partir do lançamento dedicado (caso exista)
-                'saldoAtual'    => $x ? (float)$x['saldoAtual']  : null,
-                'entradasMes'   => $x ? (float)$x['entradasMes'] : 0.0,
-                'saidasMes'     => $x ? (float)$x['saidasMes']   : 0.0,
-                'ativo'         => (bool)$c->ativo,
-                'arquivada'     => !(bool)$c->ativo,
+                'id'             => $cid,
+                'nome'           => (string)$c->nome,
+                'instituicao'    => (string)($c->instituicao ?? ''),
+                'moeda'          => (string)($c->moeda ?? 'BRL'),
+                'saldoInicial'   => $initial,
+                // Uso do operador nullsafe '??' do PHP 7.0+
+                'saldoAtual'     => $x['saldoAtual'] ?? null, 
+                'entradasTotal'  => $x['entradasTotal'] ?? 0.0, 
+                'saidasTotal'    => $x['saidasTotal'] ?? 0.0, 
+                'ativo'          => (bool)$c->ativo,
+                'arquivada'      => !(bool)$c->ativo,
             ];
         })->all());
     }
 
+    /**
+     * Cria uma nova conta e, opcionalmente, o lançamento de saldo inicial.
+     */
     public function store(): void
     {
-        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $data = $this->getRequestPayload();
+        
         $nome = trim((string)($data['nome'] ?? ''));
-
         if ($nome === '') {
             Response::json(['status' => 'error', 'message' => 'Nome obrigatório.'], 422);
             return;
         }
 
         $moeda = strtoupper(trim((string)($data['moeda'] ?? 'BRL')));
-        $allowedMoedas = ['BRL', 'USD', 'EUR'];
-        if (!in_array($moeda, $allowedMoedas, true)) $moeda = 'BRL';
+        try {
+            $moeda = Moeda::from($moeda)->value;
+        } catch (ValueError) {
+            $moeda = Moeda::BRL->value;
+        }
 
         $tipoId = isset($data['tipo_id']) && $data['tipo_id'] !== '' ? (int)$data['tipo_id'] : null;
-
-        // normaliza saldo_inicial recebido (apenas para criar Lançamento)
         $saldoInicial = (float)($data['saldo_inicial'] ?? 0);
+        $userId = Auth::id();
 
         DB::beginTransaction();
         try {
             $conta = new Conta([
-                'user_id'     => Auth::id(),
+                'user_id'     => $userId,
                 'nome'        => $nome,
                 'instituicao' => $data['instituicao'] ?? null,
                 'moeda'       => $moeda,
@@ -163,9 +260,11 @@ class ContasController
             $conta->save();
 
             if (abs($saldoInicial) > 0.00001) {
+                $isReceita = $saldoInicial >= 0;
+                
                 Lancamento::create([
-                    'user_id'           => Auth::id(),
-                    'tipo'              => $saldoInicial >= 0 ? Lancamento::TIPO_RECEITA : Lancamento::TIPO_DESPESA,
+                    'user_id'           => $userId,
+                    'tipo'              => $isReceita ? LancamentoTipo::RECEITA->value : LancamentoTipo::DESPESA->value,
                     'data'              => date('Y-m-d'),
                     'categoria_id'      => null,
                     'conta_id'          => $conta->id,
@@ -179,53 +278,79 @@ class ContasController
             }
 
             DB::commit();
-            Response::json(['ok' => true, 'id' => (int) $conta->id]);
-        } catch (\Throwable $e) {
+            Response::json(['ok' => true, 'id' => (int) $conta->id], 201);
+        } catch (Throwable $e) {
             DB::rollBack();
             Response::json(['status' => 'error', 'message' => 'Falha ao criar conta: ' . $e->getMessage()], 500);
         }
     }
 
+    /**
+     * Atualiza uma conta existente e seu lançamento de saldo inicial.
+     * @param int $id O ID da conta a ser atualizada.
+     */
     public function update(int $id): void
     {
-        $conta = Conta::forUser(Auth::id())->find($id);
+        $userId = Auth::id();
+        
+        /** @var Conta|null $conta */
+        $conta = Conta::forUser($userId)->find($id);
         if (!$conta) {
             Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $data = $this->getRequestPayload();
 
-        foreach (['nome', 'instituicao', 'moeda'] as $f) {
-            if (array_key_exists($f, $data)) $conta->{$f} = trim((string)$data[$f]);
+        // 1. Sanitiza e Normaliza Strings
+        $data = array_map(function($value) {
+            return is_string($value) ? trim($value) : $value;
+        }, $data);
+
+        // 2. Atualiza campos da conta
+        $conta->nome        = $data['nome'] ?? $conta->nome;
+        $conta->instituicao = $data['instituicao'] ?? $conta->instituicao;
+        
+        if (array_key_exists('moeda', $data)) {
+            $moeda = strtoupper($data['moeda']);
+            try {
+                // Validação e normalização de Moeda (PHP 8.1+)
+                $conta->moeda = Moeda::from($moeda)->value;
+            } catch (ValueError) {
+                // Moeda inválida, ignora a atualização da moeda.
+            }
         }
+        
         if (array_key_exists('ativo', $data)) {
-            $conta->ativo = (int) !!$data['ativo'];
+            $conta->ativo = (int)($data['ativo'] ?? 0); 
         }
 
         DB::beginTransaction();
         try {
             $conta->save();
 
-            // Upsert do SALDO INICIAL via lancamento (sem coluna na tabela contas)
+            // 3. Upsert do SALDO INICIAL (Lançamento)
             if (array_key_exists('saldo_inicial', $data)) {
                 $novoSaldo = (float) $data['saldo_inicial'];
 
-                // procura lançamento de saldo inicial existente
-                $lanc = Lancamento::where('user_id', Auth::id())
+                // Procura lançamento de saldo inicial existente
+                $lanc = Lancamento::where('user_id', $userId)
                     ->where('conta_id', $conta->id)
                     ->where('eh_transferencia', 0)
                     ->where('eh_saldo_inicial', 1)
                     ->first();
 
                 if (abs($novoSaldo) <= 0.00001) {
-                    // zera: remove o lançamento de saldo inicial se existir
+                    // Novo saldo é zero: remove o lançamento se existir
                     if ($lanc) $lanc->delete();
                 } else {
-                    $payload = [
-                        'user_id'           => Auth::id(),
-                        'tipo'              => $novoSaldo >= 0 ? Lancamento::TIPO_RECEITA : Lancamento::TIPO_DESPESA,
-                        'data'              => $lanc ? $lanc->data->format('Y-m-d') : date('Y-m-d'),
+                    $isReceita = $novoSaldo >= 0;
+                    
+                    $payloadLancamento = [
+                        'user_id'           => $userId,
+                        'tipo'              => $isReceita ? LancamentoTipo::RECEITA->value : LancamentoTipo::DESPESA->value,
+                        // Uso do operador Nullsafe '->?' para formatar data (PHP 8.0+)
+                        'data'              => $lanc?->data?->format('Y-m-d') ?? date('Y-m-d'), 
                         'categoria_id'      => null,
                         'conta_id'          => $conta->id,
                         'conta_id_destino'  => null,
@@ -237,53 +362,76 @@ class ContasController
                     ];
 
                     if ($lanc) {
-                        $lanc->fill($payload)->save();
+                        $lanc->fill($payloadLancamento)->save();
                     } else {
-                        Lancamento::create($payload);
+                        Lancamento::create($payloadLancamento);
                     }
                 }
             }
 
             DB::commit();
             Response::json(['ok' => true, 'ativo' => (bool)$conta->ativo]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             DB::rollBack();
             Response::json(['status' => 'error', 'message' => 'Falha ao atualizar: ' . $e->getMessage()], 500);
         }
     }
 
+    /**
+     * Exclui (arquiva) uma conta. Redireciona para archive().
+     * @param int $id O ID da conta.
+     */
     public function destroy(int $id): void
     {
         $this->archive($id);
     }
 
+    /**
+     * Arquiva uma conta (seta ativo=0).
+     * @param int $id O ID da conta.
+     */
     public function archive(int $id): void
     {
-        $conta = Conta::forUser(Auth::id())->find($id);
+        $userId = Auth::id();
+        /** @var Conta|null $conta */
+        $conta = Conta::forUser($userId)->find($id);
+        
         if (!$conta) {
             Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
             return;
         }
         $conta->ativo = 0;
         $conta->save();
-        Response::json(['ok' => true]);
+        Response::json(['ok' => true, 'message' => 'Conta arquivada.']);
     }
 
+    /**
+     * Restaura uma conta (seta ativo=1).
+     * @param int $id O ID da conta.
+     */
     public function restore(int $id): void
     {
-        $conta = Conta::forUser(Auth::id())->find($id);
+        $userId = Auth::id();
+        /** @var Conta|null $conta */
+        $conta = Conta::forUser($userId)->find($id);
+        
         if (!$conta) {
             Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
             return;
         }
         $conta->ativo = 1;
         $conta->save();
-        Response::json(['ok' => true]);
+        Response::json(['ok' => true, 'message' => 'Conta restaurada.']);
     }
 
+    /**
+     * Exclusão permanente da conta e de todos os lançamentos vinculados (requer confirmação).
+     * @param int $id O ID da conta.
+     */
     public function hardDelete(int $id): void
     {
-        $uid   = Auth::id();
+        $uid = Auth::id();
+        /** @var Conta|null $conta */
         $conta = Conta::forUser($uid)->find($id);
 
         if (!$conta) {
@@ -291,17 +439,18 @@ class ContasController
             return;
         }
 
-        // aceita confirmação via query (?force=1) ou no body JSON {"force": true}
-        $payload = json_decode(file_get_contents('php://input'), true) ?: [];
-        $force   = (int)($_GET['force'] ?? 0) === 1 || !empty($payload['force']);
+        $payload = $this->getRequestPayload();
+        
+        // Conversão robusta para bool/int
+        $force = (int)($_GET['force'] ?? 0) === 1 || filter_var($payload['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        // Contagens para exibir na confirmação
+        // Contagens
         $countOrig = Lancamento::where('user_id', $uid)->where('conta_id', $id)->count();
         $countDest = Lancamento::where('user_id', $uid)->where('conta_id_destino', $id)->count();
         $totalLanc = $countOrig + $countDest;
 
         if ($totalLanc > 0 && !$force) {
-            // NÃO deleta; pede confirmação ao frontend
+            // Pede confirmação
             Response::json([
                 'status'       => 'confirm_delete',
                 'message'      => 'Esta conta possui lançamentos vinculados. Deseja excluir a conta e TODOS os lançamentos vinculados?',
@@ -310,26 +459,26 @@ class ContasController
                     'destino'  => $countDest,
                     'total'    => $totalLanc,
                 ],
-                'suggestion'   => 'Reenvie com force=1 para confirmar. Caso não confirme, a conta será apenas arquivada.',
+                'suggestion'   => 'Reenvie a requisição com ?force=1 ou JSON {"force": true} para confirmar a exclusão permanente dos lançamentos.',
             ], 422);
             return;
         }
-
-        // Se tem lançamentos e NÃO confirmou, apenas arquiva
+        
+        // Se force é FALSE e há lançamentos, o comportamento original era arquivar.
         if ($totalLanc > 0 && !$force) {
             $conta->ativo = 0;
             $conta->save();
-            Response::json(['ok' => true, 'archived' => true]);
+            Response::json(['ok' => true, 'archived' => true, 'message' => 'Conta arquivada em vez de excluída permanentemente.']);
             return;
         }
 
-        // Confirmado (force=1) -> apaga lançamentos + conta (transação)
+        // Se force é TRUE (ou não há lançamentos), executa a exclusão.
         Manager::connection()->transaction(function () use ($uid, $id, $conta, $totalLanc) {
             // Apaga todos os lançamentos onde a conta aparece (origem ou destino)
             Lancamento::where('user_id', $uid)->where('conta_id', $id)->delete();
             Lancamento::where('user_id', $uid)->where('conta_id_destino', $id)->delete();
 
-            // Agora pode remover a conta
+            // Remove a conta
             $conta->delete();
         });
 
@@ -341,3 +490,5 @@ class ContasController
         ]);
     }
 }
+
+

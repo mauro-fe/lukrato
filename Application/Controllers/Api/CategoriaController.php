@@ -8,18 +8,84 @@ use Application\Core\Response;
 use Application\Services\LogService;
 use GUMP;
 use Exception;
+use ValueError;
+
+// --- Enums para Constantes (PHP 8.1+) ---
+
+enum CategoriaTipo: string
+{
+    case RECEITA = 'receita';
+    case DESPESA = 'despesa';
+    case TRANSFERENCIA = 'transferencia';
+    case AMBAS = 'ambas';
+
+    /**
+     * Retorna a lista de todos os valores válidos como string para validação.
+     */
+    public static function listValues(): string
+    {
+        return implode(';', array_column(self::cases(), 'value'));
+    }
+}
 
 class CategoriaController extends BaseController
 {
+    /**
+     * Obtém dados do request (POST ou JSON).
+     */
+    private function getRequestPayload(): array
+    {
+        // Prioriza JSON (útil para PUT/PATCH/POST via API), depois POST.
+        $payload = $this->getJson() ?? [];
+        if (empty($payload)) {
+            $payload = $this->request->post();
+        }
+        return $payload;
+    }
+
+    /**
+     * Extrai o ID de diversas fontes de rota/payload.
+     */
+    private function extractId(mixed $routeParam, array $payload): int
+    {
+        // 1. Tenta extrair do array de rota (se for o primeiro argumento nomeado)
+        if (is_array($routeParam) && isset($routeParam['id'])) {
+            return (int) $routeParam['id'];
+        }
+
+        // 2. Tenta extrair do argumento direto (se for string ou int)
+        if (is_string($routeParam) || is_int($routeParam)) {
+            return (int) $routeParam;
+        }
+
+        // 3. Tenta extrair do payload (corpo da requisição)
+        if (isset($payload['id'])) {
+            return (int) $payload['id'];
+        }
+
+        return 0;
+    }
+
+    /**
+     * Lista todas as categorias.
+     */
     public function index(): void
     {
         try {
             $this->requireAuth();
 
-            $tipo = $this->request->get('tipo');
-            $query = Categoria::forUser($this->userId)->orderBy('nome', 'asc');
+            $tipo = $this->request?->get('tipo'); 
+            
+            $query = Categoria::forUser($this->userId)
+                ->orderBy('nome', 'asc');
+            
             if ($tipo) {
-                $query->where('tipo', $tipo);
+                try {
+                    CategoriaTipo::from(strtolower($tipo));
+                    $query->where('tipo', $tipo);
+                } catch (ValueError) {
+                    LogService::warning('Filtro de tipo de categoria inválido', ['tipo' => $tipo]);
+                }
             }
 
             Response::success($query->get());
@@ -28,33 +94,33 @@ class CategoriaController extends BaseController
                 'user_id'   => $this->userId ?? null,
                 'exception' => $e->getMessage(),
             ]);
-
             Response::error('Falha ao listar categorias', 500);
         }
     }
 
+    /**
+     * Cria uma nova categoria.
+     */
     public function store(): void
     {
         $payload = [];
 
         try {
             $this->requireAuth();
-
-            $payload = $this->getJson() ?? [];
-            if (empty($payload)) {
-                $payload = $this->request->post();
-            }
+            $payload = $this->getRequestPayload();
 
             $nome = trim((string)($payload['nome'] ?? ''));
             $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
-            $tiposPermitidos = ['receita', 'despesa', 'transferencia', 'ambas'];
-
+            
             $erros = [];
-            if (mb_strlen($nome) < 2) {
-                $erros['nome'] = 'Informe um nome com pelo menos 2 caracteres.';
+            if (mb_strlen($nome) < 2 || mb_strlen($nome) > 100) {
+                $erros['nome'] = 'O nome deve ter entre 2 e 100 caracteres.';
             }
-            if (!in_array($tipo, $tiposPermitidos, true)) {
-                $erros['tipo'] = 'Tipo inválido.';
+            
+            try {
+                CategoriaTipo::from($tipo);
+            } catch (ValueError) {
+                $erros['tipo'] = 'Tipo inválido. Tipos permitidos: ' . CategoriaTipo::listValues();
             }
 
             if ($erros) {
@@ -68,17 +134,17 @@ class CategoriaController extends BaseController
                 ->first();
 
             if ($duplicada) {
-                Response::error('Categoria já existe.', 409);
+                Response::error('Categoria já existe com este nome e tipo.', 409);
                 return;
             }
 
             $categoria = new Categoria();
             $categoria->user_id = $this->userId;
-            $categoria->nome = mb_substr($nome, 0, 100);
+            $categoria->nome = $nome;
             $categoria->tipo = $tipo;
             $categoria->save();
 
-            Response::success($categoria->fresh(), 'Categoria criada com sucesso');
+            Response::success($categoria->fresh(), 'Categoria criada com sucesso', 201);
         } catch (Exception $e) {
             LogService::error('Falha ao criar categoria', [
                 'user_id'   => $this->userId ?? null,
@@ -89,44 +155,41 @@ class CategoriaController extends BaseController
         }
     }
 
-    public function update($routeParam = null): void
+    /**
+     * Atualiza uma categoria existente.
+     */
+    public function update(mixed $routeParam = null): void
     {
+        $payload = [];
         try {
             $this->requireAuth();
-
-            $id = 0;
-            if (is_array($routeParam) && isset($routeParam['id'])) {
-                $id = (int) $routeParam['id'];
-            } elseif (is_string($routeParam) || is_int($routeParam)) {
-                $id = (int) $routeParam;
-            }
-            if ($id <= 0 && isset($_POST['id'])) {
-                $id = (int) $_POST['id'];
-            }
+            $payload = $this->getRequestPayload();
+            
+            // 1. Obter e validar ID
+            $id = $this->extractId($routeParam, $payload);
+            
             if ($id <= 0) {
-                Response::validationError(['id' => 'ID inválido']);
+                Response::validationError(['id' => 'ID inválido.']);
                 return;
             }
 
+            // 2. Buscar e validar permissão
+            /** @var Categoria|null $categoria */
             $categoria = Categoria::forUser($this->userId)->find($id);
             if (!$categoria) {
                 Response::error('Categoria não encontrada.', 404);
                 return;
             }
-
-            $payload = $this->request->post();
-            if (empty($payload)) {
-                $payload = $this->getJson() ?? [];
-            }
-
-            unset($payload['_token'], $payload['csrf_token']);
-
+            
+            // 3. Validação GUMP/Input
             $gump = new GUMP();
-            $_POST = $gump->sanitize($payload ?? []);
+            
+            // Sanitiza os dados da requisição antes da validação
+            $sanitizedPayload = $gump->sanitize($payload ?? []);
 
             $gump->validation_rules([
                 'nome' => 'required|min_len,2|max_len,100',
-                'tipo' => 'required|contains_list,receita;despesa;transferencia;ambas',
+                'tipo' => 'required|contains_list,' . CategoriaTipo::listValues(), 
             ]);
 
             $gump->filter_rules([
@@ -134,8 +197,10 @@ class CategoriaController extends BaseController
                 'tipo' => 'trim|lower_case',
             ]);
 
-            $sanitized = $gump->run($_POST);
-            if ($sanitized === false) {
+            // Captura o valor de retorno de run() para obter os dados sanitizados e validados
+            $data = $gump->run($sanitizedPayload); 
+            
+            if ($data === false) {
                 LogService::warning('Validação falhou ao atualizar categoria', [
                     'user_id' => $this->userId,
                     'errors'  => $gump->get_errors_array(),
@@ -146,8 +211,9 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            $data = $sanitized;
-
+            // A variável $data agora contém o array de dados limpos e validados.
+            
+            // 4. Checagem de duplicidade (excluindo a categoria atual)
             $dup = Categoria::forUser($this->userId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
                 ->where('tipo', $data['tipo'])
@@ -156,84 +222,68 @@ class CategoriaController extends BaseController
 
             if ($dup) {
                 LogService::info('Tentativa de atualizar categoria para um nome duplicado', [
-                    'user_id'      => $this->userId,
+                    'user_id' => $this->userId,
                     'categoria_id' => $categoria->id,
-                    'nome'         => $data['nome'],
-                    'tipo'         => $data['tipo'],
-                    'duplicada_id' => $dup->id,
+                    'nome' => $data['nome'],
+                    'tipo' => $data['tipo'],
                 ]);
                 Response::error('Categoria já existe.', 409);
                 return;
             }
 
+            // 5. Atualização
             $categoria->nome = $data['nome'];
             $categoria->tipo = $data['tipo'];
             $categoria->save();
 
             LogService::info('Categoria atualizada', [
-                'user_id'      => $this->userId,
+                'user_id' => $this->userId,
                 'categoria_id' => $categoria->id,
-                'nome'         => $categoria->nome,
-                'tipo'         => $categoria->tipo,
             ]);
 
             Response::success($categoria->fresh());
         } catch (Exception $e) {
             LogService::error('Falha ao atualizar categoria', [
-                'user_id'    => $this->userId ?? null,
-                'payload'    => $this->request->post() ?? [],
+                'user_id' => $this->userId ?? null,
+                'payload' => $payload,
                 'routeParam' => $routeParam,
-                'exception'  => $e->getMessage(),
+                'exception' => $e->getMessage(),
             ]);
 
             Response::error('Falha ao atualizar categoria', 500);
         }
     }
 
-    public function delete($routeParam = null): void
+    /**
+     * Exclui uma categoria.
+     */
+    public function delete(mixed $routeParam = null): void
     {
         try {
             $this->requireAuth();
-
-            $id = 0;
-
-            if (is_array($routeParam)) {
-                if (isset($routeParam['id'])) {
-                    $id = (int) $routeParam['id'];
-                }
-            } elseif (is_string($routeParam) || is_int($routeParam)) {
-                $id = (int) $routeParam;
-            }
-
-            if ($id <= 0 && isset($_POST['id'])) {
-                $id = (int) $_POST['id'];
-            }
-
+            $payload = $this->getRequestPayload();
+            
+            // 1. Obter e validar ID
+            $id = $this->extractId($routeParam, $payload);
+            
             if ($id <= 0) {
-                LogService::warning('Delete categoria: ID inválido', [
-                    'user_id'    => $this->userId,
-                    'routeParam' => $routeParam,
-                    'raw_post'   => $_POST,
-                ]);
+                LogService::warning('Delete categoria: ID inválido', ['user_id' => $this->userId, 'routeParam' => $routeParam]);
                 Response::validationError(['id' => 'ID inválido']);
                 return;
             }
 
-            LogService::info('Tentando excluir categoria', [
-                'user_id'      => $this->userId,
-                'categoria_id' => $id,
-            ]);
+            LogService::info('Tentando excluir categoria', ['user_id' => $this->userId, 'categoria_id' => $id]);
 
-            $categoria = Categoria::where('user_id', $this->userId)->find($id);
+            // 2. Buscar e validar permissão
+            /** @var Categoria|null $categoria */
+            $categoria = Categoria::forUser($this->userId)->find($id);
             if (!$categoria) {
-                LogService::warning('Categoria não encontrada ou sem permissão para excluir', [
-                    'user_id'      => $this->userId,
-                    'categoria_id' => $id,
-                ]);
+                LogService::warning('Categoria não encontrada ou sem permissão para excluir', ['user_id' => $this->userId, 'categoria_id' => $id]);
                 Response::error('Categoria não encontrada.', 404);
                 return;
             }
 
+            // 3. Exclusão
             $snapshot = [
                 'id'   => $categoria->id,
                 'nome' => $categoria->nome,
@@ -241,18 +291,14 @@ class CategoriaController extends BaseController
             ];
             $categoria->delete();
 
-            LogService::info('Categoria excluída', [
-                'user_id' => $this->userId,
-                ...$snapshot,
-            ]);
+            LogService::info('Categoria excluída', ['user_id' => $this->userId, ...$snapshot]);
 
             Response::success(['deleted' => true]);
         } catch (Exception $e) {
             LogService::error('Falha ao excluir categoria', [
-                'user_id'    => $this->userId ?? null,
+                'user_id' => $this->userId ?? null,
                 'routeParam' => $routeParam,
-                'payload'    => $_POST ?? [],
-                'exception'  => $e->getMessage(),
+                'exception' => $e->getMessage(),
             ]);
             Response::error('Falha ao excluir categoria', 500);
         }

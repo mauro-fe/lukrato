@@ -5,29 +5,31 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Notificacao;
-use Exception;
+use Throwable; // Importa Throwable
 
 class NotificacaoController extends BaseController
 {
     /**
-     * Retorna todas as notificações do usuário logado
+     * Retorna todas as notificações do usuário logado.
      */
-    public function index()
+    public function index(): void
     {
         $this->requireAuthApi();
+        $userId = $this->userId;
 
         try {
-            $itens = Notificacao::where('user_id', $this->userId)
+            /** @var \Illuminate\Support\Collection $itens */
+            $itens = Notificacao::where('user_id', $userId)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            $unread = $itens->where('lida', 0)->count();
+            $unread = $itens->where('lida', false)->count(); // Usa booleano
 
             Response::success([
-                'itens' => $itens,
+                'itens'  => $itens,
                 'unread' => $unread
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Response::error('Falha ao buscar notificações', 500, [
                 'exception' => $e->getMessage()
             ]);
@@ -35,55 +37,61 @@ class NotificacaoController extends BaseController
     }
 
     /**
-     * Retorna a contagem de notificações não lidas
+     * Retorna a contagem de notificações não lidas.
      */
-    public function unreadCount()
+    public function unreadCount(): void
     {
         $this->requireAuthApi();
+        $userId = $this->userId;
 
-        $qtd = Notificacao::where('user_id', $this->userId)
-            ->where('lida', 0)
+        $qtd = Notificacao::where('user_id', $userId)
+            ->where('lida', false) // Usa booleano
             ->count();
 
-        Response::success(['unread' => $qtd]);
+        Response::success(['unread' => (int)$qtd]);
     }
 
     /**
-     * Marca uma lista de notificações como lidas
+     * Marca uma lista de notificações como lidas.
      */
-    public function marcarLida()
+    public function marcarLida(): void
     {
         $this->requireAuthApi();
+        $userId = $this->userId;
 
-        $ids = $_POST['ids'] ?? [];
-        if (!is_array($ids) || !count($ids)) {
-            Response::validationError(['ids' => 'Selecione ao menos uma notificação']);
+        $rawIds = (array)($_POST['ids'] ?? []);
+        
+        // Sanitiza e filtra apenas IDs válidos (> 0)
+        $ids = array_values(
+            array_filter(
+                array_map('intval', $rawIds),
+                static fn(int $id): bool => $id > 0
+            )
+        );
+
+        if (empty($ids)) {
+            Response::validationError(['ids' => 'Nenhum ID de notificação válido fornecido.']);
             return;
         }
 
-        $ids = array_values(array_filter(array_map('intval', $ids), static fn(int $id) => $id > 0));
-        if (!$ids) {
-            Response::validationError(['ids' => 'IDs inválidos']);
-            return;
-        }
-
-        Notificacao::where('user_id', $this->userId)
+        Notificacao::where('user_id', $userId)
             ->whereIn('id', $ids)
-            ->update(['lida' => 1]);
+            ->update(['lida' => true]); // Usa booleano
 
         Response::success(['message' => 'Notificações marcadas como lidas']);
     }
 
     /**
-     * Marca todas as notificações do usuário como lidas
+     * Marca todas as notificações do usuário como lidas.
      */
-    public function marcarTodasLidas()
+    public function marcarTodasLidas(): void
     {
         $this->requireAuthApi();
+        $userId = $this->userId;
 
         Notificacao::where('user_id', $this->userId)
-            ->where('lida', 0)
-            ->update(['lida' => 1]);
+            ->where('lida', false)
+            ->update(['lida' => true]); // Usa booleano
 
         Response::success(['message' => 'Todas as notificações foram marcadas como lidas']);
     }
