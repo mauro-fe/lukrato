@@ -421,7 +421,7 @@
     </section>
 
 
-    <section class="lk-report-area" data-aos="fade-up">
+    <section class="lk-report-area" data-aos="zoom-in">
         <div id="area" class="lk-report-area-body"></div>
     </section>
 
@@ -607,10 +607,12 @@
                 const targetView = b.dataset.view;
 
                 if (previousView === 'anual' && targetView !== 'anual') {
-                    const fallback = window.LukratoHeader?.getMonth?.() || st.lastMonthNonAnnual || ymNow();
+                    const fallback = st.lastMonthNonAnnual || window.LukratoHeader?.getMonth?.() || ymNow();
                     st.month = fallback;
                     st.lastMonthNonAnnual = fallback;
-                    window.LukratoHeader?.setMonth?.(fallback);
+                    window.LukratoHeader?.setMonth?.(fallback, {
+                        silent: true
+                    });
                 }
 
                 st.view = targetView;
@@ -630,7 +632,8 @@
                 }
 
                 if (typeSelectWrap) typeSelectWrap.style.display = (st.view === 'pizza') ? '' : 'none';
-                if (accountSelectWrap) accountSelectWrap.style.display = (st.view === 'contas') ? '' : 'none';
+                if (accountSelectWrap) accountSelectWrap.style.display = (['contas', 'linha', 'barras']
+                    .includes(st.view)) ? '' : 'none';
                 toggleYearPicker();
                 syncLabel();
                 load();
@@ -790,7 +793,9 @@
         }
 
         // =================== DESENHOS ===================
-        function drawPie(d, { title } = {}) {
+        function drawPie(d, {
+            title
+        } = {}) {
             const labels = d.labels || [];
             const values = d.values || [];
             if (!labels.length) {
@@ -809,9 +814,9 @@
                 return;
             }
 
-            const titulo = title
-                ? title
-                : (st.type === 'receitas_por_categoria' ? 'Receitas por categorias' : 'Despesas por categorias');
+            const titulo = title ?
+                title :
+                (st.type === 'receitas_por_categoria' ? 'Receitas por categorias' : 'Despesas por categorias');
 
             entries.sort((a, b) => b.value - a.value);
             const mid = Math.ceil(entries.length / 2);
@@ -1086,7 +1091,9 @@
                         empty();
                         return;
                     }
-                    drawBars(annual, { title: `Receitas x despesas ${st.month.split('-')[0]}` });
+                    drawBars(annual, {
+                        title: `Receitas x despesas ${st.month.split('-')[0]}`
+                    });
                 } else if (st.view === 'pizza') drawPie(d);
                 else if (st.view === 'linha') drawLine(d);
                 else if (st.view === 'barras' || st.view === 'contas') drawBars(d);
@@ -1191,4 +1198,3 @@
         window.addEventListener('resize', checkScroll);
     }
 </script>
-

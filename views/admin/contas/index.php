@@ -306,15 +306,29 @@
             }
         });
 
+        function getContaSaldo(conta) {
+            if (!conta) return 0;
+            const raw = (typeof conta.saldoAtual === 'number') ? conta.saldoAtual : conta.saldoInicial;
+            const num = Number(raw);
+            return Number.isFinite(num) ? num : 0;
+        }
+
+        function sortContasBySaldo(rows = []) {
+            return rows.slice().sort((a, b) => {
+                const diff = getContaSaldo(b) - getContaSaldo(a);
+                if (diff !== 0) return diff;
+                return (a.nome || '').localeCompare(b.nome || '', 'pt-BR', {
+                    sensitivity: 'base',
+                    ignorePunctuation: true
+                });
+            });
+        }
+
         function updateStats(rows) {
             const total = rows ? rows.length : 0;
             const ativas = rows ? rows.filter(a => a.ativo).length : 0;
             const saldo = rows ?
-                rows.reduce((sum, a) => {
-
-                    const val = (typeof a.saldoAtual === 'number') ? a.saldoAtual : (a.saldoInicial || 0);
-                    return sum + val;
-                }, 0) :
+                rows.reduce((sum, a) => sum + getContaSaldo(a), 0) :
                 0;
 
             totalContas.textContent = total;
@@ -414,7 +428,7 @@
             updateStats(rows);
 
             for (const c of rows) {
-                const saldo = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial ?? 0);
+                const saldo = getContaSaldo(c);
                 const isActive = !!c.ativo;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -459,7 +473,7 @@
                     `<span class="acc-badge active">Ativa</span>` :
                     `<span class="acc-badge inactive">Arquivada</span>`;
 
-                const saldo = (typeof c.saldoAtual === 'number') ? c.saldoAtual : (c.saldoInicial ?? 0);
+                const saldo = getContaSaldo(c);
 
                 // ações: se arquivada, só “Restaurar”
                 const actions = isActive ?
@@ -558,7 +572,7 @@
                     throw new Error('Resposta não é JSON. Prévia: ' + t.slice(0, 120));
                 }
                 const data = await res.json();
-                _lastRows = Array.isArray(data) ? data : [];
+                _lastRows = Array.isArray(data) ? sortContasBySaldo(data) : [];
 
                 if (grid) renderCards(_lastRows);
                 else if (tbody) renderRows(_lastRows);
@@ -774,9 +788,7 @@
             const id = Number(origemId);
             const conta = _lastRows.find(r => r.id === id);
             if (!conta) return;
-            const saldoDisponivel = (typeof conta.saldoAtual === 'number') ?
-                conta.saldoAtual :
-                (conta.saldoInicial || 0);
+            const saldoDisponivel = getContaSaldo(conta);
             modalTr.dataset.saldoDisponivel = String(saldoDisponivel);
             trOrigemId.value = String(conta.id);
             trOrigemNome.value =
