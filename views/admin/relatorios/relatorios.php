@@ -929,12 +929,13 @@
             });
         }
 
-        function drawBars(d) {
+        function drawBars(d, extra = {}) {
             setArea('<div class="lk-chart"><canvas id="c" height="320"></canvas></div>');
             destroyChart();
 
             const rec = THEME.brand.green;
             const des = THEME.brand.orange;
+            const titleText = extra.title ?? (st.view === 'contas' ? 'Receitas x despesas por conta' : null);
 
             st.chart = new Chart($('#c'), {
                 type: 'bar',
@@ -966,10 +967,10 @@
                                 label: (c) => fmt(c.parsed.y)
                             }
                         },
-                        ...(st.view === 'contas' ? {
+                        ...(titleText ? {
                             title: {
                                 display: true,
-                                text: 'Receitas x despesas por conta'
+                                text: titleText
                             }
                         } : {})
                     },
@@ -1077,18 +1078,15 @@
                 if (st.view === 'anual') {
                     const annual = {
                         labels: d.labels || [],
-                        values: (d.labels || []).map((_, idx) => {
-                            const rec = Number(d.receitas?.[idx] ?? 0);
-                            const des = Number(d.despesas?.[idx] ?? 0);
-                            const total = rec + des;
-                            return total > 0 ? total : 0;
-                        }),
+                        receitas: (d.receitas || []).map((v) => Number(v) || 0),
+                        despesas: (d.despesas || []).map((v) => Number(v) || 0),
                     };
-                    if (!annual.values.some((v) => v > 0)) {
+                    const hasValues = annual.receitas.some((v) => v > 0) || annual.despesas.some((v) => v > 0);
+                    if (!hasValues) {
                         empty();
                         return;
                     }
-                    drawPie(annual, { title: `Resumo anual ${st.month.split('-')[0]}` });
+                    drawBars(annual, { title: `Receitas x despesas ${st.month.split('-')[0]}` });
                 } else if (st.view === 'pizza') drawPie(d);
                 else if (st.view === 'linha') drawLine(d);
                 else if (st.view === 'barras' || st.view === 'contas') drawBars(d);
