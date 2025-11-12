@@ -669,10 +669,12 @@
             const conta = _lastRows.find(r => r.id === id);
             if (!conta) return;
             const saldoDisponivel = getContaSaldo(conta);
-            modalTr.dataset.saldoDisponivel = String(saldoDisponivel);
+            const saldoNormalizado = Math.round((Number(saldoDisponivel) || 0) * 100) / 100;
+            modalTr.dataset.saldoDisponivel = String(saldoNormalizado);
+            modalTr.dataset.saldoCentavos = String(Math.round(saldoNormalizado * 100));
             trOrigemId.value = String(conta.id);
             trOrigemNome.value =
-                `${conta.nome}${conta.instituicao ? ' - ' + conta.instituicao : ''} (Saldo: R$ ${formatMoneyBR(saldoDisponivel)})`;
+                `${conta.nome}${conta.instituicao ? ' - ' + conta.instituicao : ''} (Saldo: R$ ${formatMoneyBR(saldoNormalizado)})`;
             if (modalTransferTitle) {
                 modalTransferTitle.textContent = conta.nome ?
                     `Transfer�ncia - ${conta.nome}` :
@@ -734,7 +736,12 @@
 
                 // ⬇️ NOVO: validação de saldo insuficiente
                 const saldoDisponivel = Number(modalTr?.dataset?.saldoDisponivel || 0);
-                if (valor > saldoDisponivel) {
+                const saldoCentavosDataset = Number(modalTr?.dataset?.saldoCentavos || 0);
+                const saldoCentavos = Number.isFinite(saldoCentavosDataset) && saldoCentavosDataset > 0
+                    ? saldoCentavosDataset
+                    : Math.round(saldoDisponivel * 100);
+                const valorCentavos = Math.round(valor * 100);
+                if (valorCentavos > saldoCentavos) {
                     return Swal.fire(
                         'Saldo insuficiente',
                         `O valor da transferência (R$ ${formatMoneyBR(valor)}) é maior que o saldo disponível na conta de origem (R$ ${formatMoneyBR(saldoDisponivel)}).`,

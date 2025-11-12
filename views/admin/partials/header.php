@@ -82,16 +82,16 @@ $aria   = function (string $key) use ($menu) {
 
 <body>
     <script>
-    (function() {
-        try {
-            const key = 'lk.sidebar';
-            const prefersCollapsed = localStorage.getItem(key) === '1';
-            const isDesktop = window.matchMedia('(min-width: 993px)').matches;
-            if (prefersCollapsed && isDesktop) {
-                document.body.classList.add('sidebar-collapsed');
-            }
-        } catch (err) {}
-    })();
+        (function() {
+            try {
+                const key = 'lk.sidebar';
+                const prefersCollapsed = localStorage.getItem(key) === '1';
+                const isDesktop = window.matchMedia('(min-width: 993px)').matches;
+                if (prefersCollapsed && isDesktop) {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            } catch (err) {}
+        })();
     </script>
 
     <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"

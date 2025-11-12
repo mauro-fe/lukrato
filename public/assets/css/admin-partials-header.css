@@ -3,7 +3,7 @@
  * =======================================================*/
 :root {
   /* larguras da sidebar */
-  --sidebar-width: 260px;
+  --sidebar-width: 200px;
   --sidebar-collapsed-width: 80px;
 
   /* espaçamento lateral padrão de header/main */
@@ -82,7 +82,6 @@ h3 {
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  width: var(--sidebar-width);
   height: 100vh;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
@@ -90,7 +89,6 @@ h3 {
   display: flex;
   flex-direction: column;
   transition: width var(--transition-fast, 0.25s);
-  z-index: 1000;
   overflow: hidden;
 }
 
@@ -187,10 +185,10 @@ body.sidebar-collapsed .sidebar .logo img {
 /* Botão flutuante para colapsar/expandir (desktop) */
 .edge-menu-btn {
   position: fixed;
-  top: 50px;
-  left: calc(var(--sidebar-width) - 50px);
-  width: 42px;
-  height: 42px;
+  top: 55px;
+  left: calc(var(--sidebar-width) - 53px);
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
@@ -203,7 +201,7 @@ body.sidebar-collapsed .sidebar .logo img {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
   transition: left 0.25s ease, transform 0.15s ease,
     background var(--transition-fast), box-shadow var(--transition-fast);
-    z-index: 2000;
+  z-index: 5;
 }
 .edge-menu-btn:hover {
   background: var(--glass-border);
@@ -1221,9 +1219,3 @@ body.sidebar-open-mobile .sidebar-backdrop {
     background-position: right var(--spacing-3) center;
   }
 }
-
-
-
-
-
-
