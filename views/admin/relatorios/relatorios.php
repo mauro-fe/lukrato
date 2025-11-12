@@ -430,7 +430,7 @@
 
 <script>
     (function() {
-        // Carrega Chart.js se necessÃ¡rio
+        
         function ensureChart() {
             return new Promise((resolve, reject) => {
                 if (window.Chart) return resolve();
@@ -771,14 +771,14 @@
         }
 
         function loading() {
-            setArea('<div class="lk-loading">Carregandoâ€¦</div>');
+            setArea('<div class="lk-loading">Carregando...</div>');
         }
 
         function empty() {
             setArea(`
       <div class="lk-empty">
         <h3>Nenhum dado encontrado</h3>
-        <p>Altere o perÃ­odo, o tipo ou a conta.</p>
+        <p>Altere o perí­odo, o tipo ou a conta.</p>
       </div>`);
         }
 
@@ -1067,7 +1067,7 @@
 
         // Loader principal
         async function load() {
-            setArea('<div class="lk-loading">Carregandoâ€¦</div>');
+            setArea('<div class="lk-loading">Carregando...</div>');
             try {
                 await ensureChart();
                 applyChartDefaults();

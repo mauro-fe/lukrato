@@ -51,7 +51,11 @@ class InvestimentosController extends BaseController
 
             // Busca categorias para o modal
             $categories = $this->service->getCategorias()
-                ->map(fn($c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])
+                ->map(fn($c) => [
+                    'id'   => (int)$c->id,
+                    'nome' => (string)$c->nome,
+                    'cor'  => $c->cor ?: '#6c757d',
+                ])
                 ->toArray();
 
             // 2. Prepara dados para o Gráfico (Pizza por Categoria)
@@ -63,7 +67,7 @@ class InvestimentosController extends BaseController
                 foreach ($categories as $c) {
                     if ($c['id'] === $i['categoria_id']) {
                         $catNome = $c['nome'];
-                        // $catColor = $c['cor'] ?? '#6c757d'; // Se houver cor no modelo Categoria
+                        $catColor = $c['cor'] ?? '#6c757d';
                         break;
                     }
                 }

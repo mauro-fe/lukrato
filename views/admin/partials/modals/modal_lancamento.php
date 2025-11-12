@@ -92,6 +92,7 @@
         transition: var(--transition-normal);
         position: relative;
         backdrop-filter: blur(10px);
+        color: var(--color-primary) !important;
     }
 
     #modalLancamento .btn-close:hover {

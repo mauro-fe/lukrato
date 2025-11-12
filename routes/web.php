@@ -104,8 +104,8 @@ function registerApiRoutes(): void
     Router::add('POST',  '/api/accounts',               'Api\\ContasController@store',   ['auth', 'csrf']);
     Router::add('PUT',   '/api/accounts/{id}',          'Api\\ContasController@update',  ['auth', 'csrf']);
     Router::add('DELETE', '/api/accounts/{id}',          'Api\\ContasController@delete',  ['auth', 'csrf']);
-    Router::add('POST',  '/api/accounts/archive',       'Api\\ContasController@archive', ['auth', 'csrf']);
-    Router::add('POST',  '/api/accounts/unarchive',     'Api\\ContasController@unarchive', ['auth', 'csrf']);
+    Router::add('POST',  '/api/accounts/{id}/archive',  'Api\\ContasController@archive', ['auth', 'csrf']);
+    Router::add('POST',  '/api/accounts/{id}/restore',  'Api\\ContasController@restore', ['auth', 'csrf']);
 
     // Categorias
     Router::add('GET',   '/api/categorias',               'Api\\CategoriaController@index',   ['auth']);

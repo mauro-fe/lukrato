@@ -15,7 +15,7 @@ $csrfToken = CsrfMiddleware::generateToken('default'); // MESMO ID do handle()
 ?>
 <meta name="csrf" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
 <script>
-window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
+    window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 </script>
 
 <!DOCTYPE html>
@@ -24,13 +24,13 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
 <head>
     <?= csrf_meta('default') ?>
     <script>
-    // helpers globais
-    window.LK = window.LK || {};
-    LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    LK.getCSRF = () =>
-        document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
-        document.querySelector('input[name="_token"]')?.value || '';
-    LK.apiBase = LK.getBase() + 'api/';
+        // helpers globais
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.getCSRF = () =>
+            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta
+            document.querySelector('input[name="_token"]')?.value || '';
+        LK.apiBase = LK.getBase() + 'api/';
     </script>
 
     <meta charset="utf-8" />
@@ -58,14 +58,25 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <script>
-    window.LK = window.LK || {};
-    LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    LK.apiBase = LK.getBase() + 'api/'; // <-- Vai virar: http://localhost/lukrato/public/api/
+        window.LK = window.LK || {};
+        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        LK.apiBase = LK.getBase() + 'api/'; // <-- Vai virar: http://localhost/lukrato/public/api/
     </script>
-
 </head>
 
 <body>
+    <script>
+    (function() {
+        try {
+            const key = 'lk.sidebar';
+            const prefersCollapsed = localStorage.getItem(key) === '1';
+            const isDesktop = window.matchMedia('(min-width: 993px)').matches;
+            if (prefersCollapsed && isDesktop) {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        } catch (err) {}
+    })();
+    </script>
     <?php
     $active = function (string $key) use ($menu) {
         return (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -75,7 +86,10 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
     };
 
     ?>
-
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
+        title="Fechar/Abrir menu">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
     <aside class="sidebar no-glass" id="sidebar-main">
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
@@ -83,10 +97,6 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
             </a>
         </div>
         <nav class="sidebar-nav">
-            <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
-                title="Fechar/Abrir menu">
-                <i class="fas fa-bars" aria-hidden="true"></i>
-            </button>
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard')   ?>"
                 <?= $aria('dashboard')   ?> title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
             <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas')      ?>" <?= $aria('contas')      ?>
@@ -126,22 +136,22 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
             <?php include __DIR__ . '/navbar.php'; ?>
 
             <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                // Header (sidebar active, logout confirm, seletor de contas)
-                if (window.LK?.initHeader) {
-                    window.LK.initHeader();
-                }
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Header (sidebar active, logout confirm, seletor de contas)
+                    if (window.LK?.initHeader) {
+                        window.LK.initHeader();
+                    }
 
-                // Sininho (se você já tem /assets/js/notifications.js com initNotificationsBell)
-                if (window.initNotificationsBell) {
-                    window.initNotificationsBell({
-                        // se os endpoints forem diferentes, passe aqui
-                    });
-                }
+                    // Sininho (se você já tem /assets/js/notifications.js com initNotificationsBell)
+                    if (window.initNotificationsBell) {
+                        window.initNotificationsBell({
+                            // se os endpoints forem diferentes, passe aqui
+                        });
+                    }
 
-                // Modais (abre/fecha via data-open-modal / data-close-modal)
-                if (window.LK?.initModals) {
-                    window.LK.initModals();
-                }
-            });
+                    // Modais (abre/fecha via data-open-modal / data-close-modal)
+                    if (window.LK?.initModals) {
+                        window.LK.initModals();
+                    }
+                });
             </script>

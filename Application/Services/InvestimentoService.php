@@ -126,7 +126,7 @@ class InvestimentoService
             $order       = $filters['order'] ?? 'nome';
             $dir         = $filters['dir'] ?? 'asc';
 
-            $query = Investimento::where('user_id', $uid);
+            $query = Investimento::with('categoria')->where('user_id', $uid);
 
             if ($q !== '') {
                 $query->where(fn($w) => $w->where('nome', 'like', "%{$q}%")->orWhere('ticker', 'like', "%{$q}%"));
@@ -136,16 +136,29 @@ class InvestimentoService
             if ($ticker !== '')   $query->where('ticker', $ticker);
 
             return $query->orderBy($order, $dir)->get()->map(function (Investimento $i) {
-                $metrics = $this->calcularMetricas($i);
+                $metrics  = $this->calcularMetricas($i);
+                $category = $i->categoria;
+                $categoryName = $category?->nome ?? 'Sem categoria';
+                $categoryColor = $category?->cor ?? '#475569';
+                $currentPrice = $i->preco_atual !== null ? (float)$i->preco_atual : null;
+
                 return array_merge([
                     'id'              => (int)$i->id,
                     'categoria_id'    => (int)$i->categoria_id,
                     'conta_id'        => $i->conta_id ? (int)$i->conta_id : null,
+                    'categoria_nome'  => $categoryName,
+                    'category_name'   => $categoryName,
+                    'cor'             => $categoryColor,
+                    'color'           => $categoryColor,
                     'nome'            => (string)$i->nome,
+                    'name'            => (string)$i->nome,
                     'ticker'          => $i->ticker,
                     'quantidade'      => (float)$i->quantidade,
+                    'quantity'        => (float)$i->quantidade,
                     'preco_medio'     => (float)$i->preco_medio,
-                    'preco_atual'     => $i->preco_atual !== null ? (float)$i->preco_atual : null,
+                    'avg_price'       => (float)$i->preco_medio,
+                    'preco_atual'     => $currentPrice,
+                    'current_price'   => $currentPrice,
                     'atualizado_em'   => (string)$i->atualizado_em,
                 ], $metrics);
             })->all();

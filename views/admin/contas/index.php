@@ -17,7 +17,7 @@
         <div class="lk-acc-header">
             <div class="lk-acc-actions">
                 <button class="btn btn-primary" id="btnNovaConta">
-                    <i class="fas fa-plus"></i> Nova Conta
+                <i class="fas fa-plus"></i> Nova Conta
                 </button>
             </div>
             <a class="btn btn-primary" href="<?= BASE_URL ?>contas/arquivadas">Arquivadas</a>
@@ -33,10 +33,9 @@
             </div>
         </div>
 
-        <?php include __DIR__ . '/partials/modals/modal_contas.php'; ?>
-
     </div>
 </div>
+<?php include __DIR__ . '/../partials/modals/modal_contas.php'; ?>
 <script>
     (function initAccountsPage() {
         const BASE = (document.querySelector('meta[name="base-url"]')?.content || location.origin + '/');
@@ -88,14 +87,14 @@
                 inputId.value = data.id;
                 fNome.value = data.nome || '';
                 fInst.value = data.instituicao || '';
-                // fMoeda.value = data.moeda || 'BRL';
-                fSaldo.value = formatMoneyBR(data.saldoInicial ?? 0);
-                fTipo.value = data.tipo_id ?? '';
+                if (fSaldo) fSaldo.value = formatMoneyBR(data.saldoInicial ?? 0);
+                if (fTipo) fTipo.value = data.tipo_id ?? '';
             } else {
                 modalTitle.textContent = 'Nova conta';
                 inputId.value = '';
                 form.reset();
-                fSaldo.value = '';
+                if (fSaldo) fSaldo.value = '';
+                if (fTipo) fTipo.value = '';
             }
             setTimeout(() => fNome.focus(), 40);
         }
@@ -130,7 +129,7 @@
             const payload = {
                 nome: (fNome.value || '').trim(),
                 instituicao: (fInst.value || '').trim(),
-                saldo_inicial: parseMoneyBR(fSaldo.value || '0'),
+                saldo_inicial: parseMoneyBR(fSaldo?.value || '0'),
             };
             if (!payload.nome) return Swal.fire('Atenção', 'Nome obrigatório.', 'warning');
 
@@ -313,7 +312,7 @@
         ${isActive ? `
           <button class="btn btn-ghost btn-acc-receita" data-id="${c.id}"><i class="fas fa-arrow-up"></i></button>
           <button class="btn btn-ghost btn-acc-despesa" data-id="${c.id}"><i class="fas fa-arrow-down"></i></button>
-          <button class="btn btn-ghost btn-acc-transfer" data-id="${c.id}"><i class="fas fa-right-left"></i></button>
+          🔄<button class="btn btn-ghost btn-acc-transfer" data-id="${c.id}"><i class="fas fa-right-left"></i></button>
           <button class="btn btn-ghost btn-edit" data-id="${c.id}"><i class="fas fa-pen"></i></button>
           <button class="btn btn-ghost btn-archive" data-id="${c.id}"><i class="fas fa-box-archive"></i></button>
         ` : `
@@ -492,6 +491,7 @@
         });
 
         const modalLanc = document.querySelector('#modalLancConta');
+        const modalLancTitle = document.querySelector('#modalLancContaTitle');
         const lanClose = document.querySelector('#lancClose');
         const lanCancel = document.querySelector('#lancCancel');
         const formLanc = document.querySelector('#formLancConta');
@@ -499,6 +499,7 @@
         const qM = (sel) => modalLanc ? modalLanc.querySelector(sel) : null;
 
         const fLanConta = qM('#lanContaId');
+        const fLanContaNome = qM('#lanContaNome');
         const fLanTipo = qM('#lanTipo');
         const fLanData = qM('#lanData');
         const fLanCat = qM('#lanCategoria');
@@ -538,8 +539,22 @@
 
         async function openLancModal(contaId, tipo = 'despesa') {
             if (!modalLanc) return;
-            fLanConta.value = String(contaId);
+            const id = Number(contaId);
+            const conta = _lastRows.find(r => r.id === id);
+            fLanConta.value = String(id);
             fLanTipo.value = (tipo === 'receita') ? 'receita' : 'despesa';
+
+            if (fLanContaNome) {
+                fLanContaNome.value = conta ?
+                    `${conta.nome || 'Conta sem nome'}${conta.instituicao ? ' - ' + conta.instituicao : ''}` :
+                    'Conta não encontrada';
+            }
+            if (modalLancTitle) {
+                const tituloBase = fLanTipo.value === 'receita' ? 'Nova receita' : 'Nova despesa';
+                modalLancTitle.textContent = conta?.nome ?
+                    `${tituloBase} - ${conta.nome}` :
+                    tituloBase;
+            }
 
             // Prefill de data compatível com <input type="date">
             if (fLanData && 'valueAsDate' in fLanData) fLanData.valueAsDate = new Date();
@@ -635,6 +650,7 @@
             }
         });
         const modalTr = document.querySelector('#modalTransfer');
+        const modalTransferTitle = document.querySelector('#modalTransferTitle');
         const trClose = document.querySelector('#trClose');
         const trCancel = document.querySelector('#trCancel');
         const formTr = document.querySelector('#formTransfer');
@@ -646,15 +662,6 @@
         const trValor = modalTr?.querySelector('#trValor');
         const trDesc = modalTr?.querySelector('#trDesc');
 
-        async function getOptions() {
-            if (_optsCache) return _optsCache;
-            const res = await fetchAPI('options', {
-                credentials: 'same-origin'
-            });
-            if (!res.ok) throw new Error('Falha ao carregar opções');
-            _optsCache = await res.json().catch(() => ({}));
-            return _optsCache;
-        }
 
         async function openTransferModal(origemId) {
             if (!modalTr) return;
@@ -665,7 +672,12 @@
             modalTr.dataset.saldoDisponivel = String(saldoDisponivel);
             trOrigemId.value = String(conta.id);
             trOrigemNome.value =
-                `${conta.nome} ${conta.instituicao ? '— ' + conta.instituicao : ''} (Saldo: R$ ${formatMoneyBR(saldoDisponivel)})`;
+                `${conta.nome}${conta.instituicao ? ' - ' + conta.instituicao : ''} (Saldo: R$ ${formatMoneyBR(saldoDisponivel)})`;
+            if (modalTransferTitle) {
+                modalTransferTitle.textContent = conta.nome ?
+                    `Transfer�ncia - ${conta.nome}` :
+                    'Transfer�ncia';
+            }
 
             if (trData && 'valueAsDate' in trData) trData.valueAsDate = new Date();
             else if (trData) trData.value = new Date().toISOString().slice(0, 10);
