@@ -92,6 +92,8 @@ if (!function_exists('loadPageJs')) {
 
     function loadPageJs(?string $view = null): void
     {
+        static $loadedScripts = [];
+
         $view = $view ?? ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
@@ -107,7 +109,11 @@ if (!function_exists('loadPageJs')) {
         $publicRoot = __DIR__ . '/../../public/';
         foreach ($candidates as $jsPath) {
             if (file_exists($publicRoot . $jsPath)) {
+                if (in_array($jsPath, $loadedScripts, true)) {
+                    return;
+                }
                 echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
+                $loadedScripts[] = $jsPath;
                 return;
             }
         }

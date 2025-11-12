@@ -92,12 +92,20 @@ class LoginController extends BaseController
     public function logout(): void
     {
         $this->authService->logout();
-        
-        // Retorna JSON para a API (o client-side deve cuidar do redirect)
-        $this->ok([
-            'message'  => 'Logout realizado com sucesso.',
-            'redirect' => BASE_URL . 'login'
-        ]);
+
+        $expectsJson = $this->request->wantsJson() || $this->request->isAjax();
+
+        if ($expectsJson) {
+            // Retorna JSON para clientes que esperam API
+            $this->ok([
+                'message'  => 'Logout realizado com sucesso.',
+                'redirect' => BASE_URL . 'login'
+            ]);
+            return;
+        }
+
+        // Fluxo web padrão -> redireciona direto
+        $this->redirect('login');
     }
 
     // --- Métodos Auxiliares Privados ---

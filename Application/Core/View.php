@@ -6,14 +6,12 @@ namespace Application\Core;
 
 class View
 {
-    private readonly string $viewPath; // Mantenha readonly
-    private array $data; // <-- REMOVA readonly daqui
+    private readonly string $viewPath;
+    private array $data;
     private ?string $header = null;
     private ?string $footer = null;
 
-    /**
-     * Usa Constructor Property Promotion (PHP 8.0+).
-     */
+
     public function __construct(string $viewPath, array $data = [])
     {
         $this->viewPath = BASE_PATH . '/views/' . trim($viewPath, '/') . '.php';
@@ -39,7 +37,7 @@ class View
     public function render(): string
     {
         ob_start();
-        
+
         try {
             // Define o identificador da view atual (para CSS/JS)
             $relativeViewPath = str_replace([BASE_PATH . '/views/', '.php'], '', $this->viewPath);
@@ -67,9 +65,8 @@ class View
             if ($this->footer && file_exists($this->footer)) {
                 include $this->footer;
             }
-            
-            return (string)ob_get_clean();
 
+            return (string)ob_get_clean();
         } catch (\Throwable $e) {
             // Garante que o buffer seja limpo em caso de erro no include
             ob_end_clean();

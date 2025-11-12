@@ -94,6 +94,7 @@ class ContasBalanceService
         $rec = Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
             ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0)
             ->where('data', '<=', $this->endDate)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->selectRaw('conta_id, SUM(valor) as tot')
@@ -103,6 +104,7 @@ class ContasBalanceService
         $des = Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
             ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0)
             ->where('data', '<=', $this->endDate)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->selectRaw('conta_id, SUM(valor) as tot')
@@ -490,5 +492,8 @@ class ContasController
         ]);
     }
 }
+
+
+
 
 

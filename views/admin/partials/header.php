@@ -53,6 +53,7 @@ window.CSRF = document.querySelector('meta[name="csrf"]')?.content || '';
     <?php loadPageCss('admin-partials-header'); ?>
 
     <?php loadPageJs('admin-home-header'); ?>
+    <?php loadPageJs('admin-agendamentos-index'); ?>
     <?php loadPageJs(); ?>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">

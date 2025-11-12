@@ -8,10 +8,8 @@ use Application\Models\Categoria;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
 use Illuminate\Database\Capsule\Manager as DB;
-use Closure;
 use Illuminate\Database\Query\Builder;
 use ValueError;
-use Throwable;
 
 // --- Enums para Constantes (PHP 8.1+) ---
 
@@ -74,7 +72,7 @@ class LancamentosController
             $s = str_replace(',', '.', $s);
             $valorRaw = $s;
         }
-        
+
         if (!is_numeric($valorRaw) || !is_finite((float)$valorRaw)) {
             $errors['valor'] = 'Valor inválido.';
             return 0.0;
@@ -83,7 +81,7 @@ class LancamentosController
         $valor = abs((float)$valorRaw);
         return round($valor, 2);
     }
-    
+
     /**
      * Valida a existência e permissão de uma Categoria para o usuário.
      * @param int|null $id ID da categoria.
@@ -100,7 +98,7 @@ class LancamentosController
         if (Categoria::forUser($userId)->where('id', $id)->exists()) {
             return $id;
         }
-        
+
         $errors['categoria_id'] = 'Categoria inválida.';
         return null;
     }
@@ -122,7 +120,7 @@ class LancamentosController
         if (Conta::forUser($userId)->where('id', $id)->exists()) {
             return $id;
         }
-        
+
         $errors['conta_id'] = 'Conta inválida.';
         return null;
     }
@@ -144,7 +142,7 @@ class LancamentosController
             Response::validationError(['month' => 'Formato inválido (YYYY-MM)']);
             return;
         }
-        
+
         [$y, $m] = array_map('intval', explode('-', $month));
         $from = sprintf('%04d-%02d-01', $y, $m);
         $to   = date('Y-m-t', strtotime($from));
@@ -155,7 +153,7 @@ class LancamentosController
 
         $categoriaParams = $this->parseCategoriaParam((string)($_GET['categoria_id'] ?? ''));
         $tipo = strtolower($_GET['tipo'] ?? '');
-        
+
         try {
             $tipo = LancamentoTipo::from($tipo)->value;
         } catch (ValueError) {
@@ -264,7 +262,7 @@ class LancamentosController
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
             $errors['data'] = 'Data inválida. Use o formato YYYY-MM-DD.';
         }
-        
+
         // 3. Validação e Sanitização de VALOR
         $valorRaw = $payload['valor'] ?? $lancamento->valor ?? 0;
         $valor = $this->validateAndSanitizeValor($valorRaw, $errors);
@@ -273,7 +271,7 @@ class LancamentosController
         $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id;
         $contaId = is_scalar($contaId) ? (int)$contaId : null;
         $contaId = $this->validateConta($contaId, $userId, $errors);
-        
+
         // 5. Validação de CATEGORIA
         $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id;
         $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
@@ -282,7 +280,7 @@ class LancamentosController
         // 6. Sanitização de TEXTOS
         $descricao = trim((string)($payload['descricao'] ?? $lancamento->descricao ?? ''));
         $observacao = trim((string)($payload['observacao'] ?? $lancamento->observacao ?? ''));
-        
+
         $descricao = mb_substr($descricao, 0, 190);
         $observacao = mb_substr($observacao, 0, 500);
 
@@ -300,7 +298,7 @@ class LancamentosController
         $lancamento->categoria_id = $categoriaId;
         $lancamento->conta_id = $contaId;
         // Campos de transferência devem ser resetados (mas já protegidos acima)
-        $lancamento->conta_id_destino = null; 
+        $lancamento->conta_id_destino = null;
         $lancamento->eh_transferencia = 0;
         $lancamento->save();
 
@@ -346,7 +344,7 @@ class LancamentosController
             Response::error('Lançamento não encontrado', 404);
             return;
         }
-        
+
         if ((bool)($t->eh_saldo_inicial ?? 0) === true) {
             Response::error('Não é possível excluir o saldo inicial.', 422);
             return;

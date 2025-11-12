@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tableElement = document.getElementById('agendamentosTable');
     const form = document.getElementById('formAgendamento');
+    const categoriaSelect = document.getElementById('agCategoria');
+    const contaSelect = document.getElementById('agConta');
+    const tipoSelect = document.getElementById('agTipo');
+    const agModal = document.getElementById('modalAgendamento');
+    const selectCache = {
+        contas: null,
+        categorias: new Map()
+    };
     const cache = new Map();
 
     let tableInstance = null;
@@ -72,6 +80,118 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!alertBox) return;
         alertBox.textContent = message;
         alertBox.classList.remove('d-none');
+    };
+
+    const fetchJSON = async (url, options = {}) => {
+        const res = await fetch(url, {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+
+        if (await handleFetch403(res, base)) {
+            return null;
+        }
+
+        let data = null;
+        try {
+            data = await res.json();
+        } catch {
+            // resposta vazia ou texto puro
+        }
+
+        if (!res.ok) {
+            const message = data?.message || 'Nao foi possivel carregar os dados.';
+            throw new Error(message);
+        }
+
+        return data;
+    };
+
+    const listFromPayload = (payload) => {
+        if (!payload) return [];
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload.data)) return payload.data;
+        if (Array.isArray(payload.items)) return payload.items;
+        if (Array.isArray(payload.itens)) return payload.itens;
+        return [];
+    };
+
+    const fillSelect = (selectEl, items, {
+        placeholder = null,
+        getValue = (item) => item?.id ?? '',
+        getLabel = (item) => item?.nome ?? ''
+    } = {}) => {
+        if (!selectEl) return;
+        const previous = selectEl.value;
+        selectEl.innerHTML = '';
+
+        if (placeholder !== null) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = placeholder;
+            selectEl.appendChild(opt);
+        }
+
+        items.forEach((item) => {
+            const option = document.createElement('option');
+            option.value = String(getValue(item) ?? '');
+            option.textContent = getLabel(item) ?? '';
+            selectEl.appendChild(option);
+        });
+
+        if (previous && selectEl.querySelector(`option[value="${previous}"]`)) {
+            selectEl.value = previous;
+        }
+    };
+
+    const loadContasSelect = async (force = false) => {
+        if (!contaSelect) return;
+        if (selectCache.contas && !force) {
+            fillSelect(contaSelect, selectCache.contas, {
+                placeholder: 'Todas as contas (opcional)',
+                getLabel: (item) => {
+                    const instituicao = item?.instituicao ? ` — ${item.instituicao}` : '';
+                    return `${item?.nome ?? ''}${instituicao}`;
+                }
+            });
+            return;
+        }
+
+        const data = await fetchJSON(`${base}api/accounts?only_active=1&with_balances=0`);
+        if (!data) return;
+        const items = listFromPayload(data);
+        selectCache.contas = items;
+        fillSelect(contaSelect, items, {
+            placeholder: 'Todas as contas (opcional)',
+            getLabel: (item) => {
+                const instituicao = item?.instituicao ? ` — ${item.instituicao}` : '';
+                return `${item?.nome ?? ''}${instituicao}`;
+            }
+        });
+    };
+
+    const loadCategoriasSelect = async (tipo = 'despesa', force = false) => {
+        if (!categoriaSelect) return;
+        const key = tipo || 'todos';
+        if (selectCache.categorias.has(key) && !force) {
+            fillSelect(categoriaSelect, selectCache.categorias.get(key), {
+                placeholder: 'Selecione uma categoria'
+            });
+            return;
+        }
+
+        const qs = tipo ? `?tipo=${encodeURIComponent(tipo)}` : '';
+        const data = await fetchJSON(`${base}api/categorias${qs}`);
+        if (!data) return;
+        const items = listFromPayload(data);
+        selectCache.categorias.set(key, items);
+        fillSelect(categoriaSelect, items, {
+            placeholder: 'Selecione uma categoria'
+        });
     };
 
     const parseMoneyToCents = (value) => {
@@ -414,6 +534,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    tipoSelect?.addEventListener('change', () => {
+        loadCategoriasSelect(tipoSelect.value).catch((error) => {
+            console.error(error);
+            showFormError(error?.message || 'Nao foi possivel carregar as categorias.');
+        });
+    });
+
+    agModal?.addEventListener('shown.bs.modal', async () => {
+        try {
+            await Promise.all([
+                loadContasSelect(),
+                loadCategoriasSelect(tipoSelect?.value || 'despesa')
+            ]);
+            hideFormError();
+        } catch (error) {
+            console.error(error);
+            showFormError(error?.message || 'Nao foi possivel carregar os dados do formulario.');
+        }
+    });
+
     document.addEventListener('lukrato:agendamento-action', async (event) => {
         const detail = event?.detail || {};
         const id = detail.id ? Number(detail.id) : null;
@@ -518,5 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     ensureTable();
+    loadContasSelect().catch(console.error);
+    loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
     loadAgendamentos();
 });

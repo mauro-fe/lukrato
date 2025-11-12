@@ -6,12 +6,10 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Application\Models\Lancamento;
 use Carbon\Carbon;
-use Application\Services\FeatureGate; // Mantido para referência
 use Application\Lib\Auth;
+use Application\Services\LogService; // <-- ADICIONADO AQUI
 use ValueError;
-use Closure;
 
 // --- Enums para Constantes (PHP 8.1+) ---
 
@@ -57,11 +55,11 @@ class RelatoriosController extends BaseController
         if ($year < 2000 || $year > 2100 || $month < 1 || $month > 12) {
             throw new \InvalidArgumentException('Parâmetros de data inválidos.');
         }
-        
+
         // Uso de Carbon para garantir start/end do dia/mês
         $start = Carbon::create($year, $month, 1)->startOfDay();
         $end   = (clone $start)->endOfMonth()->endOfDay();
-        
+
         return [$year, $month, $start, $end];
     }
 
@@ -79,12 +77,15 @@ class RelatoriosController extends BaseController
      * Aplica o filtro de usuário. Permite NULL user_id para lançamentos globais/padrão.
      * @param QueryBuilder $q
      */
-    private function applyUserScope(QueryBuilder $q, ?int $userId): QueryBuilder
+    private function applyUserScope(QueryBuilder $q, ?int $userId, string $tableAlias = 'lancamentos'): QueryBuilder
     {
-        return $q->where(function (QueryBuilder $q2) use ($userId) {
-            $q2->whereNull('lancamentos.user_id');
+        $alias = preg_match('/^[a-zA-Z0-9_]+$/', $tableAlias) ? $tableAlias : 'lancamentos';
+        $column = "{$alias}.user_id";
+
+        return $q->where(function (QueryBuilder $q2) use ($userId, $column) {
+            $q2->whereNull($column);
             if ($userId !== null) {
-                $q2->orWhere('lancamentos.user_id', $userId);
+                $q2->orWhere($column, $userId);
             }
         });
     }
@@ -105,7 +106,7 @@ class RelatoriosController extends BaseController
                 $w->where('lancamentos.conta_id', $accId)
                     ->orWhere(function (QueryBuilder $w2) use ($accId) {
                         $w2->where('lancamentos.eh_transferencia', 1)
-                           ->where('lancamentos.conta_id_destino', $accId);
+                            ->where('lancamentos.conta_id_destino', $accId);
                     });
             });
         }
@@ -181,10 +182,10 @@ class RelatoriosController extends BaseController
         }
 
         $useTransfers = $includeTransfers || ($accId !== null);
-        
+
         if (!$useTransfers) {
-             // Se não usar transfers E não tiver conta específica, podemos filtrar transfers = 0
-             $q->where('lancamentos.eh_transferencia', 0);
+            // Se não usar transfers E não tiver conta específica, podemos filtrar transfers = 0
+            $q->where('lancamentos.eh_transferencia', 0);
         }
 
         $this->applyUserScope($q, $userId);
@@ -199,7 +200,7 @@ class RelatoriosController extends BaseController
     private function saldoAte(Carbon $ate, ?int $accId, ?int $userId, bool $includeTransfers): float
     {
         $useTransfers = $includeTransfers || ($accId !== null);
-        
+
         // Base query, mas apenas filtra a data (e não o range)
         $q = DB::table('lancamentos')
             ->where('lancamentos.data', '<=', $ate)
@@ -214,7 +215,7 @@ class RelatoriosController extends BaseController
 
         return (float) ($q->value('saldo') ?? 0.0);
     }
-    
+
     /**
      * Normaliza a string de tipo de relatório para o Enum.
      * @param string $t Valor bruto do 'type'.
@@ -235,7 +236,7 @@ class RelatoriosController extends BaseController
             'anual'     => ReportType::RESUMO_ANUAL->value,
         ];
         $typeString = $map[$t] ?? $t;
-        
+
         try {
             return ReportType::from($typeString);
         } catch (ValueError) {
@@ -267,20 +268,20 @@ class RelatoriosController extends BaseController
 
             // 2. Execução do Relatório (Usando match para PHP 8.0+)
             $result = match ($type) {
-                ReportType::DESPESAS_POR_CATEGORIA, ReportType::RECEITAS_POR_CATEGORIA => 
-                    $this->handleCategoriasReport($type, $start, $end, $accId, $userId),
-                ReportType::SALDO_MENSAL => 
-                    $this->handleSaldoMensalReport($start, $end, $accId, $userId, $includeTransfers),
-                ReportType::RECEITAS_DESPESAS_DIARIO => 
-                    $this->handleReceitasDespesasDiarioReport($start, $end, $accId, $userId, $includeTransfers),
-                ReportType::EVOLUCAO_12M => 
-                    $this->handleEvolucao12MReport($start, $end, $accId, $userId, $includeTransfers),
-                ReportType::RECEITAS_DESPESAS_POR_CONTA => 
-                    $this->handleReceitasDespesasPorContaReport($start, $end, $accId, $userId),
-                ReportType::RESUMO_ANUAL => 
-                    $this->handleResumoAnualReport($start, $end, $accId, $userId, $includeTransfers),
-                default => 
-                    throw new \InvalidArgumentException("Tipo de relatório '{$type->value}' não suportado."),
+                ReportType::DESPESAS_POR_CATEGORIA, ReportType::RECEITAS_POR_CATEGORIA =>
+                $this->handleCategoriasReport($type, $start, $end, $accId, $userId),
+                ReportType::SALDO_MENSAL =>
+                $this->handleSaldoMensalReport($start, $end, $accId, $userId, $includeTransfers),
+                ReportType::RECEITAS_DESPESAS_DIARIO =>
+                $this->handleReceitasDespesasDiarioReport($start, $end, $accId, $userId, $includeTransfers),
+                ReportType::EVOLUCAO_12M =>
+                $this->handleEvolucao12MReport($start, $end, $accId, $userId, $includeTransfers),
+                ReportType::RECEITAS_DESPESAS_POR_CONTA =>
+                $this->handleReceitasDespesasPorContaReport($start, $end, $accId, $userId),
+                ReportType::RESUMO_ANUAL =>
+                $this->handleResumoAnualReport($start, $end, $accId, $userId, $includeTransfers),
+                default =>
+                throw new \InvalidArgumentException("Tipo de relatório '{$type->value}' não suportado."),
             };
 
             Response::success(array_merge($result, [
@@ -289,80 +290,91 @@ class RelatoriosController extends BaseController
                 'end' => $end->toDateString(),
             ]));
         } catch (\InvalidArgumentException $e) {
+            // --- LOG ADICIONADO (WARNING) ---
+            LogService::warning('Falha de validação no relatório.', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->userId ?? null
+            ]);
             Response::validationError(['params' => $e->getMessage()]);
         } catch (\Throwable $e) {
+            // --- LOG ADICIONADO (ERROR) ---
+            LogService::error('Erro inesperado ao gerar relatório.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(), // Importante para debugar o "B.O"
+                'user_id' => $this->userId ?? null
+            ]);
             Response::error('Erro ao gerar relatório.', 500, ['exception' => $e->getMessage()]);
         }
     }
-    
+
     // --- Lógica de Relatórios (Movida para Métodos Privados) ---
 
     private function handleCategoriasReport(
-        ReportType $type, 
-        Carbon $start, 
-        Carbon $end, 
-        ?int $accId, 
+        ReportType $type,
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
         ?int $userId
     ): array {
         $alvo = $type === ReportType::DESPESAS_POR_CATEGORIA ? LancamentoTipo::DESPESA->value : LancamentoTipo::RECEITA->value;
-        
+
         $q = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->whereBetween('l.data', [$start, $end])
             ->where('l.eh_saldo_inicial', 0)
             ->where('l.tipo', $alvo);
-        
-        $this->applyUserScope($q, $userId);
+
+        $this->applyUserScope($q, $userId, 'l');
 
         if ($accId === null) {
             // Global: Ignora transferências (porque se anulam globalmente, mas evita poluição)
             $q->where('l.eh_transferencia', 0);
-            
+
             $data = $q->selectRaw('COALESCE(c.id, 0) as cat_id')
-                    ->selectRaw("COALESCE(MAX(c.nome), 'Sem categoria') as label")
-                    ->selectRaw('SUM(l.valor) as total')
-                    ->groupBy('cat_id')
-                    ->orderByDesc('total')
-                    ->get();
+                ->selectRaw("COALESCE(MAX(c.nome), 'Sem categoria') as label")
+                ->selectRaw('SUM(l.valor) as total')
+                ->groupBy('cat_id')
+                ->orderByDesc('total')
+                ->get();
         } else {
             // Específico para Conta: Precisa incluir transferências (como categoria separada)
             $q->where(function ($w) use ($accId, $alvo) {
                 // Filtra Lançamentos Receita/Despesa COM a conta
                 $w->where(function ($q1) use ($accId) {
                     $q1->where('l.eh_transferencia', 0)
-                       ->where('l.conta_id', $accId);
+                        ->where('l.conta_id', $accId);
                 })
-                // OU filtra Transferências ENTRANDO/SAINDO da conta
-                ->orWhere(function ($q2) use ($accId, $alvo) {
-                    $q2->where('l.eh_transferencia', 1);
-                    if ($alvo === LancamentoTipo::RECEITA->value) {
-                        $q2->where('l.conta_id_destino', $accId); // Transf. recebida é RECEITA
-                    } else {
-                        $q2->where('l.conta_id', $accId); // Transf. enviada é DESPESA
-                    }
-                });
+                    // OU filtra Transferências ENTRANDO/SAINDO da conta
+                    ->orWhere(function ($q2) use ($accId, $alvo) {
+                        $q2->where('l.eh_transferencia', 1);
+                        if ($alvo === LancamentoTipo::RECEITA->value) {
+                            $q2->where('l.conta_id_destino', $accId); // Transf. recebida é RECEITA
+                        } else {
+                            $q2->where('l.conta_id', $accId); // Transf. enviada é DESPESA
+                        }
+                    });
             })
-            // A query não pode mais filtrar por tipo = $alvo, mas sim por tipo real OU transferência
-            // O filtro de tipo original do query base é removido/refeito aqui:
-            ->where(function ($w) use ($alvo) {
-                 $w->where(function ($q) use ($alvo) {
-                     $q->where('l.eh_transferencia', 0)
-                       ->where('l.tipo', $alvo); // Tipo real para receitas/despesas
-                 })
-                 ->orWhere('l.eh_transferencia', 1); // Inclui transferências
-            });
-            
+                // A query não pode mais filtrar por tipo = $alvo, mas sim por tipo real OU transferência
+                // O filtro de tipo original do query base é removido/refeito aqui:
+                ->where(function ($w) use ($alvo) {
+                    $w->where(function ($q) use ($alvo) {
+                        $q->where('l.eh_transferencia', 0)
+                            ->where('l.tipo', $alvo); // Tipo real para receitas/despesas
+                    })
+                        ->orWhere('l.eh_transferencia', 1); // Inclui transferências
+                });
+
             $data = $q->selectRaw('
                 CASE
                     WHEN l.eh_transferencia = 1 THEN "Transferência"
                     ELSE COALESCE(MAX(c.nome), "Sem categoria")
                 END as label
             ')
-            ->selectRaw('SUM(l.valor) as total')
-            ->selectRaw('COALESCE(c.id, 0) as cat_id, l.eh_transferencia as is_transf')
-            ->groupBy('is_transf', 'cat_id')
-            ->orderByDesc('total')
-            ->get();
+                ->selectRaw('SUM(l.valor) as total')
+                ->selectRaw('COALESCE(c.id, 0) as cat_id, l.eh_transferencia as is_transf')
+                ->groupBy('is_transf', 'cat_id')
+                ->orderByDesc('total')
+                ->get();
         }
 
         $labels = $data->pluck('label')->values()->all();
@@ -374,12 +386,12 @@ class RelatoriosController extends BaseController
             'total'  => array_sum($values),
         ];
     }
-    
+
     private function handleSaldoMensalReport(
-        Carbon $start, 
-        Carbon $end, 
-        ?int $accId, 
-        ?int $userId, 
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
+        ?int $userId,
         bool $includeTransfers
     ): array {
         $useTransfers = $includeTransfers || ($accId !== null);
@@ -404,7 +416,7 @@ class RelatoriosController extends BaseController
         $values = [];
         $running = $saldoAnterior;
         $cursor = clone $start;
-        
+
         // Iteração diária para calcular o saldo corrente
         while ($cursor <= $end) {
             $d = $cursor->toDateString();
@@ -420,12 +432,12 @@ class RelatoriosController extends BaseController
             'total'  => end($values) ?: 0.0,
         ];
     }
-    
+
     private function handleReceitasDespesasDiarioReport(
-        Carbon $start, 
-        Carbon $end, 
-        ?int $accId, 
-        ?int $userId, 
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
+        ?int $userId,
         bool $includeTransfers
     ): array {
         $useTransfers = $includeTransfers || ($accId !== null);
@@ -443,7 +455,7 @@ class RelatoriosController extends BaseController
         $receitas = [];
         $despesas = [];
         $cursor = clone $start;
-        
+
         while ($cursor <= $end) {
             $d = $cursor->toDateString();
             $labels[]   = $cursor->format('d/m');
@@ -459,19 +471,19 @@ class RelatoriosController extends BaseController
             'despesas' => $despesas,
         ];
     }
-    
+
     private function handleEvolucao12MReport(
-        Carbon $start, 
-        Carbon $end, 
-        ?int $accId, 
-        ?int $userId, 
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
+        ?int $userId,
         bool $includeTransfers
     ): array {
         $ini = (clone $start)->subMonthsNoOverflow(11)->startOfMonth();
         $fim = (clone $end); // Fim é o mês atual (End do index)
 
         $useTransfers = $includeTransfers || ($accId !== null);
-        
+
         // 1. Agregação Mensal do Delta
         $rows = $this->baseLancamentos($ini, $fim, $accId, $userId, $useTransfers, true)
             ->selectRaw("DATE_FORMAT(lancamentos.data, '%Y-%m-01') as mes")
@@ -480,7 +492,7 @@ class RelatoriosController extends BaseController
             ->orderBy('mes')
             ->get()
             ->keyBy('mes');
-        
+
         // 2. Saldo Acumulado Antes do Período
         $saldoAnterior = $this->saldoAte(
             (clone $ini)->subDay()->endOfDay(),
@@ -494,11 +506,11 @@ class RelatoriosController extends BaseController
         $values = [];
         $running = $saldoAnterior;
         $cursor = clone $ini;
-        
+
         while ($cursor <= $fim) {
             $ym = $cursor->format('Y-m-01');
             $labels[] = $cursor->format('m/Y');
-            
+
             // Adiciona o delta do mês se existir, caso contrário 0
             $running += (float) ($rows[$ym]->saldo ?? 0.0);
             $values[] = round($running, 2);
@@ -512,11 +524,11 @@ class RelatoriosController extends BaseController
             'end'    => $fim->toDateString(),
         ];
     }
-    
+
     private function handleReceitasDespesasPorContaReport(
-        Carbon $start, 
-        Carbon $end, 
-        ?int $accId, 
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
         ?int $userId
     ): array {
         $q = DB::table('contas')
@@ -525,18 +537,18 @@ class RelatoriosController extends BaseController
             ->leftJoin('lancamentos as l', function ($j) use ($start, $end, $userId) {
                 // Filtra Lançamentos no período e que pertencem à conta (origem OU destino)
                 $j->on(DB::raw('1'), '=', DB::raw('1')) // Necessário para LEFT JOIN customizado
-                  ->whereBetween('l.data', [$start, $end])
-                  ->where(function ($w) {
+                    ->whereBetween('l.data', [$start, $end])
+                    ->where(function ($w) {
                         $w->whereColumn('l.conta_id', 'contas.id')
                             ->orWhere(function ($w2) {
                                 $w2->where('l.eh_transferencia', 1)
-                                   ->whereColumn('l.conta_id_destino', 'contas.id');
+                                    ->whereColumn('l.conta_id_destino', 'contas.id');
                             });
-                  })
-                  ->where(function ($q2) use ($userId) {
-                      // Scope de usuário no JOIN
-                      $q2->whereNull('l.user_id')->orWhere('l.user_id', $userId);
-                  });
+                    })
+                    ->where(function ($q2) use ($userId) {
+                        // Scope de usuário no JOIN
+                        $q2->whereNull('l.user_id')->orWhere('l.user_id', $userId);
+                    });
             })
             ->selectRaw("COALESCE(contas.nome, contas.instituicao, 'Sem conta') as conta")
             // Receitas: Receita Normal OU Transf. Recebida
@@ -562,26 +574,26 @@ class RelatoriosController extends BaseController
             ->groupBy('contas.id', 'conta') // Agrupa pelo ID e nome da conta
             ->orderBy('conta')
             ->get();
-            
+
         return [
             'labels'   => $q->pluck('conta')->values()->all(),
             'receitas' => $q->pluck('receitas')->map(fn($v) => (float)$v)->values()->all(),
             'despesas' => $q->pluck('despesas')->map(fn($v) => (float)$v)->values()->all(),
         ];
     }
-    
+
     private function handleResumoAnualReport(
-        Carbon $start, 
-        Carbon $end, 
-        ?int $accId, 
-        ?int $userId, 
+        Carbon $start,
+        Carbon $end,
+        ?int $accId,
+        ?int $userId,
         bool $includeTransfers
     ): array {
         // Redefine o período para o ano completo (assumindo que $start é no ano alvo)
         $year = $start->year;
         $yearStart = Carbon::create($year, 1, 1)->startOfDay();
         $yearEnd   = (clone $yearStart)->endOfYear()->endOfDay();
-        
+
         $useTransfers = $includeTransfers || ($accId !== null);
 
         $rows = $this->baseLancamentos($yearStart, $yearEnd, $accId, $userId, $useTransfers, true)

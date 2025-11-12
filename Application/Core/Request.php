@@ -9,7 +9,6 @@ use Application\Core\Exceptions\ValidationException;
 
 class Request
 {
-    // Propriedades são 'readonly' (PHP 8.1+), definidas uma vez no construtor
     private readonly array $query;
     private readonly array $body;
     private readonly array $data;
@@ -23,7 +22,7 @@ class Request
         $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
         $this->headers = $this->normalizeHeaders(getallheaders() ?: []);
         $this->files   = $_FILES ?? [];
-        
+
         $this->parseData();
     }
 
@@ -68,12 +67,12 @@ class Request
 
         $this->body = $body;
         $this->json = $json;
-        
+
         // 3. Data (junção de Query e Body)
         // O Body (POST/JSON) tem precedência sobre a Query String (GET)
         $this->data = array_merge($this->query, $this->body);
     }
-    
+
     private function normalizeHeaders(array $headers): array
     {
         $normalized = [];
@@ -90,11 +89,26 @@ class Request
         return $this->method;
     }
 
-    public function isGet(): bool { return $this->method === 'GET'; }
-    public function isPost(): bool { return $this->method === 'POST'; }
-    public function isPut(): bool { return $this->method === 'PUT'; }
-    public function isPatch(): bool { return $this->method === 'PATCH'; }
-    public function isDelete(): bool { return $this->method === 'DELETE'; }
+    public function isGet(): bool
+    {
+        return $this->method === 'GET';
+    }
+    public function isPost(): bool
+    {
+        return $this->method === 'POST';
+    }
+    public function isPut(): bool
+    {
+        return $this->method === 'PUT';
+    }
+    public function isPatch(): bool
+    {
+        return $this->method === 'PATCH';
+    }
+    public function isDelete(): bool
+    {
+        return $this->method === 'DELETE';
+    }
 
     public function isAjax(): bool
     {

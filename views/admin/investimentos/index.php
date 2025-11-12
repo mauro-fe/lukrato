@@ -129,8 +129,11 @@ if (!isset($categories))       $categories = [];
                             </thead>
                             <tbody>
                                 <?php foreach ($investments as $inv):
-                                    $rowInvested   = (float)$inv['quantity'] * (float)$inv['avg_price'];
-                                    $rowCurrent    = (float)$inv['quantity'] * (float)($inv['current_price'] ?? $inv['avg_price']);
+                                    $quantity      = (float)($inv['quantity'] ?? 0);
+                                    $avgPrice      = (float)($inv['avg_price'] ?? 0);
+                                    $currentPrice  = (float)($inv['current_price'] ?? $avgPrice);
+                                    $rowInvested   = $quantity * $avgPrice;
+                                    $rowCurrent    = $quantity * $currentPrice;
                                     /* Rentabilidade comentada
                                     $rowProfit     = $rowCurrent - $rowInvested;
                                     $rowProfitPerc = $rowInvested > 0 ? ($rowProfit / $rowInvested) * 100 : 0;
@@ -144,9 +147,9 @@ if (!isset($categories))       $categories = [];
                                             </span>
                                         </td>
                                         <td><?= htmlspecialchars($inv['ticker'] ?? '-') ?></td>
-                                        <td><?= number_format((float)$inv['quantity'], 2, ',', '.') ?></td>
-                                        <td>R$ <?= number_format((float)$inv['avg_price'], 2, ',', '.') ?></td>
-                                        <td>R$ <?= number_format((float)($inv['current_price'] ?? $inv['avg_price']), 2, ',', '.') ?></td>
+                                        <td><?= number_format($quantity, 2, ',', '.') ?></td>
+                                        <td>R$ <?= number_format($avgPrice, 2, ',', '.') ?></td>
+                                        <td>R$ <?= number_format($currentPrice, 2, ',', '.') ?></td>
                                         <td><strong>R$ <?= number_format((float)$rowCurrent, 2, ',', '.') ?></strong></td>
                                         <!-- <td>
                                             <span class="profit-badge <?= isset($rowProfit) && $rowProfit >= 0 ? 'positive' : 'negative' ?>">

@@ -7,7 +7,6 @@ use Application\Core\Response; // Usa a classe Response padrão
 use Application\Models\Usuario;
 use Application\Services\LogService; // Para log de erro
 use Throwable;
-use ValueError;
 
 /**
  * Enum para as opções de tema (PHP 8.1+)
@@ -30,7 +29,7 @@ class PreferenciaUsuarioController extends BaseController
         if ($value !== null) {
             return $value;
         }
-        
+
         $raw = file_get_contents('php://input') ?: '';
         if ($raw !== '') {
             $json = json_decode($raw, true);
@@ -55,7 +54,7 @@ class PreferenciaUsuarioController extends BaseController
                 Response::error('Usuário não encontrado.', 404);
                 return;
             }
-            
+
             // Valida o tema salvo ou usa 'system' como padrão
             $theme = ThemePreference::tryFrom($user->theme_preference ?? '') ?? ThemePreference::SYSTEM;
 
@@ -82,7 +81,7 @@ class PreferenciaUsuarioController extends BaseController
 
             // Validação usando o Enum
             $theme = ThemePreference::tryFrom($themeInput ?? '');
-            
+
             if ($theme === null) {
                 Response::validationError([
                     'theme' => 'Deve ser: light, dark ou system.'

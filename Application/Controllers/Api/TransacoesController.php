@@ -6,7 +6,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Throwable; // Importa Throwable
+use Throwable;
 
 class TransacoesController
 {
@@ -19,15 +19,15 @@ class TransacoesController
     {
         $month = trim($monthInput);
         $dt = \DateTime::createFromFormat('Y-m', $month);
-        
+
         if (!$dt || $dt->format('Y-m') !== $month) {
             $month = date('Y-m'); // Fallback para mês atual
             $dt = new \DateTime("$month-01");
         }
-        
+
         $from = $dt->format('Y-m-01');
         $to   = $dt->format('Y-m-t');
-        
+
         return [$from, $to];
     }
 
@@ -42,7 +42,7 @@ class TransacoesController
                 Response::unauthorized('Não autenticado.');
                 return;
             }
-            
+
             $month = $_GET['month'] ?? date('Y-m');
             [$from, $to] = $this->resolvePeriod($month);
 
@@ -79,7 +79,7 @@ class TransacoesController
 
             $out = $rows->map(function (\stdClass $t): array {
                 $isTransfer = (bool)$t->eh_transferencia;
-                
+
                 $label = $isTransfer
                     ? (($t->conta_origem_nome ?: '—') . ' → ' . ($t->conta_destino_nome ?: '—'))
                     : ($t->conta_origem_nome ?: '—');
@@ -103,7 +103,7 @@ class TransacoesController
                         'id'   => (int)$t->conta_id,
                         'nome' => (string)$t->conta_origem_nome
                     ] : null,
-                    
+
                     'conta_destino' => $t->conta_id_destino ? [
                         'id'   => (int)$t->conta_id_destino,
                         'nome' => (string)$t->conta_destino_nome
@@ -116,7 +116,6 @@ class TransacoesController
             })->all();
 
             Response::json($out);
-            
         } catch (Throwable $e) {
             Response::error('Falha ao buscar transações: ' . $e->getMessage(), 500);
         }
