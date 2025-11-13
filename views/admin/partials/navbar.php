@@ -1,3 +1,11 @@
+<?php
+
+use Application\Lib\Auth;
+
+$navbarUser = $currentUser ?? Auth::user();
+$showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser && method_exists($navbarUser, 'isPro') && $navbarUser->isPro());
+
+?>
 <style>
     /* =========================================================
  * NAVBAR
@@ -59,7 +67,7 @@
     .lk-navbar-right {
         display: flex;
         align-items: center;
-        gap: var(--spacing-lg);
+        gap: 20px;
     }
 
     .lk-navbar-right button {
@@ -74,8 +82,7 @@
         padding: 8px 14px;
         cursor: pointer;
         transition: all var(--transition-fast);
-        height: 40px;
-        margin-left: 20px;
+        height: 40px;        
     }
 
     .lk-navbar-right button:hover {
@@ -83,6 +90,32 @@
         color: #fff;
         border-color: var(--color-primary);
         transform: translateY(-2px);
+    }
+
+    .lk-navbar-right .lk-upgrade-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        padding: 10px 18px;
+        border-radius: var(--radius-full, 999px);
+        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
+        color: #fff;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: var(--shadow-md);
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        white-space: nowrap;
+    }
+
+    .lk-navbar-right .lk-upgrade-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: #fff;
+    }
+
+    .lk-navbar-right .lk-upgrade-btn i {
+        font-size: 1rem;
+
     }
 
     .lk-navbar-right button:focus-visible {
@@ -204,6 +237,13 @@
             </button>
 
             <?php include __DIR__ . '/notificacoes/bell.php'; ?>
+
+            <?php if ($showNavbarUpgradeCTA): ?>
+            <a href="<?= BASE_URL ?>billing" class="lk-upgrade-btn">
+                <i class="fa-solid fa-star"></i>
+                <span>Pro</span>
+            </a>
+            <?php endif; ?>
         </div>
     </div>
 </nav>

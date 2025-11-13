@@ -74,6 +74,9 @@ function registerAppRoutes(): void
  * =======================*/
 function registerApiRoutes(): void
 {
+    // Segurança / utilidades
+    Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
+
     // Perfil
     Router::add('GET',  '/api/perfil',  'Api\\PerfilController@show',   ['auth']);
     Router::add('POST', '/api/perfil',  'Api\\PerfilController@update', ['auth', 'csrf']);
@@ -87,6 +90,7 @@ function registerApiRoutes(): void
     Router::add('GET', '/api/reports/table',      'Api\\RelatoriosController@table',     ['auth']);
     Router::add('GET', '/api/reports/timeseries', 'Api\\RelatoriosController@timeseries', ['auth']);
     Router::add('GET', '/api/reports',            'Api\\RelatoriosController@index',     ['auth']);
+    Router::add('GET', '/api/reports/export',     'Api\\RelatoriosController@export',    ['auth']);
 
     // Lançamentos (REST-like)
     Router::add('GET',    '/api/lancamentos',      'Api\\LancamentosController@index',   ['auth']);

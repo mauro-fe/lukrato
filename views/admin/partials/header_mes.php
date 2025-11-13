@@ -1,11 +1,39 @@
+<?php
+
+use Application\Lib\Auth;
+
+$headerMesUser = $currentUser ?? Auth::user();
+$showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') && $headerMesUser->isPro());
+
+?>
 <style>
     /* Header / Month selector */
     .dash-lk-header {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--spacing-3);
         margin-top: var(--spacing-5);
         padding: var(--spacing-4);
+        width: 100%;
+    }
+
+    .dash-lk-header .header-left {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 1 auto;
+        min-width: 280px;
+    }
+
+    .dash-lk-header .header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+        gap: var(--spacing-2);
+        min-width: 220px;
     }
 
     .dash-lk-header .month-selector {
@@ -15,7 +43,7 @@
         flex-wrap: wrap;
     }
 
-    .lk-period {
+    .lk-period,.lk-year-picker {
         display: flex;
         align-items: center;
         gap: var(--spacing-2);
@@ -92,6 +120,32 @@
 
     .dash-lk-header .month-dropdown-btn:hover i {
         transform: translateY(2px);
+    }
+
+    .lk-pro-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        padding: var(--spacing-3) var(--spacing-5);
+        border-radius: var(--radius-full, 999px);
+        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
+        color: #fff;
+        font-weight: 600;
+        font-size: var(--font-size-sm);
+        text-decoration: none;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        box-shadow: var(--shadow-md);
+        white-space: nowrap;
+    }
+
+    .lk-pro-cta:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+        color: #fff;
+    }
+
+    .lk-pro-cta i {
+        font-size: var(--font-size-base);
     }
 
     /* Month dropdown */
@@ -184,7 +238,6 @@
 
     #yearPicker .year-btn {
         min-width: 140px;
-        color: var(--color-secondary);
     }
 
     #yearPicker .month-nav-btn {
@@ -324,6 +377,8 @@
         .dashboard-page .dash-lk-header {
             margin-top: var(--spacing-3);
             padding: var(--spacing-2);
+            flex-direction: column;
+            align-items: stretch;
         }
 
         .lk-period {
@@ -343,6 +398,17 @@
 
         .dash-lk-header .month-dropdown {
             width: calc(100vw - 32px);
+        }
+
+        .dash-lk-header .header-left,
+        .dash-lk-header .header-actions {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .lk-pro-cta {
+            width: min(320px, 100%);
+            justify-content: center;
         }
     }
 </style>
@@ -380,9 +446,9 @@
                 <button class="month-nav-btn" id="nextYearBtn" type="button" aria-label="Próximo ano">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-            </div>
         </div>
     </div>
+
 </header>
 
 <script>

@@ -1,10 +1,13 @@
 ﻿<?php
 
+use Application\Lib\Auth;
 $username     = $username     ?? 'usuario';
 $menu         = $menu         ?? '';
 $base         = BASE_URL;
 $favicon      = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1';
 $pageTitle    = $pageTitle    ?? 'Lukrato';
+$currentUser  = $currentUser  ?? Auth::user();
+$showUpgradeCTA = !($currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro());
 
 $active = function (string $key) use ($menu) {
     return (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -41,10 +44,12 @@ $aria   = function (string $key) use ($menu) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
 
     <script>
         // Namespace global do Lukrato
         window.LK = window.LK || {};
+        window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 
         // Helpers Globais
         LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
@@ -129,6 +134,14 @@ $aria   = function (string $key) use ($menu) {
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i
                     class="fas fa-sign-out-alt"></i>
                 <span>Sair</span></a>
+            <?php if ($showUpgradeCTA): ?>
+            <div class="sidebar-pro-cta">
+                <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Pro</span>
+                </a>
+            </div>
+            <?php endif; ?>
         </nav>
     </aside>
 
@@ -141,3 +154,5 @@ $aria   = function (string $key) use ($menu) {
 
         <main class="lk-main">
             <?php include __DIR__ . '/navbar.php'; ?>
+
+

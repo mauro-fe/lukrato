@@ -492,8 +492,3 @@ class ContasController
         ]);
     }
 }
-
-
-
-
-

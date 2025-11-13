@@ -55,7 +55,10 @@ if (!function_exists('csrf_input')) {
     function csrf_input(string $tokenId = 'default'): string
     {
         $token = csrf_token($tokenId);
-        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+        $tokenEsc = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
+        $idEsc = htmlspecialchars($tokenId, ENT_QUOTES, 'UTF-8');
+
+        return '<input type="hidden" name="csrf_token" data-csrf-id="' . $idEsc . '" value="' . $tokenEsc . '">';
     }
 }
 
@@ -66,7 +69,7 @@ if (!function_exists('csrf_meta')) {
         $tokenEsc = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
         $idEsc = htmlspecialchars($tokenId, ENT_QUOTES, 'UTF-8');
 
-        return '<meta name="csrf-token" content="' . $tokenEsc . '">' . PHP_EOL
+        return '<meta name="csrf-token" data-csrf-id="' . $idEsc . '" content="' . $tokenEsc . '">' . PHP_EOL
             . '<meta name="csrf-token-id" content="' . $idEsc . '">';
     }
 }

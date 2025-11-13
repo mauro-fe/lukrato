@@ -27,6 +27,12 @@ class ReportService
         return match ($type) {
             ReportType::DESPESAS_POR_CATEGORIA => 
                 $this->handleCategoriasReport(LancamentoTipo::DESPESA, $params),
+
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA =>
+                $this->handleAnnualCategoriasReport(LancamentoTipo::DESPESA, $params),
+
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA =>
+                $this->handleAnnualCategoriasReport(LancamentoTipo::RECEITA, $params),
             
             ReportType::RECEITAS_POR_CATEGORIA => 
                 $this->handleCategoriasReport(LancamentoTipo::RECEITA, $params),
@@ -62,6 +68,28 @@ class ReportService
             'values' => $data->pluck('total')->map(fn($v) => (float)$v)->values()->all(),
             'total' => $data->sum(fn($row) => (float)$row->total),
         ];
+    }
+
+    private function handleAnnualCategoriasReport(LancamentoTipo $tipo, ReportParameters $params): array
+    {
+        [$yearStart, $yearEnd, $year] = $this->getYearRange($params);
+
+        $annualParams = new ReportParameters(
+            $yearStart,
+            $yearEnd,
+            $params->accountId,
+            $params->userId,
+            $params->includeTransfers
+        );
+
+        $report = $this->handleCategoriasReport($tipo, $annualParams);
+
+        return array_merge($report, [
+            'year' => $year,
+            'start' => $yearStart->toDateString(),
+            'end' => $yearEnd->toDateString(),
+            'kind' => $tipo->value,
+        ]);
     }
 
     // --- Relatórios de Saldo ---

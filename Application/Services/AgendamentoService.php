@@ -5,43 +5,73 @@ namespace Application\Services;
 use Application\Models\Agendamento;
 use Application\Models\Lancamento;
 use Application\Lib\Auth;
+use RuntimeException;
 
 class AgendamentoService
 {
-    /**
-     * Obtém o ID do usuário autenticado (ou do agendamento, se disponível).
-     * @return int
-     * @throws \RuntimeException Se o ID do usuário não puder ser determinado.
-     */
+ 
     private function getUserId(Agendamento $agendamento): int
     {
         $userId = $agendamento->user_id ?? Auth::user()->id ?? null;
         
         if (!$userId) {
-            throw new \RuntimeException('Usuário não definido para o agendamento.');
+            throw new RuntimeException('Usuário não definido para o agendamento.');
         }
 
         return (int) $userId;
     }
 
-    /**
-     * Gera um novo Lancamento a partir de um Agendamento concluído.
-     * Esta é a lógica de negócio central para a conclusão de um agendamento.
-     * * @param Agendamento $agendamento O agendamento que será convertido.
-     * @return Lancamento|null O lançamento recém-criado ou existente.
-     * @throws \RuntimeException Se o valor for inválido ou o usuário não for definido.
-     */
+ 
+    private function centavosParaValor(?int $valorCentavos): float
+    {
+        if ($valorCentavos === null) {
+            return 0.0;
+        }
+        
+        return round($valorCentavos / 100, 2);
+    }
+
+    private function gerarObservacao(Agendamento $agendamento): string
+    {
+        $observacaoBase = trim((string) ($agendamento->descricao ?? ''));
+        
+        if ($observacaoBase !== '') {
+            return "{$observacaoBase} (Agendamento #{$agendamento->id})";
+        }
+        
+        return "Gerado automaticamente do agendamento #{$agendamento->id}";
+    }
+
+    private function extrairDataPagamento($dataPagamento): string
+    {
+        if ($dataPagamento instanceof \DateTimeInterface) {
+            return $dataPagamento->format('Y-m-d');
+        }
+        
+        if (!empty($dataPagamento)) {
+            $dt = date_create($dataPagamento);
+            if ($dt) {
+                return $dt->format('Y-m-d');
+            }
+        }
+        
+        return date('Y-m-d');
+    }
+
+    private function buscarLancamentoExistente(int $userId, string $observacao): ?Lancamento
+    {
+        return Lancamento::where('user_id', $userId)
+            ->where('observacao', $observacao)
+            ->first();
+    }
+
     public function createLancamentoFromAgendamento(Agendamento $agendamento): ?Lancamento
     {
         $userId = $this->getUserId($agendamento);
-
-        $valorCentavos = $agendamento->valor_centavos;
-        
-        // Converte centavos para o formato de moeda (float ou decimal, dependendo do Model Lancamento)
-        $valor = $valorCentavos !== null ? round(((int) $valorCentavos) / 100, 2) : 0.0;
+        $valor = $this->centavosParaValor($agendamento->valor_centavos);
         
         if ($valor <= 0) {
-            throw new \RuntimeException('Valor do agendamento deve ser maior que zero.');
+            throw new RuntimeException('Valor do agendamento deve ser maior que zero.');
         }
 
         $descricao = trim((string) ($agendamento->titulo ?? ''));
@@ -49,38 +79,17 @@ class AgendamentoService
             $descricao = 'Lançamento de Agendamento';
         }
 
-        // Gera a observação, incluindo a referência ao Agendamento
-        $observacaoBase = trim((string) ($agendamento->descricao ?? ''));
-        $observacao = $observacaoBase !== ''
-            ? $observacaoBase . ' (Agendamento #' . $agendamento->id . ')'
-            : 'Gerado automaticamente do agendamento #' . $agendamento->id;
+        $observacao = $this->gerarObservacao($agendamento);
+        $data = $this->extrairDataPagamento($agendamento->data_pagamento);
 
-        // Determina a data do lançamento (pode ser a data de pagamento do agendamento)
-        $dataPagamento = $agendamento->data_pagamento;
-        $data = date('Y-m-d'); // Fallback para data atual
-
-        if ($dataPagamento instanceof \DateTimeInterface) {
-            $data = $dataPagamento->format('Y-m-d');
-        } elseif (!empty($dataPagamento)) {
-            $dt = date_create($dataPagamento);
-            $data = $dt ? $dt->format('Y-m-d') : date('Y-m-d');
+        $lancamentoExistente = $this->buscarLancamentoExistente($userId, $observacao);
+        if ($lancamentoExistente) {
+            return $lancamentoExistente;
         }
 
-        // Verifica se o Lançamento já existe para evitar duplicidade
-        $existing = Lancamento::where('user_id', $userId)
-            ->where('observacao', $observacao)
-            ->first();
-            
-        if ($existing) {
-            // Retorna o existente se já foi criado
-            return $existing;
-        }
-
-        // Cria e retorna o novo Lançamento
         return Lancamento::create([
             'user_id'          => $userId,
-            // Assumindo que Lancamento::TIPO_DESPESA é uma constante no Model Lancamento
-            'tipo'             => $agendamento->tipo ?? Lancamento::TIPO_DESPESA, 
+            'tipo'             => $agendamento->tipo ?? Lancamento::TIPO_DESPESA,
             'data'             => $data,
             'categoria_id'     => $agendamento->categoria_id,
             'conta_id'         => $agendamento->conta_id,

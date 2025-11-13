@@ -107,12 +107,13 @@ class ReportRepository
 
     private function buildCategoryQuery(string $tipo, ReportParameters $params): QueryBuilder
     {
-        return DB::table('lancamentos as l')
+        $query = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where('l.eh_saldo_inicial', 0)
-            ->where('l.tipo', $tipo)
-            ->tap(fn($q) => $this->applyUserScope($q, $params->userId, 'l'));
+            ->where('l.tipo', $tipo);
+
+        return $this->applyUserScope($query, $params->userId, 'l');
     }
 
     private function getGlobalCategoryTotals(QueryBuilder $query): Collection
