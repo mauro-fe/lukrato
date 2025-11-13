@@ -42,7 +42,6 @@ class Router
 
             self::executeMiddlewares($routeContext['middlewares'], $request);
             self::executeCallback($routeContext, $match['params'], $request);
-            
         } catch (AuthException $e) {
             self::handleAuthOrValidationException($e, $request ?? null);
         } catch (ValidationException $e) {
@@ -148,13 +147,13 @@ class Router
 
         $isDev = (($_ENV['APP_ENV'] ?? 'production') !== 'development');
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
-        
+
         // Prioriza JSON se for API
         if ($wantsJson && !$isDev) {
             Response::error('Erro interno no servidor.', 500);
             return;
         }
-        
+
         if ($isDev) {
             // Resposta de debug detalhada (HTML)
             $html = '<h1>Erro na Aplicação</h1><pre>';
@@ -172,15 +171,15 @@ class Router
     private static function handleNotFound(?Request $request): void
     {
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
-        
+
         if ($wantsJson) {
             Response::notFound('Recurso não encontrado');
             return;
         }
-        
+
         self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'Página não encontrada');
     }
-    
+
     /**
      * Helper para incluir arquivos de view de erro.
      */

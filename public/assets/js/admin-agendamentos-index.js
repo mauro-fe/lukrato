@@ -276,13 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     title: 'Titulo',
                     field: 'titulo',
-                    minWidth: 180,
+                    minWidth: 100,
                     formatter: (cell) => escapeHtml(cell.getValue() || '-')
                 },
                 {
                     title: 'Tipo',
                     field: 'tipo',
-                    width: 110,
+                    minWidth: 130,
                     headerFilter: 'select',
                     headerFilterParams: {
                         values: {
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     title: 'Categoria',
                     field: 'categoria.nome',
-                    minWidth: 160,
+                    minWidth: 100,
                     formatter: (cell) => escapeHtml(cell.getValue() || '-'),
                     headerFilter: 'input',
                     headerFilterPlaceholder: 'Categoria'
