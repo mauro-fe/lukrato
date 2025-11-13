@@ -157,6 +157,7 @@
         const aside = document.getElementById('sidebar-main');
         const btn = document.getElementById('edgeMenuBtn') || document.getElementById('btn-toggle-sidebar');
         const backdrop = document.getElementById('sidebarBackdrop');
+        const icon = btn?.querySelector('i');
         if (!aside || !btn || !body) return;
 
         const KEY = 'lk.sidebar';
@@ -167,20 +168,33 @@
             return saved === null ? true : saved === '1';
         };
 
+        const setIcon = () => {
+            if (!icon) return;
+            const isMobile = media.matches;
+            const isClosed = isMobile
+                ? !body.classList.contains('sidebar-open-mobile')
+                : body.classList.contains('sidebar-collapsed');
+            icon.classList.remove('fa-angle-right', 'fa-angle-left');
+            icon.classList.add(isClosed ? 'fa-angle-right' : 'fa-angle-left');
+        };
+
         const setDesktopState = (collapsed) => {
             body.classList.toggle('sidebar-collapsed', collapsed);
             btn.setAttribute('aria-expanded', String(!collapsed));
             localStorage.setItem(KEY, collapsed ? '1' : '0');
+            setIcon();
         };
 
         const openMobile = () => {
             body.classList.add('sidebar-open-mobile');
             btn.setAttribute('aria-expanded', 'true');
+            setIcon();
         };
 
         const closeMobile = () => {
             body.classList.remove('sidebar-open-mobile');
             btn.setAttribute('aria-expanded', 'false');
+            setIcon();
         };
 
         const handleToggle = () => {
@@ -213,6 +227,7 @@
         };
 
         syncState();
+        setIcon();
         const listener = () => syncState();
         if (typeof media.addEventListener === 'function') {
             media.addEventListener('change', listener);

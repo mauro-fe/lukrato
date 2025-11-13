@@ -129,21 +129,21 @@ if (!isset($categories))       $categories = [];
                             </thead>
                             <tbody>
                                 <?php foreach ($investments as $inv):
-                                    $quantity      = (float)($inv['quantity'] ?? 0);
-                                    $avgPrice      = (float)($inv['avg_price'] ?? 0);
-                                    $currentPrice  = (float)($inv['current_price'] ?? $avgPrice);
+                                    $quantity      = (float)($inv['quantidade'] ?? $inv['quantity'] ?? 0);
+                                    $avgPrice      = (float)($inv['preco_medio'] ?? $inv['avg_price'] ?? 0);
+                                    $currentPrice  = (float)($inv['preco_atual'] ?? $inv['current_price'] ?? $avgPrice);
                                     $rowInvested   = $quantity * $avgPrice;
-                                    $rowCurrent    = $quantity * $currentPrice;
+                                    $rowCurrent    = isset($inv['valor_atual']) ? (float)$inv['valor_atual'] : $quantity * $currentPrice;
                                     /* Rentabilidade comentada
                                     $rowProfit     = $rowCurrent - $rowInvested;
                                     $rowProfitPerc = $rowInvested > 0 ? ($rowProfit / $rowInvested) * 100 : 0;
                                     */
                                 ?>
                                     <tr>
-                                        <td><strong><?= htmlspecialchars($inv['name'] ?? '-') ?></strong></td>
+                                        <td><strong><?= htmlspecialchars($inv['nome'] ?? $inv['name'] ?? '-') ?></strong></td>
                                         <td>
-                                            <span class="badge" style="background:<?= htmlspecialchars($inv['color'] ?? '#475569') ?>">
-                                                <?= htmlspecialchars($inv['category_name'] ?? '-') ?>
+                                            <span class="badge" style="background:<?= htmlspecialchars($inv['cor'] ?? $inv['color'] ?? '#475569') ?>">
+                                                <?= htmlspecialchars($inv['categoria_nome'] ?? $inv['category_name'] ?? '-') ?>
                                             </span>
                                         </td>
                                         <td><?= htmlspecialchars($inv['ticker'] ?? '-') ?></td>
@@ -160,10 +160,10 @@ if (!isset($categories))       $categories = [];
                                         </td> -->
                                         <td>
                                             <div class="action-buttons">
-                                                <a class="btn-icon" href="/investimentos/edit/<?= (int)$inv['id'] ?>" data-edit data-id="<?= (int)$inv['id'] ?>" title="Editar">
+                                                <a class="btn-icon" href="<?= BASE_URL ?>investimentos/edit/<?= (int)$inv['id'] ?>" data-edit data-id="<?= (int)$inv['id'] ?>" title="Editar">
                                                     <i class="fa-regular fa-pen-to-square"></i>
                                                 </a>
-                                                <a class="btn-icon" href="/investimentos/delete/<?= (int)$inv['id'] ?>" data-delete data-id="<?= (int)$inv['id'] ?>" title="Excluir">
+                                                <a class="btn-icon" href="<?= BASE_URL ?>investimentos/delete/<?= (int)$inv['id'] ?>" data-delete data-id="<?= (int)$inv['id'] ?>" title="Excluir">
                                                     <i class="fa-regular fa-trash-can"></i>
                                                 </a>
                                             </div>

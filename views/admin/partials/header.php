@@ -96,7 +96,7 @@ $aria   = function (string $key) use ($menu) {
 
     <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
         title="Fechar/Abrir menu">
-        <i class="fas fa-bars" aria-hidden="true"></i>
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
     </button>
 
     <aside class="sidebar no-glass" id="sidebar-main">
