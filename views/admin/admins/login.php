@@ -138,10 +138,13 @@
 <?php loadPageJs(); ?>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
 <script src="<?= BASE_URL ?>/assets/js/admin-admins-login.js" defer></script>
 
 <script>
     window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
+    window.LK = window.LK || {};
+    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 </script>
 <script>
     (function() {

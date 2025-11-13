@@ -58,7 +58,6 @@ class InvestimentoService
             }
 
             return $this->calculateAggregatedStats($investimentos);
-
         } catch (Throwable $e) {
             LogService::error('Falha ao calcular Stats de Investimentos', [
                 'user_id' => $userId,
@@ -110,7 +109,6 @@ class InvestimentoService
             $investimentos = $this->repository->getFilteredForUser($userId, $filters);
 
             return $investimentos->map(fn(Investimento $inv) => $this->mapToArray($inv))->all();
-
         } catch (Throwable $e) {
             LogService::error('Falha ao listar investimentos', [
                 'user_id' => $userId,
@@ -126,7 +124,6 @@ class InvestimentoService
             $investimento = $this->repository->getByIdAndUser($id, $userId);
 
             return $this->mapToArray($investimento, includeDetails: true);
-
         } catch (Throwable $e) {
             if (!($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)) {
                 LogService::error('Falha ao buscar investimento por ID', [
@@ -155,7 +152,6 @@ class InvestimentoService
             ]);
 
             return $investimento;
-
         } catch (ValidationException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -184,7 +180,6 @@ class InvestimentoService
             ]);
 
             return $investimento;
-
         } catch (ValidationException | \Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -210,7 +205,6 @@ class InvestimentoService
                 'investimento_id' => $id,
                 'nome_excluido' => $nome
             ]);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -242,7 +236,6 @@ class InvestimentoService
             ]);
 
             return $investimento;
-
         } catch (ValidationException | \Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -263,7 +256,6 @@ class InvestimentoService
             $this->repository->getByIdAndUser($investimentoId, $userId);
 
             return $this->repository->getTransacoesByInvestimento($investimentoId);
-
         } catch (Throwable $e) {
             if (!($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)) {
                 LogService::error('Falha ao buscar transações', [
@@ -293,7 +285,6 @@ class InvestimentoService
             ]);
 
             return $transacao;
-
         } catch (ValidationException | \Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -314,7 +305,6 @@ class InvestimentoService
             $this->repository->getByIdAndUser($investimentoId, $userId);
 
             return $this->repository->getProventosByInvestimento($investimentoId);
-
         } catch (Throwable $e) {
             if (!($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)) {
                 LogService::error('Falha ao buscar proventos', [
@@ -344,7 +334,6 @@ class InvestimentoService
             ]);
 
             return $provento;
-
         } catch (ValidationException | \Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -523,9 +512,15 @@ class InvestimentoService
     private function applyUpdates(Investimento $investimento, array $validData): void
     {
         $allowedFields = [
-            'categoria_id', 'conta_id', 'nome', 'ticker',
-            'quantidade', 'preco_medio', 'preco_atual',
-            'data_compra', 'observacoes'
+            'categoria_id',
+            'conta_id',
+            'nome',
+            'ticker',
+            'quantidade',
+            'preco_medio',
+            'preco_atual',
+            'data_compra',
+            'observacoes'
         ];
 
         foreach ($validData as $field => $value) {

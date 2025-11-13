@@ -75,7 +75,7 @@ $menu      = $menu ?? 'perfil';
                 <!-- <div data-aos="fade-up-left" data-aos-delay="1100">
                     <button type="button" class="btn btn-ghost" id="btnCancel">Cancelar</button>
                 </div> -->
-                <div data-aos="fade-up-left" data-aos-delay="1200">
+                <div data-aos="fade-up-left" data-aos-delay="800">
                     <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
                 </div>
             </div>

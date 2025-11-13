@@ -5,7 +5,10 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Builders\ReportExportBuilder;
+use Application\Services\ExcelExportService;
 use Application\Services\LogService;
+use Application\Services\PdfExportService;
 use Application\Services\ReportService;
 use Application\DTO\ReportParameters;
 use Carbon\Carbon;
@@ -17,6 +20,8 @@ use InvalidArgumentException;
 enum ReportType: string
 {
     case DESPESAS_POR_CATEGORIA = 'despesas_por_categoria';
+    case DESPESAS_ANUAIS_POR_CATEGORIA = 'despesas_anuais_por_categoria';
+    case RECEITAS_ANUAIS_POR_CATEGORIA = 'receitas_anuais_por_categoria';
     case RECEITAS_POR_CATEGORIA = 'receitas_por_categoria';
     case SALDO_MENSAL = 'saldo_mensal';
     case RECEITAS_DESPESAS_DIARIO = 'receitas_despesas_diario';
@@ -29,6 +34,14 @@ enum ReportType: string
         $map = [
             'rec'       => self::RECEITAS_POR_CATEGORIA,
             'des'       => self::DESPESAS_POR_CATEGORIA,
+            'des_cat'   => self::DESPESAS_POR_CATEGORIA,
+            'des_anual' => self::DESPESAS_ANUAIS_POR_CATEGORIA,
+            'cat_anual' => self::DESPESAS_ANUAIS_POR_CATEGORIA,
+            'anual_cat' => self::DESPESAS_ANUAIS_POR_CATEGORIA,
+            'categorias_anuais' => self::DESPESAS_ANUAIS_POR_CATEGORIA,
+            'rec_anual' => self::RECEITAS_ANUAIS_POR_CATEGORIA,
+            'receitas_anuais' => self::RECEITAS_ANUAIS_POR_CATEGORIA,
+            'receitas_anuais_categorias' => self::RECEITAS_ANUAIS_POR_CATEGORIA,
             'saldo'     => self::SALDO_MENSAL,
             'rd'        => self::RECEITAS_DESPESAS_DIARIO,
             'recdes'    => self::RECEITAS_DESPESAS_DIARIO,
@@ -62,11 +75,17 @@ enum LancamentoTipo: string
 class RelatoriosController extends BaseController
 {
     private ReportService $reportService;
+    private ReportExportBuilder $exportBuilder;
+    private PdfExportService $pdfExport;
+    private ExcelExportService $excelExport;
 
     public function __construct()
     {
         parent::__construct();
         $this->reportService = new ReportService();
+        $this->exportBuilder = new ReportExportBuilder();
+        $this->pdfExport = new PdfExportService();
+        $this->excelExport = new ExcelExportService();
     }
 
     public function index(): void
@@ -81,6 +100,37 @@ class RelatoriosController extends BaseController
             
             $this->sendSuccessResponse($result, $type, $params);
             
+        } catch (InvalidArgumentException $e) {
+            $this->handleValidationError($e);
+        } catch (\Throwable $e) {
+            $this->handleUnexpectedError($e);
+        }
+    }
+
+    public function export(): void
+    {
+        try {
+            $this->validateAccess();
+
+            $params = $this->buildReportParameters();
+            $type = $this->resolveReportType();
+            $format = $this->resolveExportFormat();
+
+            $report = $this->reportService->generateReport($type, $params);
+            $reportData = $this->exportBuilder->build($type, $params, $report);
+
+            if ($format === 'excel') {
+                $content = $this->excelExport->export($reportData);
+                $extension = 'xlsx';
+                $mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            } else {
+                $content = $this->pdfExport->export($reportData);
+                $extension = 'pdf';
+                $mime = 'application/pdf';
+            }
+
+            $filename = $this->buildExportFilename($type, $params, $extension);
+            $this->sendBinaryResponse($content, $filename, $mime);
         } catch (InvalidArgumentException $e) {
             $this->handleValidationError($e);
         } catch (\Throwable $e) {
@@ -203,6 +253,12 @@ class RelatoriosController extends BaseController
         return ReportType::fromShorthand($type);
     }
 
+    private function resolveExportFormat(): string
+    {
+        $format = strtolower($this->getQueryParam('format') ?? 'pdf');
+        return $format === 'excel' ? 'excel' : 'pdf';
+    }
+
     // --- Helpers de Request ---
 
     private function getQueryParam(string $key): ?string
@@ -221,6 +277,28 @@ class RelatoriosController extends BaseController
             'start' => $params->start->toDateString(),
             'end' => $params->end->toDateString(),
         ]));
+    }
+
+    private function sendBinaryResponse(string $content, string $fileName, string $mime): void
+    {
+        if (ob_get_length() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        header('Content-Length: ' . (string) mb_strlen($content, '8bit'));
+        echo $content;
+        exit;
+    }
+
+    private function buildExportFilename(ReportType $type, ReportParameters $params, string $extension): string
+    {
+        $period = $params->isSingleMonth()
+            ? $params->start->format('Y_m')
+            : $params->start->format('Y_m') . '-' . $params->end->format('Y_m');
+
+        return sprintf('%s_%s.%s', $type->value, $period, $extension);
     }
 
     // --- Tratamento de Erros ---

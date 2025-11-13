@@ -18,8 +18,7 @@ readonly class ReportParameters
         public ?int $accountId = null,
         public ?int $userId = null,
         public bool $includeTransfers = false
-    ) {
-    }
+    ) {}
 
     /**
      * Determina se as transferências devem ser incluídas nos cálculos.
@@ -61,7 +60,7 @@ readonly class ReportParameters
      */
     public function isSingleMonth(): bool
     {
-        return $this->start->year === $this->end->year 
+        return $this->start->year === $this->end->year
             && $this->start->month === $this->end->month;
     }
 
