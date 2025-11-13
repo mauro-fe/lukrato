@@ -23,7 +23,8 @@ class ReportExportBuilder
             title: $this->resolveTitle($type, $params, $payload),
             headers: $headers,
             rows: $rows,
-            subtitle: $this->buildSubtitle($params)
+            subtitle: $this->buildSubtitle($params),
+            totals: $this->buildTotals($type, $payload)
         );
     }
 
@@ -123,6 +124,32 @@ class ReportExportBuilder
     private function formatMoney(float $value): string
     {
         return 'R$ ' . number_format($value, 2, ',', '.');
+    }
+
+    private function buildTotals(ReportType $type, array $payload): array
+    {
+        return match ($type) {
+            ReportType::DESPESAS_POR_CATEGORIA,
+            ReportType::RECEITAS_POR_CATEGORIA,
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => [
+                'Total' => $this->formatMoney($this->sumValues($payload['values'] ?? [])),
+            ],
+
+            ReportType::RECEITAS_DESPESAS_DIARIO,
+            ReportType::RESUMO_ANUAL,
+            ReportType::RECEITAS_DESPESAS_POR_CONTA => [
+                'Receitas' => $this->formatMoney($this->sumValues($payload['receitas'] ?? [])),
+                'Despesas' => $this->formatMoney($this->sumValues($payload['despesas'] ?? [])),
+            ],
+
+            default => [],
+        };
+    }
+
+    private function sumValues(array $values): float
+    {
+        return array_reduce($values, fn(float $carry, $value) => $carry + (float)$value, 0.0);
     }
 }
 

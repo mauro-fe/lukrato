@@ -54,6 +54,7 @@ class PdfExportService implements ReportExporterInterface
 
         $title = $this->escape($data->title);
         $subtitle = $this->escape($data->subtitle ?? '');
+        $totalsHtml = $this->renderTotals($data->totals);
 
         return <<<HTML
 <!DOCTYPE html>
@@ -68,6 +69,11 @@ class PdfExportService implements ReportExporterInterface
         th.header { padding: 8px; background: #f7f9fc; text-align: left; border-bottom: 1px solid #dbe0ea; font-size: 11px; font-weight: bold; }
         td.cell { padding: 6px 8px; border-bottom: 1px solid #eef1f5; font-size: 11px; }
         tr:nth-child(even) { background: #fafbff; }
+        .totals { margin-top: 20px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .totals-title { font-size: 13px; margin: 0 0 8px 0; font-weight: bold; color: #0f172a; }
+        .total-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+        .total-label { color: #475569; }
+        .total-value { font-weight: bold; color: #0f172a; }
     </style>
 </head>
 <body>
@@ -77,9 +83,28 @@ class PdfExportService implements ReportExporterInterface
         <thead><tr>{$headersHtml}</tr></thead>
         <tbody>{$rowsHtml}</tbody>
     </table>
+    {$totalsHtml}
 </body>
 </html>
 HTML;
+    }
+
+    private function renderTotals(array $totals): string
+    {
+        if (empty($totals)) {
+            return '';
+        }
+
+        $items = '';
+        foreach ($totals as $label => $value) {
+            $items .= sprintf(
+                '<div class="total-item"><span class="total-label">%s:</span><span class="total-value">%s</span></div>',
+                $this->escape((string) $label),
+                $this->escape((string) $value)
+            );
+        }
+
+        return '<div class="totals"><p class="totals-title">Totais</p>' . $items . '</div>';
     }
 
     private function escape(string $value): string
