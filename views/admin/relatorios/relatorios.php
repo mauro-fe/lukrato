@@ -943,7 +943,9 @@ function showEmptyState() {
 function updateMonthLabel() {
     const labelEl = document.getElementById('monthLabel');
     if (labelEl) {
-        labelEl.textContent = formatMonthLabel(state.currentMonth);
+        labelEl.textContent = isYearlyView()
+            ? state.currentMonth.split('-')[0]
+            : formatMonthLabel(state.currentMonth);
     }
 }
 

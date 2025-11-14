@@ -10,18 +10,13 @@ use Throwable;
 
 class TransacoesController
 {
-    /**
-     * Normaliza e valida o mês.
-     * @param string $monthInput Mês no formato YYYY-MM.
-     * @return array{0: string, 1: string} [Data Inicial (Y-m-01), Data Final (Y-m-t)]
-     */
     private function resolvePeriod(string $monthInput): array
     {
         $month = trim($monthInput);
         $dt = \DateTime::createFromFormat('Y-m', $month);
 
         if (!$dt || $dt->format('Y-m') !== $month) {
-            $month = date('Y-m'); // Fallback para mês atual
+            $month = date('Y-m');
             $dt = new \DateTime("$month-01");
         }
 
@@ -31,9 +26,7 @@ class TransacoesController
         return [$from, $to];
     }
 
-    /**
-     * Lista todas as transações (lançamentos) de um mês específico.
-     */
+
     public function index(): void
     {
         try {
@@ -47,7 +40,7 @@ class TransacoesController
             [$from, $to] = $this->resolvePeriod($month);
 
             $limit = (int)($_GET['limit'] ?? 100);
-            $limit = max(1, min($limit, 1000)); // Limite de 1 a 1000
+            $limit = max(1, min($limit, 1000));
 
             $acc   = $_GET['account_id'] ?? null;
             $accId = ($acc === '' || $acc === null) ? null : (int)$acc;

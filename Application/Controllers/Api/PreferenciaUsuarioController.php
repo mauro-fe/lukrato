@@ -3,14 +3,11 @@
 namespace Application\Controllers\Api;
 
 use Application\Controllers\BaseController;
-use Application\Core\Response; // Usa a classe Response padrão
+use Application\Core\Response;
 use Application\Models\Usuario;
-use Application\Services\LogService; // Para log de erro
+use Application\Services\LogService; 
 use Throwable;
 
-/**
- * Enum para as opções de tema (PHP 8.1+)
- */
 enum ThemePreference: string
 {
     case LIGHT = 'light';
@@ -20,9 +17,7 @@ enum ThemePreference: string
 
 class PreferenciaUsuarioController extends BaseController
 {
-    /**
-     * Tenta obter um valor do $_POST ou do corpo JSON da requisição.
-     */
+  
     private function getPayloadValue(string $key): mixed
     {
         $value = $this->getPost($key);
@@ -40,22 +35,17 @@ class PreferenciaUsuarioController extends BaseController
         return null;
     }
 
-    /**
-     * Retorna a preferência de tema do usuário.
-     */
     public function show(): void
     {
         try {
             $this->requireAuth();
 
-            /** @var Usuario|null $user */
             $user = Usuario::find($this->userId);
             if (!$user) {
                 Response::error('Usuário não encontrado.', 404);
                 return;
             }
 
-            // Valida o tema salvo ou usa 'system' como padrão
             $theme = ThemePreference::tryFrom($user->theme_preference ?? '') ?? ThemePreference::SYSTEM;
 
             Response::success([
@@ -67,9 +57,6 @@ class PreferenciaUsuarioController extends BaseController
         }
     }
 
-    /**
-     * Atualiza a preferência de tema do usuário.
-     */
     public function update(): void
     {
         $themeInput = null;
@@ -79,7 +66,6 @@ class PreferenciaUsuarioController extends BaseController
             $themeInput = $this->getPayloadValue('theme');
             $themeInput = is_string($themeInput) ? strtolower(trim($themeInput)) : null;
 
-            // Validação usando o Enum
             $theme = ThemePreference::tryFrom($themeInput ?? '');
 
             if ($theme === null) {
@@ -89,7 +75,6 @@ class PreferenciaUsuarioController extends BaseController
                 return;
             }
 
-            /** @var Usuario|null $user */
             $user = Usuario::find($this->userId);
             if (!$user) {
                 Response::error('Usuário não encontrado.', 404);

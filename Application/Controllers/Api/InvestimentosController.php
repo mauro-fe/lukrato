@@ -19,8 +19,6 @@ class InvestimentosController extends BaseController
         $this->service = new InvestimentoService();
     }
 
-    // --- Endpoints Principais ---
-
     public function index(): void
     {
         try {
@@ -112,8 +110,6 @@ class InvestimentosController extends BaseController
         }
     }
 
-    // --- Endpoints Especializados ---
-
     public function atualizarPreco(mixed $routeParam = null): void
     {
         try {
@@ -149,8 +145,6 @@ class InvestimentosController extends BaseController
         }
     }
 
-    // --- Categorias ---
-
     public function categorias(): void
     {
         try {
@@ -164,8 +158,6 @@ class InvestimentosController extends BaseController
             $this->handleError($e, 'Falha ao listar categorias');
         }
     }
-
-    // --- Transações ---
 
     public function transacoes(int $investimentoId): void
     {
@@ -206,8 +198,6 @@ class InvestimentosController extends BaseController
         }
     }
 
-    // --- Proventos ---
-
     public function proventos(int $investimentoId): void
     {
         try {
@@ -246,8 +236,6 @@ class InvestimentosController extends BaseController
             $this->handleError($e, 'Falha ao registrar provento');
         }
     }
-
-    // --- Helpers Privados ---
 
     private function requireAuthenticatedUser(): int
     {
