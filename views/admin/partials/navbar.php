@@ -82,7 +82,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         padding: 8px 14px;
         cursor: pointer;
         transition: all var(--transition-fast);
-        height: 40px;        
+        height: 40px;
     }
 
     .lk-navbar-right button:hover {
@@ -239,10 +239,10 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
             <?php include __DIR__ . '/notificacoes/bell.php'; ?>
 
             <?php if ($showNavbarUpgradeCTA): ?>
-            <a href="<?= BASE_URL ?>billing" class="lk-upgrade-btn">
-                <i class="fa-solid fa-star"></i>
-                <span>Pro</span>
-            </a>
+                <a href="<?= BASE_URL ?>billing" class="lk-upgrade-btn">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Pro</span>
+                </a>
             <?php endif; ?>
         </div>
     </div>

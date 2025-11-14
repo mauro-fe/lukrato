@@ -1,6 +1,7 @@
 ﻿<?php
 
 use Application\Lib\Auth;
+
 $username     = $username     ?? 'usuario';
 $menu         = $menu         ?? '';
 $base         = BASE_URL;
@@ -135,12 +136,12 @@ $aria   = function (string $key) use ($menu) {
                     class="fas fa-sign-out-alt"></i>
                 <span>Sair</span></a>
             <?php if ($showUpgradeCTA): ?>
-            <div class="sidebar-pro-cta">
-                <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                    <i class="fa-solid fa-star"></i>
-                    <span>Pro</span>
-                </a>
-            </div>
+                <div class="sidebar-pro-cta">
+                    <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Pro</span>
+                    </a>
+                </div>
             <?php endif; ?>
         </nav>
     </aside>
@@ -154,5 +155,3 @@ $aria   = function (string $key) use ($menu) {
 
         <main class="lk-main">
             <?php include __DIR__ . '/navbar.php'; ?>
-
-

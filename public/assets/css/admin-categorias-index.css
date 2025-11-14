@@ -47,9 +47,6 @@
   margin: var(--spacing-4) 0;
 }
 
-.c-filter .c-select {
-  max-width: 240px;
-}
 .c-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border, #1f29371a);
@@ -61,8 +58,7 @@
   color: var(--color-text-muted);
 }
 
-.c-input,
-.c-select {
+.c-input {
   width: 100%;
   padding: var(--spacing-3);
   border-radius: var(--radius-sm, 8px);
@@ -202,11 +198,6 @@
   .c-filter {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .c-filter .c-select {
-    width: 100%;
-    max-width: none;
   }
 
   .lukrato-table {

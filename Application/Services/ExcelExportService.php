@@ -56,7 +56,8 @@ class ExcelExportService implements ReportExporterInterface
         // Headers
         $headerRow = $row;
         foreach ($data->headers as $index => $header) {
-            $sheet->setCellValueByColumnAndRow($index + 1, $row, $header);
+            $columnLetter = Coordinate::stringFromColumnIndex($index + 1);
+            $sheet->setCellValue("{$columnLetter}{$row}", $header);
         }
         $sheet->getStyle("A{$row}:{$lastColumn}{$row}")
             ->applyFromArray(self::HEADER_STYLE);

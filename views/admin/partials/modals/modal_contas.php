@@ -441,11 +441,13 @@
                     </div>
                     <div class="lk-field">
                         <label for="instituicao">Instituição</label>
-                        <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa" required>
+                        <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa"
+                            required>
                     </div>
                     <div class="lk-field">
                         <label for="saldo_inicial">Saldo inicial</label>
-                        <input id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal" placeholder="R$ 0,00">
+                        <input class="real" id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal"
+                            placeholder="R$ 0,00">
                     </div>
                 </div>
                 <div class="lk-modal-f">
@@ -502,7 +504,8 @@
                     </div>
                     <div class="lk-field full">
                         <label for="lanValor">Valor</label>
-                        <input type="text" id="lanValor" inputmode="decimal" placeholder="R$ 0,00" required>
+                        <input class="real" type="text" id="lanValor" inputmode="decimal" placeholder="R$ 0,00"
+                            required>
                     </div>
                 </div>
                 <div class="lk-modal-f">
@@ -548,7 +551,7 @@
                     </div>
                     <div class="lk-field">
                         <label for="trValor">Valor</label>
-                        <input type="text" id="trValor" inputmode="decimal" placeholder="R$ 0,00" required>
+                        <input class="real" type="text" id="trValor" inputmode="decimal" placeholder="R$ 0,00" required>
                     </div>
                     <div class="lk-field full">
                         <label for="trDesc">Descrição (opcional)</label>
@@ -566,3 +569,18 @@
     </div>
 </div>
 
+<script>
+    function formatarReal(valor) {
+        valor = valor.replace(/\D/g, "");
+        valor = (valor / 100).toFixed(2) + "";
+        valor = valor.replace(".", ",");
+        valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return valor;
+    }
+
+    document.querySelectorAll(".real").forEach(function(input) {
+        input.addEventListener("input", function() {
+            this.value = "R$ " + formatarReal(this.value);
+        });
+    });
+</script>
