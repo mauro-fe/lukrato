@@ -94,7 +94,7 @@ class GoogleCallbackController extends BaseController
 
             // Carrega as credenciais do arquivo JSON
 
-            $credentialsPath = BASE_PATH . '/Application/Controllers/Auth/client_secret_941481750237-e5bnun64tunqirvmfa2ahs5l9cl1vf9e.apps.googleusercontent.com.json';
+            $credentialsPath = BASE_PATH . '/Application/Controllers/Auth/client_secret_2_941481750237-e5bnun64tunqirvmfa2ahs5l9cl1vf9e.apps.googleusercontent.com.json';
 
             $client->setAuthConfig($credentialsPath);
 
