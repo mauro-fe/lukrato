@@ -7,10 +7,6 @@ use Application\Middlewares\CsrfMiddleware;
 
 class SecurityController
 {
-    /**
-     * Gera e devolve um novo token CSRF para o identificador informado.
-     * Usado pelo front-end para manter tokens atualizados quando a página fica aberta por muito tempo.
-     */
     public function refreshCsrf(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -28,9 +24,6 @@ class SecurityController
         ]);
     }
 
-    /**
-     * Resolve o tokenId a partir do corpo JSON ou query string.
-     */
     private function resolveTokenId(): string
     {
         $tokenId = 'default';
@@ -47,7 +40,6 @@ class SecurityController
             $tokenId = $_REQUEST['token_id'];
         }
 
-        // Sanitiza o identificador para evitar poluir a sessão
         $tokenId = is_string($tokenId) ? trim($tokenId) : 'default';
         $tokenId = preg_replace('/[^a-zA-Z0-9_\-]/', '', $tokenId) ?: 'default';
 

@@ -7,8 +7,10 @@ use Application\Lib\Auth;
 use Application\Models\Categoria;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
+use Application\Services\LancamentoExportService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
+use InvalidArgumentException;
 use ValueError;
 
 enum LancamentoTipo: string
@@ -24,6 +26,13 @@ enum LancamentoTipo: string
 
 class LancamentosController
 {
+    private LancamentoExportService $exportService;
+
+    public function __construct(?LancamentoExportService $exportService = null)
+    {
+        $this->exportService = $exportService ?? new LancamentoExportService();
+    }
+
     private function getRequestPayload(): array
     {
         $payload = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -167,6 +176,46 @@ class LancamentosController
         ])->values()->all();
 
         Response::success($out);
+    }
+
+    public function export(): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $filters = [
+            'month' => $_GET['month'] ?? null,
+            'start_date' => $_GET['start_date'] ?? null,
+            'end_date' => $_GET['end_date'] ?? null,
+            'tipo' => $_GET['tipo'] ?? null,
+            'categoria_id' => $_GET['categoria_id'] ?? null,
+            'account_id' => $_GET['account_id'] ?? null,
+            'include_transfers' => $_GET['include_transfers'] ?? null,
+            'format' => $_GET['format'] ?? null,
+        ];
+
+        try {
+            $result = $this->exportService->export($userId, $filters);
+        } catch (InvalidArgumentException $e) {
+            Response::validationError(['export' => $e->getMessage()]);
+            return;
+        } catch (\Throwable) {
+            Response::error('Erro ao gerar exportacao.', 500);
+            return;
+        }
+
+        if (ob_get_length() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: ' . $result['mime']);
+        header('Content-Disposition', 'attachment; filename="' . $result['filename'] . '"');
+        header('Content-Length', (string) mb_strlen($result['binary'], '8bit'));
+        echo $result['binary'];
+        exit;
     }
 
     public function update(int $id): void

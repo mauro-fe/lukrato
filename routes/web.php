@@ -94,6 +94,7 @@ function registerApiRoutes(): void
 
     // Lançamentos (REST-like)
     Router::add('GET',    '/api/lancamentos',      'Api\\LancamentosController@index',   ['auth']);
+    Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export', ['auth']);
     Router::add('PUT',    '/api/lancamentos/{id}', 'Api\\LancamentosController@update',  ['auth', 'csrf']);
     Router::add('DELETE', '/api/lancamentos/{id}', 'Api\\LancamentosController@destroy', ['auth', 'csrf']);
 
