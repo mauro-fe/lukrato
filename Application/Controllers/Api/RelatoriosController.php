@@ -93,8 +93,8 @@ class RelatoriosController extends BaseController
         try {
             $this->validateAccess();
             
-            $params = $this->buildReportParameters();
             $type = $this->resolveReportType();
+            $params = $this->buildReportParameters($type);
             
             $result = $this->reportService->generateReport($type, $params);
             
@@ -112,8 +112,8 @@ class RelatoriosController extends BaseController
         try {
             $this->validateAccess();
 
-            $params = $this->buildReportParameters();
             $type = $this->resolveReportType();
+            $params = $this->buildReportParameters($type);
             $format = $this->resolveExportFormat();
 
             $report = $this->reportService->generateReport($type, $params);
@@ -159,9 +159,9 @@ class RelatoriosController extends BaseController
 
     // --- Construção de Parâmetros ---
 
-    private function buildReportParameters(): ReportParameters
+    private function buildReportParameters(ReportType $type): ReportParameters
     {
-        [$start, $end] = $this->resolvePeriod();
+        [$start, $end] = $this->resolvePeriod($type);
 
         return new ReportParameters(
             start: $start,
@@ -172,8 +172,13 @@ class RelatoriosController extends BaseController
         );
     }
 
-    private function resolvePeriod(): array
+    private function resolvePeriod(ReportType $type): array
     {
+        if ($this->isFullYearReport($type)) {
+            $year = $this->resolveYearParam();
+            return $this->createFullYearPeriod($year);
+        }
+
         $monthParam = $this->getQueryParam('month');
         $yearParam = $this->getQueryParam('year');
 
@@ -199,6 +204,43 @@ class RelatoriosController extends BaseController
         $this->validateDateParams($year, $month);
 
         return $this->createPeriod($year, $month);
+    }
+
+    private function isFullYearReport(ReportType $type): bool
+    {
+        return in_array($type, [
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RESUMO_ANUAL,
+        ], true);
+    }
+
+    private function resolveYearParam(): int
+    {
+        $monthParam = $this->getQueryParam('month');
+
+        if ($this->isYearMonthFormat($monthParam)) {
+            return (int) substr($monthParam, 0, 4);
+        }
+
+        $yearParam = $this->getQueryParam('year');
+        if ($yearParam !== null && preg_match('/^\d{4}$/', $yearParam)) {
+            $year = (int) $yearParam;
+        } else {
+            $year = (int) date('Y');
+        }
+
+        $this->validateDateParams($year, 1);
+
+        return $year;
+    }
+
+    private function createFullYearPeriod(int $year): array
+    {
+        $start = Carbon::create($year, 1, 1)->startOfDay();
+        $end = (clone $start)->endOfYear()->endOfDay();
+
+        return [$start, $end];
     }
 
     private function buildPeriodFromSeparateParams(?string $monthParam, ?string $yearParam): array
