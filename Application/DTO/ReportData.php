@@ -14,5 +14,6 @@ readonly class ReportData
         public array $headers,
         public array $rows,
         public ?string $subtitle = null,
+        public array $totals = [],
     ) {}
 }

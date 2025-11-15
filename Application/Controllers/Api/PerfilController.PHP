@@ -343,7 +343,6 @@ class PerfilController
                 $errors['telefone'] = 'Telefone inválido. Use DDD + número.';
             }
 
-            // 5. Normalização Sexo
             $sexoLabel = $this->mapSexoLabel($rawSexo);
             
             if (!empty($errors)) {
@@ -351,7 +350,6 @@ class PerfilController
                 return;
             }
 
-            // 6. Validação de Unicidade (Email, Username, CPF)
             
             $q = Usuario::whereRaw('LOWER(email) = ?', [$email])->where('id', '!=', $user->id);
             if ($q->exists()) {
@@ -380,11 +378,9 @@ class PerfilController
                 return;
             }
 
-            // 7. Persistência (Transação)
             DB::connection()->transaction(function () use (
                 $user, $nome, $email, $username, $nasc, $sexoLabel, $cpf, $dddCode, $foneLocal, $rawTel
             ) {
-                // Atualiza Usuário
                 $user->nome = $nome;
                 $user->email = $email;
                 if ($username !== '') {
@@ -400,7 +396,6 @@ class PerfilController
                 }
                 $user->save();
                 
-                // Atualiza/Cria/Deleta Documento (CPF)
                 $tipoCpf = TipoDocumento::firstOrCreate(['ds_tipo' => 'CPF']);
                 if ($cpf !== '') {
                     Documento::updateOrCreate(
@@ -413,8 +408,7 @@ class PerfilController
                         ->delete();
                 }
 
-                // Atualiza/Cria/Deleta Telefone
-                /** @var Telefone|null $tel */
+           
                 $tel = Telefone::where('id_usuario', $user->id)->orderBy('id_telefone')->first();
 
                 if ($rawTel === '') {
@@ -442,7 +436,6 @@ class PerfilController
                 'user'    => $this->buildUserPayload($user),
             ]);
         } catch (Throwable $e) {
-            // Captura qualquer exceção ou erro (incluindo o notFound do findOrFail)
             $statusCode = ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) ? 404 : 500;
             Response::error('Erro interno ao atualizar perfil', $statusCode, ['exception' => $e->getMessage()]);
         }

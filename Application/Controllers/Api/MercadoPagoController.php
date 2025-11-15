@@ -9,19 +9,16 @@ use Application\Services\LogService;
 use Application\Lib\Auth;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
-use Throwable; // Importa Throwable para capturar Exceptions e Errors
+use Throwable; 
 
 class MercadoPagoController extends BaseController
 {
-    /**
-     * Cria uma Preferência de Checkout (link de pagamento).
-     */
+   
     public function createCheckout(): void
     {
         $this->requireAuthApi();
 
         try {
-            /** @var \Application\Models\Usuario|null $user */
             $user = Auth::user();
             if (!$user) {
                 Response::unauthorized('Usuário não autenticado');
@@ -34,7 +31,7 @@ class MercadoPagoController extends BaseController
                 'username' => (string)$user->username,
                 'email'    => (string)$user->email,
                 'name'     => (string)($user->nome ?? $user->username),
-                'amount'   => 12.00, // Valor fixo
+                'amount'   => 12.00, 
                 'title'    => 'Assinatura Pro Lukrato',
             ]);
 
@@ -64,15 +61,11 @@ class MercadoPagoController extends BaseController
         }
     }
 
-    /**
-     * Processa um pagamento via Brick (cartão de crédito).
-     */
     public function pay(): void
     {
         $this->requireAuthApi();
 
         try {
-            /** @var \Application\Models\Usuario|null $user */
             $user = Auth::user();
             if (!$user) {
                 Response::unauthorized('Usuário não autenticado');
@@ -83,15 +76,13 @@ class MercadoPagoController extends BaseController
             $json   = json_decode(file_get_contents('php://input'), true) ?? [];
             $amount = (float)($json['amount'] ?? 0);
             $title  = (string)($json['title'] ?? 'Assinatura Pro Lukrato');
-            $data   = (array)($json['data'] ?? []); // payload do Brick
+            $data   = (array)($json['data'] ?? []); 
 
-            // Coalescência de chaves (camelCase/snake_case)
             $token           = (string)($data['token'] ?? '');
             $paymentMethodId = (string)($data['payment_method_id'] ?? $data['paymentMethodId'] ?? '');
             $issuerId        = $data['issuer_id'] ?? $data['issuerId'] ?? null;
             $installments    = (int)($data['installments'] ?? 1);
 
-            // Documento (CPF/CNPJ) – uso de Nullsafe e sanitização
             $idType   = $data['payer']['identification']['type'] 
                         ?? $data['identificationType'] ?? 'CPF';
             $idNumber = $data['payer']['identification']['number'] 
@@ -153,7 +144,6 @@ class MercadoPagoController extends BaseController
             ]);
         } catch (MPApiException $e) {
             $apiResponse = $e->getApiResponse();
-            // Uso do operador Nullsafe (PHP 8.0) para acesso seguro
             $statusCode  = $apiResponse?->getStatusCode() ?? 400;
             $raw         = $apiResponse?->getContent();
             $body        = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : null);

@@ -14,11 +14,7 @@ if (!isset($categories))       $categories = [];
 
 <div class="main-content">
     <div class="page-header">
-        <button
-            type="button"
-            class="btn-invest"
-            data-bs-toggle="modal"
-            data-bs-target="#modal-investimentos"
+        <button type="button" class="btn-invest" data-bs-toggle="modal" data-bs-target="#modal-investimentos"
             title="Adicionar investimento">
             <i class="fa-solid fa-plus"></i> Novo investimento
         </button>
@@ -84,7 +80,8 @@ if (!isset($categories))       $categories = [];
                     <?php foreach ($statsByCategory as $c): ?>
                         <div class="cat-row">
                             <div class="cat-left">
-                                <span class="cat-dot" style="background:<?= htmlspecialchars($c['color'] ?? '#64748b') ?>"></span>
+                                <span class="cat-dot"
+                                    style="background:<?= htmlspecialchars($c['color'] ?? '#64748b') ?>"></span>
                                 <?= htmlspecialchars($c['category'] ?? '-') ?>
                             </div>
                             <div class="cat-val">
@@ -142,7 +139,8 @@ if (!isset($categories))       $categories = [];
                                     <tr>
                                         <td><strong><?= htmlspecialchars($inv['nome'] ?? $inv['name'] ?? '-') ?></strong></td>
                                         <td>
-                                            <span class="badge" style="background:<?= htmlspecialchars($inv['cor'] ?? $inv['color'] ?? '#475569') ?>">
+                                            <span class="badge"
+                                                style="background:<?= htmlspecialchars($inv['cor'] ?? $inv['color'] ?? '#475569') ?>">
                                                 <?= htmlspecialchars($inv['categoria_nome'] ?? $inv['category_name'] ?? '-') ?>
                                             </span>
                                         </td>
@@ -160,10 +158,14 @@ if (!isset($categories))       $categories = [];
                                         </td> -->
                                         <td>
                                             <div class="action-buttons">
-                                                <a class="btn-icon" href="<?= BASE_URL ?>investimentos/edit/<?= (int)$inv['id'] ?>" data-edit data-id="<?= (int)$inv['id'] ?>" title="Editar">
+                                                <a class="btn-icon"
+                                                    href="<?= BASE_URL ?>investimentos/edit/<?= (int)$inv['id'] ?>" data-edit
+                                                    data-id="<?= (int)$inv['id'] ?>" title="Editar">
                                                     <i class="fa-regular fa-pen-to-square"></i>
                                                 </a>
-                                                <a class="btn-icon" href="<?= BASE_URL ?>investimentos/delete/<?= (int)$inv['id'] ?>" data-delete data-id="<?= (int)$inv['id'] ?>" title="Excluir">
+                                                <a class="btn-icon"
+                                                    href="<?= BASE_URL ?>investimentos/delete/<?= (int)$inv['id'] ?>"
+                                                    data-delete data-id="<?= (int)$inv['id'] ?>" title="Excluir">
                                                     <i class="fa-regular fa-trash-can"></i>
                                                 </a>
                                             </div>
@@ -214,7 +216,8 @@ if (!isset($categories))       $categories = [];
                     legend: {
                         position: 'right',
                         labels: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text') || '#e5e7eb',
+                            color: getComputedStyle(document.documentElement).getPropertyValue(
+                                '--color-text') || '#e5e7eb',
                             usePointStyle: true,
                             pointStyle: 'circle',
                             padding: 16

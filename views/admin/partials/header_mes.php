@@ -43,7 +43,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         flex-wrap: wrap;
     }
 
-    .lk-period,.lk-year-picker {
+    .lk-period,
+    .lk-year-picker {
         display: flex;
         align-items: center;
         gap: var(--spacing-2);
@@ -446,8 +447,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
                 <button class="month-nav-btn" id="nextYearBtn" type="button" aria-label="Próximo ano">
                     <i class="fas fa-chevron-right"></i>
                 </button>
+            </div>
         </div>
-    </div>
 
 </header>
 
@@ -496,6 +497,19 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         const clampYear = (year) => {
             if (!Number.isFinite(year)) return null;
             return Math.min(2100, Math.max(2000, Math.round(year)));
+        };
+        let pickerMode = document.body?.classList.contains('show-year-picker') ? 'year' : 'month';
+        const setPickerModeDisplay = (mode = 'month') => {
+            const normalized = mode === 'year' ? 'year' : 'month';
+            pickerMode = normalized;
+            const showYear = normalized === 'year';
+            if (document.body) {
+                document.body.classList.toggle('show-year-picker', showYear);
+            }
+            if (yearPickerWrap) {
+                yearPickerWrap.setAttribute('aria-hidden', showYear ? 'false' : 'true');
+            }
+            return showYear;
         };
 
         // ---- estado
@@ -609,7 +623,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
                 const y = start + i;
                 if (y < 2000 || y > 2100) continue;
                 const active = y === yearState ? 'active' : '';
-                html += `<button type="button" class="btn btn-outline-light ${active}" data-year="${y}">${y}</button>`;
+                html +=
+                    `<button type="button" class="btn btn-outline-light ${active}" data-year="${y}">${y}</button>`;
             }
             yearGrid.innerHTML = html || '<p class="text-center mb-0">Sem anos disponíveis</p>';
             yearGrid.querySelectorAll('button[data-year]').forEach((btn) => {
@@ -749,6 +764,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
             setYear: (year, opts) => setYearValue(year, opts),
             openMonthPicker: () => openMonthModal(),
             closeMonthPicker: () => closeMonthModal(),
+            setPickerMode: (mode) => setPickerModeDisplay(mode),
+            showYearPicker: (show = true) => setPickerModeDisplay(show ? 'year' : 'month'),
         });
 
         // seta o texto inicial/estado atual sem disparar evento extra
@@ -758,5 +775,6 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         setYearValue(yearState, {
             silent: true
         });
+        setPickerModeDisplay(pickerMode);
     })();
 </script>

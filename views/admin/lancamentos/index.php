@@ -1,9 +1,36 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
-
+<style>
+    .mes {
+        display: flex;
+        background-color: var(--color-primary);
+        border-radius: 10px;
+        align-items: center ;
+        padding: 5px 10px;
+}
+</style>
 <section class="lan-page">
     <div class="lan-header">
         <div class="lan-controls">
             <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+            <div class="export-range" data-aos="fade-left" aria-describedby="exportHint">
+                <div class="mes">
+                <label class="sr-only" for="exportStart">Início</label>
+                de<input type="date" id="exportStart" class="lk-input date-range" placeholder="In?cio" data-default-today="1">
+                à
+                <label class="sr-only" for="exportEnd">Fim</label>
+                <input type="date" id="exportEnd" class="lk-input date-range" placeholder="Fim" data-default-today="1">
+               </div>
+                <label class="sr-only" for="exportFormat">Formato</label>
+                <select id="exportFormat" class="lk-select btn btn-secondary">
+                    <option value="excel">Excel (.xlsx)</option>
+                    <option value="pdf">PDF (.pdf)</option>
+                </select>
+                <button id="btnExportar" type="button" class="lk-btn primary btn" data-aos="fade-left"
+                    data-aos-delay="150">
+                    <i class="fas fa-file-export"></i> Exportar
+                </button>
+                <small class="export-hint" id="exportHint">Por padr?o exportamos o dia de hoje.</small>
+            </div>
 
             <div class="lan-card mt-4" data-aos="fade-up">
 
@@ -28,6 +55,7 @@
                         <button id="btnFiltrar" type="button" class="lk-btn ghost btn" data-aos="fade-left">
                             <i class="fas fa-filter"></i> Filtrar
                         </button>
+
                         <button id="btnExcluirSel" type="button" class="lk-btn danger btn" data-aos="fade-left"
                             data-aos-delay="250" disabled>
                             <i class="fas fa-trash"></i> Excluir selecionados
@@ -52,7 +80,7 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
             <div class="modal-header border-0">
-                <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar lançamento</h5>
+                <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar lan�amento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body pt-0">
@@ -97,7 +125,7 @@
                         </div>
                     </div>
                     <!-- <div class="mb-3 mt-3">
-                        <label for="editLancObs" class="form-label text-light small mb-1">Observação</label>
+                        <label for="editLancObs" class="form-label text-light small mb-1">Observa��o</label>
                         <textarea class="form-control form-control-sm bg-dark text-light border-secondary"
                             id="editLancObs" rows="3" maxlength="500"></textarea>
                     </div> -->
@@ -122,6 +150,7 @@
         const rawBase = (window.BASE_URL || (location.pathname.includes('/public/') ?
             location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/');
         const ENDPOINT = `${rawBase}api/lancamentos`;
+        const EXPORT_ENDPOINT = `${ENDPOINT}/export`;
 
         const $ = (s) => document.querySelector(s);
         const tabContainer = document.getElementById('tabLancamentos');
@@ -129,11 +158,16 @@
         const selectCategoria = $('#filtroCategoria');
         const selectConta = $('#filtroConta');
         const btnFiltrar = $('#btnFiltrar');
+        const btnExportar = $('#btnExportar');
+        const exportHint = document.getElementById('exportHint');
+        const inputExportStart = $('#exportStart');
+        const inputExportEnd = $('#exportEnd');
+        const selectExportFormat = $('#exportFormat');
         const btnExcluirSel = $('#btnExcluirSel');
         const selInfo = $('#selInfo');
         const selCountSpan = $('#selCount');
 
-        // ---- modal de edição (NÃO é o de mês)
+        // ---- modal de edi��o (N�O � o de m�s)
         const modalEditLancEl = document.getElementById('modalEditarLancamento');
         let modalEditLanc = null;
         const formLanc = document.getElementById('formLancamento');
@@ -763,12 +797,14 @@
             updateSelectionInfo();
         }
 
-        async function fetchLancamentos({
+        function buildLancamentoQuery({
             month,
             tipo = '',
             categoria = '',
             conta = '',
-            limit = 500
+            limit,
+            startDate,
+            endDate
         }) {
             const qs = new URLSearchParams();
             if (month) qs.set('month', month);
@@ -779,7 +815,32 @@
             if (conta !== undefined && conta !== null && conta !== '') {
                 qs.set('account_id', conta);
             }
-            qs.set('limit', String(limit));
+            if (limit !== undefined && limit !== null) {
+                qs.set('limit', String(limit));
+            }
+            if (startDate) qs.set('start_date', startDate);
+            if (endDate) qs.set('end_date', endDate);
+            return qs;
+        }
+
+        async function fetchLancamentos({
+            month,
+            tipo = '',
+            categoria = '',
+            conta = '',
+            limit = 500,
+            startDate = '',
+            endDate = ''
+        }) {
+            const qs = buildLancamentoQuery({
+                month,
+                tipo,
+                categoria,
+                conta,
+                limit,
+                startDate,
+                endDate
+            });
             try {
                 const res = await fetch(`${ENDPOINT}?${qs.toString()}`, {
                     headers: {
@@ -793,6 +854,118 @@
                 return [];
             } catch {
                 return [];
+            }
+        }
+
+        function parseDownloadFilename(disposition) {
+            if (!disposition) return null;
+            const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+            if (utf8Match && utf8Match[1]) {
+                return decodeURIComponent(utf8Match[1]);
+            }
+            const asciiMatch = disposition.match(/filename="?([^";]+)"?/i);
+            if (asciiMatch && asciiMatch[1]) {
+                return asciiMatch[1];
+            }
+            return null;
+        }
+
+        function setExportLoading(isLoading) {
+            if (!btnExportar) return;
+            btnExportar.disabled = isLoading;
+            btnExportar.innerHTML = isLoading ?
+                '<i class="fas fa-circle-notch fa-spin"></i> Exportando...' :
+                '<i class="fas fa-file-export"></i> Exportar';
+        }
+
+        function initExportDefaults() {
+            const inputs = [inputExportStart, inputExportEnd].filter(Boolean);
+            if (!inputs.length) return;
+            const now = new Date();
+            const isoToday = now.toISOString().slice(0, 10);
+            inputs.forEach((input) => {
+                if (input.dataset.defaultToday === '1' && !input.value) {
+                    input.value = isoToday;
+                    input.dataset.autofilled = '1';
+                }
+            });
+            if (exportHint) {
+                const label = now.toLocaleDateString('pt-BR');
+                exportHint.textContent = 'Por padrao exportamos ' + label + '.';
+            }
+        }
+
+        function getTrimmedDateValue(input) {
+            if (!input) return '';
+            const value = (input.value || '').trim();
+            return value && /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value) ? value : '';
+        }
+
+        async function exportLancamentos(forcedFormat) {
+            const month = (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(0, 7);
+            const tipo = selectTipo ? selectTipo.value : '';
+            const categoria = selectCategoria ? selectCategoria.value : '';
+            const conta = selectConta ? selectConta.value : '';
+            const startDate = getTrimmedDateValue(inputExportStart);
+            const endDate = getTrimmedDateValue(inputExportEnd);
+
+            if ((startDate && !endDate) || (!startDate && endDate)) {
+                toast('Informe tanto a data inicial quanto final para exportar.', 'error');
+                return;
+            }
+            if (startDate && endDate && endDate < startDate) {
+                toast('A data final deve ser posterior ou igual a inicial.', 'error');
+                return;
+            }
+
+            const format =
+                forcedFormat ||
+                (selectExportFormat ? (selectExportFormat.value || 'excel') : 'excel');
+
+            const qs = buildLancamentoQuery({
+                month,
+                tipo,
+                categoria,
+                conta,
+                startDate,
+                endDate
+            });
+            qs.set('format', format);
+
+            setExportLoading(true);
+            try {
+                const res = await fetch(`${EXPORT_ENDPOINT}?${qs.toString()}`, {
+                    credentials: 'include'
+                });
+                if (!res.ok) {
+                    let message = 'Falha ao exportar lancamentos.';
+                    const maybeJson = await res.json().catch(() => null);
+                    if (maybeJson?.message) message = maybeJson.message;
+                    throw new Error(message);
+                }
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const disposition = res.headers.get('Content-Disposition');
+                const suffixDate = startDate && endDate ?
+                    `${startDate}_a_${endDate}` :
+                    (month || 'periodo');
+                const fallback = `lancamentos-${suffixDate}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+                const filename = parseDownloadFilename(disposition) || fallback;
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                toast('Exportacao pronta!');
+            } catch (err) {
+                console.error(err);
+                toast(err?.message || 'Falha ao exportar lancamentos.', 'error');
+            } finally {
+                setExportLoading(false);
             }
         }
 
@@ -967,8 +1140,9 @@
         }
         window.refreshLancamentos = load;
 
-        // reage ao mês escolhido no month-picker.js
+        // reage ao m�s escolhido no month-picker.js
         document.addEventListener('lukrato:month-changed', () => load());
+        document.addEventListener('lukrato:export-click', () => exportLancamentos());
 
         document.addEventListener('lukrato:data-changed', (e) => {
             const res = e.detail?.resource;
@@ -977,8 +1151,20 @@
         });
 
         btnFiltrar && btnFiltrar.addEventListener('click', load);
+        btnExportar && btnExportar.addEventListener('click', () => exportLancamentos());
 
+        initExportDefaults();
         loadFilterOptions();
         load();
     })();
 </script>
+
+
+
+
+
+
+
+
+
+

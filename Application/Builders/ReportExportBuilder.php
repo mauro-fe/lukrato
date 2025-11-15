@@ -11,19 +11,23 @@ use InvalidArgumentException;
 
 class ReportExportBuilder
 {
+    private const EMPTY_DATA_MESSAGE = 'Nenhum dado disponível para o período selecionado';
+    private const CURRENCY_SYMBOL = 'R$';
+    
     public function build(ReportType $type, ReportParameters $params, array $payload): ReportData
     {
         [$headers, $rows] = $this->processData($type, $payload);
 
         if (empty($rows)) {
-            $rows[] = ['Sem dados disponiveis', ...array_fill(0, count($headers) - 1, '-')];
+            $rows = $this->createEmptyRow($headers);
         }
 
         return new ReportData(
             title: $this->resolveTitle($type, $params, $payload),
             headers: $headers,
             rows: $rows,
-            subtitle: $this->buildSubtitle($params)
+            subtitle: $this->buildSubtitle($params),
+            totals: $this->buildTotals($type, $payload)
         );
     }
 
@@ -31,32 +35,80 @@ class ReportExportBuilder
     {
         return match ($type) {
             ReportType::DESPESAS_POR_CATEGORIA,
-            ReportType::RECEITAS_POR_CATEGORIA,
+            ReportType::RECEITAS_POR_CATEGORIA => 
+                $this->processCategoryReport($payload, 'Categoria'),
+
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
-            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => [
-                ['Categoria', 'Valor'],
-                $this->mapSingleColumn($payload)
-            ],
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => 
+                $this->processCategoryReport($payload, 'Categoria'),
 
-            ReportType::SALDO_MENSAL,
-            ReportType::EVOLUCAO_12M => [
-                ['Periodo', 'Saldo acumulado'],
-                $this->mapSingleColumn($payload)
-            ],
+            ReportType::SALDO_MENSAL => 
+                $this->processBalanceReport($payload),
 
-            ReportType::RECEITAS_DESPESAS_DIARIO,
-            ReportType::RESUMO_ANUAL => [
-                ['Periodo', 'Receitas', 'Despesas'],
-                $this->mapMultiColumn($payload, ['receitas', 'despesas'])
-            ],
+            ReportType::EVOLUCAO_12M => 
+                $this->processEvolutionReport($payload),
 
-            ReportType::RECEITAS_DESPESAS_POR_CONTA => [
-                ['Conta', 'Receitas', 'Despesas'],
-                $this->mapMultiColumn($payload, ['receitas', 'despesas'])
-            ],
+            ReportType::RECEITAS_DESPESAS_DIARIO => 
+                $this->processIncomeExpenseReport($payload, 'Período'),
 
-            default => throw new InvalidArgumentException("Relatorio '{$type->value}' nao implementado no exportador."),
+            ReportType::RESUMO_ANUAL => 
+                $this->processAnnualSummary($payload),
+
+            ReportType::RECEITAS_DESPESAS_POR_CONTA => 
+                $this->processAccountReport($payload),
+
+            default => throw new InvalidArgumentException(
+                "Tipo de relatório '{$type->value}' não implementado no exportador."
+            ),
         };
+    }
+
+    private function processCategoryReport(array $payload, string $labelHeader): array
+    {
+        return [
+            [$labelHeader, 'Valor Total'],
+            $this->mapSingleColumn($payload)
+        ];
+    }
+
+    private function processBalanceReport(array $payload): array
+    {
+        return [
+            ['Período', 'Saldo Acumulado'],
+            $this->mapSingleColumn($payload)
+        ];
+    }
+
+    private function processEvolutionReport(array $payload): array
+    {
+        return [
+            ['Mês', 'Saldo Acumulado'],
+            $this->mapSingleColumn($payload)
+        ];
+    }
+
+    private function processIncomeExpenseReport(array $payload, string $periodLabel): array
+    {
+        return [
+            [$periodLabel, 'Receitas', 'Despesas', 'Saldo'],
+            $this->mapIncomeExpenseWithBalance($payload)
+        ];
+    }
+
+    private function processAnnualSummary(array $payload): array
+    {
+        return [
+            ['Mês', 'Receitas', 'Despesas', 'Saldo'],
+            $this->mapIncomeExpenseWithBalance($payload)
+        ];
+    }
+
+    private function processAccountReport(array $payload): array
+    {
+        return [
+            ['Conta', 'Receitas', 'Despesas', 'Saldo'],
+            $this->mapIncomeExpenseWithBalance($payload)
+        ];
     }
 
     private function mapSingleColumn(array $payload): array
@@ -64,65 +116,171 @@ class ReportExportBuilder
         $labels = $payload['labels'] ?? [];
         $values = $payload['values'] ?? [];
 
-        return array_map(fn($index, $label) => [
-            (string) $label,
-            $this->formatMoney((float) ($values[$index] ?? 0)),
-        ], array_keys($labels), $labels);
+        return array_map(
+            fn($index, $label) => [
+                $this->sanitizeLabel($label),
+                $this->formatMoney((float) ($values[$index] ?? 0)),
+            ],
+            array_keys($labels),
+            $labels
+        );
     }
 
-    private function mapMultiColumn(array $payload, array $keys): array
+    private function mapIncomeExpenseWithBalance(array $payload): array
     {
         $labels = $payload['labels'] ?? [];
+        $receitas = $payload['receitas'] ?? [];
+        $despesas = $payload['despesas'] ?? [];
 
-        return array_map(function ($index, $label) use ($payload, $keys) {
-            $row = [(string) $label];
-            foreach ($keys as $key) {
-                $value = (float) ($payload[$key][$index] ?? 0);
-                $row[] = $this->formatMoney($value);
-            }
-            return $row;
-        }, array_keys($labels), $labels);
+        return array_map(
+            function ($index, $label) use ($receitas, $despesas) {
+                $receitaValue = (float) ($receitas[$index] ?? 0);
+                $despesaValue = (float) ($despesas[$index] ?? 0);
+                $saldo = $receitaValue - $despesaValue;
+
+                return [
+                    $this->sanitizeLabel($label),
+                    $this->formatMoney($receitaValue),
+                    $this->formatMoney($despesaValue),
+                    $this->formatMoney($saldo),
+                ];
+            },
+            array_keys($labels),
+            $labels
+        );
     }
 
     private function resolveTitle(ReportType $type, ReportParameters $params, array $payload): string
     {
         $year = $payload['year'] ?? $params->start->format('Y');
+        $monthYear = $params->start->format('m/Y');
 
         return match ($type) {
-            ReportType::DESPESAS_POR_CATEGORIA => 'Despesas por categoria',
-            ReportType::RECEITAS_POR_CATEGORIA => 'Receitas por categoria',
-            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA => "Despesas anuais ({$year})",
-            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => "Receitas anuais ({$year})",
-            ReportType::SALDO_MENSAL => 'Saldo diario acumulado',
-            ReportType::RECEITAS_DESPESAS_DIARIO => 'Receitas vs despesas (diario)',
-            ReportType::EVOLUCAO_12M => 'Evolucao do saldo (12 meses)',
-            ReportType::RECEITAS_DESPESAS_POR_CONTA => 'Receitas vs despesas por conta',
-            ReportType::RESUMO_ANUAL => "Resumo anual {$year}",
+            ReportType::DESPESAS_POR_CATEGORIA => "Despesas por Categoria - {$monthYear}",
+            ReportType::RECEITAS_POR_CATEGORIA => "Receitas por Categoria - {$monthYear}",
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA => "Despesas Anuais por Categoria ({$year})",
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => "Receitas Anuais por Categoria ({$year})",
+            ReportType::SALDO_MENSAL => "Evolução do Saldo Diário - {$monthYear}",
+            ReportType::RECEITAS_DESPESAS_DIARIO => "Receitas vs Despesas (Diário) - {$monthYear}",
+            ReportType::EVOLUCAO_12M => 'Evolução do Saldo (Últimos 12 Meses)',
+            ReportType::RECEITAS_DESPESAS_POR_CONTA => "Receitas vs Despesas por Conta - {$monthYear}",
+            ReportType::RESUMO_ANUAL => "Resumo Financeiro Anual - {$year}",
         };
     }
 
     private function buildSubtitle(ReportParameters $params): string
     {
-        $period = $params->isSingleMonth()
-            ? $params->start->format('m/Y')
-            : sprintf('%s a %s', $params->start->format('d/m/Y'), $params->end->format('d/m/Y'));
+        $parts = [];
 
-        $parts = ["Periodo: {$period}"];
+        // Period
+        $parts[] = 'Periodo: ' . $params->getPeriodLabel();
 
+        // Filtros aplicados
+        $filters = [];
+        
         if ($params->accountId) {
-            $parts[] = 'Filtro: Conta especifica';
+            $filters[] = 'Conta especifica';
         }
 
         if ($params->includeTransfers) {
-            $parts[] = '(Inclui transferencias)';
+            $filters[] = 'Inclui transferencias';
+        }
+
+        if (!empty($filters)) {
+            $parts[] = 'Filtros: ' . implode(', ', $filters);
         }
 
         return implode(' | ', $parts);
     }
 
+    private function buildTotals(ReportType $type, array $payload): array
+    {
+        return match ($type) {
+            ReportType::DESPESAS_POR_CATEGORIA,
+            ReportType::RECEITAS_POR_CATEGORIA,
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => 
+                $this->buildSingleValueTotals($payload),
+
+            ReportType::RECEITAS_DESPESAS_DIARIO,
+            ReportType::RESUMO_ANUAL,
+            ReportType::RECEITAS_DESPESAS_POR_CONTA => 
+                $this->buildIncomeExpenseTotals($payload),
+
+            ReportType::SALDO_MENSAL,
+            ReportType::EVOLUCAO_12M => 
+                $this->buildBalanceTotals($payload),
+
+            default => [],
+        };
+    }
+
+    private function buildSingleValueTotals(array $payload): array
+    {
+        $total = $this->sumValues($payload['values'] ?? []);
+        
+        return [
+            'Total Geral' => $this->formatMoney($total),
+        ];
+    }
+
+    private function buildIncomeExpenseTotals(array $payload): array
+    {
+        $receitas = $this->sumValues($payload['receitas'] ?? []);
+        $despesas = $this->sumValues($payload['despesas'] ?? []);
+        $saldo = $receitas - $despesas;
+
+        return [
+            'Total de Receitas' => $this->formatMoney($receitas),
+            'Total de Despesas' => $this->formatMoney($despesas),
+            'Saldo do Período' => $this->formatMoney($saldo),
+        ];
+    }
+
+    private function buildBalanceTotals(array $payload): array
+    {
+        $values = $payload['values'] ?? [];
+        
+        if (empty($values)) {
+            return [];
+        }
+
+        $saldoFinal = end($values);
+        $saldoInicial = reset($values);
+
+        return [
+            'Saldo Inicial' => $this->formatMoney((float) $saldoInicial),
+            'Saldo Final' => $this->formatMoney((float) $saldoFinal),
+        ];
+    }
+
+    private function createEmptyRow(array $headers): array
+    {
+        $emptyRow = [self::EMPTY_DATA_MESSAGE];
+        
+        for ($i = 1; $i < count($headers); $i++) {
+            $emptyRow[] = '-';
+        }
+
+        return [$emptyRow];
+    }
+
+    private function sanitizeLabel($label): string
+    {
+        return trim((string) $label) ?: 'Não especificado';
+    }
+
     private function formatMoney(float $value): string
     {
-        return 'R$ ' . number_format($value, 2, ',', '.');
+        return self::CURRENCY_SYMBOL . ' ' . number_format($value, 2, ',', '.');
+    }
+
+    private function sumValues(array $values): float
+    {
+        return array_reduce(
+            $values,
+            fn(float $carry, $value) => $carry + (float) $value,
+            0.0
+        );
     }
 }
-

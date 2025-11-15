@@ -90,6 +90,7 @@ h3 {
   flex-direction: column;
   transition: width var(--transition-fast, 0.25s);
   overflow: hidden;
+  z-index: 4;
 }
 
 /* Header da sidebar + logo */
@@ -1237,9 +1238,14 @@ body.sidebar-open-mobile .sidebar-backdrop {
   color: #fff;
   border-radius: var(--radius-full, 999px);
   text-decoration: none;
-  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 55%, var(--color-secondary) 45%));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 55%, var(--color-secondary) 45%)
+  );
   box-shadow: var(--shadow-md);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .sidebar-pro-btn:hover {

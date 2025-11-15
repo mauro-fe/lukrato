@@ -7,7 +7,7 @@
         <form id="formNova" class="c-form">
             <?= csrf_input('default') ?>
             <input class="c-input" name="nome" placeholder="Nome da categoria" required />
-            <select class="c-select" name="tipo" required>
+            <select class="lk-select" name="tipo" required>
                 <option value="receita">Receita</option>
                 <option value="despesa">Despesa</option>
             </select>
