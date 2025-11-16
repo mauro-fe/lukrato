@@ -1,17 +1,24 @@
-﻿/* ==================== VARIÁVEIS E RESET ==================== */
+﻿/**
+ * ============================================================================
+ * SISTEMA DE LANÇAMENTOS - ESTILOS
+ * ============================================================================
+ * Estilos para a página de gerenciamento de lançamentos financeiros
+ * ============================================================================
+ */
+
+/* ============================================================================
+   VARIÁVEIS E CONFIGURAÇÃO
+   ============================================================================ */
+
 :root {
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease-out;
 }
 
-.mes {
-  display: flex;
-  background-color: var(--color-primary);
-  border-radius: 10px;
-  align-items: center;
-  padding: 5px 10px;
-}
+/* ============================================================================
+   LAYOUT PRINCIPAL
+   ============================================================================ */
 
-/* ==================== LAYOUT PRINCIPAL ==================== */
 .lan-page {
   display: flex;
   flex-direction: column;
@@ -24,7 +31,6 @@
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -56,7 +62,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* ==================== CONTROLES DE EXPORTAÇÃO ==================== */
+/* ============================================================================
+   CONTROLES DE EXPORTAÇÃO
+   ============================================================================ */
+
 .export-range {
   display: inline-flex;
   flex-wrap: wrap;
@@ -67,6 +76,21 @@
   border-radius: var(--radius-sm);
   padding: var(--spacing-3);
   box-shadow: var(--shadow-sm);
+}
+
+.mes {
+  display: flex;
+  background-color: var(--color-primary);
+  border-radius: 10px;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 5px 10px;
+}
+
+.mes span {
+  color: var(--branco);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
 }
 
 .export-range .date-range {
@@ -92,17 +116,10 @@
   min-width: 150px;
 }
 
-.export-hint {
-  display: block;
-  width: 100%;
-  text-align: center;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  margin-top: var(--spacing-2);
-  font-style: italic;
-}
+/* ============================================================================
+   FILTROS
+   ============================================================================ */
 
-/* ==================== FILTROS ==================== */
 .lan-filter {
   display: flex;
   justify-content: flex-end;
@@ -132,7 +149,10 @@
   color: var(--color-primary);
 }
 
-/* ==================== TABELA ==================== */
+/* ============================================================================
+   TABELA
+   ============================================================================ */
+
 .container-table {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -152,7 +172,7 @@
 }
 
 .table-container .tabulator .tabulator-row {
-  transition: var(--transition-smooth);
+  transition: var(--transition-fast);
 }
 
 .table-container .tabulator .tabulator-row:hover {
@@ -164,6 +184,7 @@
   border-left: 3px solid var(--color-primary);
 }
 
+/* Saldo Inicial */
 .table-container .tabulator .lk-row-inicial {
   opacity: 0.6;
   font-style: italic;
@@ -184,6 +205,7 @@
   opacity: 0.3;
 }
 
+/* Ações */
 .table-container .tabulator .tabulator-row .tabulator-cell .lk-actions {
   display: inline-flex;
   align-items: center;
@@ -197,7 +219,11 @@
   min-width: auto;
 }
 
-/* Tipos / categorias / valores coloridos */
+/* ============================================================================
+   BADGES E CHIPS
+   ============================================================================ */
+
+/* Badge de Tipo */
 .badge-tipo {
   display: inline-flex;
   align-items: center;
@@ -210,6 +236,7 @@
   letter-spacing: 0.05em;
   background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
   color: var(--color-text);
+  transition: var(--transition-fast);
 }
 
 .badge-tipo::before {
@@ -225,12 +252,14 @@
   color: var(--color-success);
   background: color-mix(in srgb, var(--color-success) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  border-radius: var(--radius-md);
 }
 
 .badge-tipo.despesa {
   color: var(--color-danger);
   background: color-mix(in srgb, var(--color-danger) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
+  border-radius: var(--radius-md);
 }
 
 .badge-tipo.transferencia {
@@ -239,6 +268,27 @@
   border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
 
+/* Chip de Categoria */
+.categoria-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 8%,
+    var(--color-surface-muted)
+  );
+  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: var(--transition-fast);
+  border-radius: var(--radius-md);
+}
+
+/* Valor */
 .valor-cell {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -256,20 +306,10 @@
   color: var(--color-primary);
 }
 
-.categoria-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.85rem;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-muted));
-  color: var(--color-text);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
+/* ============================================================================
+   MODAL DE EDIÇÃO
+   ============================================================================ */
 
-/* ==================== MODAL DE EDIÇÃO ==================== */
 #modalEditarLancamento .modal-content {
   background: var(--color-surface) !important;
   color: var(--color-text);
@@ -387,7 +427,10 @@
   font-size: var(--font-size-sm);
 }
 
-/* ==================== UTILITÁRIOS ==================== */
+/* ============================================================================
+   UTILITÁRIOS E ACESSIBILIDADE
+   ============================================================================ */
+
 .sr-only {
   position: absolute !important;
   width: 1px;
@@ -400,16 +443,29 @@
   border: 0;
 }
 
-.badge {
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+/* Estados de loading */
+.lk-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* ==================== RESPONSIVIDADE ==================== */
+.lk-btn .fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
 @media (max-width: 1200px) {
   .lan-controls {
     grid-template-columns: 1fr;
@@ -437,6 +493,11 @@
   .export-range .lk-select {
     width: 100%;
   }
+
+  .mes {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 @media (max-width: 576px) {
@@ -447,24 +508,87 @@
   .container-table {
     padding: var(--spacing-2);
   }
-}
 
-/* ==================== ESTADOS DE LOADING ==================== */
-.lk-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.lk-btn .fa-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
+  .lk-actions .lk-btn {
+    padding: var(--spacing-1);
   }
 
-  to {
-    transform: rotate(360deg);
+  .badge-tipo {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .categoria-chip {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+  }
+}
+
+/* ============================================================================
+   MELHORIAS DE UX
+   ============================================================================ */
+
+/* Feedback visual em hover para botões de ação */
+.lk-actions .lk-btn:hover {
+  transform: scale(1.05);
+}
+
+.lk-actions .lk-btn:active {
+  transform: scale(0.95);
+}
+
+/* Transições suaves para linhas da tabela */
+.table-container .tabulator .tabulator-row {
+  will-change: background-color;
+}
+
+/* Melhor contraste para texto selecionado */
+.table-container .tabulator .tabulator-row.tabulator-selected {
+  font-weight: 500;
+}
+
+/* Animação para badges */
+.badge-tipo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   TEMA ESCURO - AJUSTES FINOS
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .lan-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .export-range .date-range:focus {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .categoria-chip {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ============================================================================
+   IMPRESSÃO
+   ============================================================================ */
+
+@media print {
+  .lan-header,
+  .export-range,
+  .type-filter,
+  .lk-actions {
+    display: none !important;
+  }
+
+  .container-table {
+    border: none;
+    box-shadow: none;
+  }
+
+  .table-container .tabulator .tabulator-row {
+    page-break-inside: avoid;
   }
 }

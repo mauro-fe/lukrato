@@ -1,3 +1,12 @@
+/**
+ * ============================================================================
+ * SISTEMA DE GERENCIAMENTO DE LANÇAMENTOS
+ * ============================================================================
+ * Gerencia listagem, filtros, edição e exportação de lançamentos financeiros
+ * Utiliza Tabulator.js para renderização da tabela
+ * ============================================================================
+ */
+
 (() => {
     'use strict';
 
@@ -5,11 +14,14 @@
     if (window.__LK_LANCAMENTOS_LOADER__) return;
     window.__LK_LANCAMENTOS_LOADER__ = true;
 
-    // ==================== CONFIGURAÇÃO E CONSTANTES ====================
+    // ============================================================================
+    // CONFIGURAÇÃO
+    // ============================================================================
+
     const CONFIG = {
         BASE_URL: (window.BASE_URL || (location.pathname.includes('/public/') ?
             location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/'),
-        TABLE_HEIGHT: "520px",
+        TABLE_HEIGHT: '520px',
         PAGINATION_SIZE: 25,
         PAGINATION_OPTIONS: [10, 25, 50, 100],
         DATA_LIMIT: 500,
@@ -19,9 +31,12 @@
     CONFIG.ENDPOINT = `${CONFIG.BASE_URL}api/lancamentos`;
     CONFIG.EXPORT_ENDPOINT = `${CONFIG.ENDPOINT}/export`;
 
-    // ==================== SELETORES DOM ====================
+    // ============================================================================
+    // SELETORES DOM
+    // ============================================================================
+
     const DOM = {
-        // Elementos principais
+        // Tabela
         tabContainer: document.getElementById('tabLancamentos'),
 
         // Filtros
@@ -32,17 +47,15 @@
 
         // Exportação
         btnExportar: document.getElementById('btnExportar'),
-        exportHint: document.getElementById('exportHint'),
         inputExportStart: document.getElementById('exportStart'),
         inputExportEnd: document.getElementById('exportEnd'),
         selectExportFormat: document.getElementById('exportFormat'),
 
-        // Seleção
+        // Seleção e exclusão
         btnExcluirSel: document.getElementById('btnExcluirSel'),
-        selInfo: document.getElementById('selInfo'),
         selCountSpan: document.getElementById('selCount'),
 
-        // Modal
+        // Modal de edição
         modalEditLancEl: document.getElementById('modalEditarLancamento'),
         formLanc: document.getElementById('formLancamento'),
         editLancAlert: document.getElementById('editLancAlert'),
@@ -51,11 +64,13 @@
         selectLancConta: document.getElementById('editLancConta'),
         selectLancCategoria: document.getElementById('editLancCategoria'),
         inputLancValor: document.getElementById('editLancValor'),
-        inputLancDescricao: document.getElementById('editLancDescricao'),
-        inputLancObs: document.getElementById('editLancObs')
+        inputLancDescricao: document.getElementById('editLancDescricao')
     };
 
-    // ==================== ESTADO DA APLICAÇÃO ====================
+    // ============================================================================
+    // ESTADO GLOBAL
+    // ============================================================================
+
     const STATE = {
         table: null,
         modalEditLanc: null,
@@ -65,9 +80,12 @@
         loadTimer: null
     };
 
-    // ==================== UTILITÁRIOS ====================
+    // ============================================================================
+    // UTILITÁRIOS
+    // ============================================================================
+
     const Utils = {
-        // Formatação
+        // ---------- Formatação ----------
         fmtMoney: (n) => new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
@@ -75,18 +93,36 @@
 
         fmtDate: (iso) => {
             if (!iso) return '-';
+
             if (typeof iso === 'string') {
                 const normalized = iso.trim();
                 const datePart = normalized.includes('T') ? normalized.split('T')[0] : normalized;
+
                 if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
                     const [year, month, day] = datePart.split('-');
                     if (year && month && day) return `${day}/${month}/${year}`;
                 }
             }
+
             const d = new Date(iso);
             return isNaN(d) ? '-' : d.toLocaleDateString('pt-BR');
         },
 
+        escapeHtml: (value) => String(value ?? '')
+            .replace(/[&<>"']/g, (m) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m] || m)),
+
+        normalizeText: (str) => String(str ?? '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase(),
+
+        // ---------- Classificação de tipos ----------
         getTipoClass: (tipo) => {
             const normalized = String(tipo || '').toLowerCase();
             if (normalized.includes('receita')) return 'receita';
@@ -95,24 +131,23 @@
             return '';
         },
 
-        normalizeText: (str) => String(str ?? '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase('pt-BR'),
+        isSaldoInicial: (data) => {
+            if (!data) return false;
+            const tipo = String(data?.tipo || '').toLowerCase();
+            const descricao = String(data?.descricao || '').toLowerCase();
+            return tipo === 'saldo_inicial' || tipo === 'saldo inicial' || descricao.includes('saldo inicial');
+        },
 
-        escapeHtml: (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[m] || m)),
+        isTransferencia: (data) => Boolean(data?.eh_transferencia),
 
-        // Parsing
+        canEditLancamento: (data) => !Utils.isSaldoInicial(data) && !Utils.isTransferencia(data),
+
+        // ---------- Parsing de filtros ----------
         parseFilterNumber: (input) => {
             if (input === undefined || input === null) return null;
             const raw = String(input).trim();
             if (!raw) return null;
+
             const normalized = raw.replace(/\./g, '').replace(',', '.');
             const num = Number(normalized);
             return Number.isFinite(num) ? num : null;
@@ -123,11 +158,13 @@
             const raw = String(input).trim();
             if (!raw) return null;
 
+            // Formato ISO: YYYY-MM-DD
             if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(raw)) {
                 const [year, month, day] = raw.split('-').map(Number);
                 return Utils.normalizeFilterDate(day, month, year);
             }
 
+            // Formato BR: DD/MM/YYYY
             const cleaned = raw.replace(/[-.]/g, '/');
             const match = cleaned.match(/^(\d{1,2})(?:\/(\d{1,2})(?:\/(\d{2,4}))?)?$/);
             if (!match) return null;
@@ -148,15 +185,12 @@
             if (safeMonth !== null && (safeMonth < 1 || safeMonth > 12)) return null;
             if (safeYear !== null && (safeYear < 1900 || safeYear > 2100)) return null;
 
-            return {
-                day: safeDay,
-                month: safeMonth,
-                year: safeYear
-            };
+            return { day: safeDay, month: safeMonth, year: safeYear };
         },
 
         extractYMD: (value) => {
             if (!value) return null;
+
             if (value instanceof Date && !isNaN(value)) {
                 return {
                     year: value.getFullYear(),
@@ -164,20 +198,25 @@
                     day: value.getDate()
                 };
             }
+
             if (typeof value === 'string') {
                 const trimmed = value.trim();
                 if (!trimmed) return null;
+
                 if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
                     const [y, m, d] = trimmed.slice(0, 10).split('-').map(Number);
                     return Utils.normalizeFilterDate(d, m, y);
                 }
+
                 if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmed)) {
                     const [d, m, y] = trimmed.split('/').map(Number);
                     return Utils.normalizeFilterDate(d, m, y);
                 }
             }
+
             const d = new Date(value);
             if (isNaN(d)) return null;
+
             return {
                 year: d.getFullYear(),
                 month: d.getMonth() + 1,
@@ -185,7 +224,7 @@
             };
         },
 
-        // Data helpers
+        // ---------- Helpers diversos ----------
         normalizeDataList: (payload) => {
             if (!payload) return [];
             if (Array.isArray(payload)) return payload;
@@ -201,27 +240,16 @@
 
         parseDownloadFilename: (disposition) => {
             if (!disposition) return null;
+
             const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
             if (utf8Match && utf8Match[1]) return decodeURIComponent(utf8Match[1]);
+
             const asciiMatch = disposition.match(/filename="?([^";]+)"?/i);
             if (asciiMatch && asciiMatch[1]) return asciiMatch[1];
+
             return null;
         },
 
-        // Verificações
-        isSaldoInicial: (data) => {
-            if (!data) return false;
-            const tipo = String(data?.tipo || '').toLowerCase();
-            const descricao = String(data?.descricao || '').toLowerCase();
-            if (tipo === 'saldo_inicial' || tipo === 'saldo inicial') return true;
-            return descricao.includes('saldo inicial');
-        },
-
-        isTransferencia: (data) => Boolean(data?.eh_transferencia),
-
-        canEditLancamento: (data) => !Utils.isSaldoInicial(data) && !Utils.isTransferencia(data),
-
-        // UI
         hasSwal: () => !!window.Swal,
 
         getCSRFToken: () => (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '',
@@ -229,11 +257,14 @@
         getCurrentMonth: () => (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(0, 7)
     };
 
-    // ==================== NOTIFICAÇÕES ====================
+    // ============================================================================
+    // NOTIFICAÇÕES
+    // ============================================================================
+
     const Notifications = {
         ask: async (title, text = '') => {
             if (Utils.hasSwal()) {
-                const r = await Swal.fire({
+                const result = await Swal.fire({
                     title,
                     text,
                     icon: 'warning',
@@ -243,7 +274,7 @@
                     confirmButtonColor: 'var(--color-primary)',
                     cancelButtonColor: 'var(--color-text-muted)'
                 });
-                return r.isConfirmed;
+                return result.isConfirmed;
             }
             return confirm(title || 'Confirmar ação?');
         },
@@ -265,14 +296,15 @@
         }
     };
 
-    // ==================== API ====================
+    // ============================================================================
+    // API
+    // ============================================================================
+
     const API = {
         fetchJsonList: async (url) => {
             try {
                 const res = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 });
                 if (!res.ok) return [];
                 const body = await res.json().catch(() => null);
@@ -282,31 +314,16 @@
             }
         },
 
-        fetchLancamentos: async ({
-            month,
-            tipo = '',
-            categoria = '',
-            conta = '',
-            limit,
-            startDate = '',
-            endDate = ''
-        }) => {
-            const qs = API.buildQuery({
-                month,
-                tipo,
-                categoria,
-                conta,
-                limit,
-                startDate,
-                endDate
-            });
+        fetchLancamentos: async ({ month, tipo = '', categoria = '', conta = '', limit, startDate = '', endDate = '' }) => {
+            const qs = API.buildQuery({ month, tipo, categoria, conta, limit, startDate, endDate });
+
             try {
                 const res = await fetch(`${CONFIG.ENDPOINT}?${qs.toString()}`, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 });
+
                 if (res.status === 204 || res.status === 404 || !res.ok) return [];
+
                 const data = await res.json().catch(() => null);
                 if (Array.isArray(data)) return data;
                 if (data && Array.isArray(data.data)) return data.data;
@@ -316,15 +333,7 @@
             }
         },
 
-        buildQuery: ({
-            month,
-            tipo,
-            categoria,
-            conta,
-            limit,
-            startDate,
-            endDate
-        }) => {
+        buildQuery: ({ month, tipo, categoria, conta, limit, startDate, endDate }) => {
             const qs = new URLSearchParams();
             if (month) qs.set('month', month);
             if (tipo) qs.set('tipo', tipo);
@@ -366,6 +375,7 @@
                     _token: token,
                     csrf_token: token
                 };
+
                 const res = await fetch(`${CONFIG.ENDPOINT}/delete`, {
                     method: 'POST',
                     headers: {
@@ -375,17 +385,18 @@
                     },
                     body: JSON.stringify(payload)
                 });
+
                 if (res.ok) return true;
             } catch { }
 
-            // Fallback: deletar um por um
+            // Fallback: deletar individualmente
             const results = await Promise.all(ids.map(API.deleteOne));
             return results.every(Boolean);
         },
 
         updateLancamento: async (id, payload) => {
             const token = Utils.getCSRFToken();
-            const res = await fetch(`${CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, {
+            return fetch(`${CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -394,7 +405,6 @@
                 },
                 body: JSON.stringify(payload)
             });
-            return res;
         },
 
         exportLancamentos: async (params, format) => {
@@ -416,10 +426,14 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE OPÇÕES ====================
+    // ============================================================================
+    // GERENCIAMENTO DE OPÇÕES (CATEGORIAS E CONTAS)
+    // ============================================================================
+
     const OptionsManager = {
         populateCategoriaSelect: (select, tipo, selectedId) => {
             if (!select) return;
+
             const normalized = (tipo || '').toLowerCase();
             const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
 
@@ -450,6 +464,7 @@
 
         populateContaSelect: (select, selectedId) => {
             if (!select) return;
+
             const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
 
             select.innerHTML = '<option value="">Selecione</option>';
@@ -472,24 +487,18 @@
         },
 
         loadFilterOptions: async () => {
-            const categoriaPromise = DOM.selectCategoria ?
-                API.fetchJsonList(`${CONFIG.BASE_URL}api/categorias`) :
-                Promise.resolve([]);
+            const [categorias, contas] = await Promise.all([
+                DOM.selectCategoria ? API.fetchJsonList(`${CONFIG.BASE_URL}api/categorias`) : Promise.resolve([]),
+                DOM.selectConta ? API.fetchJsonList(`${CONFIG.BASE_URL}api/accounts?only_active=1`) : Promise.resolve([])
+            ]);
 
-            const contaPromise = DOM.selectConta ?
-                API.fetchJsonList(`${CONFIG.BASE_URL}api/accounts?only_active=1`) :
-                Promise.resolve([]);
-
-            // Preparar seletores com opções padrão
+            // Inicializar seletores de filtro
             if (DOM.selectCategoria) {
-                DOM.selectCategoria.innerHTML =
-                    '<option value="">Todas as categorias</option><option value="none">Sem categoria</option>';
+                DOM.selectCategoria.innerHTML = '<option value="">Todas as categorias</option><option value="none">Sem categoria</option>';
             }
             if (DOM.selectConta) {
                 DOM.selectConta.innerHTML = '<option value="">Todas as contas</option>';
             }
-
-            const [categorias, contas] = await Promise.all([categoriaPromise, contaPromise]);
 
             // Processar categorias
             if (DOM.selectCategoria && categorias.length) {
@@ -500,9 +509,7 @@
                         tipo: String(cat?.tipo ?? '').trim().toLowerCase()
                     }))
                     .filter((cat) => Number.isFinite(cat.id) && cat.id > 0 && cat.nome)
-                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', {
-                        sensitivity: 'base'
-                    }));
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
 
                 const options = STATE.categoriaOptions
                     .map((cat) => `<option value="${cat.id}">${Utils.escapeHtml(cat.nome)}</option>`)
@@ -517,16 +524,11 @@
                         const id = Number(acc?.id ?? 0);
                         const nome = String(acc?.nome ?? '').trim();
                         const instituicao = String(acc?.instituicao ?? '').trim();
-                        const label = nome || instituicao;
-                        return {
-                            id,
-                            label: label || `Conta #${id}`
-                        };
+                        const label = nome || instituicao || `Conta #${id}`;
+                        return { id, label };
                     })
                     .filter((acc) => Number.isFinite(acc.id) && acc.id > 0 && acc.label)
-                    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', {
-                        sensitivity: 'base'
-                    }));
+                    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
 
                 const options = STATE.contaOptions
                     .map((acc) => `<option value="${acc.id}">${Utils.escapeHtml(acc.label)}</option>`)
@@ -548,7 +550,10 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE TABELA ====================
+    // ============================================================================
+    // GERENCIAMENTO DE TABELA (TABULATOR)
+    // ============================================================================
+
     const TableManager = {
         waitForTableReady: (instance) => {
             if (!instance) return Promise.resolve();
@@ -567,207 +572,212 @@
             return true;
         },
 
-        buildColumns: () => [{
-            formatter: "rowSelection",
-            titleFormatter: "rowSelection",
-            hozAlign: "center",
-            headerSort: false,
-            width: 44,
-            cellClick: (e, cell) => {
-                const data = cell.getRow().getData();
-                if (Utils.isSaldoInicial(data)) {
-                    e.preventDefault();
-                    cell.getRow().deselect();
+        buildColumns: () => [
+            {
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                hozAlign: 'center',
+                headerSort: false,
+                width: 44,
+                cellClick: (e, cell) => {
+                    const data = cell.getRow().getData();
+                    if (Utils.isSaldoInicial(data)) {
+                        e.preventDefault();
+                        cell.getRow().deselect();
+                    }
+                },
+                cellRendered: (cell) => {
+                    const data = cell.getRow().getData();
+                    if (Utils.isSaldoInicial(data)) {
+                        cell.getElement().classList.add('lk-cell-select-disabled');
+                    }
                 }
             },
-            cellRendered: (cell) => {
-                const data = cell.getRow().getData();
-                if (Utils.isSaldoInicial(data)) {
-                    cell.getElement().classList.add('lk-cell-select-disabled');
-                }
-            }
-        },
-        {
-            title: "Data",
-            field: "data",
-            sorter: "date",
-            hozAlign: "left",
-            width: 130,
-            mutator: (value, data) => data.data || data.created_at,
-            formatter: (cell) => Utils.fmtDate(cell.getValue()),
-            headerFilterFunc: (headerValue, rowValue) => {
-                const filter = Utils.parseFilterDate(headerValue);
-                if (!filter) return true;
-                const value = Utils.extractYMD(rowValue);
-                if (!value) return false;
-                if (filter.year !== null && value.year !== filter.year) return false;
-                if (filter.month !== null && value.month !== filter.month) return false;
-                if (filter.day !== null && value.day !== filter.day) return false;
-                return true;
-            },
-            headerFilter: "input",
-            headerFilterPlaceholder: "Filtrar data"
-        },
-        {
-              title: "Tipo",
-              field: "tipo",
-              width: 120,
-              formatter: (cell) => {
-                  const raw = String(cell.getValue() || '-');
-                  const tipoClass = Utils.getTipoClass(raw);
-                  const label = raw.charAt(0).toUpperCase() + raw.slice(1);
-                  return `<span class="badge-tipo ${tipoClass}">${Utils.escapeHtml(label)}</span>`;
-              },
-              headerFilter: "select",
-            headerFilterParams: {
-                values: {
-                    "": "Todos",
-                    receita: "Receitas",
-                    despesa: "Despesas"
-                }
-            }
-        },
-        {
-            title: "Categoria",
-            field: "categoria_nome",
-            widthGrow: 1,
-            mutator: (value, data) => {
-                const candidate = value ??
-                    data?.categoria ??
-                    data?.categoria_nome ??
-                    (typeof data?.categoria === 'object' ? data?.categoria?.nome : '') ?? '';
-                if (candidate && typeof candidate === 'object') {
-                    return String(candidate.nome ?? candidate.label ?? candidate.title ?? '');
-                }
-                return candidate ? String(candidate) : '';
-              },
-              formatter: (cell) => {
-                  const value = cell.getValue() || '-';
-                  if (value === '-') return value;
-                  return `<span class="categoria-chip">${Utils.escapeHtml(value)}</span>`;
-              },
-            headerFilter: "input",
-            headerFilterPlaceholder: "Filtrar categoria"
-        },
-        {
-            title: "Conta",
-            field: "conta_nome",
-            widthGrow: 1,
-            mutator: (value, data) => {
-                const raw = value ??
-                    data?.conta ??
-                    data?.conta_nome ??
-                    (typeof data?.conta === 'object' ? data?.conta?.nome : '') ?? '';
-                if (raw && typeof raw === 'object') {
-                    return String(raw.nome ?? raw.label ?? raw.title ?? '');
-                }
-                return raw ? String(raw) : '';
-            },
-            formatter: (cell) => cell.getValue() || '-',
-            headerFilter: "input",
-            headerFilterPlaceholder: "Filtrar conta"
-        },
-        {
-            title: "Descrição",
-            field: "descricao",
-            widthGrow: 2,
-            mutator: (value, data) => {
-                let raw = value ??
-                    data?.descricao ??
-                    data?.descricao_titulo ??
-                    (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ?? '';
-                if (raw && typeof raw === 'object') {
-                    raw = raw.texto ?? raw.value ?? raw.title ?? '';
-                }
-                return raw ? String(raw).trim() : '';
-            },
-            formatter: (cell) => cell.getValue() || '-',
-            headerFilterFunc: (headerValue, rowValue) => {
-                const needle = Utils.normalizeText(headerValue);
-                if (!needle) return true;
-                const hay = Utils.normalizeText(rowValue);
-                return hay.includes(needle);
-            },
-            headerFilter: "input",
-            headerFilterPlaceholder: "Filtrar descrição"
-        },
-        {
-            title: "Valor",
-            field: "valor",
-            hozAlign: "right",
-              width: 150,
-              formatter: (cell) => {
-                  const tipoClass = Utils.getTipoClass(cell.getRow()?.getData()?.tipo);
-                  return `<span class="valor-cell ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</span>`;
-              },
-            headerFilterFunc: (headerValue, rowValue) => {
-                const needle = Utils.parseFilterNumber(headerValue);
-                if (needle === null) return true;
-                const value = Number(rowValue ?? 0);
-                if (!Number.isFinite(value)) return false;
-                return Math.abs(value - needle) < 0.005;
-            },
-            headerFilter: "input",
-            headerFilterPlaceholder: "Filtrar valor"
-        },
-        {
-            title: "Ações",
-            field: "actions",
-            headerSort: false,
-            hozAlign: "center",
-            width: 120,
-            formatter: (cell) => {
-                const data = cell.getRow().getData();
-                if (Utils.isSaldoInicial(data)) return '';
-                const buttons = [];
-                if (Utils.canEditLancamento(data)) {
-                    buttons.push(
-                        '<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>'
-                    );
-                }
-                buttons.push(
-                    '<button class="lk-btn danger" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>'
-                );
-                return `<div class="lk-actions">${buttons.join('')}</div>`;
-            },
-            cellClick: async (e, cell) => {
-                const row = cell.getRow();
-                const data = row.getData();
-                const btn = e.target.closest('button[data-action]');
-                if (!btn) return;
+            {
+                title: 'Data',
+                field: 'data',
+                sorter: 'date',
+                hozAlign: 'left',
+                width: 130,
+                mutator: (value, data) => data.data || data.created_at,
+                formatter: (cell) => Utils.fmtDate(cell.getValue()),
+                headerFilterFunc: (headerValue, rowValue) => {
+                    const filter = Utils.parseFilterDate(headerValue);
+                    if (!filter) return true;
 
-                const action = btn.getAttribute('data-action');
+                    const value = Utils.extractYMD(rowValue);
+                    if (!value) return false;
 
-                if (action === 'edit') {
-                    if (!Utils.canEditLancamento(data)) return;
-                    ModalManager.openEditLancamento(data);
-                    return;
+                    if (filter.year !== null && value.year !== filter.year) return false;
+                    if (filter.month !== null && value.month !== filter.month) return false;
+                    if (filter.day !== null && value.day !== filter.day) return false;
+                    return true;
+                },
+                headerFilter: 'input',
+                headerFilterPlaceholder: 'Filtrar data'
+            },
+            {
+                title: 'Tipo',
+                field: 'tipo',
+                width: 120,
+                formatter: (cell) => {
+                    const raw = String(cell.getValue() || '-');
+                    const tipoClass = Utils.getTipoClass(raw);
+                    const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+                    return `<span class="badge-tipo ${tipoClass}">${Utils.escapeHtml(label)}</span>`;
+                },
+                headerFilter: 'select',
+                headerFilterParams: {
+                    values: {
+                        '': 'Todos',
+                        receita: 'Receitas',
+                        despesa: 'Despesas'
+                    }
                 }
+            },
+            {
+                title: 'Categoria',
+                field: 'categoria_nome',
+                widthGrow: 1,
+                mutator: (value, data) => {
+                    const candidate = value ??
+                        data?.categoria ??
+                        data?.categoria_nome ??
+                        (typeof data?.categoria === 'object' ? data?.categoria?.nome : '') ?? '';
 
-                if (action === 'delete') {
-                    const id = data?.id;
-                    if (!id || Utils.isSaldoInicial(data)) return;
+                    if (candidate && typeof candidate === 'object') {
+                        return String(candidate.nome ?? candidate.label ?? candidate.title ?? '');
+                    }
+                    return candidate ? String(candidate) : '';
+                },
+                formatter: (cell) => {
+                    const value = cell.getValue() || '-';
+                    if (value === '-') return value;
+                    return `<span class="categoria-chip">${Utils.escapeHtml(value)}</span>`;
+                },
+                headerFilter: 'input',
+                headerFilterPlaceholder: 'Filtrar categoria'
+            },
+            {
+                title: 'Conta',
+                field: 'conta_nome',
+                widthGrow: 1,
+                mutator: (value, data) => {
+                    const raw = value ??
+                        data?.conta ??
+                        data?.conta_nome ??
+                        (typeof data?.conta === 'object' ? data?.conta?.nome : '') ?? '';
 
-                    const ok = await Notifications.ask(
-                        'Excluir lançamento?',
-                        'Esta ação não pode ser desfeita.'
-                    );
-                    if (!ok) return;
+                    if (raw && typeof raw === 'object') {
+                        return String(raw.nome ?? raw.label ?? raw.title ?? '');
+                    }
+                    return raw ? String(raw) : '';
+                },
+                formatter: (cell) => cell.getValue() || '-',
+                headerFilter: 'input',
+                headerFilterPlaceholder: 'Filtrar conta'
+            },
+            {
+                title: 'Descrição',
+                field: 'descricao',
+                widthGrow: 2,
+                mutator: (value, data) => {
+                    let raw = value ??
+                        data?.descricao ??
+                        data?.descricao_titulo ??
+                        (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ?? '';
 
-                    btn.disabled = true;
-                    const okDel = await API.deleteOne(id);
-                    btn.disabled = false;
+                    if (raw && typeof raw === 'object') {
+                        raw = raw.texto ?? raw.value ?? raw.title ?? '';
+                    }
+                    return raw ? String(raw).trim() : '';
+                },
+                formatter: (cell) => cell.getValue() || '-',
+                headerFilterFunc: (headerValue, rowValue) => {
+                    const needle = Utils.normalizeText(headerValue);
+                    if (!needle) return true;
+                    const hay = Utils.normalizeText(rowValue);
+                    return hay.includes(needle);
+                },
+                headerFilter: 'input',
+                headerFilterPlaceholder: 'Filtrar descrição'
+            },
+            {
+                title: 'Valor',
+                field: 'valor',
+                hozAlign: 'right',
+                width: 150,
+                formatter: (cell) => {
+                    const tipoClass = Utils.getTipoClass(cell.getRow()?.getData()?.tipo);
+                    return `<span class="valor-cell ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</span>`;
+                },
+                headerFilterFunc: (headerValue, rowValue) => {
+                    const needle = Utils.parseFilterNumber(headerValue);
+                    if (needle === null) return true;
 
-                    if (okDel) {
-                        row.delete();
-                        Notifications.toast('Lançamento excluído com sucesso!');
-                        TableManager.updateSelectionInfo();
-                    } else {
-                        Notifications.toast('Falha ao excluir lançamento.', 'error');
+                    const value = Number(rowValue ?? 0);
+                    if (!Number.isFinite(value)) return false;
+                    return Math.abs(value - needle) < 0.005;
+                },
+                headerFilter: 'input',
+                headerFilterPlaceholder: 'Filtrar valor'
+            },
+            {
+                title: 'Ações',
+                field: 'actions',
+                headerSort: false,
+                hozAlign: 'center',
+                width: 120,
+                formatter: (cell) => {
+                    const data = cell.getRow().getData();
+                    if (Utils.isSaldoInicial(data)) return '';
+
+                    const buttons = [];
+                    if (Utils.canEditLancamento(data)) {
+                        buttons.push('<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>');
+                    }
+                    buttons.push('<button class="lk-btn danger" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>');
+
+                    return `<div class="lk-actions">${buttons.join('')}</div>`;
+                },
+                cellClick: async (e, cell) => {
+                    const row = cell.getRow();
+                    const data = row.getData();
+                    const btn = e.target.closest('button[data-action]');
+                    if (!btn) return;
+
+                    const action = btn.getAttribute('data-action');
+
+                    if (action === 'edit') {
+                        if (!Utils.canEditLancamento(data)) return;
+                        ModalManager.openEditLancamento(data);
+                        return;
+                    }
+
+                    if (action === 'delete') {
+                        const id = data?.id;
+                        if (!id || Utils.isSaldoInicial(data)) return;
+
+                        const ok = await Notifications.ask(
+                            'Excluir lançamento?',
+                            'Esta ação não pode ser desfeita.'
+                        );
+                        if (!ok) return;
+
+                        btn.disabled = true;
+                        const okDel = await API.deleteOne(id);
+                        btn.disabled = false;
+
+                        if (okDel) {
+                            row.delete();
+                            Notifications.toast('Lançamento excluído com sucesso!');
+                            TableManager.updateSelectionInfo();
+                        } else {
+                            Notifications.toast('Falha ao excluir lançamento.', 'error');
+                        }
                     }
                 }
             }
-        }
         ],
 
         buildTable: () => {
@@ -775,11 +785,11 @@
 
             const instance = new Tabulator(DOM.tabContainer, {
                 height: CONFIG.TABLE_HEIGHT,
-                layout: "fitColumns",
-                placeholder: "Nenhum lançamento encontrado para o período selecionado",
+                layout: 'fitColumns',
+                placeholder: 'Nenhum lançamento encontrado para o período selecionado',
                 selectable: true,
-                index: "id",
-                pagination: "local",
+                index: 'id',
+                pagination: 'local',
                 paginationSize: CONFIG.PAGINATION_SIZE,
                 paginationSizeSelector: CONFIG.PAGINATION_OPTIONS,
                 rowFormatter: (row) => {
@@ -793,7 +803,7 @@
                 columns: TableManager.buildColumns()
             });
 
-            instance.on("rowSelectionChanged", (_data, rows) => {
+            instance.on('rowSelectionChanged', (_data, rows) => {
                 if (Array.isArray(rows)) {
                     rows.forEach((row) => {
                         if (Utils.isSaldoInicial(row.getData())) row.deselect();
@@ -811,7 +821,7 @@
                     instance.__lkReadyResolved = true;
                     resolve();
                 };
-                instance.on("tableBuilt", markReady);
+                instance.on('tableBuilt', markReady);
                 if (instance.rowManager?.renderer) {
                     markReady();
                 }
@@ -859,20 +869,22 @@
 
             if (DOM.selCountSpan) DOM.selCountSpan.textContent = String(count);
             if (DOM.btnExcluirSel) {
-                DOM.btnExcluirSel.toggleAttribute("disabled", count === 0);
+                DOM.btnExcluirSel.toggleAttribute('disabled', count === 0);
             }
         }
     };
 
-    // ==================== GERENCIAMENTO DE MODAL ====================
+    // ============================================================================
+    // GERENCIAMENTO DE MODAL
+    // ============================================================================
+
     const ModalManager = {
         ensureLancModal: () => {
             if (STATE.modalEditLanc) return STATE.modalEditLanc;
             if (!DOM.modalEditLancEl) return null;
 
             if (window.bootstrap?.Modal) {
-                if (DOM.modalEditLancEl.parentElement && DOM.modalEditLancEl.parentElement !== document
-                    .body) {
+                if (DOM.modalEditLancEl.parentElement && DOM.modalEditLancEl.parentElement !== document.body) {
                     document.body.appendChild(DOM.modalEditLancEl);
                 }
                 STATE.modalEditLanc = window.bootstrap.Modal.getOrCreateInstance(DOM.modalEditLancEl);
@@ -909,7 +921,7 @@
 
             if (DOM.selectLancTipo) {
                 const tipo = String(data?.tipo || '').toLowerCase();
-                DOM.selectLancTipo.value = ["receita", "despesa"].includes(tipo) ? tipo : 'despesa';
+                DOM.selectLancTipo.value = ['receita', 'despesa'].includes(tipo) ? tipo : 'despesa';
             }
 
             OptionsManager.populateContaSelect(DOM.selectLancConta, data?.conta_id ?? null);
@@ -928,10 +940,6 @@
                 DOM.inputLancDescricao.value = data?.descricao || '';
             }
 
-            if (DOM.inputLancObs) {
-                DOM.inputLancObs.value = data?.observacao || '';
-            }
-
             modal.show();
         },
 
@@ -948,7 +956,6 @@
             const categoriaValue = DOM.selectLancCategoria?.value || '';
             let valorValue = DOM.inputLancValor?.value || '';
             const descricaoValue = (DOM.inputLancDescricao?.value || '').trim();
-            const obsValue = (DOM.inputLancObs?.value || '').trim();
 
             if (!dataValue) return ModalManager.showLancAlert('Informe a data do lançamento.');
             if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lançamento.');
@@ -965,7 +972,6 @@
                 tipo: tipoValue,
                 valor: Number(valorFloat.toFixed(2)),
                 descricao: descricaoValue,
-                observacao: obsValue,
                 conta_id: Number(contaValue),
                 categoria_id: categoriaValue ? Number(categoriaValue) : null
             };
@@ -1003,7 +1009,10 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE EXPORTAÇÃO ====================
+    // ============================================================================
+    // GERENCIAMENTO DE EXPORTAÇÃO
+    // ============================================================================
+
     const ExportManager = {
         initDefaults: () => {
             const inputs = [DOM.inputExportStart, DOM.inputExportEnd].filter(Boolean);
@@ -1018,11 +1027,6 @@
                     input.dataset.autofilled = '1';
                 }
             });
-
-            if (DOM.exportHint) {
-                const label = now.toLocaleDateString('pt-BR');
-                DOM.exportHint.textContent = `Por padrão exportamos ${label}.`;
-            }
         },
 
         setLoading: (isLoading) => {
@@ -1065,9 +1069,7 @@
                     conta,
                     startDate,
                     endDate
-                },
-                    format
-                );
+                }, format);
 
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
@@ -1096,7 +1098,10 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE DADOS ====================
+    // ============================================================================
+    // GERENCIAMENTO DE DADOS
+    // ============================================================================
+
     const DataManager = {
         load: async () => {
             clearTimeout(STATE.loadTimer);
@@ -1153,7 +1158,10 @@
         }
     };
 
-    // ==================== EVENT LISTENERS ====================
+    // ============================================================================
+    // EVENT LISTENERS
+    // ============================================================================
+
     const EventListeners = {
         init: () => {
             // Tipo de lançamento mudou - atualizar categorias
@@ -1196,7 +1204,10 @@
         }
     };
 
-    // ==================== INICIALIZAÇÃO ====================
+    // ============================================================================
+    // INICIALIZAÇÃO
+    // ============================================================================
+
     const init = async () => {
         console.log('🚀 Inicializando Sistema de Lançamentos...');
 
