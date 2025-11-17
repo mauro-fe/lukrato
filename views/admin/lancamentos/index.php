@@ -8,7 +8,12 @@
 
             <!-- Exportação -->
             <div class="export-range" data-aos="fade-left" aria-describedby="exportHint">
+
                 <div class="mes">
+                    <label class="export-label" for="exportType">
+                        <i class="fas fa-file-export"></i>
+                        Exportar Lançamentos
+                    </label>
                     <label class="sr-only" for="exportStart">Data Inicial</label>
                     <span>de</span>
                     <input type="date" id="exportStart" class="lk-input date-range" placeholder="Início"
@@ -23,8 +28,8 @@
 
                 <label class="sr-only" for="exportFormat">Formato de Exportação</label>
                 <select id="exportFormat" class="lk-select btn btn-secondary" aria-label="Formato de exportação">
-                    <option value="excel">Excel (.xlsx)</option>
-                    <option value="pdf">PDF (.pdf)</option>
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel (.xlsx )</option>
                 </select>
 
                 <button id="btnExportar" type="button" class="lk-btn primary btn" data-aos="fade-left"

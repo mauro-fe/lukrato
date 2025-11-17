@@ -320,7 +320,7 @@
 
             const card = document.createElement('div');
             card.className = 'acc-card';
-            card.setAttribute('data-aos', 'fade-up');
+            card.setAttribute('data-aos', 'flip-right');
             card.setAttribute('data-aos-delay', Math.min(index * 50, 300));
             card.setAttribute('role', 'article');
             card.setAttribute('aria-label', `Conta ${conta.nome}`);
