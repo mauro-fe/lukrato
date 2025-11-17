@@ -143,4 +143,25 @@ class Usuario extends Model
         $p = trim((string)$this->nome);
         return $p === '' ? '' : explode(' ', $p)[0];
     }
+
+    /**
+     * Um usuário pode ter VÁRIOS endereços.
+     */
+    public function enderecos()
+    {
+        return $this->hasMany(Endereco::class, 'user_id');
+    }
+
+    /**
+     * Atalho para pegar o endereço principal (MUITO útil).
+     * Um usuário pode ter UM endereço principal.
+     */
+    public function enderecoPrincipal()
+    {
+        return $this->hasOne(Endereco::class, 'user_id')
+                    ->where('tipo', 'principal')
+                    ->withDefault(); // withDefault() evita erros se o usuário não tiver endereço
+    }
 }
+
+

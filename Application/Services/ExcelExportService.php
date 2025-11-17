@@ -123,7 +123,7 @@ class ExcelExportService implements ReportExporterInterface
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(mb_substr($data->title, 0, 31));
+        $sheet->setTitle($this->sanitizeSheetTitle($data->title));
 
         $row = 1;
         $columnCount = max(1, count($data->headers));
@@ -339,5 +339,15 @@ class ExcelExportService implements ReportExporterInterface
         $spreadsheet->disconnectWorksheets();
 
         return $content;
+    }
+
+    private function sanitizeSheetTitle(string $title): string
+    {
+        $clean = preg_replace('/[:\\\\\\/?*\\[\\]]+/', ' ', $title) ?? '';
+        $clean = trim($clean);
+        if ($clean === '') {
+            $clean = 'Relatorio';
+        }
+        return mb_substr($clean, 0, 31);
     }
 }
