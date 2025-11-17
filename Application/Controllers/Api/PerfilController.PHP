@@ -7,6 +7,7 @@ use Application\Lib\Auth;
 use Application\Services\PerfilService;
 use Application\DTO\PerfilUpdateDTO;
 use Application\Validators\PerfilValidator;
+use Application\Providers\PerfilControllerFactory;
 use Throwable;
 
 /**
@@ -15,10 +16,21 @@ use Throwable;
  */
 class PerfilController
 {
+    private PerfilService $perfilService;
+    private PerfilValidator $validator;
+
     public function __construct(
-        private PerfilService $perfilService,
-        private PerfilValidator $validator
-    ) {}
+        ?PerfilService $perfilService = null,
+        ?PerfilValidator $validator = null
+    ) {
+        if ($perfilService !== null && $validator !== null) {
+            $this->perfilService = $perfilService;
+            $this->validator = $validator;
+            return;
+        }
+
+        [$this->perfilService, $this->validator] = PerfilControllerFactory::buildDependencies();
+    }
 
     /**
      * Retorna os dados do perfil do usuário autenticado.

@@ -103,6 +103,15 @@ class PerfilControllerFactory
 {
     public static function create(): PerfilController
     {
+        [$perfilService, $perfilValidator] = self::buildDependencies();
+        return new PerfilController($perfilService, $perfilValidator);
+    }
+
+    /**
+     * Permite reutilizar o wiring do controller quando o container nǜo estiver disponível.
+     */
+    public static function buildDependencies(): array
+    {
         // Formatters
         $documentFormatter = new DocumentFormatter();
         $dateFormatter = new DateFormatter();
@@ -146,7 +155,6 @@ class PerfilControllerFactory
             $telefoneFormatter
         );
 
-        // Controller
-        return new PerfilController($perfilService, $perfilValidator);
+        return [$perfilService, $perfilValidator];
     }
 }

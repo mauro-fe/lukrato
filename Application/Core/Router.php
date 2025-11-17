@@ -77,12 +77,12 @@ class Router
 
         foreach ($middlewareNames as $name) {
             if (!isset($registry[$name])) {
-                throw new \Exception("Middleware '{$name}' não está registrado.");
+                throw new \Exception("Middleware '{$name}' n├úo est├í registrado.");
             }
 
             $middlewareClass = $registry[$name];
 
-            // Injeção de dependência manual (simplificada) para middleware que precisa de cache
+            // Inje├º├úo de depend├¬ncia manual (simplificada) para middleware que precisa de cache
             if ($name === 'ratelimit') {
                 (new $middlewareClass(new CacheService()))->handle($request);
             } else {
@@ -104,25 +104,25 @@ class Router
             $controllerNs = 'Application\\Controllers\\' . str_replace('/', '\\', $controllerPath);
 
             if (!class_exists($controllerNs)) {
-                throw new \Exception("Controlador '{$controllerNs}' não encontrado.");
+                throw new \Exception("Controlador '{$controllerNs}' n├úo encontrado.");
             }
 
-            $instance = new $controllerNs(); // Assume que BaseController lida com dependências
+            $instance = new $controllerNs(); // Assume que BaseController lida com depend├¬ncias
 
             if (!method_exists($instance, $method)) {
-                throw new \Exception("Método '{$method}' não encontrado no controlador '{$controllerNs}'.");
+                throw new \Exception("M├®todo '{$method}' n├úo encontrado no controlador '{$controllerNs}'.");
             }
 
             call_user_func_array([$instance, $method], $params);
             return;
         }
 
-        throw new \Exception('Callback da rota inválido.');
+        throw new \Exception('Callback da rota inv├ílido.');
     }
 
     /**
-     * Trata exceções de API (Auth/Validation).
-     * O router sempre responde com JSON para exceções, pois redirecionamentos
+     * Trata exce├º├Áes de API (Auth/Validation).
+     * O router sempre responde com JSON para exce├º├Áes, pois redirecionamentos
      * devem ser tratados pelo controller (requireAuth) ou pelo cliente.
      */
     private static function handleAuthOrValidationException(\Exception $e, ?Request $request): void
@@ -156,14 +156,14 @@ class Router
 
         if ($isDev) {
             // Resposta de debug detalhada (HTML)
-            $html = '<h1>Erro na Aplicação</h1><pre>';
+            $html = '<h1>Erro na Aplica├º├úo</h1><pre>';
             $html .= '<strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
             $html .= '<strong>Arquivo:</strong> ' . $e->getFile() . ' (Linha ' . $e->getLine() . ")\n\n";
             $html .= '<strong>Trace:</strong>' . "\n" . htmlspecialchars($e->getTraceAsString());
             $html .= '</pre>';
             Response::htmlOut($html, 500);
         } else {
-            // Página 500 amigável (HTML)
+            // P├ígina 500 amig├ível (HTML)
             self::handleViewError(500, BASE_PATH . '/views/errors/500.php', 'Erro no servidor');
         }
     }
@@ -173,11 +173,11 @@ class Router
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
 
         if ($wantsJson) {
-            Response::notFound('Recurso não encontrado');
+            Response::notFound('Recurso n├úo encontrado');
             return;
         }
 
-        self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'Página não encontrada');
+        self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'P├ígina n├úo encontrada');
     }
 
     /**
