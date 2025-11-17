@@ -2,20 +2,21 @@
 
 use Application\Lib\Auth;
 
-$username     = $username     ?? 'usuario';
-$menu         = $menu         ?? '';
-$base         = BASE_URL;
-$favicon      = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1';
-$pageTitle    = $pageTitle    ?? 'Lukrato';
-$currentUser  = $currentUser  ?? Auth::user();
+// ============================================================================
+// VARIÁVEIS E CONFIGURAÇÕES
+// ============================================================================
+
+$username       = $username     ?? 'usuario';
+$menu           = $menu         ?? '';
+$base           = BASE_URL;
+$favicon        = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1';
+$pageTitle      = $pageTitle    ?? 'Lukrato';
+$currentUser    = $currentUser  ?? Auth::user();
 $showUpgradeCTA = !($currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro());
 
-$active = function (string $key) use ($menu) {
-    return (!empty($menu) && $menu === $key) ? 'active' : '';
-};
-$aria   = function (string $key) use ($menu) {
-    return (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
-};
+// Helpers para menu ativo
+$active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
+$aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
 
 ?>
 
@@ -30,48 +31,71 @@ $aria   = function (string $key) use ($menu) {
 
     <?= csrf_meta('default') ?>
 
+    <!-- ============================================================================
+         FAVICONS
+         ============================================================================ -->
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
 
+    <!-- ============================================================================
+         STYLES EXTERNOS
+         ============================================================================ -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
+    <!-- ============================================================================
+         STYLES INTERNOS
+         ============================================================================ -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
 
+    <!-- ============================================================================
+         SCRIPTS EXTERNOS
+         ============================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
 
+    <!-- ============================================================================
+         CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
+         ============================================================================ -->
     <script>
         // Namespace global do Lukrato
         window.LK = window.LK || {};
         window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 
-        // Helpers Globais
-        LK.getBase = () => (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-        LK.getCSRF = () =>
-            document.querySelector('meta[name="csrf-token"]')?.content || // do csrf_meta()
-            document.querySelector('input[name="_token"]')?.value || '';
-        LK.apiBase = LK.getBase() + 'api/';
+        // ========================================================================
+        // HELPERS GLOBAIS
+        // ========================================================================
+        LK.getBase = () => {
+            const meta = document.querySelector('meta[name="base-url"]');
+            return (meta?.content || '/').replace(/\/?$/, '/');
+        };
 
-        // Inicialização ao carregar o DOM
+        LK.getCSRF = () => {
+            return document.querySelector('meta[name="csrf-token"]')?.content ||
+                   document.querySelector('input[name="_token"]')?.value || '';
+        };
+
+        LK.apiBase = () => LK.getBase() + 'api/';
+
+        // ========================================================================
+        // INICIALIZAÇÃO DOM
+        // ========================================================================
         document.addEventListener('DOMContentLoaded', () => {
             // Header (sidebar active, logout confirm, seletor de contas)
             if (window.LK?.initHeader) {
                 window.LK.initHeader();
             }
 
-            // Sininho de notificações
+            // Sininho de notificações
             if (window.initNotificationsBell) {
-                window.initNotificationsBell({
-                    // se os endpoints forem diferentes, passe aqui
-                });
+                window.initNotificationsBell();
             }
 
             // Modais (abre/fecha via data-open-modal / data-close-modal)
@@ -81,78 +105,162 @@ $aria   = function (string $key) use ($menu) {
         });
     </script>
 
+    <!-- ============================================================================
+         SCRIPTS DE PÁGINA
+         ============================================================================ -->
     <?php loadPageJs('admin-home-header'); ?>
     <?php loadPageJs('admin-agendamentos-index'); ?>
     <?php loadPageJs(); ?>
-
 </head>
 
 <body>
+    <!-- ============================================================================
+         SIDEBAR COLLAPSE STATE (Pre-render)
+         ============================================================================ -->
     <script>
         (function() {
             try {
-                const key = 'lk.sidebar';
-                const prefersCollapsed = localStorage.getItem(key) === '1';
+                const STORAGE_KEY = 'lk.sidebar';
+                const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
                 const isDesktop = window.matchMedia('(min-width: 993px)').matches;
+                
                 if (prefersCollapsed && isDesktop) {
                     document.body.classList.add('sidebar-collapsed');
                 }
-            } catch (err) {}
+            } catch (err) {
+                console.error('Erro ao restaurar estado da sidebar:', err);
+            }
         })();
     </script>
 
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
-        title="Fechar/Abrir menu">
+    <!-- ============================================================================
+         BOTÃO TOGGLE SIDEBAR (Edge Button)
+         ============================================================================ -->
+    <button id="edgeMenuBtn" 
+            class="edge-menu-btn" 
+            aria-label="Abrir/fechar menu" 
+            aria-expanded="false"
+            title="Fechar/Abrir menu">
         <i class="fa fa-angle-left" aria-hidden="true"></i>
     </button>
 
+    <!-- ============================================================================
+         SIDEBAR NAVIGATION
+         ============================================================================ -->
     <aside class="sidebar no-glass" id="sidebar-main">
+        <!-- Logo -->
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
-        <nav class="sidebar-nav">
-            <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
-                title="Dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a>
-            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
-                title="Contas"><i class="fa fa-university" aria-hidden="true"></i><span>Contas</span></a>
-            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos"><i
-                    class="fas fa-exchange-alt"></i><span>Lançamentos</span></a>
-            <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
-                title="Categorias"><i class="fas fa-tags"></i><span>Categorias</span></a>
-            <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
-                title="Relatórios"><i class="fa fa-pie-chart"></i><span>Relatórios</span></a>
-            <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
-                <?= $aria('agendamentos') ?> title="Agendamentos"><i
-                    class="fas fa-clock"></i><span>Agendamentos</span></a>
-            <a href="<?= BASE_URL ?>investimentos" class="nav-item <?= $active('investimentos') ?>"
-                <?= $aria('investimentos') ?> title="Investimentos"><i class="fa fa-line-chart"
-                    aria-hidden="true"></i><span>Investimentos</span></a>
-            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
-                title="Perfil"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
 
-            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair"><i
-                    class="fas fa-sign-out-alt"></i>
-                <span>Sair</span></a>
+        <!-- Menu de Navegação -->
+        <nav class="sidebar-nav">
+            <!-- Dashboard -->
+            <a href="<?= BASE_URL ?>dashboard" 
+               class="nav-item <?= $active('dashboard') ?>" 
+               <?= $aria('dashboard') ?>
+               title="Dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Contas -->
+            <a href="<?= BASE_URL ?>contas" 
+               class="nav-item <?= $active('contas') ?>" 
+               <?= $aria('contas') ?>
+               title="Contas">
+                <i class="fa fa-university" aria-hidden="true"></i>
+                <span>Contas</span>
+            </a>
+
+            <!-- Lançamentos -->
+            <a href="<?= BASE_URL ?>lancamentos" 
+               class="nav-item <?= $active('lancamentos') ?>"
+               <?= $aria('lancamentos') ?> 
+               title="Lançamentos">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Lançamentos</span>
+            </a>
+
+            <!-- Categorias -->
+            <a href="<?= BASE_URL ?>categorias" 
+               class="nav-item <?= $active('categorias') ?>" 
+               <?= $aria('categorias') ?>
+               title="Categorias">
+                <i class="fas fa-tags"></i>
+                <span>Categorias</span>
+            </a>
+
+            <!-- Relatórios -->
+            <a href="<?= BASE_URL ?>relatorios" 
+               class="nav-item <?= $active('relatorios') ?>" 
+               <?= $aria('relatorios') ?>
+               title="Relatórios">
+                <i class="fa fa-pie-chart"></i>
+                <span>Relatórios</span>
+            </a>
+
+            <!-- Agendamentos -->
+            <a href="<?= BASE_URL ?>agendamentos" 
+               class="nav-item <?= $active('agendamentos') ?>"
+               <?= $aria('agendamentos') ?> 
+               title="Agendamentos">
+                <i class="fas fa-clock"></i>
+                <span>Agendamentos</span>
+            </a>
+
+            <!-- Investimentos -->
+            <a href="<?= BASE_URL ?>investimentos" 
+               class="nav-item <?= $active('investimentos') ?>"
+               <?= $aria('investimentos') ?> 
+               title="Investimentos">
+                <i class="fa fa-line-chart" aria-hidden="true"></i>
+                <span>Investimentos</span>
+            </a>
+
+            <!-- Perfil -->
+            <a href="<?= BASE_URL ?>perfil" 
+               class="nav-item <?= $active('perfil') ?>" 
+               <?= $aria('perfil') ?>
+               title="Perfil">
+                <i class="fas fa-user-circle"></i>
+                <span>Perfil</span>
+            </a>
+
+            <!-- Sair -->
+            <a id="btn-logout" 
+               class="nav-item" 
+               href="<?= BASE_URL ?>logout" 
+               title="Sair">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+
+            <!-- CTA Upgrade Pro -->
             <?php if ($showUpgradeCTA): ?>
                 <div class="sidebar-pro-cta">
                     <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
                         <i class="fa-solid fa-star"></i>
-                        <span>Pro</span>
+                        <span>Upgrade Pro</span>
                     </a>
                 </div>
             <?php endif; ?>
         </nav>
     </aside>
 
+    <!-- ============================================================================
+         MODAIS
+         ============================================================================ -->
     <?php include __DIR__ . '/modals/modal_lancamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
     <?php include __DIR__ . '/botao-lancamento_header.php'; ?>
 
+    <!-- ============================================================================
+         CONTENT WRAPPER
+         ============================================================================ -->
     <div class="content-wrapper">
-
         <main class="lk-main">
             <?php include __DIR__ . '/navbar.php'; ?>
