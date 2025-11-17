@@ -1,66 +1,85 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
-<style>
-    .mes {
-        display: flex;
-        background-color: var(--color-primary);
-        border-radius: 10px;
-        align-items: center ;
-        padding: 5px 10px;
-}
-</style>
+
 <section class="lan-page">
+    <!-- ==================== HEADER ==================== -->
     <div class="lan-header">
         <div class="lan-controls">
             <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+
+            <!-- Exportação -->
             <div class="export-range" data-aos="fade-left" aria-describedby="exportHint">
+
                 <div class="mes">
-                <label class="sr-only" for="exportStart">Início</label>
-                de<input type="date" id="exportStart" class="lk-input date-range" placeholder="In?cio" data-default-today="1">
-                à
-                <label class="sr-only" for="exportEnd">Fim</label>
-                <input type="date" id="exportEnd" class="lk-input date-range" placeholder="Fim" data-default-today="1">
-               </div>
-                <label class="sr-only" for="exportFormat">Formato</label>
-                <select id="exportFormat" class="lk-select btn btn-secondary">
-                    <option value="excel">Excel (.xlsx)</option>
-                    <option value="pdf">PDF (.pdf)</option>
+                    <label class="export-label" for="exportType">
+                        <i class="fas fa-file-export"></i>
+                        Exportar Lançamentos
+                    </label>
+                    <label class="sr-only" for="exportStart">Data Inicial</label>
+                    <span>de</span>
+                    <input type="date" id="exportStart" class="lk-input date-range" placeholder="Início"
+                        data-default-today="1" aria-label="Data inicial para exportação">
+
+                    <span>à</span>
+
+                    <label class="sr-only" for="exportEnd">Data Final</label>
+                    <input type="date" id="exportEnd" class="lk-input date-range" placeholder="Fim"
+                        data-default-today="1" aria-label="Data final para exportação">
+                </div>
+
+                <label class="sr-only" for="exportFormat">Formato de Exportação</label>
+                <select id="exportFormat" class="lk-select btn btn-secondary" aria-label="Formato de exportação">
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel (.xlsx )</option>
                 </select>
+
                 <button id="btnExportar" type="button" class="lk-btn primary btn" data-aos="fade-left"
-                    data-aos-delay="150">
+                    data-aos-delay="150" aria-label="Exportar lançamentos">
                     <i class="fas fa-file-export"></i> Exportar
                 </button>
-                <small class="export-hint" id="exportHint">Por padr?o exportamos o dia de hoje.</small>
             </div>
 
+            <!-- Filtros -->
             <div class="lan-card mt-4" data-aos="fade-up">
-
                 <div class="lan-filter">
-                    <div class="type-filter" role=" group" aria-label="Filtros">
-                        <label for="filtroTipo" class="sr-only">Tipo</label>
+                    <div class="type-filter" role="group" aria-label="Filtros de lançamentos">
+                        <!-- Tipo -->
+                        <label for="filtroTipo" class="sr-only">Filtrar por Tipo</label>
                         <select id="filtroTipo" class="lk-select btn btn-primary" data-aos="fade-right"
-                            data-aos-delay="250">
-                            <option value="">Todos</option>
+                            data-aos-delay="250" aria-label="Filtrar por tipo de lançamento">
+                            <option value="">Todos os Tipos</option>
                             <option value="receita">Receitas</option>
                             <option value="despesa">Despesas</option>
                         </select>
-                        <label for="filtroCategoria" class="sr-only">Categoria</label>
-                        <select id="filtroCategoria" class="lk-select btn btn-primary" data-aos="fade-right">
-                            <option value="">Todas as categorias</option>
-                            <option value="none">Sem categoria</option>
+
+                        <!-- Categoria -->
+                        <label for="filtroCategoria" class="sr-only">Filtrar por Categoria</label>
+                        <select id="filtroCategoria" class="lk-select btn btn-primary" data-aos="fade-right"
+                            aria-label="Filtrar por categoria">
+                            <option value="">Todas as Categorias</option>
+                            <option value="none">Sem Categoria</option>
                         </select>
-                        <label for="filtroConta" class="sr-only">Conta</label>
-                        <select id="filtroConta" class="lk-select btn btn-primary" data-aos="fade-up">
-                            <option value="">Todas as contas</option>
+
+                        <!-- Conta -->
+                        <label for="filtroConta" class="sr-only">Filtrar por Conta</label>
+                        <select id="filtroConta" class="lk-select btn btn-primary" data-aos="fade-up"
+                            aria-label="Filtrar por conta">
+                            <option value="">Todas as Contas</option>
                         </select>
-                        <button id="btnFiltrar" type="button" class="lk-btn ghost btn" data-aos="fade-left">
+
+                        <!-- Ações -->
+                        <button id="btnFiltrar" type="button" class="lk-btn ghost btn" data-aos="fade-left"
+                            aria-label="Aplicar filtros">
                             <i class="fas fa-filter"></i> Filtrar
                         </button>
 
                         <button id="btnExcluirSel" type="button" class="lk-btn danger btn" data-aos="fade-left"
-                            data-aos-delay="250" disabled>
-                            <i class="fas fa-trash"></i> Excluir selecionados
+                            data-aos-delay="250" disabled aria-label="Excluir lançamentos selecionados">
+                            <i class="fas fa-trash"></i> Excluir Selecionados
                         </button>
-                        <small id="selInfo">
+
+                        <!-- Info de seleção -->
+                        <small id="selInfo" aria-live="polite">
+                            <i class="fas fa-check-square"></i>
                             <span id="selCount">0</span> selecionado(s)
                         </small>
                     </div>
@@ -68,6 +87,8 @@
             </div>
         </div>
     </div>
+
+    <!-- ==================== TABELA ==================== -->
     <div class="container-table" data-aos="fade-up" data-aos-delay="250">
         <section class="table-container">
             <div id="tabLancamentos"></div>
@@ -75,1096 +96,85 @@
     </div>
 </section>
 
+<!-- ==================== MODAL DE EDIÇÃO ==================== -->
 <div class="modal fade" id="modalEditarLancamento" tabindex="-1" aria-labelledby="modalEditarLancamentoLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content bg-dark text-light border-0 rounded-3">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar lan�amento</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar Lançamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar modal">
+                </button>
             </div>
+
+            <!-- Body -->
             <div class="modal-body pt-0">
-                <div id="editLancAlert" class="alert alert-danger d-none" role="alert"></div>
+                <div id="editLancAlert" class="alert alert-danger d-none" role="alert">
+                </div>
+
                 <form id="formLancamento" novalidate>
+                    <!-- Data -->
                     <div class="mb-3">
-                        <label for="editLancData" class="form-label text-light small mb-1">Data</label>
-                        <input type="date" class="form-control form-control-sm bg-dark text-light border-secondary"
-                            id="editLancData" required>
+                        <label for="editLancData" class="form-label">📅 Data</label>
+                        <input type="date" class="form-control form-control-sm" id="editLancData" required
+                            aria-required="true">
                     </div>
+
                     <div class="row g-3">
+                        <!-- Tipo -->
                         <div class="col-md-6">
-                            <label for="editLancTipo" class="form-label text-light small mb-1">Tipo</label>
-                            <select class="form-select form-select-sm bg-dark text-light border-secondary"
-                                id="editLancTipo" required>
+                            <label for="editLancTipo" class="form-label">🏷️ Tipo</label>
+                            <select class="form-select form-select-sm" id="editLancTipo" required aria-required="true">
                                 <option value="receita">Receita</option>
                                 <option value="despesa">Despesa</option>
                             </select>
                         </div>
+
+                        <!-- Conta -->
                         <div class="col-md-6">
-                            <label for="editLancConta" class="form-label text-light small mb-1">Conta</label>
-                            <select class="form-select form-select-sm bg-dark text-light border-secondary"
-                                id="editLancConta" required></select>
+                            <label for="editLancConta" class="form-label">🏦 Conta</label>
+                            <select class="form-select form-select-sm" id="editLancConta" required aria-required="true">
+                            </select>
                         </div>
                     </div>
+
+                    <!-- Categoria -->
                     <div class="mb-3 mt-3">
-                        <label for="editLancCategoria" class="form-label text-light small mb-1">Categoria</label>
-                        <select class="form-select form-select-sm bg-dark text-light border-secondary"
-                            id="editLancCategoria"></select>
+                        <label for="editLancCategoria" class="form-label">📂 Categoria</label>
+                        <select class="form-select form-select-sm" id="editLancCategoria">
+                        </select>
                     </div>
+
                     <div class="row g-3">
+                        <!-- Valor -->
                         <div class="col-md-3">
-                            <label for="editLancValor" class="form-label text-light small mb-1">Valor</label>
-                            <input type="number"
-                                class="form-control form-control-sm bg-dark text-light border-secondary"
-                                id="editLancValor" step="0.01" min="0" required>
+                            <label for="editLancValor" class="form-label">💰 Valor</label>
+                            <input type="number" class="form-control form-control-sm" id="editLancValor" step="0.01"
+                                min="0" required aria-required="true">
                         </div>
+
+                        <!-- Descrição -->
                         <div class="col-md-9">
-                            <label for="editLancDescricao" class="form-label text-light small mb-1">Descricao</label>
-                            <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary"
-                                id="editLancDescricao" maxlength="190">
+                            <label for="editLancDescricao" class="form-label">📝 Descrição</label>
+                            <input type="text" class="form-control form-control-sm" id="editLancDescricao"
+                                maxlength="190">
                         </div>
                     </div>
-                    <!-- <div class="mb-3 mt-3">
-                        <label for="editLancObs" class="form-label text-light small mb-1">Observa��o</label>
-                        <textarea class="form-control form-control-sm bg-dark text-light border-secondary"
-                            id="editLancObs" rows="3" maxlength="500"></textarea>
-                    </div> -->
                 </form>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary btn-sm" form="formLancamento">Salvar</button>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm" form="formLancamento">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
-<script>
-    (() => {
-        'use strict';
-        if (window.__LK_LANCAMENTOS_LOADER__) return;
-        window.__LK_LANCAMENTOS_LOADER__ = true;
-
-        const rawBase = (window.BASE_URL || (location.pathname.includes('/public/') ?
-            location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/');
-        const ENDPOINT = `${rawBase}api/lancamentos`;
-        const EXPORT_ENDPOINT = `${ENDPOINT}/export`;
-
-        const $ = (s) => document.querySelector(s);
-        const tabContainer = document.getElementById('tabLancamentos');
-        const selectTipo = $('#filtroTipo');
-        const selectCategoria = $('#filtroCategoria');
-        const selectConta = $('#filtroConta');
-        const btnFiltrar = $('#btnFiltrar');
-        const btnExportar = $('#btnExportar');
-        const exportHint = document.getElementById('exportHint');
-        const inputExportStart = $('#exportStart');
-        const inputExportEnd = $('#exportEnd');
-        const selectExportFormat = $('#exportFormat');
-        const btnExcluirSel = $('#btnExcluirSel');
-        const selInfo = $('#selInfo');
-        const selCountSpan = $('#selCount');
-
-        // ---- modal de edi��o (N�O � o de m�s)
-        const modalEditLancEl = document.getElementById('modalEditarLancamento');
-        let modalEditLanc = null;
-        const formLanc = document.getElementById('formLancamento');
-        const editLancAlert = document.getElementById('editLancAlert');
-        const inputLancData = document.getElementById('editLancData');
-        const selectLancTipo = document.getElementById('editLancTipo');
-        const selectLancConta = document.getElementById('editLancConta');
-        const selectLancCategoria = document.getElementById('editLancCategoria');
-        const inputLancValor = document.getElementById('editLancValor');
-        const inputLancDescricao = document.getElementById('editLancDescricao');
-        const inputLancObs = document.getElementById('editLancObs');
-
-        let editingLancamentoId = null;
-        let categoriaOptions = [];
-        let contaOptions = [];
-
-        const ensureLancModal = () => {
-            if (modalEditLanc) return modalEditLanc;
-            if (!modalEditLancEl) return null;
-            if (window.bootstrap?.Modal) {
-                if (modalEditLancEl.parentElement && modalEditLancEl.parentElement !== document.body) {
-                    document.body.appendChild(modalEditLancEl);
-                }
-                modalEditLanc = window.bootstrap.Modal.getOrCreateInstance(modalEditLancEl);
-                return modalEditLanc;
-            }
-            return null;
-        };
-
-        const clearLancAlert = () => {
-            if (!editLancAlert) return;
-            editLancAlert.classList.add('d-none');
-            editLancAlert.textContent = '';
-        };
-
-        const showLancAlert = (msg) => {
-            if (!editLancAlert) return;
-            editLancAlert.textContent = msg;
-            editLancAlert.classList.remove('d-none');
-        };
-
-        function populateCategoriaSelect(select, tipo, selectedId) {
-            if (!select) return;
-            const normalized = (tipo || '').toLowerCase();
-            const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
-            select.innerHTML = '<option value="">Sem categoria</option>';
-            const items = categoriaOptions.filter((item) => {
-                if (!normalized) return true;
-                return item.tipo === normalized;
-            });
-            items.forEach((item) => {
-                const opt = document.createElement('option');
-                opt.value = String(item.id);
-                opt.textContent = item.nome;
-                opt.dataset.tipo = item.tipo || '';
-                if (currentValue && String(item.id) === currentValue) opt.selected = true;
-                select.appendChild(opt);
-            });
-            if (currentValue && select.value !== currentValue) {
-                const fallback = document.createElement('option');
-                fallback.value = currentValue;
-                fallback.textContent = 'Categoria indisponivel';
-                fallback.selected = true;
-                select.appendChild(fallback);
-            }
-        }
-
-        function populateContaSelect(select, selectedId) {
-            if (!select) return;
-            const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
-            select.innerHTML = '<option value="">Selecione</option>';
-            contaOptions.forEach((item) => {
-                const opt = document.createElement('option');
-                opt.value = String(item.id);
-                opt.textContent = item.label;
-                if (currentValue && String(item.id) === currentValue) opt.selected = true;
-                select.appendChild(opt);
-            });
-            if (currentValue && select.value !== currentValue) {
-                const fallback = document.createElement('option');
-                fallback.value = currentValue;
-                fallback.textContent = 'Conta indisponivel';
-                fallback.selected = true;
-                select.appendChild(fallback);
-            }
-        }
-
-        // -------- Tabulator
-        let table = null;
-
-        const waitForTableReady = (instance) => {
-            if (!instance) return Promise.resolve();
-            if (instance.__lkReadyResolved || !instance.__lkReadyPromise) {
-                return Promise.resolve();
-            }
-            return instance.__lkReadyPromise;
-        };
-
-        const tableIsActive = (instance) => {
-            if (!instance) return false;
-            if (instance.__lkInitializing) return true;
-            const rm = instance.rowManager;
-            if (!rm || !rm.renderer) return false;
-            if (instance.element && instance.element.isConnected === false) return false;
-            return true;
-        };
-
-        const buildTable = () => {
-            if (!tabContainer) return null;
-            const instance = new Tabulator(tabContainer, {
-                height: "520px",
-                layout: "fitColumns",
-                placeholder: "Sem lancamentos para o periodo",
-                selectable: true,
-                index: "id",
-                pagination: "local",
-                paginationSize: 25,
-                paginationSizeSelector: [10, 25, 50, 100],
-                rowFormatter: (row) => {
-                    const data = row.getData();
-                    row.getElement().setAttribute('data-id', data?.id ?? '');
-                    if (isSaldoInicial(data)) {
-                        row.getElement()?.classList.add('lk-row-inicial');
-                    }
-                },
-                selectableCheck: (row) => !isSaldoInicial(row.getData()),
-                columns: [{
-                        formatter: "rowSelection",
-                        titleFormatter: "rowSelection",
-                        hozAlign: "center",
-                        headerSort: false,
-                        width: 44,
-                        cellClick: (e, cell) => {
-                            const data = cell.getRow().getData();
-                            if (isSaldoInicial(data)) {
-                                e.preventDefault();
-                                cell.getRow().deselect();
-                            }
-                        },
-                        cellRendered: (cell) => {
-                            const data = cell.getRow().getData();
-                            if (isSaldoInicial(data)) {
-                                cell.getElement().classList.add('lk-cell-select-disabled');
-                            }
-                        }
-                    },
-                    {
-                        title: "Data",
-                        field: "data",
-                        sorter: "date",
-                        hozAlign: "left",
-                        width: 130,
-                        mutator: (value, data) => data.data || data.created_at,
-                        formatter: (cell) => fmtDate(cell.getValue()),
-                        headerFilterFunc: (headerValue, rowValue) => {
-                            const filter = parseFilterDate(headerValue);
-                            if (!filter) return true;
-                            const value = extractYMD(rowValue);
-                            if (!value) return false;
-                            if (filter.year !== null && value.year !== filter.year) return false;
-                            if (filter.month !== null && value.month !== filter.month) return false;
-                            if (filter.day !== null && value.day !== filter.day) return false;
-                            return true;
-                        },
-                        headerFilter: "input",
-                        headerFilterPlaceholder: "Filtrar data"
-                    },
-                    {
-                        title: "Tipo",
-                        field: "tipo",
-                        width: 120,
-                        formatter: (cell) => {
-                            const t = String(cell.getValue() || '-');
-                            return t.charAt(0).toUpperCase() + t.slice(1);
-                        },
-                        headerFilter: "select",
-                        headerFilterParams: {
-                            values: {
-                                "": "Todos",
-                                receita: "Receitas",
-                                despesa: "Despesas"
-                            }
-                        }
-                    },
-                    {
-                        title: "Categoria",
-                        field: "categoria_nome",
-                        widthGrow: 1,
-                        mutator: (value, data) => {
-                            const candidate = value ??
-                                data?.categoria ??
-                                data?.categoria_nome ??
-                                (typeof data?.categoria === 'object' ? data?.categoria?.nome :
-                                    '') ?? '';
-                            if (candidate && typeof candidate === 'object') {
-                                return String(candidate.nome ?? candidate.label ?? candidate
-                                    .title ?? '');
-                            }
-                            return candidate ? String(candidate) : '';
-                        },
-                        formatter: (cell) => cell.getValue() || '-',
-                        headerFilter: "input",
-                        headerFilterPlaceholder: "Filtrar categoria"
-                    },
-                    {
-                        title: "Conta",
-                        field: "conta_nome",
-                        widthGrow: 1,
-                        mutator: (value, data) => {
-                            const raw = value ??
-                                data?.conta ??
-                                data?.conta_nome ??
-                                (typeof data?.conta === 'object' ? data?.conta?.nome : '') ?? '';
-                            if (raw && typeof raw === 'object') {
-                                return String(raw.nome ?? raw.label ?? raw.title ?? '');
-                            }
-                            return raw ? String(raw) : '';
-                        },
-                        formatter: (cell) => cell.getValue() || '-',
-                        headerFilter: "input",
-                        headerFilterPlaceholder: "Filtrar conta"
-                    },
-                    {
-                        title: "Descricao",
-                        field: "descricao",
-                        widthGrow: 2,
-                        mutator: (value, data) => {
-                            let raw = value ??
-                                data?.descricao ??
-                                data?.descricao_titulo ??
-                                (typeof data?.descricao === 'object' ? data?.descricao?.texto :
-                                    '') ?? '';
-                            if (raw && typeof raw === 'object') {
-                                raw = raw.texto ?? raw.value ?? raw.title ?? '';
-                            }
-                            return raw ? String(raw).trim() : '';
-                        },
-                        formatter: (cell) => cell.getValue() || '-',
-                        headerFilterFunc: (headerValue, rowValue) => {
-                            const needle = normalizeText(headerValue);
-                            if (!needle) return true;
-                            const hay = normalizeText(rowValue);
-                            return hay.includes(needle);
-                        },
-                        headerFilter: "input",
-                        headerFilterPlaceholder: "Filtrar descricao"
-                    },
-                    {
-                        title: "Valor",
-                        field: "valor",
-                        hozAlign: "right",
-                        width: 150,
-                        formatter: (cell) => fmtMoney(cell.getValue()),
-                        headerFilterFunc: (headerValue, rowValue) => {
-                            const needle = parseFilterNumber(headerValue);
-                            if (needle === null) return true;
-                            const value = Number(rowValue ?? 0);
-                            if (!Number.isFinite(value)) return false;
-                            return Math.abs(value - needle) < 0.005;
-                        },
-                        headerFilter: "input",
-                        headerFilterPlaceholder: "Filtrar valor"
-                    },
-                    {
-                        title: "Acoes",
-                        field: "actions",
-                        headerSort: false,
-                        hozAlign: "center",
-                        width: 120,
-                        formatter: (cell) => {
-                            const data = cell.getRow().getData();
-                            if (isSaldoInicial(data)) return '';
-                            const buttons = [];
-                            if (canEditLancamento(data)) {
-                                buttons.push(
-                                    '<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>'
-                                );
-                            }
-                            buttons.push(
-                                '<button class="lk-btn danger" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>'
-                            );
-                            return `<div class="lk-actions">${buttons.join('')}</div>`;
-                        },
-                        cellClick: async (e, cell) => {
-                            const row = cell.getRow();
-                            const data = row.getData();
-                            const btn = e.target.closest('button[data-action]');
-                            if (!btn) return;
-                            const action = btn.getAttribute('data-action');
-                            if (action === 'edit') {
-                                if (!canEditLancamento(data)) return;
-                                openEditLancamento(data);
-                                return;
-                            }
-                            if (action === 'delete') {
-                                const id = data?.id;
-                                if (!id || isSaldoInicial(data)) return;
-                                const ok = await ask('Excluir lancamento?',
-                                    'Essa acao nao pode ser desfeita.');
-                                if (!ok) return;
-                                btn.disabled = true;
-                                const okDel = await apiDeleteOne(id);
-                                btn.disabled = false;
-                                if (okDel) {
-                                    row.delete();
-                                    toast('Excluido.');
-                                    updateSelectionInfo();
-                                } else {
-                                    toast('Falha ao excluir.', 'error');
-                                }
-                            }
-                        }
-                    }
-                ]
-            });
-
-            instance.on("rowSelectionChanged", (_data, rows) => {
-                if (Array.isArray(rows)) {
-                    rows.forEach((row) => {
-                        if (isSaldoInicial(row.getData())) row.deselect();
-                    });
-                }
-                updateSelectionInfo();
-            });
-
-            instance.__lkInitializing = true;
-            instance.__lkReadyResolved = false;
-            instance.__lkReadyPromise = new Promise((resolve) => {
-                const markReady = () => {
-                    if (instance.__lkReadyResolved) return;
-                    instance.__lkInitializing = false;
-                    instance.__lkReadyResolved = true;
-                    resolve();
-                };
-                instance.on("tableBuilt", markReady);
-                if (instance.rowManager?.renderer) {
-                    markReady();
-                }
-            });
-
-            return instance;
-        };
-
-        function ensureTable() {
-            if (!tabContainer) return null;
-            if (!tableIsActive(table)) {
-                try {
-                    if (table && typeof table.destroy === 'function') table.destroy();
-                } catch (_) {}
-                table = buildTable();
-            }
-            return table;
-        }
-
-        function isSaldoInicial(data) {
-            if (!data) return false;
-            const tipo = String(data?.tipo || '').toLowerCase();
-            const descricao = String(data?.descricao || '').toLowerCase();
-            if (tipo === 'saldo_inicial' || tipo === 'saldo inicial') return true;
-            return descricao.includes('saldo inicial');
-        }
-
-        function isTransferencia(data) {
-            return Boolean(data?.eh_transferencia);
-        }
-
-        function canEditLancamento(data) {
-            return !isSaldoInicial(data) && !isTransferencia(data);
-        }
-
-        const fmtMoney = (n) => new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(Number(n || 0));
-        const parseFilterNumber = (input) => {
-            if (input === undefined || input === null) return null;
-            const raw = String(input).trim();
-            if (!raw) return null;
-            const normalized = raw.replace(/\./g, '').replace(',', '.');
-            const num = Number(normalized);
-            return Number.isFinite(num) ? num : null;
-        };
-        const parseFilterDate = (input) => {
-            if (input === undefined || input === null) return null;
-            const raw = String(input).trim();
-            if (!raw) return null;
-            if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(raw)) {
-                const [year, month, day] = raw.split('-').map(Number);
-                return normalizeFilterDate(day, month, year);
-            }
-            const cleaned = raw.replace(/[-.]/g, '/');
-            const match = cleaned.match(/^(\d{1,2})(?:\/(\d{1,2})(?:\/(\d{2,4}))?)?$/);
-            if (!match) return null;
-            const day = Number(match[1]);
-            const month = match[2] !== undefined ? Number(match[2]) : null;
-            const year = match[3] !== undefined ? Number(match[3]) : null;
-            return normalizeFilterDate(day, month, year);
-        };
-        const normalizeFilterDate = (day, month, year) => {
-            const safeDay = Number.isFinite(day) ? day : null;
-            const safeMonth = Number.isFinite(month) ? month : null;
-            let safeYear = Number.isFinite(year) ? year : null;
-            if (safeYear !== null && safeYear < 100) safeYear += 2000;
-            if (safeDay !== null && (safeDay < 1 || safeDay > 31)) return null;
-            if (safeMonth !== null && (safeMonth < 1 || safeMonth > 12)) return null;
-            if (safeYear !== null && (safeYear < 1900 || safeYear > 2100)) return null;
-            return {
-                day: safeDay,
-                month: safeMonth,
-                year: safeYear
-            };
-        };
-        const extractYMD = (value) => {
-            if (!value) return null;
-            if (value instanceof Date && !isNaN(value)) {
-                return {
-                    year: value.getFullYear(),
-                    month: value.getMonth() + 1,
-                    day: value.getDate()
-                };
-            }
-            if (typeof value === 'string') {
-                const trimmed = value.trim();
-                if (!trimmed) return null;
-                if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
-                    const [y, m, d] = trimmed.slice(0, 10).split('-').map(Number);
-                    return normalizeFilterDate(d, m, y);
-                }
-                if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmed)) {
-                    const [d, m, y] = trimmed.split('/').map(Number);
-                    return normalizeFilterDate(d, m, y);
-                }
-            }
-            const d = new Date(value);
-            if (isNaN(d)) return null;
-            return {
-                year: d.getFullYear(),
-                month: d.getMonth() + 1,
-                day: d.getDate()
-            };
-        };
-        const fmtDate = (iso) => {
-            if (!iso) return '-';
-            if (typeof iso === 'string') {
-                const normalized = iso.trim();
-                const datePart = normalized.includes('T') ? normalized.split('T')[0] : normalized;
-                if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-                    const [year, month, day] = datePart.split('-');
-                    if (year && month && day) return `${day}/${month}/${year}`;
-                }
-            }
-            const d = new Date(iso);
-            return isNaN(d) ? '-' : d.toLocaleDateString('pt-BR');
-        };
-        const normalizeText = (str) => String(str ?? '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase('pt-BR');
-        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        } [m] || m));
-
-        const normalizeDataList = (payload) => {
-            if (!payload) return [];
-            if (Array.isArray(payload)) return payload;
-            if (payload && Array.isArray(payload.data)) return payload.data;
-            return [];
-        };
-
-        const fetchJsonList = async (url) => {
-            try {
-                const res = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                if (!res.ok) return [];
-                const body = await res.json().catch(() => null);
-                return normalizeDataList(body);
-            } catch {
-                return [];
-            }
-        };
-
-        async function loadFilterOptions() {
-            const categoriaPromise = selectCategoria ? fetchJsonList(`${rawBase}api/categorias`) : Promise.resolve(
-                []);
-            const contaPromise = selectConta ? fetchJsonList(`${rawBase}api/accounts?only_active=1`) : Promise
-                .resolve([]);
-
-            if (selectCategoria) {
-                selectCategoria.innerHTML =
-                    '<option value="">Todas as categorias</option><option value="none">Sem categoria</option>';
-            }
-            if (selectConta) {
-                selectConta.innerHTML = '<option value="">Todas as contas</option>';
-            }
-
-            const [categorias, contas] = await Promise.all([categoriaPromise, contaPromise]);
-
-            if (selectCategoria && categorias.length) {
-                categoriaOptions = categorias
-                    .map((cat) => ({
-                        id: Number(cat?.id ?? 0),
-                        nome: String(cat?.nome ?? '').trim(),
-                        tipo: String(cat?.tipo ?? '').trim().toLowerCase()
-                    }))
-                    .filter((cat) => Number.isFinite(cat.id) && cat.id > 0 && cat.nome)
-                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', {
-                        sensitivity: 'base'
-                    }));
-
-                const options = categoriaOptions
-                    .map((cat) => `<option value="${cat.id}">${escapeHtml(cat.nome)}</option>`)
-                    .join('');
-                selectCategoria.insertAdjacentHTML('beforeend', options);
-            }
-
-            if (selectConta && contas.length) {
-                contaOptions = contas
-                    .map((acc) => {
-                        const id = Number(acc?.id ?? 0);
-                        const nome = String(acc?.nome ?? '').trim();
-                        const instituicao = String(acc?.instituicao ?? '').trim();
-                        const label = nome || instituicao;
-                        return {
-                            id,
-                            label: label || `Conta #${id}`
-                        };
-                    })
-                    .filter((acc) => Number.isFinite(acc.id) && acc.id > 0 && acc.label)
-                    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', {
-                        sensitivity: 'base'
-                    }));
-
-                const options = contaOptions
-                    .map((acc) => `<option value="${acc.id}">${escapeHtml(acc.label)}</option>`)
-                    .join('');
-                selectConta.insertAdjacentHTML('beforeend', options);
-            }
-
-            if (selectLancConta) populateContaSelect(selectLancConta, selectLancConta.value || null);
-            if (selectLancCategoria) populateCategoriaSelect(selectLancCategoria, selectLancTipo?.value || '',
-                selectLancCategoria.value || null);
-        }
-
-        const hasSwal = !!window.Swal;
-        const ask = async (title, text = '') => {
-            if (hasSwal) {
-                const r = await Swal.fire({
-                    title,
-                    text,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sim, excluir',
-                    cancelButtonText: 'Cancelar'
-                });
-                return r.isConfirmed;
-            }
-            return confirm(title || 'Confirmar exclusao?');
-        };
-        const toast = (msg, icon = 'success') => {
-            if (hasSwal) Swal.fire({
-                toast: true,
-                position: 'top-end',
-                timer: 1800,
-                showConfirmButton: false,
-                icon,
-                title: msg
-            });
-        };
-
-        function updateSelectionInfo() {
-            const t = ensureTable();
-            if (!t) {
-                if (selCountSpan) selCountSpan.textContent = '0';
-                btnExcluirSel?.setAttribute('disabled', 'disabled');
-                return;
-            }
-            if (!t.__lkReadyResolved) {
-                waitForTableReady(t).then(() => updateSelectionInfo());
-                return;
-            }
-            const selected = t.getSelectedRows().filter(row => !isSaldoInicial(row.getData()));
-            const count = selected.length;
-            if (selCountSpan) selCountSpan.textContent = String(count);
-            if (btnExcluirSel) {
-                btnExcluirSel.toggleAttribute("disabled", count === 0);
-            }
-        }
-
-        function openEditLancamento(data) {
-            const modal = ensureLancModal();
-            if (!modal || !canEditLancamento(data)) return;
-            editingLancamentoId = data?.id ?? null;
-            if (!editingLancamentoId) return;
-            clearLancAlert();
-
-            if (inputLancData) inputLancData.value = (data?.data || '').slice(0, 10);
-            if (selectLancTipo) {
-                const tipo = String(data?.tipo || '').toLowerCase();
-                selectLancTipo.value = ["receita", "despesa"].includes(tipo) ? tipo : 'despesa';
-            }
-
-            populateContaSelect(selectLancConta, data?.conta_id ?? null);
-            populateCategoriaSelect(selectLancCategoria, selectLancTipo?.value || '', data?.categoria_id ?? null);
-
-            if (inputLancValor) {
-                const valor = Math.abs(Number(data?.valor ?? 0));
-                inputLancValor.value = Number.isFinite(valor) ? valor.toFixed(2) : '';
-            }
-            if (inputLancDescricao) inputLancDescricao.value = data?.descricao || '';
-            if (inputLancObs) inputLancObs.value = data?.observacao || '';
-
-            modal.show();
-        }
-
-        async function renderRows(items) {
-            const grid = ensureTable();
-            if (!grid) return;
-            await waitForTableReady(grid);
-            grid.setData(Array.isArray(items) ? items : []);
-            updateSelectionInfo();
-        }
-
-        function buildLancamentoQuery({
-            month,
-            tipo = '',
-            categoria = '',
-            conta = '',
-            limit,
-            startDate,
-            endDate
-        }) {
-            const qs = new URLSearchParams();
-            if (month) qs.set('month', month);
-            if (tipo) qs.set('tipo', tipo);
-            if (categoria !== undefined && categoria !== null && categoria !== '') {
-                qs.set('categoria_id', categoria);
-            }
-            if (conta !== undefined && conta !== null && conta !== '') {
-                qs.set('account_id', conta);
-            }
-            if (limit !== undefined && limit !== null) {
-                qs.set('limit', String(limit));
-            }
-            if (startDate) qs.set('start_date', startDate);
-            if (endDate) qs.set('end_date', endDate);
-            return qs;
-        }
-
-        async function fetchLancamentos({
-            month,
-            tipo = '',
-            categoria = '',
-            conta = '',
-            limit = 500,
-            startDate = '',
-            endDate = ''
-        }) {
-            const qs = buildLancamentoQuery({
-                month,
-                tipo,
-                categoria,
-                conta,
-                limit,
-                startDate,
-                endDate
-            });
-            try {
-                const res = await fetch(`${ENDPOINT}?${qs.toString()}`, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                if (res.status === 204 || res.status === 404 || !res.ok) return [];
-                const data = await res.json().catch(() => null);
-                if (Array.isArray(data)) return data;
-                if (data && Array.isArray(data.data)) return data.data;
-                return [];
-            } catch {
-                return [];
-            }
-        }
-
-        function parseDownloadFilename(disposition) {
-            if (!disposition) return null;
-            const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-            if (utf8Match && utf8Match[1]) {
-                return decodeURIComponent(utf8Match[1]);
-            }
-            const asciiMatch = disposition.match(/filename="?([^";]+)"?/i);
-            if (asciiMatch && asciiMatch[1]) {
-                return asciiMatch[1];
-            }
-            return null;
-        }
-
-        function setExportLoading(isLoading) {
-            if (!btnExportar) return;
-            btnExportar.disabled = isLoading;
-            btnExportar.innerHTML = isLoading ?
-                '<i class="fas fa-circle-notch fa-spin"></i> Exportando...' :
-                '<i class="fas fa-file-export"></i> Exportar';
-        }
-
-        function initExportDefaults() {
-            const inputs = [inputExportStart, inputExportEnd].filter(Boolean);
-            if (!inputs.length) return;
-            const now = new Date();
-            const isoToday = now.toISOString().slice(0, 10);
-            inputs.forEach((input) => {
-                if (input.dataset.defaultToday === '1' && !input.value) {
-                    input.value = isoToday;
-                    input.dataset.autofilled = '1';
-                }
-            });
-            if (exportHint) {
-                const label = now.toLocaleDateString('pt-BR');
-                exportHint.textContent = 'Por padrao exportamos ' + label + '.';
-            }
-        }
-
-        function getTrimmedDateValue(input) {
-            if (!input) return '';
-            const value = (input.value || '').trim();
-            return value && /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value) ? value : '';
-        }
-
-        async function exportLancamentos(forcedFormat) {
-            const month = (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(0, 7);
-            const tipo = selectTipo ? selectTipo.value : '';
-            const categoria = selectCategoria ? selectCategoria.value : '';
-            const conta = selectConta ? selectConta.value : '';
-            const startDate = getTrimmedDateValue(inputExportStart);
-            const endDate = getTrimmedDateValue(inputExportEnd);
-
-            if ((startDate && !endDate) || (!startDate && endDate)) {
-                toast('Informe tanto a data inicial quanto final para exportar.', 'error');
-                return;
-            }
-            if (startDate && endDate && endDate < startDate) {
-                toast('A data final deve ser posterior ou igual a inicial.', 'error');
-                return;
-            }
-
-            const format =
-                forcedFormat ||
-                (selectExportFormat ? (selectExportFormat.value || 'excel') : 'excel');
-
-            const qs = buildLancamentoQuery({
-                month,
-                tipo,
-                categoria,
-                conta,
-                startDate,
-                endDate
-            });
-            qs.set('format', format);
-
-            setExportLoading(true);
-            try {
-                const res = await fetch(`${EXPORT_ENDPOINT}?${qs.toString()}`, {
-                    credentials: 'include'
-                });
-                if (!res.ok) {
-                    let message = 'Falha ao exportar lancamentos.';
-                    const maybeJson = await res.json().catch(() => null);
-                    if (maybeJson?.message) message = maybeJson.message;
-                    throw new Error(message);
-                }
-
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const disposition = res.headers.get('Content-Disposition');
-                const suffixDate = startDate && endDate ?
-                    `${startDate}_a_${endDate}` :
-                    (month || 'periodo');
-                const fallback = `lancamentos-${suffixDate}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
-                const filename = parseDownloadFilename(disposition) || fallback;
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                toast('Exportacao pronta!');
-            } catch (err) {
-                console.error(err);
-                toast(err?.message || 'Falha ao exportar lancamentos.', 'error');
-            } finally {
-                setExportLoading(false);
-            }
-        }
-
-        async function apiDeleteOne(id) {
-            try {
-                const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
-                const res = await fetch(`${ENDPOINT}/${encodeURIComponent(id)}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': token
-                    }
-                });
-                return res.ok;
-            } catch {
-                return false;
-            }
-        }
-
-        async function apiBulkDelete(ids) {
-            try {
-                const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
-                const payload = {
-                    ids,
-                    _token: token,
-                    csrf_token: token
-                };
-                const res = await fetch(`${ENDPOINT}delete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': token
-                    },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) return true;
-            } catch {}
-            const results = await Promise.all(ids.map(apiDeleteOne));
-            return results.every(Boolean);
-        }
-
-        selectLancTipo?.addEventListener('change', () => {
-            populateCategoriaSelect(selectLancCategoria, selectLancTipo.value, selectLancCategoria?.value ||
-                '');
-        });
-
-        modalEditLancEl?.addEventListener('hidden.bs.modal', () => {
-            editingLancamentoId = null;
-            formLanc?.reset?.();
-            clearLancAlert();
-        });
-
-        formLanc?.addEventListener('submit', async (ev) => {
-            ev.preventDefault();
-            if (!editingLancamentoId) return;
-            clearLancAlert();
-
-            const dataValue = inputLancData?.value || '';
-            const tipoValue = selectLancTipo?.value || '';
-            const contaValue = selectLancConta?.value || '';
-            const categoriaValue = selectLancCategoria?.value || '';
-            let valorValue = inputLancValor?.value || '';
-            const descricaoValue = (inputLancDescricao?.value || '').trim();
-            const obsValue = (inputLancObs?.value || '').trim();
-
-            if (!dataValue) return showLancAlert('Informe a data do lancamento.');
-            if (!tipoValue) return showLancAlert('Selecione o tipo do lancamento.');
-            if (!contaValue) return showLancAlert('Selecione a conta.');
-
-            valorValue = valorValue.replace(/\s+/g, '').replace(',', '.');
-            const valorFloat = Math.abs(Number(valorValue));
-            if (!Number.isFinite(valorFloat)) return showLancAlert('Informe um valor valido.');
-
-            const payload = {
-                data: dataValue,
-                tipo: tipoValue,
-                valor: Number(valorFloat.toFixed(2)),
-                descricao: descricaoValue,
-                observacao: obsValue,
-                conta_id: Number(contaValue),
-                categoria_id: categoriaValue ? Number(categoriaValue) : null
-            };
-
-            const submitBtn = formLanc.querySelector('button[type="submit"]');
-            submitBtn?.setAttribute('disabled', 'disabled');
-
-            const token = (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '';
-
-            try {
-                const res = await fetch(`${ENDPOINT}/${encodeURIComponent(editingLancamentoId)}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': token
-                    },
-                    body: JSON.stringify(payload)
-                });
-                const json = await res.json().catch(() => null);
-                if (!res.ok || (json && json.status !== 'success')) {
-                    const msg = json?.message || (json?.errors ? Object.values(json.errors).join('\n') :
-                        'Falha ao atualizar lancamento.');
-                    throw new Error(msg);
-                }
-                ensureLancModal()?.hide();
-                toast('success', 'Lancamento atualizado!');
-                await load();
-                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
-                    detail: {
-                        resource: 'transactions',
-                        action: 'update',
-                        id: Number(editingLancamentoId)
-                    }
-                }));
-            } catch (err) {
-                showLancAlert(err.message || 'Falha ao atualizar lancamento.');
-            } finally {
-                submitBtn?.removeAttribute('disabled');
-            }
-        });
-
-        btnExcluirSel && btnExcluirSel.addEventListener('click', async () => {
-            const t = ensureTable();
-            const rows = t ? t.getSelectedRows() : [];
-            const eligibleRows = rows.filter(r => !isSaldoInicial(r.getData()));
-            const ids = eligibleRows.map(r => r.getData()?.id).filter(Boolean);
-            if (!ids.length) return;
-            const ok = await ask(`Excluir ${ids.length} lancamento(s)?`,
-                'Essa acao nao pode ser desfeita.');
-            if (!ok) return;
-
-            btnExcluirSel.disabled = true;
-            const done = await apiBulkDelete(ids);
-            btnExcluirSel.disabled = false;
-
-            if (done) {
-                eligibleRows.forEach(r => r.delete());
-                toast('Itens excluidos.');
-                updateSelectionInfo();
-            } else {
-                toast('Alguns itens nao foram excluidos.', 'error');
-            }
-        });
-
-        // -------- loader
-        let timer = null;
-        async function load() {
-            clearTimeout(timer);
-            timer = setTimeout(async () => {
-                const month = (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(
-                    0, 7);
-                const tipo = selectTipo ? selectTipo.value : '';
-                const categoria = selectCategoria ? selectCategoria.value : '';
-                const conta = selectConta ? selectConta.value : '';
-
-                const t2 = ensureTable();
-                if (t2) {
-                    await waitForTableReady(t2);
-                    t2.replaceData([]);
-                    updateSelectionInfo();
-                }
-                const items = await fetchLancamentos({
-                    month,
-                    tipo,
-                    categoria,
-                    conta,
-                    limit: 500
-                });
-                await renderRows(items);
-            }, 10);
-        }
-        window.refreshLancamentos = load;
-
-        // reage ao m�s escolhido no month-picker.js
-        document.addEventListener('lukrato:month-changed', () => load());
-        document.addEventListener('lukrato:export-click', () => exportLancamentos());
-
-        document.addEventListener('lukrato:data-changed', (e) => {
-            const res = e.detail?.resource;
-            if (!res || res === 'transactions') load();
-            if (res === 'categorias' || res === 'accounts') loadFilterOptions();
-        });
-
-        btnFiltrar && btnFiltrar.addEventListener('click', load);
-        btnExportar && btnExportar.addEventListener('click', () => exportLancamentos());
-
-        initExportDefaults();
-        loadFilterOptions();
-        load();
-    })();
-</script>
-
-
-
-
-
-
-
-
-
-

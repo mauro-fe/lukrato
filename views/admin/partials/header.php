@@ -18,6 +18,7 @@ $aria   = function (string $key) use ($menu) {
 };
 
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 
