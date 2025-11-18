@@ -50,6 +50,8 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          STYLES INTERNOS
          ============================================================================ -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/main-styles.css">
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
 
@@ -79,7 +81,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
         LK.getCSRF = () => {
             return document.querySelector('meta[name="csrf-token"]')?.content ||
-                   document.querySelector('input[name="_token"]')?.value || '';
+                document.querySelector('input[name="_token"]')?.value || '';
         };
 
         LK.apiBase = () => LK.getBase() + 'api/';
@@ -123,7 +125,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 const STORAGE_KEY = 'lk.sidebar';
                 const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
                 const isDesktop = window.matchMedia('(min-width: 993px)').matches;
-                
+
                 if (prefersCollapsed && isDesktop) {
                     document.body.classList.add('sidebar-collapsed');
                 }
@@ -136,11 +138,8 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- ============================================================================
          BOTÃO TOGGLE SIDEBAR (Edge Button)
          ============================================================================ -->
-    <button id="edgeMenuBtn" 
-            class="edge-menu-btn" 
-            aria-label="Abrir/fechar menu" 
-            aria-expanded="false"
-            title="Fechar/Abrir menu">
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
+        title="Fechar/Abrir menu">
         <i class="fa fa-angle-left" aria-hidden="true"></i>
     </button>
 
@@ -158,82 +157,63 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
         <!-- Menu de Navegação -->
         <nav class="sidebar-nav">
             <!-- Dashboard -->
-            <a href="<?= BASE_URL ?>dashboard" 
-               class="nav-item <?= $active('dashboard') ?>" 
-               <?= $aria('dashboard') ?>
-               title="Dashboard">
+            <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
+                title="Dashboard">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
 
             <!-- Contas -->
-            <a href="<?= BASE_URL ?>contas" 
-               class="nav-item <?= $active('contas') ?>" 
-               <?= $aria('contas') ?>
-               title="Contas">
+            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
+                title="Contas">
                 <i class="fa fa-university" aria-hidden="true"></i>
                 <span>Contas</span>
             </a>
 
             <!-- Lançamentos -->
-            <a href="<?= BASE_URL ?>lancamentos" 
-               class="nav-item <?= $active('lancamentos') ?>"
-               <?= $aria('lancamentos') ?> 
-               title="Lançamentos">
+            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
+                <?= $aria('lancamentos') ?> title="Lançamentos">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Lançamentos</span>
             </a>
 
             <!-- Categorias -->
-            <a href="<?= BASE_URL ?>categorias" 
-               class="nav-item <?= $active('categorias') ?>" 
-               <?= $aria('categorias') ?>
-               title="Categorias">
+            <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
+                title="Categorias">
                 <i class="fas fa-tags"></i>
                 <span>Categorias</span>
             </a>
 
             <!-- Relatórios -->
-            <a href="<?= BASE_URL ?>relatorios" 
-               class="nav-item <?= $active('relatorios') ?>" 
-               <?= $aria('relatorios') ?>
-               title="Relatórios">
+            <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
+                title="Relatórios">
                 <i class="fa fa-pie-chart"></i>
                 <span>Relatórios</span>
             </a>
 
             <!-- Agendamentos -->
-            <a href="<?= BASE_URL ?>agendamentos" 
-               class="nav-item <?= $active('agendamentos') ?>"
-               <?= $aria('agendamentos') ?> 
-               title="Agendamentos">
+            <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
+                <?= $aria('agendamentos') ?> title="Agendamentos">
                 <i class="fas fa-clock"></i>
                 <span>Agendamentos</span>
             </a>
 
             <!-- Investimentos -->
-            <a href="<?= BASE_URL ?>investimentos" 
-               class="nav-item <?= $active('investimentos') ?>"
-               <?= $aria('investimentos') ?> 
-               title="Investimentos">
+            <a href="<?= BASE_URL ?>investimentos" class="nav-item <?= $active('investimentos') ?>"
+                <?= $aria('investimentos') ?> title="Investimentos">
                 <i class="fa fa-line-chart" aria-hidden="true"></i>
                 <span>Investimentos</span>
             </a>
 
             <!-- Perfil -->
-            <a href="<?= BASE_URL ?>perfil" 
-               class="nav-item <?= $active('perfil') ?>" 
-               <?= $aria('perfil') ?>
-               title="Perfil">
+            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
+                title="Perfil">
                 <i class="fas fa-user-circle"></i>
                 <span>Perfil</span>
             </a>
 
             <!-- Sair -->
-            <a id="btn-logout" 
-               class="nav-item" 
-               href="<?= BASE_URL ?>logout" 
-               title="Sair">
+            <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Sair</span>
             </a>

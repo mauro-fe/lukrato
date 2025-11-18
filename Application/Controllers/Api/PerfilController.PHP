@@ -29,7 +29,10 @@ class PerfilController
             return;
         }
 
-        [$this->perfilService, $this->validator] = PerfilControllerFactory::buildDependencies();
+        [
+            $this->perfilService,
+            $this->validator
+        ] = PerfilControllerFactory::buildDependencies();
     }
 
     /**
@@ -39,7 +42,7 @@ class PerfilController
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 Response::error('Não autenticado', 401);
                 return;
@@ -55,7 +58,6 @@ class PerfilController
             Response::success([
                 'user' => $perfil,
             ], 'Perfil carregado');
-
         } catch (Throwable $e) {
             Response::error('Erro interno', 500, [
                 'exception' => $e->getMessage()
@@ -70,7 +72,7 @@ class PerfilController
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 Response::error('Não autenticado', 401);
                 return;
@@ -94,15 +96,14 @@ class PerfilController
                 'message' => 'Perfil atualizado com sucesso',
                 'user' => $perfilAtualizado,
             ]);
-
         } catch (Throwable $e) {
-            $statusCode = $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException 
-                ? 404 
+            $statusCode = $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException
+                ? 404
                 : 500;
-                
+
             Response::error(
-                'Erro interno ao atualizar perfil', 
-                $statusCode, 
+                'Erro interno ao atualizar perfil',
+                $statusCode,
                 ['exception' => $e->getMessage()]
             );
         }
