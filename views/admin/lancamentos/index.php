@@ -12,32 +12,36 @@
                     <i class="fas fa-file-export"></i>
                     Exportar Lançamentos
                 </label>
-                <div class="mes">
+                <div class="export-content">
+                    <div class="mes">
+                        <label class="sr-only" for="exportStart">Data Inicial</label>
+                        <span>de</span>
+                        <input type="date" id="exportStart" class="lk-input lk-btn date-range" placeholder="Início"
+                            data-default-today="1" aria-label="Data inicial para exportação">
 
-                    <label class="sr-only" for="exportStart">Data Inicial</label>
-                    <span>de</span>
-                    <input type="date" id="exportStart" class="lk-input date-range" placeholder="Início"
-                        data-default-today="1" aria-label="Data inicial para exportação">
+                        <span>à</span>
 
-                    <span>à</span>
+                        <label class="sr-only" for="exportEnd">Data Final</label>
+                        <input type="date" id="exportEnd" class="lk-input lk-btn date-range" placeholder="Fim"
+                            data-default-today="1" aria-label="Data final para exportação">
+                    </div>
 
-                    <label class="sr-only" for="exportEnd">Data Final</label>
-                    <input type="date" id="exportEnd" class="lk-input date-range" placeholder="Fim"
-                        data-default-today="1" aria-label="Data final para exportação">
+                    <div>
+                        <label class="sr-only" for="exportFormat">Formato de Exportação</label>
+                        <select id="exportFormat" class="lk-select lk-btn btn btn-secondary"
+                            aria-label="Formato de exportação">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel (.xlsx )</option>
+                        </select>
 
-                    <label class="sr-only" for="exportFormat">Formato de Exportação</label>
-                    <select id="exportFormat" class="lk-select btn btn-secondary" aria-label="Formato de exportação">
-                        <option value="pdf">PDF</option>
-                        <option value="excel">Excel (.xlsx )</option>
-                    </select>
-
-                    <button id="btnExportar" type="button" class="lk-btn primary btn" data-aos="fade-left"
-                        data-aos-delay="150" aria-label="Exportar lançamentos">
-                        <i class="fas fa-download"></i> Exportar
-                    </button>
+                        <button id="btnExportar" type="button" class="lk-btn  btn" data-aos="fade-left"
+                            data-aos-delay="150" aria-label="Exportar lançamentos">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
                 </div>
-
             </div>
+
 
 
             <!-- Filtros -->
