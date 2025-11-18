@@ -823,7 +823,7 @@ body.sidebar-collapsed .content-wrapper {
 .btn-primary {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-surface);
+  color: var(--color-text);
 }
 
 .btn-primary:hover {

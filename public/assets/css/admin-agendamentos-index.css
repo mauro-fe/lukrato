@@ -15,3 +15,10 @@
 .table-dark td {
   vertical-align: middle;
 }
+
+
+.tabulator .tabulator-tableholder {
+    overflow-x: hidden !important;
+}
+
+

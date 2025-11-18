@@ -1,4 +1,4 @@
-/* ==================== VARIÁVEIS E ANIMAÇÕES ==================== */
+﻿/* ==================== VARIÁVEIS E ANIMAÇÕES ==================== */
 :root {
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -53,17 +53,12 @@
 .c-subtitle {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--color-primary);
   margin: 0 0 var(--spacing-4) 0;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
 }
 
-.c-subtitle::before {
-  content: "🏷️";
-  font-size: 1.3em;
-}
 
 /* ==================== FORMULÁRIO ==================== */
 .c-form {
@@ -93,11 +88,9 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 5%,
-    var(--color-surface-muted)
-  );
+  background: color-mix(in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface-muted));
 }
 
 .c-form .lk-select {
@@ -117,14 +110,9 @@
 
 .c-form button[type="submit"]:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
-.c-form button[type="submit"]::before {
-  content: "➕";
-  font-size: 1.1em;
-}
 
 /* ==================== TABELA ==================== */
 .container-table {
@@ -141,6 +129,29 @@
   border: none;
 }
 
+.tabulator .tabulator-tableholder {
+    overflow-x: hidden !important;
+}
+
+
+/* ==================== ESTADO VAZIO ==================== */
+/* .tabulator .tabulator-placeholder {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-6);
+  text-align: center;
+  overflow-x: hidden !important;
+}
+
+
+.tabulator .tabulator-placeholder::before {
+  content: "📋";
+  display: block;
+  font-size: 3rem;
+  margin-bottom: var(--spacing-3);
+  opacity: 0.5;
+} */
+
 .table-container .tabulator .tabulator-header {
   background: var(--color-surface-muted);
   border-bottom: 2px solid var(--glass-border);
@@ -153,8 +164,7 @@
 
 .table-container .tabulator .tabulator-row {
   transition: var(--transition-smooth);
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--glass-border) 50%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 50%, transparent);
 }
 
 .table-container .tabulator .tabulator-row:hover {
@@ -166,39 +176,52 @@
   padding: var(--spacing-3) var(--spacing-4);
 }
 
-/* Badges de tipo */
+/* Badge de Tipo */
 .badge-tipo {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
   padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  color: var(--color-text);
+  transition: var(--transition-fast);
+}
+
+.badge-tipo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: currentColor;
+}
+
+.badge-tipo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .badge-tipo.receita {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
   color: var(--color-success);
-  border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
-  border-radius: var(--radius-md);
-}
-
-.badge-tipo.receita::before {
-  content: "📈";
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
 }
 
 .badge-tipo.despesa {
-  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
   color: var(--color-danger);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
-  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
 }
 
-.badge-tipo.despesa::before {
-  content: "📉";
+.badge-tipo.transferencia {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
 
 /* Ações */
@@ -243,11 +266,9 @@
 
 #modalEditCategoria .modal-header {
   border: 0;
-  background: linear-gradient(
-    135deg,
-    var(--color-surface-muted) 0%,
-    transparent 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-surface-muted) 0%,
+      transparent 100%);
   padding: var(--spacing-5);
 }
 
@@ -302,11 +323,9 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 5%,
-    var(--color-surface-muted)
-  );
+  background: color-mix(in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface-muted));
 }
 
 #modalEditCategoria .btn {
@@ -332,14 +351,13 @@
 #modalEditCategoria .btn-primary {
   background: var(--color-primary);
   border: none;
-  color: var(--branco);
+  color: var(--color-text);
 }
 
 #modalEditCategoria .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 #modalEditCategoria .alert {
@@ -403,18 +421,3 @@ button:disabled {
   }
 }
 
-/* ==================== ESTADO VAZIO ==================== */
-.tabulator .tabulator-placeholder {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  padding: var(--spacing-6);
-  text-align: center;
-}
-
-.tabulator .tabulator-placeholder::before {
-  content: "📋";
-  display: block;
-  font-size: 3rem;
-  margin-bottom: var(--spacing-3);
-  opacity: 0.5;
-}

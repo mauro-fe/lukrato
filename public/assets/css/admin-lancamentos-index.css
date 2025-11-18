@@ -248,12 +248,16 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-4);
-  overflow: hidden;
+  
 }
+
 
 .table-container .tabulator {
   background: transparent;
   border: none;
+}
+.table-container .tabulator .tabulator-tableholder {
+    overflow-x: hidden !important;
 }
 
 .table-container .tabulator .tabulator-header {
