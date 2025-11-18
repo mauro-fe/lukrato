@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     /* Modal Container */
     .lk-modal {
         position: fixed;
@@ -147,7 +147,7 @@
     .lk-field select {
         background: var(--color-surface-muted);
         color: var(--color-text);
-        border: 1px solid var(--glass-border);
+        border: 1px solid var(--color-primary) !important;
         border-radius: var(--radius-md);
         font-size: var(--font-size-sm);
         padding: var(--spacing-3) var(--spacing-4);
@@ -215,7 +215,7 @@
         border-top: 1px solid var(--glass-border);
     }
 
-    /* Botões */
+    /* BotÃµes */
     .btn {
         border-radius: var(--radius-md);
         font-size: var(--font-size-sm);
@@ -307,26 +307,7 @@
         box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
     }
 
-    /* Ícones nos títulos */
-    .lk-modal-t::before {
-        margin-right: var(--spacing-3);
-        font-size: var(--font-size-2xl);
-    }
 
-    #modalContaTitle::before {
-        content: '🏦';
-        animation: pulse 2s ease-in-out infinite;
-    }
-
-    #modalLancContaTitle::before {
-        content: '💸';
-        animation: bounce 2s ease-in-out infinite;
-    }
-
-    #modalTransferTitle::before {
-        content: '🔄';
-        animation: rotate 3s linear infinite;
-    }
 
     @keyframes pulse {
 
@@ -392,7 +373,7 @@
         }
     }
 
-    /* Estados de validação */
+    /* Estados de validaÃ§Ã£o */
     .lk-field input:invalid:not(:placeholder-shown),
     .lk-field select:invalid:not(:placeholder-shown) {
         border-color: var(--color-danger);
@@ -409,7 +390,7 @@
         cursor: not-allowed;
     }
 
-    /* Tags de campo obrigatório */
+    /* Tags de campo obrigatÃ³rio */
     .lk-field label::after {
         content: '';
     }
@@ -461,7 +442,7 @@
     </div>
 </div>
 
-<!-- Modal: Novo Lançamento na Conta -->
+<!-- Modal: Novo LanÃ§amento na Conta -->
 <div class="lk-modal" id="modalLancConta" role="dialog" aria-modal="true" aria-labelledby="modalLancContaTitle">
     <div class="lk-modal-card">
         <div class="lk-modal-h">
@@ -472,7 +453,7 @@
         </div>
         <div class="lk-modal-b">
             <form id="formLancConta">
-                <input type="hidden" id="lanContaId" value="">
+                <input type="hidden" id="lanContaId" name="lanContaId" value="">
                 <div class="lk-form-grid">
                     <div class="lk-field full">
                         <label for="lanContaNome">Conta selecionada</label>
@@ -480,18 +461,18 @@
                     </div>
                     <div class="lk-field">
                         <label for="lanTipo">Tipo</label>
-                        <select id="lanTipo" required>
-                            <option value="despesa">💸 Despesa</option>
-                            <option value="receita">💰 Receita</option>
+                        <select id="lanTipo" name="lanTipo" required>
+                            <option value="despesa"> Despesa</option>
+                            <option value="receita"> Receita</option>
                         </select>
                     </div>
                     <div class="lk-field">
                         <label for="lanData">Data</label>
-                        <input type="date" id="lanData" required>
+                        <input type="date" id="lanData" name="lanData" required>
                     </div>
                     <div class="lk-field full">
                         <label for="lanCategoria">Categoria</label>
-                        <select id="lanCategoria" required>
+                        <select id="lanCategoria" name="lanCategoria" required>
                             <option value="">Selecione uma categoria</option>
                             <option value="1">Alimentação</option>
                             <option value="2">Transporte</option>
@@ -500,12 +481,12 @@
                     </div>
                     <div class="lk-field full">
                         <label for="lanDescricao">Descrição</label>
-                        <input type="text" id="lanDescricao" placeholder="Ex.: Mercado / Salário">
+                        <input type="text" id="lanDescricao" name="lanDescricao" placeholder="Ex.: Mercado / Salário">
                     </div>
                     <div class="lk-field full">
                         <label for="lanValor">Valor</label>
-                        <input class="real" type="text" id="lanValor" inputmode="decimal" placeholder="R$ 0,00"
-                            required>
+                        <input class="real" type="text" id="lanValor" name="lanValor" inputmode="decimal"
+                            placeholder="R$ 0,00" required>
                     </div>
                 </div>
                 <div class="lk-modal-f">
@@ -519,7 +500,7 @@
     </div>
 </div>
 
-<!-- Modal: Transferência -->
+<!-- Modal: TransferÃªncia -->
 <div class="lk-modal" id="modalTransfer" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
     <div class="lk-modal-card">
         <div class="lk-modal-h">

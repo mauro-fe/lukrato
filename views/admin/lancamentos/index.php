@@ -8,12 +8,12 @@
 
             <!-- Exportação -->
             <div class="export-range" data-aos="fade-left" aria-describedby="exportHint">
-
+                <label class="export-label" for="exportType">
+                    <i class="fas fa-file-export"></i>
+                    Exportar Lançamentos
+                </label>
                 <div class="mes">
-                    <label class="export-label" for="exportType">
-                        <i class="fas fa-file-export"></i>
-                        Exportar Lançamentos
-                    </label>
+
                     <label class="sr-only" for="exportStart">Data Inicial</label>
                     <span>de</span>
                     <input type="date" id="exportStart" class="lk-input date-range" placeholder="Início"
@@ -24,19 +24,21 @@
                     <label class="sr-only" for="exportEnd">Data Final</label>
                     <input type="date" id="exportEnd" class="lk-input date-range" placeholder="Fim"
                         data-default-today="1" aria-label="Data final para exportação">
+
+                    <label class="sr-only" for="exportFormat">Formato de Exportação</label>
+                    <select id="exportFormat" class="lk-select btn btn-secondary" aria-label="Formato de exportação">
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel (.xlsx )</option>
+                    </select>
+
+                    <button id="btnExportar" type="button" class="lk-btn primary btn" data-aos="fade-left"
+                        data-aos-delay="150" aria-label="Exportar lançamentos">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
                 </div>
 
-                <label class="sr-only" for="exportFormat">Formato de Exportação</label>
-                <select id="exportFormat" class="lk-select btn btn-secondary" aria-label="Formato de exportação">
-                    <option value="pdf">PDF</option>
-                    <option value="excel">Excel (.xlsx )</option>
-                </select>
-
-                <button id="btnExportar" type="button" class="lk-btn primary btn" data-aos="fade-left"
-                    data-aos-delay="150" aria-label="Exportar lançamentos">
-                    <i class="fas fa-file-export"></i> Exportar
-                </button>
             </div>
+
 
             <!-- Filtros -->
             <div class="lan-card mt-4" data-aos="fade-up">

@@ -297,43 +297,45 @@
   align-items: center;
   gap: var(--spacing-1);
   padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.badge-tipo.receita {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  color: var(--color-success);
-  border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
-  border-radius: var(--radius-md);
+.badge-tipo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: currentColor;
 }
 
-.badge-tipo.receita::before {
-  content: "↗️";
+.badge-tipo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-tipo.receita {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  border-radius: var(--radius-md) !important;
 }
 
 .badge-tipo.despesa {
-  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
   color: var(--color-danger);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
-  border-radius: var(--radius-md);
-}
-
-.badge-tipo.despesa::before {
-  content: "↘️";
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
+  border-radius: var(--radius-md) !important;
 }
 
 .badge-tipo.transferencia {
-  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
   color: var(--color-primary);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
-}
-
-.badge-tipo.transferencia::before {
-  content: "🔄";
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  border-radius: var(--radius-md) !important;
 }
 
 /* Categoria*/
@@ -396,25 +398,26 @@
   max-width: 400px;
   margin: 0 auto;
 }
+.btn-del {
+  transition: 0.5s;
+}
+
+.btn-del:hover {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 90%, #000),
+    color-mix(in srgb, var(--color-primary) 75%, #000)
+  );
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
 
 /* ==================== AÇÕES ==================== */
 .actions-cell {
   display: flex;
   gap: var(--spacing-2);
   justify-content: flex-end;
-}
-
-.btn-del {
-  padding: var(--spacing-2);
-  min-width: 36px;
-  transition: var(--transition-smooth);
-}
-
-.btn-del:hover {
-  transform: scale(1.1);
-  color: var(--color-danger);
-  border-color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
 /* ==================== RESPONSIVIDADE ==================== */

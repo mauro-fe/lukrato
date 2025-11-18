@@ -64,8 +64,8 @@
         initSidebarToggle();
 
         return {
-            refreshAccounts: () => selAccount 
-                ? bindHeaderAccountPicker(selAccount, opts, { force: true }) 
+            refreshAccounts: () => selAccount
+                ? bindHeaderAccountPicker(selAccount, opts, { force: true })
                 : Promise.resolve(),
         };
     }
@@ -73,7 +73,7 @@
     // ========================================================================
     // HELPERS UTILITÁRIOS
     // ========================================================================
-    
+
     /**
      * Query selector helper
      */
@@ -96,29 +96,29 @@
      */
     async function fetchJSON(baseUrl, path, init = {}) {
         const url = baseUrl.replace(/\/?$/, '/') + path.replace(/^\/?/, '');
-        
+
         try {
-            const response = await fetch(url, { 
-                credentials: 'include', 
-                ...init 
+            const response = await fetch(url, {
+                credentials: 'include',
+                ...init
             });
-            
+
             let json = null;
-            try { 
-                json = await response.json(); 
+            try {
+                json = await response.json();
             } catch (e) {
                 throw new Error('Resposta inválida do servidor');
             }
-            
+
             if (!response.ok) {
                 const msg = json?.message || json?.error || `Erro ${response.status}`;
                 throw new Error(msg);
             }
-            
+
             if (json && (json.error || json.status === 'error')) {
                 throw new Error(json?.message || json?.error || 'Erro na requisição');
             }
-            
+
             return json;
         } catch (error) {
             console.error('[Header] Erro na requisição:', error);
@@ -129,7 +129,7 @@
     // ========================================================================
     // SELETOR DE CONTAS
     // ========================================================================
-    
+
     /**
      * Popula e gerencia o seletor de contas do header
      */
@@ -137,18 +137,18 @@
         if (selectEl.dataset.bound === '1' && !force) return;
 
         const currentValue = selectEl.value;
-        
+
         try {
             const accounts = await fetchJSON(opts.baseUrl, opts.api.accounts);
 
             // Limpa e repopula o select
             selectEl.innerHTML = '<option value="">Todas as contas (opcional)</option>';
-            
+
             (Array.isArray(accounts) ? accounts : []).forEach(account => {
                 const option = document.createElement('option');
                 option.value = account.id;
-                option.textContent = account.instituicao 
-                    ? `${account.nome} - ${account.instituicao}` 
+                option.textContent = account.instituicao
+                    ? `${account.nome} - ${account.instituicao}`
                     : account.nome;
                 selectEl.appendChild(option);
             });
@@ -184,13 +184,13 @@
     function handleAccountChange(selectEl, opts) {
         return () => {
             const value = selectEl.value;
-            
+
             if (value) {
                 sessionStorage.setItem(opts.storageKey, value);
             } else {
                 sessionStorage.removeItem(opts.storageKey);
             }
-            
+
             opts.onAccountChange(value ? Number(value) : null);
         };
     }
@@ -198,7 +198,7 @@
     // ========================================================================
     // LOGOUT
     // ========================================================================
-    
+
     /**
      * Handler de clique no botão de logout
      */
@@ -237,7 +237,7 @@
     // ========================================================================
     // SIDEBAR ACTIVE STATE
     // ========================================================================
-    
+
     /**
      * Gerencia o estado ativo dos links da sidebar
      */
@@ -264,9 +264,9 @@
                 const linkPath = normalize(
                     new URL(link.getAttribute('href'), location.origin).pathname
                 );
-                
+
                 if (linkPath && (
-                    linkPath === currentPath || 
+                    linkPath === currentPath ||
                     (linkPath !== '/' && currentPath.startsWith(linkPath + '/'))
                 )) {
                     link.classList.add('active');
@@ -282,12 +282,12 @@
         links.forEach(link => {
             link.addEventListener('click', () => {
                 if (link.id === 'btn-logout' || link.hasAttribute('data-no-active')) return;
-                
+
                 links.forEach(l => {
                     l.classList.remove('active');
                     l.removeAttribute('aria-current');
                 });
-                
+
                 link.classList.add('active');
                 link.setAttribute('aria-current', 'page');
             });
@@ -297,15 +297,15 @@
     // ========================================================================
     // SIDEBAR TOGGLE (Desktop/Mobile)
     // ========================================================================
-    
+
     /**
      * Gerencia o toggle da sidebar (colapso desktop + overlay mobile)
      */
     function initSidebarToggle() {
         const body = document.body;
         const aside = document.getElementById('sidebar-main');
-        const btn = document.getElementById('edgeMenuBtn') || 
-                    document.getElementById('btn-toggle-sidebar');
+        const btn = document.getElementById('edgeMenuBtn') ||
+            document.getElementById('btn-toggle-sidebar');
         const backdrop = document.getElementById('sidebarBackdrop');
         const icon = btn?.querySelector('i');
 
@@ -316,7 +316,7 @@
         // ====================================================================
         // Helpers
         // ====================================================================
-        
+
         const getSavedState = () => {
             const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
             return saved === null ? false : saved === '1';
@@ -324,12 +324,12 @@
 
         const setIcon = () => {
             if (!icon) return;
-            
+
             const isMobile = media.matches;
             const isClosed = isMobile
                 ? !body.classList.contains('sidebar-open-mobile')
                 : body.classList.contains('sidebar-collapsed');
-            
+
             icon.classList.remove('fa-angle-right', 'fa-angle-left');
             icon.classList.add(isClosed ? 'fa-angle-right' : 'fa-angle-left');
         };
@@ -356,12 +356,12 @@
         // ====================================================================
         // Toggle Handler
         // ====================================================================
-        
+
         const handleToggle = () => {
             if (media.matches) {
                 // Mobile: abre/fecha overlay
-                body.classList.contains('sidebar-open-mobile') 
-                    ? closeMobile() 
+                body.classList.contains('sidebar-open-mobile')
+                    ? closeMobile()
                     : openMobile();
             } else {
                 // Desktop: colapsa/expande
@@ -373,10 +373,10 @@
         // ====================================================================
         // Event Listeners
         // ====================================================================
-        
+
         btn.addEventListener('click', handleToggle);
         backdrop?.addEventListener('click', closeMobile);
-        
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && body.classList.contains('sidebar-open-mobile')) {
                 closeMobile();
@@ -386,7 +386,7 @@
         // ====================================================================
         // Sincronização de Estado
         // ====================================================================
-        
+
         const syncState = () => {
             if (media.matches) {
                 closeMobile();
@@ -432,11 +432,11 @@
         // ====================================================================
         // Helpers
         // ====================================================================
-        
+
         const open = (id) => {
             const modal = $('#' + id);
             if (!modal) return;
-            
+
             modal.classList.add('active');
             document.body.classList.add('lk-modal-open');
         };
@@ -444,7 +444,7 @@
         const close = (id) => {
             const modal = $('#' + id);
             if (!modal) return;
-            
+
             modal.classList.remove('active');
             if (!$('.lk-modal.active')) {
                 document.body.classList.remove('lk-modal-open');
@@ -454,7 +454,7 @@
         // ====================================================================
         // Event Listeners
         // ====================================================================
-        
+
         // Botões que abrem modais
         $$('[data-open-modal]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -511,7 +511,7 @@
     const container = document.querySelector('.fab-container');
     const fabBtn = document.getElementById('fabButton');
     const menu = document.getElementById('fabMenu');
-    
+
     if (!container || !fabBtn || !menu) return;
 
     const bs = window.bootstrap;
@@ -519,7 +519,7 @@
     // ========================================================================
     // Helpers
     // ========================================================================
-    
+
     function openMenu() {
         container.classList.add('open');
         fabBtn.classList.add('active');
@@ -554,7 +554,7 @@
     // ========================================================================
     // Event Listeners
     // ========================================================================
-    
+
     fabBtn.addEventListener('click', toggleMenu);
 
     // Abrir modais Bootstrap
@@ -570,7 +570,7 @@
 
                 if (tipoSelect) tipoSelect.value = kind;
                 if (title) title.textContent = `Novo ${kind.charAt(0).toUpperCase() + kind.slice(1)}`;
-                
+
                 bs?.Modal?.getOrCreateInstance(modalEl)?.show();
             } else if (kind === 'agendamento') {
                 const modalEl = document.querySelector('#modalAgendamento');
@@ -584,7 +584,7 @@
     // ========================================================================
     // Garantir z-index e pointer-events
     // ========================================================================
-    
+
     fabBtn.style.pointerEvents = 'auto';
     menu.style.pointerEvents = 'auto';
     container.style.zIndex = container.style.zIndex || '9999';
