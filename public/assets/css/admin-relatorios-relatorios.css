@@ -310,16 +310,6 @@
   transform: none;
 }
 
-.btn-primary {
-  background: var(--color-secondary);
-  border-color: var(--color-secondary);
-}
-
-.btn-primary:hover {
-  background: color-mix(in srgb, var(--color-secondary) 85%, #000);
-  border-color: color-mix(in srgb, var(--color-secondary) 85%, #000);
-}
-
 /* ============================================================================
    ÁREA DE RELATÓRIO
    ============================================================================ */

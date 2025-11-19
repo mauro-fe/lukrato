@@ -232,17 +232,6 @@
   gap: var(--spacing-2);
 }
 
-.actions-cell .lk-btn {
-  padding: var(--spacing-2);
-  min-width: 36px;
-  font-size: var(--font-size-sm);
-  transition: var(--transition-smooth);
-}
-
-.actions-cell .lk-btn:hover {
-  transform: scale(1.1);
-}
-
 .actions-cell .btn-edit:hover {
   color: var(--color-primary);
   border-color: var(--color-primary);

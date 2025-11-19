@@ -50,38 +50,38 @@ $menu      = $menu ?? 'perfil';
 
             <hr class="form-divider">
 
-            <h3 class="section-title" data-aos="fade-up" data-aos-delay="800">Endereço</h3>
+            <h3 class="section-title" data-aos="fade-up" data-aos-delay="650">Endereço</h3>
             <div class="form-grid">
-                <div class="form-group" data-aos="fade-up-right" data-aos-delay="900">
+                <div class="form-group" data-aos="fade-up-right" data-aos-delay="700">
                     <label class="form-label" for="end_cep">CEP</label>
                     <input class="form-input" id="end_cep" name="endereco[cep]" type="text" inputmode="numeric"
                         placeholder="00000-000" maxlength="9">
                 </div>
-                <div class="form-group" data-aos="fade-up" data-aos-delay="1000">
+                <div class="form-group" data-aos="fade-up" data-aos-delay="750">
                     <label class="form-label" for="end_rua">Rua</label>
                     <input class="form-input" id="end_rua" name="endereco[rua]" type="text"
                         placeholder="Ex: Rua das Flores">
                 </div>
-                <div class="form-group" data-aos="fade-up-left" data-aos-delay="1100">
+                <div class="form-group" data-aos="fade-up-left" data-aos-delay="800">
                     <label class="form-label" for="end_numero">Número</label>
                     <input class="form-input" id="end_numero" name="endereco[numero]" type="text" placeholder="Ex: 123">
                 </div>
-                <div class="form-group" data-aos="fade-up-right" data-aos-delay="1200">
+                <div class="form-group" data-aos="fade-up-right" data-aos-delay="850">
                     <label class="form-label" for="end_complemento">Complemento</label>
                     <input class="form-input" id="end_complemento" name="endereco[complemento]" type="text"
                         placeholder="Ex: Apto 101">
                 </div>
-                <div class="form-group" data-aos="fade-up" data-aos-delay="1300">
+                <div class="form-group" data-aos="fade-up" data-aos-delay="900">
                     <label class="form-label" for="end_bairro">Bairro</label>
                     <input class="form-input" id="end_bairro" name="endereco[bairro]" type="text"
                         placeholder="Ex: Centro">
                 </div>
-                <div class="form-group" data-aos="fade-up-left" data-aos-delay="1400">
+                <div class="form-group" data-aos="fade-up-left" data-aos-delay="950">
                     <label class="form-label" for="end_cidade">Cidade</label>
                     <input class="form-input" id="end_cidade" name="endereco[cidade]" type="text"
                         placeholder="Ex: São Paulo">
                 </div>
-                <div class="form-group" data-aos="fade-up" data-aos-delay="1300">
+                <div class="form-group" data-aos="fade-up" data-aos-delay="1000">
                     <label class="form-label" for="end_estado">Estado (UF)</label>
                     <input class="form-input" id="end_estado" name="endereco[estado]" type="text" placeholder="Ex: SP"
                         maxlength="2">
@@ -89,19 +89,19 @@ $menu      = $menu ?? 'perfil';
             </div>
             <hr class="form-divider">
 
-            <h3 class="section-title" data-aos="fade-up" data-aos-delay="1300">Alterar senha</h3>
+            <h3 class="section-title" data-aos="fade-up" data-aos-delay="700">Alterar senha</h3>
             <div class="password-grid">
-                <div class="form-group" data-aos="fade-up-right" data-aos-delay="1400">
+                <div class="form-group" data-aos="fade-up-right" data-aos-delay="750">
                     <label class="form-label" for="senha_atual">Senha atual</label>
                     <input class="form-input" id="senha_atual" name="senha_atual" type="password"
                         autocomplete="current-password">
                 </div>
-                <div class="form-group" data-aos="fade-up" data-aos-delay="1500">
+                <div class="form-group" data-aos="fade-up" data-aos-delay="800">
                     <label class="form-label" for="nova_senha">Nova senha</label>
                     <input class="form-input" id="nova_senha" name="nova_senha" type="password"
                         autocomplete="new-password" minlength="6">
                 </div>
-                <div class="form-group" data-aos="fade-up-left" data-aos-delay="1600">
+                <div class="form-group" data-aos="fade-up-left" data-aos-delay="850">
                     <label class="form-label" for="conf_senha">Confirmar senha</label>
                     <input class="form-input" id="conf_senha" name="conf_senha" type="password"
                         autocomplete="new-password" minlength="6">
@@ -109,7 +109,7 @@ $menu      = $menu ?? 'perfil';
             </div>
 
             <div class="form-actions">
-                <div data-aos="fade-up-left" data-aos-delay="1700">
+                <div data-aos="fade-up-left" data-aos-delay="900">
                     <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
                 </div>
             </div>

@@ -90,24 +90,6 @@
   font-size: var(--font-size-sm);
 }
 
-.btn-primary {
-  /* gradiente baseado na cor primária */
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 85%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 65%, #000 20%)
-  );
-  color: var(--color-text) !important;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 90%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 75%, #000 15%)
-  );
-}
-
 .btn-light {
   background: var(--color-bg);
   color: var(--color-text);

@@ -197,15 +197,6 @@
   margin-left: 10px;
 }
 
-.lk-btn:hover {
-  border-color: var(--color-primary);
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 50%,
-    var(--glass-bg)
-  ) !important;
-}
-
 /* ============================================================================
    FILTROS
    ============================================================================ */
@@ -248,16 +239,14 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-4);
-  
 }
-
 
 .table-container .tabulator {
   background: transparent;
   border: none;
 }
 .table-container .tabulator .tabulator-tableholder {
-    overflow-x: hidden !important;
+  overflow-x: hidden !important;
 }
 
 .table-container .tabulator .tabulator-header {
