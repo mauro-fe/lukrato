@@ -619,7 +619,8 @@
             {
                 title: 'Tipo',
                 field: 'tipo',
-                width: 120,
+                width: 150,
+                hozAlign: 'center',
                 formatter: (cell) => {
                     const raw = String(cell.getValue() || '-');
                     const tipoClass = Utils.getTipoClass(raw);
@@ -638,6 +639,7 @@
             {
                 title: 'Categoria',
                 field: 'categoria_nome',
+                hozAlign: 'center',
                 widthGrow: 1,
                 mutator: (value, data) => {
                     const candidate = value ??
@@ -653,7 +655,7 @@
                 formatter: (cell) => {
                     const value = cell.getValue() || '-';
                     if (value === '-') return value;
-                    return `<span class="categoria-chip">${Utils.escapeHtml(value)}</span>`;
+                    return `<span>${Utils.escapeHtml(value)}</span>`;
                 },
                 headerFilter: 'input',
                 headerFilterPlaceholder: 'Filtrar categoria'
@@ -661,7 +663,9 @@
             {
                 title: 'Conta',
                 field: 'conta_nome',
-                widthGrow: 1,
+                hozAlign: 'center',
+                width: 150,
+
                 mutator: (value, data) => {
                     const raw = value ??
                         data?.conta ??
@@ -680,6 +684,7 @@
             {
                 title: 'Descrição',
                 field: 'descricao',
+                hozAlign: 'center',
                 widthGrow: 2,
                 mutator: (value, data) => {
                     let raw = value ??
@@ -705,7 +710,7 @@
             {
                 title: 'Valor',
                 field: 'valor',
-                hozAlign: 'right',
+                hozAlign: 'center',
                 width: 150,
                 formatter: (cell) => {
                     const tipoClass = Utils.getTipoClass(cell.getRow()?.getData()?.tipo);
@@ -727,7 +732,7 @@
                 field: 'actions',
                 headerSort: false,
                 hozAlign: 'center',
-                width: 120,
+                width: 150,
                 formatter: (cell) => {
                     const data = cell.getRow().getData();
                     if (Utils.isSaldoInicial(data)) return '';

@@ -4,7 +4,7 @@
 <section class="c-page">
     <!-- Formulário de Nova Categoria -->
     <div class="c-card mt-4" data-aos="fade-up">
-        <p class="c-subtitle">Criar Nova Categoria</p>
+        <p class="c-subtitle"><i class="fa-solid fa-layer-group"></i> Criar Nova Categoria</p>
 
         <form id="formNova" class="c-form">
             <?= csrf_input('default') ?>
@@ -14,8 +14,8 @@
                 <option value="receita">Receita</option>
                 <option value="despesa">Despesa</option>
             </select>
-            <button class="btn lk-select btn-primary" type="submit">
-                Adicionar
+            <button class="btn btn-primary" type="submit">
+             <i class="fa-solid fa-plus"></i>   Adicionar
             </button>
         </form>
     </div>

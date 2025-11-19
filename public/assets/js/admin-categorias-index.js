@@ -228,7 +228,9 @@
                     despesa: 'Despesa'
                 }
             },
-            width: 150,
+            width: 300,
+            hozAlign: 'center',
+
             formatter: (cell) => {
                 const value = String(cell.getValue() || '').toLowerCase();
                 const tipo = ['receita', 'despesa'].includes(value) ? value : '';
@@ -243,7 +245,7 @@
             field: 'acoes',
             headerSort: false,
             hozAlign: 'center',
-            width: 120,
+            width: 300,
             formatter: () => {
                 return `
         <div class="actions-cell">
