@@ -172,7 +172,6 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
     .theme-toggle {
         border: 1px solid var(--glass-border);
-        background: var(--glass-bg);
         backdrop-filter: var(--glass-backdrop);
         border-radius: 50%;
         width: 40px;
@@ -190,8 +189,9 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         z-index: 1200;
     }
 
+
     .theme-toggle:hover {
-        background: var(--glass-border);
+        background-color: var(--color-primary) !important;
     }
 
     .theme-toggle i {
@@ -231,7 +231,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         </div>
 
         <div class="lk-navbar-right">
-            <button id="toggleTheme" type="button" class="nav-item theme-toggle" aria-label="Alternar tema"
+            <button id="toggleTheme" type="button" class="theme-toggle" aria-label="Alternar tema"
                 title="Modo claro/escuro">
                 <i id="themeIcon" class="fa-solid fa-sun"></i>
             </button>

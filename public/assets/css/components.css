@@ -1112,10 +1112,51 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .table-container .tabulator {
-    min-width: 600px;
-  }
+.table-container .tabulator {
+  min-width: 600px;
 }
+}
+
+/* ============================================================================
+   PAGE TRANSITIONS
+   ============================================================================ */
+
+#lkPageTransitionOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(12, 17, 29, 0.95) 70%);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 120000;
+}
+
+#lkPageTransitionOverlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(49, 194, 124, 0.3), rgba(46, 134, 222, 0.25));
+  opacity: 0.6;
+  mix-blend-mode: screen;
+}
+
+#lkPageTransitionOverlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.page-transitioning {
+  cursor: progress;
+}
+
+body.page-transitioning * {
+  cursor: progress !important;
+}
+
+/* ============================================================================
+   SWEETALERT - FEEDBACK SUAVE
+   ============================================================================ */
 
 /* ============================================================================
    FIM DO ARQUIVO
