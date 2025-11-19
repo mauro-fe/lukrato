@@ -15,7 +15,7 @@
                 <option value="despesa">Despesa</option>
             </select>
             <button class="btn btn-primary" type="submit">
-             <i class="fa-solid fa-plus"></i>   Adicionar
+                <i class="fa-solid fa-plus"></i> Adicionar
             </button>
         </form>
     </div>

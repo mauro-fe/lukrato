@@ -1,24 +1,26 @@
-/**
+﻿/**
  * ============================================================================
- * SISTEMA DE RELATÓRIOS - JAVASCRIPT
+ * SISTEMA DE RELATÃ“RIOS - JAVASCRIPT
  * ============================================================================
- * Gerencia visualização de relatórios financeiros com gráficos interativos
+ * Gerencia visualizaÃ§Ã£o de relatÃ³rios financeiros com grÃ¡ficos interativos
  * ============================================================================
  */
 
 (() => {
     'use strict';
 
-    // Previne inicialização dupla
+    const PAYWALL_MESSAGE = 'Relatórios são exclusivos do plano Pro.';
+
+    // Previne inicializaÃ§Ã£o dupla
     if (window.__LK_REPORTS_LOADED__) return;
     window.__LK_REPORTS_LOADED__ = true;
 
     // ============================================================================
-    // CONFIGURAÇÃO
+    // CONFIGURAÃ‡ÃƒO
     // ============================================================================
 
     const CONFIG = {
-        // Detecta BASE_URL do DOM ou usa padrão
+        // Detecta BASE_URL do DOM ou usa padrÃ£o
         BASE_URL: (() => {
             const meta = document.querySelector('meta[name="base-url"]');
             if (meta) return meta.content.replace(/\/?$/, '/');
@@ -67,7 +69,7 @@
     }
 
     // ============================================================================
-    // UTILITÁRIOS
+    // UTILITÃRIOS
     // ============================================================================
 
     const Utils = {
@@ -123,6 +125,18 @@
         }
     };
 
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>\"']/g, function (match) {
+        const replacements = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+
+        return replacements[match] ?? match;
+    });
+
     // ============================================================================
     // ESTADO GLOBAL
     // ============================================================================
@@ -134,7 +148,8 @@
         currentMonth: computeInitialMonth(),
         currentAccount: null,
         chart: null,
-        accounts: []
+        accounts: [],
+        accessRestricted: false
     };
 
     // Aliases para compatibilidade
@@ -166,7 +181,13 @@
                     headers: { 'Accept': 'application/json' }
                 });
 
+                if (await handleRestrictedAccess(response)) {
+                    return null;
+                }
+
                 if (!response.ok) throw new Error('API request failed');
+
+                state.accessRestricted = false;
 
                 const json = await response.json();
                 return json.data || json;
@@ -183,7 +204,13 @@
                     headers: { 'Accept': 'application/json' }
                 });
 
+                if (await handleRestrictedAccess(response)) {
+                    return [];
+                }
+
                 if (!response.ok) throw new Error('Failed to fetch accounts');
+
+                state.accessRestricted = false;
 
                 const json = await response.json();
                 return (json.items || json || []).map(acc => ({
@@ -223,7 +250,7 @@
     const getActiveCategoryType = () => API.getActiveCategoryType();
 
     // ============================================================================
-    // GERENCIAMENTO DE GRÁFICOS
+    // GERENCIAMENTO DE GRÃFICOS
     // ============================================================================
 
     const ChartManager = {
@@ -288,7 +315,7 @@
                 'receitas_anuais_por_categoria': 'Receitas anuais por Categoria',
                 'despesas_anuais_por_categoria': 'Despesas anuais por Categoria'
             };
-            const title = titleMap[type] || 'Distribuição por Categoria';
+            const title = titleMap[type] || 'DistribuiÃ§Ã£o por Categoria';
 
             state.chart = chunks.map((chunk, idx) => {
                 const canvas = document.getElementById(`chart${idx}`);
@@ -350,7 +377,7 @@
                 data: {
                     labels,
                     datasets: [{
-                        label: 'Saldo Diário',
+                        label: 'Saldo DiÃ¡rio',
                         data: values.map(Number),
                         borderColor: color,
                         backgroundColor: hexToRgba(color, 0.2),
@@ -364,7 +391,7 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { position: 'bottom' },
-                        title: { display: true, text: 'Evolução do Saldo Mensal' },
+                        title: { display: true, text: 'EvoluÃ§Ã£o do Saldo Mensal' },
                         tooltip: {
                             callbacks: {
                                 label: (context) => formatCurrency(context.parsed.y)
@@ -431,7 +458,7 @@
                             text: state.currentView === CONFIG.VIEWS.ACCOUNTS
                                 ? 'Receitas x Despesas por Conta'
                                 : state.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
-                                    ? 'Resumo Anual por Mês'
+                                    ? 'Resumo Anual por MÃªs'
                                     : 'Receitas x Despesas'
                         },
                         tooltip: {
@@ -464,7 +491,7 @@
     const renderBarChart = (d) => ChartManager.renderBar(d);
 
     // ============================================================================
-    // INTERFACE DO USUÁRIO
+    // INTERFACE DO USUÃRIO
     // ============================================================================
 
     const UI = {
@@ -483,7 +510,7 @@
                 area.innerHTML = `
                     <div class="loading">
                         <div class="spinner" aria-label="Carregando"></div>
-                        <p>Carregando relatório...</p>
+                        <p>Carregando relatÃ³rio...</p>
                     </div>
                 `;
             }
@@ -494,9 +521,32 @@
                 <div class="empty-state">
                     <i class="fas fa-chart-line"></i>
                     <h3>Nenhum dado encontrado</h3>
-                    <p>Não há informações disponíveis para o período selecionado.</p>
+                    <p>NÃ£o hÃ¡ informaÃ§Ãµes disponÃ­veis para o perÃ­odo selecionado.</p>
                 </div>
             `);
+        },
+        showPaywall(message = PAYWALL_MESSAGE) {
+            const area = document.getElementById('reportArea');
+            if (!area) return;
+
+            const safeMessage = escapeHtml(message || PAYWALL_MESSAGE);
+            area.setAttribute('aria-busy', 'false');
+            area.innerHTML = `
+                <div class="empty-state paywall-state">
+                    <i class="fas fa-lock"></i>
+                    <h3>Recurso exclusivo do plano Pro</h3>
+                    <p>${safeMessage}</p>
+                    <button type="button" class="lk-btn btn btn-primary" data-action="go-pro">
+                        <i class="fas fa-crown"></i>
+                        Assinar plano Pro
+                    </button>
+                </div>
+            `;
+
+            const cta = area.querySelector('[data-action="go-pro"]');
+            if (cta) {
+                cta.addEventListener('click', goToBilling);
+            }
         },
 
         updateMonthLabel() {
@@ -567,15 +617,81 @@
     const updateControls = () => UI.updateControls();
     const syncTypeSelect = () => UI.syncTypeSelect();
     const setActiveTab = (v) => UI.setActiveTab(v);
+    const showPaywall = (message) => UI.showPaywall(message);
+
+    function goToBilling() {
+        if (typeof openBillingModal === 'function') {
+            openBillingModal();
+        } else {
+            location.href = `${CONFIG.BASE_URL}billing`;
+        }
+    }
+
+    async function showRestrictionAlert(message) {
+        const text = message || PAYWALL_MESSAGE;
+        if (window.Swal?.fire) {
+            const result = await Swal.fire({
+                title: 'Recurso exclusivo',
+                html: escapeHtml(text),
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Assinar plano Pro',
+                cancelButtonText: 'Agora não',
+                reverseButtons: true,
+                focusConfirm: true
+            });
+            if (result.isConfirmed) {
+                goToBilling();
+            }
+        } else if (confirm(`${text}\n\nDeseja ir para a página de planos agora?`)) {
+            goToBilling();
+        }
+    }
+
+    async function handleRestrictedAccess(response) {
+        if (!response) return false;
+
+        if (response.status === 401) {
+            const current = encodeURIComponent(location.pathname + location.search);
+            location.href = `${CONFIG.BASE_URL}login?return=${current}`;
+            return true;
+        }
+
+        if (response.status === 403) {
+            let message = PAYWALL_MESSAGE;
+            try {
+                const payload = await response.clone().json();
+                if (payload?.message) {
+                    message = payload.message;
+                }
+            } catch {
+                // ignora problemas ao converter JSON
+            }
+
+            if (!state.accessRestricted) {
+                state.accessRestricted = true;
+                await showRestrictionAlert(message);
+            }
+
+            showPaywall(message);
+            return true;
+        }
+
+        return false;
+    }
 
     // ============================================================================
-    // RENDERIZAÇÃO
+    // RENDERIZAÃ‡ÃƒO
     // ============================================================================
 
     async function renderReport() {
         showLoading();
 
         const data = await fetchReportData();
+
+        if (state.accessRestricted) {
+            return;
+        }
 
         if (!data || !data.labels || data.labels.length === 0) {
             return showEmptyState();
@@ -601,7 +717,7 @@
     }
 
     // ============================================================================
-    // EXPORTAÇÃO
+    // EXPORTAÃ‡ÃƒO
     // ============================================================================
 
     async function handleExport() {
@@ -635,6 +751,10 @@
                 credentials: 'include'
             });
 
+            if (await handleRestrictedAccess(response)) {
+                return;
+            }
+
             if (!response.ok) throw new Error('Export failed');
 
             const blob = await response.blob();
@@ -652,7 +772,7 @@
             URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Export error:', error);
-            alert('Erro ao exportar relatório. Tente novamente.');
+            alert('Erro ao exportar relatÃ³rio. Tente novamente.');
         } finally {
             exportBtn.disabled = false;
             exportBtn.innerHTML = originalHTML;
@@ -717,11 +837,11 @@
     }
 
     // ============================================================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÃ‡ÃƒO
     // ============================================================================
 
     async function initialize() {
-        console.log('🚀 Inicializando Sistema de Relatórios...');
+        console.log('ðŸš€ Inicializando Sistema de RelatÃ³rios...');
         console.log('Base URL:', CONFIG.BASE_URL);
 
         setupChartDefaults();
@@ -765,13 +885,13 @@
             exportBtn.addEventListener('click', handleExport);
         }
 
-        // Renderização inicial
+        // RenderizaÃ§Ã£o inicial
         syncPickerMode();
         updateMonthLabel();
         updateControls();
         renderReport();
 
-        console.log('✅ Sistema de Relatórios carregado com sucesso!');
+        console.log('âœ… Sistema de RelatÃ³rios carregado com sucesso!');
     }
 
     // Iniciar
@@ -798,3 +918,4 @@
         getState: () => ({ ...state })
     };
 })();
+

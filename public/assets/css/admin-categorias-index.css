@@ -59,7 +59,6 @@
   gap: var(--spacing-2);
 }
 
-
 /* ==================== FORMULÁRIO ==================== */
 .c-form {
   display: flex;
@@ -70,7 +69,7 @@
 
 .c-input {
   flex: 1 1 250px;
-  background: var(--color-surface-muted);
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
@@ -88,9 +87,11 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  background: color-mix(in srgb,
-      var(--color-primary) 5%,
-      var(--color-surface-muted));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    var(--color-surface-muted)
+  );
 }
 
 .c-form .lk-select {
@@ -110,9 +111,9 @@
 
 .c-form button[type="submit"]:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
-
 
 /* ==================== TABELA ==================== */
 .container-table {
@@ -130,9 +131,8 @@
 }
 
 .tabulator .tabulator-tableholder {
-    overflow-x: hidden !important;
+  overflow-x: hidden !important;
 }
-
 
 /* ==================== ESTADO VAZIO ==================== */
 /* .tabulator .tabulator-placeholder {
@@ -164,7 +164,8 @@
 
 .table-container .tabulator .tabulator-row {
   transition: var(--transition-smooth);
-  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 50%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--glass-border) 50%, transparent);
 }
 
 .table-container .tabulator .tabulator-row:hover {
@@ -266,9 +267,11 @@
 
 #modalEditCategoria .modal-header {
   border: 0;
-  background: linear-gradient(135deg,
-      var(--color-surface-muted) 0%,
-      transparent 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-surface-muted) 0%,
+    transparent 100%
+  );
   padding: var(--spacing-5);
 }
 
@@ -323,9 +326,11 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  background: color-mix(in srgb,
-      var(--color-primary) 5%,
-      var(--color-surface-muted));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    var(--color-surface-muted)
+  );
 }
 
 #modalEditCategoria .btn {
@@ -357,7 +362,8 @@
 #modalEditCategoria .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 #modalEditCategoria .alert {
@@ -420,4 +426,3 @@ button:disabled {
     padding: var(--spacing-2);
   }
 }
-

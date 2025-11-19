@@ -10,7 +10,7 @@ use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
 use Throwable;
 
-/**
+/**x
  * Controller responsável por gerenciar o perfil do usuário.
  * Delega a lógica de negócio para o PerfilService.
  */
