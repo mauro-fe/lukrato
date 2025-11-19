@@ -85,6 +85,7 @@
 /* Botão Close */
 #modalLancamento .btn-close {
     background: var(--glass-bg);
+    background-image: none;
     border-radius: 50%;
     width: 36px;
     height: 36px;
@@ -92,12 +93,39 @@
     transition: var(--transition-normal);
     position: relative;
     backdrop-filter: blur(10px);
+    border: 1px solid transparent;
+}
+
+#modalLancamento .btn-close::before,
+#modalLancamento .btn-close::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 2px;
+    background: var(--color-text);
+    transform-origin: center;
+    transition: inherit;
+}
+
+#modalLancamento .btn-close::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+#modalLancamento .btn-close::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 #modalLancamento .btn-close:hover {
     opacity: 1;
     background: var(--color-danger);
     transform: rotate(90deg) scale(1.1);
+}
+
+#modalLancamento .btn-close:hover::before,
+#modalLancamento .btn-close:hover::after {
+    background: #fff;
 }
 
 /* Body */
@@ -445,8 +473,19 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function() {
-    const API_BASE = (window.LK?.apiBase) || ((document.querySelector('meta[name="base-url"]')?.content ||
-        '/') + 'api/');
+    const metaBase = document.querySelector('meta[name="base-url"]')?.content || '/';
+    const buildApiBase = () => {
+        const lkApiBase = window.LK?.apiBase;
+        if (typeof lkApiBase === 'function') {
+            return lkApiBase();
+        }
+        if (typeof lkApiBase === 'string' && lkApiBase.trim()) {
+            return lkApiBase.endsWith('/') ? lkApiBase : (lkApiBase + '/');
+        }
+        const normalized = metaBase.endsWith('/') ? metaBase : (metaBase + '/');
+        return normalized + (normalized.endsWith('api/') ? '' : 'api/');
+    };
+    const API_BASE = buildApiBase();
     const CSRF = (window.LK?.getCSRF?.()) || (document.querySelector('meta[name="csrf"]')?.content) || '';
 
     const $form = document.getElementById('formNovoLancamento');
