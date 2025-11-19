@@ -15,7 +15,19 @@
 
     const CONFIG = {
         BASE: (document.querySelector('meta[name="base-url"]')?.content || location.origin + '/'),
-        CSRF: document.querySelector('meta[name="csrf-token"]')?.content || ''
+        getCSRF: () => {
+            const metaToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            if (metaToken) return metaToken;
+            if (window.LK) {
+                if (typeof window.LK.csrfToken === 'string' && window.LK.csrfToken) {
+                    return window.LK.csrfToken;
+                }
+                if (typeof window.LK.getCSRF === 'function') {
+                    return window.LK.getCSRF() || '';
+                }
+            }
+            return '';
+        }
     };
 
     // ============================================================================
@@ -40,7 +52,8 @@
         getHeaders: (includeContentType = true) => {
             const headers = {};
             if (includeContentType) headers['Content-Type'] = 'application/json';
-            if (CONFIG.CSRF) headers['X-CSRF-TOKEN'] = CONFIG.CSRF;
+            const csrf = CONFIG.getCSRF();
+            if (csrf) headers['X-CSRF-TOKEN'] = csrf;
             return headers;
         },
 
@@ -174,8 +187,18 @@
                 console.log(`✓ ${title}: ${text}`);
                 return;
             }
-            Swal.fire({ icon: 'success', title, text, timer, showConfirmButton: false });
+
+            Swal.fire({
+                icon: 'success',
+                title,
+                text,
+                timer,
+                showConfirmButton: false,
+                timerProgressBar: true,
+                draggable: true
+            });
         },
+
 
         error(title, text = '') {
             if (!window.Swal) {
@@ -191,6 +214,31 @@
                 return;
             }
             Swal.fire('Atenção', text || title, 'warning');
+        },
+
+        processing(title = 'Processando...', text = '') {
+            if (!window.Swal) {
+                console.log(`${title} ${text}`);
+                return () => { };
+            }
+
+            Swal.fire({
+                title,
+                text,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                backdrop: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            return () => {
+                if (window.Swal) {
+                    Swal.close();
+                }
+            };
         },
 
         async confirm(title, text = '', confirmText = 'Sim, confirmar') {
@@ -571,6 +619,8 @@
                 return Notify.warning('Atenção', 'Preencha data e valor válidos.');
             }
 
+            const closeLoading = Notify.processing('Adicionando lançamento', 'Estamos salvando seu novo lançamento.');
+
             try {
                 await API.fetch('transactions', {
                     method: 'POST',
@@ -579,11 +629,13 @@
                     body: JSON.stringify(payload)
                 }).then(API.processResponse);
 
+                closeLoading();
                 Notify.success('Lançado!', '', 1300);
                 LancamentoModal.close();
                 await DataLoader.load();
                 if (window.refreshDashboard) window.refreshDashboard();
             } catch (err) {
+                closeLoading();
                 console.error('Erro ao salvar lançamento:', err);
                 Notify.error('Erro', err.message || 'Falha ao salvar lançamento.');
             }

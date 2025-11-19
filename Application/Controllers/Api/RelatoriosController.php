@@ -15,7 +15,6 @@ use Carbon\Carbon;
 use ValueError;
 use InvalidArgumentException;
 
-// --- Enums para Constantes (PHP 8.1+) ---
 
 enum ReportType: string
 {
@@ -53,7 +52,7 @@ enum ReportType: string
         ];
 
         $normalized = strtolower(trim($shorthand));
-        
+
         if (isset($map[$normalized])) {
             return $map[$normalized];
         }
@@ -88,18 +87,18 @@ class RelatoriosController extends BaseController
         $this->excelExport = new ExcelExportService();
     }
 
+
     public function index(): void
     {
         try {
             $this->validateAccess();
-            
+
             $type = $this->resolveReportType();
             $params = $this->buildReportParameters($type);
-            
+
             $result = $this->reportService->generateReport($type, $params);
-            
+
             $this->sendSuccessResponse($result, $type, $params);
-            
         } catch (InvalidArgumentException $e) {
             $this->handleValidationError($e);
         } catch (\Throwable $e) {
@@ -145,7 +144,7 @@ class RelatoriosController extends BaseController
         $this->requireAuth();
 
         $user = Auth::user();
-        
+
         if (!$user || !$this->userCanAccessReports($user)) {
             Response::forbidden('Relatórios são exclusivos do plano Pro.');
             exit;
@@ -197,7 +196,7 @@ class RelatoriosController extends BaseController
     private function parsePeriodFromYearMonth(string $monthParam): array
     {
         preg_match('/^(\d{4})-(\d{2})$/', $monthParam, $matches);
-        
+
         $year = (int)$matches[1];
         $month = (int)$matches[2];
 
@@ -271,7 +270,7 @@ class RelatoriosController extends BaseController
     private function resolveAccountId(): ?int
     {
         $accountId = $this->getQueryParam('account_id');
-        
+
         if ($accountId === null) {
             return null;
         }
@@ -291,7 +290,7 @@ class RelatoriosController extends BaseController
     private function resolveReportType(): ReportType
     {
         $type = $this->getQueryParam('type') ?? ReportType::DESPESAS_POR_CATEGORIA->value;
-        
+
         return ReportType::fromShorthand($type);
     }
 
@@ -306,7 +305,7 @@ class RelatoriosController extends BaseController
     private function getQueryParam(string $key): ?string
     {
         $value = $this->request->get($key);
-        
+
         return $value !== null ? (string)$value : null;
     }
 
@@ -351,7 +350,7 @@ class RelatoriosController extends BaseController
             'error' => $e->getMessage(),
             'user_id' => $this->userId ?? null
         ]);
-        
+
         Response::validationError(['params' => $e->getMessage()]);
     }
 
@@ -362,7 +361,7 @@ class RelatoriosController extends BaseController
             'trace' => $e->getTraceAsString(),
             'user_id' => $this->userId ?? null
         ]);
-        
+
         Response::error('Erro ao gerar relatório.', 500, [
             'exception' => $e->getMessage()
         ]);

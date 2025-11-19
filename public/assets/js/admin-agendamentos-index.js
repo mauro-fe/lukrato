@@ -1,60 +1,100 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- helper universal para 401/403 nesta página ---
-    async function handleFetch403(response, base) {
-        // 401: login
-        if (response.status === 401) {
-            const here = encodeURIComponent(location.pathname + location.search);
-            location.href = `${base}login?return=${here}`;
-            return true;
-        }
-
-        // redireciona para /billing
-        const goToBilling = () => {
-            if (typeof openBillingModal === 'function') {
-                openBillingModal();
-            } else {
-                location.href = `${base}billing`;
-            }
-        };
-
-        // 403: proibido -> mostra “Assinar” + “OK”
-        if (response.status === 403) {
-            let msg = 'Acesso não permitido.';
-            try {
-                const data = await response.clone().json();
-                msg = data?.message || msg;
-            } catch { }
-
-            if (typeof Swal !== 'undefined' && Swal.fire) {
-                const ret = await Swal.fire({
-                    title: 'Acesso restrito',
-                    html: msg,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Assinar',
-                    cancelButtonText: 'OK',
-                    reverseButtons: true,
-                    focusConfirm: true
-                });
-                if (ret.isConfirmed) goToBilling();
-            } else {
-                if (confirm(`${msg}\n\nIr para a página de assinatura agora?`)) {
-                    goToBilling();
-                }
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-
+﻿document.addEventListener('DOMContentLoaded', () => {
+    const PAYWALL_MESSAGE = 'Agendamentos são exclusivos do plano Pro.';
 
     const base = (typeof LK !== 'undefined' && typeof LK.getBase === 'function')
         ? LK.getBase()
         : (document.querySelector('meta[name="base-url"]')?.content || '/');
 
     const tableElement = document.getElementById('agendamentosTable');
+    const tableContainer = document.getElementById('agList');
+    const paywallBox = document.getElementById('agPaywall');
+    const paywallMessageEl = document.getElementById('agPaywallMessage');
+    const paywallCta = document.getElementById('agPaywallCta');
+
+    let accessRestricted = false;
+
+    const goToBilling = () => {
+        if (typeof openBillingModal === 'function') {
+            openBillingModal();
+        } else {
+            location.href = `${base}billing`;
+        }
+    };
+
+    const showPaywall = (message = PAYWALL_MESSAGE) => {
+        if (paywallMessageEl) {
+            paywallMessageEl.textContent = message;
+        }
+        if (paywallBox) {
+            paywallBox.classList.remove('d-none');
+            paywallBox.removeAttribute('hidden');
+        }
+        if (tableContainer) {
+            tableContainer.classList.add('d-none');
+        }
+    };
+
+    const hidePaywall = () => {
+        if (paywallBox) {
+            paywallBox.classList.add('d-none');
+            paywallBox.setAttribute('hidden', 'hidden');
+        }
+        if (tableContainer) {
+            tableContainer.classList.remove('d-none');
+        }
+        accessRestricted = false;
+    };
+
+    paywallCta?.addEventListener('click', goToBilling);
+
+    const promptUpgrade = async (message) => {
+        const text = message || PAYWALL_MESSAGE;
+        if (typeof Swal !== 'undefined' && Swal.fire) {
+            const ret = await Swal.fire({
+                title: 'Acesso restrito',
+                text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Assinar plano Pro',
+                cancelButtonText: 'Agora não',
+                reverseButtons: true,
+                focusConfirm: true
+            });
+            if (ret.isConfirmed) goToBilling();
+        } else if (confirm(`${text}\n\nIr para a página de assinatura agora?`)) {
+            goToBilling();
+        }
+    };
+
+    const handleFetch403 = async (response) => {
+        if (!response) return false;
+
+        if (response.status === 401) {
+            const here = encodeURIComponent(location.pathname + location.search);
+            location.href = `${base}login?return=${here}`;
+            return true;
+        }
+
+        if (response.status === 403) {
+            let msg = PAYWALL_MESSAGE;
+            try {
+                const data = await response.clone().json();
+                msg = data?.message || msg;
+            } catch { }
+
+            showPaywall(msg);
+            if (!accessRestricted) {
+                accessRestricted = true;
+                await promptUpgrade(msg);
+            }
+
+            return true;
+        }
+
+        hidePaywall();
+        return false;
+    };
+
     const form = document.getElementById('formAgendamento');
     const categoriaSelect = document.getElementById('agCategoria');
     const contaSelect = document.getElementById('agConta');
@@ -92,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ...options
         });
 
-        if (await handleFetch403(res, base)) {
+        if (await handleFetch403(res)) {
             return null;
         }
 
@@ -154,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fillSelect(contaSelect, selectCache.contas, {
                 placeholder: 'Todas as contas (opcional)',
                 getLabel: (item) => {
-                    const instituicao = item?.instituicao ? ` — ${item.instituicao}` : '';
+                    const instituicao = item?.instituicao ? ` â€” ${item.instituicao}` : '';
                     return `${item?.nome ?? ''}${instituicao}`;
                 }
             });
@@ -168,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fillSelect(contaSelect, items, {
             placeholder: 'Todas as contas (opcional)',
             getLabel: (item) => {
-                const instituicao = item?.instituicao ? ` — ${item.instituicao}` : '';
+                const instituicao = item?.instituicao ? ` â€” ${item.instituicao}` : '';
                 return `${item?.nome ?? ''}${instituicao}`;
             }
         });
@@ -386,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const res = await fetch(`${base}api/agendamentos`, { credentials: 'include' });
-            if (await handleFetch403(res, base)) {
+            if (await handleFetch403(res)) {
                 table.clearData(); // limpa tabela
                 return;
             }
@@ -585,8 +625,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: fd,
                     credentials: 'include'
                 });
-                if (await handleFetch403(res, base)) return;
-                if (await handleFetch403(res, base)) { Swal.close(); return; }
+                if (await handleFetch403(res)) return;
+                if (await handleFetch403(res)) { Swal.close(); return; }
                 const json = await res.json();
                 if (!res.ok || json?.status !== 'success') {
                     throw new Error(json?.message || 'Erro ' + res.status);
@@ -624,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: fd,
                     credentials: 'include'
                 });
-                if (await handleFetch403(res, base)) return;
+                if (await handleFetch403(res)) return;
                 const json = await res.json();
                 if (!res.ok || json?.status !== 'success') {
                     throw new Error(json?.message || 'Erro ' + res.status);
@@ -662,3 +702,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
     loadAgendamentos();
 });
+
+

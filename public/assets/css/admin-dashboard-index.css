@@ -240,7 +240,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 640px;
-  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  background: transparent;
   border-radius: calc(var(--radius-md) - 4px);
   overflow: hidden;
 }
@@ -272,17 +272,16 @@
 
 .table tbody tr {
   transition: var(--transition-smooth);
-  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
 }
 
 .table tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  background: var(--color-surface);
 }
 
 .table tbody tr:hover {
-  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
-  transform: translateX(2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  transform: none;
+  box-shadow: none;
 }
 
 .table tbody tr[data-initial="1"] {

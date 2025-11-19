@@ -230,24 +230,6 @@
    SELECTS
    ============================================================================ */
 
-.select-wrapper {
-  position: relative;
-  min-width: 220px;
-}
-
-.select-wrapper::after {
-  content: "\f078";
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-  position: absolute;
-  top: 50%;
-  right: var(--spacing-4);
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--color-primary);
-  font-size: 0.9em;
-}
-
 .lk-select,
 .select {
   width: 100%;
@@ -399,7 +381,7 @@
 
 .chart-wrapper {
   position: relative;
-  background: var(--glass-bg);
+  background: var(--glass-bg) !important;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-4);

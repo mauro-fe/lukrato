@@ -86,6 +86,58 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
         LK.apiBase = () => LK.getBase() + 'api/';
 
+        LK.initPageTransitions = () => {
+            const overlay = document.getElementById('lkPageTransitionOverlay');
+            if (!overlay) return;
+
+            let isTransitioning = false;
+
+            const cleanup = () => {
+                isTransitioning = false;
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('page-transitioning');
+            };
+
+            const startTransition = (target) => {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                document.body.classList.add('page-transitioning');
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+
+                setTimeout(() => {
+                    window.location.href = target;
+                }, 220);
+            };
+
+            const isSamePageAnchor = (href) => href?.startsWith('#');
+
+            document.addEventListener('click', (event) => {
+                if (event.defaultPrevented || event.button !== 0) return;
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+                const link = event.target.closest('a[href]');
+                if (!link) return;
+                if (link.target && link.target !== '_self') return;
+                if (link.hasAttribute('download')) return;
+                if (link.dataset.noTransition === 'true') return;
+
+                const href = link.getAttribute('href');
+                if (!href || isSamePageAnchor(href)) return;
+
+                const url = new URL(link.href, window.location.href);
+                if (url.origin !== window.location.origin) return;
+                if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+
+                event.preventDefault();
+                startTransition(url.href);
+            });
+
+            window.addEventListener('pageshow', cleanup);
+            cleanup();
+        };
+
         // ========================================================================
         // INICIALIZAÇÃO DOM
         // ========================================================================
@@ -104,6 +156,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             if (window.LK?.initModals) {
                 window.LK.initModals();
             }
+
+            if (window.LK?.initPageTransitions) {
+                window.LK.initPageTransitions();
+            }
         });
     </script>
 
@@ -116,6 +172,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 </head>
 
 <body>
+    <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
     <!-- ============================================================================
          SIDEBAR COLLAPSE STATE (Pre-render)
          ============================================================================ -->

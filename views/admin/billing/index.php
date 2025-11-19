@@ -1,50 +1,56 @@
+<!-- ============================================================================
+     BILLING PAGE - LUKRATO
+     ============================================================================
+     Descrição: Página de planos e assinaturas
+     Versão: 2.0 (Refatorado)
+     ============================================================================ -->
+
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 
 <style>
-    /* =========================================================
- * BILLING / PLANOS - LUKRATO (Versão Premium)
- * =======================================================*/
-
+    /* ============================================================================
+   1. CONTAINER PRINCIPAL
+   ============================================================================ */
     .billing-container {
-        max-width: 900px;
-        margin: 60px auto;
+        max-width: 1000px;
+        margin: clamp(40px, 8vw, 80px) auto;
         background: var(--glass-bg);
+        backdrop-filter: var(--glass-backdrop);
         border-radius: var(--radius-xl);
         box-shadow: var(--shadow-xl);
-        padding: 50px 60px;
+        padding: clamp(32px, 6vw, 60px) clamp(24px, 5vw, 60px);
         color: var(--color-text);
         text-align: center;
         position: relative;
         overflow: hidden;
-        backdrop-filter: var(--glass-backdrop);
+        border: 1px solid var(--glass-border);
     }
 
-    /* Efeito decorativo de fundo */
-    .billing-container::before {
+    /* 1.1 Efeitos Decorativos de Fundo */
+    .billing-container::before,
+    .billing-container::after {
         content: '';
         position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.08;
+    }
+
+    .billing-container::before {
         top: -50%;
         right: -20%;
         width: 400px;
         height: 400px;
         background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
-        opacity: 0.08;
-        border-radius: 50%;
-        pointer-events: none;
         animation: float 8s ease-in-out infinite;
     }
 
     .billing-container::after {
-        content: '';
-        position: absolute;
         bottom: -30%;
         left: -15%;
         width: 350px;
         height: 350px;
         background: radial-gradient(circle, var(--color-secondary) 0%, transparent 70%);
-        opacity: 0.06;
-        border-radius: 50%;
-        pointer-events: none;
         animation: float 10s ease-in-out infinite reverse;
     }
 
@@ -60,39 +66,52 @@
         }
     }
 
+    /* 1.2 Header do Container */
     .billing-container h1 {
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 5vw, 2.5rem);
         font-weight: 800;
-        margin-bottom: 0.75rem;
+        margin-bottom: var(--spacing-3);
         color: var(--color-primary);
         letter-spacing: -0.02em;
         position: relative;
         z-index: 1;
+        line-height: 1.2;
     }
 
     .billing-container>p {
         font-size: var(--font-size-base);
         color: var(--color-text-muted);
-        margin-bottom: 2.5rem;
+        margin-bottom: clamp(24px, 4vw, 40px);
         position: relative;
         z-index: 1;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
+    /* ============================================================================
+   2. GRID DE PLANOS
+   ============================================================================ */
     .billing-plan {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 32px;
-        margin-top: 40px;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+        gap: clamp(24px, 4vw, 40px);
+        margin-top: clamp(32px, 5vw, 48px);
         position: relative;
         z-index: 1;
+        align-items: stretch;
     }
 
-    /* Cards dos planos */
+    /* ============================================================================
+   3. CARDS DOS PLANOS
+   ============================================================================ */
+
+    /* 3.1 Estrutura Base */
     .plan-card {
-        background: var(--glass-bg);
+        background: var(--color-surface);
         backdrop-filter: var(--glass-backdrop);
         border-radius: var(--radius-lg);
-        padding: 32px 28px;
+        padding: clamp(24px, 4vw, 36px) clamp(20px, 3.5vw, 32px);
         border: 2px solid var(--glass-border);
         box-shadow: var(--shadow-md);
         transition: all var(--transition-normal);
@@ -100,8 +119,10 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        gap: var(--spacing-4);
     }
 
+    /* 3.2 Barra Superior Decorativa */
     .plan-card::before {
         content: '';
         position: absolute;
@@ -114,8 +135,9 @@
         transition: opacity var(--transition-fast);
     }
 
+    /* 3.3 Estados Hover e Focus */
     .plan-card:hover {
-        transform: translateY(-8px) scale(1.02);
+        transform: translateY(-8px);
         box-shadow: var(--shadow-xl);
         border-color: var(--color-primary);
     }
@@ -124,74 +146,95 @@
         opacity: 1;
     }
 
+    .plan-card:focus-within {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* 3.4 Título do Plano */
     .plan-card h2 {
-        font-size: 1.75rem;
+        font-size: clamp(1.5rem, 3vw, 1.75rem);
         font-weight: 700;
         color: var(--color-text);
-        margin-bottom: 0.5rem;
+        margin: 0;
         display: flex;
         align-items: center;
-        gap: var(--spacing-2);
+        gap: var(--spacing-3);
+        line-height: 1.2;
     }
 
     .plan-card h2 i {
         font-size: 1.5rem;
         color: var(--color-primary);
+        flex-shrink: 0;
     }
 
+    /* 3.5 Descrição do Plano */
     .plan-card>p {
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
-        margin: 0 0 1.5rem 0;
-        min-height: 40px;
+        margin: 0;
+        line-height: 1.5;
+        min-height: 42px;
+        text-align: left;
     }
 
+    /* 3.6 Preço */
     .plan-price {
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 4vw, 2.5rem);
         font-weight: 800;
-        margin: 1.25rem 0;
         color: var(--color-primary);
         letter-spacing: -0.03em;
+        margin: var(--spacing-2) 0;
+        line-height: 1;
     }
 
     .plan-price small {
         font-size: var(--font-size-base);
         font-weight: 500;
         color: var(--color-text-muted);
+        margin-left: var(--spacing-1);
     }
 
-    /* Lista de features */
+    /* ============================================================================
+   4. FEATURES / RECURSOS
+   ============================================================================ */
     .plan-features {
         list-style: none;
         padding: 0;
-        margin: 1.5rem 0;
+        margin: 0;
         text-align: left;
         flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-3);
     }
 
     .plan-features li {
-        margin: 0.75rem 0;
         display: flex;
-        align-items: center;
-        gap: 12px;
+        align-items: flex-start;
+        gap: var(--spacing-3);
         font-size: var(--font-size-sm);
+        line-height: 1.5;
+        transition: transform var(--transition-fast);
         padding: var(--spacing-2) 0;
-        transition: all var(--transition-fast);
     }
 
     .plan-features li:hover {
         transform: translateX(4px);
     }
 
+    /* 4.1 Ícones de Feature */
     .plan-features li i {
         width: 24px;
         height: 24px;
+        min-width: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        flex-shrink: 0;
         font-size: 0.75rem;
+        margin-top: 2px;
     }
 
     .plan-features li i.fa-check {
@@ -205,43 +248,43 @@
         opacity: 0.5;
     }
 
-    /* Botão de Assinatura Premium */
+    /* ============================================================================
+   5. BOTÃO DE ASSINATURA
+   ============================================================================ */
     .plan-subscribe-btn {
-        margin-top: 1.5rem;
+        margin-top: auto;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: var(--spacing-2);
+        gap: var(--spacing-3);
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: white;
         font-weight: 700;
         font-size: var(--font-size-base);
+        font-family: var(--font-primary);
         border: none;
         border-radius: var(--radius-lg);
-        padding: 16px 32px;
+        padding: clamp(14px, 2.5vw, 18px) clamp(24px, 4vw, 36px);
         cursor: pointer;
         transition: all var(--transition-normal);
-        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 35%, transparent);
         width: 100%;
         position: relative;
         overflow: hidden;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.03em;
+        min-height: 56px;
     }
 
-    /* Efeito de brilho animado */
+    /* 5.1 Efeito de Brilho Animado */
     .plan-subscribe-btn::before {
         content: '';
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
+        inset: 0;
         background: linear-gradient(45deg,
                 transparent 30%,
-                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0.25) 50%,
                 transparent 70%);
-        transform: rotate(45deg);
         animation: shine 3s ease-in-out infinite;
     }
 
@@ -249,19 +292,19 @@
 
         0%,
         100% {
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            transform: translateX(-100%) translateY(-100%);
         }
 
         50% {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
+            transform: translateX(100%) translateY(100%);
         }
     }
 
-    /* Efeito de partículas */
+    /* 5.2 Ícone Sparkle */
     .plan-subscribe-btn::after {
         content: '✨';
         position: absolute;
-        right: 20px;
+        right: clamp(16px, 3vw, 24px);
         font-size: 1.2rem;
         animation: sparkle 2s ease-in-out infinite;
     }
@@ -280,23 +323,28 @@
         }
     }
 
+    /* 5.3 Estados do Botão */
     .plan-subscribe-btn:hover {
         transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 12px 30px color-mix(in srgb, var(--color-primary) 50%, transparent);
+        box-shadow: 0 12px 30px color-mix(in srgb, var(--color-primary) 45%, transparent);
     }
 
     .plan-subscribe-btn:active {
-        transform: translateY(-2px) scale(1);
+        transform: translateY(-2px) scale(0.98);
     }
 
-    .plan-subscribe-btn span {
+    .plan-subscribe-btn:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 2px;
+    }
+
+    .plan-subscribe-btn span,
+    .plan-subscribe-btn i {
         position: relative;
         z-index: 1;
     }
 
     .plan-subscribe-btn i {
-        position: relative;
-        z-index: 1;
         font-size: 1.2rem;
         animation: bounce 2s ease-in-out infinite;
     }
@@ -313,7 +361,7 @@
         }
     }
 
-    /* Loading state */
+    /* 5.4 Loading State */
     .plan-subscribe-btn.loading {
         pointer-events: none;
         background: linear-gradient(135deg,
@@ -321,10 +369,7 @@
                 color-mix(in srgb, var(--color-primary) 70%, black));
     }
 
-    .plan-subscribe-btn.loading::before {
-        animation: none;
-    }
-
+    .plan-subscribe-btn.loading::before,
     .plan-subscribe-btn.loading::after {
         display: none;
     }
@@ -343,7 +388,7 @@
         }
     }
 
-    /* Disabled state */
+    /* 5.5 Disabled State */
     .plan-subscribe-btn:disabled:not(.loading) {
         background: var(--color-surface-muted);
         color: var(--color-text-muted);
@@ -363,13 +408,17 @@
         box-shadow: none;
     }
 
-    /* Status do plano ativo */
+    /* ============================================================================
+   6. PLANO ATIVO
+   ============================================================================ */
     .plan-active {
         border: 2px solid var(--color-success);
         background: linear-gradient(135deg,
-                color-mix(in srgb, var(--color-success) 8%, transparent),
-                color-mix(in srgb, var(--color-success) 4%, transparent));
-        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 15%, transparent), var(--shadow-lg);
+                color-mix(in srgb, var(--color-success) 10%, var(--color-surface)),
+                color-mix(in srgb, var(--color-success) 5%, var(--color-surface)));
+        box-shadow:
+            0 0 0 4px color-mix(in srgb, var(--color-success) 15%, transparent),
+            var(--shadow-lg);
     }
 
     .plan-active::before {
@@ -384,71 +433,90 @@
 
     .plan-active h2::after {
         content: '✓ Ativo';
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
         margin-left: auto;
         font-size: var(--font-size-xs);
         font-weight: 600;
         background: var(--color-success);
         color: white;
-        padding: 4px 12px;
+        padding: var(--spacing-1) var(--spacing-3);
         border-radius: var(--radius-sm);
-        animation: pulse 2s ease-in-out infinite;
+        animation: pulseGlow 2s ease-in-out infinite;
     }
 
-    @keyframes pulse {
+    @keyframes pulseGlow {
 
         0%,
         100% {
             opacity: 1;
+            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 70%, transparent);
         }
 
         50% {
-            opacity: 0.7;
+            opacity: 0.85;
+            box-shadow: 0 0 0 8px transparent;
         }
     }
 
     .plan-active .plan-subscribe-btn {
         background: var(--color-success);
-    }
-
-    .plan-active .plan-subscribe-btn::before {
-        background: color-mix(in srgb, var(--color-success) 80%, black);
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-success) 35%, transparent);
     }
 
     .plan-active .plan-subscribe-btn:hover {
+        background: color-mix(in srgb, var(--color-success) 90%, black);
         transform: translateY(-2px);
     }
 
-    /* Badge de recomendado */
+    /* ============================================================================
+   7. BADGE RECOMENDADO
+   ============================================================================ */
     .plan-recommended {
         position: relative;
     }
 
     .plan-recommended::after {
-        content: 'Recomendado';
+        content: '⭐ Recomendado';
         position: absolute;
-        top: -12px;
-        right: 24px;
+        right: clamp(16px, 3vw, 28px);
         background: linear-gradient(135deg, var(--color-warning), #f59e0b);
         color: white;
         font-size: var(--font-size-xs);
         font-weight: 700;
-        padding: 6px 16px;
+        padding: var(--spacing-2) var(--spacing-4);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-md);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        z-index: 2;
+        animation: floatBadge 3s ease-in-out infinite;
     }
 
-    /* Mensagens de feedback */
+    @keyframes floatBadge {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-4px);
+        }
+    }
+
+    /* ============================================================================
+   8. MENSAGEM DE FEEDBACK
+   ============================================================================ */
     #msg {
-        margin-top: 1rem;
+        margin-top: var(--spacing-4);
         min-height: 1.5rem;
         font-size: var(--font-size-sm);
         font-weight: 500;
         padding: var(--spacing-2) var(--spacing-3);
         border-radius: var(--radius-md);
         transition: all var(--transition-fast);
+        text-align: center;
     }
 
     #msg:not(:empty) {
@@ -467,41 +535,60 @@
         }
     }
 
-    /* Ripple effect */
-    @keyframes ripple {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
+    #msg.success {
+        background: color-mix(in srgb, var(--color-success) 15%, transparent);
+        color: var(--color-success);
+        border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
     }
 
-    /* Tema escuro - ajustes específicos */
+    #msg.error {
+        background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+        color: var(--color-danger);
+        border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+    }
+
+    /* ============================================================================
+   9. AJUSTES POR TEMA
+   ============================================================================ */
+
+    /* Tema Escuro */
     :root[data-theme="dark"] .billing-container {
-        box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        box-shadow:
+            var(--shadow-xl),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    /* Tema claro - ajustes específicos */
+    /* Tema Claro */
     :root[data-theme="light"] .billing-container {
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.85);
     }
 
     :root[data-theme="light"] .plan-card {
-        background: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.7);
     }
 
-    /* Responsividade */
+    /* ============================================================================
+   10. RESPONSIVIDADE
+   ============================================================================ */
+
+    /* Tablets */
+    @media (max-width: 992px) {
+        .billing-plan {
+            grid-template-columns: 1fr;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    /* Mobile */
     @media (max-width: 768px) {
         .billing-container {
-            margin: 40px 20px;
-            padding: 32px 24px;
-        }
-
-        .billing-container h1 {
-            font-size: 2rem;
+            margin: 32px 16px;
+            padding: 32px 20px;
         }
 
         .billing-plan {
-            grid-template-columns: 1fr;
             gap: 24px;
         }
 
@@ -509,20 +596,40 @@
             padding: 24px 20px;
         }
 
-        .plan-price {
-            font-size: 2rem;
-        }
-
         .plan-recommended::after {
-            top: -10px;
+            top: -12px;
             right: 16px;
             font-size: 0.65rem;
             padding: 4px 12px;
         }
+    }
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+        .billing-container {
+            padding: 24px 16px;
+            margin: 24px 12px;
+        }
+
+        .plan-card {
+            padding: 20px 16px;
+            gap: var(--spacing-3);
+        }
+
+        .plan-features {
+            gap: var(--spacing-2);
+        }
+
+        .plan-features li {
+            font-size: var(--font-size-xs);
+            gap: var(--spacing-2);
+        }
 
         .plan-subscribe-btn {
-            padding: 14px 24px;
             font-size: var(--font-size-sm);
+            padding: 12px 20px;
+            min-height: 48px;
+            letter-spacing: 0.02em;
         }
 
         .plan-subscribe-btn::after {
@@ -531,50 +638,31 @@
         }
     }
 
-    @media (max-width: 480px) {
-        .billing-container {
-            padding: 24px 16px;
-        }
+    /* ============================================================================
+   11. ANIMAÇÕES DE ENTRADA
+   ============================================================================ */
+    .billing-container[data-aos] {
+        opacity: 0;
+        animation: fadeInContainer 0.6s ease forwards;
+    }
 
-        .billing-container h1 {
-            font-size: 1.75rem;
-        }
-
-        .plan-card h2 {
-            font-size: 1.5rem;
-        }
-
-        .plan-price {
-            font-size: 1.75rem;
-        }
-
-        .plan-features li {
-            font-size: var(--font-size-xs);
-        }
-
-        .plan-subscribe-btn {
-            padding: 12px 20px;
-            font-size: var(--font-size-xs);
-            letter-spacing: 0.02em;
-        }
-
-        .plan-subscribe-btn i {
-            font-size: 1rem;
+    @keyframes fadeInContainer {
+        to {
+            opacity: 1;
         }
     }
 
-    /* Animações de entrada */
-    .billing-container[data-aos] .plan-card {
+    .billing-container .plan-card {
         opacity: 0;
         transform: translateY(30px);
         animation: slideUpPlan 0.6s ease forwards;
     }
 
-    .billing-container[data-aos] .plan-card:nth-child(1) {
+    .billing-container .plan-card:nth-child(1) {
         animation-delay: 0.1s;
     }
 
-    .billing-container[data-aos] .plan-card:nth-child(2) {
+    .billing-container .plan-card:nth-child(2) {
         animation-delay: 0.2s;
     }
 
@@ -584,80 +672,226 @@
             transform: translateY(0);
         }
     }
+
+    /* ============================================================================
+   12. ACESSIBILIDADE
+   ============================================================================ */
+    @media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Foco visível para navegação por teclado */
+    .plan-card:focus-within .plan-subscribe-btn {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* ============================================================================
+   FIM DOS ESTILOS
+   ============================================================================ */
 </style>
 
+<!-- ============================================================================
+     MARKUP HTML
+     ============================================================================ -->
 <div class="billing-container" data-aos="fade-up">
-    <h1>🚀 Escolha seu plano</h1>
-    <p>Escolha o plano ideal para suas necessidades financeiras</p>
+    <!-- Header -->
+    <header>
+        <h1>🚀 Escolha seu plano</h1>
+        <p>Escolha o plano ideal para suas necessidades financeiras e tenha controle total sobre seu dinheiro</p>
+    </header>
 
+    <!-- Grid de Planos -->
     <div class="billing-plan">
-        <!-- Plano Gratuito -->
-        <div class="plan-card <?= $user->isGratuito() ? 'plan-active' : '' ?>">
-            <h2><i class="fas fa-gift"></i> Gratuito</h2>
-            <p>Perfeito para começar a organizar suas finanças</p>
-            <div class="plan-price">R$ 0<small>/mês</small></div>
 
-            <ul class="plan-features">
-                <li><i class="fas fa-check"></i> Controle básico de transações</li>
-                <li><i class="fas fa-check"></i> Categorização de gastos</li>
-                <li><i class="fas fa-times"></i> Relatórios avançados</li>
-                <li><i class="fas fa-times"></i> Agendamentos</li>
-                <li><i class="fas fa-times"></i> Exportação de dados</li>
+        <!-- ===== PLANO GRATUITO ===== -->
+        <article class="plan-card <?= $user->isGratuito() ? 'plan-active' : '' ?>" aria-label="Plano Gratuito">
+            <h2>
+                <i class="fas fa-gift" aria-hidden="true"></i>
+                Gratuito
+            </h2>
+            <p>Perfeito para começar a organizar suas finanças pessoais</p>
+
+            <div class="plan-price" aria-label="Preço: Gratuito">
+                R$ 0<small>/mês</small>
+            </div>
+
+            <ul class="plan-features" role="list">
+                <li>
+                    <i class="fas fa-check" aria-label="Incluído"></i>
+                    Controle básico de transações
+                </li>
+                <li>
+                    <i class="fas fa-check" aria-label="Incluído"></i>
+                    Categorização de gastos
+                </li>
+
+                <li>
+                    <i class="fas fa-times" aria-label="Não incluído"></i>
+                    Relatórios completos e detalhados
+                </li>
+                <li>
+                    <i class="fas fa-times" aria-label="Não incluído"></i>
+                    Relatórios de gastos anuais
+                </li>
+                <li>
+                    <i class="fas fa-times" aria-label="Não incluído"></i>
+                    Relatórios de gastos mensais
+                </li>
+                <li>
+                    <i class="fas fa-times" aria-label="Não incluído"></i>
+                    Agendamentos automáticos
+                </li>
+                <li>
+                    <i class="fas fa-times" aria-label="Não incluído"></i>
+                    Controle de Investimentos
+                </li>
+                <li>
+                    <i class="fas fa-times" aria-label="Não incluído"></i>
+                    Exportação de dados
+                </li>
             </ul>
 
             <?php if ($user->isGratuito()): ?>
-                <button class="plan-subscribe-btn" disabled>
-                    <i class="fas fa-check-circle"></i>
+                <button class="plan-subscribe-btn" disabled aria-label="Plano atual">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i>
                     <span>Plano Atual</span>
                 </button>
             <?php else: ?>
-                <button class="plan-subscribe-btn" disabled>
+                <button class="plan-subscribe-btn" disabled aria-label="Plano básico">
                     <span>Plano Básico</span>
                 </button>
             <?php endif; ?>
-        </div>
+        </article>
 
-        <!-- Plano Pro -->
-        <div class="plan-card plan-recommended <?= $user->isPro() ? 'plan-active' : '' ?>">
-            <h2><i class="fa-solid fa-crown"></i> Pro</h2>
+        <!-- ===== PLANO PRO ===== -->
+        <article class="plan-card plan-recommended <?= $user->isPro() ? 'plan-active' : '' ?>"
+            aria-label="Plano Pro - Recomendado">
+            <h2>
+                <i class="fa-solid fa-crown" aria-hidden="true"></i>
+                Pro
+            </h2>
             <p>Controle total e insights poderosos para suas finanças</p>
-            <div class="plan-price">R$ 12<small>/mês</small></div>
 
-            <ul class="plan-features">
-                <li><i class="fa-solid fa-check"></i> Tudo do plano Gratuito</li>
-                <li><i class="fa-solid fa-check"></i> Relatórios completos e detalhados</li>
-                <li><i class="fa-solid fa-check"></i> Agendamentos automáticos</li>
-                <li><i class="fa-solid fa-check"></i> Exportação ilimitada (CSV, Excel)</li>
-                <li><i class="fa-solid fa-check"></i> Suporte prioritário</li>
+            <div class="plan-price" aria-label="Preço: 12 reais por mês">
+                R$ 12<small>/mês</small>
+            </div>
+
+            <ul class="plan-features" role="list">
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Tudo do plano Gratuito
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Relatórios completos e detalhados
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Relatórios de gastos anuais
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Relatórios de gastos mensais
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Agendamentos automáticos
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Controle de Investimentos
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Exportação ilimitada (CSV, Excel)
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-label="Incluído"></i>
+                    Suporte prioritário
+                </li>
             </ul>
 
             <?php if ($user->isPro()): ?>
-                <button class="plan-subscribe-btn" disabled>
-                    <i class="fa-solid fa-check-circle"></i>
+                <button class="plan-subscribe-btn" disabled
+                    aria-label="Plano ativo até <?= htmlspecialchars(($user->plano_renova_em ?? $user->plan_renews_at) ?: 'data não disponível') ?>">
+                    <i class="fa-solid fa-check-circle" aria-hidden="true"></i>
                     <span>Ativo até <?= htmlspecialchars(($user->plano_renova_em ?? $user->plan_renews_at) ?: '—') ?></span>
                 </button>
             <?php else: ?>
-                <button id="btnAssinar" class="plan-subscribe-btn">
-                    <i class="fa-solid fa-rocket"></i>
+                <button id="btnAssinar" class="plan-subscribe-btn" aria-label="Assinar plano Pro agora">
+                    <i class="fa-solid fa-rocket" aria-hidden="true"></i>
                     <span>Assinar Pro Agora</span>
                 </button>
-                <div id="msg" aria-live="polite"></div>
+                <div id="msg" aria-live="polite" aria-atomic="true"></div>
             <?php endif; ?>
-        </div>
+        </article>
+
     </div>
 </div>
+
+<!-- Modal de Pagamento -->
 <?php include __DIR__ . '/modal-pagamento.php'; ?>
 
+<!-- ============================================================================
+     SCRIPT DE FEEDBACK
+     ============================================================================ -->
 <?php if (isset($_GET['status'])): ?>
     <script>
         (function() {
-            const s = '<?= htmlspecialchars($_GET['status'], ENT_QUOTES) ?>';
-            if (typeof Swal !== 'undefined') {
-                if (s === 'success') Swal.fire('Tudo certo!', 'Pagamento aprovado ✅', 'success');
-                else if (s === 'pending') Swal.fire('Pagamento pendente', 'Aguardando confirmação…', 'info');
-                else Swal.fire('Falhou', 'Pagamento não aprovado.', 'error');
+            'use strict';
+
+            const status = '<?= htmlspecialchars($_GET['status'], ENT_QUOTES, 'UTF-8') ?>';
+
+            if (typeof Swal === 'undefined') {
+                console.warn('[Billing] SweetAlert2 não está disponível');
+                return;
+            }
+
+            const messages = {
+                success: {
+                    title: 'Tudo certo! 🎉',
+                    text: 'Pagamento aprovado com sucesso. Bem-vindo ao Pro!',
+                    icon: 'success'
+                },
+                pending: {
+                    title: 'Pagamento pendente ⏳',
+                    text: 'Aguardando confirmação do pagamento...',
+                    icon: 'info'
+                },
+                error: {
+                    title: 'Ops! Algo deu errado 😕',
+                    text: 'Pagamento não aprovado. Tente novamente.',
+                    icon: 'error'
+                }
+            };
+
+            const config = messages[status] || messages.error;
+
+            Swal.fire({
+                title: config.title,
+                text: config.text,
+                icon: config.icon,
+                confirmButtonText: 'Entendi',
+                confirmButtonColor: getComputedStyle(document.documentElement)
+                    .getPropertyValue('--color-primary').trim() || '#e67e22'
+            });
+
+            // Limpa URL após mostrar mensagem
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         })();
     </script>
 <?php endif; ?>
 
+<!-- ============================================================================
+     FIM DO ARQUIVO
+     ============================================================================ -->
