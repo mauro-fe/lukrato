@@ -112,10 +112,12 @@
   background: var(--color-bg);
   color: var(--color-text);
   border: 1px solid var(--glass-border);
+  margin-top: 15px !important;
 }
 
 .btn-light:hover {
   background: color-mix(in srgb, var(--color-bg) 90%, #000 10%);
+  color: var(--color-primary);
 }
 
 .btn-danger {
