@@ -16,7 +16,7 @@ use ValueError;
 use InvalidArgumentException;
 
 
-enum ReportType: string
+enum ReportType: string 
 {
     case DESPESAS_POR_CATEGORIA = 'despesas_por_categoria';
     case DESPESAS_ANUAIS_POR_CATEGORIA = 'despesas_anuais_por_categoria';
