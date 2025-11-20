@@ -265,52 +265,6 @@
 }
 
 /* ============================================================================
-   BOTÕES
-   ============================================================================ */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-5);
-  background: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-full);
-  color: white;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: 0 2px 8px
-    color-mix(in srgb, var(--color-primary) 30%, transparent);
-  white-space: nowrap;
-  height: 44px;
-}
-
-.btn i {
-  font-size: 1.1em;
-}
-
-.btn:hover {
-  background: color-mix(in srgb, var(--color-primary) 90%, #000);
-  border-color: color-mix(in srgb, var(--color-primary) 90%, #000);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ============================================================================
    ÁREA DE RELATÓRIO
    ============================================================================ */
 

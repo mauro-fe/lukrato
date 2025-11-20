@@ -34,7 +34,7 @@
                             <option value="excel">Excel (.xlsx )</option>
                         </select>
 
-                        <button id="btnExportar" type="button" class="lk-btn  btn" data-aos="fade-left"
+                        <button id="btnExportar" type="button" class="lk-btn btn btn-primary" data-aos="fade-left"
                             data-aos-delay="150" aria-label="Exportar lançamentos">
                             <i class="fas fa-download"></i> Exportar
                         </button>
@@ -73,7 +73,7 @@
                         </select>
 
                         <!-- Ações -->
-                        <button id="btnFiltrar" type="button" class="lk-btn ghost btn" data-aos="fade-left"
+                        <button id="btnFiltrar" type="button" class="lk-btn btn btn-primary" data-aos="fade-left"
                             aria-label="Aplicar filtros">
                             <i class="fas fa-filter"></i> Filtrar
                         </button>

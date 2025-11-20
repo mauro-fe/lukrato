@@ -50,7 +50,7 @@
   height: 4px;
   background: linear-gradient(90deg, var(--color-primary));
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transition: opacity 0.5s;
 }
 
 .stat-card:hover {

@@ -172,11 +172,6 @@
   background-color: var(--glass-bg) !important;
 }
 
-.export-range .lk-select:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
-  background: var(--color-primary);
-}
-
 .export-range .lk-select:focus {
   outline: none;
   border-color: var(--color-primary);
@@ -512,22 +507,6 @@
    UTILITÁRIOS E ACESSIBILIDADE
    ============================================================================ */
 
-.sr-only {
-  position: absolute !important;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.lk-btn .fa-spin {
-  animation: spin 1s linear infinite;
-}
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -696,23 +675,6 @@
   }
 }
 
-/* Redução de movimento */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .export-range .lk-btn:hover,
-  .lk-actions .lk-btn:hover,
-  .badge-tipo:hover {
-    transform: none;
-  }
-}
-
 /* ============================================================================
    IMPRESSÃO
    ============================================================================ */
@@ -733,4 +695,19 @@
   .table-container .tabulator .tabulator-row {
     page-break-inside: avoid;
   }
+}
+
+.btn-primary {
+  transition: 0.5s !important;
+}
+
+.btn-primary:hover {
+  border-color: var(--color-primary);
+  background-color: color-mix(
+    in srgb,
+    var(--glass-bg) 5%,
+    var(--color-primary) 70%
+  ) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md);
 }

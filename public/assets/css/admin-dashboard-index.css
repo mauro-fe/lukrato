@@ -397,20 +397,6 @@
   max-width: 400px;
   margin: 0 auto;
 }
-.btn-del {
-  transition: 0.5s;
-}
-
-.btn-del:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 90%, #000),
-    color-mix(in srgb, var(--color-primary) 75%, #000)
-  );
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
-}
 
 /* ==================== AÇÕES ==================== */
 .actions-cell {
