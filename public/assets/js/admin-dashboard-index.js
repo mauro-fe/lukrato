@@ -127,6 +127,23 @@
             return months;
         },
 
+        getCssVar: (name, fallback = '') => {
+            try {
+                const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+                return (value || '').trim() || fallback;
+            } catch {
+                return fallback;
+            }
+        },
+
+        isLightTheme: () => {
+            try {
+                return (document.documentElement?.getAttribute('data-theme') || 'dark') === 'light';
+            } catch {
+                return false;
+            }
+        },
+
         getContaLabel: (transaction) => {
             if (typeof transaction.conta === 'string' && transaction.conta.trim()) {
                 return transaction.conta.trim();
@@ -504,10 +521,20 @@
                     }]
                 };
 
-                const options = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
+                    const axisColor = Utils.isLightTheme()
+                        ? (Utils.getCssVar('--color-primary', '#e67e22') || '#e67e22')
+                        : 'rgba(255, 255, 255, 0.6)';
+                    const xTickColor = Utils.isLightTheme()
+                        ? (Utils.getCssVar('--color-text-muted', '#6c757d') || '#6c757d')
+                        : 'rgba(255, 255, 255, 0.6)';
+                    const gridColor = Utils.isLightTheme()
+                        ? 'rgba(0, 0, 0, 0.08)'
+                        : 'rgba(255, 255, 255, 0.05)';
+
+                    const options = {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
                         mode: 'index',
                         intersect: false
                     },
@@ -532,27 +559,27 @@
                             }
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
-                                drawBorder: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: gridColor,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: axisColor,
+                                    callback: (value) => Utils.money(value)
+                                }
                             },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.6)',
-                                callback: (value) => Utils.money(value)
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.6)'
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: xTickColor
+                                }
                             }
                         }
-                    }
                 };
 
                 if (STATE.chartInstance) {
