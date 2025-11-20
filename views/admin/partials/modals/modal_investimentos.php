@@ -114,34 +114,74 @@
 </div>
 
 <script>
-// --- Cálculo de total investido (Qtd * Preço Médio) ---
-(() => {
+// --- C�lculo de total investido (Qtd * Pre�o M�dio) ---
+(function() {
     const quantityInput = document.getElementById('quantity');
     const avgPriceInput = document.getElementById('avg_price');
     const totalInvestedInput = document.getElementById('total_invested');
     const form = document.getElementById('form-investimento');
+    const currentPriceInput = document.getElementById('current_price');
+    const modalEl = document.getElementById('modal-investimentos');
+
+    if (!quantityInput || !avgPriceInput || !totalInvestedInput || !form) {
+        return;
+    }
+
+    const parseMoney = (value) => {
+        if (!value) return 0;
+        const clean = String(value)
+            .replace(/[^\d,-]/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.');
+        const num = parseFloat(clean);
+        return Number.isFinite(num) ? num : 0;
+    };
+
+    const formatMoney = (value) => {
+        try {
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        } catch {
+            return (value || 0).toFixed(2).replace('.', ',');
+        }
+    };
 
     function calculateTotal() {
         const quantity = parseFloat(quantityInput.value) || 0;
-        const avgPrice = parseFloat(avgPriceInput.value) || 0;
+        const avgPrice = parseMoney(avgPriceInput.value);
         const total = quantity * avgPrice;
-
-        // Formata como 0,00 (pt-BR) sem prefixo (o prefixo "R$" está no input-group-text)
-        totalInvestedInput.value = total.toFixed(2).replace('.', ',');
+        totalInvestedInput.value = formatMoney(total);
     }
+
+    const sanitizeCurrencyInput = (input) => {
+        if (!input) return;
+        const raw = String(input.value || '').trim();
+        if (!raw) {
+            input.value = '';
+            return;
+        }
+        const numeric = parseMoney(raw);
+        input.value = numeric.toFixed(2);
+    };
 
     quantityInput.addEventListener('input', calculateTotal);
     avgPriceInput.addEventListener('input', calculateTotal);
 
-    // Se preço atual vier vazio, usa preço médio
     form.addEventListener('submit', function() {
-        const currentPrice = document.getElementById('current_price');
-        if (!currentPrice.value) currentPrice.value = avgPriceInput.value || '';
+        if (currentPriceInput && !currentPriceInput.value.trim()) {
+            currentPriceInput.value = avgPriceInput.value || '';
+        }
+        sanitizeCurrencyInput(avgPriceInput);
+        sanitizeCurrencyInput(currentPriceInput);
     });
 
-    // Opcional: recalcula quando o modal abrir (útil se valores vierem preenchidos)
-    const modalEl = document.getElementById('modal-investimentos');
-    modalEl.addEventListener('shown.bs.modal', calculateTotal);
+    if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', calculateTotal);
+    }
+
+    calculateTotal();
 })();
 </script>
 
@@ -160,3 +200,4 @@ document.querySelectorAll(".real").forEach(function(input) {
     });
 });
 </script>
+

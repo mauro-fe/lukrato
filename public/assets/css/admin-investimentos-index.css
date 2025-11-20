@@ -256,24 +256,27 @@
 /* Ações */
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 .btn-icon {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
   text-decoration: none;
-  border: 1px solid var(--glass-border);
-  background: var(--color-bg);
-  color: var(--color-text-muted);
+  border: 1px solid transparent;
+  background: var(--color-primary);
+  color: #1b1b1f;
+  font-size: var(--font-size-base);
   transition: var(--transition-fast);
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.25);
 }
 .btn-icon:hover {
-  transform: translateY(-1px);
-  background: var(--color-surface-muted);
-  color: var(--color-text);
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  color: #000;
 }
 
 /* Estado vazio */

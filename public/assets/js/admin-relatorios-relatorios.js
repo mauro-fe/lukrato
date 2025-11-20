@@ -122,6 +122,23 @@
 
             const simpleMatch = /filename="?([^";]+)"?/i.exec(disposition);
             return simpleMatch ? simpleMatch[1] : null;
+        },
+
+        getCssVar(name, fallback = '') {
+            try {
+                const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+                return (value || '').trim() || fallback;
+            } catch {
+                return fallback;
+            }
+        },
+
+        isLightTheme() {
+            try {
+                return (document.documentElement?.getAttribute('data-theme') || 'dark') === 'light';
+            } catch {
+                return false;
+            }
         }
     };
 
@@ -377,7 +394,7 @@
                 data: {
                     labels,
                     datasets: [{
-                        label: 'Saldo DiÃ¡rio',
+                        label: 'Saldo Diário',
                         data: values.map(Number),
                         borderColor: color,
                         backgroundColor: hexToRgba(color, 0.2),
@@ -391,7 +408,7 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { position: 'bottom' },
-                        title: { display: true, text: 'EvoluÃ§Ã£o do Saldo Mensal' },
+                        title: { display: true, text: 'Evolução do Saldo Mensal' },
                         tooltip: {
                             callbacks: {
                                 label: (context) => formatCurrency(context.parsed.y)
@@ -422,10 +439,18 @@
 
             this.destroy();
 
-            const colorSuccess = getComputedStyle(document.documentElement)
-                .getPropertyValue('--color-success').trim();
-            const colorDanger = getComputedStyle(document.documentElement)
-                .getPropertyValue('--color-danger').trim();
+            const colorSuccess = Utils.getCssVar('--color-success', '#2ecc71');
+            const colorDanger = Utils.getCssVar('--color-danger', '#e74c3c');
+            const isLight = Utils.isLightTheme();
+            const axisColor = isLight
+                ? Utils.getCssVar('--color-primary', '#e67e22')
+                : 'rgba(255, 255, 255, 0.7)';
+            const gridColor = isLight
+                ? 'rgba(0, 0, 0, 0.08)'
+                : 'rgba(255, 255, 255, 0.05)';
+            const xTickColor = isLight
+                ? Utils.getCssVar('--color-text-muted', '#6c757d')
+                : 'rgba(255, 255, 255, 0.7)';
 
             state.chart = new Chart(document.getElementById('chart0'), {
                 type: 'bar',
@@ -458,7 +483,7 @@
                             text: state.currentView === CONFIG.VIEWS.ACCOUNTS
                                 ? 'Receitas x Despesas por Conta'
                                 : state.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
-                                    ? 'Resumo Anual por MÃªs'
+                                    ? 'Resumo Anual por Mês'
                                     : 'Receitas x Despesas'
                         },
                         tooltip: {
@@ -473,8 +498,21 @@
                     },
                     scales: {
                         y: {
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
+                            },
                             ticks: {
+                                color: axisColor,
                                 callback: (value) => formatCurrency(value)
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: xTickColor
+                            },
+                            grid: {
+                                display: false
                             }
                         }
                     }
@@ -510,7 +548,7 @@
                 area.innerHTML = `
                     <div class="loading">
                         <div class="spinner" aria-label="Carregando"></div>
-                        <p>Carregando relatÃ³rio...</p>
+                        <p>Carregando relatório...</p>
                     </div>
                 `;
             }
@@ -520,8 +558,8 @@
             this.setContent(`
                 <div class="empty-state">
                     <i class="fas fa-chart-line"></i>
-                    <h3>Nenhum dado encontrado</h3>
-                    <p>NÃ£o hÃ¡ informaÃ§Ãµes disponÃ­veis para o perÃ­odo selecionado.</p>
+                    <h3>Nenhum registro encontrado</h3>
+                    <p>Não há informações disponíveis para o perí­odo selecionado.</p>
                 </div>
             `);
         },
