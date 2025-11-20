@@ -201,7 +201,6 @@
   border-radius: var(--radius-md);
 }
 
-
 .chart-loading {
   position: absolute;
   inset: 0;

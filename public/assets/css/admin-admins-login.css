@@ -210,10 +210,6 @@ main.lukrato-auth {
   border-color: #ff8d8d !important;
 }
 
-.btn-text {
-  color: var(--text);
-}
-
 /* Links e mensagens */
 .extra-link {
   margin-top: 14px;

@@ -294,6 +294,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
     <?php include __DIR__ . '/botao-lancamento_header.php'; ?>
+    <?php include __DIR__ . '/botao_suporte.php'; ?>
 
     <!-- ============================================================================
          CONTENT WRAPPER
