@@ -381,16 +381,19 @@
                     }
                 });
 
-                // Calcular saldo total das contas
-                const totalSaldo = (Array.isArray(accounts) ? accounts : []).reduce((sum, account) => {
+                // Saldo atual: preferir cálculo da API de métricas (saldoAcumulado) e usar contas como fallback
+                const saldoAcumulado = Number(metrics.saldoAcumulado ?? metrics.saldo ?? 0);
+                const totalSaldoContas = (Array.isArray(accounts) ? accounts : []).reduce((sum, account) => {
                     const value = (typeof account.saldoAtual === 'number') ?
                         account.saldoAtual :
                         (account.saldoInicial || 0);
-                    return sum + (isFinite(value) ? value : 0);
+                    return sum + (isFinite(value) ? Number(value) : 0);
                 }, 0);
 
+                const saldoFinal = Number.isFinite(saldoAcumulado) ? saldoAcumulado : totalSaldoContas;
+
                 if (DOM.saldoValue) {
-                    DOM.saldoValue.textContent = Utils.money(totalSaldo);
+                    DOM.saldoValue.textContent = Utils.money(saldoFinal);
                 }
 
                 Utils.removeLoadingClass();
