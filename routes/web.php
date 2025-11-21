@@ -1,6 +1,4 @@
-﻿web.php
-
-<?php
+﻿<?php
 
 
 
