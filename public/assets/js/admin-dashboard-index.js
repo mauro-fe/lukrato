@@ -449,9 +449,9 @@
               </td>
               <td data-label="Categoria">${categoriaNome}</td>
               <td data-label="Conta">${contaNome}</td>
-              <td data-label="DescriÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o">${descricao}</td>
+              <td data-label="Descrição">${descricao}</td>
               <td data-label="Valor" class="valor-cell ${tipoClass}">${Utils.money(valor)}</td>
-              <td data-label="AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes" class="text-end">
+              <td data-label="" class="text-end">
                 <div class="actions-cell">
                   <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
                     <i class="fas fa-trash"></i>
@@ -596,7 +596,7 @@
                     });
                 }
             } catch (err) {
-                console.error('Erro ao renderizar grÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡fico:', err);
+                console.error('Erro ao renderizar gráfico:', err);
             } finally {
                 // Esconder loading
                 if (DOM.chartLoading) {
@@ -608,15 +608,15 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE TRANSAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ES ====================
+    // ==================== GERENCIAMENTO DE TRANSAÇÕES ====================
     const TransactionManager = {
         delete: async (id, rowElement) => {
             try {
                 await Notifications.ensureSwal();
 
                 const confirmed = await Notifications.confirm(
-                    'Excluir lanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento?',
-                    'Esta aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pode ser desfeita.'
+                    'Excluir lançamento?',
+                    'Esta ação não pode ser desfeita.'
                 );
 
                 if (!confirmed) return;
@@ -626,9 +626,9 @@
                 await API.deleteTransaction(Number(id));
 
                 Notifications.close();
-                Notifications.toast('success', 'LanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento excluÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­do com sucesso!');
+                Notifications.toast('success', 'Lançamento excluído com sucesso!');
 
-                // Remover linha da tabela com animaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
+                // Remover linha da tabela com animação
                 if (rowElement) {
                     rowElement.style.opacity = '0';
                     rowElement.style.transform = 'translateX(-20px)';
@@ -655,9 +655,9 @@
                     }
                 }));
             } catch (err) {
-                console.error('Erro ao excluir lanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento:', err);
+                console.error('Erro ao excluir lançamento:', err);
                 await Notifications.ensureSwal();
-                Notifications.error('Erro', err.message || 'Falha ao excluir lanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento');
+                Notifications.error('Erro', err.message || 'Falha ao excluir lançamento');
             }
         }
     };
@@ -687,9 +687,9 @@
         },
 
         init: async () => {
-            console.log('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Inicializando Dashboard...');
+            console.log('Inicializando Dashboard...');
             await DashboardManager.refresh();
-            console.log('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Dashboard carregado com sucesso!');
+            console.log('Dashboard carregado com sucesso!');
         }
     };
 
@@ -726,7 +726,7 @@
         }
     };
 
-    // ==================== INICIALIZAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O ====================
+    // ==================== INICIALIZAÇÃO====================
     const init = () => {
         EventListeners.init();
 
