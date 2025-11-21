@@ -83,6 +83,7 @@ function registerApiRoutes(): void
 
     // Dashboard / Opções
     Router::add('GET', '/api/dashboard/metrics', 'Api\\FinanceiroController@metrics', ['auth']);
+    Router::add('GET', '/api/dashboard/transactions', 'Api\\DashboardController@transactions', ['auth']);
     Router::add('GET', '/api/options',           'Api\\FinanceiroController@options', ['auth']);
 
     // Relatórios
@@ -93,6 +94,7 @@ function registerApiRoutes(): void
     Router::add('GET', '/api/reports/export',     'Api\\RelatoriosController@export',    ['auth']);
 
     // Lançamentos (REST-like)
+    Router::add('POST',   '/api/lancamentos',      'Api\\LancamentosController@store',   ['auth', 'csrf']);
     Router::add('GET',    '/api/lancamentos',      'Api\\LancamentosController@index',   ['auth']);
     Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export', ['auth']);
     Router::add('PUT',    '/api/lancamentos/{id}', 'Api\\LancamentosController@update',  ['auth', 'csrf']);

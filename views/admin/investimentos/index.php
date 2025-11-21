@@ -195,59 +195,76 @@ if (!isset($categories))       $categories = [];
     const values = cat.map(c => Number(c.value || 0));
     const colors = cat.map(c => c.color || '#64748b');
     const total = values.reduce((a, b) => a + b, 0);
+    let categoryChart = null;
 
-    new Chart(el.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-            labels,
-            datasets: [{
-                data: values,
-                backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: '#0b1220',
-                hoverOffset: 6,
-                cutout: '64%'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue(
-                            '--color-text') || '#e5e7eb',
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        padding: 16
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label(ctx) {
-                            const v = ctx.parsed;
-                            const p = total > 0 ? (v / total) * 100 : 0;
-                            return `${ctx.label}: ${v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} (${p.toFixed(2)}%)`;
+    const renderCategoryChart = () => {
+        if (categoryChart) {
+            categoryChart.destroy();
+            categoryChart = null;
+        }
+
+        const css = getComputedStyle(document.documentElement);
+        const textColor = (css.getPropertyValue('--color-text') || '#e5e7eb').trim();
+        const borderColor = (css.getPropertyValue('--color-surface') || '#0b1220').trim();
+
+        categoryChart = new Chart(el.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor,
+                    hoverOffset: 6,
+                    cutout: '64%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: textColor || '#e5e7eb',
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 16
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const v = ctx.parsed;
+                                const p = total > 0 ? (v / total) * 100 : 0;
+                                return `${ctx.label}: ${v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} (${p.toFixed(2)}%)`;
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    };
+
+    renderCategoryChart();
+    document.addEventListener('lukrato:theme-changed', renderCategoryChart);
 })();
 </script>
 
 <script>
 // Handlers em fase de captura para sobrescrever listeners antigos
 const BASE_URL = '<?= BASE_URL ?>';
-const cssVars = getComputedStyle(document.documentElement);
-const ui = {
-    bg: (cssVars.getPropertyValue('--color-surface') || '#1c2c3c').trim(),
-    fg: (cssVars.getPropertyValue('--color-text') || '#ffffff').trim(),
-    ring: (cssVars.getPropertyValue('--ring') || 'rgba(230,126,34,.22)').trim(),
-    danger: (cssVars.getPropertyValue('--color-danger') || '#e74c3c').trim()
-};
+const ui = {};
+function refreshUiColors() {
+    const cssVars = getComputedStyle(document.documentElement);
+    ui.bg = (cssVars.getPropertyValue('--color-surface') || '#1c2c3c').trim();
+    ui.fg = (cssVars.getPropertyValue('--color-text') || '#ffffff').trim();
+    ui.ring = (cssVars.getPropertyValue('--ring') || 'rgba(230,126,34,.22)').trim();
+    ui.danger = (cssVars.getPropertyValue('--color-danger') || '#e74c3c').trim();
+}
+refreshUiColors();
+document.addEventListener('lukrato:theme-changed', refreshUiColors);
 
 function toast(title, type = 'success') {
     Swal.fire({

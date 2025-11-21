@@ -254,6 +254,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     const btn = document.getElementById('toggleTheme');
     const icon = document.getElementById('themeIcon');
     const STORAGE_KEY = 'lukrato-theme';
+    const THEME_EVENT = 'lukrato:theme-changed';
 
     // Detecta se é FA 5 ou FA 6 (pra usar o prefixo correto)
     const FA_PREFIX = (() => {
@@ -269,10 +270,15 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
 
+    function notifyThemeChange(theme) {
+        document.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: { theme } }));
+    }
+
     function applyTheme(theme) {
         root.setAttribute('data-theme', theme);
         localStorage.setItem(STORAGE_KEY, theme);
         updateIcon(theme);
+        notifyThemeChange(theme);
     }
 
     function updateIcon(theme) {
@@ -285,11 +291,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     function toggleTheme() {
         const next = getTheme() === 'dark' ? 'light' : 'dark';
         applyTheme(next);
-        document.dispatchEvent(new CustomEvent('lukrato:theme-changed', {
-            detail: {
-                theme: next
-            }
-        }));
+        // applyTheme already dispara o evento
     }
 
     btn?.addEventListener('click', toggleTheme);
@@ -300,6 +302,13 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     // sincroniza se o sistema mudar
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         if (!localStorage.getItem(STORAGE_KEY)) applyTheme(e.matches ? 'dark' : 'light');
+    });
+
+    // sincroniza entre abas
+    window.addEventListener('storage', (e) => {
+        if (e.key !== STORAGE_KEY) return;
+        const newTheme = (e.newValue === 'light' || e.newValue === 'dark') ? e.newValue : getTheme();
+        applyTheme(newTheme);
     });
 })();
 </script>

@@ -2,11 +2,11 @@
 (() => {
     'use strict';
 
-    // Previne inicialização dupla
+    // Previne inicializaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o dupla
     if (window.__LK_DASHBOARD_LOADER__) return;
     window.__LK_DASHBOARD_LOADER__ = true;
 
-    // ==================== CONFIGURAÇÃO ====================
+    // ==================== CONFIGURAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O ====================
     const CONFIG = {
         BASE_URL: (() => {
             const meta = document.querySelector('meta[name="base-url"]')?.content || '';
@@ -36,7 +36,7 @@
         despesasValue: document.getElementById('despesasValue'),
         saldoMesValue: document.getElementById('saldoMesValue'),
 
-        // Gráfico
+        // GrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡fico
         chartCanvas: document.getElementById('evolutionChart'),
         chartLoading: document.getElementById('chartLoading'),
 
@@ -56,7 +56,7 @@
         isLoading: false
     };
 
-    // ==================== UTILITÁRIOS ====================
+    // ==================== UTILITÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂRIOS ====================
     const Utils = {
         money: (n) => {
             try {
@@ -160,7 +160,7 @@
                 transaction.conta_destino?.nome ?? null;
 
             if (transaction.eh_transferencia && (origem || destino)) {
-                return `${origem || '-'} → ${destino || '-'}`;
+                return `${origem || '-'} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ${destino || '-'}`;
             }
 
             if (transaction.conta_label && String(transaction.conta_label).trim()) {
@@ -287,11 +287,11 @@
                 }
             }
 
-            throw new Error('Endpoint de exclusão não encontrado.');
+            throw new Error('Endpoint de exclusÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o encontrado.');
         }
     };
 
-    // ==================== NOTIFICAÇÕES ====================
+    // ==================== NOTIFICAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ES ====================
     const Notifications = {
         ensureSwal: async () => {
             if (window.Swal) return;
@@ -397,7 +397,7 @@
             } catch (err) {
                 console.error('Erro ao renderizar KPIs:', err);
 
-                // Valores padrão em caso de erro
+                // Valores padrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o em caso de erro
                 ['saldoValue', 'receitasValue', 'despesasValue', 'saldoMesValue'].forEach(id => {
                     const element = document.getElementById(id);
                     if (element) {
@@ -449,9 +449,9 @@
               </td>
               <td data-label="Categoria">${categoriaNome}</td>
               <td data-label="Conta">${contaNome}</td>
-              <td data-label="Descrição">${descricao}</td>
+              <td data-label="DescriÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o">${descricao}</td>
               <td data-label="Valor" class="valor-cell ${tipoClass}">${Utils.money(valor)}</td>
-              <td data-label="Ações" class="text-end">
+              <td data-label="AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes" class="text-end">
                 <div class="actions-cell">
                   <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
                     <i class="fas fa-trash"></i>
@@ -506,7 +506,7 @@
                 const chartData = {
                     labels,
                     datasets: [{
-                        label: 'Resultado do Mês',
+                        label: 'Resultado do MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªs',
                         data,
                         borderColor: '#E67E22',
                         backgroundColor: gradient,
@@ -521,13 +521,16 @@
                     }]
                 };
 
-                    const axisColor = Utils.isLightTheme()
+                    const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+                        || Utils.isLightTheme();
+                    const axisColor = isLightTheme
                         ? (Utils.getCssVar('--color-primary', '#e67e22') || '#e67e22')
                         : 'rgba(255, 255, 255, 0.6)';
-                    const xTickColor = Utils.isLightTheme()
+                    const yTickColor = isLightTheme ? '#000' : '#fff';
+                    const xTickColor = isLightTheme
                         ? (Utils.getCssVar('--color-text-muted', '#6c757d') || '#6c757d')
                         : 'rgba(255, 255, 255, 0.6)';
-                    const gridColor = Utils.isLightTheme()
+                    const gridColor = isLightTheme
                         ? 'rgba(0, 0, 0, 0.08)'
                         : 'rgba(255, 255, 255, 0.05)';
 
@@ -567,7 +570,7 @@
                                     drawBorder: false
                                 },
                                 ticks: {
-                                    color: axisColor,
+                                    color: yTickColor,
                                     callback: (value) => Utils.money(value)
                                 }
                             },
@@ -593,7 +596,7 @@
                     });
                 }
             } catch (err) {
-                console.error('Erro ao renderizar gráfico:', err);
+                console.error('Erro ao renderizar grÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡fico:', err);
             } finally {
                 // Esconder loading
                 if (DOM.chartLoading) {
@@ -605,15 +608,15 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE TRANSAÇÕES ====================
+    // ==================== GERENCIAMENTO DE TRANSAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ES ====================
     const TransactionManager = {
         delete: async (id, rowElement) => {
             try {
                 await Notifications.ensureSwal();
 
                 const confirmed = await Notifications.confirm(
-                    'Excluir lançamento?',
-                    'Esta ação não pode ser desfeita.'
+                    'Excluir lanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento?',
+                    'Esta aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pode ser desfeita.'
                 );
 
                 if (!confirmed) return;
@@ -623,9 +626,9 @@
                 await API.deleteTransaction(Number(id));
 
                 Notifications.close();
-                Notifications.toast('success', 'Lançamento excluído com sucesso!');
+                Notifications.toast('success', 'LanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento excluÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­do com sucesso!');
 
-                // Remover linha da tabela com animação
+                // Remover linha da tabela com animaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
                 if (rowElement) {
                     rowElement.style.opacity = '0';
                     rowElement.style.transform = 'translateX(-20px)';
@@ -652,9 +655,9 @@
                     }
                 }));
             } catch (err) {
-                console.error('Erro ao excluir lançamento:', err);
+                console.error('Erro ao excluir lanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento:', err);
                 await Notifications.ensureSwal();
-                Notifications.error('Erro', err.message || 'Falha ao excluir lançamento');
+                Notifications.error('Erro', err.message || 'Falha ao excluir lanÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§amento');
             }
         }
     };
@@ -684,16 +687,16 @@
         },
 
         init: async () => {
-            console.log('🚀 Inicializando Dashboard...');
+            console.log('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Inicializando Dashboard...');
             await DashboardManager.refresh();
-            console.log('✅ Dashboard carregado com sucesso!');
+            console.log('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Dashboard carregado com sucesso!');
         }
     };
 
     // ==================== EVENT LISTENERS ====================
     const EventListeners = {
         init: () => {
-            // Clique no botão de deletar
+            // Clique no botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o de deletar
             DOM.tableBody?.addEventListener('click', async (e) => {
                 const btn = e.target.closest('.btn-del');
                 if (!btn) return;
@@ -716,10 +719,14 @@
             document.addEventListener('lukrato:month-changed', () => {
                 DashboardManager.refresh();
             });
+
+            document.addEventListener('lukrato:theme-changed', () => {
+                DashboardManager.refresh();
+            });
         }
     };
 
-    // ==================== INICIALIZAÇÃO ====================
+    // ==================== INICIALIZAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O ====================
     const init = () => {
         EventListeners.init();
 
@@ -730,9 +737,11 @@
         }
     };
 
-    // Expor funções globais
+    // Expor funcoes globais
     window.refreshDashboard = DashboardManager.refresh;
+    window.LK = window.LK || {};
+    window.LK.refreshDashboard = DashboardManager.refresh;
 
-    // Iniciar aplicação
+    // Iniciar aplicacao
     init();
 })();

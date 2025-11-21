@@ -388,6 +388,9 @@
 
             const color = getComputedStyle(document.documentElement)
                 .getPropertyValue('--color-primary').trim();
+            const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+                || Utils.isLightTheme();
+            const yTickColor = isLightTheme ? '#000' : '#fff';
 
             state.chart = new Chart(document.getElementById('chart0'), {
                 type: 'line',
@@ -418,6 +421,7 @@
                     scales: {
                         y: {
                             ticks: {
+                                color: yTickColor,
                                 callback: (value) => formatCurrency(value)
                             }
                         }
@@ -441,14 +445,16 @@
 
             const colorSuccess = Utils.getCssVar('--color-success', '#2ecc71');
             const colorDanger = Utils.getCssVar('--color-danger', '#e74c3c');
-            const isLight = Utils.isLightTheme();
-            const axisColor = isLight
+            const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+                || Utils.isLightTheme();
+            const axisColor = isLightTheme
                 ? Utils.getCssVar('--color-primary', '#e67e22')
                 : 'rgba(255, 255, 255, 0.7)';
-            const gridColor = isLight
+            const yTickColor = isLightTheme ? '#000' : '#fff';
+            const gridColor = isLightTheme
                 ? 'rgba(0, 0, 0, 0.08)'
                 : 'rgba(255, 255, 255, 0.05)';
-            const xTickColor = isLight
+            const xTickColor = isLightTheme
                 ? Utils.getCssVar('--color-text-muted', '#6c757d')
                 : 'rgba(255, 255, 255, 0.7)';
 
@@ -503,7 +509,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: axisColor,
+                                color: yTickColor,
                                 callback: (value) => formatCurrency(value)
                             }
                         },
@@ -909,6 +915,11 @@
         if (accountSelect) {
             accountSelect.addEventListener('change', (e) => handleAccountChange(e.target.value));
         }
+
+        document.addEventListener('lukrato:theme-changed', () => {
+            setupChartDefaults();
+            renderReport();
+        });
 
         const headerMonth = window.LukratoHeader?.getMonth?.();
         if (headerMonth) {
