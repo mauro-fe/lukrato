@@ -1,168 +1,5 @@
 <?php loadPageCss(); ?>
 <style>
-.lukrato-auth {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-}
-
-.login-wrapper {
-    width: min(1100px, 100%);
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 32px;
-    border-radius: 20px;
-    box-shadow: 0 25px 80px rgba(12, 24, 64, 0.08);
-    overflow: hidden;
-}
-
-.login-left {
-    padding: 32px;
-    background: linear-gradient(135deg, #0f172a, #1d253a);
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 24px;
-}
-
-.login-left .imagem-logo img {
-    width: 180px;
-    max-width: 70%;
-    height: auto;
-}
-
-.login-right {
-    padding: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.auth-tabs-card {
-    width: 100%;
-}
-
-.tabs {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    border-radius: 12px;
-    padding: 6px;
-}
-
-.tabs .tab-btn {
-    border: none;
-    background: transparent;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 600;
-    color: #4b5563;
-    transition: all 0.2s ease;
-}
-
-.tabs .tab-btn.is-active {
-    background: #fff;
-    color: #111827;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
-}
-
-.tab-panel {
-    margin-top: 18px;
-}
-
-.field input {
-    width: 100%;
-    height: 46px;
-    border-radius: 10px;
-    border: 1px solid #d6d9e0;
-    padding: 0 14px;
-    font-size: 15px;
-}
-
-.field+.field {
-    margin-top: 14px;
-}
-
-.btn.btn-primary {
-    width: 100%;
-    justify-content: center;
-    gap: 6px;
-    height: 48px;
-    font-size: 15px;
-}
-
-.extra-link {
-    margin-top: 12px;
-    text-align: center;
-}
-
-.general-message,
-#registerGeneralError,
-#registerGeneralSuccess {
-    margin-top: 12px;
-}
-
-/* Mobile-first refinements */
-@media (max-width: 960px) {
-    .lukrato-auth {
-        padding: 20px 12px 28px;
-    }
-
-    .login-wrapper {
-        grid-template-columns: 1fr;
-        border-radius: 16px;
-    }
-
-    .login-left {
-        padding: 20px;
-        gap: 12px;
-    }
-
-    .login-left .welcome p {
-        font-size: 0.95rem;
-        line-height: 1.45;
-        opacity: 0.9;
-    }
-
-    .login-right {
-        padding: 20px;
-    }
-
-    .tabs .tab-btn {
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 600px) {
-    .lukrato-auth {
-        padding: 12px;
-    }
-
-    .login-left {
-        display: none;
-    }
-
-    .login-wrapper {
-        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
-        border: 1px solid #e5e7eb;
-    }
-
-    .login-right {
-        padding: 18px;
-    }
-
-    .field input {
-        height: 44px;
-        font-size: 14px;
-    }
-
-    .btn.btn-primary {
-        height: 46px;
-    }
-}
-
 .field {
     position: relative;
 }
@@ -194,6 +31,20 @@
     width: 20px;
     height: 20px;
     display: block;
+}
+
+/* Aproxima o conteúdo do topo em telas pequenas */
+@media (max-width: 768px) {
+    main.lukrato-auth {
+        align-items: flex-start;
+        padding: 18px 12px 28px;
+    }
+
+    .login-wrapper {
+        justify-content: center;
+        margin-top: 10px;
+        gap: 16px;
+    }
 }
 </style>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
