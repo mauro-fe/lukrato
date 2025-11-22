@@ -66,7 +66,7 @@ class LancamentosController
         }
 
         if (!is_numeric($valorRaw) || !is_finite((float)$valorRaw)) {
-            $errors['valor'] = 'Valor inválido.';
+            $errors['valor'] = 'Valor invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido.';
             return 0.0;
         }
 
@@ -80,18 +80,25 @@ class LancamentosController
             return null;
         }
 
-        if (Categoria::forUser($userId)->where('id', $id)->exists()) {
+        $exists = Categoria::where('id', $id)
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->exists();
+
+        if ($exists) {
             return $id;
         }
 
-        $errors['categoria_id'] = 'Categoria inválida.';
+        $errors['categoria_id'] = 'Categoria invalida.';
         return null;
     }
 
     private function validateConta(?int $id, int $userId, array &$errors): ?int
     {
+        // Conta e opcional no modal; valida somente quando informada
         if ($id === null) {
-            $errors['conta_id'] = 'Conta obrigatória.';
             return null;
         }
 
@@ -99,20 +106,26 @@ class LancamentosController
             return $id;
         }
 
-        $errors['conta_id'] = 'Conta inválida.';
+        $errors['conta_id'] = 'Conta invalida.';
         return null;
     }
+
     public function index(): void
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::error('Não autenticado', 401);
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        if (!DB::schema()->hasTable('lancamentos')) {
+            Response::success([]);
             return;
         }
 
         $month = $_GET['month'] ?? date('Y-m');
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
-            Response::validationError(['month' => 'Formato inválido (YYYY-MM)']);
+            Response::validationError(['month' => 'Formato invalido (YYYY-MM)']);
             return;
         }
 
@@ -218,11 +231,90 @@ class LancamentosController
         exit;
     }
 
+    public function store(): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $payload = $this->getRequestPayload();
+        $errors = [];
+
+        $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
+        try {
+            $tipo = LancamentoTipo::from($tipo)->value;
+        } catch (ValueError) {
+            $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
+        }
+
+        $data = (string)($payload['data'] ?? '');
+        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
+            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
+        }
+
+        $valorRaw = $payload['valor'] ?? 0;
+        $valor = $this->validateAndSanitizeValor($valorRaw, $errors);
+
+        $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
+        $contaId = is_scalar($contaId) ? (int)$contaId : null;
+        $contaId = $this->validateConta($contaId, $userId, $errors);
+
+        $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
+        $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
+        $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
+
+        $descricao = trim((string)($payload['descricao'] ?? ''));
+        $observacao = trim((string)($payload['observacao'] ?? ''));
+
+        $descricao = mb_substr($descricao, 0, 190);
+        $observacao = mb_substr($observacao, 0, 500);
+
+        if (!empty($errors)) {
+            Response::validationError($errors);
+            return;
+        }
+
+        $lancamento = Lancamento::create([
+            'user_id' => $userId,
+            'tipo' => $tipo,
+            'data' => $data,
+            'valor' => $valor,
+            'descricao' => $descricao,
+            'observacao' => $observacao,
+            'categoria_id' => $categoriaId,
+            'conta_id' => $contaId,
+            'conta_id_destino' => null,
+            'eh_transferencia' => 0,
+            'eh_saldo_inicial' => 0,
+        ]);
+
+        $lancamento->loadMissing(['categoria', 'conta']);
+
+        Response::success([
+            'id'               => (int)$lancamento->id,
+            'data'             => (string)$lancamento->data,
+            'tipo'             => (string)$lancamento->tipo,
+            'valor'            => (float)$lancamento->valor,
+            'descricao'        => (string)($lancamento->descricao ?? ''),
+            'observacao'       => (string)($lancamento->observacao ?? ''),
+            'categoria_id'     => (int)$lancamento->categoria_id ?: null,
+            'conta_id'         => (int)$lancamento->conta_id ?: null,
+            'eh_transferencia' => (bool)$lancamento->eh_transferencia,
+            'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
+            'categoria'        => $lancamento->categoria?->nome ?? '',
+            'categoria_nome'   => $lancamento->categoria?->nome ?? '',
+            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+        ], 'Lancamento criado', 201);
+    }
+
     public function update(int $id): void
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::error('Não autenticado', 401);
+            Response::error('Nao autenticado', 401);
             return;
         }
 
@@ -233,16 +325,16 @@ class LancamentosController
             ->first();
 
         if (!$lancamento) {
-            Response::error('Lançamento não encontrado', 404);
+            Response::error('LanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§amento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado', 404);
             return;
         }
 
         if ((bool)($lancamento->eh_saldo_inicial ?? 0) === true) {
-            Response::error('Não é possível editar o saldo inicial.', 422);
+            Response::error('NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© possÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel editar o saldo inicial.', 422);
             return;
         }
         if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
-            Response::error('Não é possível editar uma transferência. Crie uma nova.', 422);
+            Response::error('NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© possÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel editar uma transferÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia. Crie uma nova.', 422);
             return;
         }
 
@@ -252,12 +344,12 @@ class LancamentosController
         try {
             $tipo = LancamentoTipo::from($tipo)->value;
         } catch (ValueError) {
-            $errors['tipo'] = 'Tipo inválido. Use "receita" ou "despesa".';
+            $errors['tipo'] = 'Tipo invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido. Use "receita" ou "despesa".';
         }
 
         $data = (string)($payload['data'] ?? $lancamento->data ?? '');
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data inválida. Use o formato YYYY-MM-DD.';
+            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
         }
 
         $valorRaw = $payload['valor'] ?? $lancamento->valor ?? 0;
@@ -317,7 +409,7 @@ class LancamentosController
     {
         $uid = Auth::id();
         if (!$uid) {
-            Response::error('Não autenticado', 401);
+            Response::error('Nao autenticado', 401);
             return;
         }
 
@@ -327,12 +419,12 @@ class LancamentosController
             ->first();
 
         if (!$t) {
-            Response::error('Lançamento não encontrado', 404);
+            Response::error('LanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§amento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado', 404);
             return;
         }
 
         if ((bool)($t->eh_saldo_inicial ?? 0) === true) {
-            Response::error('Não é possível excluir o saldo inicial.', 422);
+            Response::error('NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© possÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel excluir o saldo inicial.', 422);
             return;
         }
 
@@ -340,3 +432,7 @@ class LancamentosController
         Response::success(['ok' => true]);
     }
 }
+
+
+
+

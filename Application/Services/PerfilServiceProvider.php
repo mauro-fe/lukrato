@@ -1,6 +1,7 @@
 <?php
 
 namespace Application\Providers;
+
 use Application\DTO\PerfilUpdateDTO;
 use Application\Repositories\UsuarioRepository;
 use Application\Repositories\DocumentoRepository;
@@ -29,7 +30,7 @@ class PerfilServiceProvider
         // Formatters (sem dependências)
         $container->singleton(DocumentFormatter::class);
         $container->singleton(DateFormatter::class);
-        
+
         // TelefoneFormatter depende de DocumentFormatter
         $container->singleton(TelefoneFormatter::class, function ($c) {
             return new TelefoneFormatter(

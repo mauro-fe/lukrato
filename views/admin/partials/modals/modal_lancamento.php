@@ -444,7 +444,7 @@
 
                         <div class="col-md-3 mb-3">
                             <label for="lanValor" class="form-label">💵 Valor</label>
-                            <input type="number" id="lanValor" name="valor" class="form-control money-mask"
+                            <input type="text" inputmode="decimal" id="lanValor" name="valor" class="form-control money-mask"
                                 placeholder="R$ 0,00" required>
                         </div>
 
@@ -639,6 +639,9 @@
 
             if (window.LK?.refreshDashboard) window.LK.refreshDashboard();
             if (window.LK?.refreshTable) window.LK.refreshTable();
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: { resource: 'transactions', action: 'create' }
+            }));
 
             $form.reset();
             $data.value = isoTodayLocal();

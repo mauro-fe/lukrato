@@ -28,6 +28,22 @@ class Usuario extends Model
     protected $casts = ['data_nascimento' => 'date:Y-m-d'];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito'];
 
+    /**
+     * Garante que a senha seja armazenada como hash.
+     */
+    public function setSenhaAttribute($value): void
+    {
+        $raw = (string) $value;
+        if ($raw === '') {
+            $this->attributes['senha'] = $raw;
+            return;
+        }
+
+        $this->attributes['senha'] = self::valueLooksHashed($raw)
+            ? $raw
+            : password_hash($raw, PASSWORD_BCRYPT);
+    }
+
     /* ============================================================
      * RELACIONAMENTOS
      * ========================================================== */

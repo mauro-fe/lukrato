@@ -1,132 +1,138 @@
 <?php
 
+// Application/Controllers/Auth/RegistroController.php
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
-use Application\Core\Response;
-use Application\Models\Usuario;
+use Application\Services\Auth\AuthService;
+use Application\DTOs\Auth\RegistrationDTO;
+use Application\Core\Exceptions\ValidationException;
 use Application\Services\LogService;
-use Application\Core\Exceptions\ValidationException; 
-use GUMP;
-use Throwable; 
+use Throwable;
 
 class RegistroController extends BaseController
 {
+    private AuthService $authService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->authService = new AuthService();
+    }
+
     /**
      * Exibe o formulário de registro.
      */
     public function showForm(): void
     {
-        $errors = $_SESSION['form_errors'] ?? null;
-        $success = $this->getSuccess(); 
-        unset($_SESSION['form_errors']);
-        
         $this->render('auth/register', [
-            'errors'  => $errors,
-            'success' => $success
+            'errors' => $this->getSessionErrors(),
+            'success' => $this->getSuccess()
         ]);
     }
 
     /**
-     * Processa a submissão do formulário de registro.
+     * Processa o registro de novo usuário.
      */
     public function store(): void
     {
         $isAjax = $this->request->isAjax();
-        
-        $data = [
-            'nome'                => (string) $this->request->post('name'),
-            'email'               => strtolower(trim((string) $this->request->post('email'))),
-            'senha'               => (string) $this->request->post('password'),
-            'senha_confirmacao'   => (string) $this->request->post('password_confirmation'),
-        ];
+
+        // Capturamos o email aqui apenas para contexto de log (sem senha!)
+        $emailTentativa = $this->request->post('email', 'não-informado');
 
         try {
-            // 1. Validação GUMP
-            $gump = new GUMP();
-            $gump->filter_rules([
-                'nome'  => 'trim|sanitize_string',
-                'email' => 'trim|sanitize_email',
-            ]);
-            $gump->validation_rules([
-                'nome'                => 'required|min_len,3|max_len,150',
-                'email'               => 'required|valid_email|max_len,150',
-                'senha'               => 'required|min_len,8|max_len,72',
-                'senha_confirmacao'   => 'required|equalsfield,senha',
+            $result = $this->authService->register([
+                'name' => $this->request->post('name', ''),
+                'email' => $emailTentativa,
+                'password' => $this->request->post('password', ''),
+                'password_confirmation' => $this->request->post('password_confirmation', '')
             ]);
 
-            $validData = $gump->run($data);
-            if ($validData === false) {
-                throw new ValidationException(
-                    // Argumento 1: array $errors
-                    $this->mapGumpErrors($gump->get_errors_array()),
-                    // Argumento 2: string $message
-                    'Falha na validação' 
-                );
-            }
-
-            // 2. Validação de E-mail Único
-            if (Usuario::where('email', $validData['email'])->exists()) {
-                
-                // ***** ESTA É A LINHA CORRIGIDA *****
-                throw new ValidationException(
-                    // Argumento 1: array $errors
-                    ['email' => 'E-mail já cadastrado.'],
-                    // Argumento 2: string $message
-                    'E-mail já cadastrado.'
-                );
-            }
-
-            // 3. Criação do Usuário
-            $user = new Usuario();
-            $user->nome  = $validData['nome'];
-            $user->email = $validData['email'];
-            $user->senha = $validData['senha']; // Assumindo que o Model Usuario faz o hash
-            $user->save();
-
-            // 4. Resposta de Sucesso
-            if ($isAjax) {
-                $this->ok([
-                    'message'  => 'Conta criada com sucesso!',
-                    'redirect' => rtrim(BASE_URL, '/') . '/login',
-                ], 201);
-            } else {
-                $this->setSuccess('Conta criada com sucesso! Você já pode fazer o login.');
-                $this->redirect('login');
-            }
-
+            $this->respondToRegistrationSuccess($result, $isAjax, $emailTentativa);
         } catch (ValidationException $e) {
-            // 5. Resposta de Falha de Validação
-            if ($isAjax) {
-                $this->fail($e->getMessage(), 422, $e->getErrors());
-            } else {
-                $_SESSION['form_errors'] = $e->getErrors();
-                $this->redirect('register');
-            }
-            
+            $this->respondToValidationError($e, $isAjax, $emailTentativa);
         } catch (Throwable $e) {
-            // 6. Resposta de Erro Interno
-            LogService::error('Falha ao registrar usuário', ['exception' => $e->getMessage()]);
+            $this->respondToRegistrationError($e, $isAjax, $emailTentativa);
+        }
+    }
 
-            if ($isAjax) {
-                $this->fail('Falha ao cadastrar. Tente novamente mais tarde.', 500);
-            } else {
-                $this->setError('Não foi possível criar sua conta. Tente novamente mais tarde.');
-                $this->redirect('register');
-            }
+    // --- Métodos Auxiliares Privados ---
+
+    /**
+     * Obtém erros da sessão.
+     */
+    private function getSessionErrors(): ?array
+    {
+        $errors = $_SESSION['form_errors'] ?? null;
+        unset($_SESSION['form_errors']);
+        return $errors;
+    }
+
+    /**
+     * Responde ao sucesso do registro e LOGA.
+     */
+    private function respondToRegistrationSuccess(array $result, bool $isAjax, string $email): void
+    {
+        // LOG DE SUCESSO (INFO)
+        LogService::info('Novo usuário registrado com sucesso.', [
+            'email' => $email,
+            'ip' => $this->request->ip() ?? 'unknown',
+            'user_id' => $result['user_id'] ?? 'unknown' // Supondo que o service retorne o ID
+        ]);
+
+        if ($isAjax) {
+            $this->ok([
+                'message' => $result['message'],
+                'redirect' => $result['redirect']
+            ], 201);
+        } else {
+            $this->setSuccess('Conta criada com sucesso! Você já pode fazer o login.');
+            $this->redirect('login');
         }
     }
 
     /**
-     * Mapeia os erros do GUMP para chaves de formulário UI.
+     * Responde a erro de validação e LOGA.
      */
-    private function mapGumpErrors(array $errors): array
+    private function respondToValidationError(ValidationException $e, bool $isAjax, string $email): void
     {
-        return [
-            'name'                  => $errors['nome'] ?? null,
-            'email'                 => $errors['email'] ?? null,
-            'password'              => $errors['senha'] ?? null,
-            'password_confirmation' => $errors['senha_confirmacao'] ?? null,
-        ];
+        // LOG DE AVISO (WARNING) - Útil para detectar spam ou UX ruim
+        LogService::warning('Falha de validação no registro.', [
+            'email' => $email,
+            'ip' => $this->request->ip() ?? 'unknown',
+            'errors' => $e->getErrors()
+        ]);
+
+        if ($isAjax) {
+            $this->fail($e->getMessage(), 422, $e->getErrors());
+        } else {
+            $_SESSION['form_errors'] = $e->getErrors();
+            $this->redirect('register');
+        }
+    }
+
+    /**
+     * Responde a erro geral de registro e LOGA DETALHADO.
+     */
+    private function respondToRegistrationError(Throwable $e, bool $isAjax, string $email): void
+    {
+        // LOG DE ERRO CRÍTICO (ERROR) - Com stack trace para debug
+        LogService::error('Exceção crítica ao tentar registrar usuário.', [
+            'email' => $email,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString() // Ajuda muito no debug
+        ]);
+
+        $message = 'Falha ao cadastrar. Tente novamente mais tarde.';
+
+        if ($isAjax) {
+            $this->fail($message, 500);
+        } else {
+            $this->setError($message);
+            $this->redirect('register');
+        }
     }
 }

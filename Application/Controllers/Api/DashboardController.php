@@ -8,6 +8,7 @@ use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Illuminate\Database\Eloquent\Builder; // Para tipagem do query builder
 use DateTimeImmutable; // PHP 8+
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 // --- Enums para Constantes (PHP 8.1+) ---
@@ -169,6 +170,58 @@ class DashboardController
             
         } catch (Throwable $e) {
             // Captura qualquer exceção (do PHP 7+ e 8+)
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function transactions(): void
+    {
+        try {
+            $userId = Auth::id();
+            if (!$userId) {
+                Response::json(['status' => 'error', 'message' => 'Nao autenticado'], 401);
+                return;
+            }
+
+            $monthInput = trim($_GET['month'] ?? date('Y-m'));
+            $limit = min((int)($_GET['limit'] ?? 5), 100);
+
+            $normalized = $this->normalizeMonth($monthInput);
+            $month = $normalized['month'];
+            [$y, $m] = array_map('intval', explode('-', $month));
+            $from = sprintf('%04d-%02d-01', $y, $m);
+            $to   = date('Y-m-t', strtotime($from));
+
+            $rows = DB::table('lancamentos as l')
+                ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
+                ->leftJoin('contas as a', 'a.id', '=', 'l.conta_id')
+                ->where('l.user_id', $userId)
+                ->whereBetween('l.data', [$from, $to])
+                ->orderBy('l.data', 'desc')
+                ->orderBy('l.id', 'desc')
+                ->limit($limit)
+                ->selectRaw('
+                    l.id, l.data, l.tipo, l.valor, l.descricao,
+                    l.categoria_id, l.conta_id,
+                    COALESCE(c.nome, "") as categoria,
+                    COALESCE(a.nome, a.instituicao, "") as conta
+                ')
+                ->get();
+
+            $out = $rows->map(fn($r) => [
+                'id' => (int)$r->id,
+                'data' => (string)$r->data,
+                'tipo' => (string)$r->tipo,
+                'valor' => (float)$r->valor,
+                'descricao' => (string)($r->descricao ?? ''),
+                'categoria_id' => (int)$r->categoria_id ?: null,
+                'conta_id' => (int)$r->conta_id ?: null,
+                'categoria' => (string)$r->categoria,
+                'conta' => (string)$r->conta,
+            ])->values()->all();
+
+            Response::json($out);
+        } catch (Throwable $e) {
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
