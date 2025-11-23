@@ -486,7 +486,8 @@
         return normalized + (normalized.endsWith('api/') ? '' : 'api/');
     };
     const API_BASE = buildApiBase();
-    const CSRF = (window.LK?.getCSRF?.()) || (document.querySelector('meta[name="csrf"]')?.content) || '';
+    const tokenId = document.querySelector('meta[name="csrf-token-id"]')?.content || 'default';
+    let CSRF = (window.LK?.getCSRF?.()) || (document.querySelector('meta[name="csrf-token"]')?.content) || '';
 
     const $form = document.getElementById('formNovoLancamento');
     const $alert = document.getElementById('novoLancAlert');
@@ -506,31 +507,87 @@
         return local.toISOString().slice(0, 10);
     };
 
-    const fetchJSON = async (url, opts = {}) => {
+    const applyCsrfToken = (token) => {
+        if (!token) return;
+        CSRF = token;
+        document.querySelectorAll('[data-csrf-id]').forEach((el) => {
+            if (el.getAttribute('data-csrf-id') === tokenId) {
+                if (el.tagName === 'META') {
+                    el.setAttribute('content', token);
+                } else if ('value' in el) {
+                    el.value = token;
+                }
+            }
+        });
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) meta.setAttribute('content', token);
+        if (window.LK) window.LK.csrfToken = token;
+    };
+
+    const refreshCsrf = async () => {
+        const res = await fetch(API_BASE + 'csrf/refresh', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ token_id: tokenId })
+        });
+        const data = await res.json().catch(() => null);
+        if (data?.token) {
+            applyCsrfToken(data.token);
+            return data.token;
+        }
+        throw new Error('Falha ao renovar CSRF');
+    };
+
+    const fetchJSON = async (url, opts = {}, retry = true) => {
         const res = await fetch(url, {
             headers: {
                 'Accept': 'application/json',
                 ...(opts.body instanceof FormData ? {} : {
                     'Content-Type': 'application/json'
                 }),
-                'X-CSRF-TOKEN': CSRF
+                'X-CSRF-TOKEN': CSRF,
+                'X-Requested-With': 'XMLHttpRequest'
             },
             credentials: 'same-origin',
             ...opts
         });
-        if (!res.ok) {
-            let msg = `HTTP ${res.status}`;
-            try {
-                const j = await res.json();
-                if (j?.message) msg = j.message;
-            } catch {}
-            throw new Error(msg);
-        }
+        let data = null;
         try {
-            return await res.json();
-        } catch {
-            return null;
+            data = await res.json();
+        } catch (err) {
+            // ignore JSON parse errors; handled below
         }
+
+        const hasErrorPayload = data && (data.error || data.status === 'error');
+        if (!res.ok || hasErrorPayload) {
+            // Tenta renovar CSRF uma vez e repetir
+            if (res.status === 403 && retry) {
+                try {
+                    const newToken = await refreshCsrf();
+                    if (newToken) {
+                        return fetchJSON(url, opts, false);
+                    }
+                } catch (_) {
+                    // segue para erro padrão
+                }
+            }
+
+            const errors = data?.errors;
+            const msg = data?.message || data?.error || `HTTP ${res.status}`;
+            const detail = errors
+                ? Object.values(errors).flat().join(' | ')
+                : '';
+            throw new Error(detail ? `${msg}: ${detail}` : msg);
+        }
+        // Atualiza token se backend retornar um novo (opcional)
+        if (data?.token && typeof data.token === 'string') {
+            applyCsrfToken(data.token);
+        }
+        return data;
     };
 
     const toArray = (items) => {
@@ -605,13 +662,16 @@
             $submitBtn.textContent = 'Salvando...';
         }
 
+        const normalizedDate = ($data.value || '').trim() || isoTodayLocal();
         const payload = {
-            data: $data.value,
-            tipo: $tipo.value,
-            categoria_id: $categoria.value || null,
-            conta_id: $conta.value || null,
-            valor: unformatBRL($valor.value),
-            descricao: document.getElementById('lanDescricao')?.value || ''
+            data: normalizedDate.slice(0, 10),
+            tipo: ($tipo.value || '').toLowerCase(),
+            categoria_id: $categoria.value ? Number($categoria.value) : null,
+            conta_id: $conta?.value ? Number($conta.value) : null,
+            valor: Number(unformatBRL($valor.value).toFixed(2)),
+            descricao: (document.getElementById('lanDescricao')?.value || '').trim(),
+            csrf_token: CSRF,
+            _token: CSRF
         };
 
         try {

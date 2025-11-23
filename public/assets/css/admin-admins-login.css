@@ -85,6 +85,7 @@ main.lukrato-auth {
   max-width: 100%;
   height: auto;
   object-fit: contain;
+  margin-left: 80px;
 }
 
 .welcome {
@@ -278,16 +279,17 @@ footer a:hover {
   }
 
   .welcome h2 {
-    font-size: 28px;
+    font-size: 35px;
   }
 
   .welcome p {
     margin-inline: auto;
     padding: 0 6px;
+    font-size: 20px;
   }
 
   .imagem-logo img {
-    width: 150px;
+    width: 280px;
     max-width: 70%;
   }
 
@@ -300,13 +302,13 @@ footer a:hover {
   .card,
   .auth-tabs-card {
     width: 100% !important;
-    max-width: 420px !important;
-    padding: 20px !important;
-    border-radius: 16px;
+    max-width: 550px !important;
+    padding: 22px !important;
+    border-radius: 18px;
   }
 
   .card-title {
-    font-size: 24px;
+    font-size: 26px;
   }
 
   .field {
@@ -314,13 +316,14 @@ footer a:hover {
   }
 
   .field input {
-    padding: 14px 12px;
+    padding: 15px 13px;
     border-radius: 12px;
+    font-size: 16px;
   }
 
   .btn-primary {
-    padding: 14px;
-    font-size: 16px;
+    padding: 15px;
+    font-size: 17px;
     border-radius: 12px;
   }
 }
@@ -381,7 +384,7 @@ footer a:hover {
   }
 
   .welcome h2 {
-    font-size: 26px;
+    font-size: 32px;
   }
 
   .tabs {
@@ -392,8 +395,9 @@ footer a:hover {
 
   .tab-btn {
     width: 100%;
-    padding: 14px 12px;
+    padding: 15px 12px;
     text-align: center;
+    font-size: 16px;
   }
 
   .tab-panel {
@@ -402,22 +406,33 @@ footer a:hover {
 
   .card,
   .auth-tabs-card {
-    max-width: 460px !important;
-    padding: 20px 18px 26px !important;
+    max-width: 520px !important;
+    padding: 24px 20px 30px !important;
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+    border-radius: 18px;
   }
 
   .field {
-    margin: 10px 0;
+    margin: 12px 0;
   }
 
   .field input {
-    padding: 13px 12px;
+    padding: 15px 13px;
+    font-size: 16px;
   }
 
   .btn-primary {
-    padding: 13px;
-    font-size: 16px;
+    padding: 15px;
+    font-size: 17px;
+  }
+
+  .welcome p {
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .imagem-logo img {
+    width: 210px;
   }
 }
 
@@ -427,37 +442,37 @@ footer a:hover {
   }
 
   .imagem-logo img {
-    width: 140px;
+    width: 150px;
   }
 
   .welcome h2 {
-    font-size: 24px;
+    font-size: 30px;
   }
 
   .welcome p {
-    font-size: 15px;
-    line-height: 1.5;
-    padding: 0 4px;
+    font-size: 16.5px;
+    line-height: 1.65;
+    padding: 0 6px;
   }
 
   .card,
   .auth-tabs-card {
-    max-width: 360px !important;
-    padding: 18px 16px 24px !important;
+    max-width: 480px !important;
+    padding: 22px 18px 28px !important;
   }
 
   .card-title {
-    font-size: 22px;
+    font-size: 25px;
   }
 
   .field input {
-    padding: 12px 11px;
-    font-size: 15px;
+    padding: 15px 12px;
+    font-size: 16.5px;
   }
 
   .btn-primary {
-    padding: 12px;
-    font-size: 15px;
+    padding: 15px;
+    font-size: 17px;
   }
 }
 
@@ -467,7 +482,7 @@ footer a:hover {
   }
 
   .welcome h2 {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .tabs {
@@ -475,7 +490,7 @@ footer a:hover {
   }
 
   .tab-btn {
-    font-size: 14px;
+    font-size: 16px;
     padding-block: 12px;
   }
 }

@@ -31,7 +31,7 @@
 
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 
-<script src="<?= BASE_URL ?>assets/js/soft-ui-dashboard.min.js?v=1.1.0"></script>
+<script src="<?= BASE_URL ?>assets/js/soft-ui-dashboard.js?v=1.1.2"></script>
 
 <?php loadPageJs(); ?>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
