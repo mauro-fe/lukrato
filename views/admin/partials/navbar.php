@@ -61,6 +61,26 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
 }
 
+@media (max-width: 576px) {
+    .lk-navbar {
+        padding: 18px 10px;
+        height: auto;
+    }
+
+    .lk-navbar-inner {
+        gap: var(--spacing-md);
+    }
+
+    .lk-navbar-left h1 {
+        font-size: 1.25rem;
+        line-height: 1.3;
+    }
+
+    .lk-navbar-left h1 span {
+        font-size: 1.1rem;
+    }
+}
+
 /* ===============================
  * LADO DIREITO (acoes / botoes)
  * =============================== */

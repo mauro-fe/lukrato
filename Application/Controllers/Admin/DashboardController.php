@@ -19,10 +19,10 @@ class DashboardController extends BaseController
     {
         // Define o payload de dados para a view
         $data = [
-            'pageTitle' => 'Dashboard', 
-            'subTitle' => 'Controle de Financeiro'
+            'pageTitle' => 'Dashboard',
+            'subTitle' => 'Controle Financeiro'
         ];
-        
+
         $this->render(
             'admin/dashboard/index',    // View principal a ser carregada
             $data,                      // Dados passados para a view

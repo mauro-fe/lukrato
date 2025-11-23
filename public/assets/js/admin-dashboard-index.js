@@ -1,12 +1,12 @@
-
+﻿
 (() => {
     'use strict';
 
-    // Previne inicializaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o dupla
+    // Previne inicialização dupla
     if (window.__LK_DASHBOARD_LOADER__) return;
     window.__LK_DASHBOARD_LOADER__ = true;
 
-    // ==================== CONFIGURAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O ====================
+    // ==================== CONFIGURAÇÃO ====================
     const CONFIG = {
         BASE_URL: (() => {
             const meta = document.querySelector('meta[name="base-url"]')?.content || '';
@@ -36,7 +36,7 @@
         despesasValue: document.getElementById('despesasValue'),
         saldoMesValue: document.getElementById('saldoMesValue'),
 
-        // GrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡fico
+        // GrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡fico
         chartCanvas: document.getElementById('evolutionChart'),
         chartLoading: document.getElementById('chartLoading'),
 
@@ -56,7 +56,7 @@
         isLoading: false
     };
 
-    // ==================== UTILITÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂRIOS ====================
+    // ==================== UTILITÁRIOS ====================
     const Utils = {
         money: (n) => {
             try {
@@ -160,7 +160,7 @@
                 transaction.conta_destino?.nome ?? null;
 
             if (transaction.eh_transferencia && (origem || destino)) {
-                return `${origem || '-'} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ${destino || '-'}`;
+                return `${origem || '-'}${destino || '-'}`;
             }
 
             if (transaction.conta_label && String(transaction.conta_label).trim()) {
@@ -287,11 +287,11 @@
                 }
             }
 
-            throw new Error('Endpoint de exclusÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o encontrado.');
+            throw new Error('Endpoint de exclusão encontrado.');
         }
     };
 
-    // ==================== NOTIFICAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ES ====================
+    // ==================== NOTIFICAÇÕES ====================
     const Notifications = {
         ensureSwal: async () => {
             if (window.Swal) return;
@@ -400,7 +400,7 @@
             } catch (err) {
                 console.error('Erro ao renderizar KPIs:', err);
 
-                // Valores padrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o em caso de erro
+                // Valores padrões em caso de erro
                 ['saldoValue', 'receitasValue', 'despesasValue', 'saldoMesValue'].forEach(id => {
                     const element = document.getElementById(id);
                     if (element) {
@@ -454,7 +454,7 @@
               <td data-label="Conta">${contaNome}</td>
               <td data-label="Descrição">${descricao}</td>
               <td data-label="Valor" class="valor-cell ${tipoClass}">${Utils.money(valor)}</td>
-              <td data-label="" class="text-end">
+              <td data-label="Ações" class="text-end">
                 <div class="actions-cell">
                   <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
                     <i class="fas fa-trash"></i>
@@ -509,7 +509,7 @@
                 const chartData = {
                     labels,
                     datasets: [{
-                        label: 'Resultado do MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªs',
+                        label: 'Resultado do Mês',
                         data,
                         borderColor: '#E67E22',
                         backgroundColor: gradient,
@@ -699,7 +699,7 @@
     // ==================== EVENT LISTENERS ====================
     const EventListeners = {
         init: () => {
-            // Clique no botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o de deletar
+            // Clique no botÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o de deletar
             DOM.tableBody?.addEventListener('click', async (e) => {
                 const btn = e.target.closest('.btn-del');
                 if (!btn) return;
@@ -729,7 +729,7 @@
         }
     };
 
-    // ==================== INICIALIZAÇÃO====================
+    // ==================== INICIALIZAÃ‡ÃƒO====================
     const init = () => {
         EventListeners.init();
 
@@ -748,3 +748,7 @@
     // Iniciar aplicacao
     init();
 })();
+
+
+
+

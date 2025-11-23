@@ -38,6 +38,8 @@
     const DOM = {
         // Tabela
         tabContainer: document.getElementById('tabLancamentos'),
+        // Cards (mobile)
+        lanCards: document.getElementById('lanCards'),
 
         // Filtros
         selectTipo: document.getElementById('filtroTipo'),
@@ -551,7 +553,7 @@
     };
 
     // ============================================================================
-    // GERENCIAMENTO DE TABELA (TABULATOR)
+    // GERENCIAMENTO DE TABELA (TABULATOR) - DESKTOP
     // ============================================================================
 
     const TableManager = {
@@ -579,17 +581,13 @@
                 hozAlign: 'center',
                 headerSort: false,
                 width: 44,
+                minWidth: 44,
+                responsive: 5,
                 cellClick: (e, cell) => {
                     const data = cell.getRow().getData();
                     if (Utils.isSaldoInicial(data)) {
                         e.preventDefault();
                         cell.getRow().deselect();
-                    }
-                },
-                cellRendered: (cell) => {
-                    const data = cell.getRow().getData();
-                    if (Utils.isSaldoInicial(data)) {
-                        cell.getElement().classList.add('lk-cell-select-disabled');
                     }
                 }
             },
@@ -599,6 +597,8 @@
                 sorter: 'date',
                 hozAlign: 'left',
                 width: 130,
+                minWidth: 90,
+                responsive: 0,
                 mutator: (value, data) => data.data || data.created_at,
                 formatter: (cell) => Utils.fmtDate(cell.getValue()),
                 headerFilterFunc: (headerValue, rowValue) => {
@@ -621,19 +621,28 @@
                 field: 'tipo',
                 width: 150,
                 hozAlign: 'center',
+                minWidth: 90,
+                responsive: 0,
                 formatter: (cell) => {
                     const raw = String(cell.getValue() || '-');
                     const tipoClass = Utils.getTipoClass(raw);
                     const label = raw.charAt(0).toUpperCase() + raw.slice(1);
                     return `<span class="badge-tipo ${tipoClass}">${Utils.escapeHtml(label)}</span>`;
                 },
-                headerFilter: 'select',
-                headerFilterParams: {
-                    values: {
-                        '': 'Todos',
-                        receita: 'Receitas',
-                        despesa: 'Despesas'
-                    }
+                headerFilter: (cell, onRendered, success) => {
+                    const select = document.createElement('select');
+                    select.innerHTML = `
+                        <option value="">Todos</option>
+                        <option value="receita">Receitas</option>
+                        <option value="despesa">Despesas</option>
+                    `;
+                    select.addEventListener('change', () => success(select.value));
+                    onRendered(() => {
+                        const current = typeof cell.getHeaderFilterValue === 'function' ?
+                            (cell.getHeaderFilterValue() || '') : '';
+                        select.value = current;
+                    });
+                    return select;
                 }
             },
             {
@@ -641,6 +650,8 @@
                 field: 'categoria_nome',
                 hozAlign: 'center',
                 widthGrow: 1,
+                minWidth: 160,
+                responsive: 2,
                 mutator: (value, data) => {
                     const candidate = value ??
                         data?.categoria ??
@@ -665,6 +676,8 @@
                 field: 'conta_nome',
                 hozAlign: 'center',
                 width: 150,
+                minWidth: 140,
+                responsive: 2,
 
                 mutator: (value, data) => {
                     const raw = value ??
@@ -686,6 +699,8 @@
                 field: 'descricao',
                 hozAlign: 'center',
                 widthGrow: 2,
+                minWidth: 180,
+                responsive: 3,
                 mutator: (value, data) => {
                     let raw = value ??
                         data?.descricao ??
@@ -712,6 +727,8 @@
                 field: 'valor',
                 hozAlign: 'center',
                 width: 150,
+                minWidth: 90,
+                responsive: 0,
                 formatter: (cell) => {
                     const tipoClass = Utils.getTipoClass(cell.getRow()?.getData()?.tipo);
                     return `<span class="valor-cell ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</span>`;
@@ -733,6 +750,8 @@
                 headerSort: false,
                 hozAlign: 'center',
                 width: 150,
+                minWidth: 90,
+                responsive: 0,
                 formatter: (cell) => {
                     const data = cell.getRow().getData();
                     if (Utils.isSaldoInicial(data)) return '';
@@ -791,6 +810,53 @@
             const instance = new Tabulator(DOM.tabContainer, {
                 height: CONFIG.TABLE_HEIGHT,
                 layout: 'fitColumns',
+                responsiveLayout: 'collapse',
+                responsiveLayoutCollapseStartOpen: false,
+                responsiveLayoutCollapseFormatter: (data) => {
+                    const categoria = Utils.escapeHtml(
+                        data?.categoria_nome ??
+                        (typeof data?.categoria === 'object' ? data?.categoria?.nome : data?.categoria) ??
+                        '-'
+                    ) || '-';
+
+                    const conta = Utils.escapeHtml(
+                        data?.conta_nome ??
+                        (typeof data?.conta === 'object' ? data?.conta?.nome : data?.conta) ??
+                        '-'
+                    ) || '-';
+
+                    const descRaw = data?.descricao ??
+                        data?.descricao_titulo ??
+                        (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ??
+                        '';
+                    const descricao = Utils.escapeHtml(String(descRaw || '--'));
+
+                    const container = document.createElement('div');
+                    container.className = 'lk-collapse-details';
+
+                    const makeRow = (label, value) => {
+                        const row = document.createElement('div');
+                        row.className = 'lk-collapse-row';
+
+                        const labelEl = document.createElement('span');
+                        labelEl.className = 'lk-label';
+                        labelEl.textContent = label;
+
+                        const valueEl = document.createElement('span');
+                        valueEl.className = 'lk-value';
+                        valueEl.innerHTML = value || '-';
+
+                        row.appendChild(labelEl);
+                        row.appendChild(valueEl);
+                        return row;
+                    };
+
+                    container.appendChild(makeRow('Categoria', categoria));
+                    container.appendChild(makeRow('Conta', conta));
+                    container.appendChild(makeRow('Descrição', descricao || '--'));
+
+                    return container;
+                },
                 placeholder: 'Nenhum lançamento encontrado para o período selecionado',
                 selectable: true,
                 index: 'id',
@@ -802,6 +868,8 @@
                     row.getElement().setAttribute('data-id', data?.id ?? '');
                     if (Utils.isSaldoInicial(data)) {
                         row.getElement()?.classList.add('lk-row-inicial');
+                        const firstCell = row.getCells()?.[0];
+                        firstCell?.getElement()?.classList.add('lk-cell-select-disabled');
                     }
                 },
                 selectableCheck: (row) => !Utils.isSaldoInicial(row.getData()),
@@ -875,6 +943,192 @@
             if (DOM.selCountSpan) DOM.selCountSpan.textContent = String(count);
             if (DOM.btnExcluirSel) {
                 DOM.btnExcluirSel.toggleAttribute('disabled', count === 0);
+            }
+        }
+    };
+
+    // ============================================================================
+    // MOBILE CARDS (substitui Tabulator no mobile)
+    // ============================================================================
+
+    const MobileCards = {
+        cache: [],
+
+        render(items) {
+            if (!DOM.lanCards) return;
+
+            this.cache = Array.isArray(items) ? items : [];
+            const data = this.cache.filter(item => !Utils.isSaldoInicial(item));
+
+            if (!data.length) {
+                DOM.lanCards.innerHTML = `
+                    <div class="lan-cards-header">
+                        <span>Data</span>
+                        <span>Tipo</span>
+                        <span>Valor</span>
+                        <span>Ações</span>
+                    </div>
+                    <div class="lan-card" style="border-radius:0 0 16px 16px;">
+                        <div style="grid-column:1/-1;font-size:0.85rem;color:var(--color-text-muted);padding:0.5rem 0;">
+                            Nenhum lançamento encontrado para o período selecionado.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const parts = [];
+
+            // Cabeçalho
+            parts.push(`
+                <div class="lan-cards-header">
+                    <span>Data</span>
+                    <span>Tipo</span>
+                    <span>Valor</span>
+                    <span>Ações</span>
+                </div>
+            `);
+
+            for (const item of data) {
+                const id = item.id;
+                const tipoRaw = String(item.tipo || '').toLowerCase();
+                const tipoClass = Utils.getTipoClass(tipoRaw);
+                const tipoLabel = tipoRaw
+                    ? tipoRaw.charAt(0).toUpperCase() + tipoRaw.slice(1)
+                    : '-';
+
+                const valorFmt = Utils.fmtMoney(item.valor);
+                const dataFmt = Utils.fmtDate(item.data || item.created_at);
+
+                const categoria =
+                    item.categoria_nome ??
+                    (typeof item.categoria === 'object'
+                        ? item.categoria?.nome
+                        : item.categoria) ??
+                    '-';
+
+                const conta =
+                    item.conta_nome ??
+                    (typeof item.conta === 'object'
+                        ? item.conta?.nome
+                        : item.conta) ??
+                    '-';
+
+                const descRaw =
+                    item.descricao ??
+                    item.descricao_titulo ??
+                    (typeof item.descricao === 'object'
+                        ? item.descricao?.texto
+                        : '') ??
+                    '';
+                const descricao = descRaw || '--';
+
+                parts.push(`
+                    <article class="lan-card" data-id="${id}" aria-expanded="false">
+                        <div class="lan-card-main">
+                            <span class="lan-card-date">${Utils.escapeHtml(dataFmt)}</span>
+                            <span class="lan-card-type">
+                                <span class="badge-tipo ${tipoClass}">
+                                    ${Utils.escapeHtml(tipoLabel)}
+                                </span>
+                            </span>
+                            <span class="lan-card-value ${tipoClass}">
+                                ${Utils.escapeHtml(valorFmt)}
+                            </span>
+                        </div>
+
+                        <div class="lan-card-actions">
+                            ${Utils.canEditLancamento(item)
+                                ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento">
+                                       <i class="fas fa-pen"></i>
+                                   </button>`
+                                : ''
+                            }
+                            ${!Utils.isSaldoInicial(item)
+                                ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento">
+                                       <i class="fas fa-trash"></i>
+                                   </button>`
+                                : ''
+                            }
+                        </div>
+
+                        <button class="lan-card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
+                            <span class="lan-card-toggle-icon">▶</span>
+                            <span>Detalhes</span>
+                        </button>
+
+                        <div class="lan-card-details">
+                            <div class="lan-card-detail-row">
+                                <span class="lan-card-detail-label">Categoria</span>
+                                <span class="lan-card-detail-value">${Utils.escapeHtml(categoria || '-')}</span>
+                            </div>
+                            <div class="lan-card-detail-row">
+                                <span class="lan-card-detail-label">Conta</span>
+                                <span class="lan-card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
+                            </div>
+                            <div class="lan-card-detail-row">
+                                <span class="lan-card-detail-label">Descrição</span>
+                                <span class="lan-card-detail-value">${Utils.escapeHtml(descricao)}</span>
+                            </div>
+                        </div>
+                    </article>
+                `);
+            }
+
+            DOM.lanCards.innerHTML = parts.join('');
+        },
+
+        handleClick(ev) {
+            const target = ev.target;
+
+            // Toggle de detalhes
+            const toggleBtn = target.closest('[data-toggle="details"]');
+            if (toggleBtn) {
+                const card = toggleBtn.closest('.lan-card');
+                if (card) {
+                    const isExpanded = card.getAttribute('aria-expanded') === 'true';
+                    card.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+                }
+                return;
+            }
+
+            // Botões Editar / Excluir
+            const actionBtn = target.closest('.lan-card-btn');
+            if (!actionBtn) return;
+
+            const action = actionBtn.dataset.action;
+            const id = Number(actionBtn.dataset.id);
+            if (!id) return;
+
+            const item = MobileCards.cache.find(l => Number(l.id) === id);
+            if (!item) return;
+
+            if (action === 'edit') {
+                if (!Utils.canEditLancamento(item)) return;
+                ModalManager.openEditLancamento(item);
+                return;
+            }
+
+            if (action === 'delete') {
+                if (Utils.isSaldoInicial(item)) return;
+                (async () => {
+                    const ok = await Notifications.ask(
+                        'Excluir lançamento?',
+                        'Esta ação não pode ser desfeita.'
+                    );
+                    if (!ok) return;
+
+                    actionBtn.disabled = true;
+                    const okDel = await API.deleteOne(id);
+                    actionBtn.disabled = false;
+
+                    if (okDel) {
+                        Notifications.toast('Lançamento excluído com sucesso!');
+                        await DataManager.load();
+                    } else {
+                        Notifications.toast('Falha ao excluir lançamento.', 'error');
+                    }
+                })();
             }
         }
     };
@@ -1123,6 +1377,11 @@
                     TableManager.updateSelectionInfo();
                 }
 
+                // Limpa cards enquanto carrega
+                if (DOM.lanCards) {
+                    MobileCards.render([]);
+                }
+
                 const items = await API.fetchLancamentos({
                     month,
                     tipo,
@@ -1132,6 +1391,7 @@
                 });
 
                 await TableManager.renderRows(items);
+                MobileCards.render(items);
             }, CONFIG.DEBOUNCE_DELAY);
         },
 
@@ -1157,6 +1417,8 @@
                 eligibleRows.forEach(r => r.delete());
                 Notifications.toast('Lançamentos excluídos com sucesso!');
                 TableManager.updateSelectionInfo();
+                // Recarrega dados para manter cards em sincronia
+                await DataManager.load();
             } else {
                 Notifications.toast('Alguns itens não foram excluídos.', 'error');
             }
@@ -1206,6 +1468,9 @@
                 if (!res || res === 'transactions') DataManager.load();
                 if (res === 'categorias' || res === 'accounts') OptionsManager.loadFilterOptions();
             });
+
+            // Cliques nos cards (mobile)
+            DOM.lanCards?.addEventListener('click', MobileCards.handleClick);
         }
     };
 

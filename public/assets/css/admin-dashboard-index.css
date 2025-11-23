@@ -272,10 +272,11 @@
 
 .table tbody tr {
   transition: var(--transition-smooth);
+  background: #254057;
 }
 
 .table tbody tr:nth-child(even) {
-  background: var(--color-surface);
+  background: #254057;
 }
 
 .table tbody tr:hover {
@@ -290,16 +291,25 @@
   opacity: 0.8;
 }
 
+[data-theme="light"] .table tbody tr,
+[data-theme="light"] .table tbody tr:nth-child(even) {
+  background: #ffffff;
+}
+
 /* Badges de tipo */
 .badge-tipo {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
   padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  color: var(--color-text);
+  transition: var(--transition-fast);
 }
 
 .badge-tipo::before {
@@ -320,14 +330,18 @@
   color: var(--color-success);
   background: color-mix(in srgb, var(--color-success) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
-  border-radius: var(--radius-md) !important;
 }
 
 .badge-tipo.despesa {
   color: var(--color-danger);
   background: color-mix(in srgb, var(--color-danger) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
-  border-radius: var(--radius-md) !important;
+}
+
+.badge-tipo.transferencia {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
 
 .badge-tipo.transferencia {
@@ -405,6 +419,33 @@
   justify-content: flex-end;
 }
 
+.table-card .btn-del {
+  background: linear-gradient(135deg, #ff9a2f, #ff6f00);
+  border: none;
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.table-card .btn-del i {
+  font-size: 16px;
+}
+
+.table-card .btn-del:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(255, 138, 0, 0.35);
+}
+
+.table-card .btn-del:active {
+  transform: translateY(0);
+}
+
 /* ==================== RESPONSIVIDADE ==================== */
 @media (max-width: 1024px) {
   .dashboard-page {
@@ -420,6 +461,98 @@
   .chart-container {
     height: clamp(220px, 52vw, 320px);
   }
+
+  .table-container {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: var(--spacing-2) 0;
+  }
+
+  .table {
+    width: 100%;
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table,
+  .table thead,
+  .table tbody,
+  .table th,
+  .table td,
+  .table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    margin: 0 2px var(--spacing-4);
+    padding: 14px 16px 10px;
+    background: #254057;
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  [data-theme="light"] .table tbody tr {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .table td {
+    border: none;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-3);
+    text-align: left !important;
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 0 0 42%;
+    max-width: 52%;
+    display: block;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-size: 0.95rem;
+  }
+
+  [data-theme="light"] .table td::before {
+    color: #5f6b7a;
+  }
+
+  .table td:last-child {
+    padding-bottom: 0;
+  }
+
+  .table td:last-child::before {
+    color: var(--color-text-muted);
+  }
+
+  .actions-cell {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .valor-cell {
+    font-size: 1.05rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -430,61 +563,6 @@
 
   .card {
     padding: var(--spacing-4);
-  }
-
-  /* Tabela stacked */
-  .table,
-  .table thead,
-  .table tbody,
-  .table th,
-  .table td,
-  .table tr {
-    display: block;
-  }
-
-  .table thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-
-  .table tbody tr {
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-3);
-    padding: var(--spacing-3);
-  }
-
-  .table td {
-    border: none;
-    border-bottom: 1px solid var(--glass-border);
-    position: relative;
-    padding-left: 40% !important;
-    padding-top: var(--spacing-2);
-    padding-bottom: var(--spacing-2);
-    text-align: right !important;
-  }
-
-  .table td:before {
-    content: attr(data-label);
-    position: absolute;
-    left: var(--spacing-3);
-    width: 35%;
-    padding-right: var(--spacing-2);
-    white-space: nowrap;
-    color: var(--color-text-muted);
-    font-weight: 600;
-    font-size: var(--font-size-xs);
-    text-transform: uppercase;
-    text-align: left;
-  }
-
-  .table td:last-child {
-    border-bottom: none;
-  }
-
-  .actions-cell {
-    justify-content: flex-start;
   }
 }
 

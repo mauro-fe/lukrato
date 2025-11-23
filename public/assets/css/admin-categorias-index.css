@@ -115,79 +115,169 @@
     color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
-/* ==================== TABELA ==================== */
+/* ==================== TABELA / CARTÃO DE CATEGORIAS ==================== */
 .container-table {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  padding: 0;
   animation: fadeIn 0.5s ease-out 0.2s both;
 }
 
+/* “Cartão” que envolve header + linhas (igual mock) */
+.table-container {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.c-mobile-card-wrapper {
+  display: none;
+}
+
+.c-mobile-cat-header {
+  display: none;
+}
+
+/* Estrutura do Tabulator */
 .table-container .tabulator {
   background: transparent;
   border: none;
 }
 
-.tabulator .tabulator-tableholder {
+.table-container .tabulator-tableholder {
   overflow-x: hidden !important;
 }
 
-/* ==================== ESTADO VAZIO ==================== */
-/* .tabulator .tabulator-placeholder {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  padding: var(--spacing-6);
-  text-align: center;
-  overflow-x: hidden !important;
-}
-
-
-.tabulator .tabulator-placeholder::before {
-  content: "📋";
-  display: block;
-  font-size: 3rem;
-  margin-bottom: var(--spacing-3);
-  opacity: 0.5;
-} */
-
+/* HEADER – NOME / TIPO / AÇÕES FIXOS NO TOPO */
 .table-container .tabulator .tabulator-header {
-  background: var(--color-surface-muted);
-  border-bottom: 2px solid var(--glass-border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-surface-muted) 90%, var(--color-primary) 10%)
+      0%,
+    var(--color-surface-muted) 60%,
+    var(--color-surface) 100%
+  );
+  border-bottom: 1px solid var(--glass-border);
 }
 
+/* Ajusta as colunas do header */
 .table-container .tabulator .tabulator-header .tabulator-col {
   background: transparent;
-  border-right: 1px solid var(--glass-border);
+  border-right: 0;
 }
 
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-col-content {
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-col-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+}
+
+/* Tira o campo de filtro colado no título (deixa abaixo como no mock) */
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-col-title
+  ~ input,
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-col-title
+  ~ select {
+  margin-top: var(--spacing-2);
+}
+
+/* Inputs de filtro dentro do header */
+.table-container .tabulator .tabulator-header .tabulator-col input,
+.table-container .tabulator .tabulator-header .tabulator-col select {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: var(--font-size-xs);
+  padding: 0.35rem 0.6rem;
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ==================== LINHAS (CATEGORIAS) ==================== */
 .table-container .tabulator .tabulator-row {
   transition: var(--transition-smooth);
   border-bottom: 1px solid
-    color-mix(in srgb, var(--glass-border) 50%, transparent);
+    color-mix(in srgb, var(--glass-border) 60%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-surface) 88%,
+    var(--color-surface-muted)
+  );
+}
+
+.table-container .tabulator .tabulator-row:last-child {
+  border-bottom: none;
 }
 
 .table-container .tabulator .tabulator-row:hover {
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
   transform: translateX(2px);
 }
 
+/* Células */
 .table-container .tabulator .tabulator-row .tabulator-cell {
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: 1rem 1.5rem;
+  border-right: none;
 }
 
-/* Badge de Tipo */
+/* Coluna NOME – destaque maior, igual ao mock */
+.table-container .tabulator .tabulator-row .tabulator-cell:nth-child(1) {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Coluna TIPO – centralizada */
+.table-container .tabulator .tabulator-row .tabulator-cell:nth-child(2) {
+  text-align: center;
+}
+
+/* Coluna AÇÕES – alinhada à direita */
+.table-container .tabulator .tabulator-row .tabulator-cell:nth-child(3) {
+  text-align: right;
+}
+
+/* ==================== BADGE DE TIPO ==================== */
 .badge-tipo {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+  padding: 0.25rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
   color: var(--color-text);
   transition: var(--transition-fast);
@@ -202,36 +292,37 @@
   background: currentColor;
 }
 
-.badge-tipo:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 .badge-tipo.receita {
   color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  background: color-mix(in srgb, var(--color-success) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 55%, transparent);
 }
 
 .badge-tipo.despesa {
   color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
 }
 
-.badge-tipo.transferencia {
-  color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
-}
-
-/* Ações */
+/* ==================== AÇÕES ==================== */
 .actions-cell {
-  display: flex;
-  justify-content: center;
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
   gap: var(--spacing-2);
 }
 
+.actions-cell .lk-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Hover dos botões */
 .actions-cell .btn-edit:hover {
   color: var(--color-primary);
   border-color: var(--color-primary);
@@ -400,6 +491,14 @@ button:disabled {
   .c-subtitle {
     font-size: var(--font-size-base);
   }
+
+  .table-container {
+    border-radius: 20px;
+  }
+
+  .table-container .tabulator .tabulator-row .tabulator-cell {
+    padding: 0.9rem 1.2rem;
+  }
 }
 
 @media (max-width: 576px) {
@@ -411,7 +510,102 @@ button:disabled {
     padding: var(--spacing-3);
   }
 
-  .container-table {
-    padding: var(--spacing-2);
+  .table-container {
+    padding: 0;
+  }
+
+  /* Esconde Tabulator no mobile */
+  .table-container {
+    display: none !important;
+  }
+
+  /* Lista mobile custom */
+  .c-mobile-card-wrapper {
+    display: block;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-surface-muted) 95%, transparent) 0%,
+      var(--glass-bg) 100%
+    );
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 18px 28px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+  }
+
+  .c-mobile-card-wrapper .c-mobile-card-header {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: center;
+    padding: 14px 16px;
+    background: color-mix(in srgb, var(--color-surface-muted) 85%, transparent);
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--branco);
+    font-size: 0.9rem;
+  }
+
+  .c-mobile-card {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: center;
+    padding: 18px 16px;
+    background: var(--glass-bg);
+    border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 50%, transparent);
+  }
+
+  .c-mobile-card:last-child {
+    border-bottom: none;
+  }
+
+  .c-mobile-cat-header {
+    display: none;
+  }
+
+  .c-mobile-card .c-cat-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--branco);
+  }
+
+  .c-mobile-card .c-cat-type {
+    display: flex;
+    justify-content: center;
+  }
+
+  .c-mobile-card .c-cat-actions {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .c-mobile-card .c-cat-actions .lk-btn {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: var(--branco);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .c-mobile-card .c-cat-actions .lk-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+
+  /* Badges maiores no mobile */
+  .c-mobile-card .badge-tipo {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
   }
 }

@@ -560,6 +560,32 @@ body.sidebar-open-mobile .sidebar-backdrop {
   .container-table {
     padding: var(--spacing-4);
   }
+
+  html,
+  body,
+  .content-wrapper,
+  .lk-main {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .table-container {
+    overflow-x: hidden;
+  }
+
+  .table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .table-container .tabulator {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .table-container .tabulator .tabulator-tableholder {
+    overflow-x: hidden !important;
+  }
 }
 
 /* Small Mobile (<=640px) */

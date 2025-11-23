@@ -1,4 +1,6 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+
 
 <section class="lan-page">
     <!-- ==================== HEADER ==================== -->
@@ -47,7 +49,13 @@
             <!-- Filtros -->
             <div class="lan-card mt-4" data-aos="fade-up">
                 <div class="lan-filter">
+
                     <div class="type-filter" role="group" aria-label="Filtros de lançamentos">
+                        <div class="mobile-filter-heading d-md-none" aria-hidden="true">
+                            <i class="fas fa-filter"></i>
+                            <span>Filtrar Lançamentos</span>
+                        </div>
+
                         <!-- Tipo -->
                         <label for="filtroTipo" class="sr-only">Filtrar por Tipo</label>
                         <select id="filtroTipo" class="lk-select btn btn-primary" data-aos="fade-right"
@@ -99,6 +107,16 @@
         <section class="table-container">
             <div id="tabLancamentos"></div>
         </section>
+        <div>
+            <!-- DESKTOP: Tabela Tabulator -->
+            <section class="table-container">
+                <div id="tabLancamentos"></div>
+            </section>
+
+            <!-- MOBILE: Cards de lançamentos -->
+            <section class="lan-cards-container" id="lanCards"></section>
+        </div>
+
     </div>
 </section>
 

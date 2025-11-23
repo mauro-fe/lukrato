@@ -1444,6 +1444,26 @@ body.sidebar-open-mobile .sidebar-backdrop {
   }
 }
 
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: hidden;
+  }
+
+  .table-container .tabulator {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .table-container .tabulator .tabulator-tableholder {
+    overflow-x: hidden !important;
+  }
+
+  .table-container .tabulator .tabulator-table {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
 /* ============================================================================
    16. UTILITY CLASSES
    ============================================================================ */

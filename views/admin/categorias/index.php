@@ -22,10 +22,22 @@
 
     <!-- Tabela de Categorias -->
     <div class="container-table" data-aos="fade-up" data-aos-delay="250">
+        <!-- Cabeçalho fixo no mobile -->
+        <div class="c-mobile-cat-header">
+            <span>Nome</span>
+            <span>Tipo</span>
+            <span>Ações</span>
+        </div>
+
+        <!-- Tabela / Cards -->
         <section class="table-container">
             <div id="tabCategorias"></div>
         </section>
+
+        <!-- Cards mobile (renderizados via JS) -->
+        <section class="c-mobile-card-wrapper" id="catCards"></section>
     </div>
+
 </section>
 
 <!-- Modal de Edição -->
@@ -74,3 +86,6 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
