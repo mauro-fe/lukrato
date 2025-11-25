@@ -72,12 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
         $$('.general-message', scope).forEach(el => { el.textContent = ''; el.classList.remove('show'); });
     }
     function showMessage(type, msg) {
-        const message = msg || (type === 'error' ? 'Ocorreu um erro.' : 'Acao concluida com sucesso.');
+        const message = msg || (type === 'error' ? 'Ocorreu um erro.' : 'Ação concluida com sucesso.');
         if (window.Swal) {
             // Toast para sucesso; modal para erro
             const Toast = Swal.mixin({
                 toast: true,
-                position: 'top-end',
                 showConfirmButton: false,
                 timer: 2000,
                 timerProgressBar: true,
