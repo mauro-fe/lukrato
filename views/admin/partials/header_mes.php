@@ -14,7 +14,7 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         justify-content: space-between;
         flex-wrap: wrap;
         gap: var(--spacing-3);
-        margin-top: var(--spacing-5);
+        margin: 0 auto;
         padding: var(--spacing-4);
         width: 100%;
     }
@@ -24,7 +24,6 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         align-items: center;
         justify-content: center;
         flex: 1 1 auto;
-        min-width: 280px;
     }
 
     .dash-lk-header .header-actions {
@@ -410,6 +409,21 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         .lk-pro-cta {
             width: min(320px, 100%);
             justify-content: center;
+        }
+    }
+
+    @media (max-width: 370px) {
+        .month-dropdown-btn {
+            font-size: .7rem !important;
+        }
+
+        .lk-period {
+            gap: 1px;
+            padding: 0;
+        }
+
+        .month-nav-btn {
+            font-size: .6rem !important;
         }
     }
 </style>

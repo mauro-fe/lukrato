@@ -564,6 +564,16 @@
   .card {
     padding: var(--spacing-4);
   }
+
+  .table-card .btn-del {
+    height: 35px;
+    width: 35px;
+    border-radius: 10px;
+  }
+  .table-card .btn-del i {
+    font-size: 0.8rem;
+    padding: 0;
+  }
 }
 
 /* ==================== PRINT ==================== */
