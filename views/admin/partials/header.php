@@ -280,7 +280,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <div class="sidebar-pro-cta">
                     <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
                         <i class="fa-solid fa-star"></i>
-                        <span>Upgrade Pro</span>
+                        <span>Pro</span>
                     </a>
                 </div>
             <?php endif; ?>
