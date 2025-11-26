@@ -21,6 +21,9 @@ function registerAuthRoutes(): void
     Router::add('GET',  '/logout',         'Auth\\LoginController@logout');
 
     Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
+
+    Router::add('GET',  '/super_admin',         'SysAdmin\\SuperAdminController@index');
+
 }
 
 /* =========================

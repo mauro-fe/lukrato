@@ -12,6 +12,7 @@ $base           = BASE_URL;
 $favicon        = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1';
 $pageTitle      = $pageTitle    ?? 'Lukrato';
 $currentUser    = $currentUser  ?? Auth::user();
+$isSysAdmin     = ($currentUser?->is_admin ?? 0) == 1;
 $showUpgradeCTA = !($currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro());
 
 // Helpers para menu ativo
@@ -268,6 +269,13 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <i class="fas fa-user-circle"></i>
                 <span>Perfil</span>
             </a>
+            <?php if ($isSysAdmin): ?>
+                <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>" <?= $aria('super_admin') ?>
+                    title="SysAdmin">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>SysAdmin</span>
+                </a>
+            <?php endif; ?>
 
             <!-- Sair -->
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
