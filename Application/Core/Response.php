@@ -39,13 +39,12 @@ class Response
         $this->statusCode = $statusCode;
         $this->header('Content-Type', 'application/json; charset=utf-8');
         try {
-            // JSON_THROW_ON_ERROR (PHP 7.3+) garante que erros de encoding (ex: UTF-8 inválido) sejam capturados
+
             $this->content = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
-            // Se falhar, retorna um erro JSON válido
             $this->statusCode = 500;
             $this->content = json_encode([
-                'status' => 'error', 
+                'status' => 'error',
                 'message' => 'JSON encoding error: ' . $e->getMessage()
             ]);
         }
@@ -79,39 +78,20 @@ class Response
         $this->header('Content-Type', $mimeType);
         $this->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
         $this->header('Content-Length', (string)filesize($filePath));
-        
-        // Limpa o buffer de saída para evitar corrupção de arquivo
-        if (ob_get_level() > 0) ob_end_clean(); 
-        
+
+        if (ob_get_level() > 0) ob_end_clean();
+
         readfile($filePath);
-        $this->content = ''; // O conteúdo foi enviado por readfile
-        
+        $this->content = '';
+
         return $this;
     }
 
-    /**
-     * Define um cookie seguro (HttpOnly, Secure, SameSite=Lax).
-     * Usa o formato de array (PHP 7.3+).
-     */
+
     public function cookie(string $name, string $value, int $minutes = 60, string $path = '/'): self
     {
         setcookie($name, $value, [
             'expires'  => time() + ($minutes * 60),
-            'path'     => $path,
-            'secure'   => true,  // Sempre true para HTTPS
-            'httponly' => true,  // Não acessível por JS
-            'samesite' => 'Lax', // Proteção CSRF
-        ]);
-        return $this;
-    }
-
-    /**
-     * Remove um cookie.
-     */
-    public function forgetCookie(string $name, string $path = '/'): self
-    {
-        setcookie($name, '', [
-            'expires'  => time() - 3600, // No passado
             'path'     => $path,
             'secure'   => true,
             'httponly' => true,
@@ -120,9 +100,20 @@ class Response
         return $this;
     }
 
-    /**
-     * Envia a resposta ao navegador e encerra a execução.
-     */
+
+    public function forgetCookie(string $name, string $path = '/'): self
+    {
+        setcookie($name, '', [
+            'expires'  => time() - 3600,
+            'path'     => $path,
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        return $this;
+    }
+
+
     public function send(): void
     {
         if (!headers_sent()) {
@@ -136,7 +127,6 @@ class Response
         exit;
     }
 
-    // --- Métodos Estáticos (Helpers) ---
 
     public static function json(mixed $data, int $statusCode = 200): void
     {
@@ -157,8 +147,6 @@ class Response
     {
         (new self())->download($filePath, $fileName)->send();
     }
-
-    // --- Respostas JSON Padronizadas ---
 
     public static function success(mixed $data = null, string $message = 'Success', int $statusCode = 200): void
     {

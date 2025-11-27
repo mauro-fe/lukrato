@@ -12,7 +12,6 @@ use Throwable;
 
 class Router
 {
-    /** @var array<int, array{method: string, path: string, callback: mixed, middlewares: string[]}> */
     private static array $routes = [];
 
     public static function add(string $method, string $path, mixed $callback, array $middlewares = []): void
@@ -82,7 +81,6 @@ class Router
 
             $middlewareClass = $registry[$name];
 
-            // Inje├º├úo de depend├¬ncia manual (simplificada) para middleware que precisa de cache
             if ($name === 'ratelimit') {
                 (new $middlewareClass(new CacheService()))->handle($request);
             } else {
@@ -107,7 +105,7 @@ class Router
                 throw new \Exception("Controlador '{$controllerNs}' n├úo encontrado.");
             }
 
-            $instance = new $controllerNs(); // Assume que BaseController lida com depend├¬ncias
+            $instance = new $controllerNs();
 
             if (!method_exists($instance, $method)) {
                 throw new \Exception("M├®todo '{$method}' n├úo encontrado no controlador '{$controllerNs}'.");
@@ -117,14 +115,10 @@ class Router
             return;
         }
 
-        throw new \Exception('Callback da rota inv├ílido.');
+        throw new \Exception('Callback da rota inválida.');
     }
 
-    /**
-     * Trata exce├º├Áes de API (Auth/Validation).
-     * O router sempre responde com JSON para exce├º├Áes, pois redirecionamentos
-     * devem ser tratados pelo controller (requireAuth) ou pelo cliente.
-     */
+
     private static function handleAuthOrValidationException(\Exception $e, ?Request $request): void
     {
         if ($e instanceof AuthException) {
@@ -148,14 +142,12 @@ class Router
         $isDev = (($_ENV['APP_ENV'] ?? 'production') !== 'development');
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
 
-        // Prioriza JSON se for API
         if ($wantsJson && !$isDev) {
             Response::error('Erro interno no servidor.', 500);
             return;
         }
 
         if ($isDev) {
-            // Resposta de debug detalhada (HTML)
             $html = '<h1>Erro na Aplica├º├úo</h1><pre>';
             $html .= '<strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
             $html .= '<strong>Arquivo:</strong> ' . $e->getFile() . ' (Linha ' . $e->getLine() . ")\n\n";
@@ -163,7 +155,6 @@ class Router
             $html .= '</pre>';
             Response::htmlOut($html, 500);
         } else {
-            // P├ígina 500 amig├ível (HTML)
             self::handleViewError(500, BASE_PATH . '/views/errors/500.php', 'Erro no servidor');
         }
     }
@@ -180,9 +171,6 @@ class Router
         self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'P├ígina n├úo encontrada');
     }
 
-    /**
-     * Helper para incluir arquivos de view de erro.
-     */
     private static function handleViewError(int $code, string $viewPath, string $defaultMessage): void
     {
         http_response_code($code);
