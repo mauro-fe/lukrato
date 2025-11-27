@@ -35,7 +35,6 @@ class GoogleCallbackController extends BaseController
                 $this->redirect('dashboard');
 
                 return;
-
             }
 
 
@@ -46,7 +45,7 @@ class GoogleCallbackController extends BaseController
 
             $error = $this->getQuery('error');
 
-           
+
 
             if ($error) {
 
@@ -63,10 +62,9 @@ class GoogleCallbackController extends BaseController
                 $this->redirect('login');
 
                 return;
-
             }
 
-           
+
 
             if (!$code) {
 
@@ -75,7 +73,6 @@ class GoogleCallbackController extends BaseController
                 $this->redirect('login');
 
                 return;
-
             }
 
 
@@ -131,7 +128,6 @@ class GoogleCallbackController extends BaseController
             if (isset($token['error'])) {
 
                 throw new \Exception("Erro ao buscar token: " . $token['error_description']);
-
             }
 
 
@@ -175,9 +171,7 @@ class GoogleCallbackController extends BaseController
                     $usuario->nome = $nome_completo;
 
                     $usuario->save();
-
                 }
-
             } else {
 
                 // Cria novo usuário
@@ -193,7 +187,6 @@ class GoogleCallbackController extends BaseController
                 $usuario->senha = ''; // Senha vazia para logins do Google
 
                 $usuario->save();
-
             }
 
 
@@ -233,9 +226,6 @@ class GoogleCallbackController extends BaseController
             // Redireciona para dashboard
 
             $this->redirect('dashboard');
-
-
-
         } catch (\Exception $e) {
 
             LogService::error('Erro no callback do Google', [
@@ -255,9 +245,7 @@ class GoogleCallbackController extends BaseController
             $this->setError('Erro ao processar login com Google: ' . $e->getMessage());
 
             $this->redirect('login');
-
         }
-
     }
 
 
@@ -276,12 +264,11 @@ class GoogleCallbackController extends BaseController
 
         $base = preg_replace('/[^a-z0-9_]/', '', $base);
 
-       
+
 
         if (strlen($base) < 3) {
 
             $base = 'user' . $base;
-
         }
 
 
@@ -299,13 +286,10 @@ class GoogleCallbackController extends BaseController
             $username = $base . $counter;
 
             $counter++;
-
         }
 
 
 
         return $username;
-
     }
-
 }
