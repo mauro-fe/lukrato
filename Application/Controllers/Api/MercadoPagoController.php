@@ -9,11 +9,11 @@ use Application\Services\LogService;
 use Application\Lib\Auth;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
-use Throwable; 
+use Throwable;
 
 class MercadoPagoController extends BaseController
 {
-   
+
     public function createCheckout(): void
     {
         $this->requireAuthApi();
@@ -31,7 +31,7 @@ class MercadoPagoController extends BaseController
                 'username' => (string)$user->username,
                 'email'    => (string)$user->email,
                 'name'     => (string)($user->nome ?? $user->username),
-                'amount'   => 12.00, 
+                'amount'   => 12.00,
                 'title'    => 'Assinatura Pro Lukrato',
             ]);
 
@@ -76,18 +76,37 @@ class MercadoPagoController extends BaseController
             $json   = json_decode(file_get_contents('php://input'), true) ?? [];
             $amount = (float)($json['amount'] ?? 0);
             $title  = (string)($json['title'] ?? 'Assinatura Pro Lukrato');
-            $data   = (array)($json['data'] ?? []); 
+            $data   = (array)($json['data'] ?? []);
 
             $token           = (string)($data['token'] ?? '');
             $paymentMethodId = (string)($data['payment_method_id'] ?? $data['paymentMethodId'] ?? '');
             $issuerId        = $data['issuer_id'] ?? $data['issuerId'] ?? null;
             $installments    = (int)($data['installments'] ?? 1);
+            $isSandbox       = strtolower($_ENV['MP_ENV'] ?? '') === 'sandbox';
 
-            $idType   = $data['payer']['identification']['type'] 
-                        ?? $data['identificationType'] ?? 'CPF';
-            $idNumber = $data['payer']['identification']['number'] 
-                        ?? $data['identificationNumber'] ?? '';
+            $idType   = $data['payer']['identification']['type']
+                ?? $data['identificationType'] ?? 'CPF';
+            $idNumber = $data['payer']['identification']['number']
+                ?? $data['identificationNumber'] ?? '';
             $idNumber = preg_replace('/\D+/', '', (string)$idNumber);
+
+            $payerEmail = (string)($data['payer']['email'] ?? $user->email);
+
+            if ($isSandbox) {
+                // PARA BRICKS / PAYMENTS API:
+                // - NÃO usar e-mail de usuário de teste (TESTUSER...@testuser.com)
+                // - Pode usar o próprio e-mail do usuário do Lukrato sem problemas
+                if ($idNumber === '') {
+                    // qualquer CPF de teste "fake" está ok em sandbox
+                    $idNumber = '12345678909';
+                }
+
+                LogService::info('MP pay: sandbox ativo, usando e-mail do próprio usuário', [
+                    'email' => $payerEmail,
+                    'id_number' => $idNumber,
+                ]);
+            }
+
 
             if ($amount <= 0 || $token === '' || $paymentMethodId === '') {
                 Response::validationError([
@@ -109,7 +128,7 @@ class MercadoPagoController extends BaseController
                 'payment_method_id'  => $paymentMethodId,
                 'capture'            => true,
                 'payer' => [
-                    'email'          => (string)($data['payer']['email'] ?? $user->email),
+                    'email'          => $payerEmail,
                     'first_name'     => (string)($user->nome ?? $user->username),
                     'identification' => [
                         'type'   => (string)$idType,
@@ -124,14 +143,21 @@ class MercadoPagoController extends BaseController
                 'external_reference' => $externalRef,
                 'notification_url'   => $notificationUrl,
             ];
-            
+
             if ($issuerId !== null) {
                 $payload['issuer_id'] = (int)$issuerId;
             }
 
+            // Log enxuto para depuração sem expor token completo
             LogService::info('MP pagamento: preparando payload', [
-                'amount' => $payload['transaction_amount'],
+                'amount'             => $payload['transaction_amount'],
                 'external_reference' => $payload['external_reference'],
+                'payment_method_id'  => $paymentMethodId,
+                'payer_email'        => $payload['payer']['email'] ?? null,
+                'issuer_id'          => $issuerId,
+                'installments'       => $installments,
+                'sandbox'            => $isSandbox,
+                'token_prefix'       => substr($token, 0, 6),
             ]);
 
             $client  = new PaymentClient();

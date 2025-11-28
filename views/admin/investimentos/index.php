@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Garantia de variaveis vindas do controller
 if (!isset($investments))      $investments = [];
 if (!isset($totalInvested))    $totalInvested = 0.0;
@@ -110,6 +110,7 @@ if (!isset($categories))       $categories = [];
 
 <?php if (defined('BASE_PATH')): ?>
     <?php include BASE_PATH . '/views/admin/partials/modals/modal_investimentos.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/modals/modal_transacao_investimento.php'; ?>
 <?php endif; ?>
 
 <script>
@@ -183,8 +184,9 @@ if (!isset($categories))       $categories = [];
 
 <script>
     // Desktop: Tabulator; Mobile: cards estilo lancamentos
-    document.addEventListener('DOMContentLoaded', () => {
-        const raw = <?= json_encode($investments, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?> || [];
+    document.addEventListener('DOMContentLoaded', async () => {
+        let raw = <?= json_encode($investments, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?> || [];
+        if (!Array.isArray(raw)) raw = [];
 
         const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (ch) => ({
             '&': '&amp;',
@@ -212,6 +214,25 @@ if (!isset($categories))       $categories = [];
                 valorTotal: total
             };
         };
+
+        async function fetchInvestimentos() {
+            try {
+                const res = await fetch(`${BASE_URL}api/investimentos`);
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.error || !Array.isArray(json.data ?? json)) {
+                    throw new Error(json.message || 'Falha ao carregar investimentos');
+                }
+                return json.data ?? json;
+            } catch (err) {
+                console.error(err);
+                toast(err.message || 'Falha ao carregar investimentos', 'error');
+                return [];
+            }
+        }
+
+        if (raw.length === 0) {
+            raw = await fetchInvestimentos();
+        }
 
         const data = raw.map(mapInvest);
         const tabEl = document.getElementById('tabLancamentos');
@@ -285,23 +306,31 @@ if (!isset($categories))       $categories = [];
                         title: 'Ações',
                         field: 'id',
                         hozAlign: 'center',
-                        width: 130,
+                        width: 210,
                         formatter: (cell) => {
+                            const row = cell.getRow().getData();
                             const id = cell.getValue();
                             const base = '<?= BASE_URL ?>';
+                            const nome = escapeHtml(row.nome || '');
+                            const ticker = escapeHtml(row.ticker || '');
                             return `
                         <div class="action-buttons">
+                            <a class="btn-icon success" href="#" data-acao="compra" data-id="${id}" data-nome="${nome}" data-ticker="${ticker}" title="Comprar mais">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </a>
+                            <a class="btn-icon danger" href="#" data-acao="venda" data-id="${id}" data-nome="${nome}" data-ticker="${ticker}" title="Vender">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </a>
                             <a class="btn-icon" href="${base}investimentos/edit/${id}" data-edit data-id="${id}" title="Editar">
                                 <i class="fa-regular fa-pen-to-square"></i>
                             </a>
-                            <a class="btn-icon" href="${base}investimentos/delete/${id}" data-delete data-id="${id}" title="Excluir">
+                            <a class="btn-icon neutral" href="${base}investimentos/delete/${id}" data-delete data-id="${id}" title="Excluir">
                                 <i class="fa-regular fa-trash-can"></i>
                             </a>
                         </div>
                     `;
                         }
-                    }
-                ]
+                    }]
             });
         }
 
@@ -324,10 +353,16 @@ if (!isset($categories))       $categories = [];
                             <span class="badge" style="background:${inv.cor}">${inv.categoria}</span>
                         </div>
                         <div class="invest-card-actions">
+                            <a class="btn-icon success" href="#" data-acao="compra" data-id="${inv.id}" data-nome="${inv.nome}" data-ticker="${inv.ticker}" title="Comprar mais">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </a>
+                            <a class="btn-icon danger" href="#" data-acao="venda" data-id="${inv.id}" data-nome="${inv.nome}" data-ticker="${inv.ticker}" title="Vender">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </a>
                             <a class="btn-icon" href="${base}investimentos/edit/${inv.id}" data-edit data-id="${inv.id}" title="Editar">
                                 <i class="fa-regular fa-pen-to-square"></i>
                             </a>
-                            <a class="btn-icon" href="${base}investimentos/delete/${inv.id}" data-delete data-id="${inv.id}" title="Excluir">
+                            <a class="btn-icon neutral" href="${base}investimentos/delete/${inv.id}" data-delete data-id="${inv.id}" title="Excluir">
                                 <i class="fa-regular fa-trash-can"></i>
                             </a>
                         </div>
@@ -403,9 +438,85 @@ if (!isset($categories))       $categories = [];
         });
     }
 
+    const transacaoModalEl = document.getElementById('modal-transacao-investimento');
+    const transacaoForm = document.getElementById('form-transacao-investimento');
+    const transacaoInvestId = document.getElementById('transacao_investimento_id');
+    const transacaoTitle = document.getElementById('modalTransacaoLabel');
+    const transacaoInfo = document.getElementById('modalTransacaoInvestLabel');
+
+    function openTransacaoModal(id, tipo = 'compra', nome = '', ticker = '') {
+        if (!transacaoForm || !transacaoModalEl || !id) return;
+
+        transacaoForm.dataset.investimentoId = id;
+        if (transacaoInvestId) transacaoInvestId.value = id;
+
+        const isVenda = tipo === 'venda';
+        const radioCompra = document.getElementById('tipo_compra');
+        const radioVenda = document.getElementById('tipo_venda');
+        if (radioCompra && radioVenda) {
+            radioCompra.checked = !isVenda;
+            radioVenda.checked = isVenda;
+        }
+
+        if (transacaoTitle) transacaoTitle.textContent = isVenda ? 'Registrar venda' : 'Registrar compra';
+        if (transacaoInfo) {
+            const ident = [nome, ticker ? `(${ticker})` : ''].filter(Boolean).join(' ');
+            transacaoInfo.textContent = ident || 'Investimento selecionado';
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(transacaoModalEl);
+        modal.show();
+    }
+
+    document.addEventListener('click', (e) => {
+        const actionBtn = e.target.closest('[data-acao]');
+        if (!actionBtn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const tipo = actionBtn.dataset.acao === 'venda' ? 'venda' : 'compra';
+        const id = actionBtn.dataset.id;
+        openTransacaoModal(id, tipo, actionBtn.dataset.nome || '', actionBtn.dataset.ticker || '');
+    }, true);
+
+    transacaoModalEl?.addEventListener('hidden.bs.modal', () => {
+        if (!transacaoForm) return;
+        transacaoForm.reset();
+        transacaoForm.dataset.investimentoId = '';
+        const dataInput = document.getElementById('data_transacao');
+        if (dataInput) dataInput.value = new Date().toISOString().slice(0, 10);
+    });
+
+    transacaoForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const id = form.dataset.investimentoId;
+        if (!id) return;
+
+        const body = new URLSearchParams();
+        const fd = new FormData(form);
+        fd.forEach((v, k) => body.append(k, v));
+
+        try {
+            const res = await fetch(`${BASE_URL}api/investimentos/${id}/transacoes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || json.error) throw new Error(json.message || 'Erro ao registrar transação');
+            toast('Transação salva!');
+            setTimeout(() => window.location.reload(), 900);
+        } catch (err) {
+            console.error(err);
+            toast(err.message || 'Falha ao registrar transação', 'error');
+        }
+    });
+
     let editingId = null;
 
-    // Editar: captura antes e impede handlers antigos
+    // Editar: captura ações e impede handlers antigos
     document.addEventListener('click', async (e) => {
         const a = e.target.closest('a[data-edit]');
         if (!a) return;
@@ -585,3 +696,4 @@ if (!isset($categories))       $categories = [];
         });
     });
 </script>
+

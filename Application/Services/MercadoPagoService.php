@@ -129,12 +129,12 @@ final class MercadoPagoService
         $isSandbox = strtolower($_ENV['MP_ENV'] ?? '') === 'sandbox';
 
         // Sandbox: força buyer de teste para evitar seller pagar a si mesmo
-        if ($isSandbox) {
-            $testBuyer = trim($_ENV['MP_TEST_BUYER_EMAIL'] ?? '');
-            if ($testBuyer) {
-                $email = $testBuyer;
-            }
-        }
+        // if ($isSandbox) {
+        //     $testBuyer = trim($_ENV['MP_TEST_BUYER_EMAIL'] ?? '');
+        //     if ($testBuyer) {
+        //         $email = $testBuyer;
+        //     }
+        // }
 
         $payload = [
             'items' => [[

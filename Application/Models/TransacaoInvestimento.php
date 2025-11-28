@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class TransacaoInvestimento extends Model
 {
     protected $table = 'transacoes_investimento';
+    public $timestamps = false;
+    public const CREATED_AT = null;
+    public const UPDATED_AT = null;
+
 
     protected $fillable = [
         'investimento_id',   // FK investimento

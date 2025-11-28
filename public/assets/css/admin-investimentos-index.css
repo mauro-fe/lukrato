@@ -1,4 +1,4 @@
-/* ===============================
+  /* ===============================
    Investments – Lukrato (usar tokens do projeto)
    =============================== */
 
@@ -257,6 +257,21 @@
   filter: brightness(1.05);
   color: #000;
 }
+.btn-icon.success {
+  background: var(--color-success);
+  color: #0f2413;
+  box-shadow: 0 6px 18px rgba(46, 204, 113, 0.25);
+}
+.btn-icon.danger {
+  background: var(--color-danger);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(231, 76, 60, 0.35);
+}
+.btn-icon.neutral {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
 
 /* Toggle detalhes (mobile) */
 .inv-details-toggle {
@@ -439,7 +454,6 @@
 
 .table-container .tabulator .tabulator-tableholder {
   overflow-x: hidden !important;
-  height: 73px !important;
 }
 
 .table-container .tabulator .tabulator-header {
