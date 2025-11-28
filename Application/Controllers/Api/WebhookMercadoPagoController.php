@@ -5,6 +5,8 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Usuario;
+use Application\Models\AssinaturaUsuario;
+use Application\Models\Plano;
 use Application\Services\LogService;
 use Application\Services\MercadoPagoService;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -68,6 +70,11 @@ class WebhookMercadoPagoController extends BaseController
             'payload' => $payload,
         ]);
 
+        LogService::info('Webhook MP parsed', [
+            'type' => $type,
+            'id'   => $id,
+        ]);
+
         try {
             if ($id !== '' && str_contains(strtolower($type), 'payment')) {
                 
@@ -75,10 +82,18 @@ class WebhookMercadoPagoController extends BaseController
                 $payment = $client->get($id);
 
                 $userId = $this->extractUserIdFromPayment($payment);
+                LogService::info('Webhook MP payment carregado', [
+                    'payment_id' => $payment->id,
+                    'status'     => $payment->status,
+                    'user_id'    => $userId,
+                    'ext_ref'    => $payment->external_reference ?? null,
+                    'metadata'   => $payment->metadata ?? null,
+                ]);
 
                 if ($payment->status === PaymentStatus::APPROVED->value && $userId !== null) {
+                    $planoPro = Plano::where('code', UserPlan::PRO->value)->first();
                     
-                    DB::connection()->transaction(function () use ($userId, $payment) {
+                    DB::connection()->transaction(function () use ($userId, $payment, $planoPro) {
                         $user = Usuario::find($userId);
                         if (!$user) {
                             throw new \RuntimeException('Usuário não encontrado para o pagamento ' . $payment->id);
@@ -93,9 +108,42 @@ class WebhookMercadoPagoController extends BaseController
                             return; 
                         }
 
+                        $renovaEm = Carbon::now()->addDays(30);
+
+                        if ($planoPro) {
+                            // Atualiza ou cria assinatura local para refletir o pagamento aprovado
+                            AssinaturaUsuario::updateOrCreate(
+                                [
+                                    'user_id'  => $user->id,
+                                    'gateway'  => 'mercadopago',
+                                ],
+                                [
+                                    'plano_id'                => $planoPro->id,
+                                    'status'                  => AssinaturaUsuario::ST_ACTIVE,
+                                    'renova_em'               => $renovaEm,
+                                    'external_subscription_id'=> (string)$payment->id,
+                                ]
+                            );
+                            LogService::info('Webhook MP assinatura gravada', [
+                                'user_id' => $user->id,
+                                'plano_id'=> $planoPro->id,
+                                'renova_em' => $renovaEm->toDateTimeString(),
+                            ]);
+                        } else {
+                            LogService::warning('Plano PRO não encontrado na tabela planos', [
+                                'user_id' => $user->id,
+                                'payment_id' => $payment->id,
+                            ]);
+                        }
+
                         $user->plano = UserPlan::PRO->value;
-                        $user->plano_renova_em = Carbon::now()->addDays(30)->toDateTimeString();
+                        $user->plano_renova_em = $renovaEm->toDateTimeString();
+                        $user->gateway = 'mercadopago';
                         $user->save();
+                        LogService::info('Webhook MP usuário atualizado para PRO', [
+                            'user_id' => $user->id,
+                            'renova_em' => $user->plano_renova_em,
+                        ]);
                         
                     });
                 }
