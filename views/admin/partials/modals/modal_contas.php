@@ -363,15 +363,20 @@
             padding-right: var(--spacing-4);
         }
 
+
+
         .lk-modal-f {
-            flex-direction: column;
+            margin-right: 50px;
         }
 
+
+
         .btn {
-            width: 100%;
             justify-content: center;
         }
     }
+
+
 
     /* Estados de validaÃ§Ã£o */
     .lk-field input:invalid:not(:placeholder-shown),

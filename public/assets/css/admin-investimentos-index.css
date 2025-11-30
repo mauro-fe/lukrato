@@ -1,4 +1,4 @@
-  /* ===============================
+/* ===============================
    Investments – Lukrato (usar tokens do projeto)
    =============================== */
 
@@ -140,6 +140,9 @@
 }
 .card-body {
   padding: var(--spacing-5);
+  .empty-state {
+    color: var(--color-text);
+  }
 }
 
 /* Doughnut */
@@ -153,6 +156,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  .empty-state {
+    color: var(--color-text);
+  }
 }
 .cat-row {
   display: flex;
@@ -435,7 +441,14 @@
     align-items: flex-start;
   }
 }
-
+@media (max-width: 407px) {
+  .card-body {
+    padding: var(--spacing-5);
+    .empty-state {
+      font-size: 12px;
+    }
+  }
+}
 /* ===========================
    Tabulator desktop
    =========================== */

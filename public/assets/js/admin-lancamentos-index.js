@@ -978,6 +978,7 @@
             }
 
             const parts = [];
+            const isXs = window.matchMedia('(max-width: 414px)').matches;
 
             // Cabeçalho
             parts.push(`
@@ -1022,6 +1023,20 @@
                         : '') ??
                     '';
                 const descricao = descRaw || '--';
+                const actionsHtml = `
+                    ${Utils.canEditLancamento(item)
+                        ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lanAamento">
+                               <i class="fas fa-pen"></i>
+                           </button>`
+                        : ''
+                    }
+                    ${!Utils.isSaldoInicial(item)
+                        ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lanAamento">
+                               <i class="fas fa-trash"></i>
+                           </button>`
+                        : ''
+                    }
+                `;
 
                 parts.push(`
                     <article class="lan-card" data-id="${id}" aria-expanded="false">
@@ -1037,24 +1052,13 @@
                             </span>
                         </div>
 
-                        <div class="lan-card-actions">
-                            ${Utils.canEditLancamento(item)
-                                ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento">
-                                       <i class="fas fa-pen"></i>
-                                   </button>`
-                                : ''
-                            }
-                            ${!Utils.isSaldoInicial(item)
-                                ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento">
-                                       <i class="fas fa-trash"></i>
-                                   </button>`
-                                : ''
-                            }
+                        <div class="lan-card-actions" data-slot="main">
+                            ${actionsHtml}
                         </div>
 
                         <button class="lan-card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
                             <span class="lan-card-toggle-icon">▶</span>
-                            <span>Detalhes</span>
+                            <span> Ver detalhes</span>
                         </button>
 
                         <div class="lan-card-details">
@@ -1070,6 +1074,7 @@
                                 <span class="lan-card-detail-label">Descrição</span>
                                 <span class="lan-card-detail-value">${Utils.escapeHtml(descricao)}</span>
                             </div>
+                            ${isXs ? `<div class="lan-card-detail-row actions-row">\n                                <span class="lan-card-detail-label">Ações<\/span>\n                                <span class="lan-card-detail-value actions-slot">\n                                    ${actionsHtml}\n                                <\/span>\n                            <\/div>` : ``}
                         </div>
                     </article>
                 `);
@@ -1498,3 +1503,6 @@
     // Iniciar aplicação
     init();
 })();
+
+
+

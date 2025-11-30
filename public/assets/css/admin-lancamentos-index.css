@@ -1,13 +1,13 @@
-﻿/**
+/**
  * ============================================================================
- * SISTEMA DE LANÇAMENTOS - ESTILOS
+ * SISTEMA DE LAN�AMENTOS - ESTILOS
  * ============================================================================
- * Estilos para a página de gerenciamento de lançamentos financeiros
+ * Estilos para a p�gina de gerenciamento de lan�amentos financeiros
  * ============================================================================
  */
 
 /* ============================================================================
-   VARIÁVEIS E CONFIGURAÇÃO
+   VARI�VEIS E CONFIGURA��O
    ============================================================================ */
 
 :root {
@@ -63,7 +63,7 @@
 }
 
 /* ============================================================================
-   CONTROLES DE EXPORTAÇÃO
+   CONTROLES DE EXPORTA��O
    ============================================================================ */
 
 .export-range {
@@ -135,7 +135,7 @@
   color: var(--color-primary);
 }
 
-/* Ícone do calendário nos inputs */
+/* �cone do calend�rio nos inputs */
 .export-range .date-range::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.7;
@@ -249,7 +249,7 @@
     display: none;
   }
 
-  /* Ocultar botão de excluir selecionados no mobile */
+  /* Ocultar bot�o de excluir selecionados no mobile */
   #btnExcluirSel {
     display: none;
   }
@@ -317,7 +317,7 @@
   opacity: 0.3;
 }
 
-/* Ações */
+/* A��es */
 .table-container .tabulator .tabulator-row .tabulator-cell .lk-actions {
   display: inline-flex;
   align-items: center;
@@ -465,7 +465,7 @@
 }
 
 /* ============================================================================
-   MODAL DE EDIÇÃO
+   MODAL DE EDI��O
    ============================================================================ */
 
 #modalEditarLancamento .modal-content {
@@ -497,7 +497,6 @@
 }
 
 #modalEditarLancamento .modal-title::before {
-  content: "📝";
   font-size: 1.2em;
 }
 
@@ -586,7 +585,7 @@
 }
 
 /* ============================================================================
-   UTILITÁRIOS E ACESSIBILIDADE
+   UTILIT�RIOS E ACESSIBILIDADE
    ============================================================================ */
 
 @keyframes spin {
@@ -635,7 +634,7 @@
     width: 100%;
   }
 
-  /* 🔹 Exportação empilhada no mobile */
+  /* ?? Exporta��o empilhada no mobile */
   .export-content {
     flex-direction: column;
     align-items: stretch;
@@ -668,7 +667,7 @@
     min-width: unset;
   }
 
-  /* 🔹 Tabela / collapse mais amigável no mobile */
+  /* ?? Tabela / collapse mais amig�vel no mobile */
   .table-container .tabulator .tabulator-row .tabulator-cell:first-child {
     position: relative;
     padding-left: 32px;
@@ -779,7 +778,7 @@
     font-size: var(--font-size-sm);
   }
 
-  /* Mobile: Tabela mais respirável */
+  /* Mobile: Tabela mais respir�vel */
   .table-container {
     padding: var(--spacing-2);
   }
@@ -908,7 +907,7 @@
 }
 
 /* ============================================================================
-   IMPRESSÃO
+   IMPRESS�O
    ============================================================================ */
 
 @media print {
@@ -944,17 +943,17 @@
   box-shadow: var(--shadow-md);
 }
 /* ========================================================================
-   AJUSTES ESPECÍFICOS PARA MOBILE DA TABELA DE LANÇAMENTOS
+   AJUSTES ESPEC�FICOS PARA MOBILE DA TABELA DE LAN�AMENTOS
    (estilo parecido com o mock do celular)
    ======================================================================== */
 
 @media (max-width: 576px) {
-  /* Tirar os filtros do cabeçalho no mobile */
+  /* Tirar os filtros do cabe�alho no mobile */
   .table-container .tabulator .tabulator-header-filter {
     display: none !important;
   }
 
-  /* Deixar o card da tabela mais parecido com um "cartão" */
+  /* Deixar o card da tabela mais parecido com um "cart�o" */
   .container-table {
     padding: var(--spacing-2);
     border-radius: 24px;
@@ -966,7 +965,7 @@
     background: rgba(0, 0, 0, 0.08);
   }
 
-  /* Cabeçalho mais compacto e legível */
+  /* Cabe�alho mais compacto e leg�vel */
   .table-container .tabulator .tabulator-header {
     border-bottom-width: 1px;
   }
@@ -977,7 +976,7 @@
     padding: 8px 6px;
   }
 
-  /* Primeira coluna (setinha) menor, só pro toggle */
+  /* Primeira coluna (setinha) menor, s� pro toggle */
   .table-container .tabulator .tabulator-cell:first-child {
     width: 40px !important;
     max-width: 40px !important;
@@ -985,7 +984,7 @@
     padding-right: 4px;
   }
 
-  /* Aumentar área de clique da setinha */
+  /* Aumentar �rea de clique da setinha */
   .table-container
     .tabulator
     .tabulator-cell
@@ -1003,7 +1002,7 @@
     padding: 10px 6px;
   }
 
-  /* Ajuste de tamanho dos badges e botões pra caber bem */
+  /* Ajuste de tamanho dos badges e bot�es pra caber bem */
   .badge-tipo {
     font-size: 0.7rem;
     padding: 0.25rem 0.6rem;
@@ -1013,7 +1012,7 @@
     padding: 0.25rem 0.4rem;
   }
 
-  /* Área colapsada (Detalhes, Categoria, Conta, Descrição) no estilo stack */
+  /* �rea colapsada (Detalhes, Categoria, Conta, Descri��o) no estilo stack */
   .table-container .tabulator .tabulator-responsive-collapse {
     background: color-mix(in srgb, var(--color-surface) 96%, transparent);
     border-top: 1px solid var(--glass-border);
@@ -1046,27 +1045,27 @@
   }
 }
 /* ========================================================================
-   MOBILE: substituir Tabulator por cards de lançamentos (Opção A)
+   MOBILE: substituir Tabulator por cards de lan�amentos (Op��o A)
    ======================================================================== */
 
 .lan-cards-container {
-  display: none; /* desktop não mostra os cards */
+  display: none; /* desktop n�o mostra os cards */
 }
 
-/* A partir daqui, só mobile */
+/* A partir daqui, s� mobile */
 @media (max-width: 768px) {
   /* Esconde a tabela Tabulator no mobile */
   .table-container {
     display: none !important;
   }
 
-  /* Mostra os cards de lançamentos */
+  /* Mostra os cards de lan�amentos */
   .lan-cards-container {
     display: block;
     margin-top: var(--spacing-3);
   }
 
-  /* Cabeçalho "fake" com DATA | TIPO | VALOR | AÇÕES */
+  /* Cabe�alho "fake" com DATA | TIPO | VALOR | A��ES */
   .lan-cards-header {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr 1.1fr 0.9fr;
@@ -1087,7 +1086,7 @@
     white-space: nowrap;
   }
 
-  /* Card de lançamento */
+  /* Card de lan�amento */
   .lan-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
@@ -1138,11 +1137,15 @@
     color: var(--color-primary);
   }
 
-  /* Ações (editar/excluir) */
+  /* A��es (editar/excluir) */
   .lan-card-actions {
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
+  }
+
+  .lan-card-actions[data-slot="details"] {
+    display: none;
   }
 
   .lan-card-actions .lk-btn {
@@ -1182,7 +1185,7 @@
     transform: rotate(90deg);
   }
 
-  /* Bloco de detalhes (Categoria, Conta, Descrição) */
+  /* Bloco de detalhes (Categoria, Conta, Descri��o) */
   .lan-card-details {
     grid-column: 1 / -1;
     margin-top: 0.35rem;
@@ -1217,5 +1220,50 @@
   .lan-card-type .badge-tipo {
     font-size: 0.65rem;
     padding: 0.25rem 0.6rem;
+  }
+}
+
+/* ========================================================================
+   MOBILE EXTRA PEQUENO (ate 414px)
+   - Cabecalho mostra apenas Data | Tipo | Valor
+   - Acoes principais escondidas; botoes ficam em Detalhes
+   ======================================================================== */
+@media (max-width: 414px) {
+  .lan-cards-header {
+    grid-template-columns: 1.1fr 0.9fr 1.1fr;
+  }
+
+  .lan-cards-header span:last-child {
+    display: none;
+  }
+
+  .lan-card-main {
+    grid-template-columns: 1.1fr 0.9fr 1.1fr;
+  }
+
+  .lan-card-actions[data-slot="main"] {
+    display: none;
+  }
+
+  .lan-card-details .lan-card-actions[data-slot="details"] {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--spacing-2);
+    margin-top: 0.35rem;
+  }
+
+  .lan-card-detail-row {
+    align-items: flex-start;
+  }
+
+  .lan-card-detail-row.actions-row {
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .lan-card-detail-value.actions-slot {
+    display: inline-flex;
+    gap: var(--spacing-2);
+    align-items: center;
   }
 }

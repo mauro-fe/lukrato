@@ -217,10 +217,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`${BASE_URL}api/investimentos`);
             const json = await res.json().catch(() => ({}));
-            if (!res.ok || json.error || !Array.isArray(json.data ?? json)) {
+            if (!res.ok || json.error) {
                 throw new Error(json.message || 'Falha ao carregar investimentos');
             }
-            return json.data ?? json;
+
+            // API padroniza como { status, message, data: { data: [...] } }
+            const payload = Array.isArray(json.data?.data)
+                ? json.data.data
+                : Array.isArray(json.data)
+                    ? json.data
+                    : Array.isArray(json)
+                        ? json
+                        : null;
+
+            if (!payload) {
+                throw new Error('Dados de investimentos em formato inesperado');
+            }
+
+            return payload;
         } catch (err) {
             console.error(err);
             toast(err.message || 'Falha ao carregar investimentos', 'error');
