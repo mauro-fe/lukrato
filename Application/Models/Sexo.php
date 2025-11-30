@@ -1,5 +1,5 @@
 <?php
-// Application/Models/Sexo.php
+
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;

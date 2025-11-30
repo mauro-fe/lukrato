@@ -10,7 +10,6 @@ use GUMP;
 use Exception;
 use ValueError;
 
-// --- Enums para Constantes (PHP 8.1+) ---
 
 enum CategoriaTipo: string
 {
@@ -19,9 +18,7 @@ enum CategoriaTipo: string
     case TRANSFERENCIA = 'transferencia';
     case AMBAS = 'ambas';
 
-    /**
-     * Retorna a lista de todos os valores válidos como string para validação.
-     */
+
     public static function listValues(): string
     {
         return implode(';', array_column(self::cases(), 'value'));
@@ -30,12 +27,9 @@ enum CategoriaTipo: string
 
 class CategoriaController extends BaseController
 {
-    /**
-     * Obtém dados do request (POST ou JSON).
-     */
+
     private function getRequestPayload(): array
     {
-        // Prioriza JSON (útil para PUT/PATCH/POST via API), depois POST.
         $payload = $this->getJson() ?? [];
         if (empty($payload)) {
             $payload = $this->request->post();
@@ -43,22 +37,16 @@ class CategoriaController extends BaseController
         return $payload;
     }
 
-    /**
-     * Extrai o ID de diversas fontes de rota/payload.
-     */
+
     private function extractId(mixed $routeParam, array $payload): int
     {
-        // 1. Tenta extrair do array de rota (se for o primeiro argumento nomeado)
         if (is_array($routeParam) && isset($routeParam['id'])) {
             return (int) $routeParam['id'];
         }
 
-        // 2. Tenta extrair do argumento direto (se for string ou int)
         if (is_string($routeParam) || is_int($routeParam)) {
             return (int) $routeParam;
         }
-
-        // 3. Tenta extrair do payload (corpo da requisição)
         if (isset($payload['id'])) {
             return (int) $payload['id'];
         }
@@ -66,19 +54,17 @@ class CategoriaController extends BaseController
         return 0;
     }
 
-    /**
-     * Lista todas as categorias.
-     */
+
     public function index(): void
     {
         try {
             $this->requireAuth();
 
-            $tipo = $this->request?->get('tipo'); 
-            
+            $tipo = $this->request?->get('tipo');
+
             $query = Categoria::forUser($this->userId)
                 ->orderBy('nome', 'asc');
-            
+
             if ($tipo) {
                 try {
                     CategoriaTipo::from(strtolower($tipo));
@@ -98,9 +84,7 @@ class CategoriaController extends BaseController
         }
     }
 
-    /**
-     * Cria uma nova categoria.
-     */
+
     public function store(): void
     {
         $payload = [];
@@ -111,12 +95,12 @@ class CategoriaController extends BaseController
 
             $nome = trim((string)($payload['nome'] ?? ''));
             $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
-            
+
             $erros = [];
             if (mb_strlen($nome) < 2 || mb_strlen($nome) > 100) {
                 $erros['nome'] = 'O nome deve ter entre 2 e 100 caracteres.';
             }
-            
+
             try {
                 CategoriaTipo::from($tipo);
             } catch (ValueError) {
@@ -155,41 +139,34 @@ class CategoriaController extends BaseController
         }
     }
 
-    /**
-     * Atualiza uma categoria existente.
-     */
+
     public function update(mixed $routeParam = null): void
     {
         $payload = [];
         try {
             $this->requireAuth();
             $payload = $this->getRequestPayload();
-            
-            // 1. Obter e validar ID
+
             $id = $this->extractId($routeParam, $payload);
-            
+
             if ($id <= 0) {
                 Response::validationError(['id' => 'ID inválido.']);
                 return;
             }
 
-            // 2. Buscar e validar permissão
-            /** @var Categoria|null $categoria */
             $categoria = Categoria::forUser($this->userId)->find($id);
             if (!$categoria) {
                 Response::error('Categoria não encontrada.', 404);
                 return;
             }
-            
-            // 3. Validação GUMP/Input
+
             $gump = new GUMP();
-            
-            // Sanitiza os dados da requisição antes da validação
+
             $sanitizedPayload = $gump->sanitize($payload ?? []);
 
             $gump->validation_rules([
                 'nome' => 'required|min_len,2|max_len,100',
-                'tipo' => 'required|contains_list,' . CategoriaTipo::listValues(), 
+                'tipo' => 'required|contains_list,' . CategoriaTipo::listValues(),
             ]);
 
             $gump->filter_rules([
@@ -197,9 +174,8 @@ class CategoriaController extends BaseController
                 'tipo' => 'trim|lower_case',
             ]);
 
-            // Captura o valor de retorno de run() para obter os dados sanitizados e validados
-            $data = $gump->run($sanitizedPayload); 
-            
+            $data = $gump->run($sanitizedPayload);
+
             if ($data === false) {
                 LogService::warning('Validação falhou ao atualizar categoria', [
                     'user_id' => $this->userId,
@@ -211,9 +187,6 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            // A variável $data agora contém o array de dados limpos e validados.
-            
-            // 4. Checagem de duplicidade (excluindo a categoria atual)
             $dup = Categoria::forUser($this->userId)
                 ->whereRaw('LOWER(nome) = ?', [mb_strtolower($data['nome'])])
                 ->where('tipo', $data['tipo'])
@@ -231,7 +204,6 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            // 5. Atualização
             $categoria->nome = $data['nome'];
             $categoria->tipo = $data['tipo'];
             $categoria->save();
@@ -254,18 +226,15 @@ class CategoriaController extends BaseController
         }
     }
 
-    /**
-     * Exclui uma categoria.
-     */
+
     public function delete(mixed $routeParam = null): void
     {
         try {
             $this->requireAuth();
             $payload = $this->getRequestPayload();
-            
-            // 1. Obter e validar ID
+
             $id = $this->extractId($routeParam, $payload);
-            
+
             if ($id <= 0) {
                 LogService::warning('Delete categoria: ID inválido', ['user_id' => $this->userId, 'routeParam' => $routeParam]);
                 Response::validationError(['id' => 'ID inválido']);
@@ -274,8 +243,6 @@ class CategoriaController extends BaseController
 
             LogService::info('Tentando excluir categoria', ['user_id' => $this->userId, 'categoria_id' => $id]);
 
-            // 2. Buscar e validar permissão
-            /** @var Categoria|null $categoria */
             $categoria = Categoria::forUser($this->userId)->find($id);
             if (!$categoria) {
                 LogService::warning('Categoria não encontrada ou sem permissão para excluir', ['user_id' => $this->userId, 'categoria_id' => $id]);
@@ -283,7 +250,6 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            // 3. Exclusão
             $snapshot = [
                 'id'   => $categoria->id,
                 'nome' => $categoria->nome,

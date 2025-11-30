@@ -13,12 +13,11 @@ use Illuminate\Support\Collection;
 use GUMP;
 use Throwable;
 
-// --- Enums ---
 
 enum TransacaoTipo: string
 {
     case COMPRA = 'compra';
-    case VENDA = 'venda';
+    case VENDA  = 'venda';
 
     public static function listValues(): string
     {
@@ -28,8 +27,8 @@ enum TransacaoTipo: string
 
 enum ProventoTipo: string
 {
-    case DIVIDENDO = 'dividendo';
-    case JCP = 'jcp';
+    case DIVIDENDO  = 'dividendo';
+    case JCP        = 'jcp';
     case RENDIMENTO = 'rendimento';
 
     public static function listValues(): string
@@ -47,7 +46,7 @@ class InvestimentoService
         $this->repository = $repository ?? new InvestimentoRepository();
     }
 
-    // --- Estatísticas ---
+    // --- Stats ---
 
     public function getStats(int $userId): array
     {
@@ -110,7 +109,7 @@ class InvestimentoService
             $investimentos = $this->repository->getFilteredForUser($userId, $filters);
 
             return $investimentos
-                ->map(fn (Investimento $inv) => $this->mapToArray($inv))
+                ->map(fn(Investimento $inv) => $this->mapToArray($inv))
                 ->all();
         } catch (Throwable $e) {
             LogService::error('Falha ao listar investimentos', [
@@ -130,14 +129,16 @@ class InvestimentoService
         } catch (Throwable $e) {
             if (!($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)) {
                 LogService::error('Falha ao buscar investimento por ID', [
-                    'user_id'        => $userId,
-                    'investimento_id'=> $id,
-                    'exception'      => $e->getMessage()
+                    'user_id'         => $userId,
+                    'investimento_id' => $id,
+                    'exception'       => $e->getMessage()
                 ]);
             }
             throw $e;
         }
     }
+
+    // --- CRUD Investimento ---
 
     public function criarInvestimento(int $userId, array $data): Investimento
     {
@@ -147,9 +148,9 @@ class InvestimentoService
             $investimento = $this->repository->create($userId, $validData);
 
             LogService::info('Investimento criado', [
-                'user_id'        => $userId,
-                'investimento_id'=> $investimento->id,
-                'nome'           => $investimento->nome
+                'user_id'         => $userId,
+                'investimento_id' => $investimento->id,
+                'nome'            => $investimento->nome
             ]);
 
             return $investimento;
@@ -176,8 +177,8 @@ class InvestimentoService
             $this->repository->save($investimento);
 
             LogService::info('Investimento atualizado', [
-                'user_id'        => $userId,
-                'investimento_id'=> $id
+                'user_id'         => $userId,
+                'investimento_id' => $id
             ]);
 
             return $investimento;
@@ -185,9 +186,9 @@ class InvestimentoService
             throw $e;
         } catch (Throwable $e) {
             LogService::error('Falha ao atualizar investimento', [
-                'user_id'        => $userId,
-                'investimento_id'=> $id,
-                'exception'      => $e->getMessage()
+                'user_id'         => $userId,
+                'investimento_id' => $id,
+                'exception'       => $e->getMessage()
             ]);
             throw $e;
         }
@@ -202,17 +203,17 @@ class InvestimentoService
             $this->repository->delete($investimento);
 
             LogService::info('Investimento excluído', [
-                'user_id'        => $userId,
-                'investimento_id'=> $id,
-                'nome_excluido'  => $nome
+                'user_id'         => $userId,
+                'investimento_id' => $id,
+                'nome_excluido'   => $nome
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw $e;
         } catch (Throwable $e) {
             LogService::error('Falha ao excluir investimento', [
-                'user_id'        => $userId,
-                'investimento_id'=> $id,
-                'exception'      => $e->getMessage()
+                'user_id'         => $userId,
+                'investimento_id' => $id,
+                'exception'       => $e->getMessage()
             ]);
             throw $e;
         }
@@ -231,9 +232,9 @@ class InvestimentoService
             $this->repository->save($investimento);
 
             LogService::info('Preço atualizado', [
-                'user_id'        => $userId,
-                'investimento_id'=> $id,
-                'novo_preco'     => $preco
+                'user_id'         => $userId,
+                'investimento_id' => $id,
+                'novo_preco'      => $preco
             ]);
 
             return $investimento;
@@ -241,9 +242,9 @@ class InvestimentoService
             throw $e;
         } catch (Throwable $e) {
             LogService::error('Falha ao atualizar preço', [
-                'user_id'        => $userId,
-                'investimento_id'=> $id,
-                'exception'      => $e->getMessage()
+                'user_id'         => $userId,
+                'investimento_id' => $id,
+                'exception'       => $e->getMessage()
             ]);
             throw $e;
         }
@@ -261,9 +262,9 @@ class InvestimentoService
         } catch (Throwable $e) {
             if (!($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)) {
                 LogService::error('Falha ao buscar transações', [
-                    'user_id'        => $userId,
-                    'investimento_id'=> $investimentoId,
-                    'exception'      => $e->getMessage()
+                    'user_id'         => $userId,
+                    'investimento_id' => $investimentoId,
+                    'exception'       => $e->getMessage()
                 ]);
             }
             throw $e;
@@ -284,10 +285,10 @@ class InvestimentoService
                 $transacao = $this->repository->createTransacao($investimentoId, $validData);
 
                 LogService::info('Transação criada', [
-                    'user_id'        => $userId,
-                    'investimento_id'=> $investimentoId,
-                    'transacao_id'   => $transacao->id,
-                    'tipo'           => $transacao->tipo
+                    'user_id'         => $userId,
+                    'investimento_id' => $investimentoId,
+                    'transacao_id'    => $transacao->id,
+                    'tipo'            => $transacao->tipo
                 ]);
 
                 return $transacao;
@@ -296,13 +297,21 @@ class InvestimentoService
             throw $e;
         } catch (Throwable $e) {
             LogService::error('Falha ao criar transação', [
-                'user_id'        => $userId,
-                'investimento_id'=> $investimentoId,
-                'exception'      => $e->getMessage()
+                'user_id'         => $userId,
+                'investimento_id' => $investimentoId,
+                'exception'       => $e->getMessage()
             ]);
             throw $e;
         }
     }
+
+
+    private function getSaldoConta(int $contaId): float
+    {
+
+        return 999999999.99;
+    }
+
 
     private function aplicarTransacaoNoInvestimento(Investimento $investimento, array $data): void
     {
@@ -313,25 +322,47 @@ class InvestimentoService
 
         if ($quantidade <= 0) {
             throw new ValidationException(
-                ['quantidade' => 'Quantidade deve ser maior que zero'],
-                'Quantidade inválida',
+                ['quantidade' => 'Quantidade deve ser maior que zero.'],
+                'Quantidade inválida.',
                 422
             );
         }
 
+        $custoTotal = $quantidade * $preco + $taxas;
+
         $quantidadeAtual = (float) $investimento->quantidade;
         $precoMedioAtual = (float) $investimento->preco_medio;
+        $epsilon         = 0.000001;
+
 
         if ($tipo === TransacaoTipo::COMPRA) {
+
+            if (!empty($investimento->conta_id)) {
+                $contaId    = (int) $investimento->conta_id;
+                $saldoConta = $this->getSaldoConta($contaId);
+
+                if ($saldoConta + $epsilon < $custoTotal) {
+                    throw new ValidationException(
+                        [
+                            'preco' => 'Saldo insuficiente na conta vinculada para realizar esta compra. '
+                                . 'Saldo disponível: R$ ' . number_format($saldoConta, 2, ',', '.') .
+                                ' | Custo da operação: R$ ' . number_format($custoTotal, 2, ',', '.')
+                        ],
+                        'Saldo insuficiente para realizar esta compra.',
+                        422
+                    );
+                }
+            }
+
             $totalAtual  = $quantidadeAtual * $precoMedioAtual;
-            $totalCompra = ($quantidade * $preco) + $taxas;
+            $totalCompra = $custoTotal;
 
             $novaQuantidade = $quantidadeAtual + $quantidade;
 
             if ($novaQuantidade <= 0) {
                 throw new ValidationException(
-                    ['quantidade' => 'Quantidade total inválida após a compra'],
-                    'Quantidade inválida',
+                    ['quantidade' => 'Quantidade total inválida após a compra.'],
+                    'Quantidade inválida.',
                     422
                 );
             }
@@ -344,12 +375,39 @@ class InvestimentoService
             if (!$investimento->data_compra) {
                 $investimento->data_compra = $data['data_transacao'] ?? date('Y-m-d');
             }
-        } else { // VENDA
-            $epsilon = 0.000001;
-            if ($quantidade > ($quantidadeAtual + $epsilon)) {
+        } else {
+
+
+            $precoReferencia = $investimento->preco_atual !== null
+                ? (float) $investimento->preco_atual
+                : $precoMedioAtual;
+
+            $valorDisponivel = $quantidadeAtual * $precoReferencia;
+
+            if ($custoTotal > $valorDisponivel + $epsilon) {
                 throw new ValidationException(
-                    ['quantidade' => 'Quantidade indisponivel para venda.'],
-                    'Quantidade indisponivel',
+                    [
+                        'preco' => 'Valor total da venda (quantidade x preço) '
+                            . 'não pode ser maior que o valor atual do investimento. '
+                            . 'Valor atual disponível: R$ ' . number_format($valorDisponivel, 2, ',', '.') .
+                            ' | Valor informado: R$ ' . number_format($custoTotal, 2, ',', '.')
+                    ],
+                    'Valor da venda superior ao valor disponível.',
+                    422
+                );
+            }
+
+            if ($quantidade > ($quantidadeAtual + $epsilon)) {
+                LogService::warning('Venda acima da quantidade disponível', [
+                    'investimento_id' => $investimento->id,
+                    'user_id'         => $investimento->user_id,
+                    'disponivel'      => $quantidadeAtual,
+                    'solicitado'      => $quantidade
+                ]);
+
+                throw new ValidationException(
+                    ['quantidade' => "Você não possui quantidade suficiente para vender. Quantidade disponível: {$quantidadeAtual}"],
+                    'Você não possui quantidade suficiente para vender este investimento.',
                     422
                 );
             }
@@ -360,8 +418,6 @@ class InvestimentoService
             }
 
             $investimento->quantidade = $novaQuantidade;
-
-            // Preco medio nao muda em venda; lucro e calculado em relatorios
         }
 
         if ($investimento->preco_atual === null) {
@@ -371,7 +427,8 @@ class InvestimentoService
         $investimento->atualizado_em = date('Y-m-d H:i:s');
     }
 
-    // --- Proventos ---
+
+
 
     public function getProventos(int $investimentoId, int $userId): Collection
     {
@@ -382,9 +439,9 @@ class InvestimentoService
         } catch (Throwable $e) {
             if (!($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException)) {
                 LogService::error('Falha ao buscar proventos', [
-                    'user_id'        => $userId,
-                    'investimento_id'=> $investimentoId,
-                    'exception'      => $e->getMessage()
+                    'user_id'         => $userId,
+                    'investimento_id' => $investimentoId,
+                    'exception'       => $e->getMessage()
                 ]);
             }
             throw $e;
@@ -402,10 +459,10 @@ class InvestimentoService
                 $provento = $this->repository->createProvento($investimentoId, $validData);
 
                 LogService::info('Provento criado', [
-                    'user_id'        => $userId,
-                    'investimento_id'=> $investimentoId,
-                    'provento_id'    => $provento->id,
-                    'valor'          => $provento->valor
+                    'user_id'         => $userId,
+                    'investimento_id' => $investimentoId,
+                    'provento_id'     => $provento->id,
+                    'valor'           => $provento->valor
                 ]);
 
                 return $provento;
@@ -416,15 +473,13 @@ class InvestimentoService
             throw $e;
         } catch (Throwable $e) {
             LogService::error('Falha ao criar provento', [
-                'user_id'        => $userId,
-                'investimento_id'=> $investimentoId,
-                'exception'      => $e->getMessage()
+                'user_id'         => $userId,
+                'investimento_id' => $investimentoId,
+                'exception'       => $e->getMessage()
             ]);
             throw $e;
         }
     }
-
-    // --- Categorias ---
 
     public function getCategorias(): Collection
     {
@@ -438,14 +493,12 @@ class InvestimentoService
         }
     }
 
-    // --- Helpers de Cálculo ---
-
     public function calcularMetricas(Investimento $investimento): array
     {
-        $investido   = (float) $investimento->quantidade * (float) $investimento->preco_medio;
-        $precoAtual  = (float) ($investimento->preco_atual ?? $investimento->preco_medio ?? 0);
-        $atual       = (float) $investimento->quantidade * $precoAtual;
-        $lucro       = $atual - $investido;
+        $investido    = (float) $investimento->quantidade * (float) $investimento->preco_medio;
+        $precoAtual   = (float) ($investimento->preco_atual ?? $investimento->preco_medio ?? 0);
+        $atual        = (float) $investimento->quantidade * $precoAtual;
+        $lucro        = $atual - $investido;
         $rentabilidade = $investido > 0 ? ($lucro / $investido) * 100 : 0.0;
 
         return [
@@ -456,20 +509,18 @@ class InvestimentoService
         ];
     }
 
-    // --- Helpers de Mapeamento ---
-
     private function mapToArray(Investimento $investimento, bool $includeDetails = false): array
     {
         $base = [
-            'id'           => (int) $investimento->id,
-            'categoria_id' => (int) $investimento->categoria_id,
-            'conta_id'     => $investimento->conta_id ? (int) $investimento->conta_id : null,
-            'nome'         => (string) $investimento->nome,
-            'ticker'       => $investimento->ticker,
-            'quantidade'   => (float) $investimento->quantidade,
-            'preco_medio'  => (float) $investimento->preco_medio,
-            'preco_atual'  => $investimento->preco_atual !== null ? (float) $investimento->preco_atual : null,
-            'atualizado_em'=> (string) $investimento->atualizado_em,
+            'id'            => (int) $investimento->id,
+            'categoria_id'  => (int) $investimento->categoria_id,
+            'conta_id'      => $investimento->conta_id ? (int) $investimento->conta_id : null,
+            'nome'          => (string) $investimento->nome,
+            'ticker'        => $investimento->ticker,
+            'quantidade'    => (float) $investimento->quantidade,
+            'preco_medio'   => (float) $investimento->preco_medio,
+            'preco_atual'   => $investimento->preco_atual !== null ? (float) $investimento->preco_atual : null,
+            'atualizado_em' => (string) $investimento->atualizado_em,
         ];
 
         if (!$includeDetails) {
@@ -483,8 +534,6 @@ class InvestimentoService
 
         return array_merge($base, $this->calcularMetricas($investimento));
     }
-
-    // --- Helpers de Validação ---
 
     private function validateInvestimentoData(array $data, bool $isCreating): array
     {
@@ -514,7 +563,11 @@ class InvestimentoService
         $validData = $gump->run($data);
 
         if ($validData === false) {
-            throw new ValidationException($gump->get_errors_array(), 'Falha na validação', 422);
+            throw new ValidationException(
+                $gump->get_errors_array(),
+                'Dados inválidos para o investimento.',
+                422
+            );
         }
 
         return $validData;
@@ -541,7 +594,11 @@ class InvestimentoService
         $validData = $gump->run($data);
 
         if ($validData === false) {
-            throw new ValidationException($gump->get_errors_array(), 'Falha na validação', 422);
+            throw new ValidationException(
+                $gump->get_errors_array(),
+                'Dados inválidos para a transação de investimento.',
+                422
+            );
         }
 
         return $validData;
@@ -554,9 +611,9 @@ class InvestimentoService
         $gump = new GUMP();
 
         $gump->validation_rules([
-            'valor'         => 'required|numeric|min_numeric,0.01',
-            'tipo'          => 'required|contains_list,' . ProventoTipo::listValues(),
-            'data_pagamento'=> 'required|date',
+            'valor'          => 'required|numeric|min_numeric,0.01',
+            'tipo'           => 'required|contains_list,' . ProventoTipo::listValues(),
+            'data_pagamento' => 'required|date',
         ]);
 
         $gump->filter_rules([
@@ -566,7 +623,11 @@ class InvestimentoService
         $validData = $gump->run($data);
 
         if ($validData === false) {
-            throw new ValidationException($gump->get_errors_array(), 'Falha na validação', 422);
+            throw new ValidationException(
+                $gump->get_errors_array(),
+                'Dados inválidos para o provento.',
+                422
+            );
         }
 
         return $validData;
@@ -575,13 +636,21 @@ class InvestimentoService
     private function validateAndParsePreco(?string $precoRaw): float
     {
         if ($precoRaw === null || $precoRaw === '') {
-            throw new ValidationException(['preco_atual' => 'Informe o preço atual']);
+            throw new ValidationException(
+                ['preco_atual' => 'Informe o preço atual.'],
+                'Preço atual inválido.',
+                422
+            );
         }
 
         $preco = (float) str_replace(',', '.', $precoRaw);
 
         if ($preco < 0) {
-            throw new ValidationException(['preco_atual' => 'Preço inválido']);
+            throw new ValidationException(
+                ['preco_atual' => 'Preço inválido.'],
+                'Preço atual inválido.',
+                422
+            );
         }
 
         return $preco;

@@ -13,13 +13,13 @@ class TransacaoInvestimento extends Model
 
 
     protected $fillable = [
-        'investimento_id',   // FK investimento
-        'tipo',              // compra | venda
-        'quantidade',        // quantidade negociada
-        'preco',             // preço unitário
-        'taxas',             // taxas e custos
-        'data_transacao',    // data da transação
-        'observacoes',       // notas opcionais
+        'investimento_id',
+        'tipo',
+        'quantidade',
+        'preco',
+        'taxas',
+        'data_transacao',
+        'observacoes',
     ];
 
     protected $casts = [
@@ -29,7 +29,6 @@ class TransacaoInvestimento extends Model
         'data_transacao' => 'date',
     ];
 
-    /** RELACIONAMENTO */
     public function investimento()
     {
         return $this->belongsTo(Investimento::class, 'investimento_id');

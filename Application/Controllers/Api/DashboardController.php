@@ -6,12 +6,11 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
-use Illuminate\Database\Eloquent\Builder; // Para tipagem do query builder
-use DateTimeImmutable; // PHP 8+
+use Illuminate\Database\Eloquent\Builder;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-// --- Enums para Constantes (PHP 8.1+) ---
 
 enum LancamentoTipo: string
 {
@@ -21,22 +20,18 @@ enum LancamentoTipo: string
 
 class DashboardController
 {
-    /**
-     * Valida e normaliza o mês de entrada.
-     * @param string $monthInput O mês fornecido no formato 'Y-m'.
-     * @return array{month: string, year: int, monthNum: int}
-     */
+
     private function normalizeMonth(string $monthInput): array
     {
         $dt = \DateTime::createFromFormat('Y-m', $monthInput);
-        
+
         if (!$dt || $dt->format('Y-m') !== $monthInput) {
             $month = date('Y-m');
             $dt = new \DateTime("$month-01");
         } else {
             $month = $dt->format('Y-m');
         }
-        
+
         return [
             'month' => $month,
             'year' => (int)$dt->format('Y'),
@@ -44,11 +39,6 @@ class DashboardController
         ];
     }
 
-    /**
-     * Aplica filtros básicos (usuário, transferências, saldo inicial) a um query builder.
-     * @param int $userId ID do usuário.
-     * @return Builder
-     */
     private function createBaseQuery(int $userId): Builder
     {
         return Lancamento::where('user_id', $userId)
@@ -56,33 +46,28 @@ class DashboardController
             ->where('eh_saldo_inicial', 0);
     }
 
-    /**
-     * Calcula as métricas financeiras (Receita, Despesa, Resultado) para o mês e conta selecionados.
-     */
+
     public function metrics(): void
     {
         try {
             $userId = Auth::id();
-            
-            // 1. Parsing e Normalização
+
             $monthInput = trim($_GET['month'] ?? date('Y-m'));
             $accId      = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
-            
+
             $normalizedDate = $this->normalizeMonth($monthInput);
             $y = $normalizedDate['year'];
             $m = $normalizedDate['monthNum'];
             $month = $normalizedDate['month'];
-            
-            // 2. Validação da Conta (Se accId for fornecido)
+
             if ($accId) {
                 if (!Conta::where('user_id', $userId)->where('id', $accId)->exists()) {
                     Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
                     return;
                 }
             }
-            
-            // --- Cálculo das Métricas Mensais (Receitas / Despesas) ---
-            
+
+
             $monthlyBase = $this->createBaseQuery($userId)
                 ->whereYear('data', $y)
                 ->whereMonth('data', $m);
@@ -98,60 +83,52 @@ class DashboardController
             $sumDespesas = (float)$despesasQuery->sum('valor');
             $resultado   = $sumReceitas - $sumDespesas;
 
-            // --- Cálculo do Saldo Acumulado (até o final do mês) ---
-            
+
             $ate = (new DateTimeImmutable("$month-01"))
                 ->modify('last day of this month')
                 ->format('Y-m-d');
-            
+
             $saldoAcumulado = 0.0;
 
             if ($accId) {
-                // Cálculo de saldo para UMA conta específica
-                
+
                 $movBaseAcumulado = Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('conta_id', $accId);
-                    
-                // Movimento Receita/Despesa (ignora transferência e saldo inicial)
+
                 $movReceitas = (float)(clone $movBaseAcumulado)
                     ->where('eh_transferencia', 0)
                     ->where('tipo', LancamentoTipo::RECEITA->value)
                     ->sum('valor');
-                    
+
                 $movDespesas = (float)(clone $movBaseAcumulado)
                     ->where('eh_transferencia', 0)
                     ->where('tipo', LancamentoTipo::DESPESA->value)
                     ->sum('valor');
 
-                // Transferências ENTRANDO na conta (conta_id_destino)
                 $transfIn = (float)Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('eh_transferencia', 1)
                     ->where('conta_id_destino', $accId)
                     ->sum('valor');
 
-                // Transferências SAINDO da conta (conta_id)
                 $transfOut = (float)Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
                     ->where('eh_transferencia', 1)
                     ->where('conta_id', $accId)
                     ->sum('valor');
-                    
-                // Saldo Acumulado = Receitas - Despesas + Transf In - Transf Out
-                $saldoAcumulado = $movReceitas - $movDespesas + $transfIn - $transfOut;
 
+                $saldoAcumulado = $movReceitas - $movDespesas + $transfIn - $transfOut;
             } else {
-                // Cálculo de saldo GLOBAL (apenas Receitas/Despesas, ignorando transferências)
-                
+
                 $movGlobal = Lancamento::where('user_id', $userId)
                     ->where('data', '<=', $ate)
-                    ->where('eh_transferencia', 0); // Transferências globais se anulam
-                    
+                    ->where('eh_transferencia', 0);
+
                 $r = (float)(clone $movGlobal)
                     ->where('tipo', LancamentoTipo::RECEITA->value)
                     ->sum('valor');
-                
+
                 $d = (float)(clone $movGlobal)
                     ->where('tipo', LancamentoTipo::DESPESA->value)
                     ->sum('valor');
@@ -159,17 +136,14 @@ class DashboardController
                 $saldoAcumulado = $r - $d;
             }
 
-            // 4. Resposta
             Response::json([
-                'saldo'          => $saldoAcumulado, // Nome original, mas é o saldo acumulado
+                'saldo'          => $saldoAcumulado,
                 'receitas'       => $sumReceitas,
                 'despesas'       => $sumDespesas,
-                'resultado'      => $resultado, // Resultado (Receitas - Despesas) do MÊS
-                'saldoAcumulado' => $saldoAcumulado, // Mantido por clareza/compatibilidade
+                'resultado'      => $resultado,
+                'saldoAcumulado' => $saldoAcumulado,
             ]);
-            
         } catch (Throwable $e) {
-            // Captura qualquer exceção (do PHP 7+ e 8+)
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }

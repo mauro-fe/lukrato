@@ -97,7 +97,6 @@ class LancamentosController
 
     private function validateConta(?int $id, int $userId, array &$errors): ?int
     {
-        // Conta e opcional no modal; valida somente quando informada
         if ($id === null) {
             return null;
         }
@@ -432,7 +431,3 @@ class LancamentosController
         Response::success(['ok' => true]);
     }
 }
-
-
-
-

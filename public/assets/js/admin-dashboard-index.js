@@ -2,11 +2,9 @@
 (() => {
     'use strict';
 
-    // Previne inicialização dupla
     if (window.__LK_DASHBOARD_LOADER__) return;
     window.__LK_DASHBOARD_LOADER__ = true;
 
-    // ==================== CONFIGURAÇÃO ====================
     const CONFIG = {
         BASE_URL: (() => {
             const meta = document.querySelector('meta[name="base-url"]')?.content || '';
@@ -28,7 +26,6 @@
 
     CONFIG.API_URL = `${CONFIG.BASE_URL}api/`;
 
-    // ==================== SELETORES DOM ====================
     const DOM = {
         // KPIs
         saldoValue: document.getElementById('saldoValue'),
@@ -36,27 +33,22 @@
         despesasValue: document.getElementById('despesasValue'),
         saldoMesValue: document.getElementById('saldoMesValue'),
 
-        // GrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡fico
         chartCanvas: document.getElementById('evolutionChart'),
         chartLoading: document.getElementById('chartLoading'),
 
-        // Tabela
         tableBody: document.getElementById('transactionsTableBody'),
         table: document.getElementById('transactionsTable'),
         emptyState: document.getElementById('emptyState'),
 
-        // Header
         monthLabel: document.getElementById('currentMonthText')
     };
 
-    // ==================== ESTADO ====================
     const STATE = {
         chartInstance: null,
         currentMonth: null,
         isLoading: false
     };
 
-    // ==================== UTILITÁRIOS ====================
     const Utils = {
         money: (n) => {
             try {
@@ -291,7 +283,6 @@
         }
     };
 
-    // ==================== NOTIFICAÇÕES ====================
     const Notifications = {
         ensureSwal: async () => {
             if (window.Swal) return;
@@ -353,7 +344,6 @@
         }
     };
 
-    // ==================== RENDERIZADORES ====================
     const Renderers = {
         updateMonthLabel: (month) => {
             if (!DOM.monthLabel) return;
@@ -367,7 +357,6 @@
                     API.getAccountsBalances(month)
                 ]);
 
-                // Mapear valores dos KPIs
                 const kpiMap = {
                     receitasValue: metrics.receitas || 0,
                     despesasValue: metrics.despesas || 0,
@@ -381,7 +370,6 @@
                     }
                 });
 
-                // Saldo atual: preferir cálculo da API de métricas (saldoAcumulado) e usar contas como fallback
                 const saldoAcumulado = Number(metrics.saldoAcumulado ?? metrics.saldo ?? 0);
                 const totalSaldoContas = (Array.isArray(accounts) ? accounts : []).reduce((sum, account) => {
                     const value = (typeof account.saldoAtual === 'number') ?
@@ -399,8 +387,6 @@
                 Utils.removeLoadingClass();
             } catch (err) {
                 console.error('Erro ao renderizar KPIs:', err);
-
-                // Valores padrões em caso de erro
                 ['saldoValue', 'receitasValue', 'despesasValue', 'saldoMesValue'].forEach(id => {
                     const element = document.getElementById(id);
                     if (element) {
@@ -482,7 +468,6 @@
         renderChart: async (month) => {
             if (!DOM.chartCanvas || typeof Chart === 'undefined') return;
 
-            // Mostrar loading
             if (DOM.chartLoading) {
                 DOM.chartLoading.style.display = 'flex';
             }
@@ -501,7 +486,6 @@
 
                 const ctx = DOM.chartCanvas.getContext('2d');
 
-                // Criar gradiente
                 const gradient = ctx.createLinearGradient(0, 0, 0, 300);
                 gradient.addColorStop(0, 'rgba(230, 126, 34, 0.35)');
                 gradient.addColorStop(1, 'rgba(230, 126, 34, 0.05)');
@@ -524,23 +508,23 @@
                     }]
                 };
 
-                    const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
-                        || Utils.isLightTheme();
-                    const axisColor = isLightTheme
-                        ? (Utils.getCssVar('--color-primary', '#e67e22') || '#e67e22')
-                        : 'rgba(255, 255, 255, 0.6)';
-                    const yTickColor = isLightTheme ? '#000' : '#fff';
-                    const xTickColor = isLightTheme
-                        ? (Utils.getCssVar('--color-text-muted', '#6c757d') || '#6c757d')
-                        : 'rgba(255, 255, 255, 0.6)';
-                    const gridColor = isLightTheme
-                        ? 'rgba(0, 0, 0, 0.08)'
-                        : 'rgba(255, 255, 255, 0.05)';
+                const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+                    || Utils.isLightTheme();
+                const axisColor = isLightTheme
+                    ? (Utils.getCssVar('--color-primary', '#e67e22') || '#e67e22')
+                    : 'rgba(255, 255, 255, 0.6)';
+                const yTickColor = isLightTheme ? '#000' : '#fff';
+                const xTickColor = isLightTheme
+                    ? (Utils.getCssVar('--color-text-muted', '#6c757d') || '#6c757d')
+                    : 'rgba(255, 255, 255, 0.6)';
+                const gridColor = isLightTheme
+                    ? 'rgba(0, 0, 0, 0.08)'
+                    : 'rgba(255, 255, 255, 0.05)';
 
-                    const options = {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
                         mode: 'index',
                         intersect: false
                     },
@@ -565,27 +549,27 @@
                             }
                         }
                     },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: gridColor,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: yTickColor,
-                                    callback: (value) => Utils.money(value)
-                                }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
                             },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    color: xTickColor
-                                }
+                            ticks: {
+                                color: yTickColor,
+                                callback: (value) => Utils.money(value)
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: xTickColor
                             }
                         }
+                    }
                 };
 
                 if (STATE.chartInstance) {
@@ -601,7 +585,6 @@
             } catch (err) {
                 console.error('Erro ao renderizar gráfico:', err);
             } finally {
-                // Esconder loading
                 if (DOM.chartLoading) {
                     setTimeout(() => {
                         DOM.chartLoading.style.display = 'none';
@@ -611,7 +594,6 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE TRANSAÇÕES ====================
     const TransactionManager = {
         delete: async (id, rowElement) => {
             try {
@@ -631,14 +613,12 @@
                 Notifications.close();
                 Notifications.toast('success', 'Lançamento excluído com sucesso!');
 
-                // Remover linha da tabela com animação
                 if (rowElement) {
                     rowElement.style.opacity = '0';
                     rowElement.style.transform = 'translateX(-20px)';
                     setTimeout(() => {
                         rowElement.remove();
 
-                        // Verificar se tabela ficou vazia
                         if (DOM.tableBody.children.length === 0) {
                             if (DOM.emptyState) DOM.emptyState.style.display = 'block';
                             if (DOM.table) DOM.table.style.display = 'none';
@@ -646,10 +626,8 @@
                     }, 300);
                 }
 
-                // Atualizar dashboard
                 await DashboardManager.refresh();
 
-                // Disparar evento
                 document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
                     detail: {
                         resource: 'transactions',
@@ -665,7 +643,6 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DO DASHBOARD ====================
     const DashboardManager = {
         refresh: async () => {
             if (STATE.isLoading) return;
@@ -696,10 +673,8 @@
         }
     };
 
-    // ==================== EVENT LISTENERS ====================
     const EventListeners = {
         init: () => {
-            // Clique no botÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o de deletar
             DOM.tableBody?.addEventListener('click', async (e) => {
                 const btn = e.target.closest('.btn-del');
                 if (!btn) return;
@@ -714,7 +689,6 @@
                 btn.disabled = false;
             });
 
-            // Eventos globais
             document.addEventListener('lukrato:data-changed', () => {
                 DashboardManager.refresh();
             });
@@ -729,7 +703,6 @@
         }
     };
 
-    // ==================== INICIALIZAÃ‡ÃƒO====================
     const init = () => {
         EventListeners.init();
 
@@ -740,12 +713,10 @@
         }
     };
 
-    // Expor funcoes globais
     window.refreshDashboard = DashboardManager.refresh;
     window.LK = window.LK || {};
     window.LK.refreshDashboard = DashboardManager.refresh;
 
-    // Iniciar aplicacao
     init();
 })();
 

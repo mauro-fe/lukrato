@@ -24,9 +24,6 @@ class LancamentoExportService
         $this->pdfExporter = $pdfExporter ?? new PdfExportService();
     }
 
-    /**
-     * @param array{month?:string,start_date?:string,end_date?:string,tipo?:string,categoria_id?:string|int,account_id?:string|int,include_transfers?:string|int|bool,format?:string} $filters
-     */
     public function export(int $userId, array $filters): array
     {
         $format = $this->resolveFormat($filters['format'] ?? 'excel');

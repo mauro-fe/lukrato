@@ -16,7 +16,7 @@ use ValueError;
 use InvalidArgumentException;
 
 
-enum ReportType: string 
+enum ReportType: string
 {
     case DESPESAS_POR_CATEGORIA = 'despesas_por_categoria';
     case DESPESAS_ANUAIS_POR_CATEGORIA = 'despesas_anuais_por_categoria';
@@ -137,8 +137,6 @@ class RelatoriosController extends BaseController
         }
     }
 
-    // --- Validação de Acesso ---
-
     private function validateAccess(): void
     {
         $this->requireAuth();
@@ -155,8 +153,6 @@ class RelatoriosController extends BaseController
     {
         return !method_exists($user, 'podeAcessar') || $user->podeAcessar('reports');
     }
-
-    // --- Construção de Parâmetros ---
 
     private function buildReportParameters(ReportType $type): ReportParameters
     {
@@ -300,16 +296,12 @@ class RelatoriosController extends BaseController
         return $format === 'excel' ? 'excel' : 'pdf';
     }
 
-    // --- Helpers de Request ---
-
     private function getQueryParam(string $key): ?string
     {
         $value = $this->request->get($key);
 
         return $value !== null ? (string)$value : null;
     }
-
-    // --- Resposta ---
 
     private function sendSuccessResponse(array $result, ReportType $type, ReportParameters $params): void
     {
@@ -341,8 +333,6 @@ class RelatoriosController extends BaseController
 
         return sprintf('%s_%s.%s', $type->value, $period, $extension);
     }
-
-    // --- Tratamento de Erros ---
 
     private function handleValidationError(InvalidArgumentException $e): void
     {

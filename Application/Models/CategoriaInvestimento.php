@@ -20,7 +20,6 @@ class CategoriaInvestimento extends Model
 
     public $timestamps = false;
 
-    /** Um tipo de investimento pode ter vários investimentos */
     public function investimentos()
     {
         return $this->hasMany(Investimento::class, 'categoria_id');

@@ -6,7 +6,6 @@ use Application\Models\Usuario;
 
 final class FeatureGate
 {
-    // defina aqui o que cada plano pode
     private static array $entitlements = [
         'gratuito' => [
             'reports' => false,
@@ -22,7 +21,6 @@ final class FeatureGate
         ],
     ];
 
-    // Application/Services/FeatureGate.php
     public static function allows(Usuario $u, string $feature): bool
     {
         $plano = $u->planoAtual();

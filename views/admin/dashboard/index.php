@@ -3,7 +3,6 @@
 <section class="dashboard-page">
     <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 
-    <!-- KPIs -->
     <section class="kpi-grid" role="region" aria-label="Indicadores principais">
         <div data-aos="flip-left">
             <div class="card kpi-card" id="saldoCard">
@@ -54,7 +53,6 @@
         </div>
     </section>
 
-    <!-- Gráfico -->
     <section class="charts-grid" data-aos="zoom-in">
         <div class="card chart-card">
             <div class="card-header">
@@ -67,7 +65,6 @@
         </div>
     </section>
 
-    <!-- Últimos Lançamentos -->
     <section class="card table-card mb-5" data-aos="fade-up">
         <div class="card-header">
             <h2 class="card-title">Últimos Lançamentos</h2>

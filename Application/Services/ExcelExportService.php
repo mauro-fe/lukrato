@@ -17,31 +17,30 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ExcelExportService implements ReportExporterInterface
 {
     // Cores do Design System
-    private const COLOR_PRIMARY = 'FFE67E22';      // Laranja principal
-    private const COLOR_SECONDARY = 'FF2C3E50';    // Azul noite
-    private const COLOR_TEXT = 'FF1E293B';         // Texto principal
-    private const COLOR_TEXT_MUTED = 'FF475569';   // Texto secundário
-    private const COLOR_BG = 'FFE6F0FA';           // Fundo azul claro
-    private const COLOR_SURFACE = 'FFF0F6FC';      // Surface cards
-    private const COLOR_SURFACE_MUTED = 'FFD9E6F2'; // Blocos auxiliares
-    private const COLOR_BORDER = 'FFCBD5E1';       // Bordas
+    private const COLOR_PRIMARY = 'FFE67E22';
+    private const COLOR_SECONDARY = 'FF2C3E50';
+    private const COLOR_TEXT = 'FF1E293B';
+    private const COLOR_TEXT_MUTED = 'FF475569';
+    private const COLOR_BG = 'FFE6F0FA';
+    private const COLOR_SURFACE = 'FFF0F6FC';
+    private const COLOR_SURFACE_MUTED = 'FFD9E6F2';
+    private const COLOR_BORDER = 'FFCBD5E1';
 
-    // Estilos baseados no Design System
     private const FONT_TITLE = [
-        'bold' => true, 
+        'bold' => true,
         'size' => 18,
         'color' => ['argb' => self::COLOR_SECONDARY]
     ];
 
     private const FONT_SUBTITLE = [
-        'size' => 12, 
+        'size' => 12,
         'color' => ['argb' => self::COLOR_TEXT_MUTED],
         'italic' => true
     ];
 
     private const HEADER_STYLE = [
         'font' => [
-            'bold' => true, 
+            'bold' => true,
             'size' => 11,
             'color' => ['argb' => self::COLOR_SECONDARY]
         ],
@@ -50,12 +49,12 @@ class ExcelExportService implements ReportExporterInterface
             'vertical' => Alignment::VERTICAL_CENTER
         ],
         'fill' => [
-            'fillType' => Fill::FILL_SOLID, 
+            'fillType' => Fill::FILL_SOLID,
             'startColor' => ['argb' => self::COLOR_SURFACE_MUTED]
         ],
         'borders' => [
             'bottom' => [
-                'borderStyle' => Border::BORDER_MEDIUM, 
+                'borderStyle' => Border::BORDER_MEDIUM,
                 'color' => ['argb' => self::COLOR_SECONDARY]
             ]
         ],
@@ -67,7 +66,7 @@ class ExcelExportService implements ReportExporterInterface
         ],
         'borders' => [
             'bottom' => [
-                'borderStyle' => Border::BORDER_THIN, 
+                'borderStyle' => Border::BORDER_THIN,
                 'color' => ['argb' => self::COLOR_SURFACE_MUTED]
             ]
         ]
@@ -75,19 +74,19 @@ class ExcelExportService implements ReportExporterInterface
 
     private const DATA_ROW_EVEN_STYLE = [
         'fill' => [
-            'fillType' => Fill::FILL_SOLID, 
+            'fillType' => Fill::FILL_SOLID,
             'startColor' => ['argb' => self::COLOR_SURFACE]
         ]
     ];
 
     private const TOTAL_SECTION_STYLE = [
         'fill' => [
-            'fillType' => Fill::FILL_SOLID, 
+            'fillType' => Fill::FILL_SOLID,
             'startColor' => ['argb' => self::COLOR_SURFACE]
         ],
         'borders' => [
             'top' => [
-                'borderStyle' => Border::BORDER_MEDIUM, 
+                'borderStyle' => Border::BORDER_MEDIUM,
                 'color' => ['argb' => self::COLOR_SECONDARY]
             ],
             'outline' => [
@@ -99,7 +98,7 @@ class ExcelExportService implements ReportExporterInterface
 
     private const TOTAL_LABEL_STYLE = [
         'font' => [
-            'bold' => true, 
+            'bold' => true,
             'size' => 11,
             'color' => ['argb' => self::COLOR_TEXT_MUTED]
         ],
@@ -110,7 +109,7 @@ class ExcelExportService implements ReportExporterInterface
 
     private const TOTAL_VALUE_STYLE = [
         'font' => [
-            'bold' => true, 
+            'bold' => true,
             'size' => 12,
             'color' => ['argb' => self::COLOR_PRIMARY]
         ],
@@ -202,7 +201,7 @@ class ExcelExportService implements ReportExporterInterface
             date('d/m/Y H:i'),
             count($data->rows)
         );
-        
+
         $sheet->setCellValue("A{$row}", $metadata);
         $sheet->mergeCells("A{$row}:{$lastColumn}{$row}");
         $sheet->getStyle("A{$row}")->getFont()->applyFromArray([
@@ -221,7 +220,7 @@ class ExcelExportService implements ReportExporterInterface
             $columnLetter = Coordinate::stringFromColumnIndex($index + 1);
             $sheet->setCellValue("{$columnLetter}{$row}", $header);
         }
-        
+
         $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray(self::HEADER_STYLE);
         $sheet->getRowDimension($row)->setRowHeight(20);
     }
@@ -250,7 +249,7 @@ class ExcelExportService implements ReportExporterInterface
                 $sheet->getStyle("A{$row}:{$lastColumn}{$row}")
                     ->applyFromArray(self::DATA_ROW_EVEN_STYLE);
             }
-            
+
             // Formatar valores numéricos
             $this->formatNumericCells($sheet, $row, $columnCount);
         }
@@ -267,7 +266,7 @@ class ExcelExportService implements ReportExporterInterface
             $columnLetter = Coordinate::stringFromColumnIndex($col);
             $cell = $sheet->getCell("{$columnLetter}{$row}");
             $value = $cell->getValue();
-            
+
             if (is_numeric($value) && strpos((string) $value, '.') !== false) {
                 $cell->getStyle()->getNumberFormat()
                     ->setFormatCode('#,##0.00');

@@ -21,10 +21,7 @@ class Endereco extends Model
         'tipo',
     ];
 
-    /**
-     * Define o relacionamento inverso:
-     * Um endereço PERTENCE A um usuário.
-     */
+
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');

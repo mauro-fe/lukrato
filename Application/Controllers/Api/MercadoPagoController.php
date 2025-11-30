@@ -93,11 +93,8 @@ class MercadoPagoController extends BaseController
             $payerEmail = (string)($data['payer']['email'] ?? $user->email);
 
             if ($isSandbox) {
-                // PARA BRICKS / PAYMENTS API:
-                // - NÃO usar e-mail de usuário de teste (TESTUSER...@testuser.com)
-                // - Pode usar o próprio e-mail do usuário do Lukrato sem problemas
+
                 if ($idNumber === '') {
-                    // qualquer CPF de teste "fake" está ok em sandbox
                     $idNumber = '12345678909';
                 }
 
@@ -148,7 +145,6 @@ class MercadoPagoController extends BaseController
                 $payload['issuer_id'] = (int)$issuerId;
             }
 
-            // Log enxuto para depuração sem expor token completo
             LogService::info('MP pagamento: preparando payload', [
                 'amount'             => $payload['transaction_amount'],
                 'external_reference' => $payload['external_reference'],

@@ -10,10 +10,7 @@ use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
 use Throwable;
 
-/**x
- * Controller responsável por gerenciar o perfil do usuário.
- * Delega a lógica de negócio para o PerfilService.
- */
+
 class PerfilController
 {
     private PerfilService $perfilService;
@@ -35,9 +32,7 @@ class PerfilController
         ] = PerfilControllerFactory::buildDependencies();
     }
 
-    /**
-     * Retorna os dados do perfil do usuário autenticado.
-     */
+
     public function show(): void
     {
         try {
@@ -65,9 +60,7 @@ class PerfilController
         }
     }
 
-    /**
-     * Atualiza os dados do perfil do usuário.
-     */
+
     public function update(): void
     {
         try {
@@ -78,10 +71,8 @@ class PerfilController
                 return;
             }
 
-            // Cria o DTO a partir dos dados do POST
             $dto = PerfilUpdateDTO::fromRequest($_POST);
 
-            // Valida os dados
             $errors = $this->validator->validate($dto, $user->id);
 
             if (!empty($errors)) {
@@ -89,7 +80,6 @@ class PerfilController
                 return;
             }
 
-            // Atualiza o perfil
             $perfilAtualizado = $this->perfilService->atualizarPerfil($user->id, $dto);
 
             Response::success([

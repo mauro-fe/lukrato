@@ -32,19 +32,16 @@ if (!function_exists('csrf_token')) {
             session_start();
         }
 
-        // Cache por request para evitar múltiplas gerações no mesmo carregamento
         static $cache = [];
         if (isset($cache[$tokenId]) && is_string($cache[$tokenId]) && $cache[$tokenId] !== '') {
             return $cache[$tokenId];
         }
 
-        // Reutiliza token existente na sessão quando disponível
         if (isset($_SESSION['csrf_tokens'][$tokenId]['value']) && is_string($_SESSION['csrf_tokens'][$tokenId]['value'])) {
             $cache[$tokenId] = (string) $_SESSION['csrf_tokens'][$tokenId]['value'];
             return $cache[$tokenId];
         }
 
-        // Caso não exista, gera um novo
         $cache[$tokenId] = CsrfMiddleware::generateToken($tokenId);
         return $cache[$tokenId];
     }

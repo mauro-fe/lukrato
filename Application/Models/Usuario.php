@@ -28,9 +28,7 @@ class Usuario extends Model
     protected $casts = ['data_nascimento' => 'date:Y-m-d'];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito'];
 
-    /**
-     * Garante que a senha seja armazenada como hash.
-     */
+
     public function setSenhaAttribute($value): void
     {
         $raw = (string) $value;
@@ -44,9 +42,7 @@ class Usuario extends Model
             : password_hash($raw, PASSWORD_BCRYPT);
     }
 
-    /* ============================================================
-     * RELACIONAMENTOS
-     * ========================================================== */
+
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
@@ -69,7 +65,6 @@ class Usuario extends Model
         return $this->isGratuito();
     }
 
-    // 🔹 Planos
     public function assinaturas()
     {
         return $this->hasMany(AssinaturaUsuario::class, 'user_id');
@@ -87,9 +82,7 @@ class Usuario extends Model
         return $this->assinaturaAtiva()->with('plano')->first()?->plano;
     }
 
-    /* ============================================================
-     * BOOT / LOGIN
-     * ========================================================== */
+
     protected static function boot()
     {
         parent::boot();
@@ -130,9 +123,7 @@ class Usuario extends Model
         return !empty($i['algo']);
     }
 
-    /* ============================================================
-     * PLANO / FEATURE GATE
-     * ========================================================== */
+
     public function isPro(): bool
     {
         return $this->planoAtual()?->code === 'pro';
@@ -160,24 +151,16 @@ class Usuario extends Model
         return $p === '' ? '' : explode(' ', $p)[0];
     }
 
-    /**
-     * Um usuário pode ter VÁRIOS endereços.
-     */
+
     public function enderecos()
     {
         return $this->hasMany(Endereco::class, 'user_id');
     }
 
-    /**
-     * Atalho para pegar o endereço principal (MUITO útil).
-     * Um usuário pode ter UM endereço principal.
-     */
     public function enderecoPrincipal()
     {
         return $this->hasOne(Endereco::class, 'user_id')
-                    ->where('tipo', 'principal')
-                    ->withDefault(); // withDefault() evita erros se o usuário não tiver endereço
+            ->where('tipo', 'principal')
+            ->withDefault();
     }
 }
-
-

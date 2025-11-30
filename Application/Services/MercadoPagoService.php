@@ -33,18 +33,15 @@ final class MercadoPagoService
     {
         $env = strtolower($_ENV['MP_ENV'] ?? 'production');
 
-        // pega as duas possibilidades em cada modo
         $sandbox = trim($_ENV['MP_PUBLIC_KEY_SANDBOX'] ?? ($_ENV['MP_TEST_PUBLIC_KEY'] ?? ''));
         $live    = trim($_ENV['MP_PUBLIC_KEY_LIVE'] ?? ($_ENV['MP_PUBLIC_KEY'] ?? ''));
 
-        // helper compatível com PHP 7/8
         $startsWith = function (string $haystack, string $needle): bool {
             return $needle === '' || strncmp($haystack, $needle, strlen($needle)) === 0;
         };
 
         if ($env === 'sandbox') {
             if ($sandbox) {
-                // apenas avisa se não começar com TEST-
                 if (!$startsWith($sandbox, 'TEST-')) {
                     LogService::warning('[MP] PUBLIC_KEY sandbox não começa com TEST-', ['prefix' => substr($sandbox, 0, 5)]);
                 }
@@ -69,7 +66,6 @@ final class MercadoPagoService
             }
         }
 
-        // nada encontrado: NÃO estoure exceção aqui para não derrubar a view
         LogService::error('[MP] Nenhuma PUBLIC_KEY encontrada no .env', ['env' => $env]);
         return '';
     }
@@ -93,7 +89,6 @@ final class MercadoPagoService
         ]);
     }
 
-    /** Base para callbacks; prefere MP_CALLBACK_BASE se existir */
     private function base(string $path = ''): string
     {
         $raw  = $_ENV['MP_CALLBACK_BASE'] ?? (defined('BASE_URL') ? BASE_URL : '/');
@@ -108,7 +103,6 @@ final class MercadoPagoService
 
     public function createCheckoutPreference(array $data): array
     {
-        // --- validações mínimas ---
         $amount = (float)($data['amount'] ?? 0);
         $email  = (string)($data['email'] ?? '');
         $userId = (int)($data['user_id'] ?? 0);
@@ -127,14 +121,6 @@ final class MercadoPagoService
         $notify   = $this->base('api/webhooks/mercadopago');
         $extRef   = 'user_' . $userId . '_lukrato_' . uniqid();
         $isSandbox = strtolower($_ENV['MP_ENV'] ?? '') === 'sandbox';
-
-        // Sandbox: força buyer de teste para evitar seller pagar a si mesmo
-        // if ($isSandbox) {
-        //     $testBuyer = trim($_ENV['MP_TEST_BUYER_EMAIL'] ?? '');
-        //     if ($testBuyer) {
-        //         $email = $testBuyer;
-        //     }
-        // }
 
         $payload = [
             'items' => [[
@@ -161,7 +147,6 @@ final class MercadoPagoService
             ],
         ];
 
-        // auto_return só com HTTPS nas três back_urls
         if ($this->isHttps($success) && $this->isHttps($pending) && $this->isHttps($failure)) {
             $payload['auto_return'] = 'approved';
         } else {
