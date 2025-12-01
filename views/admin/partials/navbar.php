@@ -250,6 +250,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
             font-size: 0.65rem !important;
             height: 32px;
             width: 32px;
+            border-radius: 50% !important;
         }
 
         .lk-navbar-right i {

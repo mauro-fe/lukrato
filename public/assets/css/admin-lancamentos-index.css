@@ -1072,10 +1072,6 @@
     padding: 0.25rem 0.6rem;
   }
 
-  .lk-actions .lk-btn {
-    padding: 0.25rem 0.4rem;
-  }
-
   /* �rea colapsada (Detalhes, Categoria, Conta, Descri��o) no estilo stack */
   .table-container .tabulator .tabulator-responsive-collapse {
     background: color-mix(in srgb, var(--color-surface) 96%, transparent);
@@ -1213,7 +1209,6 @@
   }
 
   .lan-card-actions .lk-btn {
-    padding: 0.35rem 0.45rem;
     border-radius: 999px;
   }
 
@@ -1268,6 +1263,14 @@
     justify-content: space-between;
     gap: 0.75rem;
     font-size: 0.85rem;
+  }
+  .lan-card-detail-row .lk-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
   }
 
   .lan-card-detail-label {
