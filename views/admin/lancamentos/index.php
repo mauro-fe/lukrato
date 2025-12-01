@@ -14,30 +14,35 @@
                     <i class="fas fa-file-export"></i>
                     Exportar Lançamentos
                 </label>
+
                 <div class="export-content">
                     <div class="mes">
-                        <label class="sr-only" for="exportStart">Data Inicial</label>
-                        <span>de</span>
-                        <input type="date" id="exportStart" class="lk-input lk-btn date-range" placeholder="Início"
-                            data-default-today="1" aria-label="Data inicial para exportação">
+                        <div class="date-group">
 
-                        <span>à</span>
+                            <label class="sr-only" for="exportStart">Data Inicial</label>
+                            <span>De</span>
+                            <input type="date" id="exportStart" class="lk-input lk-btn date-range" placeholder="Início"
+                                data-default-today="1" aria-label="Data inicial">
+                        </div>
 
-                        <label class="sr-only" for="exportEnd">Data Final</label>
-                        <input type="date" id="exportEnd" class="lk-input lk-btn date-range" placeholder="Fim"
-                            data-default-today="1" aria-label="Data final para exportação">
+                        <div class="date-group">
+
+                            <label class="sr-only" for="exportEnd">Data Final</label>
+                            <span>Até</span>
+                            <input type="date" id="exportEnd" class="lk-input lk-btn date-range" placeholder="Fim"
+                                data-default-today="1" aria-label="Data final">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="sr-only" for="exportFormat">Formato de Exportação</label>
-                        <select id="exportFormat" class="lk-select lk-btn btn btn-secondary"
-                            aria-label="Formato de exportação">
+                    <div class="export-actions">
+                        <label class="sr-only" for="exportFormat">Formato</label>
+                        <select id="exportFormat" class="lk-select lk-btn btn btn-secondary" aria-label="Formato">
                             <option value="pdf">PDF</option>
-                            <option value="excel">Excel (.xlsx )</option>
+                            <option value="excel">Excel (.xlsx)</option>
                         </select>
 
                         <button id="btnExportar" type="button" class="lk-btn btn btn-primary" data-aos="fade-left"
-                            data-aos-delay="150" aria-label="Exportar lançamentos">
+                            data-aos-delay="150" aria-label="Exportar">
                             <i class="fas fa-download"></i> Exportar
                         </button>
                     </div>

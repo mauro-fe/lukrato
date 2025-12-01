@@ -1,8 +1,8 @@
 ﻿/**
  * ============================================================================
- * SISTEMA DE RELATÃ“RIOS - JAVASCRIPT
+ * SISTEMA DE RELATÓRIOS - JAVASCRIPT
  * ============================================================================
- * Gerencia visualizaÃ§Ã£o de relatÃ³rios financeiros com grÃ¡ficos interativos
+ * Gerencia visualização de relatórios financeiros com gráficos interativos
  * ============================================================================
  */
 
@@ -11,12 +11,12 @@
 
     const PAYWALL_MESSAGE = 'Relatórios são exclusivos do plano Pro.';
 
-    // Previne inicializaÃ§Ã£o dupla
+    // Previne inicialização dupla
     if (window.__LK_REPORTS_LOADED__) return;
     window.__LK_REPORTS_LOADED__ = true;
 
     // ============================================================================
-    // CONFIGURAÃ‡ÃƒO
+    // CONFIGURAÇÃO
     // ============================================================================
 
     const CONFIG = {
@@ -176,6 +176,52 @@
     function hexToRgba(h, a) { return Utils.hexToRgba(h, a); }
     function isYearlyView(v = state.currentView) { return Utils.isYearlyView(v); }
 
+    // Plugin para exibir porcentagens dentro dos gráficos de pizza/doughnut
+    const DoughnutLabelsPlugin = {
+        id: 'lkDoughnutLabels',
+        afterDatasetDraw(chart, args, pluginOptions) {
+            const meta = chart.getDatasetMeta(args.index);
+            if (!meta || meta.type !== 'doughnut') return;
+
+            const dataset = chart.data.datasets?.[args.index];
+            const data = dataset?.data || [];
+            const options = pluginOptions || {};
+            const total = Number.isFinite(options.total)
+                ? Number(options.total)
+                : data.reduce((sum, value) => sum + (Number(value) || 0), 0);
+            if (!total) return;
+
+            const color = options.color || '#fff';
+            const minPercentage = options.minPercentage ?? 0;
+            const fontSize = options.font?.size || 12;
+            const fontWeight = options.font?.weight || 'bold';
+            const fontFamily = options.font?.family || 'Arial, sans-serif';
+
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            meta.data.forEach((element, index) => {
+                const value = Number(data[index]) || 0;
+                if (!value) return;
+
+                const percentage = (value / total) * 100;
+                if (percentage < minPercentage) return;
+
+                const label = `${percentage.toFixed(percentage >= 10 ? 0 : 1)}%`;
+                const { x, y } = element.tooltipPosition();
+                ctx.fillText(label, x, y);
+            });
+
+            ctx.restore();
+        }
+    };
+
+    Chart.register(DoughnutLabelsPlugin);
+
     // ============================================================================
     // API
     // ============================================================================
@@ -267,7 +313,7 @@
     const getActiveCategoryType = () => API.getActiveCategoryType();
 
     // ============================================================================
-    // GERENCIAMENTO DE GRÃFICOS
+    // GERENCIAMENTO DE GRÁFICOS
     // ============================================================================
 
     const ChartManager = {
@@ -332,10 +378,15 @@
                 'receitas_anuais_por_categoria': 'Receitas anuais por Categoria',
                 'despesas_anuais_por_categoria': 'Despesas anuais por Categoria'
             };
-            const title = titleMap[type] || 'DistribuiÃ§Ã£o por Categoria';
+            const title = titleMap[type] || 'Distribuição por Categoria';
 
             state.chart = chunks.map((chunk, idx) => {
                 const canvas = document.getElementById(`chart${idx}`);
+                const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+                    || Utils.isLightTheme();
+                const labelColor = isLightTheme ? '#2c3e50' : '#ffffff';
+                const chunkTotal = chunk.reduce((sum, item) => sum + item.value, 0);
+
                 return new Chart(canvas, {
                     type: 'doughnut',
                     data: {
@@ -366,6 +417,12 @@
                                         return `${label}: ${value}`;
                                     }
                                 }
+                            },
+                            lkDoughnutLabels: {
+                                color: labelColor,
+                                font: { size: 12, weight: 'bold', family: 'Arial, sans-serif' },
+                                minPercentage: 1,
+                                total: chunkTotal
                             }
                         }
                     }
@@ -535,7 +592,7 @@
     const renderBarChart = (d) => ChartManager.renderBar(d);
 
     // ============================================================================
-    // INTERFACE DO USUÃRIO
+    // INTERFACE DO USUÁRIO
     // ============================================================================
 
     const UI = {
@@ -725,7 +782,7 @@
     }
 
     // ============================================================================
-    // RENDERIZAÃ‡ÃƒO
+    // RENDERIZAÇÃO
     // ============================================================================
 
     async function renderReport() {
@@ -761,7 +818,7 @@
     }
 
     // ============================================================================
-    // EXPORTAÃ‡ÃƒO
+    // EXPORTAÇÃO
     // ============================================================================
 
     async function handleExport() {
@@ -881,7 +938,7 @@
     }
 
     // ============================================================================
-    // INICIALIZAÃ‡ÃƒO
+    // INICIALIZAÇÃO
     // ============================================================================
 
     async function initialize() {
@@ -934,7 +991,7 @@
             exportBtn.addEventListener('click', handleExport);
         }
 
-        // RenderizaÃ§Ã£o inicial
+        // Renderização inicial
         syncPickerMode();
         updateMonthLabel();
         updateControls();

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * SISTEMA DE LAN�AMENTOS - ESTILOS
  * ============================================================================
@@ -66,7 +66,10 @@
    CONTROLES DE EXPORTA��O
    ============================================================================ */
 
+/* Container Principal */
 .export-range {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-3);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -81,23 +84,34 @@
   box-shadow: var(--shadow-lg);
 }
 
+.export-label {
+  font-size: 1.1em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Área de Conteúdo (Datas e Botões) */
 .export-content {
   display: flex;
   align-items: center;
+  gap: var(--spacing-4);
 }
 
-.export-label {
-  font-size: 1.2em;
-  font-weight: 600;
-}
-
-/* Container de datas */
+/* Grupo de Datas */
 .export-range .mes {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
-  border-radius: var(--radius-sm);
+  padding: 0;
+}
+
+.date-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .export-range .mes span {
@@ -108,90 +122,140 @@
   opacity: 0.8;
 }
 
+/* Grupo de Ações (Select + Botão) */
+.export-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Inputs de data */
 .export-range .date-range {
   background: var(--glass-bg) !important;
-  border: 1px solid var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important; /* Corrigido para border visível */
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  font-size: var(--font-size-sm);
   font-weight: 500;
   padding: var(--spacing-2) var(--spacing-3);
-  min-width: 150px;
-  transition: all 0.5s !important;
+  min-width: 130px; /* Largura mínima confortável */
+  transition: all 0.3s ease !important;
   cursor: pointer;
 }
 
 .export-range .date-range:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
-  background: var(--color-primary);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 50%,
+    transparent
+  ) !important;
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    transparent
+  ) !important; /* Leve tintura ao invés de cor sólida */
 }
 
 .export-range .date-range:focus {
   outline: none;
-  border-color: var(--color-primary);
-  background: var(--color-surface);
+  border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 3px var(--ring);
-  color: var(--color-primary);
 }
 
-/* �cone do calend�rio nos inputs */
+/* Ícone do calendário */
 .export-range .date-range::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
+  filter: invert(0.5); /* Ajuda a aparecer em temas dark/light */
 }
-
 .export-range .date-range::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 
-/* Placeholder personalizado para datas */
-.export-range .date-range::-webkit-datetime-edit-text,
-.export-range .date-range::-webkit-datetime-edit-month-field,
-.export-range .date-range::-webkit-datetime-edit-day-field,
-.export-range .date-range::-webkit-datetime-edit-year-field {
-  color: var(--color-text);
-}
-
-.export-range .date-range::-webkit-datetime-edit-text {
-  padding: 0 0.2em;
-}
-
-/* Select de formato */
+/* Select */
 .export-range .lk-select {
-  min-width: 160px;
+  min-width: 120px;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
   padding: var(--spacing-2) var(--spacing-4);
-  cursor: pointer;
-  transition: all 0.5s !important;
   background-color: var(--glass-bg) !important;
+  cursor: pointer;
 }
 
-.export-range .lk-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--ring);
-}
-
-/* Estados especiais de data */
-.export-range .date-range:invalid:not(:focus) {
-  border-color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
-}
-
-.export-range .date-range:valid:not(:placeholder-shown) {
-  border-color: var(--color-success);
-}
-
+/* Botão */
 #btnExportar {
-  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* margin-left removido, usamos gap no pai */
 }
 
+/* =========================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================= */
+/* =========================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================= */
+@media (max-width: 768px) {
+  /* CONTAINER PRINCIPAL DAS DATAS */
+  /* Força grid de 2 colunas iguais (50% / 50%) */
+  .export-range .mes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: transparent;
+    padding: 0;
+  }
+
+  /* CONTAINER DE CADA DATA (Texto + Input) */
+  /* Texto em cima, input embaixo */
+  .date-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    min-width: 0; /* Impede overflow */
+  }
+
+  .date-group span {
+    font-size: 0.8em;
+    margin-bottom: 4px;
+    margin-left: 2px;
+    opacity: 0.9;
+  }
+
+  /* INPUTS DE DATA */
+  .export-range .date-range {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 8px 2px !important; /* Padding lateral menor para caber o texto */
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  /* AÇÕES (Select e Botão) */
+  /* No tablet (até 768px), tentamos manter lado a lado se der */
+  .export-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 10px;
+    margin-top: 10px;
+  }
+}
+
+/* TELA MUITO PEQUENA (Celular em pé) */
+@media (max-width: 480px) {
+  /* Aqui mudamos APENAS os botões para ficar um embaixo do outro */
+  .export-actions {
+    grid-template-columns: 1fr; /* Select em cima, Botão embaixo */
+  }
+
+  /* IMPORTANTE: Não mexemos no .mes aqui para manter as datas lado a lado */
+  /* Removemos a regra antiga que empilhava as datas */
+}
 /* ============================================================================
    FILTROS
    ============================================================================ */
