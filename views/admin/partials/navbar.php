@@ -31,7 +31,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: var(--spacing-lg);
+        gap: var(--spacing-5);
         height: 100%;
         padding: 0 20px;
     }
@@ -42,7 +42,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     .lk-navbar-left {
         display: flex;
         align-items: center;
-        gap: var(--spacing-lg);
+        gap: var(--spacing-6);
     }
 
     .lk-navbar-left h1 {
@@ -68,7 +68,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         }
 
         .lk-navbar-inner {
-            gap: var(--spacing-md);
+            gap: var(--spacing-2) !important;
         }
 
         .lk-navbar-left h1 {
@@ -94,7 +94,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: var(--spacing-xs);
+        gap: var(--spacing-5);
         background-color: var(--color-primary);
         color: var(--color-text);
         border-radius: var(--radius-md);
@@ -150,7 +150,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
     .lk-navbar-notifications .lk-popover {
         position: absolute;
-        top: calc(100% + var(--spacing-sm));
+        top: calc(100% + var(--spacing-2));
         right: -30;
         z-index: 1100;
         width: clamp(250px, 40vw, 200px);
