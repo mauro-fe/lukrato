@@ -31,6 +31,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -105,6 +106,8 @@
   align-items: center;
   gap: var(--spacing-3);
   padding: 0;
+  background: var(--color-surface) !important;
+
 }
 
 .date-group {
@@ -131,27 +134,26 @@
 /* Inputs de data */
 .export-range .date-range {
   background: var(--glass-bg) !important;
-  border: 1px solid var(--glass-border) !important; /* Corrigido para border visível */
+  border: 1px solid var(--glass-border) !important;
+  /* Corrigido para border visível */
   border-radius: var(--radius-sm);
   color: var(--color-text);
   font-weight: 500;
   padding: var(--spacing-2) var(--spacing-3);
-  min-width: 130px; /* Largura mínima confortável */
+  min-width: 130px;
+  /* Largura mínima confortável */
   transition: all 0.3s ease !important;
   cursor: pointer;
 }
 
 .export-range .date-range:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 50%,
-    transparent
-  ) !important;
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 10%,
-    transparent
-  ) !important; /* Leve tintura ao invés de cor sólida */
+  border-color: color-mix(in srgb,
+      var(--color-primary) 50%,
+      transparent) !important;
+  background: color-mix(in srgb,
+      var(--color-primary) 10%,
+      transparent) !important;
+  /* Leve tintura ao invés de cor sólida */
 }
 
 .export-range .date-range:focus {
@@ -165,8 +167,10 @@
   cursor: pointer;
   opacity: 0.6;
   transition: opacity 0.2s ease;
-  filter: invert(0.5); /* Ajuda a aparecer em temas dark/light */
+  filter: invert(0.5);
+  /* Ajuda a aparecer em temas dark/light */
 }
+
 .export-range .date-range::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
@@ -197,6 +201,7 @@
    RESPONSIVIDADE (MOBILE)
    ========================================= */
 @media (max-width: 768px) {
+
   /* CONTAINER PRINCIPAL DAS DATAS */
   /* Força grid de 2 colunas iguais (50% / 50%) */
   .export-range .mes {
@@ -215,7 +220,8 @@
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
-    min-width: 0; /* Impede overflow */
+    min-width: 0;
+    /* Impede overflow */
   }
 
   .date-group span {
@@ -229,7 +235,8 @@
   .export-range .date-range {
     width: 100% !important;
     min-width: 0 !important;
-    padding: 8px 2px !important; /* Padding lateral menor para caber o texto */
+    padding: 8px 2px !important;
+    /* Padding lateral menor para caber o texto */
     text-align: center;
     font-size: 0.85rem;
   }
@@ -247,14 +254,17 @@
 
 /* TELA MUITO PEQUENA (Celular em pé) */
 @media (max-width: 480px) {
+
   /* Aqui mudamos APENAS os botões para ficar um embaixo do outro */
   .export-actions {
-    grid-template-columns: 1fr; /* Select em cima, Botão embaixo */
+    grid-template-columns: 1fr;
+    /* Select em cima, Botão embaixo */
   }
 
   /* IMPORTANTE: Não mexemos no .mes aqui para manter as datas lado a lado */
   /* Removemos a regra antiga que empilhava as datas */
 }
+
 /* ============================================================================
    FILTROS
    ============================================================================ */
@@ -395,10 +405,7 @@
   padding: var(--spacing-3) var(--spacing-4);
 }
 
-.table-container
-  .tabulator
-  .tabulator-cell
-  .tabulator-responsive-collapse-toggle {
+.table-container .tabulator .tabulator-cell .tabulator-responsive-collapse-toggle {
   color: var(--color-text);
   opacity: 0.85;
 }
@@ -409,11 +416,9 @@
   gap: var(--spacing-2);
   color: var(--color-text);
   font-size: var(--font-size-sm);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-surface) 75%, transparent) 0%,
-    color-mix(in srgb, var(--color-surface) 55%, transparent) 100%
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-surface) 75%, transparent) 0%,
+      color-mix(in srgb, var(--color-surface) 55%, transparent) 100%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: var(--spacing-3) var(--spacing-4);
@@ -440,6 +445,7 @@
 
 .ft-card {
   border-radius: var(--radius-md);
+  background-color: var(--glass-bg) !important;
 }
 
 /* ============================================================================
@@ -502,11 +508,9 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 8%,
-    var(--color-surface-muted)
-  );
+  background: color-mix(in srgb,
+      var(--color-primary) 8%,
+      var(--color-surface-muted));
   color: var(--color-text);
   border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
@@ -546,11 +550,9 @@
 
 #modalEditarLancamento .modal-header {
   border: 0;
-  background: linear-gradient(
-    135deg,
-    var(--color-surface-muted) 0%,
-    transparent 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-surface-muted) 0%,
+      transparent 100%);
   padding: var(--spacing-5);
 }
 
@@ -604,11 +606,9 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 5%,
-    var(--color-surface-muted)
-  );
+  background: color-mix(in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface-muted));
 }
 
 #modalEditarLancamento .btn {
@@ -640,8 +640,7 @@
 #modalEditarLancamento .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 #modalEditarLancamento .alert {
@@ -659,6 +658,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -888,11 +888,7 @@
     font-weight: 600;
   }
 
-  .table-container
-    .tabulator
-    .tabulator-row
-    .tabulator-cell
-    .tabulator-responsive-collapse-toggle {
+  .table-container .tabulator .tabulator-row .tabulator-cell .tabulator-responsive-collapse-toggle {
     color: var(--color-primary);
     font-size: 0.95em;
     opacity: 1;
@@ -931,11 +927,9 @@
 
   .export-range .date-range:focus,
   .export-range .lk-select:focus {
-    background: color-mix(
-      in srgb,
-      var(--color-primary) 5%,
-      var(--color-surface)
-    );
+    background: color-mix(in srgb,
+        var(--color-primary) 5%,
+        var(--color-surface));
   }
 
   .categoria-chip {
@@ -979,6 +973,7 @@
    ============================================================================ */
 
 @media print {
+
   .lan-header,
   .export-range,
   .type-filter,
@@ -1002,20 +997,20 @@
 
 .btn-primary:hover {
   border-color: var(--color-primary);
-  background-color: color-mix(
-    in srgb,
-    var(--glass-bg) 5%,
-    var(--color-primary) 70%
-  ) !important;
+  background-color: color-mix(in srgb,
+      var(--glass-bg) 5%,
+      var(--color-primary) 70%) !important;
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-md);
 }
+
 /* ========================================================================
    AJUSTES ESPEC�FICOS PARA MOBILE DA TABELA DE LAN�AMENTOS
    (estilo parecido com o mock do celular)
    ======================================================================== */
 
 @media (max-width: 576px) {
+
   /* Tirar os filtros do cabe�alho no mobile */
   .table-container .tabulator .tabulator-header-filter {
     display: none !important;
@@ -1053,10 +1048,7 @@
   }
 
   /* Aumentar �rea de clique da setinha */
-  .table-container
-    .tabulator
-    .tabulator-cell
-    .tabulator-responsive-collapse-toggle {
+  .table-container .tabulator .tabulator-cell .tabulator-responsive-collapse-toggle {
     font-size: 1.1rem;
     padding: 4px;
   }
@@ -1108,16 +1100,19 @@
     text-align: right;
   }
 }
+
 /* ========================================================================
    MOBILE: substituir Tabulator por cards de lan�amentos (Op��o A)
    ======================================================================== */
 
 .lan-cards-container {
-  display: none; /* desktop n�o mostra os cards */
+  display: none;
+  /* desktop n�o mostra os cards */
 }
 
 /* A partir daqui, s� mobile */
 @media (max-width: 768px) {
+
   /* Esconde a tabela Tabulator no mobile */
   .table-container {
     display: none !important;
@@ -1152,7 +1147,7 @@
 
   /* Card de lan�amento */
   .lan-card {
-    background: var(--glass-bg);
+    background: var(--color-surface);
     border: 1px solid var(--glass-border);
     border-top: none;
     padding: 0.85rem 1rem 0.75rem;
@@ -1160,10 +1155,9 @@
     grid-template-columns: 1fr auto;
     column-gap: var(--spacing-2);
     row-gap: 0.35rem;
-    margin-bottom: 5px;
   }
 
-  .lan-card + .lan-card {
+  .lan-card+.lan-card {
     border-top: 1px solid rgba(255, 255, 255, 0.03);
   }
 
@@ -1191,9 +1185,11 @@
   .lan-card-value.receita {
     color: var(--color-success);
   }
+
   .lan-card-value.despesa {
     color: var(--color-danger);
   }
+
   .lan-card-value.transferencia {
     color: var(--color-primary);
   }
@@ -1265,6 +1261,7 @@
     gap: 0.75rem;
     font-size: 0.85rem;
   }
+
   .lan-card-detail-row .lk-btn {
     width: 30px;
     height: 30px;
@@ -1447,6 +1444,7 @@
   .table-container {
     display: none;
   }
+
   .lan-pager-info {
     font-size: 0.6rem;
     font-weight: bold !important;
@@ -1454,6 +1452,7 @@
 }
 
 @media (min-width: 769px) {
+
   .lan-cards-wrapper,
   .lan-cards-container,
   .lan-cards-pager {

@@ -7,6 +7,13 @@
 
     const tableElement = document.getElementById('agendamentosTable');
     const tableContainer = document.getElementById('agList');
+    const cardsContainer = document.getElementById('agCards');
+    const pager = document.getElementById('agCardsPager');
+    const pagerInfo = document.getElementById('agPagerInfo');
+    const pagerFirst = document.getElementById('agPagerFirst');
+    const pagerPrev = document.getElementById('agPagerPrev');
+    const pagerNext = document.getElementById('agPagerNext');
+    const pagerLast = document.getElementById('agPagerLast');
     const paywallBox = document.getElementById('agPaywall');
     const paywallMessageEl = document.getElementById('agPaywallMessage');
     const paywallCta = document.getElementById('agPaywallCta');
@@ -295,6 +302,274 @@
         return `<span class="badge bg-${color} text-uppercase">${escapeHtml(status || '-')}</span>`;
     };
 
+    const getTipoClass = (tipo) => {
+        const value = String(tipo || '').toLowerCase();
+        if (value === 'receita') return 'tipo-receita';
+        if (value === 'despesa') return 'tipo-despesa';
+        return '';
+    };
+
+    const mobileCards = {
+        data: [],
+        pageSize: 6,
+        currentPage: 1,
+        sortField: 'data_pagamento',
+        sortDir: 'desc',
+
+        setData(list) {
+            this.data = Array.isArray(list) ? [...list] : [];
+            this.currentPage = 1;
+            this.render();
+        },
+
+        setSort(field) {
+            if (!field) return;
+            if (this.sortField === field) {
+                this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortField = field;
+                this.sortDir = field === 'titulo' ? 'asc' : 'desc';
+            }
+            this.render();
+        },
+
+        getSortValue(item, field) {
+            const value = item?.[field];
+            if (field === 'valor_centavos') return Number(value) || 0;
+            if (field === 'data_pagamento') {
+                const date = value ? new Date(String(value).replace(' ', 'T')) : null;
+                return date ? date.getTime() : 0;
+            }
+            return String(value || '').toLowerCase();
+        },
+
+        getPagedData() {
+            const sorted = [...this.data].sort((a, b) => {
+                const av = this.getSortValue(a, this.sortField);
+                const bv = this.getSortValue(b, this.sortField);
+                if (av === bv) return 0;
+                const dir = this.sortDir === 'asc' ? 1 : -1;
+                return av > bv ? dir : -dir;
+            });
+
+            const total = sorted.length;
+            const totalPages = Math.max(1, Math.ceil(total / this.pageSize));
+            const page = Math.min(this.currentPage, totalPages);
+            this.currentPage = page;
+            const start = (page - 1) * this.pageSize;
+
+            return {
+                list: sorted.slice(start, start + this.pageSize),
+                total,
+                page,
+                totalPages
+            };
+        },
+
+        render() {
+            if (!cardsContainer) return;
+
+            const { list, total, page, totalPages } = this.getPagedData();
+            const parts = [];
+
+            parts.push(`
+                <div class="ag-cards-header">
+                    <button type="button" class="ag-cards-header-btn" data-sort="data_pagamento">
+                        <span>Data</span>
+                        <span class="ag-sort-indicator" data-field="data_pagamento"></span>
+                    </button>
+                    <button type="button" class="ag-cards-header-btn" data-sort="tipo">
+                        <span>Tipo</span>
+                        <span class="ag-sort-indicator" data-field="tipo"></span>
+                    </button>
+                    <button type="button" class="ag-cards-header-btn" data-sort="valor_centavos">
+                        <span>Valor</span>
+                        <span class="ag-sort-indicator" data-field="valor_centavos"></span>
+                    </button>
+                    <span class="ag-cards-header-btn-actions">Ações</span>
+                </div>
+            `);
+
+            if (!total) {
+                parts.push(`
+                    <div class="ag-card ag-card-empty">
+                        <div class="ag-card-empty-text">
+                            Nenhum agendamento encontrado.
+                        </div>
+                    </div>
+                `);
+                cardsContainer.innerHTML = parts.join('');
+                this.updatePager(0, 1, 1);
+                this.updateSortIndicators();
+                return;
+            }
+
+            const isXs = window.matchMedia('(max-width: 414px)').matches;
+
+            list.forEach((item) => {
+                const id = item?.id ?? '';
+                const tipo = String(item?.tipo || '').toLowerCase();
+                const tipoLabel = tipo ? (tipo.charAt(0).toUpperCase() + tipo.slice(1)) : '-';
+                const tipoClass = getTipoClass(tipo);
+                const valor = formatCurrency(item?.valor_centavos || item?.valor);
+                const data = formatDateTime(item?.data_pagamento || item?.created_at);
+                const titulo = item?.titulo || '-';
+                const categoria = item?.categoria?.nome || item?.categoria_nome || '-';
+                const conta = item?.conta?.nome || item?.conta_nome || '-';
+                const recorrente = item?.recorrente === 1 || item?.recorrente === '1';
+                const descricao = item?.descricao || '--';
+                const status = item?.status || '-';
+
+                const actionsHtml = `
+                    <button class="lk-btn ghost ag-card-btn" data-ag-action="pagar" data-id="${id}" title="Confirmar pagamento">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${id}" title="Cancelar agendamento">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                parts.push(`
+                    <article class="ag-card" data-id="${id}" aria-expanded="false">
+                        <div class="ag-card-main">
+                            <span class="ag-card-date">${escapeHtml(data)}</span>
+                            <span class="ag-card-type">
+                                <span class="badge-tipo ${tipoClass}">${escapeHtml(tipoLabel)}</span>
+                            </span>
+                            <span class="ag-card-value ${tipoClass}">${escapeHtml(valor)}</span>
+                            <span class="ag-card-actions" data-slot="main">${actionsHtml}</span>
+                        </div>
+
+                        <div class="ag-card-status" aria-label="Status">${statusBadge(status)}</div>
+
+                        <button class="ag-card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do agendamento">
+                            <span class="ag-card-toggle-icon">⌄</span>
+                            <span> Ver detalhes</span>
+                        </button>
+
+                        <div class="ag-card-details">
+                            <div class="ag-card-detail-row">
+                                <span class="ag-card-detail-label">Título</span>
+                                <span class="ag-card-detail-value">${escapeHtml(titulo)}</span>
+                            </div>
+                            <div class="ag-card-detail-row">
+                                <span class="ag-card-detail-label">Categoria</span>
+                                <span class="ag-card-detail-value">${escapeHtml(categoria)}</span>
+                            </div>
+                            <div class="ag-card-detail-row">
+                                <span class="ag-card-detail-label">Conta</span>
+                                <span class="ag-card-detail-value">${escapeHtml(conta)}</span>
+                            </div>
+                            <div class="ag-card-detail-row">
+                                <span class="ag-card-detail-label">Recorrente</span>
+                                <span class="ag-card-detail-value">${recorrente ? 'Sim' : 'Não'}</span>
+                            </div>
+                            <div class="ag-card-detail-row">
+                                <span class="ag-card-detail-label">Descrição</span>
+                                <span class="ag-card-detail-value">${escapeHtml(descricao)}</span>
+                            </div>
+                            ${isXs ? `<div class="ag-card-detail-row actions-row">
+                                <span class="ag-card-detail-label">Ações</span>
+                                <span class="ag-card-detail-value actions-slot">${actionsHtml}</span>
+                            </div>` : ''}
+                        </div>
+                    </article>
+                `);
+            });
+
+            cardsContainer.innerHTML = parts.join('');
+            this.updatePager(total, page, totalPages);
+            this.updateSortIndicators();
+        },
+
+        updatePager(total, page, totalPages) {
+            if (!pager || !pagerInfo) return;
+
+            if (!total) {
+                pagerInfo.textContent = 'Nenhum agendamento';
+                [pagerFirst, pagerPrev, pagerNext, pagerLast].forEach((btn) => {
+                    if (btn) btn.disabled = true;
+                });
+                return;
+            }
+
+            pagerInfo.textContent = `Página ${page} de ${totalPages}`;
+
+            if (pagerFirst) pagerFirst.disabled = page <= 1;
+            if (pagerPrev) pagerPrev.disabled = page <= 1;
+            if (pagerNext) pagerNext.disabled = page >= totalPages;
+            if (pagerLast) pagerLast.disabled = page >= totalPages;
+        },
+
+        updateSortIndicators() {
+            const indicators = cardsContainer?.querySelectorAll('.ag-sort-indicator');
+            if (!indicators) return;
+            indicators.forEach((el) => {
+                const field = el?.dataset?.field;
+                if (field === this.sortField) {
+                    el.textContent = this.sortDir === 'asc' ? '↑' : '↓';
+                } else {
+                    el.textContent = '';
+                }
+            });
+        }
+    };
+
+    if (pagerFirst) {
+        pagerFirst.addEventListener('click', () => {
+            mobileCards.currentPage = 1;
+            mobileCards.render();
+        });
+    }
+    if (pagerPrev) {
+        pagerPrev.addEventListener('click', () => {
+            mobileCards.currentPage = Math.max(1, mobileCards.currentPage - 1);
+            mobileCards.render();
+        });
+    }
+    if (pagerNext) {
+        pagerNext.addEventListener('click', () => {
+            mobileCards.currentPage += 1;
+            mobileCards.render();
+        });
+    }
+    if (pagerLast) {
+        pagerLast.addEventListener('click', () => {
+            const { totalPages } = mobileCards.getPagedData();
+            mobileCards.currentPage = totalPages;
+            mobileCards.render();
+        });
+    }
+
+    cardsContainer?.addEventListener('click', (event) => {
+        const sortBtn = event.target.closest('[data-sort]');
+        if (sortBtn?.dataset?.sort) {
+            mobileCards.setSort(sortBtn.dataset.sort);
+            return;
+        }
+
+        const toggleBtn = event.target.closest('[data-toggle="details"]');
+        if (toggleBtn) {
+            const article = toggleBtn.closest('.ag-card');
+            if (article) {
+                const expanded = article.getAttribute('aria-expanded') === 'true';
+                article.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                article.classList.toggle('open', !expanded);
+            }
+        }
+
+        const actionBtn = event.target.closest('[data-ag-action]');
+        if (actionBtn) {
+            const action = actionBtn.dataset.agAction;
+            const id = actionBtn.dataset.id;
+            if (action && id) {
+                document.dispatchEvent(new CustomEvent('lukrato:agendamento-action', {
+                    detail: { action, id: Number(id) }
+                }));
+            }
+        }
+    });
+
     const ensureTable = () => {
         if (tableInstance || !tableElement || typeof Tabulator === 'undefined') {
             return tableInstance;
@@ -428,6 +703,7 @@
             const res = await fetch(`${base}api/agendamentos`, { credentials: 'include' });
             if (await handleFetch403(res)) {
                 table.clearData(); // limpa tabela
+                mobileCards.setData([]);
                 return;
             }
             const json = await res.json();
@@ -442,6 +718,7 @@
             });
 
             await table.replaceData(itens);
+            mobileCards.setData(itens);
 
             if (filters.length) {
                 filters.forEach((filter) => {
@@ -452,6 +729,7 @@
             }
         } catch (error) {
             table.clearData();
+            mobileCards.setData([]);
             console.error(error);
             if (typeof Swal !== 'undefined' && Swal?.fire) {
                 Swal.fire('Erro', 'Nao foi possivel carregar os agendamentos.', 'error');
@@ -697,6 +975,7 @@
         });
     }
 
+    mobileCards.render();
     ensureTable();
     loadContasSelect().catch(console.error);
     loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
