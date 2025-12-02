@@ -196,6 +196,10 @@
 #tabLancamentos {
   display: flex !important;
   flex-direction: column !important;
+  width: 100%;
+}
+.tab-investimentos {
+  width: 100%;
 }
 
 .table-responsive {
@@ -457,7 +461,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-4);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .table-container .tabulator {
@@ -466,7 +470,13 @@
 }
 
 .table-container .tabulator .tabulator-tableholder {
-  overflow-x: hidden !important;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+.table-container .tabulator {
+  overflow: visible !important;
 }
 
 .table-container .tabulator .tabulator-header {
@@ -514,7 +524,6 @@
 
 /* Ações */
 .table-container .tabulator .tabulator-row .tabulator-cell .lk-actions {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
@@ -840,6 +849,9 @@
   border-bottom: 2px solid var(--glass-border);
   color: var(--color-text);
   font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
 .invest-table-desktop .tabulator-col {
@@ -865,10 +877,68 @@
 }
 
 .invest-table-desktop .tabulator .tabulator-tableholder {
-  overflow-x: auto !important;
+  overflow-x: hidden !important;
   overflow-y: visible !important;
   height: auto !important;
   max-height: none !important;
+}
+
+.invest-table-desktop .tabulator-row,
+.invest-table-desktop .tabulator-row .tabulator-cell {
+  overflow: visible !important;
+}
+
+.invest-table-desktop .tabulator {
+  overflow: visible !important;
+}
+
+.invest-table-desktop .tabulator-row .tabulator-cell:last-child {
+  align-items: center;
+  justify-content: center;
+}
+
+.invest-table-desktop .tabulator {
+  font-family: var(--font-primary);
+}
+
+.invest-table-desktop .tabulator-col .tabulator-col-title {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: initial;
+}
+
+.invest-table-desktop .tabulator-col {
+  padding: 0 14px;
+  height: 66px;
+  font-size: 0.94rem;
+  letter-spacing: 0.02em;
+}
+
+.invest-table-desktop .tabulator-row .tabulator-cell {
+  padding: 16px 12px;
+  font-size: 0.96rem;
+  background: transparent;
+}
+
+.invest-table-desktop .tabulator-row .tabulator-cell[data-field="id"] {
+  align-items: center;
+  justify-content: center;
+}
+
+.invest-table-desktop .tabulator-row:nth-child(even) .tabulator-cell {
+  background: color-mix(in srgb, var(--color-surface) 90%, #0d1f33 10%);
+}
+
+.invest-table-desktop .tabulator-row:hover .tabulator-cell {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.invest-table-desktop .tabulator-row .tabulator-cell:first-child {
+  font-weight: 700;
+}
+
+.invest-table-desktop .tabulator-row .tabulator-cell[data-field="valorTotal"] {
+  font-weight: 800;
 }
 
 .invest-table-desktop .tabulator-row.tabulator-selected {
@@ -880,4 +950,101 @@
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   border-top: 1px solid var(--glass-border);
   color: var(--color-text);
+}
+
+/* Dropdown de ações (desktop) */
+.invest-actions {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invest-actions__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 65%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-surface) 82%, #0d1c2d 18%),
+    color-mix(in srgb, var(--color-surface-muted) 65%, #0a1625 35%)
+  );
+  color: var(--color-text);
+  font-weight: 700;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  transition: var(--transition-fast);
+}
+
+.invest-actions__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 190px;
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 92%, #0c1a2b 8%);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.32);
+  z-index: 9999; /* importante para ficar acima da tabela */
+}
+
+.invest-actions.is-open .invest-actions__menu {
+  display: flex;
+  animation: fadeDown 0.14s ease;
+}
+
+.invest-actions__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.invest-actions__item .icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-size: 0.92rem;
+}
+
+.invest-actions__item.is-buy .icon {
+  color: var(--color-success);
+}
+.invest-actions__item.is-sell .icon {
+  color: color-mix(in srgb, var(--color-warning, #f39c12) 80%, #fff 20%);
+}
+.invest-actions__item.is-edit .icon {
+  color: var(--color-primary);
+}
+.invest-actions__item.is-delete .icon {
+  color: var(--color-danger);
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
