@@ -813,6 +813,16 @@
     padding: var(--spacing-1);
   }
 
+  /* Badge de tipo (Receita, Despesa, Transferência etc.) */
+  .badge-tipo {
+    display: inline-block;
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+
   .badge-tipo {
     font-size: 0.65rem;
     padding: 0.25rem 0.5rem;
