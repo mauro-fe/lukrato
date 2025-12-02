@@ -393,7 +393,7 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         .dash-lk-header .month-dropdown-btn {
             min-width: 140px;
             padding: var(--spacing-2) var(--spacing-3);
-            font-size: var(--font-size-sm);
+            font-size: var(--font-size-sm) !important;
         }
 
         .dash-lk-header .month-dropdown {

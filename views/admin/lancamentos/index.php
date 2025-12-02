@@ -36,7 +36,7 @@
 
                     <div class="export-actions">
                         <label class="sr-only" for="exportFormat">Formato</label>
-                        <select id="exportFormat" class="lk-select lk-btn btn btn-secondary" aria-label="Formato">
+                        <select id="exportFormat" class="lk-select btn btn-primary" aria-label="Formato">
                             <option value="pdf">PDF</option>
                             <option value="excel">Excel (.xlsx)</option>
                         </select>
@@ -52,7 +52,7 @@
 
 
             <!-- Filtros -->
-            <div class="lan-card mt-4" data-aos="fade-up">
+            <div class="lan-card ft-card mt-4" data-aos="fade-up">
                 <div class="lan-filter">
 
                     <div class="type-filter" role="group" aria-label="Filtros de lançamentos">
@@ -109,20 +109,47 @@
 
     <!-- ==================== TABELA ==================== -->
     <div class="container-table" data-aos="fade-up" data-aos-delay="250">
-        <section class="table-container">
-            <div id="tabLancamentos"></div>
-        </section>
         <div>
             <!-- DESKTOP: Tabela Tabulator -->
             <section class="table-container">
                 <div id="tabLancamentos"></div>
             </section>
 
-            <!-- MOBILE: Cards de lançamentos -->
-            <section class="lan-cards-container" id="lanCards"></section>
-        </div>
+            <!-- MOBILE: Cards + pager -->
+            <section class="lan-cards-wrapper">
+                <!-- Cards -->
+                <section class="lan-cards-container" id="lanCards"></section>
 
-    </div>
+                <!-- Pager -->
+                <nav class="lan-cards-pager" id="lanCardsPager" aria-label="Paginação de lançamentos">
+                    <!-- Ir para primeira página -->
+                    <button type="button" id="lanPagerFirst" class="lan-pager-btn" disabled
+                        aria-label="Primeira página">
+                        «
+                    </button>
+
+                    <!-- Página anterior -->
+                    <button type="button" id="lanPagerPrev" class="lan-pager-btn" disabled aria-label="Página anterior">
+                        ‹
+                    </button>
+
+                    <span id="lanPagerInfo" class="lan-pager-info">
+                        Nenhum lançamento
+                    </span>
+
+                    <!-- Próxima página -->
+                    <button type="button" id="lanPagerNext" class="lan-pager-btn" disabled aria-label="Próxima página">
+                        ›
+                    </button>
+
+                    <!-- Ir para última página -->
+                    <button type="button" id="lanPagerLast" class="lan-pager-btn" disabled aria-label="Última página">
+                        »
+                    </button>
+                </nav>
+
+            </section>
+        </div>
 </section>
 
 <!-- ==================== MODAL DE EDIÇÃO ==================== -->

@@ -36,11 +36,19 @@
     // ============================================================================
 
     const DOM = {
+
         // Tabela
         tabContainer: document.getElementById('tabLancamentos'),
         // Cards (mobile)
         lanCards: document.getElementById('lanCards'),
 
+        // Pager (mobile)
+        lanPager: document.getElementById('lanCardsPager'),
+        lanPagerFirst: document.getElementById('lanPagerFirst'),
+        lanPagerPrev: document.getElementById('lanPagerPrev'),
+        lanPagerNext: document.getElementById('lanPagerNext'),
+        lanPagerLast: document.getElementById('lanPagerLast'),
+        lanPagerInfo: document.getElementById('lanPagerInfo'),
         // Filtros
         selectTipo: document.getElementById('filtroTipo'),
         selectCategoria: document.getElementById('filtroCategoria'),
@@ -67,6 +75,8 @@
         selectLancCategoria: document.getElementById('editLancCategoria'),
         inputLancValor: document.getElementById('editLancValor'),
         inputLancDescricao: document.getElementById('editLancDescricao')
+
+
     };
 
     // ============================================================================
@@ -953,27 +963,83 @@
 
     const MobileCards = {
         cache: [],
+        pageSize: 8,
+        currentPage: 1,
+        sortField: null,
+        sortDir: 'desc',
 
-        render(items) {
+        setItems(items) {
+            this.cache = Array.isArray(items) ? items : [];
+            this.currentPage = 1;
+            this.renderPage();
+        },
+
+        getPagedData() {
+            // Remove saldo inicial dos cards
+            const base = this.cache.filter(item => !Utils.isSaldoInicial(item));
+
+            // Ordenação
+            let data = [...base];
+            if (this.sortField === 'data') {
+                data.sort((a, b) => {
+                    const da = Utils.extractYMD(a.data || a.created_at) || {};
+                    const db = Utils.extractYMD(b.data || b.created_at) || {};
+
+                    const ka = (da.year || 0) * 10000 + (da.month || 0) * 100 + (da.day || 0);
+                    const kb = (db.year || 0) * 10000 + (db.month || 0) * 100 + (db.day || 0);
+
+                    return this.sortDir === 'asc' ? (ka - kb) : (kb - ka);
+                });
+            } else if (this.sortField === 'tipo') {
+                data.sort((a, b) => {
+                    const ta = (a.tipo || '').toString().toLowerCase();
+                    const tb = (b.tipo || '').toString().toLowerCase();
+
+                    if (this.sortDir === 'asc') {
+                        return ta.localeCompare(tb);
+                    } else {
+                        return tb.localeCompare(ta);
+                    }
+                });
+            }
+
+
+            const total = data.length;
+            const totalPages = Math.max(1, Math.ceil(total / this.pageSize));
+            const page = Math.min(this.currentPage, totalPages);
+
+            const start = (page - 1) * this.pageSize;
+            const end = start + this.pageSize;
+
+            return {
+                list: data.slice(start, end),
+                page,
+                totalPages,
+                total
+            };
+        },
+
+
+        renderPage() {
             if (!DOM.lanCards) return;
 
-            this.cache = Array.isArray(items) ? items : [];
-            const data = this.cache.filter(item => !Utils.isSaldoInicial(item));
+            const { list, total, page, totalPages } = this.getPagedData();
 
-            if (!data.length) {
+            if (!total) {
                 DOM.lanCards.innerHTML = `
-                    <div class="lan-cards-header">
-                        <span>Data</span>
-                        <span>Tipo</span>
-                        <span>Valor</span>
-                        <span>Ações</span>
+                <div class="lan-cards-header">
+                    <span>Data</span>
+                    <span>Tipo</span>
+                    <span>Valor</span>
+                    <span>Ações</span>
+                </div>
+                <div class="lan-card" style="border-radius:0 0 16px 16px;">
+                    <div style="grid-column:1/-1;font-size:0.85rem;color:var(--color-text-muted);padding:0.5rem 0;">
+                        Nenhum lançamento encontrado para o período selecionado.
                     </div>
-                    <div class="lan-card" style="border-radius:0 0 16px 16px;">
-                        <div style="grid-column:1/-1;font-size:0.85rem;color:var(--color-text-muted);padding:0.5rem 0;">
-                            Nenhum lançamento encontrado para o período selecionado.
-                        </div>
-                    </div>
-                `;
+                </div>
+            `;
+                this.updatePager(0, 1, 1);
                 return;
             }
 
@@ -981,16 +1047,27 @@
             const isXs = window.matchMedia('(max-width: 414px)').matches;
 
             // Cabeçalho
+            // Cabeçalho
             parts.push(`
-                <div class="lan-cards-header">
-                    <span>Data</span>
-                    <span>Tipo</span>
-                    <span>Valor</span>
-                    <span>Ações</span>
-                </div>
-            `);
+             <div class="lan-cards-header">
+                 <button type="button" class="lan-cards-header-btn" data-sort="data">
+                  <span>Data</span>
+                  <span class="lan-sort-indicator" data-field="data"></span>
+                 </button>
+                <button type="button" class="lan-cards-header-btn" data-sort="tipo">
+                     <span>Tipo</span>
+                    <span class="lan-sort-indicator" data-field="tipo"></span>
+                </button>
+                <button type="button" class="lan-cards-header-btn" data-sort="valor">
+                     <span>Valor</span>
+                    <span class="lan-sort-indicator" data-field="valor"></span>
+                </button>
+                 <span>Ações</span>
+             </div>
+`);
 
-            for (const item of data) {
+
+            for (const item of list) {
                 const id = item.id;
                 const tipoRaw = String(item.tipo || '').toLowerCase();
                 const tipoClass = Utils.getTipoClass(tipoRaw);
@@ -1023,68 +1100,171 @@
                         : '') ??
                     '';
                 const descricao = descRaw || '--';
+
                 const actionsHtml = `
-                    ${Utils.canEditLancamento(item)
-                        ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lanAamento">
-                               <i class="fas fa-pen"></i>
-                           </button>`
+                ${Utils.canEditLancamento(item)
+                        ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento">
+                           <i class="fas fa-pen"></i>
+                       </button>`
                         : ''
                     }
-                    ${!Utils.isSaldoInicial(item)
-                        ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lanAamento">
-                               <i class="fas fa-trash"></i>
-                           </button>`
+                ${!Utils.isSaldoInicial(item)
+                        ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento">
+                           <i class="fas fa-trash"></i>
+                       </button>`
                         : ''
                     }
-                `;
+            `;
 
                 parts.push(`
-                    <article class="lan-card" data-id="${id}" aria-expanded="false">
-                        <div class="lan-card-main">
-                            <span class="lan-card-date">${Utils.escapeHtml(dataFmt)}</span>
-                            <span class="lan-card-type">
-                                <span class="badge-tipo ${tipoClass}">
-                                    ${Utils.escapeHtml(tipoLabel)}
-                                </span>
+                <article class="lan-card" data-id="${id}" aria-expanded="false">
+                    <div class="lan-card-main">
+                        <span class="lan-card-date">${Utils.escapeHtml(dataFmt)}</span>
+                        <span class="lan-card-type">
+                            <span class="badge-tipo ${tipoClass}">
+                                ${Utils.escapeHtml(tipoLabel)}
                             </span>
-                            <span class="lan-card-value ${tipoClass}">
-                                ${Utils.escapeHtml(valorFmt)}
-                            </span>
-                        </div>
+                        </span>
+                        <span class="lan-card-value ${tipoClass}">
+                            ${Utils.escapeHtml(valorFmt)}
+                        </span>
+                    </div>
 
-                        <div class="lan-card-actions" data-slot="main">
-                            ${actionsHtml}
-                        </div>
+                    <div class="lan-card-actions" data-slot="main">
+                        ${actionsHtml}
+                    </div>
 
-                        <button class="lan-card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
-                            <span class="lan-card-toggle-icon">▶</span>
-                            <span> Ver detalhes</span>
-                        </button>
+                    <button class="lan-card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
+                        <span class="lan-card-toggle-icon">▶</span>
+                        <span> Ver detalhes</span>
+                    </button>
 
-                        <div class="lan-card-details">
-                            <div class="lan-card-detail-row">
-                                <span class="lan-card-detail-label">Categoria</span>
-                                <span class="lan-card-detail-value">${Utils.escapeHtml(categoria || '-')}</span>
-                            </div>
-                            <div class="lan-card-detail-row">
-                                <span class="lan-card-detail-label">Conta</span>
-                                <span class="lan-card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
-                            </div>
-                            <div class="lan-card-detail-row">
-                                <span class="lan-card-detail-label">Descrição</span>
-                                <span class="lan-card-detail-value">${Utils.escapeHtml(descricao)}</span>
-                            </div>
-                            ${isXs ? `<div class="lan-card-detail-row actions-row">\n                                <span class="lan-card-detail-label">Ações<\/span>\n                                <span class="lan-card-detail-value actions-slot">\n                                    ${actionsHtml}\n                                <\/span>\n                            <\/div>` : ``}
+                    <div class="lan-card-details">
+                        <div class="lan-card-detail-row">
+                            <span class="lan-card-detail-label">Categoria</span>
+                            <span class="lan-card-detail-value">${Utils.escapeHtml(categoria || '-')}</span>
                         </div>
-                    </article>
-                `);
+                        <div class="lan-card-detail-row">
+                            <span class="lan-card-detail-label">Conta</span>
+                            <span class="lan-card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
+                        </div>
+                        <div class="lan-card-detail-row">
+                            <span class="lan-card-detail-label">Descrição</span>
+                            <span class="lan-card-detail-value">${Utils.escapeHtml(descricao)}</span>
+                        </div>
+                        ${isXs ? `<div class="lan-card-detail-row actions-row">
+                                    <span class="lan-card-detail-label">Ações</span>
+                                    <span class="lan-card-detail-value actions-slot">
+                                        ${actionsHtml}
+                                    </span>
+                                  </div>` : ``}
+                    </div>
+                </article>
+            `);
             }
 
             DOM.lanCards.innerHTML = parts.join('');
+            this.updatePager(total, page, totalPages);
+            this.updateSortIndicators();
+        },
+
+        updatePager(total, page, totalPages) {
+            if (!DOM.lanPager || !DOM.lanPagerInfo) return;
+
+            // se não tiver dados
+            if (!total) {
+                DOM.lanPagerInfo.textContent = 'Nenhum lançamento';
+                if (DOM.lanPagerFirst) DOM.lanPagerFirst.disabled = true;
+                if (DOM.lanPagerPrev) DOM.lanPagerPrev.disabled = true;
+                if (DOM.lanPagerNext) DOM.lanPagerNext.disabled = true;
+                if (DOM.lanPagerLast) DOM.lanPagerLast.disabled = true;
+                return;
+            }
+
+            DOM.lanPagerInfo.textContent = `Página ${page} de ${totalPages}`;
+
+            if (DOM.lanPagerFirst) {
+                DOM.lanPagerFirst.disabled = page <= 1;
+            }
+            if (DOM.lanPagerPrev) {
+                DOM.lanPagerPrev.disabled = page <= 1;
+            }
+            if (DOM.lanPagerNext) {
+                DOM.lanPagerNext.disabled = page >= totalPages;
+            }
+            if (DOM.lanPagerLast) {
+                DOM.lanPagerLast.disabled = page >= totalPages;
+            }
+        },
+
+        goToPage(page) {
+            const data = this.cache.filter(item => !Utils.isSaldoInicial(item));
+            const totalPages = Math.max(1, Math.ceil(data.length / this.pageSize));
+
+            const safePage = Math.min(Math.max(1, page), totalPages);
+            if (safePage === this.currentPage) return;
+
+            this.currentPage = safePage;
+            this.renderPage();
+        },
+
+        nextPage() {
+            this.goToPage(this.currentPage + 1);
+        },
+
+        prevPage() {
+            this.goToPage(this.currentPage - 1);
+
+        },
+        firstPage() {
+            this.goToPage(1);
+        },
+
+        lastPage() {
+            const data = this.cache.filter(item => !Utils.isSaldoInicial(item));
+            const totalPages = Math.max(1, Math.ceil(data.length / this.pageSize));
+            this.goToPage(totalPages);
+        },
+        setSort(field) {
+            if (!field) return;
+
+            if (this.sortField === field) {
+                // Só alterna asc/desc
+                this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortField = field;
+                // Padrão: data e valor em desc
+                this.sortDir = 'desc';
+            }
+
+            this.currentPage = 1;
+            this.renderPage();
+        },
+        updateSortIndicators() {
+            // Depois de renderizar o HTML, atualiza ▼ ▲ nos títulos
+            const indicators = DOM.lanCards?.querySelectorAll('.lan-sort-indicator') || [];
+            indicators.forEach(el => {
+                const field = el.dataset.field;
+                if (!field || field !== this.sortField) {
+                    el.textContent = '';
+                    return;
+                }
+                el.textContent = this.sortDir === 'asc' ? '▲' : '▼';
+            });
         },
 
         handleClick(ev) {
             const target = ev.target;
+
+            // Clique nos títulos de ordenação (Data / Valor)
+            const sortBtn = target.closest('[data-sort]');
+            if (sortBtn) {
+                const field = sortBtn.dataset.sort;
+                if (field) {
+                    MobileCards.setSort(field);
+                }
+                return;
+            }
 
             // Toggle de detalhes
             const toggleBtn = target.closest('[data-toggle="details"]');
@@ -1107,6 +1287,7 @@
 
             const item = MobileCards.cache.find(l => Number(l.id) === id);
             if (!item) return;
+
 
             if (action === 'edit') {
                 if (!Utils.canEditLancamento(item)) return;
@@ -1381,11 +1562,9 @@
                     t2.replaceData([]);
                     TableManager.updateSelectionInfo();
                 }
-
                 // Limpa cards enquanto carrega
-                if (DOM.lanCards) {
-                    MobileCards.render([]);
-                }
+
+                MobileCards.setItems([]);
 
                 const items = await API.fetchLancamentos({
                     month,
@@ -1396,7 +1575,7 @@
                 });
 
                 await TableManager.renderRows(items);
-                MobileCards.render(items);
+                MobileCards.setItems(items);
             }, CONFIG.DEBOUNCE_DELAY);
         },
 
@@ -1476,6 +1655,11 @@
 
             // Cliques nos cards (mobile)
             DOM.lanCards?.addEventListener('click', MobileCards.handleClick);
+            // Paginação (mobile)
+            DOM.lanPagerFirst?.addEventListener('click', () => MobileCards.firstPage());
+            DOM.lanPagerPrev?.addEventListener('click', () => MobileCards.prevPage());
+            DOM.lanPagerNext?.addEventListener('click', () => MobileCards.nextPage());
+            DOM.lanPagerLast?.addEventListener('click', () => MobileCards.lastPage());
         }
     };
 
