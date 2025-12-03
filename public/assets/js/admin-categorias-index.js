@@ -1,4 +1,4 @@
-
+﻿
 (() => {
     'use strict';
 
@@ -27,7 +27,10 @@
 
         // Tabela
         tabContainer: document.getElementById('tabCategorias'),
-        cardContainer: document.getElementById('catCards'),
+        mobileWrapper: document.getElementById('catCards'),
+        mobileHeader: document.querySelector('.c-mobile-cat-header'),
+        mobileWrapper: document.getElementById('catCards'),
+        mobileHeader: document.querySelector('.c-mobile-cat-header'),
 
         // Modal
         modalEditEl: document.getElementById('modalEditCategoria'),
@@ -211,41 +214,40 @@
     // ==================== GERENCIAMENTO DE TABELA ====================
     const TableManager = {
         buildColumns: () => [{
-            title: "Nome",
-            field: "nome",
-            headerFilter: "input",
-            headerFilterPlaceholder: "Filtrar por nome",
+            title: 'Nome',
+            field: 'nome',
+            headerFilter: 'input',
+            headerFilterPlaceholder: 'Filtrar por nome',
             widthGrow: 2,
-            formatter: (cell) => Utils.escapeHtml(cell.getValue() || "-")
+            formatter: (cell) => Utils.escapeHtml(cell.getValue() || '-')
         },
         {
-            title: "Tipo",
-            field: "tipo",
-            headerFilter: "select",
+            title: 'Tipo',
+            field: 'tipo',
+            headerFilter: 'select',
             headerFilterParams: {
                 values: {
-                    "": "Todos",
-                    receita: "Receita",
-                    despesa: "Despesa"
+                    '': 'Todos',
+                    receita: 'Receita',
+                    despesa: 'Despesa'
                 }
             },
             width: 300,
-            hozAlign: "center",
-
+            hozAlign: 'center',
             formatter: (cell) => {
-                const value = String(cell.getValue() || "").toLowerCase();
-                const tipo = ["receita", "despesa"].includes(value) ? value : "";
+                const value = String(cell.getValue() || '').toLowerCase();
+                const tipo = ['receita', 'despesa'].includes(value) ? value : '';
 
-                if (!tipo) return "-";
+                if (!tipo) return '-';
 
                 return `<span class="badge-tipo ${tipo}">${Utils.capitalize(tipo)}</span>`;
             }
         },
         {
-            title: "Ações",
-            field: "acoes",
+            title: 'Ações',
+            field: 'acoes',
             headerSort: false,
-            hozAlign: "center",
+            hozAlign: 'center',
             width: 300,
             formatter: () => {
                 return `
@@ -307,60 +309,53 @@
             if (table) {
                 table.setData(Array.isArray(items) ? items : []);
             }
-
-            MobileCards.render(items);
         }
     };
 
-    // ==================== RENDERIZAÇÃO MOBILE (CARDS) ====================
+    // ==================== LISTA MOBILE ====================`n    
     const MobileCards = {
         render: (items) => {
-            if (!DOM.cardContainer) return;
+            if (!DOM.mobileWrapper) return;
 
-            const list = Array.isArray(items) ? items : [];
+            const header = DOM.mobileHeader;
+            if (header) {
+                header.style.display = 'grid';
+            }
 
-            if (!list.length) {
-                DOM.cardContainer.innerHTML = '';
+            if (!Array.isArray(items) || items.length === 0) {
+                DOM.mobileWrapper.innerHTML = '<div class="c-mobile-card empty">Nenhuma categoria cadastrada.</div>';
                 return;
             }
 
-            const header = `
-                <div class="c-mobile-card-header">
-                    <span>Nome</span>
-                    <span>Tipo</span>
-                    <span>Ações</span>
-                </div>
-            `;
-
-            const body = list.map((item) => {
-                const nome = Utils.escapeHtml(item?.nome || '-');
-                const tipoRaw = String(item?.tipo || '').toLowerCase();
-                const tipoClass = ['receita', 'despesa'].includes(tipoRaw) ? tipoRaw : '';
-                const tipoLabel = Utils.capitalize(tipoRaw || '-');
-                const id = item?.id ?? '';
+            const html = items.map((cat) => {
+                const id = cat?.id ?? '';
+                const nome = Utils.escapeHtml(cat?.nome ?? '-');
+                const tipo = String(cat?.tipo || '').toLowerCase();
+                const label = ['receita', 'despesa'].includes(tipo) ? Utils.capitalize(tipo) : '-';
+                const badgeClass = tipo === 'receita' ? 'receita' : (tipo === 'despesa' ? 'despesa' : '');
 
                 return `
-                    <div class="c-mobile-card" data-id="${id}">
-                        <div class="c-cat-name">${nome}</div>
-                        <div class="c-cat-type">
-                            <span class="badge-tipo ${tipoClass}">${tipoLabel}</span>
-                        </div>
-                        <div class="c-cat-actions">
-                            <button type="button" class="lk-btn ghost btn-edit" data-action="edit" data-id="${id}" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button" class="lk-btn ghost btn-del" data-action="delete" data-id="${id}" title="Excluir">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
+          <div class="c-mobile-card" data-id="${id}">
+            <div class="c-cat-name">${nome}</div>
+            <div class="c-cat-type">
+              <span class="badge-tipo ${badgeClass}">${label}</span>
+            </div>
+            <div class="c-cat-actions">
+              <button type="button" class="lk-btn ghost btn-edit" data-action="edit" title="Editar" aria-label="Editar categoria">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button type="button" class="lk-btn ghost btn-del" data-action="delete" title="Excluir" aria-label="Excluir categoria">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
             }).join('');
 
-            DOM.cardContainer.innerHTML = header + body;
+            DOM.mobileWrapper.innerHTML = html;
         }
     };
-
+    
     // ==================== GERENCIAMENTO DE MODAL ====================
     const ModalManager = {
         ensure: () => {
@@ -496,10 +491,13 @@
                 });
 
                 TableManager.setData(items);
+                MobileCards.render(items);
+                MobileCards.render(items);
             } catch (err) {
                 console.error('Erro ao carregar categorias:', err);
                 Notifications.error(err.message);
                 TableManager.setData([]);
+                MobileCards.render([]);
             }
         },
 
@@ -605,23 +603,6 @@
 
             // Formulário de edição
             DOM.formEdit?.addEventListener('submit', ModalManager.submitEdit);
-
-            // Ações dos cards (mobile)
-            DOM.cardContainer?.addEventListener('click', async (e) => {
-                const btn = e.target.closest('button[data-action]');
-                if (!btn) return;
-                const action = btn.getAttribute('data-action');
-                const id = btn.getAttribute('data-id');
-                if (!id) return;
-
-                btn.disabled = true;
-                if (action === 'edit') {
-                    await ModalManager.openEdit(id);
-                } else if (action === 'delete') {
-                    await DataManager.delete(id);
-                }
-                btn.disabled = false;
-            });
 
             // Eventos globais
             document.addEventListener('lukrato:data-changed', (e) => {

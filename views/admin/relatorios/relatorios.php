@@ -6,27 +6,28 @@
     </label>
 
     <div class="export-controls">
-        <div class="select-wrapper">
-            <select id="exportType" class="lk-select" aria-label="Tipo de relatório para exportação">
-                <option value="despesas_por_categoria">Despesas por categoria</option>
-                <option value="receitas_por_categoria">Receitas por categoria</option>
-                <option value="saldo_mensal">Saldo diário</option>
-                <option value="receitas_despesas_diario">Receitas x Despesas diário</option>
-                <option value="evolucao_12m">Evolução 12 meses</option>
-                <option value="receitas_despesas_por_conta">Receitas x Despesas por conta</option>
-                <option value="resumo_anual">Resumo anual</option>
-                <option value="despesas_anuais_por_categoria">Despesas anuais por categoria</option>
-                <option value="receitas_anuais_por_categoria">Receitas anuais por categoria</option>
-            </select>
-        </div>
+        <div class="export-controls-select">
+            <div class="select-wrapper">
+                <select id="exportType" class="lk-select" aria-label="Tipo de relatório para exportação">
+                    <option value="despesas_por_categoria">Despesas por categoria</option>
+                    <option value="receitas_por_categoria">Receitas por categoria</option>
+                    <option value="saldo_mensal">Saldo diário</option>
+                    <option value="receitas_despesas_diario">Receitas x Despesas diário</option>
+                    <option value="evolucao_12m">Evolução 12 meses</option>
+                    <option value="receitas_despesas_por_conta">Receitas x Despesas por conta</option>
+                    <option value="resumo_anual">Resumo anual</option>
+                    <option value="despesas_anuais_por_categoria">Despesas anuais por categoria</option>
+                    <option value="receitas_anuais_por_categoria">Receitas anuais por categoria</option>
+                </select>
+            </div>
 
-        <div class="select-wrapper">
-            <select id="exportFormat" class="lk-select" aria-label="Formato de exportação">
-                <option value="pdf">PDF</option>
-                <option value="excel">Excel (.xlsx)</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="exportFormat" class="lk-select" aria-label="Formato de exportação">
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel (.xlsx)</option>
+                </select>
+            </div>
         </div>
-
         <button id="exportBtn" class="btn btn-primary" aria-label="Exportar relatório">
             <i class="fas fa-download"></i>
             <span>Exportar</span>

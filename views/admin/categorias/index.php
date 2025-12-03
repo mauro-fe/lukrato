@@ -8,12 +8,14 @@
 
         <form id="formNova" class="c-form">
             <?= csrf_input('default') ?>
-            <input class="c-input" name="nome" placeholder="Nome da categoria" required minlength="2" maxlength="100"
-                aria-label="Nome da categoria" />
-            <select class="lk-select" name="tipo" required aria-label="Tipo de categoria">
-                <option value="receita">Receita</option>
-                <option value="despesa">Despesa</option>
-            </select>
+            <div class="c-form-inputs">
+                <input class="c-input" name="nome" placeholder="Nome da categoria" required minlength="2" maxlength="100"
+                    aria-label="Nome da categoria" />
+                <select class="lk-select" name="tipo" required aria-label="Tipo de categoria">
+                    <option value="receita">Receita</option>
+                    <option value="despesa">Despesa</option>
+                </select>
+            </div>
             <button class="btn btn-primary" type="submit">
                 <i class="fa-solid fa-plus"></i> Adicionar
             </button>
@@ -86,6 +88,3 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-

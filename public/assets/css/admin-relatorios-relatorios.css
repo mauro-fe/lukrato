@@ -126,6 +126,10 @@
   flex-wrap: wrap;
   align-items: center;
 }
+.export-controls-select{
+  display: flex;
+  gap: var(--spacing-3);
+}
 
 /* ============================================================================
    SEÇÃO DE CONTROLES
