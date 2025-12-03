@@ -345,21 +345,25 @@
                 : `<span class="acc-badge inactive"><i class="fas fa-archive"></i> Arquivada</span>`;
 
             const actions = isActive ? `
+            <div class="acc-actions-btn">
                 <button class="btn btn-primary btn-sm btn-acc-receita" data-id="${conta.id}" title="Adicionar receita">
                     <i class="fas fa-arrow-up"></i> Receita
                 </button>
                 <button class="btn btn-ghost btn-sm btn-acc-despesa" data-id="${conta.id}" title="Adicionar despesa">
                     <i class="fas fa-arrow-down"></i> Despesa
                 </button>
+                </div>
                 <button class="btn btn-ghost btn-sm btn-acc-transfer" data-id="${conta.id}" title="Transferir">
                     <i class="fas fa-right-left"></i> Transferir
                 </button>
+                <div class="acc-actions-btn">
                 <button class="btn btn-ghost btn-sm btn-edit" data-id="${conta.id}" title="Editar conta">
                     <i class="fas fa-pen"></i>
                 </button>
                 <button class="btn btn-ghost btn-sm btn-archive" data-id="${conta.id}" title="Arquivar conta">
                     <i class="fas fa-box-archive"></i>
                 </button>
+                </div>
             ` : `
                 <button class="btn btn-primary btn-sm btn-restore" data-id="${conta.id}" title="Restaurar conta">
                     <i class="fas fa-rotate-left"></i> Restaurar

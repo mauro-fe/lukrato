@@ -118,7 +118,6 @@
 .lk-acc-actions {
   display: flex;
   gap: var(--spacing-3);
-  flex-wrap: wrap;
 }
 
 /* Card container */
@@ -289,6 +288,16 @@
   flex-wrap: wrap;
   padding-top: var(--spacing-3);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.acc-actions-btn {
+  display: flex;
+  gap: var(--spacing-2);
+  flex: 1 1 auto;
+}
+
+.acc-actions-btn .btn {
+  flex: 1 1 50%;
 }
 
 .acc-actions .btn {
@@ -572,17 +581,32 @@
   }
 
   .lk-acc-header {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: stretch;
-    gap: var(--spacing-3);
+    gap: var(--spacing-2);
+    justify-content: flex-start;
   }
+  .lk-acc-header .btn{
+    padding: var(--spacing-2) var(--spacing-5);
+  }
+
+  .lk-acc-header .btn-light {
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
 
   .lk-acc-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1px;
+    flex: 1 1 auto;
   }
 
-  .lk-acc-actions .btn {
-    width: 100%;
+  .lk-acc-actions .btn,
+  .lk-acc-header > .btn {
+    flex: 1 1 calc(33.33% - var(--spacing-2));
+    min-width: 0;
   }
 
   .acc-grid {
@@ -591,12 +615,23 @@
   }
 
   .acc-actions {
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: var(--spacing-2);
   }
 
-  .acc-actions .btn {
-    flex: 1 1 calc(50% - var(--spacing-1));
+  .acc-actions-btn {
+    width: 100%;
+  }
+
+  .acc-actions-btn .btn {
+    flex: 1;
     min-width: 0;
+    font-size: 0.7rem;
+    padding: var(--spacing-2);
+  }
+
+  .acc-actions > .btn {
+    width: 100%;
     font-size: 0.7rem;
     padding: var(--spacing-2);
   }
@@ -619,8 +654,8 @@
     font-size: 1.5rem;
   }
 
-  .acc-actions .btn {
-    flex: 1 1 100%;
+  .acc-actions-btn .btn {
+    flex: 1;
   }
 }
 
@@ -628,6 +663,24 @@
   .acc-card-header {
     flex-direction: column;
   }
+
+  .acc-card{
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-5);
+
+  }
+  .acc-balance{
+    font-size: 1.2rem;
+  }
+  .acc-badge {
+    font-size: .6rem;
+
+  }
+    .lk-acc-header .btn{
+    font-size: 8px;
+  }
+
+
 }
 
 /* ============================================================================
