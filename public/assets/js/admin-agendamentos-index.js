@@ -1,5 +1,5 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
-    const PAYWALL_MESSAGE = 'Agendamentos são exclusivos do plano Pro.';
+    const PAYWALL_MESSAGE = 'Agendamentos sao exclusivos do plano Pro.';
 
     const base = (typeof LK !== 'undefined' && typeof LK.getBase === 'function')
         ? LK.getBase()
@@ -63,12 +63,12 @@
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Assinar plano Pro',
-                cancelButtonText: 'Agora não',
+                cancelButtonText: 'Agora nao',
                 reverseButtons: true,
                 focusConfirm: true
             });
             if (ret.isConfirmed) goToBilling();
-        } else if (confirm(`${text}\n\nIr para a página de assinatura agora?`)) {
+        } else if (confirm(`${text}\n\nIr para a pagina de assinatura agora?`)) {
             goToBilling();
         }
     };
@@ -201,7 +201,7 @@
             fillSelect(contaSelect, selectCache.contas, {
                 placeholder: 'Todas as contas (opcional)',
                 getLabel: (item) => {
-                    const instituicao = item?.instituicao ? ` â€” ${item.instituicao}` : '';
+                    const instituicao = item?.instituicao ? ` � ${item.instituicao}` : '';
                     return `${item?.nome ?? ''}${instituicao}`;
                 }
             });
@@ -215,7 +215,7 @@
         fillSelect(contaSelect, items, {
             placeholder: 'Todas as contas (opcional)',
             getLabel: (item) => {
-                const instituicao = item?.instituicao ? ` â€” ${item.instituicao}` : '';
+                const instituicao = item?.instituicao ? ` � ${item.instituicao}` : '';
                 return `${item?.nome ?? ''}${instituicao}`;
             }
         });
@@ -373,27 +373,28 @@
             const parts = [];
 
             parts.push(`
-                <div class="ag-cards-header">
-                    <button type="button" class="ag-cards-header-btn" data-sort="data_pagamento">
-                        <span>Data</span>
-                        <span class="ag-sort-indicator" data-field="data_pagamento"></span>
+               <div class="cards-header">
+                 <button type="button" class="cards-header-btn" data-sort="data_pagamento">
+                     <span>Data</span>
+                      <span class="sort-indicator" data-field="data_pagamento"></span>
                     </button>
-                    <button type="button" class="ag-cards-header-btn" data-sort="tipo">
+                    
+                    <button type="button" class="ag-cards-header-btn cards-header-btn" data-sort="tipo">
                         <span>Tipo</span>
-                        <span class="ag-sort-indicator" data-field="tipo"></span>
+                        <span class="ag-sort-indicator sort-indicator" data-field="tipo"></span>
                     </button>
-                    <button type="button" class="ag-cards-header-btn" data-sort="valor_centavos">
+                    <button type="button" class="ag-cards-header-btn cards-header-btn" data-sort="valor_centavos">
                         <span>Valor</span>
-                        <span class="ag-sort-indicator" data-field="valor_centavos"></span>
+                        <span class="ag-sort-indicator sort-indicator" data-field="valor_centavos"></span>
                     </button>
-                    <span class="ag-cards-header-btn-actions">Ações</span>
+                    <span class="ag-cards-header-btn cards-header-btn-actions">Ações</span>
                 </div>
             `);
 
             if (!total) {
                 parts.push(`
-                    <div class="ag-card ag-card-empty">
-                        <div class="ag-card-empty-text">
+                    <div class="ag-card card-item card-empty">
+                        <div class="card-empty-text">
                             Nenhum agendamento encontrado.
                         </div>
                     </div>
@@ -430,47 +431,51 @@
                 `;
 
                 parts.push(`
-                    <article class="ag-card" data-id="${id}" aria-expanded="false">
-                        <div class="ag-card-main">
-                            <span class="ag-card-date">${escapeHtml(data)}</span>
-                            <span class="ag-card-type">
+                    <article class="ag-card card-item" data-id="${id}" aria-expanded="false">
+                        <div class="ag-card-main card-main">
+                            <span class="ag-card-date card-date">${escapeHtml(data)}</span>
+                            <span class="ag-card-type card-type">
                                 <span class="badge-tipo ${tipoClass}">${escapeHtml(tipoLabel)}</span>
                             </span>
-                            <span class="ag-card-value ${tipoClass}">${escapeHtml(valor)}</span>
-                            <span class="ag-card-actions" data-slot="main">${actionsHtml}</span>
+                            <span class="ag-card-value card-value ${tipoClass}">${escapeHtml(valor)}</span>
+                            <span class="ag-card-actions card-actions" data-slot="main">${actionsHtml}</span>
                         </div>
 
-                        <div class="ag-card-status" aria-label="Status">${statusBadge(status)}</div>
 
-                        <button class="ag-card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do agendamento">
-                            <span class="ag-card-toggle-icon">⌄</span>
+                        <button class="ag-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do agendamento">
+                            <span class="ag-card-toggle-icon card-toggle-icon"><i class="fas fa-chevron-right"></i></span>
                             <span> Ver detalhes</span>
                         </button>
 
-                        <div class="ag-card-details">
-                            <div class="ag-card-detail-row">
-                                <span class="ag-card-detail-label">Título</span>
-                                <span class="ag-card-detail-value">${escapeHtml(titulo)}</span>
+                        <div class="ag-card-details card-details">
+                        
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Título</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(titulo)}</span>
                             </div>
-                            <div class="ag-card-detail-row">
-                                <span class="ag-card-detail-label">Categoria</span>
-                                <span class="ag-card-detail-value">${escapeHtml(categoria)}</span>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Status</span>
+                                <span class="ag-card-status card-status" aria-label="Status">${statusBadge(status)}</span>
                             </div>
-                            <div class="ag-card-detail-row">
-                                <span class="ag-card-detail-label">Conta</span>
-                                <span class="ag-card-detail-value">${escapeHtml(conta)}</span>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Categoria</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(categoria)}</span>
                             </div>
-                            <div class="ag-card-detail-row">
-                                <span class="ag-card-detail-label">Recorrente</span>
-                                <span class="ag-card-detail-value">${recorrente ? 'Sim' : 'Não'}</span>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Conta</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(conta)}</span>
                             </div>
-                            <div class="ag-card-detail-row">
-                                <span class="ag-card-detail-label">Descrição</span>
-                                <span class="ag-card-detail-value">${escapeHtml(descricao)}</span>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Recorrente</span>
+                                <span class="ag-card-detail-value card-detail-value">${recorrente ? 'Sim' : 'nao'}</span>
                             </div>
-                            ${isXs ? `<div class="ag-card-detail-row actions-row">
-                                <span class="ag-card-detail-label">Ações</span>
-                                <span class="ag-card-detail-value actions-slot">${actionsHtml}</span>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Descrição</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(descricao)}</span>
+                            </div>
+                            ${isXs ? `<div class="ag-card-detail-row card-detail-row actions-row">
+                                <span class="ag-card-detail-label card-detail-label">Ações</span>
+                                <span class="ag-card-detail-value card-detail-value actions-slot">${actionsHtml}</span>
                             </div>` : ''}
                         </div>
                     </article>
@@ -493,7 +498,7 @@
                 return;
             }
 
-            pagerInfo.textContent = `Página ${page} de ${totalPages}`;
+            pagerInfo.textContent = `pagina ${page} de ${totalPages}`;
 
             if (pagerFirst) pagerFirst.disabled = page <= 1;
             if (pagerPrev) pagerPrev.disabled = page <= 1;
@@ -502,12 +507,12 @@
         },
 
         updateSortIndicators() {
-            const indicators = cardsContainer?.querySelectorAll('.ag-sort-indicator');
+            const indicators = cardsContainer?.querySelectorAll('.ag-sort-indicator sort-indicator');
             if (!indicators) return;
             indicators.forEach((el) => {
                 const field = el?.dataset?.field;
                 if (field === this.sortField) {
-                    el.textContent = this.sortDir === 'asc' ? '↑' : '↓';
+                    el.textContent = this.sortDir === 'asc' ? '?' : '?';
                 } else {
                     el.textContent = '';
                 }
@@ -981,5 +986,8 @@
     loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
     loadAgendamentos();
 });
+
+
+
 
 

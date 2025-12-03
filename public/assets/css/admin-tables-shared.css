@@ -1,0 +1,585 @@
+/**
+ * ============================================================================
+ * SHARED CARDS SYSTEM - ESTILOS COMPARTILHADOS
+ * ============================================================================
+ * Estilos reutilizáveis para sistemas de cards mobile em lançamentos e agendamentos
+ * ============================================================================
+ */
+
+/* ============================================================================
+   VARIÁVEIS E CONFIGURAÇÃO
+   ============================================================================ */
+
+:root {
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease-out;
+}
+
+/* ============================================================================
+   CARDS WRAPPER
+   ============================================================================ */
+
+.cards-wrapper {
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Ocultar no desktop */
+@media (min-width: 1000px) {
+  .cards-wrapper,
+  .cards-container,
+  .cards-pager {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   HEADER DOS CARDS (com ordenação)
+   ============================================================================ */
+
+.cards-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  color: var(--color-text-muted, #9ca3af);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cards-header-btn {
+  border: none;
+  background: transparent;
+  padding: 0.15rem 0.25rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  color: inherit;
+  transition: 0.15s ease;
+}
+
+.cards-header-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sort-indicator {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  display: inline-block !important;
+  min-width: 12px;
+  text-align: center;
+  color: var(--color-text, #fff);
+  margin-left: 4px;
+}
+
+/* ============================================================================
+   TABELA (aparência alinhada à de lançamentos)
+   ============================================================================ */
+
+.container-table {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  overflow: hidden;
+}
+
+.table-container .tabulator {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+}
+
+.table-container .tabulator .tabulator-tableholder {
+  overflow-x: hidden !important;
+}
+
+.table-container .tabulator .tabulator-header {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-bottom: 2px solid var(--glass-border);
+}
+
+.table-container .tabulator .tabulator-row {
+  transition: var(--transition-fast);
+  will-change: background-color;
+}
+
+.table-container .tabulator .tabulator-row:hover {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.table-container .tabulator .tabulator-row.tabulator-selected {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-left: 3px solid var(--color-primary);
+  font-weight: 500;
+}
+
+.table-container .tabulator .tabulator-header .tabulator-col {
+  background: transparent;
+  border-right: 1px solid
+    color-mix(in srgb, var(--glass-border) 50%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.table-container .tabulator .tabulator-header .tabulator-col:last-child {
+  border-right: 0;
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-col-content {
+  padding: var(--spacing-3) var(--spacing-4);
+  line-height: 1.2;
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter {
+  margin-top: var(--spacing-2);
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  input,
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  select {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  box-sizing: border-box;
+  font-family: var(--font-primary);
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  input:focus,
+.table-container
+  .tabulator
+  .tabulator-header
+  .tabulator-col
+  .tabulator-header-filter
+  select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.table-container .tabulator .tabulator-row .tabulator-cell {
+  padding: var(--spacing-3);
+}
+
+.table-container .tabulator .tabulator-row:last-child .tabulator-cell {
+  border-bottom: 0;
+}
+
+.cards-header-btn,
+.lan-cards-header-btn {
+  margin: auto;
+}
+
+/* ============================================================================
+   CARD BASE
+   ============================================================================ */
+
+.card-item {
+  background: var(--color-surface);
+  border: 1px solid var(--glass-border);
+  border-top: none;
+  padding: 0.85rem 1rem 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--spacing-2);
+  row-gap: 0.35rem;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.card-item + .card-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.card-item.open {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+/* Grid principal do card (data, tipo, valor, ações) */
+.card-main {
+  display: grid;
+  column-gap: var(--spacing-2);
+  align-items: center;
+}
+
+.card-date {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.card-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.card-value.receita,
+.card-value.tipo-receita {
+  color: var(--color-success);
+}
+
+.card-value.despesa,
+.card-value.tipo-despesa {
+  color: var(--color-danger);
+}
+
+.card-value.transferencia {
+  color: var(--color-primary);
+}
+
+/* ============================================================================
+   BADGES DE TIPO
+   ============================================================================ */
+
+.badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  color: var(--color-text);
+  transition: var(--transition-fast);
+}
+
+.badge-tipo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: currentColor;
+}
+
+.badge-tipo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-tipo.receita,
+.badge-tipo.tipo-receita {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+}
+
+.badge-tipo.despesa,
+.badge-tipo.tipo-despesa {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
+}
+
+.badge-tipo.transferencia {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+/* ============================================================================
+   AÇÕES DO CARD
+   ============================================================================ */
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.card-actions[data-slot="details"] {
+  display: none;
+}
+
+.card-actions .lk-btn {
+  border-radius: 999px;
+}
+
+/* ============================================================================
+   TOGGLE DE DETALHES
+   ============================================================================ */
+
+.card-toggle {
+  grid-column: 1 / -1;
+  margin-top: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.card-toggle-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.card-item[aria-expanded="true"] .card-toggle-icon {
+  transform: rotate(90deg);
+}
+
+/* ============================================================================
+   DETALHES DO CARD (colapsável)
+   ============================================================================ */
+
+.card-details {
+  grid-column: 1 / -1;
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: none;
+}
+
+.card-item[aria-expanded="true"] .card-details {
+  display: grid;
+  row-gap: 0.2rem;
+}
+
+.card-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.card-detail-row .lk-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.card-detail-label {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.card-detail-value {
+  color: var(--color-text);
+  text-align: right;
+}
+
+/* ============================================================================
+   PAGINAÇÃO
+   ============================================================================ */
+
+.cards-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 0 0 10px 10px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #c5c8ce);
+  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pager-btn {
+  border: none;
+  background: var(--color-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text, #f1f1f1);
+  font-size: 0.7rem;
+  transition: all 0.15s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+  background: var(--color-warning);
+}
+
+.pager-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  background: var(--ring);
+}
+
+.pager-info {
+  color: var(--color-text-muted, #bac0c8);
+  padding: 0 0.35rem;
+  font-weight: bold;
+}
+
+/* ============================================================================
+   ESTADO VAZIO
+   ============================================================================ */
+
+.card-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   RESPONSIVIDADE MOBILE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  /* Ocultar tabela desktop */
+  .tab-desktop,
+  .ag-table-desktop {
+    display: none;
+  }
+
+  .pager-info {
+    font-size: 0.6rem;
+    font-weight: bold !important;
+  }
+}
+
+/* Mobile extra pequeno */
+@media (max-width: 414px) {
+  .cards-header {
+    grid-template-columns: 1.1fr 0.9fr 1.1fr !important;
+  }
+
+  .cards-header span:last-child {
+    display: none;
+  }
+
+  .card-main {
+    grid-template-columns: 1.1fr 0.9fr 1.1fr;
+  }
+
+  .card-actions[data-slot="main"] {
+    display: none;
+  }
+
+  .card-details .card-actions[data-slot="details"] {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--spacing-2);
+    margin-top: 0.35rem;
+  }
+
+  .card-detail-row {
+    align-items: flex-start;
+  }
+
+  .card-detail-row.actions-row {
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-detail-value.actions-slot {
+    display: inline-flex;
+    gap: var(--spacing-2);
+    align-items: center;
+  }
+
+  .card-detail-value .lk-btn {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .badge-tipo {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.6rem;
+  }
+}
+
+/* ============================================================================
+   TEMA ESCURO
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .card-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ============================================================================
+   ACESSIBILIDADE
+   ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .cards-header,
+  .card-item {
+    border-width: 2px;
+  }
+
+  .badge-tipo {
+    border-width: 2px;
+  }
+}
