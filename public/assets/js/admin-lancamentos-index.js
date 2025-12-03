@@ -1051,7 +1051,7 @@
             }
 
             const parts = [];
-            const isXs = window.matchMedia('(max-width: 414px)').matches;
+            const isXs = window.matchMedia('(max-width: 768px)').matches;
 
             // CabeÃ§alho
             // CabeÃ§alho

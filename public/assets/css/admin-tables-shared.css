@@ -24,13 +24,18 @@
   padding-bottom: 0.5rem;
 }
 
-/* Ocultar no desktop */
+/* Ocultar cards mobile no desktop */
 @media (min-width: 1000px) {
   .cards-wrapper,
   .cards-container,
   .cards-pager {
     display: none;
   }
+}
+
+.ag-card-value,
+.lan-card-value {
+  margin: 0 auto;
 }
 
 /* ============================================================================
@@ -334,6 +339,9 @@
    AÇÕES DO CARD
    ============================================================================ */
 
+/* Padrão: desktop e telas maiores
+   - mostra ações principais
+   - esconde ações de detalhes */
 .card-actions {
   display: flex;
   align-items: center;
@@ -346,6 +354,7 @@
 
 .card-actions .lk-btn {
   border-radius: 999px;
+  display: block;
 }
 
 /* ============================================================================
@@ -492,7 +501,7 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
-  /* Ocultar tabela desktop */
+  /* Ocultar tabela desktop (se usar essas classes) */
   .tab-desktop,
   .ag-table-desktop {
     display: none;
@@ -502,11 +511,29 @@
     font-size: 0.6rem;
     font-weight: bold !important;
   }
+
+  /* Em mobile: esconder ações principais e
+     mostrar as ações dentro de "Ver detalhes" */
+  .card-actions[data-slot="main"] {
+    display: none;
+  }
+
+  .card-details .card-actions[data-slot="details"] {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--spacing-2);
+    margin-top: 0.35rem;
+  }
 }
 
 /* Mobile extra pequeno */
-@media (max-width: 414px) {
+@media (max-width: 500px) {
+  /* Aqui ficam só os ajustes finos de layout,
+     sem mais mudar qual slot aparece ou some */
+
   .cards-header {
+    /* se quiser usar grid aqui, troca pra display: grid */
+    display: grid;
     grid-template-columns: 1.1fr 0.9fr 1.1fr !important;
   }
 
@@ -518,17 +545,6 @@
     grid-template-columns: 1.1fr 0.9fr 1.1fr;
   }
 
-  .card-actions[data-slot="main"] {
-    display: none;
-  }
-
-  .card-details .card-actions[data-slot="details"] {
-    display: flex;
-    justify-content: flex-start;
-    gap: var(--spacing-2);
-    margin-top: 0.35rem;
-  }
-
   .card-detail-row {
     align-items: flex-start;
   }
@@ -536,6 +552,12 @@
   .card-detail-row.actions-row {
     align-items: center;
     justify-content: space-between;
+  }
+
+  .card-detail-row.actions-row .actions-slot {
+    display: inline-flex;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
   }
 
   .card-detail-value.actions-slot {
@@ -581,5 +603,20 @@
 
   .badge-tipo {
     border-width: 2px;
+  }
+}
+
+/* FORÇAR mobile real (qualquer celular) */
+@media (max-width: 768px) {
+  /* Esconde ações principais */
+  .card-actions[data-slot="main"] {
+    display: none !important;
+  }
+
+  /* Mostra botões dentro do detalhes */
+  .card-details .card-actions[data-slot="details"] {
+    display: flex !important;
+    gap: var(--spacing-2);
+    margin-top: 0.35rem;
   }
 }

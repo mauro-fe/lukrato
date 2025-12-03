@@ -4,14 +4,14 @@
 <!-- CSS REFATORADO -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
 
-<div data-aos="fade-up">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgendamento"
+<div data-aos="fade-up" class="ag-new-wrapper">
+    <button type="button" class="btn btn-primary ag-new-btn" data-bs-toggle="modal" data-bs-target="#modalAgendamento"
         title="Adicionar agendamento">
         <i class="fa-solid fa-plus"></i> Novo Agendamento
     </button>
 </div>
 
-<div class="container-table mt-5" data-aos="fade-up">
+<div class="container-table" data-aos="fade-up">
     <div id="agList" class="table-container">
         <div class="ag-table-desktop">
             <div id="agendamentosTable"></div>

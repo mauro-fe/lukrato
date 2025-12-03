@@ -405,7 +405,7 @@
                 return;
             }
 
-            const isXs = window.matchMedia('(max-width: 414px)').matches;
+            const isXs = window.matchMedia('(max-width: 768px)').matches;
 
             list.forEach((item) => {
                 const id = item?.id ?? '';

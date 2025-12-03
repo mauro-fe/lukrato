@@ -16,6 +16,10 @@
   box-shadow: var(--shadow-sm);
 }
 
+.ag-new-wrapper {
+  margin: 20px auto;
+}
+
 /* ============================================================================
    CARDS GERAIS
    ============================================================================ */
@@ -36,6 +40,24 @@
 
 .tabulator .tabulator-tableholder {
   overflow-x: hidden !important;
+}
+
+/* Botão "Novo Agendamento" centralizado no mobile */
+@media (max-width: 768px) {
+  .ag-new-wrapper {
+    display: flex;
+    justify-content: center;
+    max-width: 14rem;
+  }
+
+  .ag-new-btn {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    justify-content: center;
+    display: inline-flex;
+    gap: var(--spacing-2);
+  }
 }
 
 .ag-table-desktop {
@@ -76,26 +98,12 @@
    RESPONSIVIDADE
    ============================================================================ */
 
-@media (max-width: 1000px) {
+@media (max-width: 500px) {
   .ag-table-desktop {
     display: none;
   }
 
   .ag-cards-header {
     grid-template-columns: 1fr 1fr 1fr !important;
-  }
-
-  .ag-cards-header .ag-cards-header-btn-actions,
-  .ag-card-actions {
-    display: none !important;
-  }
-
-  .ag-card-detail-value .lk-btn {
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 }
