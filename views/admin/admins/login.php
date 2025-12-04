@@ -1,51 +1,51 @@
 <?php loadPageCss(); ?>
 <style>
-.field {
-    position: relative;
-}
-
-.field .toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    color: #666;
-}
-
-.field .toggle-password:focus {
-    outline: 2px solid #7aa7ff;
-    outline-offset: 2px;
-}
-
-/* Ensure room for the icon inside the input */
-.field input[type="password"],
-.field input[type="text"].is-password-visible {
-    padding-right: 40px;
-}
-
-.field .toggle-password svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-}
-
-/* Aproxima o conteúdo do topo em telas pequenas */
-@media (max-width: 768px) {
-    main.lukrato-auth {
-        align-items: flex-start;
-        padding: 18px 12px 28px;
+    .field {
+        position: relative;
     }
 
-    .login-wrapper {
-        justify-content: center;
-        margin-top: 10px;
-        gap: 16px;
+    .field .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        color: #666;
     }
-}
+
+    .field .toggle-password:focus {
+        outline: 2px solid #7aa7ff;
+        outline-offset: 2px;
+    }
+
+    /* Ensure room for the icon inside the input */
+    .field input[type="password"],
+    .field input[type="text"].is-password-visible {
+        padding-right: 40px;
+    }
+
+    .field .toggle-password svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+
+    /* Aproxima o conteúdo do topo em telas pequenas */
+    @media (max-width: 768px) {
+        main.lukrato-auth {
+            align-items: flex-start;
+            padding: 18px 12px 28px;
+        }
+
+        .login-wrapper {
+            justify-content: center;
+            margin-top: 10px;
+            gap: 16px;
+        }
+    }
 </style>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
@@ -165,6 +165,17 @@
                         <button type="submit" class="btn btn-primary "><span>Criar
                                 conta</span></button>
 
+                        <div class="auth-separator">
+                            <span>ou</span>
+                        </div>
+
+                        <div class="google-sign-in-container">
+                            <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
+                                <img ... class="google-icon">
+                                <span class="button-text">Entrar com Google</span>
+                            </a>
+                        </div>
+
                         <div id="registerGeneralError" class="msg msg-error" aria-live="polite"></div>
                         <div id="registerGeneralSuccess" class="msg msg-success" aria-live="polite"></div>
                     </form>
@@ -181,25 +192,25 @@
 <script src="<?= BASE_URL ?>/assets/js/admin-admins-login.js" defer></script>
 
 <script>
-window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
-window.LK = window.LK || {};
-window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
+    window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
+    window.LK = window.LK || {};
+    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 </script>
 <script>
-(function() {
-    function toggleVisibility(input) {
-        const isPassword = input.type === 'password';
-        input.type = isPassword ? 'text' : 'password';
-        input.classList.toggle('is-password-visible', isPassword);
-    }
+    (function() {
+        function toggleVisibility(input) {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            input.classList.toggle('is-password-visible', isPassword);
+        }
 
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.toggle-password');
-        if (!btn) return;
-        const targetId = btn.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        if (!input) return;
-        toggleVisibility(input);
-    });
-})();
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-password');
+            if (!btn) return;
+            const targetId = btn.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            toggleVisibility(input);
+        });
+    })();
 </script>
