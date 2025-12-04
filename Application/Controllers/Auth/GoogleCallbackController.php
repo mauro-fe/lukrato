@@ -4,19 +4,11 @@
 
 namespace Application\Controllers\Auth;
 
-
-
 use Application\Controllers\BaseController;
-
 use Application\Models\Usuario;
-
 use Application\Lib\Auth;
-
 use Application\Services\LogService;
-
 use Google\Service\Oauth2;
-
-
 
 class GoogleCallbackController extends BaseController
 
@@ -27,83 +19,41 @@ class GoogleCallbackController extends BaseController
     {
 
         try {
-
-            // Se já está logado, redireciona
-
             if ($this->isAuthenticated()) {
-
                 $this->redirect('dashboard');
-
                 return;
             }
-
-
-
-            // Verifica se recebeu o código de autorização
 
             $code = $this->getQuery('code');
-
             $error = $this->getQuery('error');
 
-
-
             if ($error) {
-
                 LogService::error('Erro no callback do Google - OAuth error', [
-
                     'error' => $error,
-
                     'error_description' => $this->getQuery('error_description', 'N/A')
-
                 ]);
-
                 $this->setError('Erro na autenticação com Google: ' . $error);
-
                 $this->redirect('login');
-
                 return;
             }
-
-
 
             if (!$code) {
-
                 $this->setError('Erro: Nenhum código de autorização recebido.');
-
                 $this->redirect('login');
-
                 return;
             }
-
-
-
-            // Carrega a biblioteca do Google
-
-            require_once BASE_PATH . '/vendor/autoload.php';
-
-
 
             // Cria o cliente Google
 
             $client = new \Google_Client();
 
-
-
             // Carrega as credenciais do arquivo JSON
-
             $credentialsPath = BASE_PATH . '/Application/Controllers/Auth/client_secret_2_941481750237-e5bnun64tunqirvmfa2ahs5l9cl1vf9e.apps.googleusercontent.com.json';
-
             $client->setAuthConfig($credentialsPath);
 
-
-
             // Define o URI de redirecionamento (mesmo do GoogleLoginController)
-
             $redirectUri = rtrim(BASE_URL, '/') . '/auth/google/callback';
-
             $client->setRedirectUri($redirectUri);
-
-
 
             // Log para debug
 

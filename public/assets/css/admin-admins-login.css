@@ -371,9 +371,7 @@ footer a:hover {
 @media (max-width: 992px) {
   .login-wrapper {
     flex-direction: column !important;
-    gap: 28px;
     max-width: 100%;
-    padding: 24px 16px;
   }
 
   .login-left {
@@ -398,18 +396,16 @@ footer a:hover {
   .imagem-logo img {
     width: 280px;
     max-width: 70%;
+    margin-left: 0;
   }
 
   .login-right {
     width: 100% !important;
-    justify-content: center;
-    align-items: center;
   }
 
   .card,
   .auth-tabs-card {
     width: 100% !important;
-    max-width: 550px !important;
     padding: 22px !important;
     border-radius: 18px;
   }
@@ -445,7 +441,7 @@ footer a:hover {
   }
 }
 
-.main.lukrato-auth {
+main.lukrato-auth {
   min-height: 100vh;
   padding: clamp(32px, 6vw, 48px) clamp(20px, 6vw, 52px);
   box-sizing: border-box;
@@ -492,11 +488,6 @@ footer a:hover {
     padding: 24px 16px 36px;
   }
 
-  .login-wrapper {
-    gap: 20px;
-    padding: 16px 12px;
-  }
-
   .welcome {
     margin: 8px 0 16px;
   }
@@ -524,7 +515,6 @@ footer a:hover {
 
   .card,
   .auth-tabs-card {
-    max-width: 520px !important;
     padding: 24px 20px 30px !important;
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
     border-radius: 18px;
@@ -580,7 +570,6 @@ footer a:hover {
 
   .card,
   .auth-tabs-card {
-    max-width: 480px !important;
     padding: 22px 18px 28px !important;
   }
 
