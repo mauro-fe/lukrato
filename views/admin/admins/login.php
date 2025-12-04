@@ -266,27 +266,15 @@
 
 
 
-
                         <div class="google-sign-in-container">
-
                             <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
-
-                                <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg"
-                                    alt="Google logo" class="google-icon">
-
+                                <img ... class="google-icon">
                                 <span class="button-text">Entrar com Google</span>
-
                             </a>
+                        </div>
 
-                            <div class="google-sign-in-container">
-                                <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
-                                    <img ... class="google-icon">
-                                    <span class="button-text">Entrar com Google</span>
-                                </a>
-                            </div>
-
-                            <div id="registerGeneralError" class="msg msg-error" aria-live="polite"></div>
-                            <div id="registerGeneralSuccess" class="msg msg-success" aria-live="polite"></div>
+                        <div id="registerGeneralError" class="msg msg-error" aria-live="polite"></div>
+                        <div id="registerGeneralSuccess" class="msg msg-success" aria-live="polite"></div>
                     </form>
                 </div>
             </div>

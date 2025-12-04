@@ -44,11 +44,7 @@ function registerAuthRoutes(): void
 
     Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
 
-<<<<<<< HEAD
 
-=======
-   
->>>>>>> 085245f63c7cf1eb1948e5849989bf95630479cb
 
     // Google OAuth
 
@@ -56,10 +52,6 @@ function registerAuthRoutes(): void
 
     Router::add('GET',  '/auth/google/callback', 'Auth\\GoogleCallbackController@callback');
     Router::add('GET',  '/super_admin',         'SysAdmin\\SuperAdminController@index');
-<<<<<<< HEAD
-=======
-
->>>>>>> 085245f63c7cf1eb1948e5849989bf95630479cb
 }
 
 
@@ -339,10 +331,6 @@ function registerBillingRoutes(): void
 
     Router::add('POST', '/api/webhooks/mercadopago', 'Api\\WebhookMercadoPagoController@handle');
     Router::add('POST', '/api/mercadopago/pay', 'Api\\MercadoPagoController@pay');
-<<<<<<< HEAD
-=======
-
->>>>>>> 085245f63c7cf1eb1948e5849989bf95630479cb
 }
 
 
@@ -379,8 +367,4 @@ function redirectToUserDashboard(): void
     }
 
     exit;
-<<<<<<< HEAD
-=======
-
->>>>>>> 085245f63c7cf1eb1948e5849989bf95630479cb
 }
