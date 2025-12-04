@@ -37,13 +37,15 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-    AOS.init({
-        offset: 120,
+    // Ajusta o AOS no mobile para reduzir o atraso sem desabilitar as animações.
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    const aosOptions = {
+        offset: isMobile ? 50 : 120,
         delay: 0,
-        duration: 1000,
+        duration: isMobile ? 500 : 1000,
         easing: 'ease',
-        once: false,
-        mirror: true,
+        once: true,
+        mirror: false,
         anchorPlacement: 'top-bottom',
         startEvent: 'DOMContentLoaded',
         disable: false,
@@ -53,7 +55,12 @@
         disableMutationObserver: false,
         animatedClassName: 'aos-animate',
         initClassName: 'aos-init'
-    });
+    };
+
+    AOS.init(aosOptions);
+
+    // Garante recálculo das posições após o carregamento completo no mobile.
+    window.addEventListener('load', () => AOS.refresh());
 </script>
 </body>
 

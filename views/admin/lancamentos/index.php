@@ -104,7 +104,7 @@
     </div>
 
     <!-- ==================== TABELA ==================== -->
-    <div class="container-table" data-aos="fade-up" data-aos-delay="250">
+    <div class="container-table" data-aos="fade-up">
         <div class="lan-table-container">
             <!-- DESKTOP: Tabela Tabulator -->
             <section class="table-container tab-desktop">
