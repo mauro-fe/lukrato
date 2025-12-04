@@ -32,19 +32,16 @@ if (!function_exists('csrf_token')) {
             session_start();
         }
 
-        // Cache por request para evitar múltiplas gerações no mesmo carregamento
         static $cache = [];
         if (isset($cache[$tokenId]) && is_string($cache[$tokenId]) && $cache[$tokenId] !== '') {
             return $cache[$tokenId];
         }
 
-        // Reutiliza token existente na sessão quando disponível
         if (isset($_SESSION['csrf_tokens'][$tokenId]['value']) && is_string($_SESSION['csrf_tokens'][$tokenId]['value'])) {
             $cache[$tokenId] = (string) $_SESSION['csrf_tokens'][$tokenId]['value'];
             return $cache[$tokenId];
         }
 
-        // Caso não exista, gera um novo
         $cache[$tokenId] = CsrfMiddleware::generateToken($tokenId);
         return $cache[$tokenId];
     }
@@ -55,7 +52,10 @@ if (!function_exists('csrf_input')) {
     function csrf_input(string $tokenId = 'default'): string
     {
         $token = csrf_token($tokenId);
-        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+        $tokenEsc = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
+        $idEsc = htmlspecialchars($tokenId, ENT_QUOTES, 'UTF-8');
+
+        return '<input type="hidden" name="csrf_token" data-csrf-id="' . $idEsc . '" value="' . $tokenEsc . '">';
     }
 }
 
@@ -66,7 +66,7 @@ if (!function_exists('csrf_meta')) {
         $tokenEsc = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
         $idEsc = htmlspecialchars($tokenId, ENT_QUOTES, 'UTF-8');
 
-        return '<meta name="csrf-token" content="' . $tokenEsc . '">' . PHP_EOL
+        return '<meta name="csrf-token" data-csrf-id="' . $idEsc . '" content="' . $tokenEsc . '">' . PHP_EOL
             . '<meta name="csrf-token-id" content="' . $idEsc . '">';
     }
 }
@@ -92,6 +92,8 @@ if (!function_exists('loadPageJs')) {
 
     function loadPageJs(?string $view = null): void
     {
+        static $loadedScripts = [];
+
         $view = $view ?? ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
@@ -107,7 +109,11 @@ if (!function_exists('loadPageJs')) {
         $publicRoot = __DIR__ . '/../../public/';
         foreach ($candidates as $jsPath) {
             if (file_exists($publicRoot . $jsPath)) {
+                if (in_array($jsPath, $loadedScripts, true)) {
+                    return;
+                }
                 echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
+                $loadedScripts[] = $jsPath;
                 return;
             }
         }

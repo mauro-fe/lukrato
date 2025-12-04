@@ -3,7 +3,8 @@
 /** @var array $categories */ ?>
 
 <!-- Modal: Novo Investimento (Bootstrap 5) -->
-<div class="modal fade" id="modal-investimentos" tabindex="-1" aria-labelledby="modalInvestimentosLabel" aria-hidden="true">
+<div class="modal fade" id="modal-investimentos" tabindex="-1" aria-labelledby="modalInvestimentosLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
@@ -15,24 +16,28 @@
 
             <!-- Body -->
             <div class="modal-body">
-                <form action="<?= BASE_URL ?>api/investimentos" method="POST" class="investment-form" id="form-investimento">
+                <form action="<?= BASE_URL ?>api/investimentos" method="POST" class="investment-form"
+                    id="form-investimento">
                     <!-- Linha 1 -->
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="category_id" class="form-label">Categoria <span class="text-danger">*</span></label>
+                            <label for="category_id" class="form-label">Categoria <span
+                                    class="text-danger">*</span></label>
                             <select name="categoria_id" id="category_id" class="form-select" required>
                                 <option value="">Selecione uma categoria</option>
                                 <?php foreach ($categories as $cat): ?>
-                                    <option value="<?= (int)$cat['id'] ?>">
-                                        <?= htmlspecialchars($cat['nome']) ?>
-                                    </option>
+                                <option value="<?= (int)$cat['id'] ?>">
+                                    <?= htmlspecialchars($cat['nome']) ?>
+                                </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="name" class="form-label">Nome do Ativo <span class="text-danger">*</span></label>
-                            <input type="text" name="nome" id="name" class="form-control" placeholder="Ex: Banco do Brasil" required>
+                            <label for="name" class="form-label">Nome do Ativo <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="nome" id="name" class="form-control"
+                                placeholder="Ex: Banco do Brasil" required>
                         </div>
                     </div>
 
@@ -46,20 +51,25 @@
 
                         <div class="col-md-6">
                             <label for="purchase_date" class="form-label">Data da Compra</label>
-                            <input type="date" name="data_compra" id="purchase_date" class="form-control" value="<?= date('Y-m-d') ?>">
+                            <input type="date" name="data_compra" id="purchase_date" class="form-control"
+                                value="<?= date('Y-m-d') ?>">
                         </div>
                     </div>
 
                     <!-- Linha 3 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
-                            <label for="quantity" class="form-label">Quantidade <span class="text-danger">*</span></label>
-                            <input type="number" name="quantidade" id="quantity" class="form-control" step="0.0001" placeholder="0.00" required>
+                            <label for="quantity" class="form-label">Quantidade <span
+                                    class="text-danger">*</span></label>
+                            <input type="number" name="quantidade" id="quantity" class="form-control" step="0.0001"
+                                placeholder="0.00" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="avg_price" class="form-label">Preço Médio <span class="text-danger">*</span></label>
-                            <input type="number" name="preco_medio" id="avg_price" class="form-control" step="0.01" placeholder="0.00" required>
+                            <label for="avg_price" class="form-label">Preço Médio <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="preco_medio" id="avg_price" class="form-control real" step="0.01"
+                                placeholder="0.00" required>
                         </div>
                     </div>
 
@@ -67,7 +77,8 @@
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="current_price" class="form-label">Preço Atual</label>
-                            <input type="number" name="preco_atual" id="current_price" class="form-control" step="0.01" placeholder="0.00">
+                            <input type="text" name="preco_atual" id="current_price" class="form-control real"
+                                step="0.01" placeholder="0.00">
                             <div class="form-text">Deixe em branco para usar o preço médio</div>
                         </div>
 
@@ -75,7 +86,8 @@
                             <label for="total_invested" class="form-label">Valor Total Investido</label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
-                                <input type="text" id="total_invested" class="form-control fw-semibold" readonly placeholder="0,00">
+                                <input type="text" id="total_invested" class="form-control fw-semibold  real" readonly
+                                    placeholder="0,00">
                             </div>
                         </div>
                     </div>
@@ -83,7 +95,8 @@
                     <!-- Observações -->
                     <div class="mt-3" style="display:none">
                         <label for="notes" class="form-label">Observações</label>
-                        <textarea name="observacoes" id="notes" class="form-control" rows="4" placeholder="Adicione observações..."></textarea>
+                        <textarea name="observacoes" id="notes" class="form-control" rows="4"
+                            placeholder="Adicione observações..."></textarea>
                     </div>
                 </form>
             </div>
@@ -101,33 +114,90 @@
 </div>
 
 <script>
-    // --- Cálculo de total investido (Qtd * Preço Médio) ---
-    (() => {
-        const quantityInput = document.getElementById('quantity');
-        const avgPriceInput = document.getElementById('avg_price');
-        const totalInvestedInput = document.getElementById('total_invested');
-        const form = document.getElementById('form-investimento');
+// --- C�lculo de total investido (Qtd * Pre�o M�dio) ---
+(function() {
+    const quantityInput = document.getElementById('quantity');
+    const avgPriceInput = document.getElementById('avg_price');
+    const totalInvestedInput = document.getElementById('total_invested');
+    const form = document.getElementById('form-investimento');
+    const currentPriceInput = document.getElementById('current_price');
+    const modalEl = document.getElementById('modal-investimentos');
 
-        function calculateTotal() {
-            const quantity = parseFloat(quantityInput.value) || 0;
-            const avgPrice = parseFloat(avgPriceInput.value) || 0;
-            const total = quantity * avgPrice;
+    if (!quantityInput || !avgPriceInput || !totalInvestedInput || !form) {
+        return;
+    }
 
-            // Formata como 0,00 (pt-BR) sem prefixo (o prefixo "R$" está no input-group-text)
-            totalInvestedInput.value = total.toFixed(2).replace('.', ',');
+    const parseMoney = (value) => {
+        if (!value) return 0;
+        const clean = String(value)
+            .replace(/[^\d,-]/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.');
+        const num = parseFloat(clean);
+        return Number.isFinite(num) ? num : 0;
+    };
+
+    const formatMoney = (value) => {
+        try {
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        } catch {
+            return (value || 0).toFixed(2).replace('.', ',');
         }
+    };
 
-        quantityInput.addEventListener('input', calculateTotal);
-        avgPriceInput.addEventListener('input', calculateTotal);
+    function calculateTotal() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const avgPrice = parseMoney(avgPriceInput.value);
+        const total = quantity * avgPrice;
+        totalInvestedInput.value = formatMoney(total);
+    }
 
-        // Se preço atual vier vazio, usa preço médio
-        form.addEventListener('submit', function() {
-            const currentPrice = document.getElementById('current_price');
-            if (!currentPrice.value) currentPrice.value = avgPriceInput.value || '';
-        });
+    const sanitizeCurrencyInput = (input) => {
+        if (!input) return;
+        const raw = String(input.value || '').trim();
+        if (!raw) {
+            input.value = '';
+            return;
+        }
+        const numeric = parseMoney(raw);
+        input.value = numeric.toFixed(2);
+    };
 
-        // Opcional: recalcula quando o modal abrir (útil se valores vierem preenchidos)
-        const modalEl = document.getElementById('modal-investimentos');
+    quantityInput.addEventListener('input', calculateTotal);
+    avgPriceInput.addEventListener('input', calculateTotal);
+
+    form.addEventListener('submit', function() {
+        if (currentPriceInput && !currentPriceInput.value.trim()) {
+            currentPriceInput.value = avgPriceInput.value || '';
+        }
+        sanitizeCurrencyInput(avgPriceInput);
+        sanitizeCurrencyInput(currentPriceInput);
+    });
+
+    if (modalEl) {
         modalEl.addEventListener('shown.bs.modal', calculateTotal);
-    })();
+    }
+
+    calculateTotal();
+})();
 </script>
+
+<script>
+function formatarReal(valor) {
+    valor = valor.replace(/\D/g, "");
+    valor = (valor / 100).toFixed(2) + "";
+    valor = valor.replace(".", ",");
+    valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return valor;
+}
+
+document.querySelectorAll(".real").forEach(function(input) {
+    input.addEventListener("input", function() {
+        this.value = "R$ " + formatarReal(this.value);
+    });
+});
+</script>
+

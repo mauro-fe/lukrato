@@ -6,11 +6,17 @@ use Application\Controllers\BaseController;
 
 class DashboardController extends BaseController
 {
-    public function dashboard()
+
+    public function dashboard(): void
     {
+        $data = [
+            'pageTitle' => 'Dashboard',
+            'subTitle' => 'Controle Financeiro'
+        ];
+
         $this->render(
             'admin/dashboard/index',
-            ['pageTitle' => 'Dashboard', 'subTitle' => 'Controle de Financeiro'],
+            $data,
             'admin/partials/header',
             'admin/partials/footer'
         );

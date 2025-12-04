@@ -165,22 +165,6 @@
   transform: translateY(-1px);
 }
 
-.btn-primary {
-  background: var(--laranja);
-  color: var(--branco);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-primary:hover {
-  background: #d35400;
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
 /* Password Grid */
 .password-grid {
   display: grid;

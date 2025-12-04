@@ -1,14 +1,9 @@
 <?php loadPageCss(); ?>
 
 <style>
-
     .field {
-
         position: relative;
-
     }
-
-
 
     .field .toggle-password {
 
@@ -32,17 +27,10 @@
 
     }
 
-
-
     .field .toggle-password:focus {
-
         outline: 2px solid #7aa7ff;
-
         outline-offset: 2px;
-
     }
-
-
 
     /* Ensure room for the icon inside the input */
 
@@ -54,19 +42,29 @@
 
     }
 
-
-
     .field .toggle-password svg {
-
         width: 20px;
-
         height: 20px;
-
         display: block;
-
     }
 
+    /* Aproxima o conteúdo do topo em telas pequenas */
+    @media (max-width: 768px) {
+        main.lukrato-auth {
+            align-items: flex-start;
+            padding: 18px 12px 28px;
+        }
+
+        .login-wrapper {
+            justify-content: center;
+            margin-top: 10px;
+            gap: 16px;
+        }
+    }
 </style>
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/main-styles.css">
 
 
 
@@ -133,59 +131,24 @@
 
 
                         <div class="field">
-
-                            <input type="email" id="email" name="email" placeholder="E-mail" autocomplete="email"
-
-                                required />
-
-                            <small class="field-error" id="emailError"></small>
-
-                        </div>
-
-
-
-                        <div class="field">
-
                             <input type="password" id="password" name="password" placeholder="Senha"
-
                                 autocomplete="current-password" required>
-
-                            <button type="button" class="toggle-password" aria-label="Mostrar senha" data-target="password" title="Mostrar/ocultar senha">
-
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-
+                            <button type="button" class="toggle-password" aria-label="Mostrar senha"
+                                data-target="password" title="Mostrar/ocultar senha">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-
                                     <circle cx="12" cy="12" r="3" />
-
                                 </svg>
-
                             </button>
-
                             <small class="field-error" id="passwordError"></small>
-
                         </div>
 
+                        <button type="submit" id="submitBtn" class="btn btn-primary ">
+                            <span">Entrar</span>
+                        </button>
 
-
-                        <button type="submit" id="submitBtn" class="btn-primary"><span
-
-                                class="btn-text">Entrar</span></button>
-
-                        
-                        <div class="auth-separator">
-                            <span>ou</span>
-                        </div>
-
-                        <div class="google-sign-in-container">
-                            <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
-                                <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google logo" class="google-icon">
-                                <span class="button-text">Entrar com Google</span>
-                            </a>
-                        </div>
-
-                        <p class="extra-link">
-
+                        <p class=" extra-link">
                             <a href="<?= BASE_URL ?>recuperar-senha">Esqueceu a senha?</a>
 
                         </p>
@@ -193,9 +156,8 @@
 
 
                         <div id="generalError" class="msg msg-error general-message" aria-live="polite"></div>
-
-                        <div id="generalSuccess" class="msg msg-success general-message" aria-live="polite"></div>
-
+                        <div id="generalSuccess" class="msg msg-success general-message" aria-live="polite">
+                        </div>
                     </form>
 
                 </div>
@@ -217,7 +179,6 @@
                         <div class="field">
 
                             <input type="text" id="name" name="name" placeholder="Nome completo" autocomplete="name"
-
                                 required />
 
                             <small class="field-error" id="nameError"></small>
@@ -229,7 +190,6 @@
                         <div class="field">
 
                             <input type="email" id="reg_email" name="email" placeholder="E-mail" autocomplete="email"
-
                                 required />
 
                             <small class="field-error" id="regEmailError"></small>
@@ -241,22 +201,29 @@
                         <div class="field">
 
                             <input type="password" id="reg_password" name="password" placeholder="Senha"
-
                                 autocomplete="new-password" required />
 
-                            <button type="button" class="toggle-password" aria-label="Mostrar senha" data-target="reg_password" title="Mostrar/ocultar senha">
+                            <button type="button" class="toggle-password" aria-label="Mostrar senha"
+                                data-target="reg_password" title="Mostrar/ocultar senha">
 
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 
                                     <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
 
                                     <circle cx="12" cy="12" r="3" />
 
-                                </svg>
+                                    <button type="button" class="toggle-password" aria-label="Mostrar senha"
+                                        data-target="reg_password" title="Mostrar/ocultar senha">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
 
-                            </button>
+                                    </button>
 
-                            <small class="field-error" id="regPasswordError"></small>
+                                    <small class="field-error" id="regPasswordError"></small>
 
                         </div>
 
@@ -265,28 +232,45 @@
                         <div class="field">
 
                             <input type="password" id="reg_password_confirm" name="password_confirmation"
-
                                 placeholder="Confirmar senha" autocomplete="new-password" required />
 
-                            <button type="button" class="toggle-password" aria-label="Mostrar senha" data-target="reg_password_confirm" title="Mostrar/ocultar senha">
+                            <button type="button" class="toggle-password" aria-label="Mostrar senha"
+                                data-target="reg_password_confirm" title="Mostrar/ocultar senha">
 
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 
                                     <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
 
                                     <circle cx="12" cy="12" r="3" />
 
-                                </svg>
+                                    <button type="button" class="toggle-password" aria-label="Mostrar senha"
+                                        data-target="reg_password_confirm" title="Mostrar/ocultar senha">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
 
-                            </button>
+                                    </button>
 
-                            <small class="field-error" id="regPasswordConfirmError"></small>
+                                    <small class="field-error" id="regPasswordConfirmError"></small>
 
                         </div>
 
+                        <button type="submit" class="btn btn-primary "><span>Criar
+                                conta</span></button>
 
+                        <div class="auth-separator">
+                            <span>ou</span>
+                        </div>
 
-                        <button type="submit" class="btn-primary"><span class="btn-text">Criar conta</span></button>
+                        <div class="google-sign-in-container">
+                            <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
+                                <img ... class="google-icon">
+                                <span class="button-text">Entrar com Google</span>
+                            </a>
+                        </div>
 
 
 
@@ -302,7 +286,8 @@
 
                             <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
 
-                                <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google logo" class="google-icon">
+                                <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg"
+                                    alt="Google logo" class="google-icon">
 
                                 <span class="button-text">Entrar com Google</span>
 
@@ -336,18 +321,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
 <script src="<?= BASE_URL ?>/assets/js/admin-admins-login.js" defer></script>
 
 
 
 <script>
-
     window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
 
+    window.LK = window.LK || {};
+    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 </script>
 
 <script>
-
     (function() {
 
         function toggleVisibility(input) {
@@ -379,5 +365,4 @@
         });
 
     })();
-
 </script>

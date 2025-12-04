@@ -9,12 +9,12 @@ class Agendamento extends Model
     protected $table = 'agendamentos';
 
     protected $fillable = [
-        'user_id',                 // <— trocado
+        'user_id',
         'conta_id',
         'categoria_id',
         'titulo',
         'descricao',
-        'tipo',                    // 'despesa' | 'receita'
+        'tipo',
         'valor_centavos',
         'moeda',
         'data_pagamento',

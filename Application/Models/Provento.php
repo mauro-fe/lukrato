@@ -9,11 +9,11 @@ class Provento extends Model
     protected $table = 'proventos';
 
     protected $fillable = [
-        'investimento_id',   // FK investimento
-        'valor',             // valor recebido
-        'tipo',              // dividendo | jcp | rendimento
-        'data_pagamento',    // data de recebimento
-        'observacoes',       // notas
+        'investimento_id',
+        'valor',
+        'tipo',
+        'data_pagamento',
+        'observacoes',
     ];
 
     protected $casts = [
@@ -21,7 +21,6 @@ class Provento extends Model
         'data_pagamento' => 'date',
     ];
 
-    /** RELACIONAMENTO */
     public function investimento()
     {
         return $this->belongsTo(Investimento::class, 'investimento_id');

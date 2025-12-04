@@ -5,8 +5,8 @@
   "require": {
     "php": "^8.0",
     "cocur/slugify": "4.6.0",
-    "dompdf/dompdf": "^2.0",
     "google/apiclient": "^2.18",
+    "dompdf/dompdf": "^3.1",
     "illuminate/database": "^11.0",
     "illuminate/events": "^11.0",
     "laravel/serializable-closure": "^2.0",
@@ -15,6 +15,7 @@
     "nesbot/carbon": "^3.10.1",
     "pagarme/pagarme-php": "^4.4",
     "phpmailer/phpmailer": "^6.9",
+    "phpoffice/phpspreadsheet": "^5.3",
     "predis/predis": "^1.1",
     "tecnickcom/tcpdf": "*",
     "vlucas/phpdotenv": "*",
@@ -30,7 +31,7 @@
       "App\\": "Application/"
     },
     "files": [
-      "Application/Lib/helpers_global.php"
+      "Application/Lib/Helpers_global.php"
     ]
   },
   "autoload-dev": {

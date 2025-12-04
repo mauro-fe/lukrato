@@ -6,7 +6,6 @@ use Application\Models\Agendamento;
 use Application\Models\Usuario;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-// use Application\Services\LogService;
 
 class MailService
 {

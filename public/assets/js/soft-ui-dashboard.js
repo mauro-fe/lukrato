@@ -446,9 +446,18 @@ setTimeout(function () {
 
 window.addEventListener('resize', function (event) {
   total.forEach(function (item, i) {
-    item.querySelector('.moving-tab').remove();
+    var currentMovingTab = item.querySelector('.moving-tab');
+    if (currentMovingTab) {
+      currentMovingTab.remove();
+    }
+
+    var activeLink = item.querySelector(".nav-link.active");
+    if (!activeLink) {
+      return;
+    }
+
     var moving_div = document.createElement('div');
-    var tab = item.querySelector(".nav-link.active").cloneNode();
+    var tab = activeLink.cloneNode();
     tab.innerHTML = "-";
 
     moving_div.classList.add('moving-tab', 'position-absolute', 'nav-link');
@@ -459,7 +468,7 @@ window.addEventListener('resize', function (event) {
     moving_div.style.padding = '0px';
     moving_div.style.transition = '.5s ease';
 
-    let li = item.querySelector(".nav-link.active").parentElement;
+    let li = activeLink.parentElement;
 
     if (li) {
       let nodes = Array.from(li.closest('ul').children); // get array
@@ -489,16 +498,19 @@ window.addEventListener('resize', function (event) {
       if (!item.classList.contains('flex-column')) {
         item.classList.remove('flex-row');
         item.classList.add('flex-column', 'on-resize');
-        let li = item.querySelector(".nav-link.active").parentElement;
+        let li = item.querySelector(".nav-link.active")?.parentElement;
+        if (!li) return;
         let nodes = Array.from(li.closest('ul').children); // get array
         let index = nodes.indexOf(li) + 1;
         let sum = 0;
         for (var j = 1; j <= nodes.indexOf(li); j++) {
           sum += item.querySelector('li:nth-child(' + j + ')').offsetHeight;
         }
-        var moving_div = document.querySelector('.moving-tab');
-        moving_div.style.width = item.querySelector('li:nth-child(1)').offsetWidth + 'px';
-        moving_div.style.transform = 'translate3d(0px,' + sum + 'px, 0px)';
+        var moving_div = item.querySelector('.moving-tab');
+        if (moving_div) {
+          moving_div.style.width = item.querySelector('li:nth-child(1)').offsetWidth + 'px';
+          moving_div.style.transform = 'translate3d(0px,' + sum + 'px, 0px)';
+        }
 
       }
     });
@@ -507,16 +519,19 @@ window.addEventListener('resize', function (event) {
       if (item.classList.contains('on-resize')) {
         item.classList.remove('flex-column', 'on-resize');
         item.classList.add('flex-row');
-        let li = item.querySelector(".nav-link.active").parentElement;
+        let li = item.querySelector(".nav-link.active")?.parentElement;
+        if (!li) return;
         let nodes = Array.from(li.closest('ul').children); // get array
         let index = nodes.indexOf(li) + 1;
         let sum = 0;
         for (var j = 1; j <= nodes.indexOf(li); j++) {
           sum += item.querySelector('li:nth-child(' + j + ')').offsetWidth;
         }
-        var moving_div = document.querySelector('.moving-tab');
-        moving_div.style.transform = 'translate3d(' + sum + 'px, 0px, 0px)';
-        moving_div.style.width = item.querySelector('li:nth-child(' + index + ')').offsetWidth + 'px';
+        var moving_div = item.querySelector('.moving-tab');
+        if (moving_div) {
+          moving_div.style.transform = 'translate3d(' + sum + 'px, 0px, 0px)';
+          moving_div.style.width = item.querySelector('li:nth-child(' + index + ')').offsetWidth + 'px';
+        }
       }
     })
   }
@@ -581,7 +596,9 @@ window.onload = function () {
       rippleDiv.style.top = (e.offsetY - rippleDiv.offsetHeight / 2) + 'px';
       rippleDiv.classList.add('ripple');
       setTimeout(function () {
-        rippleDiv.parentElement.removeChild(rippleDiv);
+        if (rippleDiv.parentElement) {
+          rippleDiv.parentElement.removeChild(rippleDiv);
+        }
       }, 600);
     }, false);
   }

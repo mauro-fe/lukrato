@@ -36,13 +36,15 @@ main.lukrato-auth {
   align-items: center;
   padding-block: 40px;
   border-radius: 0 !important;
-  background: radial-gradient(1200px 800px at -10% -10%,
-      #1b3145 0%,
-      var(--bg-2) 40%,
-      var(--bg-1) 100%);
+  background: radial-gradient(
+    1200px 800px at -10% -10%,
+    #1b3145 0%,
+    var(--bg-2) 40%,
+    var(--bg-1) 100%
+  );
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu,
-    "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    "Helveti   Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
 }
 
 /* Grid principal */
@@ -83,6 +85,7 @@ main.lukrato-auth {
   max-width: 100%;
   height: auto;
   object-fit: contain;
+  margin-left: 80px;
 }
 
 .welcome {
@@ -250,7 +253,7 @@ main.lukrato-auth {
 
 .auth-separator::before,
 .auth-separator::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid var(--border);
 }
@@ -273,16 +276,17 @@ main.lukrato-auth {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background-color: #FFFFFF !important;
-  border: 1px solid #DADCE0 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #dadce0 !important;
   border-radius: 14px !important;
   padding: 15px 16px !important;
   text-decoration: none !important;
-  color: #3C4043 !important;
+  color: #3c4043 !important;
   font-size: 18px !important;
   font-weight: 800 !important;
   letter-spacing: 0.2px !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+    background-color 0.25s ease, border-color 0.25s ease !important;
   box-shadow: 0 14px 30px rgba(255, 255, 255, 0.28) !important;
   cursor: pointer !important;
   box-sizing: border-box !important;
@@ -291,15 +295,15 @@ main.lukrato-auth {
 
 .google-sign-in-button:hover {
   transform: translateY(-1px) !important;
-  background-color: #F8F9FA !important;
-  border-color: #C1C1C1 !important;
+  background-color: #f8f9fa !important;
+  border-color: #c1c1c1 !important;
   box-shadow: 0 18px 34px rgba(0, 0, 0, 0.36) !important;
 }
 
 .google-sign-in-button:active {
   transform: translateY(0) !important;
-  background-color: #E8EAED !important;
-  border-color: #BDBDBD !important;
+  background-color: #e8eaed !important;
+  border-color: #bdbdbd !important;
   box-shadow: 0 10px 20px rgba(73, 73, 73, 0.2) !important;
 }
 
@@ -382,16 +386,17 @@ footer a:hover {
   }
 
   .welcome h2 {
-    font-size: 28px;
+    font-size: 35px;
   }
 
   .welcome p {
     margin-inline: auto;
     padding: 0 6px;
+    font-size: 20px;
   }
 
   .imagem-logo img {
-    width: 150px;
+    width: 280px;
     max-width: 70%;
   }
 
@@ -404,13 +409,13 @@ footer a:hover {
   .card,
   .auth-tabs-card {
     width: 100% !important;
-    max-width: 420px !important;
-    padding: 20px !important;
-    border-radius: 16px;
+    max-width: 550px !important;
+    padding: 22px !important;
+    border-radius: 18px;
   }
 
   .card-title {
-    font-size: 24px;
+    font-size: 26px;
   }
 
   .field {
@@ -418,13 +423,14 @@ footer a:hover {
   }
 
   .field input {
-    padding: 14px 12px;
+    padding: 15px 13px;
     border-radius: 12px;
+    font-size: 16px;
   }
 
   .btn-primary {
-    padding: 14px;
-    font-size: 16px;
+    padding: 15px;
+    font-size: 17px;
     border-radius: 12px;
   }
 
@@ -437,7 +443,9 @@ footer a:hover {
     font-size: 16px !important;
     border-radius: 12px !important;
   }
-}\r\n\r\nmain.lukrato-auth {
+}
+
+.main.lukrato-auth {
   min-height: 100vh;
   padding: clamp(32px, 6vw, 48px) clamp(20px, 6vw, 52px);
   box-sizing: border-box;
@@ -494,7 +502,7 @@ footer a:hover {
   }
 
   .welcome h2 {
-    font-size: 26px;
+    font-size: 32px;
   }
 
   .tabs {
@@ -505,8 +513,9 @@ footer a:hover {
 
   .tab-btn {
     width: 100%;
-    padding: 14px 12px;
+    padding: 15px 12px;
     text-align: center;
+    font-size: 16px;
   }
 
   .tab-panel {
@@ -515,22 +524,33 @@ footer a:hover {
 
   .card,
   .auth-tabs-card {
-    max-width: 460px !important;
-    padding: 20px 18px 26px !important;
+    max-width: 520px !important;
+    padding: 24px 20px 30px !important;
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+    border-radius: 18px;
   }
 
   .field {
-    margin: 10px 0;
+    margin: 12px 0;
   }
 
   .field input {
-    padding: 13px 12px;
+    padding: 15px 13px;
+    font-size: 16px;
   }
 
   .btn-primary {
-    padding: 13px;
-    font-size: 16px;
+    padding: 15px;
+    font-size: 17px;
+  }
+
+  .welcome p {
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .imagem-logo img {
+    width: 210px;
   }
 
   .google-sign-in-button {
@@ -545,37 +565,37 @@ footer a:hover {
   }
 
   .imagem-logo img {
-    width: 140px;
+    width: 150px;
   }
 
   .welcome h2 {
-    font-size: 24px;
+    font-size: 30px;
   }
 
   .welcome p {
-    font-size: 15px;
-    line-height: 1.5;
-    padding: 0 4px;
+    font-size: 16.5px;
+    line-height: 1.65;
+    padding: 0 6px;
   }
 
   .card,
   .auth-tabs-card {
-    max-width: 360px !important;
-    padding: 18px 16px 24px !important;
+    max-width: 480px !important;
+    padding: 22px 18px 28px !important;
   }
 
   .card-title {
-    font-size: 22px;
+    font-size: 25px;
   }
 
   .field input {
-    padding: 12px 11px;
-    font-size: 15px;
+    padding: 15px 12px;
+    font-size: 16.5px;
   }
 
   .btn-primary {
-    padding: 12px;
-    font-size: 15px;
+    padding: 15px;
+    font-size: 17px;
   }
 
   .google-sign-in-button {
@@ -596,7 +616,7 @@ footer a:hover {
   }
 
   .welcome h2 {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .tabs {
@@ -604,7 +624,7 @@ footer a:hover {
   }
 
   .tab-btn {
-    font-size: 14px;
+    font-size: 16px;
     padding-block: 12px;
   }
 }

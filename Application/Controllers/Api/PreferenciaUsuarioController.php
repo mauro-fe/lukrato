@@ -3,10 +3,38 @@
 namespace Application\Controllers\Api;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
 use Application\Models\Usuario;
+use Application\Services\LogService; 
+use Throwable;
+
+enum ThemePreference: string
+{
+    case LIGHT = 'light';
+    case DARK = 'dark';
+    case SYSTEM = 'system';
+}
 
 class PreferenciaUsuarioController extends BaseController
 {
+  
+    private function getPayloadValue(string $key): mixed
+    {
+        $value = $this->getPost($key);
+        if ($value !== null) {
+            return $value;
+        }
+
+        $raw = file_get_contents('php://input') ?: '';
+        if ($raw !== '') {
+            $json = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && isset($json[$key])) {
+                return $json[$key];
+            }
+        }
+        return null;
+    }
+
     public function show(): void
     {
         try {
@@ -14,66 +42,58 @@ class PreferenciaUsuarioController extends BaseController
 
             $user = Usuario::find($this->userId);
             if (!$user) {
-                $this->response->jsonBody(['error' => 'Usuário não encontrado.'], 404)->send();
+                Response::error('Usuário não encontrado.', 404);
                 return;
             }
 
-            $this->response->jsonBody([
-                'theme' => $user->theme_preference ?? 'system',
-            ])->send();
-        } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Falha ao buscar preferência de tema.', 500);
+            $theme = ThemePreference::tryFrom($user->theme_preference ?? '') ?? ThemePreference::SYSTEM;
+
+            Response::success([
+                'theme' => $theme->value,
+            ]);
+        } catch (Throwable $e) {
+            LogService::error('Falha ao buscar preferência de tema', ['exception' => $e->getMessage()]);
+            Response::error('Falha ao buscar preferência de tema.', 500);
         }
     }
 
     public function update(): void
     {
+        $themeInput = null;
         try {
             $this->requireAuth();
 
-            $theme = $this->getPost('theme');
+            $themeInput = $this->getPayloadValue('theme');
+            $themeInput = is_string($themeInput) ? strtolower(trim($themeInput)) : null;
+
+            $theme = ThemePreference::tryFrom($themeInput ?? '');
+
             if ($theme === null) {
-                $raw = file_get_contents('php://input') ?: '';
-                if ($raw !== '') {
-                    $json = json_decode($raw, true);
-                    if (json_last_error() === JSON_ERROR_NONE && isset($json['theme'])) {
-                        $theme = $json['theme'];
-                    }
-                }
-            }
-
-            $theme = is_string($theme) ? strtolower(trim($theme)) : null;
-
-            $allowed = ['light', 'dark', 'system'];
-            if (!in_array($theme, $allowed, true)) {
-                $this->response->jsonBody([
-                    'error'  => 'Validação falhou.',
-                    'fields' => ['theme' => 'Deve ser: light, dark ou system.'],
-                ], 422)->send();
+                Response::validationError([
+                    'theme' => 'Deve ser: light, dark ou system.'
+                ]);
                 return;
             }
-
 
             $user = Usuario::find($this->userId);
             if (!$user) {
-                $this->response->jsonBody(['error' => 'Usuário não encontrado.'], 404)->send();
+                Response::error('Usuário não encontrado.', 404);
                 return;
             }
 
-            $user->theme_preference = $theme;
+            $user->theme_preference = $theme->value;
             $user->save();
 
-            $this->response->jsonBody([
+            Response::success([
                 'message' => 'Preferência de tema atualizada.',
                 'theme'   => $user->theme_preference,
-            ])->send();
-        } catch (\Throwable $e) {
-            $this->failAndLog(
-                $e,
-                'Falha ao salvar preferência de tema.',
-                500,
-                ['payload' => ['theme' => $theme ?? null]]
-            );
+            ]);
+        } catch (Throwable $e) {
+            LogService::error('Falha ao salvar preferência de tema', [
+                'exception' => $e->getMessage(),
+                'payload' => ['theme' => $themeInput]
+            ]);
+            Response::error('Falha ao salvar preferência.', 500);
         }
     }
 }

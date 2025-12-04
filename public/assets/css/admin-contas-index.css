@@ -1,10 +1,94 @@
+/**
+ * ============================================================================
+ * SISTEMA DE CONTAS - ESTILOS
+ * ============================================================================
+ * Estilos para a página de gerenciamento de contas bancárias
+ * ============================================================================
+ */
+
+/* ============================================================================
+   LAYOUT PRINCIPAL
+   ============================================================================ */
+
 .cont-page {
   display: flex;
   flex-direction: column;
-  margin-top: 20px;
+  margin-top: var(--spacing-5);
+  padding: 0 var(--spacing-4);
 }
 
-/* ===== Accounts (usando tokens de tema) ===== */
+/* ============================================================================
+   ESTATÍSTICAS
+   ============================================================================ */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-8);
+}
+
+.stat-card {
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--glass-border);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s !important;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary));
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-3);
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-2);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   CONTAINER DE CONTAS
+   ============================================================================ */
 
 .lk-accounts-wrap {
   background: var(--glass-bg);
@@ -13,14 +97,15 @@
   padding: var(--spacing-8);
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--glass-border);
-  margin-bottom: 50px;
+  margin-bottom: var(--spacing-10);
+  transition: var(--transition-smooth);
 }
 
 .lk-accounts-wrap:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-2xl);
 }
 
+/* Header */
 .lk-acc-header {
   display: flex;
   align-items: center;
@@ -30,131 +115,302 @@
   flex-wrap: wrap;
 }
 
-.lk-acc-title {
-  font-size: var(--font-size-3xl);
-  color: var(--color-text);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 .lk-acc-actions {
   display: flex;
   gap: var(--spacing-3);
-  flex-wrap: wrap;
 }
 
+/* Card container */
 .lk-card {
   border-radius: var(--radius-lg);
   padding: 0;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   background: var(--color-bg);
   border: 1px solid var(--glass-border);
 }
 
-.lk-table {
-  width: 100%;
-  border-collapse: collapse;
+/* ============================================================================
+   GRID DE CONTAS
+   ============================================================================ */
+
+.acc-grid {
+  display: grid;
+  gap: var(--spacing-5);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  padding: var(--spacing-4);
+}
+
+/* ============================================================================
+   CARD DE CONTA
+   ============================================================================ */
+
+.acc-card {
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  background: var(--color-btn);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  transition: all 0.5s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.acc-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary));
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.acc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+.acc-card:hover::before {
+  opacity: 1;
+}
+
+/* Header do card */
+.acc-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.acc-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+}
+
+.acc-dot {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.acc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.acc-name {
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acc-sub {
+  opacity: 0.7;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: var(--spacing-1);
+}
+
+/* Badge de status */
+.acc-badge {
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  white-space: nowrap;
+}
+
+.acc-badge.active {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
+}
+
+.acc-badge.inactive {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
+
+/* Saldo */
+.acc-balance {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: var(--spacing-2) 0;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+}
+
+.acc-balance.positive {
   color: var(--color-text);
 }
 
-.lk-table th,
-.lk-table td {
-  padding: var(--spacing-4) var(--spacing-5);
-  border-bottom: 1px solid var(--glass-border);
-  text-align: left;
+.acc-balance.negative {
+  color: var(--color-danger);
 }
 
-.lk-table th {
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
+.acc-currency {
+  opacity: 0.75;
+  font-size: var(--font-size-base);
+  font-weight: 600;
 }
 
-.lk-table tbody tr {
-  transition: transform var(--transition-fast);
+/* Ações */
+.acc-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.lk-table tbody tr:hover {
-  transform: translateX(2px);
+.acc-actions-btn {
+  display: flex;
+  gap: var(--spacing-2);
+  flex: 1 1 auto;
 }
+
+.acc-actions-btn .btn {
+  flex: 1 1 50%;
+}
+
+.acc-actions .btn {
+  flex: 1;
+  min-width: fit-content;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-primary);
+}
+
+/* ============================================================================
+   SKELETON LOADER
+   ============================================================================ */
+
+.acc-skeleton {
+  height: 200px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-muted) 25%,
+    color-mix(in srgb, var(--color-surface-muted) 80%, #fff) 37%,
+    var(--color-surface-muted) 63%
+  );
+  background-size: 400% 100%;
+  animation: accShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes accShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* ============================================================================
+   ESTADOS VAZIOS E ERROS
+   ============================================================================ */
 
 .lk-empty {
-  padding: var(--spacing-12);
+  grid-column: 1 / -1;
+  padding: var(--spacing-12) var(--spacing-6);
   text-align: center;
   color: var(--color-text-muted);
   font-style: italic;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
 }
 
-/* ===== Buttons ===== */
+.lk-empty i {
+  font-size: 3rem;
+  opacity: 0.3;
+  color: var(--color-text-muted);
+}
+
+.lk-error {
+  color: var(--color-danger);
+}
+
+/* ============================================================================
+   BOTÕES
+   ============================================================================ */
 
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
   border: none;
   border-radius: var(--radius-md);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-5);
   cursor: pointer;
   font-weight: 600;
   text-decoration: none;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast), background var(--transition-fast);
+  transition: all var(--transition-fast);
   font-size: var(--font-size-sm);
+  white-space: nowrap;
 }
 
-.btn-primary {
-  /* gradiente baseado na cor primária */
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 85%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 65%, #000 20%)
-  );
-  color: var(--color-text) !important;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 90%, #000 0%),
-    color-mix(in srgb, var(--color-primary) 75%, #000 15%)
-  );
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-light {
   background: var(--color-bg);
   color: var(--color-text);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-primary) !important;
+  transition: all 0.5s !important;
 }
 
 .btn-light:hover {
-  background: color-mix(in srgb, var(--color-bg) 90%, #000 10%);
-}
-
-.btn-danger {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 85%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 65%, #000 20%)
-  );
-  color: var(--color-surface);
-}
-
-.btn-danger:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 95%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 75%, #000 15%)
-  );
+  background: var(--color-primary) !important;
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--glass-border) 80%, var(--color-text));
 }
 
 .btn-ghost {
   background: transparent;
   color: var(--color-text-muted);
   border: 1px solid var(--glass-border);
+  transition: all 0.5s !important;
 }
 
 .btn-ghost:hover {
   background: var(--glass-bg);
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .btn-sm {
@@ -162,42 +418,75 @@
   font-size: var(--font-size-xs);
 }
 
-/* ===== Tags ===== */
-.tag {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-surface);
+/* ============================================================================
+   MODAIS
+   ============================================================================ */
+
+.lk-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  padding: var(--spacing-4);
 }
 
-.tag.active {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-success) 85%, #000 0%),
-    color-mix(in srgb, var(--color-success) 65%, #000 20%)
-  );
+.lk-modal.open {
+  display: flex;
 }
 
-.tag.inactive {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-danger) 85%, #000 0%),
-    color-mix(in srgb, var(--color-danger) 65%, #000 20%)
-  );
+.lk-modal-card {
+  width: 100%;
+  max-width: 600px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-2xl);
+  animation: slideUp 0.3s ease-out;
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-/* ===== Form ===== */
+.lk-modal-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-modal-t {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-modal-f {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ============================================================================
+   FORMULÁRIOS
+   ============================================================================ */
+
 .lk-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-4);
+  gap: var(--spacing-5);
 }
 
 .lk-form-grid .full {
-  grid-column: 1/-1;
+  grid-column: 1 / -1;
 }
 
 .lk-field {
@@ -221,7 +510,6 @@
   transition: all var(--transition-fast);
   background: var(--color-bg);
   color: var(--color-text);
-  backdrop-filter: var(--glass-backdrop);
 }
 
 .lk-field input:focus,
@@ -230,223 +518,26 @@
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px
     color-mix(in srgb, var(--color-primary) 20%, transparent);
-  background-color: var(--color-primary);
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    var(--color-bg)
+  );
+}
+
+.lk-field select option {
+  background-color: var(--color-surface);
   color: var(--color-text);
 }
 
-option {
-  background-color: var(--color-primary) !important;
-}
+/* ============================================================================
+   ANIMAÇÕES
+   ============================================================================ */
 
-/* ===== Modal ===== */
-.lk-modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(5px);
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 1000;
-  animation: fadeIn var(--transition-normal);
-  margin-bottom: 20px !important;
-}
-
-.lk-modal.open {
-  display: flex;
-}
-
-.lk-modal-card {
-  width: 100%;
-  max-width: 600px;
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-8);
-  box-shadow: var(--shadow-xl);
-  animation: slideUp var(--transition-normal);
-  color: var(--color-text);
-  border: 1px solid var(--glass-border);
-}
-
-.lk-modal-h {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-5);
-}
-
-.lk-modal-t {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.lk-modal-f {
-  display: flex;
-  gap: var(--spacing-3);
-  justify-content: flex-end;
-  margin-top: var(--spacing-4);
-}
-
-/* ===== Stats ===== */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-5);
-  margin-bottom: var(--spacing-8);
-  color: var(--color-text);
-}
-
-.stat-card {
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-5);
-  text-align: center;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--glass-border);
-  color: var(--color-text);
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.stat-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  letter-spacing: 0.05em;
-}
-
-/* modal contas */
-
-.acc-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-}
-
-.acc-card {
-  border-radius: 14px;
-  padding: 16px;
-  background: var(--color-btn);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.acc-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-}
-
-.acc-card .acc-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.acc-card .acc-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--brand, #6ea8fe);
-}
-
-.acc-name {
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.acc-sub {
-  opacity: 0.7;
-  font-size: 0.85rem;
-}
-
-.acc-balance {
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin: 8px 0 4px;
-}
-
-.acc-currency {
-  opacity: 0.75;
-  font-size: 0.85rem;
-}
-
-.acc-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.acc-actions .btn {
-  padding: 8px 10px;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
-.acc-actions .btn-ghost {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.acc-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  margin-left: auto;
-}
-
-.acc-badge.active {
-  background: rgba(40, 167, 69, 0.15);
-  color: #4bd07b;
-  border: 1px solid rgba(40, 167, 69, 0.35);
-}
-
-.acc-badge.inactive {
-  background: rgba(220, 53, 69, 0.15);
-  color: #ff6b6b;
-  border: 1px solid rgba(220, 53, 69, 0.35);
-}
-
-/* skeleton */
-.acc-skeleton {
-  height: 140px;
-  border-radius: 14px;
-  background: linear-gradient(90deg, #1b1e26 25%, #222635 37%, #1b1e26 63%);
-  background-size: 400% 100%;
-  animation: accShimmer 1.2s infinite;
-}
-
-@keyframes accShimmer {
-  0% {
-    background-position: 100% 0;
-  }
-
-  100% {
-    background-position: -100% 0;
-  }
-}
-
-/* ===== Animations ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
-
   to {
     opacity: 1;
   }
@@ -457,40 +548,210 @@ option {
     transform: translateY(30px);
     opacity: 0;
   }
-
   to {
     transform: translateY(0);
     opacity: 1;
   }
 }
 
-/* ===== Responsive ===== */
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .acc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
+  .cont-page {
+    padding: 0 var(--spacing-3);
+    margin-top: var(--spacing-3);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
   .lk-accounts-wrap {
     padding: var(--spacing-6);
-    margin: var(--spacing-3);
+    margin-bottom: var(--spacing-6);
   }
 
   .lk-acc-header {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: stretch;
+    gap: var(--spacing-2);
+    justify-content: flex-start;
+  }
+  .lk-acc-header .btn{
+    padding: var(--spacing-2) var(--spacing-5);
   }
 
-  .lk-acc-title {
-    text-align: center;
-    font-size: var(--font-size-2xl);
+  .lk-acc-header .btn-light {
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
+
+  .lk-acc-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1px;
+    flex: 1 1 auto;
+  }
+
+  .lk-acc-actions .btn,
+  .lk-acc-header > .btn {
+    flex: 1 1 calc(33.33% - var(--spacing-2));
+    min-width: 0;
+  }
+
+  .acc-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .acc-actions {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .acc-actions-btn {
+    width: 100%;
+  }
+
+  .acc-actions-btn .btn {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.7rem;
+    padding: var(--spacing-2);
+  }
+
+  .acc-actions > .btn {
+    width: 100%;
+    font-size: 0.7rem;
+    padding: var(--spacing-2);
   }
 
   .lk-form-grid {
     grid-template-columns: 1fr;
   }
 
-  .lk-table {
-    font-size: var(--font-size-xs);
+  .lk-modal-card {
+    padding: var(--spacing-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-value {
+    font-size: 1.5rem;
   }
 
-  .lk-table th,
-  .lk-table td {
-    padding: var(--spacing-2);
+  .acc-balance {
+    font-size: 1.5rem;
+  }
+
+  .acc-actions-btn .btn {
+    flex: 1;
+  }
+}
+
+@media (max-width: 400px) {
+  .acc-card-header {
+    flex-direction: column;
+  }
+
+  .acc-card{
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-5);
+
+  }
+  .acc-balance{
+    font-size: 1.2rem;
+  }
+  .acc-badge {
+    font-size: .6rem;
+
+  }
+    .lk-acc-header .btn{
+    font-size: 8px;
+  }
+
+
+}
+
+/* ============================================================================
+   ACESSIBILIDADE
+   ============================================================================ */
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.acc-card:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Melhor contraste para modo de alto contraste */
+@media (prefers-contrast: high) {
+  .acc-badge {
+    border-width: 2px;
+  }
+
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
+   TEMA ESCURO - AJUSTES
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .lk-accounts-wrap:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .acc-card:hover {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ============================================================================
+   IMPRESSÃO
+   ============================================================================ */
+
+@media print {
+  .lk-acc-actions,
+  .acc-actions,
+  .btn-archive,
+  .btn-restore,
+  .lk-modal {
+    display: none !important;
+  }
+
+  .cont-page {
+    margin: 0;
+    padding: 0;
+  }
+
+  .acc-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
   }
 }

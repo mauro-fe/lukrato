@@ -1,5 +1,4 @@
 </main>
-</div>
 <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
 <?php loadPageCss('admin-partials-footer'); ?>
@@ -9,16 +8,19 @@
         <div class="row">
             <div class="col-8 mx-auto text-center mt-1">
                 <span>&copy; 2025 Lukrato -</span>
-                <span>Desenvolvido por <a href="https://www.linkedin.com/in/mauro-felix-846a08268/" target="_blank" rel="noopener">Mauro
+                <span>Desenvolvido por <a href="https://www.linkedin.com/in/mauro-felix-846a08268/" target="_blank"
+                        rel="noopener">Mauro
                         Felix</a></span>
-                <span> & <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank" rel="noopener"> José
+                <span> & <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank" rel="noopener">
+                        José
                         Victor</a></span>
             </div>
         </div>
     </div>
 </footer>
-
-<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.9/dist/inputmask.min.js"></script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.9/dist/inputmask.min.js">
+</script>
 <script src="https://cdn.jsdelivr.net/npm/just-validate@4.3.0/dist/just-validate.production.min.js"></script>
 
 <script src="<?= BASE_URL ?>assets/js/core/popper.min.js"></script>
@@ -29,19 +31,21 @@
 
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 
-<script src="<?= BASE_URL ?>assets/js/soft-ui-dashboard.min.js?v=1.1.0"></script>
+<script src="<?= BASE_URL ?>assets/js/soft-ui-dashboard.js?v=1.1.2"></script>
 
 <?php loadPageJs(); ?>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-    AOS.init({
-        offset: 120,
+    // Ajusta o AOS no mobile para reduzir o atraso sem desabilitar as animações.
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    const aosOptions = {
+        offset: isMobile ? 50 : 120,
         delay: 0,
-        duration: 1000,
+        duration: isMobile ? 500 : 1000,
         easing: 'ease',
-        once: false,
-        mirror: true,
+        once: true,
+        mirror: false,
         anchorPlacement: 'top-bottom',
         startEvent: 'DOMContentLoaded',
         disable: false,
@@ -51,7 +55,12 @@
         disableMutationObserver: false,
         animatedClassName: 'aos-animate',
         initClassName: 'aos-init'
-    });
+    };
+
+    AOS.init(aosOptions);
+
+    // Garante recálculo das posições após o carregamento completo no mobile.
+    window.addEventListener('load', () => AOS.refresh());
 </script>
 </body>
 

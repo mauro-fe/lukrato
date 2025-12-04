@@ -1,6 +1,5 @@
 <?php
 
-// Application/Models/Plano.php
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;

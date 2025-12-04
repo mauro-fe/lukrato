@@ -44,14 +44,14 @@ function registerAuthRoutes(): void
 
     Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
 
-   
+
 
     // Google OAuth
 
     Router::add('GET',  '/auth/google/register', 'Auth\\GoogleLoginController@login');
 
     Router::add('GET',  '/auth/google/callback', 'Auth\\GoogleCallbackController@callback');
-
+    Router::add('GET',  '/super_admin',         'SysAdmin\\SuperAdminController@index');
 }
 
 
@@ -69,13 +69,11 @@ function registerRedirectRoutes(): void
     Router::add('GET',  '', function () {
 
         redirectToUserDashboard();
-
     });
 
     Router::add('GET',  '/', function () {
 
         redirectToUserDashboard();
-
     });
 
 
@@ -83,7 +81,6 @@ function registerRedirectRoutes(): void
     Router::add('GET',  '/admin',       function () {
 
         redirectToLogin();
-
     });
 
     Router::add('GET',  '/admin/login', function () {
@@ -91,7 +88,6 @@ function registerRedirectRoutes(): void
         header('Location: ' . BASE_URL . 'login');
 
         exit;
-
     });
 
     Router::add('GET',  '/admin/dashboard', function () {
@@ -99,15 +95,12 @@ function registerRedirectRoutes(): void
         header('Location: ' . BASE_URL . 'dashboard');
 
         exit;
-
     });
 
     Router::add('GET',  '/admin/home', function () {
 
         redirectToUserDashboard();
-
     });
-
 }
 
 
@@ -143,7 +136,6 @@ function registerAppRoutes(): void
     Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth']);
 
     Router::add('GET', '/investimentos',      'Admin\\InvestimentosController@index',   ['auth']);
-
 }
 
 
@@ -157,6 +149,8 @@ function registerAppRoutes(): void
 function registerApiRoutes(): void
 
 {
+    // Segurança / utilidades
+    Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
 
     // Perfil
 
@@ -170,6 +164,7 @@ function registerApiRoutes(): void
 
     Router::add('GET', '/api/dashboard/metrics', 'Api\\FinanceiroController@metrics', ['auth']);
 
+    Router::add('GET', '/api/dashboard/transactions', 'Api\\DashboardController@transactions', ['auth']);
     Router::add('GET', '/api/options',           'Api\\FinanceiroController@options', ['auth']);
 
 
@@ -183,6 +178,7 @@ function registerApiRoutes(): void
     Router::add('GET', '/api/reports/timeseries', 'Api\\RelatoriosController@timeseries', ['auth']);
 
     Router::add('GET', '/api/reports',            'Api\\RelatoriosController@index',     ['auth']);
+    Router::add('GET', '/api/reports/export',     'Api\\RelatoriosController@export',    ['auth']);
 
 
 
@@ -190,6 +186,9 @@ function registerApiRoutes(): void
 
     Router::add('GET',    '/api/lancamentos',      'Api\\LancamentosController@index',   ['auth']);
 
+    Router::add('POST',   '/api/lancamentos',      'Api\\LancamentosController@store',   ['auth', 'csrf']);
+    Router::add('GET',    '/api/lancamentos',      'Api\\LancamentosController@index',   ['auth']);
+    Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export', ['auth']);
     Router::add('PUT',    '/api/lancamentos/{id}', 'Api\\LancamentosController@update',  ['auth', 'csrf']);
 
     Router::add('DELETE', '/api/lancamentos/{id}', 'Api\\LancamentosController@destroy', ['auth', 'csrf']);
@@ -221,6 +220,9 @@ function registerApiRoutes(): void
     Router::add('POST',  '/api/accounts/archive',       'Api\\ContasController@archive', ['auth', 'csrf']);
 
     Router::add('POST',  '/api/accounts/unarchive',     'Api\\ContasController@unarchive', ['auth', 'csrf']);
+    Router::add('POST',  '/api/accounts/{id}/archive',  'Api\\ContasController@archive', ['auth', 'csrf']);
+    Router::add('POST',  '/api/accounts/{id}/restore',  'Api\\ContasController@restore', ['auth', 'csrf']);
+    Router::add('POST',  '/api/accounts/{id}/delete',   'Api\\ContasController@hardDelete', ['auth', 'csrf']);
 
 
 
@@ -307,7 +309,6 @@ function registerApiRoutes(): void
     Router::add('POST', '/api/notificacoes/marcar',    'Api\\NotificacaoController@marcarLida');
 
     Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoController@marcarTodasLidas');
-
 }
 
 
@@ -329,7 +330,7 @@ function registerBillingRoutes(): void
     Router::add('POST', '/api/mercadopago/checkout', 'Api\\MercadoPagoController@createCheckout');
 
     Router::add('POST', '/api/webhooks/mercadopago', 'Api\\WebhookMercadoPagoController@handle');
-
+    Router::add('POST', '/api/mercadopago/pay', 'Api\\MercadoPagoController@pay');
 }
 
 
@@ -347,7 +348,6 @@ function redirectToLogin(): void
     header('Location: ' . BASE_URL . 'login');
 
     exit;
-
 }
 
 
@@ -359,15 +359,12 @@ function redirectToUserDashboard(): void
     if (isset($_SESSION['usuario_id']) || isset($_SESSION['admin_username'])) {
 
         header('Location: ' . BASE_URL . 'dashboard');
-
     } else {
 
         session_destroy();
 
         redirectToLogin();
-
     }
 
     exit;
-
 }

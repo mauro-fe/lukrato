@@ -15,16 +15,32 @@ class AuthMiddleware
     {
         // NOTA: session_start() já deve ter sido chamado em public/index.php
 
+        $expectsJson = $request->wantsJson() || $request->isAjax();
+
         if (!Auth::isLoggedIn()) {
-            throw new AuthException('Acesso não autorizado. Por favor, faça login.', 401);
+            Auth::logout();
+            if ($expectsJson) {
+                throw new AuthException('Acesso não autorizado. Por favor, faça login.', 401);
+            }
+            self::redirectToLogin();
         }
 
         // Se o admin está logado, também verifica a inatividade da sessão
         if (!Auth::checkActivity(Auth::SESSION_TIMEOUT)) {
-            throw new AuthException('Sessão expirada por inatividade. Faça login novamente.', 419);
+            Auth::logout();
+            if ($expectsJson) {
+                throw new AuthException('Sessão expirada por inatividade. Faça login novamente.', 419);
+            }
+            self::redirectToLogin();
         }
 
         // Se o usuário está logado e ativo, a requisição continua.
         // Aqui você pode adicionar lógica de autorização mais granular, se for necessário em todas as rotas protegidas.
+    }
+
+    private static function redirectToLogin(): void
+    {
+        header('Location: ' . BASE_URL . 'login');
+        exit;
     }
 }

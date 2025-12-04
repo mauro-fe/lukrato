@@ -1,6 +1,5 @@
 <?php
 
-// Application/Models/AssinaturaUsuario.php
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -35,7 +34,6 @@ class AssinaturaUsuario extends Model
         return $this->belongsTo(Plano::class, 'plano_id');
     }
 
-    // Escopo para reuso
     public function scopeAtivas($q)
     {
         return $q->where('status', self::ST_ACTIVE);

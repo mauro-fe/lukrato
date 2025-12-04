@@ -9,5 +9,4 @@ return [
     'auth' => AuthMiddleware::class,
     'csrf' => CsrfMiddleware::class,
     'ratelimit' => RateLimitMiddleware::class,
-    'sysadmin' => SysadminMiddleware::class // ⬅️ Aqui você registra o middleware sysadmin
 ];
