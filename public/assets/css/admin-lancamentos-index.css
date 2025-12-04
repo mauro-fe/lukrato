@@ -240,29 +240,9 @@
     font-size: 0.85rem;
   }
 
-  /* AÇÕES (Select e Botão) */
-  /* No tablet (até 768px), tentamos manter lado a lado se der */
-  .export-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
-    gap: 10px;
-    margin-top: 10px;
-  }
+
 }
 
-/* TELA MUITO PEQUENA (Celular em pé) */
-@media (max-width: 480px) {
-
-  /* Aqui mudamos APENAS os botões para ficar um embaixo do outro */
-  .export-actions {
-    grid-template-columns: 1fr;
-    /* Select em cima, Botão embaixo */
-  }
-
-  /* IMPORTANTE: Não mexemos no .mes aqui para manter as datas lado a lado */
-  /* Removemos a regra antiga que empilhava as datas */
-}
 
 /* ============================================================================
    FILTROS

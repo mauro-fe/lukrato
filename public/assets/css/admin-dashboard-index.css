@@ -561,6 +561,9 @@
     height: 30px !important;
     border-radius: 50% !important;
   }
+  .month-dropdown-btn{
+    font-size: .8rem !important;
+  }
 }
 
 @media (max-width: 480px) {
