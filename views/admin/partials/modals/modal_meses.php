@@ -410,6 +410,35 @@
 :root[data-theme="light"] #monthModal .modal-header::after {
     opacity: 0.2;
 }
+
+#yearModal .modal-content {
+    background: var(--color-surface) !important;
+    color: var(--color-text);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-xl);
+}
+
+#yearModal .modal-header {
+    border: 0;
+    background: var(--glass-bg);
+}
+
+#yearModal .modal-body {
+    padding: var(--spacing-5) var(--spacing-6);
+}
+
+.lk-year-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: var(--spacing-2);
+}
+
+.lk-year-grid .btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
 </style>
 
 <div class="modal fade" id="monthModal" tabindex="-1" aria-labelledby="monthModalLabel" aria-hidden="true">
@@ -440,6 +469,28 @@
             </div>
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="yearModal" tabindex="-1" aria-labelledby="yearModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content bg-dark text-light border-0 rounded-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="yearModalLabel">Selecionar ano</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="lk-year-grid mb-3" id="yearGrid"></div>
+                <div class="d-flex gap-2">
+                    <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary"
+                        id="yearInput" min="2000" max="2100" placeholder="Digite o ano">
+                    <button type="button" class="btn btn-primary btn-sm" id="yearApplyBtn">Aplicar</button>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>

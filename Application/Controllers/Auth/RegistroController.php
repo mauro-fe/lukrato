@@ -1,108 +1,138 @@
 <?php
 
+// Application/Controllers/Auth/RegistroController.php
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
-use Application\Core\Response;
-use Application\Models\Usuario;
-use GUMP;
+use Application\Services\Auth\AuthService;
+use Application\DTOs\Auth\RegistrationDTO;
+use Application\Core\Exceptions\ValidationException;
+use Application\Services\LogService;
+use Throwable;
 
 class RegistroController extends BaseController
 {
+    private AuthService $authService;
+
     public function __construct()
     {
         parent::__construct();
+        $this->authService = new AuthService();
     }
 
+    /**
+     * Exibe o formulário de registro.
+     */
     public function showForm(): void
     {
-        $this->render('auth/register');
+        $this->render('auth/register', [
+            'errors' => $this->getSessionErrors(),
+            'success' => $this->getSuccess()
+        ]);
     }
 
+    /**
+     * Processa o registro de novo usuário.
+     */
     public function store(): void
     {
-        $nome  = (string) $this->request->post('name');
-        $email = strtolower(trim((string) $this->request->post('email')));
-        $senha = (string) $this->request->post('password');
+        $isAjax = $this->request->isAjax();
 
-        $data = [
-            'nome'              => $nome,
-            'email'             => $email,
-            'senha'             => $senha,
-            'senha_confirmacao' => (string) $this->request->post('password_confirmation'),
-        ];
-
-        $gump = new GUMP();
-        $gump->filter_rules([
-            'nome'  => 'trim|sanitize_string',
-            'email' => 'trim|sanitize_email',
-        ]);
-        $gump->validation_rules([
-            'nome'              => 'required|min_len,3|max_len,150',
-            'email'             => 'required|valid_email|max_len,150',
-            'senha'             => 'required|min_len,8|max_len,72',
-            'senha_confirmacao' => 'required|equalsfield,senha',
-        ]);
-
-        $valid = $gump->run($data);
-        if ($valid === false) {
-            $errors = $this->mapErrorsForUi($gump->get_errors_array());
-            if ($this->request->isAjax()) {
-                Response::validationError($errors);
-                return;
-            }
-            $_SESSION['form_errors'] = $errors;
-            $this->response->redirect(BASE_URL . 'register')->send();
-            return;
-        }
-
-        if (Usuario::where('email', $email)->exists()) {
-            $errors = ['email' => 'E-mail já cadastrado.'];
-            if ($this->request->isAjax()) {
-                Response::validationError($errors);
-                return;
-            }
-            $_SESSION['form_errors'] = $errors;
-            $this->response->redirect(BASE_URL . 'register')->send();
-            return;
-        }
+        // Capturamos o email aqui apenas para contexto de log (sem senha!)
+        $emailTentativa = $this->request->post('email', 'não-informado');
 
         try {
-            $user = new Usuario();
-            $user->nome  = $nome;
-            $user->email = $email;
-            $user->senha = password_hash($senha, PASSWORD_BCRYPT);
+            $result = $this->authService->register([
+                'name' => $this->request->post('name', ''),
+                'email' => $emailTentativa,
+                'password' => $this->request->post('password', ''),
+                'password_confirmation' => $this->request->post('password_confirmation', '')
+            ]);
 
-            $user->save();
-
-            if ($this->request->isAjax()) {
-                Response::success([
-                    'message'  => 'Conta criada com sucesso!',
-                    'redirect' => rtrim(BASE_URL, '/') . '/login',
-                ]);
-
-                return;
-            }
-
-            $this->response->redirect(BASE_URL . 'login')->send();
-        } catch (\Throwable $e) {
-            if ($this->request->isAjax()) {
-                Response::error('Falha ao cadastrar. Tente novamente mais tarde.', 500, [
-                    'hint' => 'registration_failed'
-                ]);
-                return;
-            }
-            throw $e;
+            $this->respondToRegistrationSuccess($result, $isAjax, $emailTentativa);
+        } catch (ValidationException $e) {
+            $this->respondToValidationError($e, $isAjax, $emailTentativa);
+        } catch (Throwable $e) {
+            $this->respondToRegistrationError($e, $isAjax, $emailTentativa);
         }
     }
 
-    private function mapErrorsForUi(array $errors): array
+    // --- Métodos Auxiliares Privados ---
+
+    /**
+     * Obtém erros da sessão.
+     */
+    private function getSessionErrors(): ?array
     {
-        return [
-            'name'                  => $errors['nome']              ?? null,
-            'email'                 => $errors['email']             ?? null,
-            'password'              => $errors['senha']             ?? null,
-            'password_confirmation' => $errors['senha_confirmacao'] ?? null,
-        ];
+        $errors = $_SESSION['form_errors'] ?? null;
+        unset($_SESSION['form_errors']);
+        return $errors;
+    }
+
+    /**
+     * Responde ao sucesso do registro e LOGA.
+     */
+    private function respondToRegistrationSuccess(array $result, bool $isAjax, string $email): void
+    {
+        // LOG DE SUCESSO (INFO)
+        LogService::info('Novo usuário registrado com sucesso.', [
+            'email' => $email,
+            'ip' => $this->request->ip() ?? 'unknown',
+            'user_id' => $result['user_id'] ?? 'unknown' // Supondo que o service retorne o ID
+        ]);
+
+        if ($isAjax) {
+            $this->ok([
+                'message' => $result['message'],
+                'redirect' => $result['redirect']
+            ], 201);
+        } else {
+            $this->setSuccess('Conta criada com sucesso! Você já pode fazer o login.');
+            $this->redirect('login');
+        }
+    }
+
+    /**
+     * Responde a erro de validação e LOGA.
+     */
+    private function respondToValidationError(ValidationException $e, bool $isAjax, string $email): void
+    {
+        // LOG DE AVISO (WARNING) - Útil para detectar spam ou UX ruim
+        LogService::warning('Falha de validação no registro.', [
+            'email' => $email,
+            'ip' => $this->request->ip() ?? 'unknown',
+            'errors' => $e->getErrors()
+        ]);
+
+        if ($isAjax) {
+            $this->fail($e->getMessage(), 422, $e->getErrors());
+        } else {
+            $_SESSION['form_errors'] = $e->getErrors();
+            $this->redirect('register');
+        }
+    }
+
+    /**
+     * Responde a erro geral de registro e LOGA DETALHADO.
+     */
+    private function respondToRegistrationError(Throwable $e, bool $isAjax, string $email): void
+    {
+        // LOG DE ERRO CRÍTICO (ERROR) - Com stack trace para debug
+        LogService::error('Exceção crítica ao tentar registrar usuário.', [
+            'email' => $email,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString() // Ajuda muito no debug
+        ]);
+
+        $message = 'Falha ao cadastrar. Tente novamente mais tarde.';
+
+        if ($isAjax) {
+            $this->fail($message, 500);
+        } else {
+            $this->setError($message);
+            $this->redirect('register');
+        }
     }
 }

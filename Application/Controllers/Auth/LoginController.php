@@ -1,162 +1,159 @@
 <?php
 
+
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
-use Application\Services\AuthService;
+use Application\Services\Auth\AuthService;
 use Application\Services\CacheService;
-use Application\Services\LogService;
 use Application\Core\Exceptions\ValidationException;
 use Application\Middlewares\CsrfMiddleware;
-use Application\Middlewares\RateLimitMiddleware;
-use Application\Core\Request;
+use Application\Services\LogService;
+use Throwable;
 
 class LoginController extends BaseController
 {
     private AuthService $authService;
 
-    public function __construct()
+    public function __construct(?CacheService $cache = null)
     {
         parent::__construct();
-        $this->authService = new AuthService();
-    }
 
+        // Se não passar nada, cria o CacheService padrão.
+        // Se passar (num teste, por exemplo), usa o que veio.
+        $this->cache = $cache ?? new CacheService();
+
+        $this->authService = new AuthService($this->request, $this->cache);
+    }
+    /**
+     * Exibe o formulário de login.
+     */
     public function login(): void
     {
         if ($this->isAuthenticated()) {
-            $this->redirectToDashboard();
+            $this->redirect('dashboard');
             return;
         }
-        $this->renderLoginForm();
+
+        $this->render('admin/admins/login', [
+            'error' => $this->getError(),
+            'success' => $this->getSuccess(),
+            'csrf_token' => CsrfMiddleware::generateToken('login_form'),
+        ], null, 'admin/footer');
     }
 
+    /**
+     * Processa a tentativa de login.
+     */
     public function processLogin(): void
     {
-        $this->prepareJsonResponse();
-
-        if (!$this->isPostRequest()) {
+        if (!$this->request->isPost()) {
             LogService::warning('Login request rejected: not POST');
-            $this->respondError('Requisição inválida.');
+            $this->fail('Requisição inválida. Método esperado: POST.', 405);
             return;
         }
 
-        $credentials = ['email' => '', 'password' => ''];
-
         try {
+            // Segurança
             $this->validateCsrfToken();
-
-            $credentials = $this->getLoginCredentials();
-
             $this->applyRateLimit();
 
-            $result = $this->authService->login($credentials['email'], $credentials['password']);
+            // Autenticação
+            $result = $this->authService->login(
+                $this->request->post('email', ''),
+                $this->request->post('password', '')
+            );
 
             $this->clearOldCsrfTokens();
 
-            $this->respondLoginSuccess($result['redirect'] ?? (BASE_URL . 'dashboard'));
+            $this->ok([
+                'message' => 'Login realizado com sucesso!',
+                'redirect' => $result['redirect']
+            ]);
         } catch (ValidationException $e) {
-            $this->handleValidationException($e, $credentials['email'] ?? '');
-        } catch (\Throwable $e) {
-            $msg = trim($e->getMessage());
-            if (stripos($msg, 'credenciais inválidas') !== false) {
-                $this->respondError('E-mail ou senha inválidos.');
-                return;
-            }
-            $this->respondError('Erro ao processar login: ' . htmlspecialchars($msg));
+            $this->handleValidationException($e);
+        } catch (Throwable $e) {
+            $this->handleLoginError($e);
         }
     }
 
+    /**
+     * Processa o logout.
+     */
     public function logout(): void
     {
-        $this->authService->logout();
-        echo "<script>
-            localStorage.setItem('logout_success', '1');
-            window.location.href = '" . BASE_URL . "login';
-        </script>";
-    }
+        $result = $this->authService->logout();
 
-
-    private function redirectToDashboard(): void
-    {
-        $this->redirect('dashboard');
-    }
-
-    private function renderLoginForm(): void
-    {
-        $data = [
-            'error'      => $this->getError(),
-            'success'    => $this->getSuccess(),
-            'csrf_token' => CsrfMiddleware::generateToken('login_form'),
-        ];
-
-        $this->render('admin/admins/login', $data, null, 'admin/footer');
-    }
-
-
-    private function prepareJsonResponse(): void
-    {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if ($this->request->wantsJson() || $this->request->isAjax()) {
+            $this->ok($result);
+            return;
         }
-        header('Content-Type: application/json; charset=utf-8');
+
+        $this->redirect('login');
     }
 
-    private function isPostRequest(): bool
-    {
-        return (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST');
-    }
+    // --- Métodos Auxiliares Privados ---
 
+    /**
+     * Valida token CSRF.
+     * @throws ValidationException
+     */
     private function validateCsrfToken(): void
     {
-        $request = new Request();
-        CsrfMiddleware::handle($request, 'login_form');
+        CsrfMiddleware::handle($this->request, 'login_form');
     }
 
-    private function getLoginCredentials(): array
-    {
-        return [
-            'email'    => trim(strtolower($_POST['email'] ?? '')),
-            'password' => $_POST['password'] ?? ''
-        ];
-    }
-
+    /**
+     * Aplica rate limiting.
+     * @throws ValidationException
+     */
     private function applyRateLimit(): void
     {
-        $request     = new Request();
-        $rateLimiter = new RateLimitMiddleware(new CacheService());
-        $identifier  = RateLimitMiddleware::getIdentifier($request);
-        $rateLimiter->handle($request, 'login:' . $identifier);
+        if ($this->cache === null) {
+            LogService::warning('CacheService not available for Rate Limiting');
+            return;
+        }
+
+        $this->cache->checkRateLimit(
+            'login:' . ($this->request->ip() ?? 'unknown')
+        );
     }
 
-    private function respondError(string $message, array $errors = []): void
-    {
-        $response = ['status' => 'error', 'message' => $message];
-        if (!empty($errors)) $response['errors'] = $errors;
-        echo json_encode($response);
-    }
-
-    private function respondLoginSuccess(string $redirectUrl): void
-    {
-        $url = filter_var($redirectUrl, FILTER_VALIDATE_URL) ? $redirectUrl : (BASE_URL . ltrim($redirectUrl, '/'));
-        echo json_encode([
-            'status'   => 'success',
-            'message'  => 'Login realizado com sucesso!',
-            'redirect' => $url
-        ]);
-    }
-
+    /**
+     * Limpa tokens CSRF antigos.
+     */
     private function clearOldCsrfTokens(): void
     {
         unset($_SESSION['csrf_tokens']);
     }
 
-    private function handleValidationException(ValidationException $e, string $email): void
+    /**
+     * Trata exceções de validação.
+     */
+    private function handleValidationException(ValidationException $e): void
     {
-        $m = $e->getMessage();
-        if (str_contains($m, 'Muitas tentativas') || str_contains($m, 'rate limit')) {
-            $this->respondError('Muitas tentativas. Aguarde 1 minuto e tente novamente.');
+        $message = $e->getMessage();
+
+        if (str_contains($message, 'Muitas tentativas') || str_contains($message, 'rate limit')) {
+            $this->fail('Muitas tentativas. Aguarde 1 minuto e tente novamente.', 429, $e->getErrors());
             return;
         }
-        $this->respondError('E-mail ou senha inválidos.', $e->getErrors());
+
+        $this->fail('E-mail ou senha inválidos.', 401, $e->getErrors());
+    }
+
+    /**
+     * Trata erros gerais de login.
+     */
+    private function handleLoginError(Throwable $e): void
+    {
+        $message = trim($e->getMessage());
+
+        if (str_contains($message, 'credenciais inválidas') || str_contains($message, 'inválidos')) {
+            $this->fail('E-mail ou senha inválidos.', 401);
+            return;
+        }
+
+        $this->failAndLog($e, 'Erro ao processar login.');
     }
 }

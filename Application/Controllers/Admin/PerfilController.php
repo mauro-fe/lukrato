@@ -6,6 +6,7 @@ use Application\Controllers\BaseController;
 
 class PerfilController extends BaseController
 {
+
     public function index(): void
     {
         $this->requireAuth();

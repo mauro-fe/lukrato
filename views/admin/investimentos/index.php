@@ -1,5 +1,4 @@
 ﻿<?php
-// Garantia de variáveis vindas do controller
 if (!isset($investments))      $investments = [];
 if (!isset($totalInvested))    $totalInvested = 0.0;
 if (!isset($currentValue))     $currentValue = 0.0;
@@ -11,14 +10,11 @@ if (!isset($categories))       $categories = [];
 
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-investimentos-index.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-modals-modal_investimentos.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 
 <div class="main-content">
-    <div class="page-header">
-        <button
-            type="button"
-            class="btn-invest"
-            data-bs-toggle="modal"
-            data-bs-target="#modal-investimentos"
+    <div class="page-header" data-aos="fade-up">
+        <button type=" button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-investimentos"
             title="Adicionar investimento">
             <i class="fa-solid fa-plus"></i> Novo investimento
         </button>
@@ -40,21 +36,6 @@ if (!isset($categories))       $categories = [];
                 <span class="stat-value">R$ <?= number_format((float)$currentValue, 2, ',', '.') ?></span>
             </div>
         </div>
-
-        <!-- Card de Lucro/Prejuízo comentado a pedido
-        <div class="stat-card">
-            <div class="stat-ico <?= ($profit >= 0 ? 'green' : 'red') ?>">
-                <i class="fa-solid fa-<?= ($profit >= 0 ? 'arrow-up' : 'arrow-down') ?>"></i>
-            </div>
-            <div class="stat-info">
-                <span class="stat-label">Lucro/Prejuízo</span>
-                <span class="stat-value <?= ($profit >= 0 ? 'positive' : 'negative') ?>">
-                    <?= $profit >= 0 ? '+' : '-' ?>R$ <?= number_format(abs((float)$profit), 2, ',', '.') ?>
-                    (<?= number_format((float)$profitPercentage, 2, ',', '.') ?>%)
-                </span>
-            </div>
-        </div>
-        -->
 
         <div class="stat-card" data-aos="flip-left">
             <div class="stat-ico orange"><i class="fa-solid fa-briefcase"></i></div>
@@ -84,7 +65,8 @@ if (!isset($categories))       $categories = [];
                     <?php foreach ($statsByCategory as $c): ?>
                         <div class="cat-row">
                             <div class="cat-left">
-                                <span class="cat-dot" style="background:<?= htmlspecialchars($c['color'] ?? '#64748b') ?>"></span>
+                                <span class="cat-dot"
+                                    style="background:<?= htmlspecialchars($c['color'] ?? '#64748b') ?>"></span>
                                 <?= htmlspecialchars($c['category'] ?? '-') ?>
                             </div>
                             <div class="cat-val">
@@ -112,63 +94,14 @@ if (!isset($categories))       $categories = [];
                         </button>
                     </div>
                 <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Categoria</th>
-                                    <th>Ticker</th>
-                                    <th>Quantidade</th>
-                                    <th>Preço Médio</th>
-                                    <th>Preço Atual</th>
-                                    <th>Valor Total</th>
-                                    <!-- <th>Rentabilidade</th> -->
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($investments as $inv):
-                                    $rowInvested   = (float)$inv['quantity'] * (float)$inv['avg_price'];
-                                    $rowCurrent    = (float)$inv['quantity'] * (float)($inv['current_price'] ?? $inv['avg_price']);
-                                    /* Rentabilidade comentada
-                                    $rowProfit     = $rowCurrent - $rowInvested;
-                                    $rowProfitPerc = $rowInvested > 0 ? ($rowProfit / $rowInvested) * 100 : 0;
-                                    */
-                                ?>
-                                    <tr>
-                                        <td><strong><?= htmlspecialchars($inv['name'] ?? '-') ?></strong></td>
-                                        <td>
-                                            <span class="badge" style="background:<?= htmlspecialchars($inv['color'] ?? '#475569') ?>">
-                                                <?= htmlspecialchars($inv['category_name'] ?? '-') ?>
-                                            </span>
-                                        </td>
-                                        <td><?= htmlspecialchars($inv['ticker'] ?? '-') ?></td>
-                                        <td><?= number_format((float)$inv['quantity'], 2, ',', '.') ?></td>
-                                        <td>R$ <?= number_format((float)$inv['avg_price'], 2, ',', '.') ?></td>
-                                        <td>R$ <?= number_format((float)($inv['current_price'] ?? $inv['avg_price']), 2, ',', '.') ?></td>
-                                        <td><strong>R$ <?= number_format((float)$rowCurrent, 2, ',', '.') ?></strong></td>
-                                        <!-- <td>
-                                            <span class="profit-badge <?= isset($rowProfit) && $rowProfit >= 0 ? 'positive' : 'negative' ?>">
-                                                <?= isset($rowProfit) && $rowProfit >= 0 ? '+' : '-' ?>R$
-                                                <?= isset($rowProfit) ? number_format(abs((float)$rowProfit), 2, ',', '.') : '0,00' ?>
-                                                (<?= isset($rowProfitPerc) ? number_format((float)$rowProfitPerc, 2, ',', '.') : '0,00' ?>%)
-                                            </span>
-                                        </td> -->
-                                        <td>
-                                            <div class="action-buttons">
-                                                <a class="btn-icon" href="/investimentos/edit/<?= (int)$inv['id'] ?>" data-edit data-id="<?= (int)$inv['id'] ?>" title="Editar">
-                                                    <i class="fa-regular fa-pen-to-square"></i>
-                                                </a>
-                                                <a class="btn-icon" href="/investimentos/delete/<?= (int)$inv['id'] ?>" data-delete data-id="<?= (int)$inv['id'] ?>" title="Excluir">
-                                                    <i class="fa-regular fa-trash-can"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                    <div class="container-table">
+                        <section class="table-container invest-table-desktop">
+                            <!-- ID padronizado para o Tabulator -->
+                            <div id="tab-investimentos" class="tab-investimentos"></div>
+                        </section>
+
+                        <!-- Cards para mobile -->
+                        <section class="invest-cards" id="investCards"></section>
                     </div>
                 <?php endif; ?>
             </div>
@@ -178,9 +111,11 @@ if (!isset($categories))       $categories = [];
 
 <?php if (defined('BASE_PATH')): ?>
     <?php include BASE_PATH . '/views/admin/partials/modals/modal_investimentos.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/modals/modal_transacao_investimento.php'; ?>
 <?php endif; ?>
 
 <script>
+    // Chart de categorias
     (function() {
         const el = document.getElementById('categoryChart');
         if (!el) return;
@@ -190,58 +125,373 @@ if (!isset($categories))       $categories = [];
         const values = cat.map(c => Number(c.value || 0));
         const colors = cat.map(c => c.color || '#64748b');
         const total = values.reduce((a, b) => a + b, 0);
+        let categoryChart = null;
 
-        new Chart(el.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: colors,
-                    borderWidth: 2,
-                    borderColor: '#0b1220',
-                    hoverOffset: 6,
-                    cutout: '64%'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text') || '#e5e7eb',
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            padding: 16
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label(ctx) {
-                                const v = ctx.parsed;
-                                const p = total > 0 ? (v / total) * 100 : 0;
-                                return `${ctx.label}: ${v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} (${p.toFixed(2)}%)`;
+        const renderCategoryChart = () => {
+            if (categoryChart) {
+                categoryChart.destroy();
+                categoryChart = null;
+            }
+
+            const css = getComputedStyle(document.documentElement);
+            const textColor = (css.getPropertyValue('--color-text') || '#e5e7eb').trim();
+            const borderColor = (css.getPropertyValue('--color-surface') || '#0b1220').trim();
+
+            categoryChart = new Chart(el.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor,
+                        hoverOffset: 6,
+                        cutout: '64%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: textColor || '#e5e7eb',
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label(ctx) {
+                                    const v = ctx.parsed;
+                                    const p = total > 0 ? (v / total) * 100 : 0;
+                                    return `${ctx.label}: ${v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} (${p.toFixed(2)}%)`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        };
+
+        renderCategoryChart();
+        document.addEventListener('lukrato:theme-changed', renderCategoryChart);
     })();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+
 <script>
-    // Handlers em fase de captura para sobrescrever listeners antigos
-    const BASE_URL = '<?= BASE_URL ?>';
-    const cssVars = getComputedStyle(document.documentElement);
-    const ui = {
-        bg: (cssVars.getPropertyValue('--color-surface') || '#1c2c3c').trim(),
-        fg: (cssVars.getPropertyValue('--color-text') || '#ffffff').trim(),
-        ring: (cssVars.getPropertyValue('--ring') || 'rgba(230,126,34,.22)').trim(),
-        danger: (cssVars.getPropertyValue('--color-danger') || '#e74c3c').trim()
+    // Controle de abrir/fechar menu "Ações"
+    const closeAllActionMenus = (except = null) => {
+        document.querySelectorAll('.invest-actions.is-open').forEach((wrap) => {
+            if (wrap === except) return;
+            wrap.classList.remove('is-open');
+            const toggle = wrap.querySelector('[data-actions-toggle]');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        });
     };
+
+    document.addEventListener('click', (e) => {
+        const toggle = e.target.closest('[data-actions-toggle]');
+        if (toggle) {
+            e.preventDefault();
+            const wrapper = toggle.closest('.invest-actions');
+            if (!wrapper) return;
+            const willOpen = !wrapper.classList.contains('is-open');
+            closeAllActionMenus(wrapper);
+            wrapper.classList.toggle('is-open', willOpen);
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            return;
+        }
+
+        const openMenu = document.querySelector('.invest-actions.is-open');
+        if (openMenu && !openMenu.contains(e.target)) {
+            closeAllActionMenus();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        let raw = <?= json_encode($investments, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?> || [];
+        if (!Array.isArray(raw)) raw = [];
+
+        const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[ch]);
+
+        const mapInvest = (inv) => {
+            const quantity = Number(inv.quantidade ?? inv.quantity ?? 0);
+            const avgPrice = Number(inv.preco_medio ?? inv.avg_price ?? 0);
+            const currentPrice = Number(inv.preco_atual ?? inv.current_price ?? avgPrice);
+            const total = inv.valor_atual !== undefined ? Number(inv.valor_atual) : quantity * currentPrice;
+
+            return {
+                id: Number(inv.id ?? 0),
+                nome: inv.nome ?? inv.name ?? '-',
+                ticker: inv.ticker ?? '-',
+                categoria: inv.categoria_nome ?? inv.category_name ?? '-',
+                cor: inv.cor ?? inv.color ?? '#475569',
+                quantidade: quantity,
+                precoMedio: avgPrice,
+                precoAtual: currentPrice,
+                valorTotal: total
+            };
+        };
+
+        async function fetchInvestimentos() {
+            try {
+                const res = await fetch(`${BASE_URL}api/investimentos`);
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.error) {
+                    throw new Error(json.message || 'Falha ao carregar investimentos');
+                }
+
+                const payload = Array.isArray(json.data?.data) ?
+                    json.data.data :
+                    Array.isArray(json.data) ?
+                    json.data :
+                    Array.isArray(json) ?
+                    json :
+                    null;
+
+                if (!payload) {
+                    throw new Error('Dados de investimentos em formato inesperado');
+                }
+
+                return payload;
+            } catch (err) {
+                console.error(err);
+                toast(err.message || 'Falha ao carregar investimentos', 'error');
+                return [];
+            }
+        }
+
+        if (raw.length === 0) {
+            raw = await fetchInvestimentos();
+        }
+
+        const data = raw.map(mapInvest);
+
+        // ===== Tabulator Desktop =====
+        const tabEl = document.getElementById('tab-investimentos');
+
+        if (tabEl && window.innerWidth > 768 && window.Tabulator) {
+            new Tabulator(tabEl, {
+                data,
+                layout: 'fitColumns',
+                responsiveLayout: false,
+                height: 'fitData',
+                columnDefaults: {
+                    headerHozAlign: 'left',
+                    resizable: false
+                },
+                columns: [{
+                        title: 'Nome',
+                        field: 'nome',
+                        minWidth: 150,
+                        formatter: (cell) =>
+                            `<strong>${escapeHtml(cell.getValue() ?? '-')}</strong>`
+                    },
+                    {
+                        title: 'Categoria',
+                        field: 'categoria',
+                        minWidth: 150,
+                        formatter: (cell) => {
+                            const cor = escapeHtml(cell.getRow().getData().cor || '#475569');
+                            const cat = escapeHtml(cell.getValue() || '-');
+                            return `<span class="badge" style="background:${cor}">${cat}</span>`;
+                        }
+                    },
+                    {
+                        title: 'Ticker',
+                        field: 'ticker',
+                        minWidth: 135
+                    },
+                    {
+                        title: 'Quantidade',
+                        field: 'quantidade',
+                        hozAlign: 'right',
+                        minWidth: 150,
+                        formatter: (cell) => {
+                            return Number(cell.getValue() || 0).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        title: 'Preco medio',
+                        field: 'precoMedio',
+                        hozAlign: 'right',
+                        minWidth: 120,
+                        formatter: (cell) => {
+                            return `R$ ${Number(cell.getValue() || 0).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}`;
+                        }
+                    },
+                    {
+                        title: 'Preco atual',
+                        field: 'precoAtual',
+                        hozAlign: 'right',
+                        minWidth: 120,
+                        formatter: (cell) => {
+                            return `R$ ${Number(cell.getValue() || 0).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}`;
+                        }
+                    },
+                    {
+                        title: 'Valor total',
+                        field: 'valorTotal',
+                        hozAlign: 'right',
+                        minWidth: 150,
+                        formatter: (cell) => {
+                            return `<strong>R$ ${Number(cell.getValue() || 0).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong>`;
+                        }
+                    },
+                    {
+                        title: 'Ações',
+                        field: 'id',
+                        hozAlign: 'center',
+                        width: 170,
+                        headerSort: false,
+                        formatter: (cell) => {
+                            const row = cell.getRow().getData();
+                            const id = cell.getValue();
+                            const base = '<?= BASE_URL ?>';
+                            const nome = escapeHtml(row.nome || '');
+                            const ticker = escapeHtml(row.ticker || '');
+                            const dropdownId = `inv-actions-${id}`;
+
+                            return `
+                                <div class="invest-actions" data-actions>
+                                    <button type="button" class="invest-actions__toggle" data-actions-toggle aria-expanded="false" aria-controls="${dropdownId}" title="Abrir ações">
+                                        <span class="label">Ações</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                    <div class="invest-actions__menu" id="${dropdownId}" role="menu">
+                                        <a class="invest-actions__item is-buy" href="#" data-acao="compra" data-id="${id}" data-nome="${nome}" data-ticker="${ticker}" title="Comprar mais">
+                                            <span class="icon"><i class="fa-solid fa-cart-plus"></i></span>
+                                            <span>Comprar</span>
+                                        </a>
+                                        <a class="invest-actions__item is-sell" href="#" data-acao="venda" data-id="${id}" data-nome="${nome}" data-ticker="${ticker}" title="Vender">
+                                            <span class="icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+                                            <span>Vender</span>
+                                        </a>
+                                        <a class="invest-actions__item is-edit" href="${base}investimentos/edit/${id}" data-edit data-id="${id}" title="Editar">
+                                            <span class="icon"><i class="fa-regular fa-pen-to-square"></i></span>
+                                            <span>Editar</span>
+                                        </a>
+                                        <a class="invest-actions__item is-delete" href="${base}investimentos/delete/${id}" data-delete data-id="${id}" title="Excluir">
+                                            <span class="icon"><i class="fa-regular fa-trash-can"></i></span>
+                                            <span>Excluir</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                ]
+            });
+        }
+
+        // ===== Cards para mobile =====
+        const cardsContainer = document.getElementById('investCards');
+        if (cardsContainer) {
+            const header = `
+                <div class="invest-cards-header">
+                    <span>Nome</span>
+                    <span>Categoria</span>
+                    <span>Ações</span>
+                </div>
+            `;
+            const cards = data.map((inv) => {
+                const base = '<?= BASE_URL ?>';
+                return `
+                <article class="invest-card" data-id="${inv.id}" aria-expanded="false">
+                    <div class="invest-card-main">
+                        <div class="invest-card-name">${inv.nome}</div>
+                        <div class="invest-card-cat">
+                            <span class="badge" style="background:${inv.cor}">${inv.categoria}</span>
+                        </div>
+                        <div class="invest-card-actions">
+                            <a class="btn-icon success" href="#" data-acao="compra" data-id="${inv.id}" data-nome="${inv.nome}" data-ticker="${inv.ticker}" title="Comprar mais">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </a>
+                            <a class="btn-icon danger" href="#" data-acao="venda" data-id="${inv.id}" data-nome="${inv.nome}" data-ticker="${inv.ticker}" title="Vender">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </a>
+                            <a class="btn-icon" href="${base}investimentos/edit/${inv.id}" data-edit data-id="${inv.id}" title="Editar">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </a>
+                            <a class="btn-icon neutral" href="${base}investimentos/delete/${inv.id}" data-delete data-id="${inv.id}" title="Excluir">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <button type="button" class="invest-card-toggle" data-invest-toggle aria-expanded="false">
+                        <span class="invest-toggle-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                        <span class="inv-toggle-text">Ver detalhes</span>
+                    </button>
+                    <div class="invest-card-details">
+                        <div class="invest-card-row"><span class="label">Ticker</span><span class="value">${inv.ticker}</span></div>
+                        <div class="invest-card-row"><span class="label">Quantidade</span><span class="value">${inv.quantidade.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                        <div class="invest-card-row"><span class="label">Preço medio</span><span class="value">R$ ${inv.precoMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                        <div class="invest-card-row"><span class="label">Preço atual</span><span class="value">R$ ${inv.precoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                        <div class="invest-card-row"><span class="label">Valor total</span><span class="value">R$ ${inv.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                    </div>
+                </article>
+            `;
+            }).join('');
+
+            cardsContainer.innerHTML = header + cards;
+        }
+    });
+
+    // Toggle de detalhes dos cards (mobile)
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-invest-toggle]');
+        if (!btn) return;
+
+        const card = btn.closest('.invest-card');
+        if (card) {
+            const details = card.querySelector('.invest-card-details');
+            const expanded = card.classList.toggle('is-expanded');
+            btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            if (details) details.style.display = expanded ? 'grid' : 'none';
+            const textEl = btn.querySelector('.inv-toggle-text');
+            if (textEl) textEl.textContent = expanded ? 'Fechar detalhes' : 'Ver detalhes';
+        }
+    });
+</script>
+
+<script>
+    // Helpers UI / Toasts / Modais
+    const BASE_URL = '<?= BASE_URL ?>';
+    const ui = {};
+
+    function refreshUiColors() {
+        const cssVars = getComputedStyle(document.documentElement);
+        ui.bg = (cssVars.getPropertyValue('--color-surface') || '#1c2c3c').trim();
+        ui.fg = (cssVars.getPropertyValue('--color-text') || '#ffffff').trim();
+        ui.ring = (cssVars.getPropertyValue('--ring') || 'rgba(230,126,34,.22)').trim();
+        ui.danger = (cssVars.getPropertyValue('--color-danger') || '#e74c3c').trim();
+    }
+    refreshUiColors();
+    document.addEventListener('lukrato:theme-changed', refreshUiColors);
 
     function toast(title, type = 'success') {
         Swal.fire({
@@ -263,15 +513,110 @@ if (!isset($categories))       $categories = [];
         });
     }
 
+    const transacaoModalEl = document.getElementById('modal-transacao-investimento');
+    const transacaoForm = document.getElementById('form-transacao-investimento');
+    const transacaoInvestId = document.getElementById('transacao_investimento_id');
+    const transacaoTitle = document.getElementById('modalTransacaoLabel');
+    const transacaoInfo = document.getElementById('modalTransacaoInvestLabel');
+
+    function openTransacaoModal(id, tipo = 'compra', nome = '', ticker = '') {
+        if (!transacaoForm || !transacaoModalEl || !id) return;
+
+        transacaoForm.dataset.investimentoId = id;
+        if (transacaoInvestId) transacaoInvestId.value = id;
+
+        const isVenda = tipo === 'venda';
+        const radioCompra = document.getElementById('tipo_compra');
+        const radioVenda = document.getElementById('tipo_venda');
+        if (radioCompra && radioVenda) {
+            radioCompra.checked = !isVenda;
+            radioVenda.checked = isVenda;
+        }
+
+        if (transacaoTitle) transacaoTitle.textContent = isVenda ? 'Registrar venda' : 'Registrar compra';
+        if (transacaoInfo) {
+            const ident = [nome, ticker ? `(${ticker})` : ''].filter(Boolean).join(' ');
+            transacaoInfo.textContent = ident || 'Investimento selecionado';
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(transacaoModalEl);
+        modal.show();
+    }
+
+    // Clique em Comprar / Vender (tanto desktop quanto mobile)
+    document.addEventListener('click', (e) => {
+        const actionBtn = e.target.closest('[data-acao]');
+        if (!actionBtn) return;
+
+        e.preventDefault();
+
+        const tipo = actionBtn.dataset.acao === 'venda' ? 'venda' : 'compra';
+        const id = actionBtn.dataset.id;
+        openTransacaoModal(id, tipo, actionBtn.dataset.nome || '', actionBtn.dataset.ticker || '');
+    }, true);
+
+    transacaoModalEl?.addEventListener('hidden.bs.modal', () => {
+        if (!transacaoForm) return;
+        transacaoForm.reset();
+        transacaoForm.dataset.investimentoId = '';
+        const dataInput = document.getElementById('data_transacao');
+        if (dataInput) dataInput.value = new Date().toISOString().slice(0, 10);
+    });
+
+    transacaoForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const id = form.dataset.investimentoId;
+        if (!id) return;
+
+        const body = new URLSearchParams();
+        const fd = new FormData(form);
+        fd.forEach((v, k) => body.append(k, v));
+
+        try {
+            const res = await fetch(`${BASE_URL}api/investimentos/${id}/transacoes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body
+            });
+            const json = await res.json().catch(() => ({}));
+
+            if (!res.ok || json.error) {
+                let msg = 'Erro ao registrar transação';
+
+                if (json.errors && typeof json.errors === 'object') {
+                    if (json.errors.quantidade) {
+                        msg = json.errors.quantidade;
+                    } else {
+                        const keys = Object.keys(json.errors);
+                        if (keys.length > 0 && json.errors[keys[0]]) {
+                            msg = json.errors[keys[0]];
+                        }
+                    }
+                } else if (json.message) {
+                    msg = json.message;
+                }
+
+                throw new Error(msg);
+            }
+
+            toast('Transação salva!');
+            setTimeout(() => window.location.reload(), 900);
+        } catch (err) {
+            console.error(err);
+            toast(err.message || 'Falha ao registrar transação', 'error');
+        }
+    });
+
     let editingId = null;
 
-    // Editar: captura antes e impede handlers antigos
+    // Editar: captura ações e impede handlers antigos
     document.addEventListener('click', async (e) => {
         const a = e.target.closest('a[data-edit]');
         if (!a) return;
         e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
 
         const id = a.dataset.id;
         if (!id) return;
@@ -308,7 +653,7 @@ if (!isset($categories))       $categories = [];
         }
     }, true);
 
-    // Reset ao fechar
+    // Reset ao fechar modal de investimento
     document.getElementById('modal-investimentos')?.addEventListener('hidden.bs.modal', () => {
         const form = document.getElementById('form-investimento');
         form.reset();
@@ -318,7 +663,7 @@ if (!isset($categories))       $categories = [];
         editingId = null;
     });
 
-    // Submit via fetch
+    // Submit de criar/editar investimento via fetch
     document.getElementById('form-investimento')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -343,15 +688,14 @@ if (!isset($categories))       $categories = [];
         }
     });
 
-    // Excluir via fetch com captura
+    // Excluir via fetch com SweetAlert
     document.addEventListener('click', (e) => {
         const a = e.target.closest('a[data-delete]');
         if (!a) return;
         e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
 
         const id = a.dataset.id;
+
         Swal.fire({
             icon: 'warning',
             title: 'Excluir investimento?',
@@ -379,6 +723,7 @@ if (!isset($categories))       $categories = [];
         });
     }, true);
 </script>
+
 <?php if (isset($_SESSION['message'])): ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -418,30 +763,3 @@ if (!isset($categories))       $categories = [];
     </script>
     <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
 <?php endif; ?>
-
-<script>
-    document.addEventListener('click', (e) => {
-        const a = e.target.closest('a[data-delete]');
-        if (!a) return;
-        e.preventDefault();
-
-        const css = getComputedStyle(document.documentElement);
-        const bg = (css.getPropertyValue('--color-surface') || '#1c2c3c').trim();
-        const fg = (css.getPropertyValue('--color-text') || '#ffffff').trim();
-        const danger = (css.getPropertyValue('--color-danger') || '#e74c3c').trim();
-
-        Swal.fire({
-            icon: 'warning',
-            title: 'Excluir investimento?',
-            text: 'Esta ação não poderá ser desfeita.',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, excluir',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: danger,
-            background: bg,
-            color: fg
-        }).then((r) => {
-            if (r.isConfirmed) window.location.href = a.href;
-        });
-    });
-</script>

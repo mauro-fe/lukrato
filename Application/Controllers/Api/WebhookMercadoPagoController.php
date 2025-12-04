@@ -5,102 +5,166 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Usuario;
+use Application\Models\AssinaturaUsuario;
+use Application\Models\Plano;
 use Application\Services\LogService;
+use Application\Services\MercadoPagoService;
 use Illuminate\Database\Capsule\Manager as DB;
-use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
 use Throwable;
+use Carbon\Carbon;
+
+enum PaymentStatus: string
+{
+    case APPROVED = 'approved';
+}
+
+enum UserPlan: string
+{
+    case PRO = 'pro';
+    case FREE = 'free';
+}
 
 class WebhookMercadoPagoController extends BaseController
 {
+    private function extractUserIdFromPayment(\MercadoPago\Resources\Payment $payment): ?int
+    {
+        if (isset($payment->metadata)) {
+            if (is_object($payment->metadata) && isset($payment->metadata->user_id)) {
+                return (int)$payment->metadata->user_id;
+            }
+            if (is_array($payment->metadata) && isset($payment->metadata['user_id'])) {
+                return (int)$payment->metadata['user_id'];
+            }
+        }
+
+        if (!empty($payment->external_reference)) {
+            if (preg_match('/user_(\d+)/', (string)$payment->external_reference, $matches)) {
+                return (int)$matches[1];
+            }
+        }
+
+        return null;
+    }
+
+
     public function handle(): void
     {
-        // 1) Credencial
-        $token = $_ENV['MP_ACCESS_TOKEN'] ?? '';
-        if (!$token) {
+        try {
+            MercadoPagoService::configureSdk();
+        } catch (Throwable $e) {
             Response::error('MP access token ausente', 500);
             return;
         }
-        MercadoPagoConfig::setAccessToken($token);
 
-        // 2) Coleta bruta (para log)
-        $raw = file_get_contents('php://input') ?: '';
+        $raw     = file_get_contents('php://input') ?: '';
         $payload = json_decode($raw, true) ?? [];
 
-        // 3) MP pode mandar em querystring (topic/id) ou JSON (type/data.id)
-        $type = $payload['type'] ?? $payload['action'] ?? ($_GET['topic'] ?? '');
-        $id   = $payload['data']['id'] ?? ($_GET['id'] ?? null);
+        $type = (string)($payload['type'] ?? $payload['action'] ?? ($_GET['topic'] ?? ''));
+        $id   = (string)($payload['data']['id'] ?? ($_GET['id'] ?? null));
 
-        // 4) Logs de auditoria do webhook
         LogService::info('Webhook MP recebido', [
-            'headers' => getallheaders(),
+            'headers' => function_exists('getallheaders') ? getallheaders() : [],
             'query'   => $_GET,
             'payload' => $payload,
         ]);
 
+        LogService::info('Webhook MP parsed', [
+            'type' => $type,
+            'id'   => $id,
+        ]);
+
         try {
-            // Trate apenas eventos de pagamento
-            if ($type && stripos($type, 'payment') !== false && $id) {
+            if ($id !== '' && str_contains(strtolower($type), 'payment')) {
+                
                 $client  = new PaymentClient();
-                $payment = $client->get($id); // Consulta oficial
+                $payment = $client->get($id);
 
-                // Metadados podem vir como objeto/array
-                $meta = (array)($payment->metadata ?? []);
-                $userId = isset($meta['user_id']) ? (int)$meta['user_id'] : (int)($payment->metadata->user_id ?? 0);
+                $userId = $this->extractUserIdFromPayment($payment);
+                LogService::info('Webhook MP payment carregado', [
+                    'payment_id' => $payment->id,
+                    'status'     => $payment->status,
+                    'user_id'    => $userId,
+                    'ext_ref'    => $payment->external_reference ?? null,
+                    'metadata'   => $payment->metadata ?? null,
+                ]);
 
-                // Se não vier metadata, dá pra inferir por external_reference (se você usar "user_{id}_...").
-                if (!$userId && !empty($payment->external_reference)) {
-                    if (preg_match('/user_(\d+)/', (string)$payment->external_reference, $m)) {
-                        $userId = (int)$m[1];
-                    }
-                }
-
-                // Idempotência (recomendado): se tiver uma tabela "payments", salve/cheque aqui.
-                // Exemplo simplificado de proteção: só promove se status=approved e houver user válido.
-                if ($payment->status === 'approved' && $userId > 0) {
-                    DB::connection()->transaction(function () use ($userId, $payment) {
-                        /** @var Usuario|null $user */
+                if ($payment->status === PaymentStatus::APPROVED->value && $userId !== null) {
+                    $planoPro = Plano::where('code', UserPlan::PRO->value)->first();
+                    
+                    DB::connection()->transaction(function () use ($userId, $payment, $planoPro) {
                         $user = Usuario::find($userId);
                         if (!$user) {
                             throw new \RuntimeException('Usuário não encontrado para o pagamento ' . $payment->id);
                         }
 
-                        // Evita upgrade duplicado: se já é PRO e ainda não venceu, não reaplica.
                         $renovaEm = $user->plano_renova_em ? strtotime($user->plano_renova_em) : 0;
-                        $agora    = time();
+                        if ($user->plano === UserPlan::PRO->value && $renovaEm > time()) {
+                            LogService::info('Webhook MP ignorado (usuário já possui plano PRO vigente)', [
+                                'user_id'    => $user->id,
+                                'payment_id' => $payment->id,
+                            ]);
+                            return; 
+                        }
 
-                        if ($user->plano === 'pro' && $renovaEm > $agora) {
-                            // Já está ativo — apenas registra o evento (ideal: gravar na tabela payments)
-                            LogService::info('Webhook MP ignorado (já PRO vigente)', [
+                        $renovaEm = Carbon::now()->addDays(30);
+
+                        if ($planoPro) {
+                            // Atualiza ou cria assinatura local para refletir o pagamento aprovado
+                            AssinaturaUsuario::updateOrCreate(
+                                [
+                                    'user_id'  => $user->id,
+                                    'gateway'  => 'mercadopago',
+                                ],
+                                [
+                                    'plano_id'                => $planoPro->id,
+                                    'status'                  => AssinaturaUsuario::ST_ACTIVE,
+                                    'renova_em'               => $renovaEm,
+                                    'external_subscription_id'=> (string)$payment->id,
+                                ]
+                            );
+                            LogService::info('Webhook MP assinatura gravada', [
+                                'user_id' => $user->id,
+                                'plano_id'=> $planoPro->id,
+                                'renova_em' => $renovaEm->toDateTimeString(),
+                            ]);
+                        } else {
+                            LogService::warning('Plano PRO não encontrado na tabela planos', [
                                 'user_id' => $user->id,
                                 'payment_id' => $payment->id,
                             ]);
-                            return;
                         }
 
-                        // Promove para PRO por 30 dias a partir de agora (pode ser a partir do payment->date_approved)
-                        $user->plano = 'pro';
-                        $user->plano_renova_em = date('Y-m-d H:i:s', strtotime('+30 days'));
+                        $user->plano = UserPlan::PRO->value;
+                        $user->plano_renova_em = $renovaEm->toDateTimeString();
+                        $user->gateway = 'mercadopago';
                         $user->save();
-
-                        // (SUGESTÃO) Persistir o pagamento (id/status/value/etc.) numa tabela própria:
-                        // Payment::create([...]);
+                        LogService::info('Webhook MP usuário atualizado para PRO', [
+                            'user_id' => $user->id,
+                            'renova_em' => $user->plano_renova_em,
+                        ]);
+                        
                     });
                 }
             }
 
-            // Retorne 200 rápido para evitar reentrega
             Response::success(['received' => true]);
+
         } catch (MPApiException $e) {
-            LogService::error('Erro MP API no webhook', [
-                'status'  => $e->getApiResponse()->getStatusCode(),
-                'content' => $e->getApiResponse()->getContent(),
+            $apiResponse = $e->getApiResponse();
+            $statusCode  = $apiResponse?->getStatusCode() ?? 400;
+            $content     = $apiResponse?->getContent();
+
+            LogService::error('Erro MPApiException no webhook', [
+                'status'  => $statusCode,
+                'content' => $content,
             ]);
-            Response::error('Erro no webhook (MP)', 500);
+            Response::error('Erro no webhook (MP)', 500); 
+
         } catch (Throwable $e) {
             LogService::error('Exceção no webhook MP', ['ex' => $e->getMessage()]);
-            Response::error('Erro no webhook: ' . $e->getMessage(), 500);
+            Response::error('Erro no processamento do webhook: ' . $e->getMessage(), 500);
         }
     }
 }

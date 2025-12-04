@@ -28,9 +28,21 @@ class Usuario extends Model
     protected $casts = ['data_nascimento' => 'date:Y-m-d'];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito'];
 
-    /* ============================================================
-     * RELACIONAMENTOS
-     * ========================================================== */
+
+    public function setSenhaAttribute($value): void
+    {
+        $raw = (string) $value;
+        if ($raw === '') {
+            $this->attributes['senha'] = $raw;
+            return;
+        }
+
+        $this->attributes['senha'] = self::valueLooksHashed($raw)
+            ? $raw
+            : password_hash($raw, PASSWORD_BCRYPT);
+    }
+
+
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'user_id');
@@ -53,7 +65,6 @@ class Usuario extends Model
         return $this->isGratuito();
     }
 
-    // 🔹 Planos
     public function assinaturas()
     {
         return $this->hasMany(AssinaturaUsuario::class, 'user_id');
@@ -71,9 +82,7 @@ class Usuario extends Model
         return $this->assinaturaAtiva()->with('plano')->first()?->plano;
     }
 
-    /* ============================================================
-     * BOOT / LOGIN
-     * ========================================================== */
+
     protected static function boot()
     {
         parent::boot();
@@ -114,9 +123,7 @@ class Usuario extends Model
         return !empty($i['algo']);
     }
 
-    /* ============================================================
-     * PLANO / FEATURE GATE
-     * ========================================================== */
+
     public function isPro(): bool
     {
         return $this->planoAtual()?->code === 'pro';
@@ -142,5 +149,18 @@ class Usuario extends Model
     {
         $p = trim((string)$this->nome);
         return $p === '' ? '' : explode(' ', $p)[0];
+    }
+
+
+    public function enderecos()
+    {
+        return $this->hasMany(Endereco::class, 'user_id');
+    }
+
+    public function enderecoPrincipal()
+    {
+        return $this->hasOne(Endereco::class, 'user_id')
+            ->where('tipo', 'principal')
+            ->withDefault();
     }
 }

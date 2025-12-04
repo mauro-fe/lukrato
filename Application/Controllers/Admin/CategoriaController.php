@@ -4,6 +4,7 @@ namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
 
+
 class CategoriaController extends BaseController
 {
     public function index(?string $username = null): void
@@ -12,7 +13,10 @@ class CategoriaController extends BaseController
 
         $this->render(
             'admin/categorias/index',
-            ['pageTitle' => 'Categorias', 'subTitle' => 'Crie e gerencie suas categorias'],
+            [
+                'pageTitle' => 'Categorias',
+                'subTitle' => 'Crie e gerencie suas categorias de Receitas e Despesas'
+            ],
             'admin/partials/header',
             'admin/partials/footer'
         );

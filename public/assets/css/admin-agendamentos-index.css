@@ -1,17 +1,109 @@
+/**
+ * ============================================================================
+ * AGENDAMENTOS - ESTILOS ESPECÍFICOS
+ * ============================================================================
+ * Estilos exclusivos da página de agendamentos
+ * ============================================================================
+ */
+
+/* ============================================================================
+   HEADER DA PÁGINA
+   ============================================================================ */
+
 .lk-page-header {
-  background: var(--color-surface);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   box-shadow: var(--shadow-sm);
 }
 
+.ag-new-wrapper {
+  margin: 20px auto;
+}
+
+/* ============================================================================
+   CARDS GERAIS
+   ============================================================================ */
+
 .lk-card {
-  background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
 
+/* ============================================================================
+   TABELA DESKTOP
+   ============================================================================ */
+
 .table-dark th,
 .table-dark td {
   vertical-align: middle;
+}
+
+.tabulator .tabulator-tableholder {
+  overflow-x: hidden !important;
+}
+
+/* Botão "Novo Agendamento" centralizado no mobile */
+@media (max-width: 768px) {
+  .ag-new-wrapper {
+    display: flex;
+    justify-content: center;
+    max-width: 14rem;
+  }
+
+  .ag-new-btn {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    justify-content: center;
+    display: inline-flex;
+    gap: var(--spacing-2);
+  }
+}
+
+.ag-table-desktop {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================================
+   CONFIGURAÇÃO MOBILE CARDS (usa classes do shared)
+   ============================================================================ */
+
+/* Grid específico de agendamentos: data | tipo | valor | status */
+.ag-cards-header {
+  grid-template-columns: 1fr 0.9fr 1fr 0.9fr;
+}
+
+.ag-card-main {
+  grid-template-columns: 1fr 0.9fr 1fr auto;
+}
+
+/* Status específico de agendamentos */
+.ag-card-status {
+  margin-top: 0.45rem;
+}
+
+/* ============================================================================
+   DETALHES ADICIONAIS (estende o shared)
+   ============================================================================ */
+
+.ag-card-detail-row {
+  display: grid;
+  grid-template-columns: 0.95fr 1fr;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
+@media (max-width: 500px) {
+  .ag-table-desktop {
+    display: none;
+  }
+
+  .ag-cards-header {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
 }

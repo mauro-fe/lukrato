@@ -1,11 +1,38 @@
+<?php
+
+use Application\Lib\Auth;
+
+$headerMesUser = $currentUser ?? Auth::user();
+$showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') && $headerMesUser->isPro());
+
+?>
 <style>
     /* Header / Month selector */
     .dash-lk-header {
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin-top: var(--spacing-5);
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--spacing-3);
+        margin: 0 auto;
         padding: var(--spacing-4);
+        width: 100%;
+    }
+
+    .dash-lk-header .header-left {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 1 auto;
+    }
+
+    .dash-lk-header .header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+        gap: var(--spacing-2);
+        min-width: 220px;
     }
 
     .dash-lk-header .month-selector {
@@ -15,7 +42,8 @@
         flex-wrap: wrap;
     }
 
-    .lk-period {
+    .lk-period,
+    .lk-year-picker {
         display: flex;
         align-items: center;
         gap: var(--spacing-2);
@@ -94,6 +122,32 @@
         transform: translateY(2px);
     }
 
+    .lk-pro-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        padding: var(--spacing-3) var(--spacing-5);
+        border-radius: var(--radius-full, 999px);
+        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
+        color: #fff;
+        font-weight: 600;
+        font-size: var(--font-size-sm);
+        text-decoration: none;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        box-shadow: var(--shadow-md);
+        white-space: nowrap;
+    }
+
+    .lk-pro-cta:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+        color: #fff;
+    }
+
+    .lk-pro-cta i {
+        font-size: var(--font-size-base);
+    }
+
     /* Month dropdown */
     .dash-lk-header .month-display {
         position: relative;
@@ -162,6 +216,37 @@
         background: var(--glass-bg);
         border-radius: var(--radius-md);
         margin-bottom: var(--spacing-2);
+    }
+
+    .lk-period {
+        display: flex;
+    }
+
+    body.show-year-picker .lk-period {
+        display: none;
+    }
+
+    #yearPicker {
+        display: none;
+        align-items: center;
+        gap: var(--spacing-2);
+    }
+
+    body.show-year-picker #yearPicker {
+        display: flex;
+    }
+
+    #yearPicker .year-btn {
+        min-width: 140px;
+    }
+
+    #yearPicker .month-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    #currentYearText {
+        font-weight: 600;
     }
 
     .dash-lk-header .month-dropdown .m-btn {
@@ -292,6 +377,8 @@
         .dashboard-page .dash-lk-header {
             margin-top: var(--spacing-3);
             padding: var(--spacing-2);
+            flex-direction: column;
+            align-items: stretch;
         }
 
         .lk-period {
@@ -306,11 +393,39 @@
         .dash-lk-header .month-dropdown-btn {
             min-width: 140px;
             padding: var(--spacing-2) var(--spacing-3);
-            font-size: var(--font-size-sm);
         }
 
         .dash-lk-header .month-dropdown {
             width: calc(100vw - 32px);
+        }
+
+        .dash-lk-header .header-left,
+        .dash-lk-header .header-actions {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .lk-pro-cta {
+            width: min(320px, 100%);
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 370px) {
+
+        .dash-lk-header .month-dropdown-btn {
+
+            font-size: .85rem;
+        }
+
+
+        .lk-period {
+            gap: 1px;
+            padding: 0;
+        }
+
+        .month-nav-btn {
+            font-size: .6rem !important;
         }
     }
 </style>
@@ -336,8 +451,21 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
+            <div class="lk-year-picker" id="yearPicker" aria-hidden="true">
+                <button class="month-nav-btn" id="prevYearBtn" type="button" aria-label="Ano anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="month-dropdown-btn year-btn" id="yearDropdownBtn" type="button" aria-haspopup="true"
+                    aria-expanded="false">
+                    <span id="currentYearText"><?= date('Y') ?></span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <button class="month-nav-btn" id="nextYearBtn" type="button" aria-label="Próximo ano">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
-    </div>
+
 </header>
 
 <script>
@@ -360,9 +488,19 @@
         const mpGrid = document.getElementById('mpGrid');
         const mpTodayBtn = document.getElementById('mpTodayBtn');
         const mpInput = document.getElementById('mpInputMonth');
+        const yearPickerWrap = document.getElementById('yearPicker');
+        const btnPrevYear = document.getElementById('prevYearBtn');
+        const btnNextYear = document.getElementById('nextYearBtn');
+        const btnYearDropdown = document.getElementById('yearDropdownBtn');
+        const yearTextEl = document.getElementById('currentYearText');
+        const yearModalEl = document.getElementById('yearModal');
+        const yearGrid = document.getElementById('yearGrid');
+        const yearInput = document.getElementById('yearInput');
+        const yearApplyBtn = document.getElementById('yearApplyBtn');
 
         // ---- helpers
         const STORAGE_KEY = 'lukrato.month.dashboard';
+        const YEAR_STORAGE_KEY = 'lukrato.year.dashboard';
         const SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const toYM = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
         const monthLabel = (ym) => {
@@ -372,10 +510,28 @@
                 year: 'numeric'
             });
         };
+        const clampYear = (year) => {
+            if (!Number.isFinite(year)) return null;
+            return Math.min(2100, Math.max(2000, Math.round(year)));
+        };
+        let pickerMode = document.body?.classList.contains('show-year-picker') ? 'year' : 'month';
+        const setPickerModeDisplay = (mode = 'month') => {
+            const normalized = mode === 'year' ? 'year' : 'month';
+            pickerMode = normalized;
+            const showYear = normalized === 'year';
+            if (document.body) {
+                document.body.classList.toggle('show-year-picker', showYear);
+            }
+            if (yearPickerWrap) {
+                yearPickerWrap.setAttribute('aria-hidden', showYear ? 'false' : 'true');
+            }
+            return showYear;
+        };
 
         // ---- estado
         let state = sessionStorage.getItem(STORAGE_KEY) || toYM(new Date());
         let modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
+        let yearState = clampYear(Number(sessionStorage.getItem(YEAR_STORAGE_KEY) ?? modalYear)) ?? modalYear;
 
         // ---- bootstrap modal
         const ensureMonthModal = () => {
@@ -385,10 +541,68 @@
             }
             return window.bootstrap.Modal.getOrCreateInstance(modalEl);
         };
+        const cleanupModalArtifacts = () => {
+            if (document.querySelector('.modal.show')) {
+                return;
+            }
+            document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('padding-right');
+        };
         const openMonthModal = () => ensureMonthModal()?.show();
-        const closeMonthModal = () => ensureMonthModal()?.hide();
+        const closeMonthModal = () => {
+            const instance = ensureMonthModal();
+            if (!instance) return;
+            instance.hide();
+            setTimeout(cleanupModalArtifacts, 200);
+        };
+        let yearModalInstance = null;
+        let yearModalFocus = yearState;
+        const ensureYearModal = () => {
+            if (!yearModalEl || !window.bootstrap?.Modal) return null;
+            if (yearModalEl.parentElement && yearModalEl.parentElement !== document.body) {
+                document.body.appendChild(yearModalEl);
+            }
+            yearModalInstance = window.bootstrap.Modal.getOrCreateInstance(yearModalEl);
+            return yearModalInstance;
+        };
+        const openYearModal = () => {
+            yearModalFocus = yearState;
+            buildYearGrid();
+            if (yearInput) yearInput.value = String(yearState);
+            ensureYearModal()?.show();
+        };
+        const closeYearModal = () => {
+            const inst = ensureYearModal();
+            if (!inst) return;
+            inst.hide();
+            setTimeout(cleanupModalArtifacts, 200);
+        };
 
         // ---- set/get state
+        const applyYearDisplay = (year, {
+            store = true
+        } = {}) => {
+            const normalized = clampYear(Number(year));
+            if (normalized === null) return false;
+            yearState = normalized;
+            if (store) sessionStorage.setItem(YEAR_STORAGE_KEY, String(yearState));
+            if (yearTextEl) yearTextEl.textContent = String(yearState);
+            return true;
+        };
+        const setYearValue = (year, {
+            silent = false
+        } = {}) => {
+            const changed = applyYearDisplay(year);
+            if (!silent && changed) {
+                document.dispatchEvent(new CustomEvent('lukrato:year-changed', {
+                    detail: {
+                        year: yearState
+                    }
+                }));
+            }
+        };
+
         const setState = (ym, {
             silent = false
         } = {}) => {
@@ -400,6 +614,12 @@
                 elText.textContent = monthLabel(state);
                 elText.setAttribute('data-month', state);
             }
+            const inferredYear = Number(state.split('-')[0]);
+            if (Number.isFinite(inferredYear)) {
+                applyYearDisplay(inferredYear, {
+                    store: false
+                });
+            }
             if (!silent) {
                 document.dispatchEvent(new CustomEvent('lukrato:month-changed', {
                     detail: {
@@ -409,6 +629,29 @@
             }
         };
         const getState = () => state;
+        const getYear = () => yearState;
+
+        const buildYearGrid = () => {
+            if (!yearGrid) return;
+            let html = '';
+            const start = yearState - 5;
+            for (let i = 0; i < 11; i++) {
+                const y = start + i;
+                if (y < 2000 || y > 2100) continue;
+                const active = y === yearState ? 'active' : '';
+                html +=
+                    `<button type="button" class="btn btn-outline-light ${active}" data-year="${y}">${y}</button>`;
+            }
+            yearGrid.innerHTML = html || '<p class="text-center mb-0">Sem anos disponíveis</p>';
+            yearGrid.querySelectorAll('button[data-year]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    setYearValue(Number(btn.dataset.year));
+                    closeYearModal();
+                }, {
+                    once: true
+                });
+            });
+        };
 
         // ---- grade de meses do modal
         const buildGrid = () => {
@@ -466,6 +709,9 @@
             if (mpInput) mpInput.value = state;
             buildGrid();
         });
+        modalEl?.addEventListener('hidden.bs.modal', () => {
+            cleanupModalArtifacts();
+        });
         mpPrevYear?.addEventListener('click', () => {
             modalYear--;
             buildGrid();
@@ -486,6 +732,37 @@
             }
         });
 
+        // controles de ano
+        btnYearDropdown?.addEventListener('click', (e) => {
+            e.preventDefault();
+            openYearModal();
+        });
+        btnPrevYear?.addEventListener('click', () => setYearValue(yearState - 1));
+        btnNextYear?.addEventListener('click', () => setYearValue(yearState + 1));
+        yearInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const y = clampYear(Number(yearInput.value));
+                if (y) {
+                    setYearValue(y);
+                    closeYearModal();
+                }
+            }
+        });
+        yearApplyBtn?.addEventListener('click', () => {
+            const y = clampYear(Number(yearInput?.value));
+            if (y) {
+                setYearValue(y);
+                closeYearModal();
+            }
+        });
+        yearModalEl?.addEventListener('shown.bs.modal', () => {
+            buildYearGrid();
+            if (yearInput) yearInput.value = String(yearState);
+        });
+        yearModalEl?.addEventListener('hidden.bs.modal', () => {
+            cleanupModalArtifacts();
+        });
+
         // ---- inicialização (garante modal pronto após load)
         const bootstrapReady = () => {
             ensureMonthModal();
@@ -499,13 +776,21 @@
         window.LukratoHeader = Object.assign({}, window.LukratoHeader, {
             getMonth: () => getState(),
             setMonth: (ym, opts) => setState(ym, opts),
+            getYear: () => getYear(),
+            setYear: (year, opts) => setYearValue(year, opts),
             openMonthPicker: () => openMonthModal(),
             closeMonthPicker: () => closeMonthModal(),
+            setPickerMode: (mode) => setPickerModeDisplay(mode),
+            showYearPicker: (show = true) => setPickerModeDisplay(show ? 'year' : 'month'),
         });
 
         // seta o texto inicial/estado atual sem disparar evento extra
         setState(state, {
             silent: true
         });
+        setYearValue(yearState, {
+            silent: true
+        });
+        setPickerModeDisplay(pickerMode);
     })();
 </script>

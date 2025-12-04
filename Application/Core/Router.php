@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Core;
 
 use Application\Services\CacheService;
 use Application\Services\LogService;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\ValidationException;
+use Throwable;
 
 class Router
 {
     private static array $routes = [];
 
-    public static function add(string $method, string $path, $callback, array $middlewares = []): void
+    public static function add(string $method, string $path, mixed $callback, array $middlewares = []): void
     {
         self::$routes[] = [
             'method'      => strtoupper($method),
@@ -26,11 +29,11 @@ class Router
         $routeContext = null;
 
         try {
-            $request   = new Request();
-            $match     = self::findMatchingRoute($requestedPath, $requestMethod);
+            $request = new Request();
+            $match   = self::findMatchingRoute($requestedPath, $requestMethod);
 
             if ($match === null) {
-                self::handleNotFound();
+                self::handleNotFound($request);
                 return;
             }
 
@@ -38,10 +41,12 @@ class Router
 
             self::executeMiddlewares($routeContext['middlewares'], $request);
             self::executeCallback($routeContext, $match['params'], $request);
-        } catch (AuthException | ValidationException $e) {
-            self::handleAuthOrValidationException($e);
-        } catch (\Throwable $e) {
-            self::handleException($e, $routeContext);
+        } catch (AuthException $e) {
+            self::handleAuthOrValidationException($e, $request ?? null);
+        } catch (ValidationException $e) {
+            self::handleAuthOrValidationException($e, $request ?? null);
+        } catch (Throwable $e) {
+            self::handleException($e, $routeContext, $request ?? null);
         }
     }
 
@@ -57,10 +62,10 @@ class Router
                 return ['route' => $route, 'params' => $matches];
             }
         }
-
         return null;
     }
 
+    /** @throws ValidationException|AuthException|Throwable */
     private static function executeMiddlewares(array $middlewareNames, Request $request): void
     {
         if (empty($middlewareNames)) {
@@ -71,7 +76,7 @@ class Router
 
         foreach ($middlewareNames as $name) {
             if (!isset($registry[$name])) {
-                throw new \Exception("Middleware '{$name}' não está registrado.");
+                throw new \Exception("Middleware '{$name}' n├úo est├í registrado.");
             }
 
             $middlewareClass = $registry[$name];
@@ -92,90 +97,87 @@ class Router
             return;
         }
 
-        if (is_string($route['callback'])) {
-            [$controllerPath, $method] = explode('@', $route['callback']);
+        if (is_string($route['callback']) && str_contains($route['callback'], '@')) {
+            [$controllerPath, $method] = explode('@', $route['callback'], 2);
             $controllerNs = 'Application\\Controllers\\' . str_replace('/', '\\', $controllerPath);
 
             if (!class_exists($controllerNs)) {
-                LogService::error('Controlador não encontrado', [
-                    'controller' => $controllerNs,
-                    'rota'       => $route['path'],
-                    'callback'   => $route['callback'],
-                ]);
-                throw new \Exception("Controlador '{$controllerNs}' não encontrado.");
+                throw new \Exception("Controlador '{$controllerNs}' n├úo encontrado.");
             }
 
             $instance = new $controllerNs();
 
             if (!method_exists($instance, $method)) {
-                LogService::error('Método não encontrado no controlador', [
-                    'controller' => $controllerNs,
-                    'metodo'     => $method,
-                    'rota'       => $route['path'],
-                    'callback'   => $route['callback'],
-                ]);
-                throw new \Exception("Método '{$method}' não encontrado no controlador '{$controllerNs}'.");
+                throw new \Exception("M├®todo '{$method}' n├úo encontrado no controlador '{$controllerNs}'.");
             }
 
             call_user_func_array([$instance, $method], $params);
             return;
         }
 
-        throw new \Exception('Callback da rota inválido.');
+        throw new \Exception('Callback da rota inválida.');
     }
 
-    private static function handleAuthOrValidationException(\Exception $e): void
+
+    private static function handleAuthOrValidationException(\Exception $e, ?Request $request): void
     {
         if ($e instanceof AuthException) {
-            header('Location: ' . BASE_URL . 'admin/login');
-            exit;
+            Response::unauthorized($e->getMessage());
+            return;
         }
-
         if ($e instanceof ValidationException) {
-            http_response_code($e->getCode() ?: 403);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-                'errors'  => $e->getErrors(),
-            ]);
-            exit;
+            Response::validationError($e->getErrors());
+            return;
         }
     }
 
-    public static function handleException(\Throwable $e, ?array $routeContext): void
+    public static function handleException(Throwable $e, ?array $routeContext, ?Request $request): void
     {
         LogService::critical('Erro fatal no Router', [
             'erro' => $e->getMessage(),
-            'rota' => $routeContext,
+            'rota' => $routeContext['path'] ?? 'desconhecida',
             'trace' => $e->getTraceAsString(),
         ]);
 
-        $isDev = (($_ENV['APP_ENV'] ?? 'production') === 'development');
+        $isDev = (($_ENV['APP_ENV'] ?? 'production') !== 'development');
+        $wantsJson = $request?->wantsJson() || $request?->isAjax();
 
-        http_response_code(500);
+        if ($wantsJson && !$isDev) {
+            Response::error('Erro interno no servidor.', 500);
+            return;
+        }
 
         if ($isDev) {
-            echo '<h1>Erro na Aplicação</h1><pre>';
-            echo '<strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
-            echo '<strong>Arquivo:</strong> ' . $e->getFile() . ' (Linha ' . $e->getLine() . ")\n\n";
-            echo '<strong>Trace:</strong>' . "\n" . htmlspecialchars($e->getTraceAsString());
-            echo '</pre>';
+            $html = '<h1>Erro na Aplica├º├úo</h1><pre>';
+            $html .= '<strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
+            $html .= '<strong>Arquivo:</strong> ' . $e->getFile() . ' (Linha ' . $e->getLine() . ")\n\n";
+            $html .= '<strong>Trace:</strong>' . "\n" . htmlspecialchars($e->getTraceAsString());
+            $html .= '</pre>';
+            Response::htmlOut($html, 500);
         } else {
-            include BASE_PATH . '/views/errors/500.php';
+            self::handleViewError(500, BASE_PATH . '/views/errors/500.php', 'Erro no servidor');
         }
-        exit;
     }
 
-    private static function handleNotFound(): void
+    private static function handleNotFound(?Request $request): void
     {
-        http_response_code(404);
-        $errorPage = BASE_PATH . '/views/errors/404.php';
+        $wantsJson = $request?->wantsJson() || $request?->isAjax();
 
-        if (file_exists($errorPage)) {
-            include $errorPage;
+        if ($wantsJson) {
+            Response::notFound('Recurso n├úo encontrado');
+            return;
+        }
+
+        self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'P├ígina n├úo encontrada');
+    }
+
+    private static function handleViewError(int $code, string $viewPath, string $defaultMessage): void
+    {
+        http_response_code($code);
+        if (file_exists($viewPath)) {
+            include $viewPath;
         } else {
-            echo '<h2>Página não encontrada</h2>';
+            echo "<h2>{$code} | {$defaultMessage}</h2>";
         }
         exit;
     }

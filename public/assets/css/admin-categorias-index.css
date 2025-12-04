@@ -1,222 +1,310 @@
+/* ==================== VARI�VEIS E ANIMA��ES ==================== */
+:root {
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==================== LAYOUT PRINCIPAL ==================== */
 .c-page {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-5);
+  animation: fadeIn 0.4s ease-out;
 }
 
-.c-title {
-  font-weight: 700;
-  color: var(--color-primary);
+.c-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-5);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.c-card:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .c-subtitle {
-  margin: var(--spacing-1) 0 0 0;
-  font-size: var(--font-size-base);
-  font-family: var(--font-primary) !important;
-  color: var(--color-primary);
+  font-size: var(--font-size-lg);
   font-weight: 600;
-}
-
-.c-form {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
-      140px,
-      auto
-    );
-  gap: var(--spacing-3);
-  align-items: stretch;
-  margin: var(--spacing-4) 0;
-}
-
-.c-form .btn {
-  min-width: 140px;
-  border-radius: var(--radius-sm, 8px);
-  white-space: nowrap;
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-.c-filter {
+  margin: 0 0 var(--spacing-4) 0;
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  flex-wrap: wrap;
-  margin: var(--spacing-4) 0;
+  gap: var(--spacing-2);
 }
 
-.c-filter .c-select {
-  max-width: 240px;
+/* ==================== FORMUL�RIO ==================== */
+.c-form {
+  display: flex;
+  gap: var(--spacing-5);
 }
-.c-card {
+
+.c-input {
+  flex: 1 1 250px;
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border, #1f29371a);
-  border-radius: var(--radius-sm, 8px);
-  padding: var(--spacing-4);
-}
-
-.c-muted {
-  color: var(--color-text-muted);
-}
-
-.c-input,
-.c-select {
-  width: 100%;
-  padding: var(--spacing-3);
-  border-radius: var(--radius-sm, 8px);
   border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  border-radius: var(--radius-sm);
   color: var(--color-text);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-3) var(--spacing-4);
+  transition: var(--transition-smooth);
+  min-width: 200px;
 }
 
 .c-input::placeholder {
-  color: var(--color-text);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
 }
 
-.lukrato-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 720px;
-  color: var(--branco);
+.c-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
+  background: color-mix(in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface-muted));
+}
+
+.c-form .lk-select {
+  flex: 0 1 150px;
+  min-width: 150px;
+}
+
+.c-form button[type="submit"] {
+  flex: 0 1 auto;
+  padding: var(--spacing-3) var(--spacing-5);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  transition: var(--transition-smooth);
+}
+
+.c-form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+/* ==================== TABELA / CART�O DE CATEGORIAS ==================== */
+.container-table {
+  background: transparent;
+  border: none;
+  padding: 0;
+  animation: fadeIn 0.5s ease-out 0.2s both;
+}
+
+.c-mobile-cat-header {
+  display: none !important;
+}
+
+/* "Cart�o" que envolve header + linhas (igual mock) */
+.table-container {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 0;
   overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
-.lukrato-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  text-align: left;
-  font-size: var(--font-size-sm);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--cinza);
-  background: rgba(255, 255, 255, 0.04);
+.c-mobile-card-wrapper {
+  display: none;
+}
+
+
+
+/* Estrutura do Tabulator */
+.table-container .tabulator {
+  background: transparent;
+  border: none;
+}
+
+.table-container .tabulator-tableholder {
+  overflow-x: hidden !important;
+}
+
+/* HEADER - NOME / TIPO / A��ES FIXOS NO TOPO */
+.table-container .tabulator .tabulator-header {
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-surface-muted) 90%, var(--color-primary) 10%) 0%,
+      var(--color-surface-muted) 60%,
+      var(--color-surface) 100%);
   border-bottom: 1px solid var(--glass-border);
-  padding: var(--spacing-4) var(--spacing-6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
-.lukrato-table tbody td {
-  padding: var(--spacing-4) var(--spacing-6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  vertical-align: middle;
+/* Ajusta as colunas do header */
+.table-container .tabulator .tabulator-header .tabulator-col {
+  background: transparent;
+  border-right: 0;
 }
 
-.lukrato-table tbody tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.02);
+.table-container .tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+  padding: var(--spacing-4) var(--spacing-5);
 }
 
-.lukrato-table tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.05);
+.table-container .tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+}
+
+/* Tira o campo de filtro colado no t�tulo (deixa abaixo como no mock) */
+.table-container .tabulator .tabulator-header .tabulator-col .tabulator-col-title~input,
+.table-container .tabulator .tabulator-header .tabulator-col .tabulator-col-title~select {
+  margin-top: var(--spacing-2);
+}
+
+/* Inputs de filtro dentro do header */
+.table-container .tabulator .tabulator-header .tabulator-col input,
+.table-container .tabulator .tabulator-header .tabulator-col select {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: var(--font-size-xs);
+  padding: 0.35rem 0.6rem;
+}
+
+.table-container .tabulator .tabulator-header .tabulator-col input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ==================== LINHAS (CATEGORIAS) ==================== */
+.table-container .tabulator .tabulator-row {
+  transition: var(--transition-smooth);
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 60%, transparent);
+  background: color-mix(in srgb,
+      var(--color-surface) 88%,
+      var(--color-surface-muted));
+}
+
+.table-container .tabulator .tabulator-row:last-child {
+  border-bottom: none;
+}
+
+.table-container .tabulator .tabulator-row:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
   transform: translateX(2px);
 }
 
-.text-right {
-  text-align: right;
+/* C�lulas */
+.table-container .tabulator .tabulator-row .tabulator-cell {
+  padding: 1rem 1.5rem;
+  border-right: none;
 }
 
-.text-center {
+/* Coluna NOME - destaque maior, igual ao mock */
+.table-container .tabulator .tabulator-row .tabulator-cell:nth-child(1) {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Coluna TIPO - centralizada */
+.table-container .tabulator .tabulator-row .tabulator-cell:nth-child(2) {
   text-align: center;
 }
 
-.lukrato-table tbody td[colspan] {
-  color: var(--cinza);
-  font-weight: 600;
-  padding: var(--spacing-6);
+/* Coluna A��ES - alinhada � direita */
+.table-container .tabulator .tabulator-row .tabulator-cell:nth-child(3) {
+  text-align: right;
 }
 
-.tag {
-  display: inline-block;
-  padding: 0.1rem 0.5rem;
+/* ==================== BADGE DE TIPO ==================== */
+.badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0.25rem 0.9rem;
   border-radius: 999px;
-  text-transform: capitalize;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  color: var(--color-text);
+  transition: var(--transition-fast);
 }
 
-.tag-receita {
-  background: rgba(46, 204, 113, 0.18);
-}
-
-.tag-despesa {
-  background: rgba(230, 126, 34, 0.18);
-}
-
-.tag-transferencia {
-  background: rgba(52, 152, 219, 0.18);
-}
-
-.color-dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
+.badge-tipo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  margin-right: 0.4rem;
-  vertical-align: middle;
+  display: inline-block;
+  background: currentColor;
 }
 
-@media (max-width: 1200px) {
-  .c-form {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(
-        140px,
-        auto
-      );
-  }
+.badge-tipo.receita {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 55%, transparent);
 }
 
-@media (max-width: 1024px) {
-  .c-form {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .c-form .btn {
-    grid-column: 1 / -1;
-    justify-self: stretch;
-  }
+.badge-tipo.despesa {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
 }
 
-@media (max-width: 720px) {
-  .c-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .c-form .btn {
-    width: 100%;
-  }
-
-  .lukrato-table {
-    min-width: 600px;
-  }
+/* ==================== A��ES ==================== */
+.actions-cell {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-2);
 }
 
-@media (max-width: 560px) {
-  .c-form {
-    grid-template-columns: 1fr;
-  }
-
-  .c-form .btn {
-    justify-self: stretch;
-  }
-
-  .c-filter {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .c-filter .c-select {
-    width: 100%;
-    max-width: none;
-  }
-
-  .lukrato-table {
-    min-width: 520px;
-  }
+.actions-cell .lk-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
-/* =========================================================
- * EDITAR CATEGORIA (Modal)
- * =======================================================*/
+/* Hover dos bot�es */
+.actions-cell .btn-edit:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.actions-cell .btn-del:hover {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+/* ==================== MODAL ==================== */
 #modalEditCategoria .modal-content {
   background: var(--color-surface) !important;
   color: var(--color-text);
@@ -226,54 +314,47 @@
   font-family: var(--font-primary);
 }
 
-#modalEditCategoria .modal-header,
-#modalEditCategoria .modal-footer {
+#modalEditCategoria .modal-header {
   border: 0;
-  background: transparent;
-  color: var(--color-text);
+  background: linear-gradient(135deg,
+      var(--color-surface-muted) 0%,
+      transparent 100%);
+  padding: var(--spacing-5);
 }
 
 #modalEditCategoria .modal-title {
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
 }
 
-/* Botões */
-#modalEditCategoria .btn {
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  transition: var(--transition-fast);
+#modalEditCategoria .modal-title::before {
+  content: "??";
+  font-size: 1.2em;
 }
 
-#modalEditCategoria .btn-outline-secondary,
-#modalEditCategoria .btn-outline-light {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--color-text);
+#modalEditCategoria .modal-body {
+  padding: var(--spacing-5);
 }
 
-#modalEditCategoria .btn-outline-secondary:hover,
-#modalEditCategoria .btn-outline-light:hover {
-  background: color-mix(in srgb, var(--glass-bg) 80%, var(--color-primary) 20%);
-  color: var(--branco) !important;
-  border-color: var(--color-primary);
+#modalEditCategoria .modal-footer {
+  border: 0;
+  background: transparent;
+  padding: var(--spacing-4) var(--spacing-5);
+  gap: var(--spacing-2);
 }
 
-#modalEditCategoria .btn-primary {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--branco);
-}
-#modalEditCategoria .btn-primary:hover {
-  filter: brightness(1.1);
-}
-
-/* Inputs e selects */
 #modalEditCategoria .form-label {
   color: var(--color-text);
   font-size: var(--font-size-sm);
-  margin-bottom: 0.25rem;
+  font-weight: 500;
+  margin-bottom: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
 }
 
 #modalEditCategoria .form-control,
@@ -284,10 +365,7 @@
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   padding: var(--spacing-3);
-}
-
-#modalEditCategoria .form-control::placeholder {
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  transition: var(--transition-smooth);
 }
 
 #modalEditCategoria .form-control:focus,
@@ -295,43 +373,234 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  color: var(--color-text) !important;
+  background: color-mix(in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface-muted));
 }
 
-/* Badges alinhadas ao tema */
-.badge {
-  padding: 0.375rem 0.75rem;
+#modalEditCategoria .btn {
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: var(--spacing-2) var(--spacing-4);
+  transition: var(--transition-smooth);
 }
 
-.badge.bg-success {
-  background-color: var(--color-success) !important;
-}
-.badge.bg-danger {
-  background-color: var(--color-danger) !important;
-}
-
-.text-success {
-  color: var(--color-success) !important;
-}
-.text-danger {
-  color: var(--color-danger) !important;
+#modalEditCategoria .btn-outline-secondary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
 }
 
-/* Botões genéricos seguindo token */
-.lk-btn {
-  background-color: var(--color-primary) !important;
+#modalEditCategoria .btn-outline-secondary:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-text-muted);
+  transform: translateY(-1px);
 }
-.btn:focus {
-  background-color: var(--color-primary);
+
+#modalEditCategoria .btn-primary {
+  background: var(--color-primary);
+  border: none;
+  color: var(--color-text);
 }
-.btn:hover {
-  background-color: var(--color-bg);
-  color: #fff;
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
+
+#modalEditCategoria .btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+#modalEditCategoria .alert {
+  border-radius: var(--radius-sm);
+  border: none;
+  padding: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ==================== ESTADOS DE LOADING ==================== */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== RESPONSIVIDADE ==================== */
+@media (max-width: 768px) {
+  .c-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .c-form-inputs {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-2);
+    width: 100%;
+    align-items: flex-end;
+  }
+
+  .c-form-inputs .c-input {
+    flex: 1 1 60%;
+    min-width: 0;
+  }
+
+  .c-form-inputs .lk-select {
+    flex: 1 1 40%;
+    min-width: 0;
+    padding: var(--spacing-3) var(--spacing-2);
+  }
+
+  .c-form .c-input,
+  .c-form .lk-select,
+  .c-form button {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .c-subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .table-container {
+    border-radius: 20px;
+  }
+
+  .table-container .tabulator .tabulator-row .tabulator-cell {
+    padding: 0.9rem 1.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table-container {
+    display: none !important;
+  }
+
+  .c-page {
+    gap: var(--spacing-3);
+  }
+
+  .c-card {
+    padding: var(--spacing-3);
+  }
+
+  .table-container {
+    padding: 0;
+  }
+
+  /* Lista mobile custom */
+  .c-mobile-card-wrapper {
+    display: block;
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-surface-muted) 95%, transparent) 0%,
+        var(--glass-bg) 100%);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 18px 28px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+  }
+
+  .c-mobile-cat-header {
+    display: grid !important;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: center;
+    padding: 14px 16px;
+    background: color-mix(in srgb, var(--color-surface-muted) 85%, transparent);
+    border: 1px solid var(--glass-border);
+    border-bottom: none;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--branco);
+    font-size: 0.9rem;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+  }
+
+  .c-mobile-card-wrapper .c-mobile-card-header {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: center;
+    padding: 14px 16px;
+    background: color-mix(in srgb, var(--color-surface-muted) 85%, transparent);
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--branco);
+    font-size: 0.9rem;
+  }
+
+  .c-mobile-card {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: center;
+    padding: 18px 16px;
+    background: var(--glass-bg);
+    border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 50%, transparent);
+    font-size: 0.8rem;
+  }
+
+  .badge-tipo {
+    font-size: 0.6rem !important;
+  }
+
+  .c-mobile-card:last-child {
+    border-bottom: none;
+  }
+
+  .c-mobile-card .c-cat-name {
+    font-weight: 700;
+    color: var(--branco);
+  }
+
+  .c-mobile-card .c-cat-type {
+    display: flex;
+    justify-content: center;
+  }
+
+  .c-mobile-card .c-cat-actions {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .c-mobile-card .c-cat-actions .lk-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: var(--branco);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .c-mobile-card .c-cat-actions .lk-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+
+  /* Badges maiores no mobile */
+  .c-mobile-card .badge-tipo {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+  }
 }

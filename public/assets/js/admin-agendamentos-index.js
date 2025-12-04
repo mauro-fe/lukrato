@@ -1,61 +1,116 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- helper universal para 401/403 nesta página ---
-    async function handleFetch403(response, base) {
-        // 401: login
-        if (response.status === 401) {
-            const here = encodeURIComponent(location.pathname + location.search);
-            location.href = `${base}login?return=${here}`;
-            return true;
-        }
-
-        // redireciona para /billing
-        const goToBilling = () => {
-            if (typeof openBillingModal === 'function') {
-                openBillingModal();
-            } else {
-                location.href = `${base}billing`;
-            }
-        };
-
-        // 403: proibido -> mostra “Assinar” + “OK”
-        if (response.status === 403) {
-            let msg = 'Acesso não permitido.';
-            try {
-                const data = await response.clone().json();
-                msg = data?.message || msg;
-            } catch { }
-
-            if (typeof Swal !== 'undefined' && Swal.fire) {
-                const ret = await Swal.fire({
-                    title: 'Acesso restrito',
-                    html: msg,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Assinar',
-                    cancelButtonText: 'OK',
-                    reverseButtons: true,
-                    focusConfirm: true
-                });
-                if (ret.isConfirmed) goToBilling();
-            } else {
-                if (confirm(`${msg}\n\nIr para a página de assinatura agora?`)) {
-                    goToBilling();
-                }
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-
+﻿document.addEventListener('DOMContentLoaded', () => {
+    const PAYWALL_MESSAGE = 'Agendamentos sao exclusivos do plano Pro.';
 
     const base = (typeof LK !== 'undefined' && typeof LK.getBase === 'function')
         ? LK.getBase()
         : (document.querySelector('meta[name="base-url"]')?.content || '/');
 
     const tableElement = document.getElementById('agendamentosTable');
+    const tableContainer = document.getElementById('agList');
+    const cardsContainer = document.getElementById('agCards');
+    const pager = document.getElementById('agCardsPager');
+    const pagerInfo = document.getElementById('agPagerInfo');
+    const pagerFirst = document.getElementById('agPagerFirst');
+    const pagerPrev = document.getElementById('agPagerPrev');
+    const pagerNext = document.getElementById('agPagerNext');
+    const pagerLast = document.getElementById('agPagerLast');
+    const paywallBox = document.getElementById('agPaywall');
+    const paywallMessageEl = document.getElementById('agPaywallMessage');
+    const paywallCta = document.getElementById('agPaywallCta');
+
+    let accessRestricted = false;
+
+    const goToBilling = () => {
+        if (typeof openBillingModal === 'function') {
+            openBillingModal();
+        } else {
+            location.href = `${base}billing`;
+        }
+    };
+
+    const showPaywall = (message = PAYWALL_MESSAGE) => {
+        if (paywallMessageEl) {
+            paywallMessageEl.textContent = message;
+        }
+        if (paywallBox) {
+            paywallBox.classList.remove('d-none');
+            paywallBox.removeAttribute('hidden');
+        }
+        if (tableContainer) {
+            tableContainer.classList.add('d-none');
+        }
+    };
+
+    const hidePaywall = () => {
+        if (paywallBox) {
+            paywallBox.classList.add('d-none');
+            paywallBox.setAttribute('hidden', 'hidden');
+        }
+        if (tableContainer) {
+            tableContainer.classList.remove('d-none');
+        }
+        accessRestricted = false;
+    };
+
+    paywallCta?.addEventListener('click', goToBilling);
+
+    const promptUpgrade = async (message) => {
+        const text = message || PAYWALL_MESSAGE;
+        if (typeof Swal !== 'undefined' && Swal.fire) {
+            const ret = await Swal.fire({
+                title: 'Acesso restrito',
+                text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Assinar plano Pro',
+                cancelButtonText: 'Agora nao',
+                reverseButtons: true,
+                focusConfirm: true
+            });
+            if (ret.isConfirmed) goToBilling();
+        } else if (confirm(`${text}\n\nIr para a pagina de assinatura agora?`)) {
+            goToBilling();
+        }
+    };
+
+    const handleFetch403 = async (response) => {
+        if (!response) return false;
+
+        if (response.status === 401) {
+            const here = encodeURIComponent(location.pathname + location.search);
+            location.href = `${base}login?return=${here}`;
+            return true;
+        }
+
+        if (response.status === 403) {
+            let msg = PAYWALL_MESSAGE;
+            try {
+                const data = await response.clone().json();
+                msg = data?.message || msg;
+            } catch { }
+
+            showPaywall(msg);
+            if (!accessRestricted) {
+                accessRestricted = true;
+                await promptUpgrade(msg);
+            }
+
+            return true;
+        }
+
+        hidePaywall();
+        return false;
+    };
+
     const form = document.getElementById('formAgendamento');
+    const categoriaSelect = document.getElementById('agCategoria');
+    const contaSelect = document.getElementById('agConta');
+    const tipoSelect = document.getElementById('agTipo');
+    const agModal = document.getElementById('modalAgendamento');
+    const selectCache = {
+        contas: null,
+        categorias: new Map()
+    };
     const cache = new Map();
 
     let tableInstance = null;
@@ -72,6 +127,118 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!alertBox) return;
         alertBox.textContent = message;
         alertBox.classList.remove('d-none');
+    };
+
+    const fetchJSON = async (url, options = {}) => {
+        const res = await fetch(url, {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+
+        if (await handleFetch403(res)) {
+            return null;
+        }
+
+        let data = null;
+        try {
+            data = await res.json();
+        } catch {
+            // resposta vazia ou texto puro
+        }
+
+        if (!res.ok) {
+            const message = data?.message || 'Nao foi possivel carregar os dados.';
+            throw new Error(message);
+        }
+
+        return data;
+    };
+
+    const listFromPayload = (payload) => {
+        if (!payload) return [];
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload.data)) return payload.data;
+        if (Array.isArray(payload.items)) return payload.items;
+        if (Array.isArray(payload.itens)) return payload.itens;
+        return [];
+    };
+
+    const fillSelect = (selectEl, items, {
+        placeholder = null,
+        getValue = (item) => item?.id ?? '',
+        getLabel = (item) => item?.nome ?? ''
+    } = {}) => {
+        if (!selectEl) return;
+        const previous = selectEl.value;
+        selectEl.innerHTML = '';
+
+        if (placeholder !== null) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = placeholder;
+            selectEl.appendChild(opt);
+        }
+
+        items.forEach((item) => {
+            const option = document.createElement('option');
+            option.value = String(getValue(item) ?? '');
+            option.textContent = getLabel(item) ?? '';
+            selectEl.appendChild(option);
+        });
+
+        if (previous && selectEl.querySelector(`option[value="${previous}"]`)) {
+            selectEl.value = previous;
+        }
+    };
+
+    const loadContasSelect = async (force = false) => {
+        if (!contaSelect) return;
+        if (selectCache.contas && !force) {
+            fillSelect(contaSelect, selectCache.contas, {
+                placeholder: 'Todas as contas (opcional)',
+                getLabel: (item) => {
+                    const instituicao = item?.instituicao ? ` � ${item.instituicao}` : '';
+                    return `${item?.nome ?? ''}${instituicao}`;
+                }
+            });
+            return;
+        }
+
+        const data = await fetchJSON(`${base}api/accounts?only_active=1&with_balances=0`);
+        if (!data) return;
+        const items = listFromPayload(data);
+        selectCache.contas = items;
+        fillSelect(contaSelect, items, {
+            placeholder: 'Todas as contas (opcional)',
+            getLabel: (item) => {
+                const instituicao = item?.instituicao ? ` � ${item.instituicao}` : '';
+                return `${item?.nome ?? ''}${instituicao}`;
+            }
+        });
+    };
+
+    const loadCategoriasSelect = async (tipo = 'despesa', force = false) => {
+        if (!categoriaSelect) return;
+        const key = tipo || 'todos';
+        if (selectCache.categorias.has(key) && !force) {
+            fillSelect(categoriaSelect, selectCache.categorias.get(key), {
+                placeholder: 'Selecione uma categoria'
+            });
+            return;
+        }
+
+        const qs = tipo ? `?tipo=${encodeURIComponent(tipo)}` : '';
+        const data = await fetchJSON(`${base}api/categorias${qs}`);
+        if (!data) return;
+        const items = listFromPayload(data);
+        selectCache.categorias.set(key, items);
+        fillSelect(categoriaSelect, items, {
+            placeholder: 'Selecione uma categoria'
+        });
     };
 
     const parseMoneyToCents = (value) => {
@@ -135,6 +302,279 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<span class="badge bg-${color} text-uppercase">${escapeHtml(status || '-')}</span>`;
     };
 
+    const getTipoClass = (tipo) => {
+        const value = String(tipo || '').toLowerCase();
+        if (value === 'receita') return 'tipo-receita';
+        if (value === 'despesa') return 'tipo-despesa';
+        return '';
+    };
+
+    const mobileCards = {
+        data: [],
+        pageSize: 6,
+        currentPage: 1,
+        sortField: 'data_pagamento',
+        sortDir: 'desc',
+
+        setData(list) {
+            this.data = Array.isArray(list) ? [...list] : [];
+            this.currentPage = 1;
+            this.render();
+        },
+
+        setSort(field) {
+            if (!field) return;
+            if (this.sortField === field) {
+                this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortField = field;
+                this.sortDir = field === 'titulo' ? 'asc' : 'desc';
+            }
+            this.render();
+        },
+
+        getSortValue(item, field) {
+            const value = item?.[field];
+            if (field === 'valor_centavos') return Number(value) || 0;
+            if (field === 'data_pagamento') {
+                const date = value ? new Date(String(value).replace(' ', 'T')) : null;
+                return date ? date.getTime() : 0;
+            }
+            return String(value || '').toLowerCase();
+        },
+
+        getPagedData() {
+            const sorted = [...this.data].sort((a, b) => {
+                const av = this.getSortValue(a, this.sortField);
+                const bv = this.getSortValue(b, this.sortField);
+                if (av === bv) return 0;
+                const dir = this.sortDir === 'asc' ? 1 : -1;
+                return av > bv ? dir : -dir;
+            });
+
+            const total = sorted.length;
+            const totalPages = Math.max(1, Math.ceil(total / this.pageSize));
+            const page = Math.min(this.currentPage, totalPages);
+            this.currentPage = page;
+            const start = (page - 1) * this.pageSize;
+
+            return {
+                list: sorted.slice(start, start + this.pageSize),
+                total,
+                page,
+                totalPages
+            };
+        },
+
+        render() {
+            if (!cardsContainer) return;
+
+            const { list, total, page, totalPages } = this.getPagedData();
+            const parts = [];
+
+            parts.push(`
+               <div class="cards-header">
+                 <button type="button" class="cards-header-btn" data-sort="data_pagamento">
+                     <span>Data</span>
+                      <span class="sort-indicator" data-field="data_pagamento"></span>
+                    </button>
+                    
+                    <button type="button" class="ag-cards-header-btn cards-header-btn" data-sort="tipo">
+                        <span>Tipo</span>
+                        <span class="ag-sort-indicator sort-indicator" data-field="tipo"></span>
+                    </button>
+                    <button type="button" class="ag-cards-header-btn cards-header-btn" data-sort="valor_centavos">
+                        <span>Valor</span>
+                        <span class="ag-sort-indicator sort-indicator" data-field="valor_centavos"></span>
+                    </button>
+                    <span class="ag-cards-header-btn cards-header-btn-actions">Ações</span>
+                </div>
+            `);
+
+            if (!total) {
+                parts.push(`
+                    <div class="ag-card card-item card-empty">
+                        <div class="card-empty-text">
+                            Nenhum agendamento encontrado.
+                        </div>
+                    </div>
+                `);
+                cardsContainer.innerHTML = parts.join('');
+                this.updatePager(0, 1, 1);
+                this.updateSortIndicators();
+                return;
+            }
+
+            const isXs = window.matchMedia('(max-width: 768px)').matches;
+
+            list.forEach((item) => {
+                const id = item?.id ?? '';
+                const tipo = String(item?.tipo || '').toLowerCase();
+                const tipoLabel = tipo ? (tipo.charAt(0).toUpperCase() + tipo.slice(1)) : '-';
+                const tipoClass = getTipoClass(tipo);
+                const valor = formatCurrency(item?.valor_centavos || item?.valor);
+                const data = formatDateTime(item?.data_pagamento || item?.created_at);
+                const titulo = item?.titulo || '-';
+                const categoria = item?.categoria?.nome || item?.categoria_nome || '-';
+                const conta = item?.conta?.nome || item?.conta_nome || '-';
+                const recorrente = item?.recorrente === 1 || item?.recorrente === '1';
+                const descricao = item?.descricao || '--';
+                const status = item?.status || '-';
+
+                const actionsHtml = `
+                    <button class="lk-btn ghost ag-card-btn" data-ag-action="pagar" data-id="${id}" title="Confirmar pagamento">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${id}" title="Cancelar agendamento">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                parts.push(`
+                    <article class="ag-card card-item" data-id="${id}" aria-expanded="false">
+                        <div class="ag-card-main card-main">
+                            <span class="ag-card-date card-date">${escapeHtml(data)}</span>
+                            <span class="ag-card-type card-type">
+                                <span class="badge-tipo ${tipoClass}">${escapeHtml(tipoLabel)}</span>
+                            </span>
+                            <span class="ag-card-value card-value ${tipoClass}">${escapeHtml(valor)}</span>
+                            <span class="ag-card-actions card-actions" data-slot="main">${actionsHtml}</span>
+                        </div>
+
+
+                        <button class="ag-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do agendamento">
+                            <span class="ag-card-toggle-icon card-toggle-icon"><i class="fas fa-chevron-right"></i></span>
+                            <span> Ver detalhes</span>
+                        </button>
+
+                        <div class="ag-card-details card-details">
+                        
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Título</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(titulo)}</span>
+                            </div>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Status</span>
+                                <span class="ag-card-status card-status" aria-label="Status">${statusBadge(status)}</span>
+                            </div>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Categoria</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(categoria)}</span>
+                            </div>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Conta</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(conta)}</span>
+                            </div>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Recorrente</span>
+                                <span class="ag-card-detail-value card-detail-value">${recorrente ? 'Sim' : 'nao'}</span>
+                            </div>
+                            <div class="ag-card-detail-row card-detail-row">
+                                <span class="ag-card-detail-label card-detail-label">Descrição</span>
+                                <span class="ag-card-detail-value card-detail-value">${escapeHtml(descricao)}</span>
+                            </div>
+                            ${isXs ? `<div class="ag-card-detail-row card-detail-row actions-row">
+                                <span class="ag-card-detail-label card-detail-label">Ações</span>
+                                <span class="ag-card-detail-value card-detail-value actions-slot">${actionsHtml}</span>
+                            </div>` : ''}
+                        </div>
+                    </article>
+                `);
+            });
+
+            cardsContainer.innerHTML = parts.join('');
+            this.updatePager(total, page, totalPages);
+            this.updateSortIndicators();
+        },
+
+        updatePager(total, page, totalPages) {
+            if (!pager || !pagerInfo) return;
+
+            if (!total) {
+                pagerInfo.textContent = 'Nenhum agendamento';
+                [pagerFirst, pagerPrev, pagerNext, pagerLast].forEach((btn) => {
+                    if (btn) btn.disabled = true;
+                });
+                return;
+            }
+
+            pagerInfo.textContent = `pagina ${page} de ${totalPages}`;
+
+            if (pagerFirst) pagerFirst.disabled = page <= 1;
+            if (pagerPrev) pagerPrev.disabled = page <= 1;
+            if (pagerNext) pagerNext.disabled = page >= totalPages;
+            if (pagerLast) pagerLast.disabled = page >= totalPages;
+        },
+
+        updateSortIndicators() {
+            const indicators = cardsContainer?.querySelectorAll('.ag-sort-indicator sort-indicator');
+            if (!indicators) return;
+            indicators.forEach((el) => {
+                const field = el?.dataset?.field;
+                if (field === this.sortField) {
+                    el.textContent = this.sortDir === 'asc' ? '?' : '?';
+                } else {
+                    el.textContent = '';
+                }
+            });
+        }
+    };
+
+    if (pagerFirst) {
+        pagerFirst.addEventListener('click', () => {
+            mobileCards.currentPage = 1;
+            mobileCards.render();
+        });
+    }
+    if (pagerPrev) {
+        pagerPrev.addEventListener('click', () => {
+            mobileCards.currentPage = Math.max(1, mobileCards.currentPage - 1);
+            mobileCards.render();
+        });
+    }
+    if (pagerNext) {
+        pagerNext.addEventListener('click', () => {
+            mobileCards.currentPage += 1;
+            mobileCards.render();
+        });
+    }
+    if (pagerLast) {
+        pagerLast.addEventListener('click', () => {
+            const { totalPages } = mobileCards.getPagedData();
+            mobileCards.currentPage = totalPages;
+            mobileCards.render();
+        });
+    }
+
+    cardsContainer?.addEventListener('click', (event) => {
+        const sortBtn = event.target.closest('[data-sort]');
+        if (sortBtn?.dataset?.sort) {
+            mobileCards.setSort(sortBtn.dataset.sort);
+            return;
+        }
+
+        const toggleBtn = event.target.closest('[data-toggle="details"]');
+        if (toggleBtn) {
+            const article = toggleBtn.closest('.ag-card');
+            if (article) {
+                const expanded = article.getAttribute('aria-expanded') === 'true';
+                article.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                article.classList.toggle('open', !expanded);
+            }
+        }
+
+        const actionBtn = event.target.closest('[data-ag-action]');
+        if (actionBtn) {
+            const action = actionBtn.dataset.agAction;
+            const id = actionBtn.dataset.id;
+            if (action && id) {
+                document.dispatchEvent(new CustomEvent('lukrato:agendamento-action', {
+                    detail: { action, id: Number(id) }
+                }));
+            }
+        }
+    });
+
     const ensureTable = () => {
         if (tableInstance || !tableElement || typeof Tabulator === 'undefined') {
             return tableInstance;
@@ -156,13 +596,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     title: 'Titulo',
                     field: 'titulo',
-                    minWidth: 180,
+                    minWidth: 100,
                     formatter: (cell) => escapeHtml(cell.getValue() || '-')
                 },
                 {
                     title: 'Tipo',
                     field: 'tipo',
-                    width: 110,
+                    minWidth: 130,
                     headerFilter: 'select',
                     headerFilterParams: {
                         values: {
@@ -180,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     title: 'Categoria',
                     field: 'categoria.nome',
-                    minWidth: 160,
+                    minWidth: 100,
                     formatter: (cell) => escapeHtml(cell.getValue() || '-'),
                     headerFilter: 'input',
                     headerFilterPlaceholder: 'Categoria'
@@ -266,8 +706,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const res = await fetch(`${base}api/agendamentos`, { credentials: 'include' });
-            if (await handleFetch403(res, base)) {
+            if (await handleFetch403(res)) {
                 table.clearData(); // limpa tabela
+                mobileCards.setData([]);
                 return;
             }
             const json = await res.json();
@@ -282,6 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             await table.replaceData(itens);
+            mobileCards.setData(itens);
 
             if (filters.length) {
                 filters.forEach((filter) => {
@@ -292,6 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             table.clearData();
+            mobileCards.setData([]);
             console.error(error);
             if (typeof Swal !== 'undefined' && Swal?.fire) {
                 Swal.fire('Erro', 'Nao foi possivel carregar os agendamentos.', 'error');
@@ -414,6 +857,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    tipoSelect?.addEventListener('change', () => {
+        loadCategoriasSelect(tipoSelect.value).catch((error) => {
+            console.error(error);
+            showFormError(error?.message || 'Nao foi possivel carregar as categorias.');
+        });
+    });
+
+    agModal?.addEventListener('shown.bs.modal', async () => {
+        try {
+            await Promise.all([
+                loadContasSelect(),
+                loadCategoriasSelect(tipoSelect?.value || 'despesa')
+            ]);
+            hideFormError();
+        } catch (error) {
+            console.error(error);
+            showFormError(error?.message || 'Nao foi possivel carregar os dados do formulario.');
+        }
+    });
+
     document.addEventListener('lukrato:agendamento-action', async (event) => {
         const detail = event?.detail || {};
         const id = detail.id ? Number(detail.id) : null;
@@ -445,8 +908,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: fd,
                     credentials: 'include'
                 });
-                if (await handleFetch403(res, base)) return;
-                if (await handleFetch403(res, base)) { Swal.close(); return; }
+                if (await handleFetch403(res)) return;
+                if (await handleFetch403(res)) { Swal.close(); return; }
                 const json = await res.json();
                 if (!res.ok || json?.status !== 'success') {
                     throw new Error(json?.message || 'Erro ' + res.status);
@@ -484,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: fd,
                     credentials: 'include'
                 });
-                if (await handleFetch403(res, base)) return;
+                if (await handleFetch403(res)) return;
                 const json = await res.json();
                 if (!res.ok || json?.status !== 'success') {
                     throw new Error(json?.message || 'Erro ' + res.status);
@@ -517,6 +980,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    mobileCards.render();
     ensureTable();
+    loadContasSelect().catch(console.error);
+    loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
     loadAgendamentos();
 });
+
+
+
+
+
