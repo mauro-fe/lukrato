@@ -1,7 +1,5 @@
 <?php
 
-
-
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
@@ -11,20 +9,16 @@ use Application\Services\LogService;
 use Google\Service\Oauth2;
 
 class GoogleCallbackController extends BaseController
-
 {
-
     public function callback(): void
-
     {
-
         try {
             if ($this->isAuthenticated()) {
                 $this->redirect('dashboard');
                 return;
             }
 
-            $code = $this->getQuery('code');
+            $code  = $this->getQuery('code');
             $error = $this->getQuery('error');
 
             if ($error) {
@@ -43,203 +37,167 @@ class GoogleCallbackController extends BaseController
                 return;
             }
 
-            // Cria o cliente Google
+            // --- CLIENTE GOOGLE ---
 
             $client = new \Google_Client();
 
-            // Carrega as credenciais do arquivo JSON
             $credentialsPath = BASE_PATH . '/Application/Controllers/Auth/client_secret_2_941481750237-e5bnun64tunqirvmfa2ahs5l9cl1vf9e.apps.googleusercontent.com.json';
             $client->setAuthConfig($credentialsPath);
 
-            // Define o URI de redirecionamento (mesmo do GoogleLoginController)
             $redirectUri = rtrim(BASE_URL, '/') . '/auth/google/callback';
             $client->setRedirectUri($redirectUri);
 
-            // Log para debug
-
             LogService::info('Tentativa de callback Google', [
-
-                'redirect_uri' => $redirectUri,
-
+                'redirect_uri'  => $redirectUri,
                 'code_received' => !empty($code),
-
-                'base_url' => BASE_URL
-
+                'base_url'      => BASE_URL
             ]);
 
-
-
-            // Troca o código pelo token de acesso
+            // --- TROCA CÓDIGO POR TOKEN ---
 
             $token = $client->fetchAccessTokenWithAuthCode($code);
 
-
-
             if (isset($token['error'])) {
-
                 throw new \Exception("Erro ao buscar token: " . $token['error_description']);
             }
 
-
-
-            // Define o token de acesso
-
             $client->setAccessToken($token);
 
-
-
-            // Obtém as informações do usuário
+            // --- PEGA DADOS DO USUÁRIO NO GOOGLE ---
 
             $google_oauth = new Oauth2($client);
+            $user_info    = $google_oauth->userinfo->get();
 
-            $user_info = $google_oauth->userinfo->get();
-
-
-
-            $google_id = $user_info->id;
-
+            $google_id     = $user_info->id;
             $nome_completo = $user_info->name;
+            $email         = $user_info->email;
+            $foto_perfil   = $user_info->picture;
 
-            $email = $user_info->email;
+            // ---------------------------------------------------------------------
+            // 1) TENTA ACHAR USUÁRIO POR google_id (CONTA JÁ VINCULADA)
+            // ---------------------------------------------------------------------
 
-            $foto_perfil = $user_info->picture;
+            $usuario = Usuario::where('google_id', $google_id)->first();
 
+            if ($usuario) {
+                // Atualiza nome se quiser mantê-lo mais recente
+                if (!empty($nome_completo) && $usuario->nome !== $nome_completo) {
+                    $usuario->nome = $nome_completo;
+                    $usuario->save();
+                }
 
+                Auth::login($usuario);
+                $this->setGoogleSessionData($usuario, $email, $foto_perfil, $google_id);
 
-            // Verifica se o usuário já existe na tabela usuarios por email
+                LogService::info('Login com Google realizado (google_id já vinculado)', [
+                    'user_id'   => $usuario->id,
+                    'email'     => $email,
+                    'google_id' => $google_id
+                ]);
+
+                $this->redirect('dashboard');
+                return;
+            }
+
+            // ---------------------------------------------------------------------
+            // 2) NÃO TEM google_id. TENTA ACHAR POR EMAIL (CONTA LOCAL EXISTENTE)
+            // ---------------------------------------------------------------------
 
             $usuario = Usuario::where('email', $email)->first();
 
-
-
             if ($usuario) {
+                // VINCULA o Google a essa conta existente
+                $usuario->google_id = $google_id;
 
-                // Usuário já existe, apenas atualiza o nome se necessário
-
-                if (empty($usuario->nome) || $usuario->nome !== $nome_completo) {
-
+                // Se o nome estiver vazio, atualiza
+                if (empty($usuario->nome) && !empty($nome_completo)) {
                     $usuario->nome = $nome_completo;
-
-                    $usuario->save();
                 }
-            } else {
-
-                // Cria novo usuário
-
-                $usuario = new Usuario();
-
-                $usuario->nome = $nome_completo;
-
-                $usuario->email = $email;
-
-                $usuario->username = $this->generateUsername($email);
-
-                $usuario->senha = ''; // Senha vazia para logins do Google
 
                 $usuario->save();
+
+                Auth::login($usuario);
+                $this->setGoogleSessionData($usuario, $email, $foto_perfil, $google_id);
+
+                LogService::info('Conta existente vinculada ao Google com sucesso.', [
+                    'user_id'   => $usuario->id,
+                    'email'     => $email,
+                    'google_id' => $google_id
+                ]);
+
+                // Opcional: mensagem amigável
+                $this->setSuccess('Conectamos sua conta ao Google. Agora você pode entrar com um clique em "Entrar com Google".');
+
+                $this->redirect('dashboard');
+                return;
             }
 
+            // ---------------------------------------------------------------------
+            // 3) NÃO EXISTE NENHUM USUÁRIO COM ESTE EMAIL → CRIAR NOVO USUÁRIO GOOGLE-ONLY
+            // ---------------------------------------------------------------------
 
-
-            // Faz login do usuário
+            $usuario = new Usuario();
+            $usuario->nome     = $nome_completo;
+            $usuario->email    = $email;
+            $usuario->username = $this->generateUsername($email);
+            $usuario->senha    = '';          // Sem senha local por enquanto (Google-only)
+            $usuario->google_id = $google_id; // Vincula o Google
+            $usuario->save();
 
             Auth::login($usuario);
+            $this->setGoogleSessionData($usuario, $email, $foto_perfil, $google_id);
 
-
-
-            // Define informações adicionais na sessão
-
-            $_SESSION['usuario_email'] = $email;
-
-            $_SESSION['usuario_foto'] = $foto_perfil;
-
-            $_SESSION['login_tipo'] = 'google';
-
-            $_SESSION['google_id'] = $google_id;
-
-
-
-            // Registra log de sucesso
-
-            LogService::info('Login com Google realizado com sucesso', [
-
-                'user_id' => $usuario->id,
-
-                'email' => $email,
-
+            LogService::info('Novo usuário criado via Google.', [
+                'user_id'   => $usuario->id,
+                'email'     => $email,
                 'google_id' => $google_id
-
             ]);
-
-
-
-            // Redireciona para dashboard
 
             $this->redirect('dashboard');
         } catch (\Exception $e) {
-
             LogService::error('Erro no callback do Google', [
-
                 'message' => $e->getMessage(),
-
-                'file' => $e->getFile(),
-
-                'line' => $e->getLine(),
-
-                'code' => $this->getQuery('code', 'N/A')
-
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'code'    => $this->getQuery('code', 'N/A')
             ]);
 
-
-
             $this->setError('Erro ao processar login com Google: ' . $e->getMessage());
-
             $this->redirect('login');
         }
     }
 
-
-
     /**
-
      * Gera um username único baseado no email
-
      */
-
     private function generateUsername(string $email): string
-
     {
-
         $base = strtolower(trim(explode('@', $email)[0]));
-
         $base = preg_replace('/[^a-z0-9_]/', '', $base);
 
-
-
         if (strlen($base) < 3) {
-
             $base = 'user' . $base;
         }
 
-
-
         $username = $base;
-
-        $counter = 1;
-
-
-
-        // Verifica se já existe e adiciona número se necessário
+        $counter  = 1;
 
         while (Usuario::where('username', $username)->exists()) {
-
             $username = $base . $counter;
-
             $counter++;
         }
 
-
-
         return $username;
+    }
+
+    /**
+     * Centraliza o que você joga na sessão depois do login Google
+     */
+    private function setGoogleSessionData(Usuario $usuario, string $email, ?string $foto_perfil, string $google_id): void
+    {
+        $_SESSION['usuario_email'] = $email;
+        $_SESSION['usuario_foto']  = $foto_perfil;
+        $_SESSION['login_tipo']    = 'google';
+        $_SESSION['google_id']     = $google_id;
     }
 }

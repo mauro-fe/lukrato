@@ -222,4 +222,81 @@ HTML;
 
         return $mailer;
     }
+    public function sendPasswordReset(string $toEmail, string $toName, string $resetLink): void
+    {
+        $subject = 'Recuperação de senha - Lukrato';
+
+        $safeName = htmlspecialchars($toName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safeLink = htmlspecialchars($resetLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $html = <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>{$subject}</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:24px;color:#1f2933;}
+    .card{max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,0.12);overflow:hidden;}
+    .header{background:#092741;color:#ffffff;padding:32px 28px;}
+    .header h1{margin:0;font-size:20px;}
+    .header p{margin:8px 0 0;font-size:14px;opacity:0.8;}
+    .content{padding:28px;}
+    .row{margin-bottom:18px;}
+    .label{display:block;font-size:11px;text-transform:uppercase;color:#6b7280;letter-spacing:0.08em;margin-bottom:4px;}
+    .value{font-size:16px;color:#1f2933;}
+    .cta{margin-top:24px;text-align:center;}
+    .btn{display:inline-block;padding:12px 20px;border-radius:10px;background:#e67e22;color:#ffffff !important;text-decoration:none;font-weight:600;}
+    .btn:hover{background-color: #f39c12;}
+    .footer{background:#f3f4f6;padding:18px 28px;font-size:12px;color:#6b7280;text-align:center;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>Redefinição de senha</h1>
+      <p>Olá {$safeName}, recebemos uma solicitação para redefinir sua senha na Lukrato.</p>
+    </div>
+    <div class="content">
+      <div class="row">
+        <span class="label">O que fazer agora?</span>
+        <span class="value">
+          Clique no botão abaixo para criar uma nova senha. 
+          Por segurança, este link é válido por tempo limitado.
+        </span>
+      </div>
+      <div class="cta">
+        <a class="btn" href="{$safeLink}" target="_blank" rel="noopener">
+          Criar nova senha
+        </a>
+      </div>
+      <div class="row" style="margin-top:24px;font-size:12px;color:#6b7280;">
+        <span class="label">Não foi você?</span>
+        <span class="value">
+          Se você não solicitou esta redefinição, pode ignorar este e-mail. 
+          Sua senha atual continuará válida.
+        </span>
+      </div>
+    </div>
+    <div class="footer">
+      Este e-mail foi enviado automaticamente pela plataforma Lukrato. Não responda esta mensagem.
+    </div>
+  </div>
+</body>
+</html>
+HTML;
+
+        $text = "Olá {$toName},\n\n"
+            . "Recebemos uma solicitação para redefinir sua senha no Lukrato.\n\n"
+            . "Para continuar, acesse o link a seguir:\n{$resetLink}\n\n"
+            . "Se você não fez essa solicitação, pode ignorar este e-mail.\n";
+
+        $this->send(
+            $toEmail,
+            $toName,
+            $subject,
+            $html,
+            $text
+        );
+    }
 }

@@ -111,6 +111,8 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/main-styles.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+
 
 <main class="lukrato-auth">
     <div class="login-wrapper">
@@ -154,25 +156,37 @@
                                 autocomplete="current-password" required>
                             <button type="button" class="toggle-password" aria-label="Mostrar senha"
                                 data-target="password" title="Mostrar/ocultar senha">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                                    <circle cx="12" cy="12" r="3" />
-                                </svg>
+                                <i class="fa-solid fa-eye"></i>
                             </button>
                             <small class="field-error" id="passwordError"></small>
                         </div>
 
-                        <button type="submit" id="submitBtn" class="btn btn-primary ">
-                            <span">Entrar</span>
+                        <button type="submit" id="submitBtn" class="btn btn-primary">
+                            <span>Entrar</span>
                         </button>
 
-                        <p class=" extra-link">
+                        <div class="auth-separator">
+                            <span>ou</span>
+                        </div>
+
+                        <div class="google-sign-in-container">
+                            <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
+                                <i class="fa-brands fa-google google-icon"></i>
+
+                                <span class="button-text">Entrar com Google</span>
+                            </a>
+                        </div>
+
+                        <p class="extra-link">
                             <a href="<?= BASE_URL ?>recuperar-senha">Esqueceu a senha?</a>
                         </p>
 
+
                         <div id="generalError" class="msg msg-error general-message" aria-live="polite"></div>
                         <div id="generalSuccess" class="msg msg-success general-message" aria-live="polite">
+                            <?php if (!empty($success)): ?>
+                                <?= htmlspecialchars($success) ?>
+                            <?php endif; ?>
                         </div>
                     </form>
                 </div>
@@ -268,8 +282,8 @@
 
                         <div class="google-sign-in-container">
                             <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
-                                <img ... class="google-icon">
-                                <span class="button-text">Entrar com Google</span>
+                                <i class="fa-brands fa-google google-icon"></i>
+                                <span class="button-text">Cadastrar com Google</span>
                             </a>
                         </div>
 
@@ -289,6 +303,20 @@
 <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
 <script src="<?= BASE_URL ?>/assets/js/admin-admins-login.js" defer></script>
 
+<?php if (!empty($success)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+        icon: 'success',
+        title: 'Senha alterada com sucesso!',
+        text: 'Redirecionando para login...',
+        timer: 2200,
+        showConfirmButton: false,
+    });
+});
+</script>
+<?php endif; ?>
+
 <script>
     window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
 
@@ -301,49 +329,30 @@
 <script>
     (function() {
 
-        function toggleVisibility(input) {
-
+        function toggleVisibility(input, icon) {
             const isPassword = input.type === 'password';
 
-            input.type = isPassword ? 'text' : 'password';
-
-            input.classList.toggle('is-password-visible', isPassword);
-
-        }
-
-
-
-        document.addEventListener('click', function(e) {
-
-            const btn = e.target.closest('.toggle-password');
-
-            if (!btn) return;
-
-            const targetId = btn.getAttribute('data-target');
-
-            const input = document.getElementById(targetId);
-
-            if (!input) return;
-
-            toggleVisibility(input);
-
-        });
-
-    })();
-    (function() {
-        function toggleVisibility(input) {
-            const isPassword = input.type === 'password';
+            // Alterna o tipo
             input.type = isPassword ? 'text' : 'password';
             input.classList.toggle('is-password-visible', isPassword);
+
+            // Troca o ícone Font Awesome
+            icon.classList.toggle('fa-eye', !isPassword);
+            icon.classList.toggle('fa-eye-slash', isPassword);
         }
 
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.toggle-password');
             if (!btn) return;
+
             const targetId = btn.getAttribute('data-target');
             const input = document.getElementById(targetId);
             if (!input) return;
-            toggleVisibility(input);
+
+            const icon = btn.querySelector('i');
+
+            toggleVisibility(input, icon);
         });
+
     })();
 </script>

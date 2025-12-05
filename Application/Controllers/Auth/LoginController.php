@@ -139,6 +139,13 @@ class LoginController extends BaseController
             return;
         }
 
+        // 👇 NOVO: caso especial para conta Google-only
+        if (str_contains($message, 'Conta vinculada ao Google')) {
+            $this->fail($message, 401, $e->getErrors());
+            return;
+        }
+
+        // Caso geral
         $this->fail('E-mail ou senha inválidos.', 401, $e->getErrors());
     }
 

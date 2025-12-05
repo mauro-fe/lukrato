@@ -22,6 +22,7 @@ class Usuario extends Model
         'theme_preference',
         'pagarme_cliente_id',
         'gateway',
+        'google_id'
     ];
 
     protected $hidden = ['senha', 'password'];

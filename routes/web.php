@@ -31,27 +31,29 @@ registerBillingRoutes();
  * =======================*/
 
 function registerAuthRoutes(): void
-
 {
-
+    // Login
     Router::add('GET',  '/login',          'Auth\\LoginController@login');
-
     Router::add('POST', '/login/entrar',   'Auth\\LoginController@processLogin');
-
     Router::add('GET',  '/logout',         'Auth\\LoginController@logout');
 
-
-
+    // Cadastro
     Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
 
-
-
-    // Google OAuth
-
+    // Login com Google
+    Router::add('GET',  '/auth/google/login',    'Auth\\GoogleLoginController@login');
     Router::add('GET',  '/auth/google/register', 'Auth\\GoogleLoginController@login');
-
     Router::add('GET',  '/auth/google/callback', 'Auth\\GoogleCallbackController@callback');
-    Router::add('GET',  '/super_admin',         'SysAdmin\\SuperAdminController@index');
+
+    // 🔹 Recuperação de senha (Agora com controller correto!)
+    Router::add('GET',  '/recuperar-senha',   'Auth\\ForgotPasswordController@showRequestForm');
+    Router::add('POST', '/recuperar-senha',   'Auth\\ForgotPasswordController@sendResetLink');
+
+    Router::add('GET',  '/resetar-senha',     'Auth\\ForgotPasswordController@showResetForm');
+    Router::add('POST', '/resetar-senha',     'Auth\\ForgotPasswordController@resetPassword');
+
+    // Super admin
+    Router::add('GET',  '/super_admin', 'SysAdmin\\SuperAdminController@index');
 }
 
 
