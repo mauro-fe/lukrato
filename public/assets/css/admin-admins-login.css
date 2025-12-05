@@ -23,7 +23,6 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg-1);
-  overflow-x: hidden;
 }
 
 /* Main ocupa espaço entre topo e footer */
@@ -622,5 +621,65 @@ main.lukrato-auth {
 
   .login-wrapper {
     margin-top: 12px;
+  }
+}
+/* ===== FLIP 3D ROTACIONANDO ===== */
+
+/* ===== FLIP 3D - VERSÃO LIMPA E FUNCIONAL ===== */
+
+.auth-tabs-card {
+  position: relative;
+  padding-top: 0;
+}
+
+.flip-container {
+  position: relative;
+  margin-top: 16px;
+  perspective: 1200px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  min-height: 450px;
+  transform-style: preserve-3d;
+  transition: transform 0.7s;
+}
+
+/* Gira 180 graus quando vai para registro */
+.auth-tabs-card[data-active="register"] .flip-inner {
+  transform: rotateY(180deg);
+}
+
+/* Ambas as faces */
+.flip-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Login (frente) */
+.flip-login {
+  transform: rotateY(0deg);
+}
+
+/* Registro (trás) */
+.flip-register {
+  transform: rotateY(180deg);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .flip-inner {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .flip-inner {
+    min-height: 450px;
   }
 }

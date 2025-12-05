@@ -215,7 +215,7 @@
         border-top: 1px solid var(--glass-border);
     }
 
-    /* BotÃµes */
+    /* Botões */
     .btn {
         border-radius: var(--radius-md);
         font-size: var(--font-size-sm);
@@ -378,7 +378,7 @@
 
 
 
-    /* Estados de validaÃ§Ã£o */
+    /* Estados de validação */
     .lk-field input:invalid:not(:placeholder-shown),
     .lk-field select:invalid:not(:placeholder-shown) {
         border-color: var(--color-danger);
@@ -395,7 +395,7 @@
         cursor: not-allowed;
     }
 
-    /* Tags de campo obrigatÃ³rio */
+    /* Tags de campo obrigatório */
     .lk-field label::after {
         content: '';
     }
@@ -426,7 +426,7 @@
                         <input id="nome" name="nome" type="text" placeholder="Ex.: Nubank, Dinheiro, PicPay" required>
                     </div>
                     <div class="lk-field">
-                        <label for="instituicao">Instituição</label>
+                        <label for="instituicao">Institui��o</label>
                         <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa"
                             required>
                     </div>
@@ -447,11 +447,11 @@
     </div>
 </div>
 
-<!-- Modal: Novo LanÃ§amento na Conta -->
+<!-- Modal: Novo Lançamento na Conta -->
 <div class="lk-modal" id="modalLancConta" role="dialog" aria-modal="true" aria-labelledby="modalLancContaTitle">
     <div class="lk-modal-card">
         <div class="lk-modal-h">
-            <div class="lk-modal-t" id="modalLancContaTitle">Novo lançamento</div>
+            <div class="lk-modal-t" id="modalLancContaTitle">Novo lan�amento</div>
             <button class="btn btn-ghost" id="lancClose" type="button">
                 <i class="fas fa-times"></i>
             </button>
@@ -479,14 +479,14 @@
                         <label for="lanCategoria">Categoria</label>
                         <select id="lanCategoria" name="lanCategoria" required>
                             <option value="">Selecione uma categoria</option>
-                            <option value="1">Alimentação</option>
+                            <option value="1">Alimenta��o</option>
                             <option value="2">Transporte</option>
                             <option value="3">Moradia</option>
                         </select>
                     </div>
                     <div class="lk-field full">
-                        <label for="lanDescricao">Descrição</label>
-                        <input type="text" id="lanDescricao" name="lanDescricao" placeholder="Ex.: Mercado / Salário">
+                        <label for="lanDescricao">Descri��o</label>
+                        <input type="text" id="lanDescricao" name="lanDescricao" placeholder="Ex.: Mercado / Sal�rio">
                     </div>
                     <div class="lk-field full">
                         <label for="lanValor">Valor</label>
@@ -505,18 +505,18 @@
     </div>
 </div>
 
-<!-- Modal: TransferÃªncia -->
+<!-- Modal: Transferência -->
 <div class="lk-modal" id="modalTransfer" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
     <div class="lk-modal-card">
         <div class="lk-modal-h">
-            <div class="lk-modal-t" id="modalTransferTitle">Transferência</div>
+            <div class="lk-modal-t" id="modalTransferTitle">Transfer�ncia</div>
             <button class="btn btn-ghost" id="trClose" type="button">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="lk-modal-b">
             <form id="formTransfer">
-                <input type="hidden" id="trOrigemId">
+                <input type="hidden" id="trOrigemId" name="trOrigemId">
                 <div class="lk-form-grid">
                     <div class="lk-field full">
                         <label>Origem</label>
@@ -524,24 +524,24 @@
                     </div>
                     <div class="lk-field full">
                         <label for="trDestinoId">Destino</label>
-                        <select id="trDestinoId" required>
+                        <select id="trDestinoId" name="trDestinoId" required>
                             <option value="">Selecione a conta de destino</option>
-                            <option value="1">Poupança</option>
+                            <option value="1">Poupan�a</option>
                             <option value="2">Investimentos</option>
                             <option value="3">Carteira</option>
                         </select>
                     </div>
                     <div class="lk-field">
                         <label for="trData">Data</label>
-                        <input type="date" id="trData" required>
+                        <input type="date" id="trData" name="trData" required>
                     </div>
                     <div class="lk-field">
                         <label for="trValor">Valor</label>
-                        <input class="real" type="text" id="trValor" inputmode="decimal" placeholder="R$ 0,00" required>
+                        <input class="real" type="text" id="trValor" name="trValor" inputmode="decimal" placeholder="R$ 0,00" required>
                     </div>
                     <div class="lk-field full">
                         <label for="trDesc">Descrição (opcional)</label>
-                        <input type="text" id="trDesc" placeholder="Ex.: Transferência entre contas">
+                        <input type="text" id="trDesc" name="trDesc" placeholder="Ex.: Transferência entre contas">
                     </div>
                 </div>
                 <div class="lk-modal-f">
@@ -570,3 +570,7 @@
         });
     });
 </script>
+
+
+
+

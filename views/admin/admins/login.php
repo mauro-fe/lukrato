@@ -1,112 +1,51 @@
 <?php loadPageCss(); ?>
 <style>
-    .field {
-        position: relative;
+.field {
+    position: relative;
+}
+
+.field .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #666;
+}
+
+.field .toggle-password:focus {
+    outline: 2px solid #7aa7ff;
+    outline-offset: 2px;
+}
+
+/* Ensure room for the icon inside the input */
+.field input[type="password"],
+.field input[type="text"].is-password-visible {
+    padding-right: 40px;
+}
+
+.field .toggle-password svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Aproxima o conteúdo do topo em telas pequenas */
+@media (max-width: 768px) {
+    main.lukrato-auth {
+        align-items: flex-start;
+        padding: 18px 12px 28px;
     }
 
-    .field .toggle-password {
-
-        position: absolute;
-
-        right: 10px;
-
-        top: 50%;
-
-        transform: translateY(-50%);
-
-        background: transparent;
-
-        border: none;
-
-        padding: 4px;
-
-        cursor: pointer;
-
-        color: #666;
-
+    .login-wrapper {
+        justify-content: center;
+        margin-top: 10px;
+        gap: 16px;
     }
-
-    .field .toggle-password:focus {
-        outline: 2px solid #7aa7ff;
-        outline-offset: 2px;
-    }
-
-    /* Ensure room for the icon inside the input */
-
-    .field input[type="password"],
-
-    .field input[type="text"].is-password-visible {
-
-        padding-right: 40px;
-
-    }
-
-    .field .toggle-password svg {
-        width: 20px;
-        height: 20px;
-        display: block;
-    }
-
-    /* Aproxima o conteúdo do topo em telas pequenas */
-    @media (max-width: 768px) {
-        main.lukrato-auth {
-            align-items: flex-start;
-            padding: 18px 12px 28px;
-        }
-
-        .login-wrapper {
-            justify-content: center;
-            margin-top: 10px;
-            gap: 16px;
-        }
-    }
-
-    .field {
-        position: relative;
-    }
-
-    .field .toggle-password {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: transparent;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        color: #666;
-    }
-
-    .field .toggle-password:focus {
-        outline: 2px solid #7aa7ff;
-        outline-offset: 2px;
-    }
-
-    /* Ensure room for the icon inside the input */
-    .field input[type="password"],
-    .field input[type="text"].is-password-visible {
-        padding-right: 40px;
-    }
-
-    .field .toggle-password svg {
-        width: 20px;
-        height: 20px;
-        display: block;
-    }
-
-    /* Aproxima o conteúdo do topo em telas pequenas */
-    @media (max-width: 768px) {
-        main.lukrato-auth {
-            align-items: flex-start;
-            padding: 18px 12px 28px;
-        }
-
-        .login-wrapper {
-            justify-content: center;
-            margin-top: 10px;
-            gap: 16px;
-        }
-    }
+}
 </style>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
@@ -138,159 +77,118 @@
                     <button class="tab-btn is-active" data-tab="login" type="button">Entrar</button>
                     <button class="tab-btn" data-tab="register" type="button">Cadastrar</button>
                 </div>
+                <div class="flip-container">
+                    <div class="flip-inner">
 
-                <div class="tab-panel" id="tab-login" role="tabpanel" aria-labelledby="btn-login">
-                    <h3 class="card-title">Entrar</h3>
+                        <!-- FACE DA FRENTE = LOGIN -->
+                        <div class="flip-face flip-login tab-panel" id="tab-login" role="tabpanel"
+                            aria-labelledby="btn-login">
+                            <h3 class="card-title">Entrar</h3>
 
-                    <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate>
-                        <?= csrf_input('login_form') ?>
+                            <!-- TODO o seu formulário de login permanece igual -->
+                            <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate">
+                                <?= csrf_input('login_form') ?>
 
-                        <div class="field">
-                            <input type="email" id="email" name="email" placeholder="E-mail" autocomplete="email"
-                                required />
-                            <small class="field-error" id="emailError"></small>
+                                <div class="field">
+                                    <input type="email" id="email" name="email" placeholder="E-mail"
+                                        autocomplete="email" required />
+                                    <small class="field-error" id="emailError"></small>
+                                </div>
+
+                                <div class="field">
+                                    <input type="password" id="password" name="password" placeholder="Senha" required>
+                                    <button type="button" class="toggle-password" data-target="password">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <small class="field-error" id="passwordError"></small>
+                                </div>
+
+                                <button type="submit" id="submitBtn" class="btn btn-primary">
+                                    <span>Entrar</span>
+                                </button>
+
+                                <div class="auth-separator"><span>ou</span></div>
+
+                                <div class="google-sign-in-container">
+                                    <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
+                                        <i class="fa-brands fa-google google-icon"></i>
+                                        <span class="button-text">Entrar com Google</span>
+                                    </a>
+                                </div>
+
+                                <p class="extra-link">
+                                    <a href="<?= BASE_URL ?>recuperar-senha">Esqueceu a senha?</a>
+                                </p>
+
+                                <div id="generalError" class="msg msg-error general-message"></div>
+                                <div id="generalSuccess" class="msg msg-success general-message">
+                                    <?php if (!empty($success)): ?>
+                                    <?= htmlspecialchars($success) ?>
+                                    <?php endif; ?>
+                                </div>
+                            </form>
                         </div>
 
-                        <div class="field">
-                            <input type="password" id="password" name="password" placeholder="Senha"
-                                autocomplete="current-password" required>
-                            <button type="button" class="toggle-password" aria-label="Mostrar senha"
-                                data-target="password" title="Mostrar/ocultar senha">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                            <small class="field-error" id="passwordError"></small>
-                        </div>
+                        <!-- FACE DE TRÁS = CADASTRO -->
+                        <div class="flip-face flip-register tab-panel" id="tab-register" role="tabpanel"
+                            aria-labelledby="btn-register">
+                            <h3 class="card-title">Cadastrar</h3>
 
-                        <button type="submit" id="submitBtn" class="btn btn-primary">
-                            <span>Entrar</span>
-                        </button>
+                            <!-- TODO o seu formulário de cadastro permanece igual -->
+                            <form action="<?= BASE_URL ?>register/criar" method="POST" id="registerForm" novalidate>
+                                <?= csrf_input('register_form') ?>
 
-                        <div class="auth-separator">
-                            <span>ou</span>
-                        </div>
+                                <div class="field">
+                                    <input type="text" id="name" name="name" placeholder="Nome completo" required />
+                                    <small class="field-error" id="nameError"></small>
+                                </div>
 
-                        <div class="google-sign-in-container">
-                            <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
-                                <i class="fa-brands fa-google google-icon"></i>
+                                <div class="field">
+                                    <input type="email" id="reg_email" name="email" placeholder="E-mail" required />
+                                    <small class="field-error" id="regEmailError"></small>
+                                </div>
 
-                                <span class="button-text">Entrar com Google</span>
-                            </a>
-                        </div>
+                                <div class="field">
+                                    <input type="password" id="reg_password" name="password" placeholder="Senha"
+                                        required />
 
-                        <p class="extra-link">
-                            <a href="<?= BASE_URL ?>recuperar-senha">Esqueceu a senha?</a>
-                        </p>
-
-
-                        <div id="generalError" class="msg msg-error general-message" aria-live="polite"></div>
-                        <div id="generalSuccess" class="msg msg-success general-message" aria-live="polite">
-                            <?php if (!empty($success)): ?>
-                                <?= htmlspecialchars($success) ?>
-                            <?php endif; ?>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="tab-panel is-hidden" id="tab-register" role="tabpanel" aria-labelledby="btn-register">
-                    <h3 class="card-title">Cadastrar</h3>
-
-                    <form action="<?= BASE_URL ?>register/criar" method="POST" id="registerForm" novalidate>
-                        <?= csrf_input('register_form') ?>
-
-                        <div class="field">
-                            <input type="text" id="name" name="name" placeholder="Nome completo" autocomplete="name"
-                                required />
-                            <small class="field-error" id="nameError"></small>
-                        </div>
-
-                        <div class="field">
-                            <input type="email" id="reg_email" name="email" placeholder="E-mail" autocomplete="email"
-                                required />
-                            <small class="field-error" id="regEmailError"></small>
-                        </div>
-
-                        <div class="field">
-                            <input type="password" id="reg_password" name="password" placeholder="Senha"
-                                autocomplete="new-password" required />
-
-                            <button type="button" class="toggle-password" aria-label="Mostrar senha"
-                                data-target="reg_password" title="Mostrar/ocultar senha">
-
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-
-                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-
-                                    <circle cx="12" cy="12" r="3" />
-
-                                    <button type="button" class="toggle-password" aria-label="Mostrar senha"
-                                        data-target="reg_password" title="Mostrar/ocultar senha">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </svg>
-
+                                    <button type="button" class="toggle-password" data-target="reg_password">
+                                        <i class="fa-solid fa-eye"></i>
                                     </button>
 
                                     <small class="field-error" id="regPasswordError"></small>
-                                </svg>
-                                </svg>
-                            </button>
-                            <small class="field-error" id="regPasswordError"></small>
-                        </div>
+                                </div>
 
-                        <div class="field">
-                            <input type="password" id="reg_password_confirm" name="password_confirmation"
-                                placeholder="Confirmar senha" autocomplete="new-password" required />
+                                <div class="field">
+                                    <input type="password" id="reg_password_confirm" name="password_confirmation"
+                                        placeholder="Confirmar senha" required />
 
-                            <button type="button" class="toggle-password" aria-label="Mostrar senha"
-                                data-target="reg_password_confirm" title="Mostrar/ocultar senha">
-
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-
-                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-
-                                    <circle cx="12" cy="12" r="3" />
-
-                                    <button type="button" class="toggle-password" aria-label="Mostrar senha"
-                                        data-target="reg_password_confirm" title="Mostrar/ocultar senha">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </svg>
-
+                                    <button type="button" class="toggle-password" data-target="reg_password_confirm">
+                                        <i class="fa-solid fa-eye"></i>
                                     </button>
 
                                     <small class="field-error" id="regPasswordConfirmError"></small>
-                                </svg>
-                                </svg>
-                            </button>
-                            <small class="field-error" id="regPasswordConfirmError"></small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary"><span>Criar conta</span></button>
+
+                                <div class="auth-separator"><span>ou</span></div>
+
+                                <div class="google-sign-in-container">
+                                    <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
+                                        <i class="fa-brands fa-google google-icon"></i>
+                                        <span class="button-text">Cadastrar com Google</span>
+                                    </a>
+                                </div>
+
+                                <div id="registerGeneralError" class="msg msg-error"></div>
+                                <div id="registerGeneralSuccess" class="msg msg-success"></div>
+                            </form>
                         </div>
 
-                        <button type="submit" class="btn btn-primary "><span>Criar
-                                conta</span></button>
-
-                        <div class="auth-separator">
-                            <span>ou</span>
-                        </div>
-
-
-
-                        <div class="google-sign-in-container">
-                            <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
-                                <i class="fa-brands fa-google google-icon"></i>
-                                <span class="button-text">Cadastrar com Google</span>
-                            </a>
-                        </div>
-
-                        <div id="registerGeneralError" class="msg msg-error" aria-live="polite"></div>
-                        <div id="registerGeneralSuccess" class="msg msg-success" aria-live="polite"></div>
-                    </form>
+                    </div>
                 </div>
+
             </div>
         </section>
     </div>
@@ -305,7 +203,7 @@
 
 <?php if (!empty($success)): ?>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         icon: 'success',
         title: 'Senha alterada com sucesso!',
@@ -318,41 +216,87 @@ document.addEventListener('DOMContentLoaded', function () {
 <?php endif; ?>
 
 <script>
-    window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
+window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
 
-    window.LK = window.LK || {};
-    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
-    window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
-    window.LK = window.LK || {};
-    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
+window.LK = window.LK || {};
+window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
+window.BASE_URL = <?= json_encode(rtrim(BASE_URL, '/') . '/') ?>;
+window.LK = window.LK || {};
+window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 </script>
 <script>
-    (function() {
+(function() {
 
-        function toggleVisibility(input, icon) {
-            const isPassword = input.type === 'password';
+    function toggleVisibility(input, icon) {
+        const isPassword = input.type === 'password';
 
-            // Alterna o tipo
-            input.type = isPassword ? 'text' : 'password';
-            input.classList.toggle('is-password-visible', isPassword);
+        // Alterna o tipo
+        input.type = isPassword ? 'text' : 'password';
+        input.classList.toggle('is-password-visible', isPassword);
 
-            // Troca o ícone Font Awesome
-            icon.classList.toggle('fa-eye', !isPassword);
-            icon.classList.toggle('fa-eye-slash', isPassword);
+        // Troca o ícone Font Awesome
+        icon.classList.toggle('fa-eye', !isPassword);
+        icon.classList.toggle('fa-eye-slash', isPassword);
+    }
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.toggle-password');
+        if (!btn) return;
+
+        const targetId = btn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        const icon = btn.querySelector('i');
+
+        toggleVisibility(input, icon);
+    });
+
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+    const card = document.querySelector(".auth-tabs-card");
+    const flipInner = document.querySelector(".flip-inner");
+    const loginPanel = document.getElementById("tab-login");
+    const registerPanel = document.getElementById("tab-register");
+
+    function ajustarAltura() {
+        // força ambos a ficarem visíveis para medir
+        loginPanel.style.position = "relative";
+        registerPanel.style.position = "relative";
+        loginPanel.style.visibility = "hidden";
+        registerPanel.style.visibility = "hidden";
+        loginPanel.classList.remove("is-hidden");
+        registerPanel.classList.remove("is-hidden");
+
+        const hLogin = loginPanel.offsetHeight;
+        const hRegister = registerPanel.offsetHeight;
+
+        const max = Math.max(hLogin, hRegister);
+
+        flipInner.style.height = max + "px";
+
+        // restaura o que estava antes
+        if (card.dataset.active === "login") {
+            registerPanel.classList.add("is-hidden");
+        } else {
+            loginPanel.classList.add("is-hidden");
         }
 
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.toggle-password');
-            if (!btn) return;
+        loginPanel.style.visibility = "";
+        registerPanel.style.visibility = "";
+    }
 
-            const targetId = btn.getAttribute('data-target');
-            const input = document.getElementById(targetId);
-            if (!input) return;
+    ajustarAltura();
 
-            const icon = btn.querySelector('i');
-
-            toggleVisibility(input, icon);
+    // Recalcula ao trocar de aba
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            setTimeout(() => ajustarAltura(), 300);
         });
+    });
 
-    })();
+    // Recalcula ao redimensionar tela
+    window.addEventListener("resize", ajustarAltura);
+});
 </script>

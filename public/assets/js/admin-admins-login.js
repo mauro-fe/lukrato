@@ -1,33 +1,54 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     // ===================== TABS =====================
     const card = document.querySelector('.auth-tabs-card');
     const tabBtns = document.querySelectorAll('.auth-tabs-card .tab-btn');
-    const panels = { login: document.getElementById('tab-login'), register: document.getElementById('tab-register') };
+    const panels = {
+        login: document.getElementById('tab-login'),
+        register: document.getElementById('tab-register')
+    };
 
     function activateTab(tab) {
         if (!panels[tab]) return;
+
+        // Estado visual das abas
         tabBtns.forEach(btn => {
             const active = btn.dataset.tab === tab;
             btn.classList.toggle('is-active', active);
             btn.setAttribute('aria-selected', active ? 'true' : 'false');
             btn.setAttribute('tabindex', active ? '0' : '-1');
         });
+
+        // Acessibilidade (sem mexer em display)
         Object.entries(panels).forEach(([name, el]) => {
             if (!el) return;
-            el.classList.toggle('is-hidden', name !== tab);
-            el.hidden = (name !== tab);
+            el.setAttribute('aria-hidden', name === tab ? 'false' : 'true');
         });
+
+        // Aqui é o gatilho do flip
         if (card) card.dataset.active = tab;
+
+        // Foco no primeiro campo da aba ativa
         const first = panels[tab].querySelector('input,select,textarea,button');
         if (first) first.focus();
     }
+
+    // Bind dos botões
     if (card && !card.dataset.tabsBound) {
         card.dataset.tabsBound = '1';
-        tabBtns.forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); activateTab(btn.dataset.tab); }));
-        const hashTab = (location.hash || '').replace('#', '');
-        activateTab(hashTab === 'register' || hashTab === 'login' ? hashTab : (card.dataset.active || 'login'));
-    }
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                activateTab(btn.dataset.tab);
+            });
+        });
 
+        const hashTab = (location.hash || '').replace('#', '');
+        activateTab(
+            hashTab === 'register' || hashTab === 'login'
+                ? hashTab
+                : (card.dataset.active || 'login')
+        );
+    }
     // ===================== TOGGLE SENHA (login) =====================
     const passwordField = document.getElementById('password');
     const toggleIcon = document.getElementById('toggleIcon');
@@ -280,3 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         update();
     });
 });
+
+
+
