@@ -119,8 +119,9 @@ main.lukrato-auth {
   background: linear-gradient(180deg, var(--card), var(--card-2));
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 26px 26px 32px;
+  padding: 26px 26px 15px;
   box-shadow: 0 26px 60px var(--shadow);
+  overflow: hidden;
 }
 
 .card-title {
@@ -243,7 +244,7 @@ main.lukrato-auth {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 24px 0 20px;
+  margin: 15px 0 15px;
   color: var(--muted);
   font-size: 14px;
 }
@@ -657,6 +658,7 @@ main.lukrato-auth {
   top: 0;
   left: 0;
   width: 100%;
+  padding: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
