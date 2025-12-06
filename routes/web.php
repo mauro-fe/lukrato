@@ -141,6 +141,10 @@ function registerAppRoutes(): void
 }
 
 
+Router::add('POST', '/premium/checkout', 'PremiumController@checkout');
+Router::add('POST', '/premium/cancel', 'PremiumController@cancel');
+Router::add('POST', '/api/webhook/asaas', 'Api\AsaasWebhookController@receive');
+
 
 /* =========================
 

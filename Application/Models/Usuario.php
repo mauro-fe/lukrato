@@ -20,7 +20,7 @@ class Usuario extends Model
         'data_nascimento',
         'id_sexo',
         'theme_preference',
-        'pagarme_cliente_id',
+        'external_customer_id',
         'gateway',
         'google_id'
     ];
