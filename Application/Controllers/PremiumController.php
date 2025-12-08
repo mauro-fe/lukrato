@@ -53,7 +53,7 @@ class PremiumController extends BaseController
                 return;
             }
 
-            // Busca plano PRO
+        // Busca plano PRO
             /** @var Plano $planoPro */
             $planoPro = Plano::where('code', 'pro')
                 ->where('ativo', 1)
@@ -64,16 +64,71 @@ class PremiumController extends BaseController
                 return;
             }
 
-            // Garante cliente no Asaas
+            // ---------------------------------------------------------------------
+            // BUSCA DADOS COMPLEMENTARES NO BANCO (CPF, TELEFONE, ENDEREÇO)
+            // ---------------------------------------------------------------------
+
+            // CPF (tabela documentos, tipo = 1 = CPF)
+            $cpf = \Illuminate\Database\Capsule\Manager::table('documentos')
+                ->where('id_usuario', $usuario->id)
+                ->where('id_tipo', 1) // 1 = CPF
+                ->value('numero');
+
+            $cpf = $cpf ? preg_replace('/\D+/', '', $cpf) : null;
+
+            // Telefone (telefones + ddd)
+            $telefoneRow = \Illuminate\Database\Capsule\Manager::table('telefones as t')
+                ->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd')
+                ->where('t.id_usuario', $usuario->id)
+                ->orderBy('t.id_telefone')
+                ->first();
+
+            $mobilePhone = null;
+            if ($telefoneRow) {
+                $ddd  = preg_replace('/\D+/', '', (string)($telefoneRow->codigo ?? ''));
+                $num  = preg_replace('/\D+/', '', (string)($telefoneRow->numero ?? ''));
+                $fone = $ddd . $num;
+                $mobilePhone = $fone !== '' ? $fone : null;
+            }
+
+            // Endereço principal (relacionamento já existe no model Usuario)
+            $endereco = $usuario->enderecoPrincipal; // tabela enderecos (tipo = 'principal')
+
+            $postalCode        = null;
+            $addressNumber     = null;
+            $addressComplement = null;
+
+            if ($endereco) {
+                $postalCode        = $endereco->cep ? preg_replace('/\D+/', '', $endereco->cep) : null;
+                $addressNumber     = $endereco->numero ?: null;
+                $addressComplement = $endereco->complemento ?: null;
+            }
+
+            // ---------------------------------------------------------------------
+            // GARANTE CLIENTE NO ASAAS (COM CPF, TELEFONE, CEP...)
+            // ---------------------------------------------------------------------
+            $customerPayload = [
+                'name'              => $usuario->nome,
+                'email'             => $usuario->email,
+                'externalReference' => 'user:' . $usuario->id,
+            ];
+
+            if ($cpf) {
+                $customerPayload['cpfCnpj'] = $cpf;
+            }
+            if ($mobilePhone) {
+                $customerPayload['mobilePhone'] = $mobilePhone;
+            }
+            if ($postalCode) {
+                $customerPayload['postalCode']    = $postalCode;
+                $customerPayload['addressNumber'] = $addressNumber ?: 'S/N';
+                if ($addressComplement) {
+                    $customerPayload['addressComplement'] = $addressComplement;
+                }
+            }
+
             if (empty($usuario->external_customer_id) || $usuario->gateway !== 'asaas') {
-                $customer = $this->asaas->createCustomer([
-                    'name'              => $usuario->nome,
-                    'email'             => $usuario->email,
-                    // Se um dia adicionar telefone/cpf:
-                    // 'mobilePhone'       => $usuario->telefone ?? null,
-                    // 'cpfCnpj'           => $usuario->cpf ?? null,
-                    'externalReference' => 'user:' . $usuario->id,
-                ]);
+                $customer = $this->asaas->createCustomer($customerPayload);
 
                 $usuario->external_customer_id = $customer['id'] ?? null;
                 $usuario->gateway              = 'asaas';
@@ -85,17 +140,20 @@ class PremiumController extends BaseController
                 return;
             }
 
-            // Dados do front
+            // ---------------------------------------------------------------------
+            // DADOS VINDOS DO FRONT (tipo de cobrança + cartão)
+            // ---------------------------------------------------------------------
             $body = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
             $billingType = $body['billingType'] ?? 'CREDIT_CARD';
             $creditCard  = $body['creditCard']  ?? null;
-            $holderInfo  = $body['creditCardHolderInfo'] ?? null;
+            $holderInfo  = $body['creditCardHolderInfo'] ?? [];
 
             $valorMensal = $planoPro->preco_centavos / 100;
 
+            // Payload base da assinatura
             $subscriptionPayload = [
-                'customerId'        => $usuario->external_customer_id,
+                'customer'          => $usuario->external_customer_id, // campo correto na API
                 'value'             => $valorMensal,
                 'description'       => $planoPro->nome,
                 'billingType'       => $billingType,
@@ -104,14 +162,37 @@ class PremiumController extends BaseController
                 'externalReference' => 'sub:user:' . $usuario->id . ':plano:' . $planoPro->id,
             ];
 
-            if ($billingType === 'CREDIT_CARD' && $creditCard && $holderInfo) {
+            // Se for cartão, envia dados do cartão e do titular
+            if ($billingType === 'CREDIT_CARD' && $creditCard) {
+                $holderInfoData = [
+                    'name'      => $holderInfo['name']  ?? $usuario->nome,
+                    'email'     => $holderInfo['email'] ?? $usuario->email,
+                ];
+
+                if ($cpf) {
+                    $holderInfoData['cpfCnpj'] = $cpf;
+                }
+                if ($postalCode) {
+                    $holderInfoData['postalCode']    = $postalCode;
+                    $holderInfoData['addressNumber'] = $addressNumber ?: 'S/N';
+                    if ($addressComplement) {
+                        $holderInfoData['addressComplement'] = $addressComplement;
+                    }
+                }
+                if ($mobilePhone) {
+                    // você pode escolher se manda em phone ou mobilePhone; aqui mando em mobilePhone
+                    $holderInfoData['mobilePhone'] = $mobilePhone;
+                }
+
                 $subscriptionPayload['creditCard']           = $creditCard;
-                $subscriptionPayload['creditCardHolderInfo'] = $holderInfo;
+                $subscriptionPayload['creditCardHolderInfo'] = $holderInfoData;
+                $subscriptionPayload['remoteIp']             = $_SERVER['REMOTE_ADDR'] ?? null;
             }
 
+            // Cria assinatura no Asaas
             $asaasSub = $this->asaas->createSubscription($subscriptionPayload);
 
-            // Cria registro local
+            // Cria registro local da assinatura
             $assinatura = new AssinaturaUsuario([
                 'user_id'                  => $usuario->id,
                 'plano_id'                 => $planoPro->id,
@@ -140,6 +221,7 @@ class PremiumController extends BaseController
             Response::error('Não foi possível concluir o checkout agora. Tente novamente mais tarde.');
         }
     }
+
 
     /**
      * Cancelar assinatura PRO do usuário logado.

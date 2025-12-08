@@ -18,6 +18,13 @@ class AsaasWebhookController extends BaseController
         $this->asaas = new AsaasService();
     }
 
+    public function test(): void
+    {
+        echo 'Webhook OK (GET)';
+        exit;
+    }
+
+
     public function receive(): void
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
