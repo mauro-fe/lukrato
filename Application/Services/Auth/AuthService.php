@@ -12,6 +12,10 @@ use Application\Core\Request;
 use Application\Services\LogService;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
+use Application\Models\Usuario;
+use Carbon\Carbon;
+
+
 use Throwable;
 
 class AuthService
@@ -84,8 +88,16 @@ class AuthService
     private function criarAssinaturaPadrao(int $userId): void
     {
         try {
+            $user = Usuario::find($userId);
 
-            $plano = Plano::where('slug', 'free')->first();
+            if (!$user) {
+                LogService::warning('[AuthService] Usuário não encontrado ao criar assinatura padrão.', [
+                    'user_id' => $userId,
+                ]);
+                return;
+            }
+
+            $plano = Plano::where('code', 'free')->first();
 
             if (!$plano) {
                 LogService::warning('[AuthService] Plano FREE não encontrado ao criar assinatura padrão.', [
@@ -94,20 +106,20 @@ class AuthService
                 return;
             }
 
-            AssinaturaUsuario::create([
-                'user_id'                  => $userId,
+            $user->assinaturas()->create([
                 'plano_id'                 => $plano->id,
-                'gateway'                  => 'interno', 
+                'gateway'                  => 'interno',
                 'external_customer_id'     => null,
                 'external_subscription_id' => null,
                 'status'                   => AssinaturaUsuario::ST_ACTIVE,
-                'renova_em'                => null, 
+                'renova_em'                => Carbon::now()->addMonth(),
                 'cancelada_em'             => null,
             ]);
 
             LogService::info('[AuthService] Assinatura padrão criada com sucesso.', [
-                'user_id' => $userId,
+                'user_id'  => $userId,
                 'plano_id' => $plano->id,
+                'code'     => $plano->code,
             ]);
         } catch (Throwable $e) {
             LogService::error('[AuthService] Erro ao criar assinatura padrão.', [
