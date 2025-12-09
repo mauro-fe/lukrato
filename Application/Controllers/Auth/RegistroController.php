@@ -1,11 +1,9 @@
 <?php
 
-// Application/Controllers/Auth/RegistroController.php
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
 use Application\Services\Auth\AuthService;
-use Application\DTOs\Auth\RegistrationDTO;
 use Application\Core\Exceptions\ValidationException;
 use Application\Services\LogService;
 use Throwable;
@@ -20,9 +18,6 @@ class RegistroController extends BaseController
         $this->authService = new AuthService();
     }
 
-    /**
-     * Exibe o formulário de registro.
-     */
     public function showForm(): void
     {
         $this->render('auth/register', [
@@ -31,14 +26,10 @@ class RegistroController extends BaseController
         ]);
     }
 
-    /**
-     * Processa o registro de novo usuário.
-     */
     public function store(): void
     {
         $isAjax = $this->request->isAjax();
 
-        // Capturamos o email aqui apenas para contexto de log (sem senha!)
         $emailTentativa = $this->request->post('email', 'não-informado');
 
         try {
@@ -57,11 +48,6 @@ class RegistroController extends BaseController
         }
     }
 
-    // --- Métodos Auxiliares Privados ---
-
-    /**
-     * Obtém erros da sessão.
-     */
     private function getSessionErrors(): ?array
     {
         $errors = $_SESSION['form_errors'] ?? null;
@@ -69,16 +55,12 @@ class RegistroController extends BaseController
         return $errors;
     }
 
-    /**
-     * Responde ao sucesso do registro e LOGA.
-     */
     private function respondToRegistrationSuccess(array $result, bool $isAjax, string $email): void
     {
-        // LOG DE SUCESSO (INFO)
         LogService::info('Novo usuário registrado com sucesso.', [
             'email' => $email,
             'ip' => $this->request->ip() ?? 'unknown',
-            'user_id' => $result['user_id'] ?? 'unknown' // Supondo que o service retorne o ID
+            'user_id' => $result['user_id'] ?? 'unknown'
         ]);
 
         if ($isAjax) {
@@ -92,12 +74,8 @@ class RegistroController extends BaseController
         }
     }
 
-    /**
-     * Responde a erro de validação e LOGA.
-     */
     private function respondToValidationError(ValidationException $e, bool $isAjax, string $email): void
     {
-        // LOG DE AVISO (WARNING) - Útil para detectar spam ou UX ruim
         LogService::warning('Falha de validação no registro.', [
             'email' => $email,
             'ip' => $this->request->ip() ?? 'unknown',
@@ -112,18 +90,14 @@ class RegistroController extends BaseController
         }
     }
 
-    /**
-     * Responde a erro geral de registro e LOGA DETALHADO.
-     */
     private function respondToRegistrationError(Throwable $e, bool $isAjax, string $email): void
     {
-        // LOG DE ERRO CRÍTICO (ERROR) - Com stack trace para debug
         LogService::error('Exceção crítica ao tentar registrar usuário.', [
             'email' => $email,
             'message' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
-            'trace' => $e->getTraceAsString() // Ajuda muito no debug
+            'trace' => $e->getTraceAsString()
         ]);
 
         $message = 'Falha ao cadastrar. Tente novamente mais tarde.';
