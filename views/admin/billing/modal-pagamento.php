@@ -1,7 +1,48 @@
+<?php
+
+use Illuminate\Database\Capsule\Manager as DB;
+
+/** @var \Application\Models\Usuario $user */
+
+// Valores padrão
+$cpfValue      = '';
+$telefoneValue = '';
+$cepValue      = '';
+
+if (isset($user) && $user) {
+  // CPF – documentos.id_tipo = 1 (CPF)
+  $cpfValue = DB::table('documentos')
+    ->where('id_usuario', $user->id)
+    ->where('id_tipo', 1) // 1 = CPF
+    ->value('numero') ?? '';
+
+  // Telefone – telefones + ddd
+  $telRow = DB::table('telefones as t')
+    ->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd')
+    ->where('t.id_usuario', $user->id)
+    ->orderBy('t.id_telefone')
+    ->first();
+
+  if ($telRow) {
+    $ddd = trim((string)($telRow->codigo ?? ''));
+    $num = trim((string)($telRow->numero ?? ''));
+    if ($ddd !== '' && $num !== '') {
+      $telefoneValue = sprintf('(%s) %s', $ddd, $num);
+    }
+  }
+
+  // CEP – endereço principal
+  $endereco = $user->enderecoPrincipal ?? null;
+  if ($endereco && !empty($endereco->cep)) {
+    $cepValue = $endereco->cep;
+  }
+}
+?>
+
 <style>
-  /* ==========================================================================
-       MODAL DE PAGAMENTO
-       ========================================================================== */
+  /* ========================================================================== 
+     MODAL DE PAGAMENTO (MANTENDO SEU LAYOUT)
+     ========================================================================== */
   .payment-modal {
     position: fixed;
     inset: 0;
@@ -74,13 +115,13 @@
     color: var(--color-text-muted);
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all .2s ease;
     font-size: 1.25rem;
   }
 
   .payment-modal__close:hover {
     background: var(--color-danger);
-    color: white;
+    color: #fff;
     transform: rotate(90deg);
   }
 
@@ -102,7 +143,7 @@
     align-items: center;
     gap: var(--spacing-2);
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    color: white;
+    color: #fff;
     font-size: 1.125rem;
     font-weight: 700;
     padding: var(--spacing-3) var(--spacing-5);
@@ -115,12 +156,97 @@
     padding: clamp(24px, 4vw, 40px) clamp(24px, 4vw, 48px);
   }
 
-  /* Customização do container do Brick do Mercado Pago */
-  #cardPaymentBrick_container {
-    margin-top: var(--spacing-4);
+  .payment-form {
+    display: grid;
+    gap: var(--spacing-4);
   }
 
-  @media (max-width: 768px) {
+  .payment-form__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-3);
+  }
+
+  .payment-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .payment-form__label {
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .payment-form__input {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    background: var(--color-surface-muted);
+    padding: 10px 12px;
+    font-size: .9375rem;
+    color: var(--color-text);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+
+  .payment-form__input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent);
+    background: var(--color-surface);
+  }
+
+  .payment-form__actions {
+    margin-top: var(--spacing-2);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+  }
+
+  .btn-outline {
+    border-radius: var(--radius-lg);
+    padding: 10px 18px;
+    border: 1px solid var(--color-surface-muted);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: .9375rem;
+    transition: all .2s;
+  }
+
+  .btn-outline:hover {
+    background: var(--color-surface-muted);
+  }
+
+  .btn-primary {
+    border-radius: var(--radius-lg);
+    padding: 12px 22px;
+    border: none;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: #fff;
+    cursor: pointer;
+    font-size: .9375rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transition: all .2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  }
+
+  .btn-primary[disabled] {
+    opacity: .7;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  @media (max-width:768px) {
     .payment-modal {
       padding: var(--spacing-2);
     }
@@ -136,14 +262,17 @@
     .payment-modal__body {
       padding: 20px;
     }
+
+    .payment-form__row {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
 <div id="billing-modal" class="payment-modal" role="dialog" aria-labelledby="billing-modal-title" aria-modal="true">
   <div class="payment-modal__content">
     <div class="payment-modal__header">
-      <button class="payment-modal__close"
-        aria-label="Fechar modal"
+      <button class="payment-modal__close" aria-label="Fechar modal" type="button"
         onclick="window.closeBillingModal?.()">
         <i class="fa-solid fa-times" aria-hidden="true"></i>
       </button>
@@ -156,46 +285,104 @@
         Complete os dados do cartão para ativar o Lukrato PRO
       </p>
 
-      <div id="billing-modal-price"
-        class="payment-modal__price"
-        role="status"
-        aria-live="polite">
+      <div id="billing-modal-price" class="payment-modal__price" role="status" aria-live="polite">
         Selecione um plano para continuar
       </div>
     </div>
 
     <div class="payment-modal__body">
-      <div id="cardPaymentBrick_container"></div>
+      <form id="asaasPaymentForm" class="payment-form" autocomplete="off">
+        <!-- Hidden fields sobre o plano selecionado -->
+        <input type="hidden" name="plan_id" id="asaas_plan_id">
+        <input type="hidden" name="plan_code" id="asaas_plan_code">
+        <input type="hidden" name="plan_name" id="asaas_plan_name">
+        <input type="hidden" name="amount" id="asaas_plan_amount">
+        <input type="hidden" name="interval" id="asaas_plan_interval">
+
+        <div class="payment-form__field">
+          <label for="card_holder" class="payment-form__label">Nome no cartão</label>
+          <input type="text" id="card_holder" name="card_holder" required class="payment-form__input"
+            value="<?= htmlspecialchars($user->nome ?? '', ENT_QUOTES, 'UTF-8') ?>"
+            placeholder="Ex: João da Silva">
+        </div>
+
+        <div class="payment-form__row">
+          <div class="payment-form__field">
+            <label for="card_number" class="payment-form__label">Número do cartão</label>
+            <input type="text" id="card_number" name="card_number" required inputmode="numeric"
+              maxlength="19" class="payment-form__input" placeholder="0000 0000 0000 0000">
+          </div>
+
+          <div class="payment-form__field">
+            <label for="card_cvv" class="payment-form__label">CVV</label>
+            <input type="text" id="card_cvv" name="card_cvv" required inputmode="numeric" maxlength="4"
+              class="payment-form__input" placeholder="123">
+          </div>
+        </div>
+
+        <div class="payment-form__row">
+          <div class="payment-form__field">
+            <label for="card_expiry" class="payment-form__label">Validade (MM/AA)</label>
+            <input type="text" id="card_expiry" name="card_expiry" required inputmode="numeric"
+              maxlength="5" class="payment-form__input" placeholder="07/29">
+          </div>
+
+          <div class="payment-form__field">
+            <label for="card_cpf" class="payment-form__label">CPF do titular</label>
+            <input type="text" id="card_cpf" name="card_cpf" required class="payment-form__input"
+              placeholder="000.000.000-00"
+              value="<?= htmlspecialchars($cpfValue, ENT_QUOTES, 'UTF-8') ?>">
+          </div>
+        </div>
+
+        <div class="payment-form__row">
+          <div class="payment-form__field">
+            <label for="card_phone" class="payment-form__label">Telefone</label>
+            <input type="text" id="card_phone" name="card_phone" required class="payment-form__input"
+              placeholder="(00) 00000-0000"
+              value="<?= htmlspecialchars($telefoneValue, ENT_QUOTES, 'UTF-8') ?>">
+          </div>
+
+          <div class="payment-form__field">
+            <label for="card_cep" class="payment-form__label">CEP</label>
+            <input type="text" id="card_cep" name="card_cep" required class="payment-form__input"
+              placeholder="00000-000" value="<?= htmlspecialchars($cepValue, ENT_QUOTES, 'UTF-8') ?>">
+          </div>
+        </div>
+
+        <div class="payment-form__actions">
+          <button type="button" class="btn-outline" onclick="window.closeBillingModal?.()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" id="asaasSubmitBtn">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <span>Pagar com cartão</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-<script src="https://sdk.mercadopago.com/js/v2"></script>
 <script>
   (function() {
     'use strict';
 
     const BASE_URL = '<?= BASE_URL ?>';
-    const PUBLIC_KEY = '<?= \Application\Services\MercadoPagoService::resolvePublicKey(); ?>';
-    const PAYER_EMAIL = <?= json_encode(
-                          (strtolower($_ENV['MP_ENV'] ?? 'production') === 'sandbox')
-                            ? ($_ENV['MP_TEST_BUYER_EMAIL'] ?? $user->email)
-                            : $user->email
-                        ) ?>;
 
-    console.log('[MP] PUBLIC_KEY:', PUBLIC_KEY);
-
-    <?php if (strtolower($_ENV['MP_ENV'] ?? 'production') === 'sandbox'): ?>
-      console.info('[MP] Sandbox ativo: usando credenciais de teste.');
-    <?php else: ?>
-      console.info('[MP] Produção ativa: usando credenciais reais.');
-    <?php endif; ?>
-
-    // Elementos do DOM
     const modal = document.getElementById('billing-modal');
     const modalTitle = document.getElementById('billing-modal-title');
     const modalText = document.getElementById('billing-modal-text');
     const modalPrice = document.getElementById('billing-modal-price');
+    const form = document.getElementById('asaasPaymentForm');
+    const submitBtn = document.getElementById('asaasSubmitBtn');
+
+    const inputPlanId = document.getElementById('asaas_plan_id');
+    const inputPlanCode = document.getElementById('asaas_plan_code');
+    const inputPlanName = document.getElementById('asaas_plan_name');
+    const inputPlanAmount = document.getElementById('asaas_plan_amount');
+    const inputPlanInterval = document.getElementById('asaas_plan_interval');
+
     const planButtons = document.querySelectorAll('[data-plan-button]');
 
     const currencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -203,262 +390,193 @@
       currency: 'BRL'
     });
 
-    let currentBrick = null;
-
-    // ==========================================================================
-    // FUNÇÕES DO MODAL
-    // ==========================================================================
+    let currentPlanConfig = null;
 
     function openBillingModal(planConfig) {
-      if (!modal) return;
-      modal.classList.add('payment-modal--open');
-      document.body.style.overflow = 'hidden';
-      updateModalInfo(planConfig);
-    }
-
-    function closeBillingModal() {
-      if (!modal) return;
-      modal.classList.remove('payment-modal--open');
-      document.body.style.overflow = '';
-      if (currentBrick?.unmount) {
-        currentBrick.unmount();
-      }
-      currentBrick = null;
-    }
-
-    // Expor globalmente para o botão de fechar
-    window.closeBillingModal = closeBillingModal;
-
-    function updateModalInfo(planConfig) {
-      if (!planConfig) return;
-
-      const planName = planConfig.planName || 'Plano';
-      const intervalText = planConfig.intervalLabel || 'mês';
-      const amountText = currencyFormatter.format(planConfig.amount || 0);
+      currentPlanConfig = planConfig;
 
       if (modalTitle) {
         modalTitle.textContent = 'Pagamento Seguro';
       }
 
       if (modalText) {
-        modalText.textContent = `Ativando o plano ${planName}. Complete os dados do cartão para continuar.`;
+        modalText.textContent =
+          `Ativando o plano ${planConfig.planName}. Complete os dados do cartão para continuar.`;
       }
 
       if (modalPrice) {
-        modalPrice.textContent = `${planName} - ${amountText}/${intervalText}`;
+        modalPrice.textContent =
+          `${planConfig.planName} - ${currencyFormatter.format(planConfig.amount)}/${planConfig.intervalLabel}`;
       }
+
+      inputPlanId.value = planConfig.planId;
+      inputPlanCode.value = planConfig.planCode;
+      inputPlanName.value = planConfig.planName;
+      inputPlanAmount.value = String(planConfig.amount);
+      inputPlanInterval.value = planConfig.intervalLabel;
+
+      modal.classList.add('payment-modal--open');
+      document.body.style.overflow = 'hidden';
     }
 
-    // Fechar ao clicar fora do modal
+    function closeBillingModal() {
+      modal.classList.remove('payment-modal--open');
+      document.body.style.overflow = '';
+      currentPlanConfig = null;
+      if (form) form.reset(); // volta pros valores padrão (que já vêm preenchidos do PHP)
+    }
+
+    window.closeBillingModal = closeBillingModal;
+    window.openBillingModal = openBillingModal;
+
     modal?.addEventListener('click', (e) => {
       if (e.target === modal) {
         closeBillingModal();
       }
     });
 
-    // Fechar com ESC
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && modal?.classList.contains('payment-modal--open')) {
         closeBillingModal();
       }
     });
 
-    // ==========================================================================
-    // EVENT LISTENERS DOS BOTÕES
-    // ==========================================================================
-
     planButtons.forEach((btn) => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', () => {
         const amount = Number(btn.dataset.planAmount ?? '0');
+        const planId = btn.dataset.planId || null;
+        const planCode = btn.dataset.planCode || null;
+        const planName = btn.dataset.planName || 'Lukrato PRO';
+        const intervalLabel = btn.dataset.planInterval || 'mês';
 
-        if (!amount || Number.isNaN(amount)) {
-          window.Swal?.fire('Aviso', 'Plano inválido para pagamento.', 'warning');
-          return;
-        }
-
-        if (amount < 1) {
+        if (!planId || !planCode || !amount || Number.isNaN(amount)) {
           window.Swal?.fire(
-            'Valor inválido',
-            'O Mercado Pago exige pagamentos a partir de R$ 1,00.',
-            'info'
+            'Plano inválido',
+            'Não foi possível identificar corretamente o plano. Tente recarregar a página.',
+            'warning'
           );
           return;
         }
 
         const planConfig = {
           amount,
-          title: `Assinatura ${btn.dataset.planName || 'Lukrato'}`,
-          planName: btn.dataset.planName || 'Lukrato',
-          planId: btn.dataset.planId || null,
-          planCode: btn.dataset.planCode || null,
-          intervalLabel: btn.dataset.planInterval || 'mês',
+          planId,
+          planCode,
+          planName,
+          intervalLabel
         };
-
         openBillingModal(planConfig);
-        await initCardPaymentBrick(planConfig);
       });
     });
 
-    // ==========================================================================
-    // INICIALIZAÇÃO DO BRICK DO MERCADO PAGO
-    // ==========================================================================
-
-    async function initCardPaymentBrick(config) {
-      if (currentBrick?.unmount) {
-        currentBrick.unmount();
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentPlanConfig) {
+        window.Swal?.fire('Plano inválido', 'Selecione um plano novamente.', 'warning');
+        return;
       }
 
-      const mp = new MercadoPago(PUBLIC_KEY, {
-        locale: 'pt-BR'
-      });
-      const bricksBuilder = mp.bricks();
+      const fd = new FormData(form);
 
-      const settings = {
-        initialization: {
-          amount: config.amount,
-          payer: {
-            email: PAYER_EMAIL
-          }
+      const holderName = fd.get('card_holder')?.toString().trim() || '';
+      const cardNumber = (fd.get('card_number')?.toString().replace(/\s+/g, '') || '');
+      const cardCvv = fd.get('card_cvv')?.toString().trim() || '';
+      const cardExpiry = fd.get('card_expiry')?.toString().trim() || '';
+
+      const rawCpf = fd.get('card_cpf')?.toString().trim() || '';
+      const rawPhone = fd.get('card_phone')?.toString().trim() || '';
+      const rawCep = fd.get('card_cep')?.toString().trim() || '';
+
+      const cpf = rawCpf.replace(/\D+/g, '');
+      const phone = rawPhone.replace(/\D+/g, '');
+      const cep = rawCep.replace(/\D+/g, '');
+
+      if (!holderName || !cardNumber || !cardCvv || !cardExpiry || !cpf || !phone || !cep) {
+        window.Swal?.fire('Campos obrigatórios', 'Preencha todos os dados do cartão.', 'warning');
+        return;
+      }
+
+      const [month, year] = cardExpiry.split('/').map(v => v.trim());
+      if (!month || !year) {
+        window.Swal?.fire('Validade inválida', 'Informe a validade no formato MM/AA.', 'warning');
+        return;
+      }
+
+      const payload = {
+        plan_id: currentPlanConfig.planId,
+        plan_code: currentPlanConfig.planCode,
+        amount: currentPlanConfig.amount,
+        billingType: 'CREDIT_CARD',
+        creditCard: {
+          holderName: holderName,
+          number: cardNumber,
+          expiryMonth: month,
+          expiryYear: (year.length === 2 ? '20' + year : year),
+          ccv: cardCvv
         },
-        customization: {
-          visual: {
-            style: {
-              theme: 'default'
-            }
-          },
-          paymentMethods: {
-            creditCard: 'all',
-            debitCard: 'all',
-            bankTransfer: 'all'
-          }
-        },
-        callbacks: {
-          onReady: () => {
-            console.log('[MP] Brick carregado com sucesso');
-          },
-          onError: (error) => {
-            console.error('[MP] Erro ao carregar:', error);
-            window.Swal?.fire('Erro', 'Falha ao carregar o pagamento.', 'error');
-          },
-          onSubmit: async (cardFormData) => {
-            try {
-              const response = await fetch(`${BASE_URL}api/mercadopago/pay`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-Token': window.CSRF || ''
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  amount: config.amount,
-                  title: config.title,
-                  data: cardFormData,
-                  plan_id: config.planId,
-                  plan_code: config.planCode
-                })
-              });
-
-              const json = await response.json().catch(() => ({}));
-
-              if (!response.ok || (json?.status && json.status !== 'success')) {
-                throw new Error(json?.message || 'Pagamento não autorizado');
-              }
-
-              // Mostrar feedback de processamento
-              await (window.Swal?.fire({
-                title: 'Processando...',
-                text: 'Confirmando pagamento com o banco',
-                icon: 'info',
-                timer: 1500,
-                showConfirmButton: false
-              }) ?? Promise.resolve());
-
-              closeBillingModal();
-
-              window.Swal?.fire(
-                'Sucesso!',
-                'Pagamento realizado com sucesso! 🎉',
-                'success'
-              ).then(() => {
-                // Recarregar página para atualizar status do plano
-                window.location.reload();
-              });
-
-            } catch (error) {
-              console.error('[MP] Erro no pagamento:', error);
-              window.Swal?.fire(
-                'Erro',
-                error.message || 'Pagamento recusado',
-                'error'
-              );
-            }
-          }
+        creditCardHolderInfo: {
+          name: holderName,
+          email: <?= json_encode($user->email ?? '') ?>,
+          cpfCnpj: cpf,
+          mobilePhone: phone,
+          postalCode: cep
         }
       };
 
       try {
-        currentBrick = await bricksBuilder.create(
-          'cardPayment',
-          'cardPaymentBrick_container',
-          settings
-        );
-        window.__lkBrickDebug = currentBrick;
+        submitBtn.disabled = true;
+        submitBtn.querySelector('span').textContent = 'Processando...';
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Processando pagamento',
+            text: 'Estamos enviando seus dados ao Asaas com segurança.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+          });
+        }
+
+        const resp = await fetch(`${BASE_URL}premium/checkout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': window.CSRF || ''
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+
+        const json = await resp.json().catch(() => null);
+
+        if (!resp.ok || !json || json.status !== 'success') {
+          throw new Error(json?.message || 'Não foi possível concluir o pagamento.');
+        }
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire(
+            'Sucesso! 🎉',
+            'Pagamento realizado com sucesso. Seu plano PRO foi ativado (ou será confirmado em instantes).',
+            'success'
+          ).then(() => {
+            window.location.reload();
+          });
+        } else {
+          alert('Pagamento realizado com sucesso.');
+          window.location.reload();
+        }
+
+        closeBillingModal();
       } catch (error) {
-        console.error('[MP] Erro ao criar brick:', error);
-        window.Swal?.fire('Erro', 'Não foi possível inicializar o pagamento.', 'error');
+        console.error('[Asaas] Erro ao processar pagamento:', error);
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Erro', error.message || 'Pagamento recusado. Tente novamente.', 'error');
+        } else {
+          alert(error.message || 'Erro ao processar pagamento.');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').textContent = 'Pagar com cartão';
       }
-    }
+    });
   })();
 </script>
-
-<!-- ============================================================================
-     FEEDBACK DE STATUS
-     ============================================================================ -->
-<?php if (isset($_GET['status'])): ?>
-  <script>
-    (function() {
-      'use strict';
-
-      const status = '<?= htmlspecialchars($_GET['status'], ENT_QUOTES, 'UTF-8') ?>';
-
-      if (typeof Swal === 'undefined') {
-        console.warn('[Billing] SweetAlert2 não disponível');
-        return;
-      }
-
-      const messages = {
-        success: {
-          title: 'Tudo certo! 🎉',
-          text: 'Pagamento aprovado com sucesso. Bem-vindo ao Pro!',
-          icon: 'success'
-        },
-        pending: {
-          title: 'Pagamento pendente ⏳',
-          text: 'Aguardando confirmação do pagamento...',
-          icon: 'info'
-        },
-        error: {
-          title: 'Ops! Algo deu errado 😕',
-          text: 'Pagamento não aprovado. Tente novamente.',
-          icon: 'error'
-        }
-      };
-
-      const config = messages[status] || messages.error;
-
-      Swal.fire({
-        title: config.title,
-        text: config.text,
-        icon: config.icon,
-        confirmButtonText: 'Entendi',
-        confirmButtonColor: getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-primary').trim() || '#e67e22'
-      });
-
-      // Limpa URL
-      if (window.history?.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    })();
-  </script>
-<?php endif; ?>

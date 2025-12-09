@@ -14,7 +14,7 @@
         --billing-spacing: clamp(40px, 8vw, 80px);
         --card-padding: clamp(28px, 4vw, 40px);
         --card-gap: clamp(24px, 4vw, 32px);
-        
+
         /* Cores contextuais */
         --plan-border: var(--glass-border);
         --plan-hover-border: var(--color-primary);
@@ -67,8 +67,15 @@
     }
 
     @keyframes float {
-        0%, 100% { transform: translate(0, 0); }
-        50% { transform: translate(30px, -30px); }
+
+        0%,
+        100% {
+            transform: translate(0, 0);
+        }
+
+        50% {
+            transform: translate(30px, -30px);
+        }
     }
 
     /* ==========================================================================
@@ -173,17 +180,23 @@
     }
 
     @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
     }
 
     /* Plano ativo */
     .plan-card--active {
         border-color: var(--color-success);
         background: linear-gradient(to bottom,
-            color-mix(in srgb, var(--color-success) 8%, var(--color-surface)),
-            var(--color-surface)
-        );
+                color-mix(in srgb, var(--color-success) 8%, var(--color-surface)),
+                var(--color-surface));
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 15%, transparent);
     }
 
@@ -244,8 +257,15 @@
     }
 
     @keyframes glow {
-        0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 50%, transparent); }
-        50% { box-shadow: 0 0 0 8px transparent; }
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 50%, transparent);
+        }
+
+        50% {
+            box-shadow: 0 0 0 8px transparent;
+        }
     }
 
     .plan-card__description {
@@ -397,8 +417,13 @@
     }
 
     @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .plan-card__button-icon {
@@ -420,8 +445,15 @@
     }
 
     @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .billing-message--success {
@@ -521,7 +553,10 @@
        ACESSIBILIDADE
        ========================================================================== */
     @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
+
+        *,
+        *::before,
+        *::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
@@ -567,7 +602,8 @@ if (isset($plans) && is_iterable($plans)) {
 $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
 
 // Função helper para formatar o intervalo
-function formatInterval(string $interval): string {
+function formatInterval(string $interval): string
+{
     return match (strtolower($interval)) {
         'year', 'ano', 'anual', 'annual' => 'ano',
         'week', 'semanal' => 'semana',
@@ -611,29 +647,28 @@ function formatInterval(string $interval): string {
                 $description = trim($meta['descricao'] ?? $meta['description'] ?? 'Plano completo para organizar suas finanças.');
                 $features = array_values(array_filter(array_map('trim', $meta['features'] ?? [])));
                 $missingFeatures = array_values(array_filter(array_map('trim', $meta['missing_features'] ?? [])));
-                
+
                 $priceCents = max(0, $plan['price_cents']);
                 $priceValue = $priceCents / 100;
                 $intervalLabel = formatInterval($plan['interval']);
-                
+
                 $isCurrentPlan = $currentPlanCode && strcasecmp($plan['code'], $currentPlanCode) === 0;
                 $isFreePlan = $priceCents === 0;
-                $isRecommended = !empty($meta['destaque']) || !empty($meta['highlight']) || 
-                                strcasecmp($plan['code'], 'pro') === 0;
-                
+                $isRecommended = !empty($meta['destaque']) || !empty($meta['highlight']) ||
+                    strcasecmp($plan['code'], 'pro') === 0;
+
                 $ctaLabel = trim($meta['cta_label'] ?? ($isFreePlan ? 'Plano gratuito' : 'Assinar agora'));
-                
+
                 $cardClasses = ['plan-card'];
                 if ($isRecommended) $cardClasses[] = 'plan-card--recommended';
                 if ($isCurrentPlan) $cardClasses[] = 'plan-card--active';
-                
+
                 $buttonId = strcasecmp($plan['code'], 'pro') === 0 ? 'btnAssinar' : null;
                 $renewDate = $user->plano_renova_em ?? $user->plan_renews_at ?? null;
                 ?>
-                
-                <article class="<?= implode(' ', $cardClasses) ?>" 
-                         aria-label="Plano <?= htmlspecialchars($plan['name']) ?>">
-                    
+
+                <article class="<?= implode(' ', $cardClasses) ?>" aria-label="Plano <?= htmlspecialchars($plan['name']) ?>">
+
                     <!-- Cabeçalho do Card -->
                     <div class="plan-card__header">
                         <div class="plan-card__icon" aria-hidden="true">
@@ -658,8 +693,8 @@ function formatInterval(string $interval): string {
                     </p>
 
                     <!-- Preço -->
-                    <div class="plan-card__price" 
-                         aria-label="<?= $priceCents > 0 ? 'Preço: ' . number_format($priceValue, 2, ',', '.') . ' por ' . $intervalLabel : 'Plano gratuito' ?>">
+                    <div class="plan-card__price"
+                        aria-label="<?= $priceCents > 0 ? 'Preço: ' . number_format($priceValue, 2, ',', '.') . ' por ' . $intervalLabel : 'Plano gratuito' ?>">
                         <?php if ($priceCents > 0): ?>
                             R$ <?= number_format($priceValue, 2, ',', '.') ?>
                             <span class="plan-card__price-period">/<?= $intervalLabel ?></span>
@@ -673,24 +708,22 @@ function formatInterval(string $interval): string {
                     <ul class="plan-card__features" role="list">
                         <?php foreach ($features as $feature): ?>
                             <li class="plan-card__feature">
-                                <span class="plan-card__feature-icon plan-card__feature-icon--check" 
-                                      aria-label="Incluído">
+                                <span class="plan-card__feature-icon plan-card__feature-icon--check" aria-label="Incluído">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
                                 <?= htmlspecialchars($feature) ?>
                             </li>
                         <?php endforeach; ?>
-                        
+
                         <?php foreach ($missingFeatures as $feature): ?>
                             <li class="plan-card__feature">
-                                <span class="plan-card__feature-icon plan-card__feature-icon--times" 
-                                      aria-label="Não incluído">
+                                <span class="plan-card__feature-icon plan-card__feature-icon--times" aria-label="Não incluído">
                                     <i class="fa-solid fa-times"></i>
                                 </span>
                                 <?= htmlspecialchars($feature) ?>
                             </li>
                         <?php endforeach; ?>
-                        
+
                         <?php if (empty($features) && empty($missingFeatures)): ?>
                             <li class="plan-card__feature">
                                 <span class="plan-card__feature-icon plan-card__feature-icon--times">
@@ -703,9 +736,8 @@ function formatInterval(string $interval): string {
 
                     <!-- Botão de Ação -->
                     <?php if ($isCurrentPlan): ?>
-                        <button class="plan-card__button plan-card__button--active" 
-                                disabled
-                                aria-label="<?= $renewDate ? 'Plano ativo até ' . $renewDate : 'Plano atual' ?>">
+                        <button class="plan-card__button plan-card__button--active" disabled
+                            aria-label="<?= $renewDate ? 'Plano ativo até ' . $renewDate : 'Plano atual' ?>">
                             <i class="plan-card__button-icon fa-solid fa-check-circle" aria-hidden="true"></i>
                             <span>
                                 <?php if ($renewDate && !$isFreePlan): ?>
@@ -721,17 +753,16 @@ function formatInterval(string $interval): string {
                         </button>
                     <?php else: ?>
                         <button <?= $buttonId ? 'id="' . $buttonId . '"' : '' ?>
-                                class="plan-card__button plan-card__button--primary"
-                                data-plan-button="1"
-                                data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
-                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
-                                data-plan-name="<?= htmlspecialchars($plan['name']) ?>"
-                                data-plan-amount="<?= number_format($priceValue, 2, '.', '') ?>"
-                                data-plan-interval="<?= htmlspecialchars($intervalLabel) ?>">
+                            class="plan-card__button plan-card__button--primary" data-plan-button="1"
+                            data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
+                            data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
+                            data-plan-name="<?= htmlspecialchars($plan['name']) ?>"
+                            data-plan-amount="<?= number_format($priceValue, 2, '.', '') ?>"
+                            data-plan-interval="<?= htmlspecialchars($intervalLabel) ?>">
                             <i class="plan-card__button-icon fa-solid fa-rocket" aria-hidden="true"></i>
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
                         </button>
-                        
+
                         <?php if ($buttonId): ?>
                             <div id="msg" role="status" aria-live="polite" aria-atomic="true"></div>
                         <?php endif; ?>
@@ -749,50 +780,50 @@ function formatInterval(string $interval): string {
      FEEDBACK DE STATUS
      ============================================================================ -->
 <?php if (isset($_GET['status'])): ?>
-<script>
-(function() {
-    'use strict';
-    
-    const status = '<?= htmlspecialchars($_GET['status'], ENT_QUOTES, 'UTF-8') ?>';
-    
-    if (typeof Swal === 'undefined') {
-        console.warn('[Billing] SweetAlert2 não disponível');
-        return;
-    }
-    
-    const messages = {
-        success: {
-            title: 'Tudo certo! 🎉',
-            text: 'Pagamento aprovado com sucesso. Bem-vindo ao Pro!',
-            icon: 'success'
-        },
-        pending: {
-            title: 'Pagamento pendente ⏳',
-            text: 'Aguardando confirmação do pagamento...',
-            icon: 'info'
-        },
-        error: {
-            title: 'Ops! Algo deu errado 😕',
-            text: 'Pagamento não aprovado. Tente novamente.',
-            icon: 'error'
-        }
-    };
-    
-    const config = messages[status] || messages.error;
-    
-    Swal.fire({
-        title: config.title,
-        text: config.text,
-        icon: config.icon,
-        confirmButtonText: 'Entendi',
-        confirmButtonColor: getComputedStyle(document.documentElement)
-            .getPropertyValue('--color-primary').trim() || '#e67e22'
-    });
-    
-    // Limpa URL
-    if (window.history?.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-})();
-</script>
+    <script>
+        (function() {
+            'use strict';
+
+            const status = '<?= htmlspecialchars($_GET['status'], ENT_QUOTES, 'UTF-8') ?>';
+
+            if (typeof Swal === 'undefined') {
+                console.warn('[Billing] SweetAlert2 não disponível');
+                return;
+            }
+
+            const messages = {
+                success: {
+                    title: 'Tudo certo! 🎉',
+                    text: 'Pagamento aprovado com sucesso. Bem-vindo ao Pro!',
+                    icon: 'success'
+                },
+                pending: {
+                    title: 'Pagamento pendente ⏳',
+                    text: 'Aguardando confirmação do pagamento...',
+                    icon: 'info'
+                },
+                error: {
+                    title: 'Ops! Algo deu errado 😕',
+                    text: 'Pagamento não aprovado. Tente novamente.',
+                    icon: 'error'
+                }
+            };
+
+            const config = messages[status] || messages.error;
+
+            Swal.fire({
+                title: config.title,
+                text: config.text,
+                icon: config.icon,
+                confirmButtonText: 'Entendi',
+                confirmButtonColor: getComputedStyle(document.documentElement)
+                    .getPropertyValue('--color-primary').trim() || '#e67e22'
+            });
+
+            // Limpa URL
+            if (window.history?.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        })();
+    </script>
 <?php endif; ?>
