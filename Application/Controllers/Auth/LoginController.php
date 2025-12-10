@@ -25,9 +25,7 @@ class LoginController extends BaseController
         $this->authService = new AuthService($this->request, $this->cache);
     }
 
-    /**
-     * Exibe o formulário de login (com aba de cadastro).
-     */
+
     public function login(): void
     {
         if ($this->isAuthenticated()) {
@@ -35,20 +33,16 @@ class LoginController extends BaseController
             return;
         }
 
-        // Se o usuário clicou no link "sem Google", limpa o social_register
-        if ($this->getQuery('sem_google') === '1') {
-            unset($_SESSION['social_register']);
-        }
-
-        $socialData = $_SESSION['social_register'] ?? null;
+        $socialSuccess = isset($_GET['new_google']) && $_GET['new_google'] == 1;
 
         $this->render('admin/admins/login', [
-            'error'      => $this->getError(),
-            'success'    => $this->getSuccess(),
+            'error' => $this->getError(),
+            'success' => $this->getSuccess(),
+            'socialSuccess' => $socialSuccess,
             'csrf_token' => CsrfMiddleware::generateToken('login_form'),
-            'socialData' => $socialData,
         ], null, 'admin/footer');
     }
+
 
 
     /**

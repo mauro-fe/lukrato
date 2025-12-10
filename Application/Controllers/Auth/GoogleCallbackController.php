@@ -5,14 +5,17 @@ namespace Application\Controllers\Auth;
 use Application\Controllers\BaseController;
 use Application\Models\Usuario;
 use Application\Lib\Auth;
+use Application\Services\Auth\AuthService;
 use Application\Services\LogService;
 use Google\Service\Oauth2;
+use Throwable;
 
 class GoogleCallbackController extends BaseController
 {
     public function callback(): void
     {
         try {
+            // Se já estiver logado, só vai pro dashboard
             if ($this->isAuthenticated()) {
                 $this->redirect('dashboard');
                 return;
@@ -23,7 +26,7 @@ class GoogleCallbackController extends BaseController
 
             if ($error) {
                 LogService::error('Erro no callback do Google - OAuth error', [
-                    'error' => $error,
+                    'error'             => $error,
                     'error_description' => $this->getQuery('error_description', 'N/A')
                 ]);
                 $this->setError('Erro na autenticação com Google: ' . $error);
@@ -80,7 +83,7 @@ class GoogleCallbackController extends BaseController
             $usuario = Usuario::where('google_id', $google_id)->first();
 
             if ($usuario) {
-                // Atualiza nome se quiser mantê-lo mais recente
+                // opcional: atualiza nome
                 if (!empty($nome_completo) && $usuario->nome !== $nome_completo) {
                     $usuario->nome = $nome_completo;
                     $usuario->save();
@@ -109,7 +112,6 @@ class GoogleCallbackController extends BaseController
                 // VINCULA o Google a essa conta existente
                 $usuario->google_id = $google_id;
 
-                // Se o nome estiver vazio, atualiza
                 if (empty($usuario->nome) && !empty($nome_completo)) {
                     $usuario->nome = $nome_completo;
                 }
@@ -125,38 +127,57 @@ class GoogleCallbackController extends BaseController
                     'google_id' => $google_id
                 ]);
 
-                // Opcional: mensagem amigável
-                $this->setSuccess('Conectamos sua conta ao Google. Agora você pode entrar com um clique em "Entrar com Google".');
-
                 $this->redirect('dashboard');
                 return;
             }
 
             // ---------------------------------------------------------------------
-            // 3) NÃO EXISTE NENHUM USUÁRIO COM ESTE EMAIL → ENVIAR PARA CADASTRO
+            // 3) NENHUM USUÁRIO COM ESTE EMAIL → CRIAR NOVO VIA AuthService E LOGAR
             // ---------------------------------------------------------------------
 
-            // Guarda dados do Google na sessão para completar o cadastro
-            $_SESSION['social_register'] = [
-                'provider'   => 'google',
-                'google_id'  => $google_id,
-                'nome'       => $nome_completo,
-                'email'      => $email,
-                'foto'       => $foto_perfil,
+            $authService = new AuthService(); // supondo construtor flexível
+
+            // Senha aleatória forte para satisfazer a validação
+            $randomPassword = bin2hex(random_bytes(16)); // 32 caracteres hex
+
+            $payload = [
+                'name'                  => $nome_completo ?: strtok($email, '@'),
+                'email'                 => $email,
+                'password'              => $randomPassword,
+                'password_confirmation' => $randomPassword,
+                'google_id'             => $google_id,
+                'provider'              => 'google', // só pra log/controle interno se vc usar
             ];
 
-            LogService::info('Iniciando cadastro via Google (novo usuário)', [
+            $result = $authService->register($payload);
+
+            $userId  = $result['user_id'] ?? null;
+            $usuario = null;
+
+            if ($userId) {
+                $usuario = Usuario::find($userId);
+            }
+
+            if (!$usuario) {
+                $usuario = Usuario::where('email', $email)->first();
+            }
+
+            if (!$usuario) {
+                throw new \Exception('Usuário não pôde ser criado via Google.');
+            }
+
+            Auth::login($usuario);
+            $this->setGoogleSessionData($usuario, $email, $foto_perfil, $google_id);
+
+            LogService::info('Novo usuário criado e logado via Google.', [
+                'user_id'   => $usuario->id,
                 'email'     => $email,
                 'google_id' => $google_id
             ]);
 
-            $this->setSuccess('Encontramos sua conta do Google. Complete seu cadastro para começar a usar o Lukrato.');
-
-            // Redireciona para a página de cadastro normal
-            $this->redirect('login');
+            $this->redirect('login?new_google=1');
             return;
-
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             LogService::error('Erro no callback do Google', [
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
@@ -167,29 +188,6 @@ class GoogleCallbackController extends BaseController
             $this->setError('Erro ao processar login com Google: ' . $e->getMessage());
             $this->redirect('login');
         }
-    }
-
-    /**
-     * Gera um username único baseado no email
-     */
-    private function generateUsername(string $email): string
-    {
-        $base = strtolower(trim(explode('@', $email)[0]));
-        $base = preg_replace('/[^a-z0-9_]/', '', $base);
-
-        if (strlen($base) < 3) {
-            $base = 'user' . $base;
-        }
-
-        $username = $base;
-        $counter  = 1;
-
-        while (Usuario::where('username', $username)->exists()) {
-            $username = $base . $counter;
-            $counter++;
-        }
-
-        return $username;
     }
 
     /**

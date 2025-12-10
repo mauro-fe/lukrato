@@ -1,3 +1,80 @@
+<style>
+    .settings-danger {
+        border: 1px solid var(--color-surface-muted);
+        background: var(--color-surface);
+        padding: var(--spacing-3);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-soft);
+        margin-top: var(--spacing-3);
+    }
+
+    .settings-danger h2 {
+        color: var(--color-danger);
+        margin-bottom: var(--spacing-1);
+    }
+
+    .lk-btn-danger {
+        background: var(--color-danger);
+        color: var(--color-surface);
+        border-radius: var(--radius-md);
+        padding: 0.6rem 1.2rem;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: var(--transition-fast);
+    }
+
+    .lk-btn-danger:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    /* Modal */
+    .lk-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+
+    .lk-modal.is-visible {
+        display: flex;
+    }
+
+    .lk-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .lk-modal-dialog {
+        position: relative;
+        max-width: 460px;
+        width: 100%;
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-3);
+        box-shadow: var(--shadow-lg);
+        z-index: 1;
+    }
+
+    .lk-modal-warning-list {
+        margin: var(--spacing-1) 0 var(--spacing-2);
+        padding-left: 1.25rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .lk-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-1);
+        margin-top: var(--spacing-2);
+    }
+</style>
+
 <?php
 $pageTitle = $pageTitle ?? 'Meu Perfil';
 $menu      = $menu ?? 'perfil';
@@ -114,6 +191,63 @@ $menu      = $menu ?? 'perfil';
                 </div>
             </div>
         </form>
+
+        <section class="settings-section settings-danger">
+            <h2>Excluir conta</h2>
+            <p class="text-muted">
+                Ao excluir sua conta, todos os seus dados financeiros serão apagados de forma permanente.
+                Essa ação não pode ser desfeita.
+            </p>
+
+            <button type="button" class="lk-btn lk-btn-danger" id="btn-open-delete-account-modal">
+                Excluir minha conta
+            </button>
+        </section>
+
+    </div>
+</div>
+
+<!-- Modal de confirmação -->
+<div class="lk-modal" id="delete-account-modal" aria-hidden="true">
+    <div class="lk-modal-backdrop" data-close-modal></div>
+
+    <div class="lk-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteAccountTitle">
+        <header class="lk-modal-header">
+            <h3 id="deleteAccountTitle">Excluir conta</h3>
+        </header>
+
+        <div class="lk-modal-body">
+            <p>
+                Tem certeza que deseja <strong>excluir definitivamente</strong> sua conta?
+            </p>
+            <ul class="lk-modal-warning-list">
+                <li>Seus lançamentos e categorias serão removidos.</li>
+                <li>Você perderá acesso ao histórico financeiro.</li>
+                <li>Esta ação <strong>não pode ser desfeita</strong>.</li>
+            </ul>
+
+            <form id="delete-account-form" method="POST" action="<?= BASE_URL ?>/config/excluir-conta">
+                <?php if (function_exists('csrf_input')): ?>
+                    <?= csrf_input() ?>
+                <?php endif; ?>
+
+                <!-- Confirmação simples digitando "EXCLUIR" (opcional) -->
+                <label class="field">
+                    <span class="field-label">Digite <strong>EXCLUIR</strong> para confirmar:</span>
+                    <input type="text" name="confirm_text" id="confirm_text" autocomplete="off">
+                </label>
+
+                <footer class="lk-modal-footer">
+                    <button type="button" class="lk-btn lk-btn-ghost" data-close-modal>
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="lk-btn lk-btn-danger" id="btn-confirm-delete">
+                        Sim, excluir minha conta
+                    </button>
+                </footer>
+            </form>
+        </div>
     </div>
 </div>
 <script>
@@ -398,4 +532,141 @@ $menu      = $menu ?? 'perfil';
 
         loadProfile();
     })();
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('delete-account-modal');
+        const openBtn = document.getElementById('btn-open-delete-account-modal');
+        const form = document.getElementById('delete-account-form');
+
+        if (!modal || !openBtn || !form) return;
+
+        const BASE_URL = '<?= BASE_URL ?>';
+
+        const toggleModal = (show) => {
+            if (show) {
+                modal.classList.add('is-visible');
+                modal.setAttribute('aria-hidden', 'false');
+            } else {
+                modal.classList.remove('is-visible');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        };
+
+        openBtn.addEventListener('click', () => {
+            toggleModal(true);
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target.matches('[data-close-modal]')) {
+                toggleModal(false);
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const confirmInput = document.getElementById('confirm_text');
+            if (!confirmInput || confirmInput.value.trim().toUpperCase() !== 'EXCLUIR') {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Confirmação necessária',
+                        text: 'Digite EXCLUIR para confirmar a exclusão da conta.'
+                    });
+                } else {
+                    alert('Digite EXCLUIR para confirmar.');
+                }
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            // garante que a URL inclui o BASE_URL
+            const actionAttr = form.getAttribute('action') || '';
+            const actionUrl = actionAttr.startsWith('http') ?
+                actionAttr :
+                `${BASE_URL}${actionAttr.replace(BASE_URL, '')}`;
+            // se o action já for "<?= BASE_URL ?>/config/excluir-conta" continua igual
+            // se for só "/config/excluir-conta" vira "BASE_URL/config/excluir-conta"
+
+            try {
+                if (window.Swal) {
+                    Swal.fire({
+                        title: 'Excluindo conta...',
+                        text: 'Estamos processando sua solicitação.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                }
+
+                const response = await fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const contentType = response.headers.get('Content-Type') || '';
+
+                let data;
+                if (contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error('Resposta não JSON da exclusão de conta:', text);
+                    throw new Error('Resposta do servidor não está em JSON.');
+                }
+
+                // Lukrato: Response::success / Response::error
+                const isSuccess = data.status === 'success';
+
+                if (!response.ok || !isSuccess) {
+                    const msg = data.message || 'Não foi possível excluir sua conta.';
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: msg,
+                        });
+                    } else {
+                        alert(msg);
+                    }
+                    return;
+                }
+
+                // Sucesso
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Conta excluída',
+                        text: data.message || 'Sua conta foi excluída com sucesso.',
+                    }).then(() => {
+                        window.location.href = BASE_URL + '/';
+                    });
+                } else {
+                    alert(data.message || 'Conta excluída com sucesso.');
+                    window.location.href = BASE_URL + '/';
+                }
+
+            } catch (err) {
+                console.error('Erro ao excluir conta:', err);
+
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro inesperado',
+                        text: 'Tente novamente em instantes.',
+                    });
+                } else {
+                    alert('Erro inesperado. Tente novamente.');
+                }
+            }
+        });
+    });
 </script>

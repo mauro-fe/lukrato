@@ -5,6 +5,7 @@ namespace Application\Models;
 use Illuminate\Database\Eloquent\Model;
 use Application\Services\LogService;
 use Application\Services\FeatureGate;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Usuario extends Model
 {
@@ -28,6 +29,8 @@ class Usuario extends Model
     protected $hidden = ['senha', 'password'];
     protected $casts = ['data_nascimento' => 'date:Y-m-d'];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito'];
+
+    use SoftDeletes;
 
 
     public function setSenhaAttribute($value): void

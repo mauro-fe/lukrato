@@ -24,6 +24,7 @@ registerBillingRoutes();
 
 
 
+
 /**
  * ===============================
  *  ÁREA PÚBLICA (LANDING / SITE)
@@ -70,7 +71,13 @@ function registerAuthRoutes(): void
 
     // Super admin
     Router::add('GET',  '/super_admin', 'SysAdmin\\SuperAdminController@index');
+
+    Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete');
 }
+
+// PÁGINAS LEGAIS DO SITE / TERMOS
+Router::add('GET', '/termos', 'Site\\LegalController@terms');
+Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');
 
 
 
