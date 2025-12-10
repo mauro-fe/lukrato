@@ -1,7 +1,11 @@
 <style>
+    .settings-section {
+        background: var(--bg-glass) !important;
+
+    }
+
     .settings-danger {
         border: 1px solid var(--color-surface-muted);
-        background: var(--color-surface);
         padding: var(--spacing-3);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-soft);
@@ -14,8 +18,6 @@
     }
 
     .lk-btn-danger {
-        background: var(--color-danger);
-        color: var(--color-surface);
         border-radius: var(--radius-md);
         padding: 0.6rem 1.2rem;
         border: none;
@@ -55,7 +57,7 @@
         width: 100%;
         background: var(--color-surface);
         border-radius: var(--radius-lg);
-        padding: var(--spacing-3);
+        padding: var(--spacing-5);
         box-shadow: var(--shadow-lg);
         z-index: 1;
     }
@@ -192,20 +194,22 @@ $menu      = $menu ?? 'perfil';
             </div>
         </form>
 
-        <section class="settings-section settings-danger">
-            <h2>Excluir conta</h2>
-            <p class="text-muted">
-                Ao excluir sua conta, todos os seus dados financeiros serão apagados de forma permanente.
-                Essa ação não pode ser desfeita.
-            </p>
-
-            <button type="button" class="lk-btn lk-btn-danger" id="btn-open-delete-account-modal">
-                Excluir minha conta
-            </button>
-        </section>
 
     </div>
 </div>
+
+<section class="settings-section settings-danger">
+    <h2>Excluir conta</h2>
+    <p>
+        Ao excluir sua conta, todos os seus dados financeiros serão apagados de forma permanente.
+        Essa ação não pode ser desfeita.
+    </p>
+
+    <button type="button" class="lk-btn lk-btn-danger" id="btn-open-delete-account-modal">
+        Excluir minha conta
+    </button>
+</section>
+
 
 <!-- Modal de confirmação -->
 <div class="lk-modal" id="delete-account-modal" aria-hidden="true">
@@ -226,7 +230,7 @@ $menu      = $menu ?? 'perfil';
                 <li>Esta ação <strong>não pode ser desfeita</strong>.</li>
             </ul>
 
-            <form id="delete-account-form" method="POST" action="<?= BASE_URL ?>/config/excluir-conta">
+            <form id="delete-account-form" method="POST" action="<?= BASE_URL ?>config/excluir-conta">
                 <?php if (function_exists('csrf_input')): ?>
                     <?= csrf_input() ?>
                 <?php endif; ?>
@@ -583,13 +587,10 @@ $menu      = $menu ?? 'perfil';
 
             const formData = new FormData(form);
 
-            // garante que a URL inclui o BASE_URL
+            // garante que a URL inclui o BASE_URL (e normaliza barras duplicadas)
             const actionAttr = form.getAttribute('action') || '';
-            const actionUrl = actionAttr.startsWith('http') ?
-                actionAttr :
-                `${BASE_URL}${actionAttr.replace(BASE_URL, '')}`;
-            // se o action já for "<?= BASE_URL ?>/config/excluir-conta" continua igual
-            // se for só "/config/excluir-conta" vira "BASE_URL/config/excluir-conta"
+            const relativeAction = actionAttr.replace(BASE_URL, '').replace(/^\/+/, '');
+            const actionUrl = new URL(relativeAction || actionAttr, BASE_URL).toString();
 
             try {
                 if (window.Swal) {

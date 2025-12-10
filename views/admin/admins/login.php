@@ -176,9 +176,9 @@ $activeTab = 'login';
 
                                 <div class="terms-link">
                                     Ao se cadastrar, você concorda com os
-                                    <a href="<?= BASE_URL ?>/termos" target="_blank">Termos de Uso</a>
+                                    <a href="<?= BASE_URL ?>termos" target="_blank">Termos de Uso</a>
                                     e a
-                                    <a href="<?= BASE_URL ?>/privacidade" target="_blank">Política de Privacidade</a>.
+                                    <a href="<?= BASE_URL ?>privacidade" target="_blank">Política de Privacidade</a>.
                                 </div>
 
                                 <div class="auth-separator"><span>ou</span></div>
