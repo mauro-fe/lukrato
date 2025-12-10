@@ -151,9 +151,8 @@ class PremiumController extends BaseController
 
             $valorMensal = $planoPro->preco_centavos / 100;
 
-            // Payload base da assinatura
-            $subscriptionPayload = [
-                'customer'          => $usuario->external_customer_id, // campo correto na API
+            $subscriptionData = [
+                'customerId'        => $usuario->external_customer_id,
                 'value'             => $valorMensal,
                 'description'       => $planoPro->nome,
                 'billingType'       => $billingType,
@@ -162,11 +161,10 @@ class PremiumController extends BaseController
                 'externalReference' => 'sub:user:' . $usuario->id . ':plano:' . $planoPro->id,
             ];
 
-            // Se for cartão, envia dados do cartão e do titular
             if ($billingType === 'CREDIT_CARD' && $creditCard) {
                 $holderInfoData = [
-                    'name'      => $holderInfo['name']  ?? $usuario->nome,
-                    'email'     => $holderInfo['email'] ?? $usuario->email,
+                    'name'  => $holderInfo['name']  ?? $usuario->nome,
+                    'email' => $holderInfo['email'] ?? $usuario->email,
                 ];
 
                 if ($cpf) {
@@ -180,30 +178,47 @@ class PremiumController extends BaseController
                     }
                 }
                 if ($mobilePhone) {
-                    // você pode escolher se manda em phone ou mobilePhone; aqui mando em mobilePhone
                     $holderInfoData['mobilePhone'] = $mobilePhone;
                 }
 
-                $subscriptionPayload['creditCard']           = $creditCard;
-                $subscriptionPayload['creditCardHolderInfo'] = $holderInfoData;
-                $subscriptionPayload['remoteIp']             = $_SERVER['REMOTE_ADDR'] ?? null;
+                // Preenche no array que será enviado para o AsaasService
+                $subscriptionData['creditCard']           = $creditCard;
+                $subscriptionData['creditCardHolderInfo'] = $holderInfoData;
+                $subscriptionData['remoteIp']             = $_SERVER['REMOTE_ADDR'] ?? null;
             }
 
+
+
             // Cria assinatura no Asaas
-            $asaasSub = $this->asaas->createSubscription($subscriptionPayload);
+            $asaasSub = $this->asaas->createSubscription($subscriptionData);
 
             // Cria registro local da assinatura
+            // Status retornado pelo Asaas (ACTIVE, PENDING, EXPIRED, SUSPENDED, CANCELED...)
+            $asaasStatus = $asaasSub['status'] ?? null;
+
+            // Converte para o status interno do seu sistema
+            $internalStatus = match ($asaasStatus) {
+                'ACTIVE'    => AssinaturaUsuario::ST_ACTIVE,
+                'PENDING'   => AssinaturaUsuario::ST_PENDING,
+                'EXPIRED',
+                'SUSPENDED' => AssinaturaUsuario::ST_PAST_DUE,
+                'CANCELED'  => AssinaturaUsuario::ST_CANCELED,
+                default     => AssinaturaUsuario::ST_PENDING,
+            };
+
+            // Salva no banco
             $assinatura = new AssinaturaUsuario([
                 'user_id'                  => $usuario->id,
                 'plano_id'                 => $planoPro->id,
                 'gateway'                  => 'asaas',
                 'external_customer_id'     => $usuario->external_customer_id,
                 'external_subscription_id' => $asaasSub['id'] ?? null,
-                'status'                   => AssinaturaUsuario::ST_PENDING,
+                'status'                   => $internalStatus,
                 'renova_em'                => $asaasSub['nextDueDate'] ?? null,
             ]);
 
             $assinatura->save();
+
 
             Response::success([
                 'message'         => 'Assinatura criada. Aguarde a confirmação do pagamento.',

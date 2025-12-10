@@ -7,8 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class LogWebhookCobranca extends Model
 {
     protected $table = 'log_webhooks_cobranca';
-    protected $fillable = ['provedor', 'tipo_evento', 'payload'];
-    protected $casts = ['payload' => 'array'];
 
-    public $timestamps = false;
+    protected $fillable = ['provedor', 'tipo_evento', 'payload'];
+
+    protected $casts = [
+        'payload' => 'array',
+    ];
+
+    public $timestamps = true;
+
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
 }

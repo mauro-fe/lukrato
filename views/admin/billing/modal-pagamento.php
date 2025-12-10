@@ -267,6 +267,15 @@ if (isset($user) && $user) {
       grid-template-columns: 1fr;
     }
   }
+
+  /* Força o SweetAlert2 a ficar SEMPRE acima de qualquer modal */
+  .swal2-container {
+    z-index: 20000 !important;
+  }
+
+  .swal2-popup {
+    z-index: 20001 !important;
+  }
 </style>
 
 <div id="billing-modal" class="payment-modal" role="dialog" aria-labelledby="billing-modal-title" aria-modal="true">
