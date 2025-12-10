@@ -24,6 +24,22 @@ registerBillingRoutes();
 
 
 
+/**
+ * ===============================
+ *  ÁREA PÚBLICA (LANDING / SITE)
+ * ===============================
+ */
+
+// Landing principal
+Router::add('GET', '/', 'Site\\LandingController@index');
+
+
+// Página de planos
+Router::add('GET', '/planos', 'Site\\LandingController@plans');
+
+// (Opcional) Página “por que controlar finanças”
+Router::add('GET', '/por-que-controlar-financas', 'Site\\LandingController@whyFinance');
+
 /* =========================
 
  * AUTH
@@ -68,7 +84,7 @@ function registerRedirectRoutes(): void
 
 {
 
-    Router::add('GET',  '', function () {
+    /* Router::add('GET',  '', function () {
 
         redirectToUserDashboard();
     });
@@ -76,7 +92,7 @@ function registerRedirectRoutes(): void
     Router::add('GET',  '/', function () {
 
         redirectToUserDashboard();
-    });
+    });*/
 
 
 
