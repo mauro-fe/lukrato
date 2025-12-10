@@ -1,7 +1,48 @@
+<?php
+
+use Illuminate\Database\Capsule\Manager as DB;
+
+/** @var \Application\Models\Usuario $user */
+
+// Valores padrão
+$cpfValue      = '';
+$telefoneValue = '';
+$cepValue      = '';
+
+if (isset($user) && $user) {
+  // CPF – documentos.id_tipo = 1 (CPF)
+  $cpfValue = DB::table('documentos')
+    ->where('id_usuario', $user->id)
+    ->where('id_tipo', 1) // 1 = CPF
+    ->value('numero') ?? '';
+
+  // Telefone – telefones + ddd
+  $telRow = DB::table('telefones as t')
+    ->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd')
+    ->where('t.id_usuario', $user->id)
+    ->orderBy('t.id_telefone')
+    ->first();
+
+  if ($telRow) {
+    $ddd = trim((string)($telRow->codigo ?? ''));
+    $num = trim((string)($telRow->numero ?? ''));
+    if ($ddd !== '' && $num !== '') {
+      $telefoneValue = sprintf('(%s) %s', $ddd, $num);
+    }
+  }
+
+  // CEP – endereço principal
+  $endereco = $user->enderecoPrincipal ?? null;
+  if ($endereco && !empty($endereco->cep)) {
+    $cepValue = $endereco->cep;
+  }
+}
+?>
+
 <style>
-  /* ==========================================================================
-       MODAL DE PAGAMENTO (MANTENDO SEU LAYOUT)
-       ========================================================================== */
+  /* ========================================================================== 
+     MODAL DE PAGAMENTO (MANTENDO SEU LAYOUT)
+     ========================================================================== */
   .payment-modal {
     position: fixed;
     inset: 0;
@@ -74,13 +115,13 @@
     color: var(--color-text-muted);
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all .2s ease;
     font-size: 1.25rem;
   }
 
   .payment-modal__close:hover {
     background: var(--color-danger);
-    color: white;
+    color: #fff;
     transform: rotate(90deg);
   }
 
@@ -102,7 +143,7 @@
     align-items: center;
     gap: var(--spacing-2);
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    color: white;
+    color: #fff;
     font-size: 1.125rem;
     font-weight: 700;
     padding: var(--spacing-3) var(--spacing-5);
@@ -133,7 +174,7 @@
   }
 
   .payment-form__label {
-    font-size: 0.875rem;
+    font-size: .875rem;
     font-weight: 600;
     color: var(--color-text);
   }
@@ -143,10 +184,10 @@
     border: 1px solid var(--glass-border);
     background: var(--color-surface-muted);
     padding: 10px 12px;
-    font-size: 0.9375rem;
+    font-size: .9375rem;
     color: var(--color-text);
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: border-color .2s, box-shadow .2s, background .2s;
   }
 
   .payment-form__input:focus {
@@ -169,8 +210,8 @@
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
-    font-size: 0.9375rem;
-    transition: all 0.2s ease;
+    font-size: .9375rem;
+    transition: all .2s;
   }
 
   .btn-outline:hover {
@@ -184,13 +225,13 @@
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     color: #fff;
     cursor: pointer;
-    font-size: 0.9375rem;
+    font-size: .9375rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
-    transition: all 0.2s ease;
+    transition: all .2s;
   }
 
   .btn-primary:hover {
@@ -199,13 +240,13 @@
   }
 
   .btn-primary[disabled] {
-    opacity: 0.7;
+    opacity: .7;
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width:768px) {
     .payment-modal {
       padding: var(--spacing-2);
     }
@@ -225,6 +266,15 @@
     .payment-form__row {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* Força o SweetAlert2 a ficar SEMPRE acima de qualquer modal */
+  .swal2-container {
+    z-index: 20000 !important;
+  }
+
+  .swal2-popup {
+    z-index: 20001 !important;
   }
 </style>
 
@@ -261,7 +311,8 @@
         <div class="payment-form__field">
           <label for="card_holder" class="payment-form__label">Nome no cartão</label>
           <input type="text" id="card_holder" name="card_holder" required class="payment-form__input"
-            value="<?= htmlspecialchars($user->nome ?? '') ?>" placeholder="Ex: João da Silva">
+            value="<?= htmlspecialchars($user->nome ?? '', ENT_QUOTES, 'UTF-8') ?>"
+            placeholder="Ex: João da Silva">
         </div>
 
         <div class="payment-form__row">
@@ -288,7 +339,8 @@
           <div class="payment-form__field">
             <label for="card_cpf" class="payment-form__label">CPF do titular</label>
             <input type="text" id="card_cpf" name="card_cpf" required class="payment-form__input"
-              placeholder="000.000.000-00">
+              placeholder="000.000.000-00"
+              value="<?= htmlspecialchars($cpfValue, ENT_QUOTES, 'UTF-8') ?>">
           </div>
         </div>
 
@@ -296,13 +348,14 @@
           <div class="payment-form__field">
             <label for="card_phone" class="payment-form__label">Telefone</label>
             <input type="text" id="card_phone" name="card_phone" required class="payment-form__input"
-              placeholder="(00) 00000-0000">
+              placeholder="(00) 00000-0000"
+              value="<?= htmlspecialchars($telefoneValue, ENT_QUOTES, 'UTF-8') ?>">
           </div>
 
           <div class="payment-form__field">
             <label for="card_cep" class="payment-form__label">CEP</label>
             <input type="text" id="card_cep" name="card_cep" required class="payment-form__input"
-              placeholder="00000-000">
+              placeholder="00000-000" value="<?= htmlspecialchars($cepValue, ENT_QUOTES, 'UTF-8') ?>">
           </div>
         </div>
 
@@ -365,7 +418,6 @@
           `${planConfig.planName} - ${currencyFormatter.format(planConfig.amount)}/${planConfig.intervalLabel}`;
       }
 
-      // Preenche os hidden
       inputPlanId.value = planConfig.planId;
       inputPlanCode.value = planConfig.planCode;
       inputPlanName.value = planConfig.planName;
@@ -380,7 +432,7 @@
       modal.classList.remove('payment-modal--open');
       document.body.style.overflow = '';
       currentPlanConfig = null;
-      if (form) form.reset();
+      if (form) form.reset(); // volta pros valores padrão (que já vêm preenchidos do PHP)
     }
 
     window.closeBillingModal = closeBillingModal;
@@ -397,16 +449,6 @@
         closeBillingModal();
       }
     });
-
-    function getPrimaryColorFallback() {
-      try {
-        return getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-primary')
-          .trim() || '#e67e22';
-      } catch (e) {
-        return '#e67e22';
-      }
-    }
 
     planButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -432,7 +474,6 @@
           planName,
           intervalLabel
         };
-
         openBillingModal(planConfig);
       });
     });
@@ -450,9 +491,14 @@
       const cardNumber = (fd.get('card_number')?.toString().replace(/\s+/g, '') || '');
       const cardCvv = fd.get('card_cvv')?.toString().trim() || '';
       const cardExpiry = fd.get('card_expiry')?.toString().trim() || '';
-      const cpf = fd.get('card_cpf')?.toString().trim() || '';
-      const phone = fd.get('card_phone')?.toString().trim() || '';
-      const cep = fd.get('card_cep')?.toString().trim() || '';
+
+      const rawCpf = fd.get('card_cpf')?.toString().trim() || '';
+      const rawPhone = fd.get('card_phone')?.toString().trim() || '';
+      const rawCep = fd.get('card_cep')?.toString().trim() || '';
+
+      const cpf = rawCpf.replace(/\D+/g, '');
+      const phone = rawPhone.replace(/\D+/g, '');
+      const cep = rawCep.replace(/\D+/g, '');
 
       if (!holderName || !cardNumber || !cardCvv || !cardExpiry || !cpf || !phone || !cep) {
         window.Swal?.fire('Campos obrigatórios', 'Preencha todos os dados do cartão.', 'warning');
@@ -518,7 +564,7 @@
         if (typeof Swal !== 'undefined') {
           Swal.fire(
             'Sucesso! 🎉',
-            'Pagamento realizado com sucesso. Seu plano PRO foi ativado (ou será confirmado em instantes, conforme a operadora).',
+            'Pagamento realizado com sucesso. Seu plano PRO foi ativado (ou será confirmado em instantes).',
             'success'
           ).then(() => {
             window.location.reload();

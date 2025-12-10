@@ -154,12 +154,13 @@ function registerAppRoutes(): void
     Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth']);
 
     Router::add('GET', '/investimentos',      'Admin\\InvestimentosController@index',   ['auth']);
+
+    Router::add('POST', '/premium/checkout', 'PremiumController@checkout');
+    Router::add('POST', '/premium/cancel', 'PremiumController@cancel');
+    Router::add('POST', '/api/webhook/asaas', 'Api\\AsaasWebhookController@receive');
+    Router::add('GET', '/api/webhook/asaas', 'Api\AsaasWebhookController@test');
 }
 
-
-Router::add('POST', '/premium/checkout', 'PremiumController@checkout');
-Router::add('POST', '/premium/cancel', 'PremiumController@cancel');
-Router::add('POST', '/api/webhook/asaas', 'Api\AsaasWebhookController@receive');
 
 
 /* =========================

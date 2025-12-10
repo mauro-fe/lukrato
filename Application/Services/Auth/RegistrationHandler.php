@@ -27,6 +27,7 @@ class RegistrationHandler
 
             return [
                 'usuario' => $user,
+                'user_id' => $user->id,
                 'message' => 'Conta criada com sucesso!',
                 'redirect' => rtrim(BASE_URL, '/') . '/login',
             ];
@@ -35,6 +36,7 @@ class RegistrationHandler
             throw $e;
         }
     }
+
 
     private function createUser(RegistrationDTO $registration): Usuario
     {

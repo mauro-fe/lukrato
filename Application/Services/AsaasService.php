@@ -15,20 +15,20 @@ class AsaasService
 
     public function __construct()
     {
-        $this->apiKey       = getenv('ASAAS_API_KEY') ?: '';
-        $this->baseUrl      = getenv('ASAAS_BASE_URL') ?: 'https://sandbox.asaas.com/api/v3';
-        $this->userAgent    = getenv('ASAAS_USER_AGENT') ?: 'Lukrato/1.0 (PHP)';
-        $this->webhookToken = getenv('ASAAS_WEBHOOK_TOKEN') ?: null;
+        // Pega primeiro de $_ENV (phpdotenv), se não tiver cai pro getenv()
+        $this->apiKey       = $_ENV['ASAAS_API_KEY']       ?? getenv('ASAAS_API_KEY')       ?: '';
+        $this->baseUrl      = $_ENV['ASAAS_BASE_URL']      ?? getenv('ASAAS_BASE_URL')      ?: 'https://sandbox.asaas.com/api/v3';
+        $this->userAgent    = $_ENV['ASAAS_USER_AGENT']    ?? getenv('ASAAS_USER_AGENT')    ?: 'Lukrato/1.0 (PHP)';
+        $this->webhookToken = $_ENV['ASAAS_WEBHOOK_TOKEN'] ?? getenv('ASAAS_WEBHOOK_TOKEN') ?: null;
 
         if (empty($this->apiKey)) {
-            // Aqui é erro de configuração, não de runtime
             throw new \RuntimeException('ASAAS_API_KEY não configurada no .env');
         }
 
         $this->client = new Client([
             'base_uri'    => rtrim($this->baseUrl, '/') . '/',
             'timeout'     => 10,
-            'http_errors' => false, // vamos tratar manualmente
+            'http_errors' => false,
             'headers'     => [
                 'Content-Type' => 'application/json',
                 'User-Agent'   => $this->userAgent,
@@ -36,6 +36,7 @@ class AsaasService
             ],
         ]);
     }
+
 
     /**
      * Método core para chamadas à API do Asaas.

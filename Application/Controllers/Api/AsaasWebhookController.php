@@ -18,6 +18,13 @@ class AsaasWebhookController extends BaseController
         $this->asaas = new AsaasService();
     }
 
+    public function test(): void
+    {
+        echo 'Webhook OK (GET)';
+        exit;
+    }
+
+
     public function receive(): void
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
@@ -45,7 +52,6 @@ class AsaasWebhookController extends BaseController
 
         $event = $payload['event'] ?? null;
 
-        // Loga TODO webhook na tabela
         LogWebhookCobranca::create([
             'provedor'   => 'asaas',
             'tipo_evento' => $event ?? 'unknown',
@@ -133,7 +139,6 @@ class AsaasWebhookController extends BaseController
         $status         = $payment['status'] ?? null;
         $paymentDate    = $payment['paymentDate'] ?? null;
 
-        // Exemplo simples: quando pagamento RECEIVED, marca assinatura como ativa
         if ($subscriptionId && $status === 'RECEIVED') {
             $assinatura = AssinaturaUsuario::where('external_subscription_id', $subscriptionId)
                 ->latest('id')
@@ -141,7 +146,6 @@ class AsaasWebhookController extends BaseController
 
             if ($assinatura) {
                 $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
-                // se quiser, pode criar um campo last_payment_at na tabela futuramente
                 $assinatura->save();
             }
         }
