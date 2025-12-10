@@ -168,6 +168,7 @@ function registerAppRoutes(): void
     Router::add('GET', '/api/webhook/asaas', 'Api\AsaasWebhookController@test');
 }
 
+Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send');
 
 
 /* =========================
