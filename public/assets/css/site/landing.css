@@ -1,0 +1,287 @@
+/* =======================
+   Layout base da landing
+   ======================= */
+
+body {
+  margin: 0;
+  font-family: var(
+    --font-sans,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+  );
+  background: var(--color-bg, #020617);
+  color: var(--color-text, #e5e7eb);
+}
+
+.lk-site-main {
+  min-height: calc(100vh - 64px);
+}
+
+/* =======================
+   Header
+   ======================= */
+
+.lk-site-header {
+  position: sticky;
+  z-index: 50;
+  backdrop-filter: blur(18px);
+  background: color-mix(
+    in srgb,
+    var(--color-surface, #020617) 85%,
+    transparent 15%
+  );
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-surface-muted, #1f2937) 70%, transparent 30%);
+}
+
+.lk-site-header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0.6rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* Novo wrapper do menu em desktop */
+.lk-site-menu {
+  display: flex;
+  align-items: center;
+  gap: 250px !important;
+}
+
+.lk-site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.lk-site-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Logo */
+.lk-site-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--color-text, #e5e7eb);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.lk-site-logo img {
+  width: 100px !important;
+
+  object-fit: contain;
+}
+
+.lk-site-logo span {
+  font-size: 1rem;
+}
+
+.lk-site-nav-link {
+  position: relative;
+  text-decoration: none;
+  color: var(--color-text-muted, #9ca3af);
+  padding-block: 0.25rem;
+  transition: color var(--transition-fast, 0.15s ease);
+}
+
+.lk-site-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.2rem;
+  width: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary, #22c55e);
+  transition: width var(--transition-fast, 0.15s ease);
+}
+
+.lk-site-nav-link:hover {
+  color: var(--color-text, #e5e7eb);
+}
+
+.lk-site-nav-link:hover::after {
+  width: 100%;
+}
+
+.lk-site-login {
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--color-text, #e5e7eb);
+  opacity: 0.85;
+  transition: opacity var(--transition-fast, 0.15s ease);
+}
+
+.lk-site-login:hover {
+  opacity: 1;
+}
+
+.lk-site-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.4rem;
+  border-radius: var(--radius-pill, 999px);
+  border: none;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  /* Mantém sua cor primária */
+  background: var(--color-primary, #ff8a00);
+  color: var(--color-on-primary, #ffffff);
+
+  /* Sombra neutra */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+/* Hover sem glow colorido */
+.lk-site-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+/* Burger (mobile) */
+.lk-site-burger {
+  display: none;
+  border: none;
+  background: transparent;
+  color: var(--color-text, #e5e7eb);
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+/* Footer */
+.lk-site-footer {
+  border-top: 1px solid
+    color-mix(in srgb, var(--color-surface-muted, #1f2937) 70%, transparent 30%);
+  padding: 1rem 1.25rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9ca3af);
+  background: var(--color-surface, #020617);
+}
+
+.lk-site-footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lk-site-footer-badge {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted, #111827);
+  color: var(--color-text-muted, #9ca3af);
+}
+.lk-site-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--color-text, #1f2937);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.lk-site-login i {
+  font-size: 0.95rem;
+}
+
+.lk-site-login:hover {
+  opacity: 1;
+}
+
+/* =======================
+   Responsivo
+   ======================= */
+
+@media (max-width: 768px) {
+  .lk-site-header-inner {
+    padding-inline: 1rem;
+    position: relative;
+  }
+
+  /* Esconde menu normal num primeiro momento */
+  .lk-site-menu {
+    display: none;
+    gap: 1.5rem !important;
+  }
+
+  .lk-site-burger {
+    display: inline-flex;
+    font-size: 1.25rem;
+    background: transparent;
+    color: var(--color-text);
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Quando o menu abre: mostramos o card inteiro */
+  .lk-site-header.is-open .lk-site-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    position: absolute;
+    top: 100%;
+    left: 1rem;
+    right: 1rem;
+
+    margin-top: 0.5rem;
+    padding: 1.35rem 1.5rem;
+
+    background: var(--color-surface, #e7eef7);
+    border-radius: 1.5rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+  }
+
+  /* Links empilhados */
+  .lk-site-nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .lk-site-nav-link {
+    font-size: 0.95rem;
+  }
+
+  /* Ações (Login + CTA) embaixo dos links, dentro do card */
+  .lk-site-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .lk-site-actions .lk-site-login,
+  .lk-site-actions .lk-site-cta {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 0.75rem 1rem;
+    border-radius: 0.9rem;
+  }
+
+  /* Dá um respiro na parte de baixo do header para não cortar o card */
+  .lk-site-header.is-open {
+    padding-bottom: 11rem; /* ajusta se precisar mais/menos espaço */
+  }
+}
