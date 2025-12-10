@@ -133,27 +133,29 @@ class GoogleCallbackController extends BaseController
             }
 
             // ---------------------------------------------------------------------
-            // 3) NÃO EXISTE NENHUM USUÁRIO COM ESTE EMAIL → CRIAR NOVO USUÁRIO GOOGLE-ONLY
+            // 3) NÃO EXISTE NENHUM USUÁRIO COM ESTE EMAIL → ENVIAR PARA CADASTRO
             // ---------------------------------------------------------------------
 
-            $usuario = new Usuario();
-            $usuario->nome     = $nome_completo;
-            $usuario->email    = $email;
-            $usuario->username = $this->generateUsername($email);
-            $usuario->senha    = '';          // Sem senha local por enquanto (Google-only)
-            $usuario->google_id = $google_id; // Vincula o Google
-            $usuario->save();
+            // Guarda dados do Google na sessão para completar o cadastro
+            $_SESSION['social_register'] = [
+                'provider'   => 'google',
+                'google_id'  => $google_id,
+                'nome'       => $nome_completo,
+                'email'      => $email,
+                'foto'       => $foto_perfil,
+            ];
 
-            Auth::login($usuario);
-            $this->setGoogleSessionData($usuario, $email, $foto_perfil, $google_id);
-
-            LogService::info('Novo usuário criado via Google.', [
-                'user_id'   => $usuario->id,
+            LogService::info('Iniciando cadastro via Google (novo usuário)', [
                 'email'     => $email,
                 'google_id' => $google_id
             ]);
 
-            $this->redirect('dashboard');
+            $this->setSuccess('Encontramos sua conta do Google. Complete seu cadastro para começar a usar o Lukrato.');
+
+            // Redireciona para a página de cadastro normal
+            $this->redirect('login');
+            return;
+
         } catch (\Exception $e) {
             LogService::error('Erro no callback do Google', [
                 'message' => $e->getMessage(),

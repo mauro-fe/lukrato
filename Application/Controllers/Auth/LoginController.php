@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
@@ -25,8 +24,9 @@ class LoginController extends BaseController
 
         $this->authService = new AuthService($this->request, $this->cache);
     }
+
     /**
-     * Exibe o formulário de login.
+     * Exibe o formulário de login (com aba de cadastro).
      */
     public function login(): void
     {
@@ -35,12 +35,21 @@ class LoginController extends BaseController
             return;
         }
 
+        // Se o usuário clicou no link "sem Google", limpa o social_register
+        if ($this->getQuery('sem_google') === '1') {
+            unset($_SESSION['social_register']);
+        }
+
+        $socialData = $_SESSION['social_register'] ?? null;
+
         $this->render('admin/admins/login', [
-            'error' => $this->getError(),
-            'success' => $this->getSuccess(),
+            'error'      => $this->getError(),
+            'success'    => $this->getSuccess(),
             'csrf_token' => CsrfMiddleware::generateToken('login_form'),
+            'socialData' => $socialData,
         ], null, 'admin/footer');
     }
+
 
     /**
      * Processa a tentativa de login.
@@ -67,7 +76,7 @@ class LoginController extends BaseController
             $this->clearOldCsrfTokens();
 
             $this->ok([
-                'message' => 'Login realizado com sucesso!',
+                'message'  => 'Login realizado com sucesso!',
                 'redirect' => $result['redirect']
             ]);
         } catch (ValidationException $e) {
@@ -139,7 +148,7 @@ class LoginController extends BaseController
             return;
         }
 
-        // 👇 NOVO: caso especial para conta Google-only
+        // Caso especial para conta Google-only
         if (str_contains($message, 'Conta vinculada ao Google')) {
             $this->fail($message, 401, $e->getErrors());
             return;
