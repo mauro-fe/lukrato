@@ -106,4 +106,9 @@
   .ag-cards-header {
     grid-template-columns: 1fr 1fr 1fr !important;
   }
+
+  .lk-navbar-inner {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }

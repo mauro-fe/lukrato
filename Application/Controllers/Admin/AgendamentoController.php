@@ -10,7 +10,7 @@ class AgendamentoController extends BaseController
     public function index(): void
     {
         $data = [
-            'pageTitle' => 'Agendamentos',
+            'pageTitle' => 'Agendados',
             'subTitle' => 'Gerencie seus agendamentos de contas a pagar/receber',
         ];
 

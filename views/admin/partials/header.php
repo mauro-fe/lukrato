@@ -254,7 +254,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
                 <?= $aria('agendamentos') ?> title="Agendamentos">
                 <i class="fas fa-clock"></i>
-                <span>Agendamentos</span>
+                <span>Agendados</span>
             </a>
 
             <!-- Investimentos -->
