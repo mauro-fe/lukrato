@@ -13,22 +13,16 @@ class AccountController extends BaseController
 {
     public function delete(): void
     {
-        // Identificador único da requisição (útil para rastrear no log)
         $requestId = uniqid('acc_del_', true);
 
-        // Log de início da operação
         LogService::info('Iniciando processo de exclusão de conta', [
             'request_id' => $requestId,
             'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
         ]);
 
-        /**
-         * 1) AUTENTICAÇÃO
-         */
         try {
-            $this->requireAuth(); // Garante $this->userId
+            $this->requireAuth();
         } catch (AuthException $e) {
-
             LogService::warning('Tentativa de excluir conta sem autenticação', [
                 'request_id' => $requestId,
                 'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
@@ -39,14 +33,10 @@ class AccountController extends BaseController
             return;
         }
 
-        /**
-         * 2) PROCESSO DE EXCLUSÃO
-         */
         try {
             $user = Usuario::find($this->userId);
 
             if (!$user) {
-
                 LogService::warning('Usuário não encontrado ao tentar excluir conta', [
                     'request_id' => $requestId,
                     'user_id'    => $this->userId,
@@ -57,25 +47,20 @@ class AccountController extends BaseController
                 return;
             }
 
-            // Soft delete — preenche deleted_at
-            $user->delete();
+            $result = $user->delete();
 
-            // Logs de sucesso
             LogService::info('Conta excluída com sucesso (soft-delete)', [
                 'request_id' => $requestId,
                 'user_id'    => $this->userId,
                 'email'      => $user->email,
+                'delete_result' => $result,
                 'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
             ]);
-
-            // Encerra sessão se necessário
-            // session_destroy();
 
             Response::success(null, 'Conta excluída com sucesso.');
             return;
         } catch (Exception $e) {
 
-            // Log de erro crítico
             LogService::error('Erro inesperado ao excluir conta', [
                 'request_id' => $requestId,
                 'user_id'    => $this->userId ?? null,

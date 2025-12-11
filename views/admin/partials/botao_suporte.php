@@ -7,27 +7,80 @@
         height: 64px;
         background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
         color: #fff;
-        border-radius: var(--radius-lg);
+        border-radius: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 26px;
-        box-shadow: 0 8px 24px rgba(230, 126, 34, 0.35);
+        box-shadow: 0 2px 10px 10px rgba(230, 126, 34, 0.35);
         transition: all var(--transition-normal);
         z-index: 9999;
         cursor: pointer;
         border: none;
         text-decoration: none;
+        overflow: visible;
+    }
+
+    .lk-support-button::before {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 100%;
+        background: linear-gradient(135deg, var(--color-primary), #d35400);
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+        z-index: -1;
+        filter: blur(12px);
+    }
+
+    .lk-support-button:hover::before {
+        opacity: 0.6;
+        animation: glow-pulse 2s ease-in-out infinite;
     }
 
     .lk-support-button:hover {
-        transform: translateY(-4px) scale(1.05);
-        box-shadow: 0 12px 32px rgba(230, 126, 34, 0.45);
+        transform: translateY(-4px) scale(1.05) rotate(-5deg);
+        box-shadow: 0 5px 20px rgba(230, 126, 34, 0.45);
         background: linear-gradient(135deg, #d35400 0%, var(--color-primary) 100%);
     }
 
     .lk-support-button:active {
-        transform: translateY(-2px) scale(1.02);
+        transform: translateY(-2px) scale(1.02) rotate(0deg);
+    }
+
+    .lk-support-button i {
+        animation: headset-bounce 2s ease-in-out infinite;
+    }
+
+    .lk-support-button:hover i {
+        animation: headset-wiggle 0.5s ease-in-out;
+    }
+
+    /* Tooltip animado */
+    .lk-support-button::after {
+        content: '💬 Precisa de ajuda?';
+        position: absolute;
+        right: 80px;
+        top: 50%;
+        transform: translateY(-50%) translateX(10px);
+        background: var(--color-surface);
+        color: var(--color-text);
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: var(--shadow-lg);
+        border: 2px solid var(--color-primary);
+        transition: all var(--transition-normal);
+        font-family: var(--font-primary);
+    }
+
+    .lk-support-button:hover::after {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
     }
 
     /* Customização do SweetAlert2 */
@@ -45,6 +98,10 @@
         font-weight: 700;
         margin-bottom: 1.5rem;
         font-family: var(--font-primary);
+    }
+
+    .swal2-html-container {
+        overflow: visible !important;
     }
 
     .lk-support-info {
@@ -73,7 +130,8 @@
         margin-bottom: 0.25rem;
     }
 
-    .lk-support-info-email {
+    .lk-support-info-email,
+    .lk-support-info-tel {
         font-size: var(--font-size-sm);
         color: var(--color-text-muted);
         display: flex;
@@ -81,7 +139,8 @@
         gap: 0.5rem;
     }
 
-    .lk-support-info-email i {
+    .lk-support-info-email i,
+    .lk-support-info-tel i {
         color: var(--color-primary);
     }
 
@@ -96,12 +155,15 @@
         min-height: 140px;
         resize: vertical;
         transition: all var(--transition-fast);
+        width: 100%;
+        margin: 0 auto;
     }
 
     .swal2-popup.lk-support-modal .swal2-textarea:focus {
         outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--ring);
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
+        transform: scale(1.01);
     }
 
     .swal2-popup.lk-support-modal .swal2-textarea::placeholder {
@@ -124,6 +186,23 @@
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
         transition: all var(--transition-fast);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .swal2-popup.lk-support-modal .swal2-confirm::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .swal2-popup.lk-support-modal .swal2-confirm:hover::before {
+        left: 100%;
     }
 
     .swal2-popup.lk-support-modal .swal2-confirm:hover {
@@ -154,13 +233,106 @@
         font-size: var(--font-size-sm);
     }
 
-    /* Animação de pulso no botão */
+    /* Close button customizado */
+    .swal2-popup.lk-support-modal .swal2-close {
+        color: var(--color-text-muted);
+        font-size: 2rem;
+        transition: all var(--transition-fast);
+    }
+
+    .swal2-popup.lk-support-modal .swal2-close:hover {
+        color: var(--color-danger);
+        transform: rotate(90deg);
+    }
+
+    /* Animações */
     @keyframes pulse-support {
-        0%, 100% {
-            box-shadow: 0 8px 24px rgba(230, 126, 34, 0.35);
+
+        0%,
+        100% {
+            box-shadow: 0 2px 10px 10px rgba(230, 126, 34, 0.35);
         }
+
         50% {
-            box-shadow: 0 8px 24px rgba(230, 126, 34, 0.55);
+            box-shadow: 0 2px 10px 10px rgba(230, 126, 34, 0.55);
+        }
+    }
+
+    @keyframes headset-bounce {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-3px);
+        }
+    }
+
+    @keyframes headset-wiggle {
+
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+
+        25% {
+            transform: rotate(-15deg);
+        }
+
+        75% {
+            transform: rotate(15deg);
+        }
+    }
+
+    @keyframes glow-pulse {
+
+        0%,
+        100% {
+            opacity: 0.6;
+        }
+
+        50% {
+            opacity: 0.8;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes pulse-dot {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.5;
+            transform: scale(1.3);
         }
     }
 
@@ -171,29 +343,153 @@
     .lk-support-button:hover {
         animation: none;
     }
+
+    /* Animação de entrada do modal */
+    .swal2-popup.lk-support-modal.swal2-show {
+        animation: scaleIn 0.3s ease-out;
+    }
+
+    .swal2-popup.lk-support-modal.swal2-hide {
+        animation: fadeInUp 0.2s ease-in reverse;
+    }
+
+    .lk-support-info {
+        animation: fadeInUp 0.4s ease-out 0.1s backwards;
+    }
+
+    .lk-contact-preference {
+        animation: fadeInUp 0.4s ease-out 0.15s backwards;
+    }
+
+    .swal2-popup.lk-support-modal .swal2-textarea {
+        animation: fadeInUp 0.4s ease-out 0.2s backwards;
+    }
+
+    .swal2-popup.lk-support-modal .swal2-actions {
+        animation: fadeInUp 0.4s ease-out 0.3s backwards;
+    }
+
+    /* Preferência de contato */
+    .lk-contact-preference {
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .lk-radio {
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-backdrop);
+        border-radius: var(--radius-md);
+        border: 2px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        user-select: none;
+        flex: 1;
+        padding: var(--spacing-1);
+    }
+
+    .lk-radio:hover {
+        border-color: var(--color-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+    }
+
+    .fab {
+        width: 0;
+        height: 0;
+    }
+
+    .lk-radio input {
+        display: none;
+    }
+
+    .lk-radio span {
+        color: var(--color-text);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .lk-radio .whats {
+        gap: 1rem;
+
+    }
+
+    .lk-radio i {
+        color: var(--color-text-muted);
+        font-size: 1.1rem;
+        transition: all var(--transition-fast);
+    }
+
+
+    /* Quando marcado */
+    .lk-radio input:checked+span {
+        color: var(--color-primary);
+    }
+
+    .lk-radio input:checked~i,
+    .lk-radio:has(input:checked) i {
+        color: var(--color-primary);
+    }
+
+    .lk-radio:has(input:checked) {
+        background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.05));
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+    }
+
+    /* Badge de preferência */
+    .lk-preference-label {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .lk-preference-label i {
+        color: var(--color-primary);
+    }
 </style>
 
 <?php
 
 use Application\Lib\Auth;
+use Application\Models\Telefone;
+use Application\Models\Ddd;
 
 // Pega o usuário logado a partir do Auth
 $user = Auth::user();
 
-$nomeUsuario  = $user?->primeiro_nome
-    ?? $user?->nome
-    ?? $user?->username
-    ?? '';
-
+$nomeUsuario  = $user?->nome;
 $emailUsuario = $user?->email ?? '';
+$telUsuario = '';
+$ddd = '';
+$telefoneModel = Telefone::where('id_usuario', $user->id_usuario ?? $user->id ?? null)->first();
+
+$telUsuario = $telefoneModel->numero ?? '';
+$ddd = $telefoneModel->ddd->codigo ?? '';
+
 ?>
 
-<a href="#"
-   class="lk-support-button"
-   title="Fale com o Suporte"
-   data-support-name="<?= htmlspecialchars($nomeUsuario, ENT_QUOTES, 'UTF-8') ?>"
-   data-support-email="<?= htmlspecialchars($emailUsuario, ENT_QUOTES, 'UTF-8') ?>"
-   onclick="openSupportModal(this); return false;">
+<a href="#" class="lk-support-button" title="Fale com o Suporte"
+    data-support-name="<?= htmlspecialchars($nomeUsuario, ENT_QUOTES, 'UTF-8') ?>"
+    data-support-email="<?= htmlspecialchars($emailUsuario, ENT_QUOTES, 'UTF-8') ?>"
+    data-support-tel="<?= htmlspecialchars($telUsuario, ENT_QUOTES, 'UTF-8') ?>"
+    data-support-cod="<?= htmlspecialchars($ddd, ENT_QUOTES, 'UTF-8') ?>"
+    onclick="openSupportModal(this); return false;">
     <i class="fas fa-headset"></i>
 </a>
 
@@ -201,44 +497,103 @@ $emailUsuario = $user?->email ?? '';
     function openSupportModal(triggerEl) {
         const name = triggerEl?.dataset.supportName || 'Usuário';
         const email = triggerEl?.dataset.supportEmail || '';
+        const telefone = triggerEl?.dataset.supportTel || '';
+        const codigo = triggerEl?.dataset.supportCod || '';
 
         Swal.fire({
-            title: "Fale com o Suporte",
+            title: '<i class="fas fa-headset" style="color: var(--color-primary); font-size: 26px; margin-right: 8px;"></i> Fale com o Suporte',
             html: `
                 <div class="lk-support-info">
                     <div class="lk-support-info-label">Enviando como:</div>
                     <div class="lk-support-info-name">${name}</div>
                     ${email ? `<div class="lk-support-info-email"><i class="fas fa-envelope"></i> ${email}</div>` : ''}
+                  ${telefone ? `
+    <div class="lk-support-info-tel">
+        <i class="fas fa-phone"></i> (${codigo}) ${telefone}
+    </div>
+` : ''}
+
                 </div>
+                
+                <div class="lk-preference-label">
+                    <i class="fas fa-reply"></i>
+                    Como prefere receber o retorno?
+                </div>
+                <div class="lk-contact-preference">
+                    <label class="lk-radio">
+                        <input type="radio" name="retorno" value="whatsapp">
+                        <span class="whats"><i class="fab fa-whatsapp"></i>WhatsApp</span>
+                    </label>
+
+                    <label class="lk-radio">
+                        <input type="radio" name="retorno" value="email" checked>
+                        <span><i class="fas fa-envelope"></i>E-mail</span>
+                    </label>
+                </div>
+                
                 <textarea id="support-message"
                     class="swal2-textarea"
-                    placeholder="Descreva sua dúvida, problema ou sugestão com detalhes..."></textarea>
+                    placeholder="Descreva sua dúvida, problema ou sugestão com detalhes... Retornaremos o mais breve possível! 😊"></textarea>
             `,
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-paper-plane"></i> Enviar',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Enviar Mensagem',
             cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            showCloseButton: true,
             customClass: {
                 popup: 'lk-support-modal'
             },
+            width: '600px',
             didOpen: () => {
+                const textarea = document.getElementById('support-message');
+
                 // Foca automaticamente no textarea
-                document.getElementById('support-message').focus();
+                textarea.focus();
+
+                // Animação de digitação
+                textarea.addEventListener('keydown', function() {
+                    this.style.transform = 'scale(1.01)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 100);
+                });
+
+                // Adiciona efeito visual nos radio buttons
+                const radios = document.querySelectorAll('.lk-radio');
+                radios.forEach(radio => {
+                    radio.addEventListener('click', function() {
+                        // Remove animação de todos
+                        radios.forEach(r => r.style.animation = 'none');
+                        // Adiciona animação ao clicado
+                        this.style.animation = 'scaleIn 0.3s ease-out';
+                        setTimeout(() => {
+                            this.style.animation = '';
+                        }, 300);
+                    });
+                });
             },
             preConfirm: () => {
                 const msg = document.getElementById("support-message").value.trim();
+                const retorno = document.querySelector('input[name="retorno"]:checked')?.value;
 
                 if (!msg) {
-                    Swal.showValidationMessage("Por favor, escreva uma mensagem.");
+                    Swal.showValidationMessage("✍️ Por favor, escreva uma mensagem para continuarmos!");
                     return false;
                 }
 
                 if (msg.length < 10) {
-                    Swal.showValidationMessage("A mensagem deve ter pelo menos 10 caracteres.");
+                    Swal.showValidationMessage(
+                        "📝 A mensagem precisa ter pelo menos 10 caracteres para nos ajudar melhor!");
+                    return false;
+                }
+
+                if (!retorno) {
+                    Swal.showValidationMessage("📱 Por favor, selecione como prefere receber o retorno!");
                     return false;
                 }
 
                 return {
-                    message: msg
+                    message: msg,
+                    retorno: retorno
                 };
             }
         }).then(result => {
@@ -249,10 +604,26 @@ $emailUsuario = $user?->email ?? '';
     }
 
     function sendSupportMessage(data) {
-        // Mostra loading
+        // Mensagens motivacionais para o loading
+        const loadingMessages = [
+            '✨ Conectando você com nosso time...',
+            '📨 Preparando sua mensagem...',
+            '🚀 Estamos quase lá...'
+        ];
+        let messageIndex = 0;
+
+        const loadingInterval = setInterval(() => {
+            messageIndex = (messageIndex + 1) % loadingMessages.length;
+            const loadingText = document.querySelector('.swal2-html-container');
+            if (loadingText) {
+                loadingText.innerHTML =
+                    `<p style="color: var(--color-text-muted); font-size: var(--font-size-base); animation: fadeInUp 0.3s ease-out;">${loadingMessages[messageIndex]}</p>`;
+            }
+        }, 1500);
+
         Swal.fire({
-            title: 'Enviando...',
-            html: 'Por favor, aguarde enquanto enviamos sua mensagem.',
+            title: '✨ Enviando sua mensagem',
+            html: `<p style="color: var(--color-text-muted); font-size: var(--font-size-base);">${loadingMessages[0]}</p>`,
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
@@ -271,38 +642,96 @@ $emailUsuario = $user?->email ?? '';
             })
             .then(r => r.json())
             .then(response => {
+                clearInterval(loadingInterval);
+
                 if (response.success) {
+                    const retornoIcon = data.retorno === 'whatsapp' ?
+                        '<i class="fab fa-whatsapp" style="color: #25D366;"></i>' :
+                        '<i class="fas fa-envelope" style="color: var(--color-primary);"></i>';
+
                     Swal.fire({
                         icon: "success",
-                        title: "Mensagem enviada!",
-                        html: `<p style="color: var(--color-text-muted); font-size: var(--font-size-base);">${response.message || "Em breve entraremos em contato."}</p>`,
-                        confirmButtonText: 'Fechar',
+                        title: "🎉 Mensagem enviada com sucesso!",
+                        html: `
+                        <div style="text-align: center;">
+                            <p style="color: var(--color-text); font-size: var(--font-size-base); margin-bottom: 1rem;">
+                                ${response.message || "Recebemos sua mensagem!"}
+                            </p>
+                            <div style="padding: 1rem; background: var(--glass-bg); border-radius: var(--radius-md); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-backdrop);">
+                                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0 0 0.5rem 0;">
+                                    ${retornoIcon} Você receberá retorno via <strong style="color: var(--color-primary);">${data.retorno === 'whatsapp' ? 'WhatsApp' : 'E-mail'}</strong>
+                                </p>
+                                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0;">
+                                    ⏰ Responderemos em até <strong style="color: var(--color-primary);">24h úteis</strong>
+                                </p>
+                            </div>
+                        </div>
+                    `,
+                        confirmButtonText: '👍 Entendido',
                         customClass: {
                             popup: 'lk-support-modal'
-                        }
+                        },
+                        timer: 6000,
+                        timerProgressBar: true
                     });
                 } else {
                     Swal.fire({
                         icon: "error",
-                        title: "Erro ao enviar",
-                        html: `<p style="color: var(--color-text-muted); font-size: var(--font-size-base);">${response.message || "Tente novamente."}</p>`,
-                        confirmButtonText: 'Tentar novamente',
+                        title: "😕 Ops! Algo deu errado",
+                        html: `
+                        <p style="color: var(--color-text-muted); font-size: var(--font-size-base);">
+                            ${response.message || "Não conseguimos enviar sua mensagem."}
+                        </p>
+                        <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 1rem;">
+                            💡 Tente novamente ou entre em contato por outro canal.
+                        </p>
+                    `,
+                        confirmButtonText: '🔄 Tentar novamente',
+                        showCancelButton: true,
+                        cancelButtonText: 'Fechar',
                         customClass: {
                             popup: 'lk-support-modal'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.querySelector('.lk-support-button').click();
                         }
                     });
                 }
             })
             .catch(() => {
+                clearInterval(loadingInterval);
+
                 Swal.fire({
                     icon: "error",
-                    title: "Erro inesperado",
-                    html: '<p style="color: var(--color-text-muted); font-size: var(--font-size-base);">Falha ao enviar sua mensagem. Verifique sua conexão e tente novamente.</p>',
-                    confirmButtonText: 'Fechar',
+                    title: "🔌 Erro de conexão",
+                    html: `
+                    <p style="color: var(--color-text-muted); font-size: var(--font-size-base);">
+                        Não conseguimos conectar ao servidor.
+                    </p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--glass-bg); border-radius: var(--radius-md); text-align: left; backdrop-filter: var(--glass-backdrop); border: 1px solid var(--glass-border);">
+                        <p style="color: var(--color-text); font-size: var(--font-size-sm); margin: 0 0 0.75rem 0; font-weight: 600;">
+                            <i class="fas fa-lightbulb" style="color: var(--color-primary);"></i> Possíveis soluções:
+                        </p>
+                        <ul style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0; padding-left: 1.5rem; line-height: 1.6;">
+                            <li>Verifique sua conexão com a internet</li>
+                            <li>Tente recarregar a página</li>
+                            <li>Entre em contato diretamente por email</li>
+                        </ul>
+                    </div>
+                `,
+                    confirmButtonText: '🔄 Tentar novamente',
+                    showCancelButton: true,
+                    cancelButtonText: 'Fechar',
                     customClass: {
                         popup: 'lk-support-modal'
                     }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        sendSupportMessage(data);
+                    }
                 });
-            });
+            })
+
     }
 </script>
