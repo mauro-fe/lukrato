@@ -4,6 +4,7 @@ namespace Application\Controllers\Settings;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
+use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\LogService;
 use Application\Core\Exceptions\AuthException;
@@ -47,9 +48,23 @@ class AccountController extends BaseController
                 return;
             }
 
-            $result = $user->delete();
+            // Remove definitivamente e encerra a sessão ativa para evitar uso de dados apagados
+            $result = method_exists($user, 'forceDelete') ? $user->forceDelete() : $user->delete();
 
-            LogService::info('Conta excluída com sucesso (soft-delete)', [
+            if (!$result) {
+                LogService::error('Falha ao excluir conta', [
+                    'request_id' => $requestId,
+                    'user_id'    => $this->userId,
+                    'email'      => $user->email,
+                    'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                ]);
+
+                Response::error('Não foi possível excluir sua conta. Tente novamente.', 500);
+                return;
+            }
+            Auth::logout();
+
+            LogService::info('Conta excluída com sucesso', [
                 'request_id' => $requestId,
                 'user_id'    => $this->userId,
                 'email'      => $user->email,
