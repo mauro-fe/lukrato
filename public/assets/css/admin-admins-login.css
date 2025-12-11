@@ -140,7 +140,7 @@ main.lukrato-auth {
 
 .brand {
   margin-bottom: 32px;
-}
+  }
 
 .imagem-logo {
   display: inline-block;
@@ -227,6 +227,7 @@ main.lukrato-auth {
   position: relative;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 800px;
 }
 
 .card::before {
@@ -644,6 +645,10 @@ main.lukrato-auth {
   .welcome h2 {
     font-size: 36px;
   }
+
+  .login-right {
+    width: 400px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -672,6 +677,17 @@ main.lukrato-auth {
   }
 
   .flip-inner {
-    min-height: 580px;
+    min-height: 620px;
+    width: 100%;
+  }
+
+  .login-right {
+    width: 400px;
+  }
+}
+
+@media (max-width: 390px) {
+  .login-right {
+    width: 300px;
   }
 }
