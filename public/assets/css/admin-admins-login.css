@@ -31,7 +31,6 @@ body {
 }
 
 @keyframes gradientShift {
-
   0%,
   100% {
     background-position: 0% 50%;
@@ -48,10 +47,12 @@ main.lukrato-auth {
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
-  background: radial-gradient(ellipse 1200px 800px at 20% 30%,
-      #1b3145 0%,
-      var(--bg-2) 40%,
-      var(--bg-1) 100%);
+  background: radial-gradient(
+    ellipse 1200px 800px at 20% 30%,
+    #1b3145 0%,
+    var(--bg-2) 40%,
+    var(--bg-1) 100%
+  );
   background-size: 200% 200%;
   animation: gradientShift 15s ease infinite;
 }
@@ -78,7 +79,6 @@ main.lukrato-auth {
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(100vh) scale(0);
@@ -122,6 +122,10 @@ main.lukrato-auth {
 }
 
 .login-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   flex: 1;
   animation: slideInLeft 0.8s ease;
 }
@@ -140,15 +144,17 @@ main.lukrato-auth {
 
 .brand {
   margin-bottom: 32px;
-  }
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 
 .imagem-logo {
-  display: inline-block;
-  animation: logoFloat 3s ease-in-out infinite;
+  display: flex;
+  justify-content: center;
 }
 
 @keyframes logoFloat {
-
   0%,
   100% {
     transform: translateY(0px);
@@ -159,22 +165,24 @@ main.lukrato-auth {
   }
 }
 
+/* a logo em si */
 .imagem-logo img {
-  width: 250px;
-  max-width: 100%;
+  width: min(260px, 70vw); /* cresce até 260px, mas respeita o mobile */
   height: auto;
+  display: block;
   filter: drop-shadow(0 4px 12px rgba(230, 126, 34, 0.3));
-  transition: filter 0.3s ease;
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 
 .imagem-logo img:hover {
-  filter: drop-shadow(0 6px 20px rgba(230, 126, 34, 0.5));
+  transform: translateY(-2px);
+  filter: drop-shadow(0 8px 22px rgba(230, 126, 34, 0.45));
 }
 
 .welcome h2 {
   font-size: 42px;
   line-height: 1.1;
-  margin: 0 0 16px;
+  margin: 0 0 16px 0;
   background: linear-gradient(135deg, var(--text), var(--orange-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -183,7 +191,6 @@ main.lukrato-auth {
 }
 
 @keyframes titleShine {
-
   0%,
   100% {
     opacity: 1;
@@ -231,13 +238,18 @@ main.lukrato-auth {
 }
 
 .card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
   right: -2px;
   height: 4px;
-  background: linear-gradient(90deg, var(--orange), var(--orange-strong), var(--orange));
+  background: linear-gradient(
+    90deg,
+    var(--orange),
+    var(--orange-strong),
+    var(--orange)
+  );
   background-size: 200% 100%;
   animation: borderFlow 3s linear infinite;
   border-radius: var(--radius) var(--radius) 0 0;
@@ -279,7 +291,7 @@ main.lukrato-auth {
 }
 
 .tab-btn::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -1px;
   left: 0;
@@ -348,7 +360,7 @@ main.lukrato-auth {
 }
 
 .card-title::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -10px;
   left: 50%;
@@ -390,8 +402,7 @@ main.lukrato-auth {
 .field input:focus {
   border-color: var(--orange);
   background: #203040;
-  box-shadow:
-    0 0 0 4px rgba(230, 126, 34, 0.15),
+  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.15),
     inset 0 2px 4px rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);
 }
@@ -457,13 +468,18 @@ main.lukrato-auth {
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -491,7 +507,7 @@ main.lukrato-auth {
 
 .auth-separator::before,
 .auth-separator::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid var(--border);
 }
@@ -523,13 +539,18 @@ main.lukrato-auth {
 }
 
 .google-sign-in-button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.05),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -598,7 +619,7 @@ main.lukrato-auth {
 }
 
 .msg::before {
-  font-family: 'Font Awesome 6 Free';
+  font-family: "Font Awesome 6 Free";
   font-weight: 900;
   font-size: 16px;
 }
@@ -610,7 +631,7 @@ main.lukrato-auth {
 }
 
 .msg-error::before {
-  content: '\f06a';
+  content: "\f06a";
 }
 
 .msg-success {
@@ -620,7 +641,7 @@ main.lukrato-auth {
 }
 
 .msg-success::before {
-  content: '\f058';
+  content: "\f058";
 }
 
 .general-message {

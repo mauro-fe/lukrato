@@ -16,13 +16,14 @@
         <div class="login-wrapper">
             <section class="login-left">
                 <div class="brand">
-                    <div class="imagem-logo">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%23e67e22'%3ELukrato%3C/text%3E%3C/svg%3E" alt="Lukrato">
+                    <div class="imagem-logo" aria-label="Lukrato">
+                        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
                     </div>
+
                 </div>
 
                 <header class="welcome">
-                    <h2>Bem-vindo ao Lukrato</h2>
+                    <h2>Bem-vindo</h2>
                     <p>
                         Acompanhe saldos, investimentos e objetivos em um único lugar.
                         Entre para gerenciar suas finanças com segurança e performance.
@@ -55,7 +56,8 @@
                                     </div>
 
                                     <div class="field">
-                                        <input type="password" id="password" name="password" placeholder="Senha" required>
+                                        <input type="password" id="password" name="password" placeholder="Senha"
+                                            required>
                                         <button type="button" class="toggle-password" data-target="password">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
@@ -70,10 +72,14 @@
 
                                     <a href="#google" class="google-sign-in-button">
                                         <svg class="google-icon" viewBox="0 0 48 48">
-                                            <path fill="#EA4335" d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
-                                            <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
-                                            <path fill="#FBBC05" d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
-                                            <path fill="#34A853" d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
+                                            <path fill="#EA4335"
+                                                d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
+                                            <path fill="#4285F4"
+                                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
+                                            <path fill="#FBBC05"
+                                                d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
+                                            <path fill="#34A853"
+                                                d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
                                         </svg>
                                         <span>Entrar com Google</span>
                                     </a>
@@ -105,7 +111,8 @@
                                     </div>
 
                                     <div class="field">
-                                        <input type="password" id="reg_password" name="password" placeholder="Senha (mínimo 8 caracteres)" required>
+                                        <input type="password" id="reg_password" name="password"
+                                            placeholder="Senha (mínimo 8 caracteres)" required>
                                         <button type="button" class="toggle-password" data-target="reg_password">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
@@ -113,8 +120,10 @@
                                     </div>
 
                                     <div class="field">
-                                        <input type="password" id="reg_password_confirm" name="password_confirmation" placeholder="Confirmar senha" required>
-                                        <button type="button" class="toggle-password" data-target="reg_password_confirm">
+                                        <input type="password" id="reg_password_confirm" name="password_confirmation"
+                                            placeholder="Confirmar senha" required>
+                                        <button type="button" class="toggle-password"
+                                            data-target="reg_password_confirm">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
                                         <small class="field-error" id="regPasswordConfirmError"></small>
@@ -134,10 +143,14 @@
 
                                     <a href="#google" class="google-sign-in-button">
                                         <svg class="google-icon" viewBox="0 0 48 48">
-                                            <path fill="#EA4335" d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
-                                            <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
-                                            <path fill="#FBBC05" d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
-                                            <path fill="#34A853" d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
+                                            <path fill="#EA4335"
+                                                d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
+                                            <path fill="#4285F4"
+                                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
+                                            <path fill="#FBBC05"
+                                                d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
+                                            <path fill="#34A853"
+                                                d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
                                         </svg>
                                         <span>Cadastrar com Google</span>
                                     </a>
@@ -287,7 +300,8 @@
                     if (!response.ok || !success) {
                         const message =
                             (data && data.message) ||
-                            (response.status === 429 ? 'Muitas tentativas. Aguarde um pouco e tente novamente.' :
+                            (response.status === 429 ?
+                                'Muitas tentativas. Aguarde um pouco e tente novamente.' :
                                 'E-mail ou senha inválidos ou erro ao processar login.');
 
                         if (generalError) {
@@ -331,7 +345,8 @@
                 } catch (error) {
                     console.error('Erro na requisição de login:', error);
                     if (generalError) {
-                        generalError.textContent = 'Não foi possível realizar o login. Tente novamente em instantes.';
+                        generalError.textContent =
+                            'Não foi possível realizar o login. Tente novamente em instantes.';
                         generalError.classList.add('show');
                     }
                     btn.disabled = false;
