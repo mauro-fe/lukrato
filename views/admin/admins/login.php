@@ -281,6 +281,7 @@
                         // Se não veio JSON, tratamos como erro genérico
                     }
 
+                    const payload = (data && typeof data.data === 'object') ? data.data : {};
                     const success = data && (data.success === true || data.status === 'success');
 
                     if (!response.ok || !success) {

@@ -164,7 +164,12 @@ abstract class BaseController
 
     protected function ok(array $payload = [], int $status = 200): void
     {
-        Response::success($payload, $status);
+        $message = $payload['message'] ?? 'Success';
+        if (array_key_exists('message', $payload)) {
+            unset($payload['message']);
+        }
+
+        Response::success($payload, $message, $status);
     }
 
     protected function fail(string $message, int $status = 400, array $extra = []): void
