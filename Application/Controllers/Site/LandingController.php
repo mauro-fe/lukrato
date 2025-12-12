@@ -9,36 +9,11 @@ class LandingController extends BaseController
     public function index(): void
     {
         $this->render(
-            'site/landing/index',
+            'site/landing/index', // uma única página contendo todas as seções
             [
                 'pageTitle' => 'Lukrato - Organize suas finanças',
-                'menu'      => null,
-            ],
-            'site/partials/header',
-            'site/partials/footer'
-        );
-    }
-
-    public function plans(): void
-    {
-        $this->render(
-            'site/landing/planos',
-            [
-                'pageTitle' => 'Planos - Lukrato',
-                'menu'      => null,
-            ],
-            'site/partials/header',
-            'site/partials/footer'
-        );
-    }
-
-    public function whyFinance(): void
-    {
-        $this->render(
-            'site/landing/why-finance',
-            [
-                'pageTitle' => 'Por que controlar suas finanças?',
-                'menu'      => null,
+                'extraCss'  => [], // css adicionais específicos da landing
+                'extraJs'   => [], // js adicionais específicos da landing
             ],
             'site/partials/header',
             'site/partials/footer'
