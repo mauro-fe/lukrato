@@ -179,6 +179,10 @@ main.lukrato-auth {
   filter: drop-shadow(0 8px 22px rgba(230, 126, 34, 0.45));
 }
 
+.welcome {
+  text-align: center;
+}
+
 .welcome h2 {
   font-size: 42px;
   line-height: 1.1;
