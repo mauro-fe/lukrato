@@ -4,31 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <title><?= $pageTitle ?? 'Lukrato' ?></title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSS global da landing -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/site/landing.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/site/landing-base.css">
+
+    <!-- CSS específicos da página -->
+    <?php if (!empty($extraCss)): ?>
+        <?php foreach ($extraCss as $css): ?>
+            <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/site/<?= $css ?>.css">
+        <?php endforeach; ?>
+    <?php endif; ?>
+
 </head>
 
 <body>
 
-    <?php
-    // Header da landing (vamos caprichar depois)
-    include __DIR__ . '/../site/partials/header.php';
-    ?>
+    <?php include __DIR__ . '/../site/partials/header.php'; ?>
 
     <main>
         <?= $content ?? '' ?>
     </main>
 
-    <?php
-    // Footer da landing
-    include __DIR__ . '/../site/partials/footer.php';
-    ?>
+    <?php include __DIR__ . '/../site/partials/footer.php'; ?>
 
-    <!-- JS da landing -->
-    <script src="<?= BASE_URL ?>/assets/js/site/landing.js"></script>
+    <!-- JS global -->
+    <script src="<?= BASE_URL ?>/assets/js/site/landing-base.js"></script>
+
+    <!-- JS específicos da página -->
+    <?php if (!empty($extraJs)): ?>
+        <?php foreach ($extraJs as $js): ?>
+            <script src="<?= BASE_URL ?>/assets/js/site/<?= $js ?>.js"></script>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
 </body>
 
 </html>

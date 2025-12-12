@@ -1,3 +1,7 @@
+<?php
+$extraJs = $extraJs ?? [];
+?>
+
 </main>
 
 <footer class="lk-site-footer">
@@ -7,8 +11,14 @@
     </div>
 </footer>
 
-<!-- JS específico da landing (se precisar depois) -->
-<script src="<?= BASE_URL ?>/assets/js/site/landing.js"></script>
+<!-- JS global da landing (menu mobile, scroll suave, etc.) -->
+<script src="<?= BASE_URL ?>/assets/js/site/landing-base.js"></script>
+
+<!-- JS específicos da página -->
+<?php foreach ($extraJs as $js): ?>
+    <script src="<?= BASE_URL ?>/assets/js/site/<?= htmlspecialchars($js) ?>.js"></script>
+<?php endforeach; ?>
+
 </body>
 
 </html>
