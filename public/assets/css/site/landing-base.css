@@ -325,6 +325,11 @@ body {
   );
 }
 
+.lk-func {
+  position: relative;
+  overflow: hidden;
+}
+
 .lk-func-grid {
   position: relative;
   display: grid;
@@ -749,3 +754,5 @@ body {
     height: 260px;
   }
 }
+
+/*------------SEÇÃO BENEFICIOS---------------------------------------*/

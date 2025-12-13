@@ -105,7 +105,7 @@
 
 
 <section id="beneficios" class="lk-section lk-section-beneficios">
-    <!-- conteúdo da seção de benefícios -->
+
 </section>
 
 <section id="planos" class="lk-section lk-section-planos">
