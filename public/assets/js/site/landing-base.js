@@ -1,4 +1,4 @@
-console.log("dYs? JS da landing carregado!");
+console.log("JS da landing carregado!");
 
 function initLandingScripts() {
   if (window.lkLandingBootstrapped) return;
@@ -133,3 +133,37 @@ if (document.readyState === "loading") {
 } else {
   initLandingScripts();
 }
+
+
+/*---------Seção Contato------------*/
+
+(() => {
+  const root = document.querySelector('#contato.lk-contact');
+  if (!root) return;
+
+  const buttons = root.querySelectorAll('.lk-toggle-btn');
+  const panels  = root.querySelectorAll('.lk-contact-panel');
+
+  function show(target) {
+    // ativa botão
+    buttons.forEach(btn => {
+      const active = btn.dataset.target === target;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+
+    // ativa painel
+    panels.forEach(p => {
+      p.classList.toggle('is-active', p.dataset.panel === target);
+    });
+  }
+
+  // clique
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => show(btn.dataset.target));
+  });
+
+  // default: whatsapp
+  show('whatsapp');
+})();
+
