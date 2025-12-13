@@ -238,25 +238,7 @@ main.lukrato-auth {
   position: relative;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 800px;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--orange),
-    var(--orange-strong),
-    var(--orange)
-  );
-  background-size: 200% 100%;
-  animation: borderFlow 3s linear infinite;
-  border-radius: var(--radius) var(--radius) 0 0;
+  height: 650px;
 }
 
 @keyframes borderFlow {
@@ -342,7 +324,7 @@ main.lukrato-auth {
   top: 0;
   left: 0;
   width: 100%;
-  padding: 32px;
+  padding: 15px;
   backface-visibility: hidden;
 }
 
@@ -377,7 +359,6 @@ main.lukrato-auth {
 
 /* FIELDS */
 .field {
-  margin: 18px 0;
   position: relative;
 }
 
@@ -387,7 +368,7 @@ main.lukrato-auth {
   color: var(--text);
   border: 2px solid transparent;
   border-radius: 12px;
-  padding: 15px 45px 15px 15px;
+  padding: 13px 45px 13px 13px;
   font-size: 16px;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -415,7 +396,7 @@ main.lukrato-auth {
 .toggle-password {
   position: absolute;
   right: 12px;
-  top: 50%;
+  top: 35%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
@@ -460,7 +441,7 @@ main.lukrato-auth {
   color: #101417;
   border: none;
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   font-size: 17px;
   font-weight: 800;
   cursor: pointer;
@@ -504,7 +485,7 @@ main.lukrato-auth {
 .auth-separator {
   display: flex;
   align-items: center;
-  margin: 20px 0;
+  margin: 15px 0;
   color: var(--muted);
   font-size: 14px;
 }

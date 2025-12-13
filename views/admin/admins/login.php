@@ -70,7 +70,7 @@
 
                                     <div class="auth-separator"><span>ou</span></div>
 
-                                    <a href="#google" class="google-sign-in-button">
+                                    <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
                                         <svg class="google-icon" viewBox="0 0 48 48">
                                             <path fill="#EA4335"
                                                 d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
@@ -135,13 +135,13 @@
 
                                     <div class="terms-link">
                                         Ao se cadastrar, você concorda com os
-                                        <a href="#terms">Termos de Uso</a> e a
-                                        <a href="#privacy">Política de Privacidade</a>.
+                                        <a href="<?= BASE_URL ?>termos">Termos de Uso</a> e a
+                                        <a href="<?= BASE_URL ?>privacidade">Política de Privacidade</a>.
                                     </div>
 
                                     <div class="auth-separator"><span>ou</span></div>
 
-                                    <a href="#google" class="google-sign-in-button">
+                                    <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
                                         <svg class="google-icon" viewBox="0 0 48 48">
                                             <path fill="#EA4335"
                                                 d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
