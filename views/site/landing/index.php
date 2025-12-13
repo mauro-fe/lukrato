@@ -105,13 +105,291 @@
 
 
 <section id="beneficios" class="lk-section lk-section-beneficios">
+    <div class="lk-container">
 
+        <header class="lk-section-header">
+            <h2>Benefícios pensados para facilitar sua vida financeira</h2>
+            <p>
+                O Lukrato não é apenas um sistema. Ele foi criado para ajudar você a
+                organizar seu dinheiro, evitar preocupações e tomar decisões melhores
+                no dia a dia, sem complicação.
+            </p>
+        </header>
+
+        <div class="lk-benefits-grid">
+
+            <div class="lk-benefit-card">
+                <div class="lk-benefit-icon">
+                    <i class="fa-regular fa-eye"></i>
+                </div>
+                <h3>Mais clareza sobre o seu dinheiro</h3>
+                <p>
+                    Veja suas entradas, saídas e saldo de forma clara e organizada.
+                    Nada de confusão, anotações soltas ou planilhas difíceis de entender.
+                </p>
+            </div>
+
+            <div class="lk-benefit-card">
+                <div class="lk-benefit-icon">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+                <h3>Economia de tempo no dia a dia</h3>
+                <p>
+                    Registre seus gastos rapidamente e acompanhe tudo em poucos minutos.
+                    Menos tempo organizando, mais tempo para o que realmente importa.
+                </p>
+            </div>
+
+            <div class="lk-benefit-card">
+                <div class="lk-benefit-icon">
+                    <i class="fa-regular fa-bell"></i>
+                </div>
+                <h3>Evite atrasos e juros desnecessários</h3>
+                <p>
+                    Com agendamentos e lembretes, você não esquece mais contas importantes
+                    e evita pagar juros por atraso.
+                </p>
+            </div>
+
+            <div class="lk-benefit-card">
+                <div class="lk-benefit-icon">
+                    <i class="fa-regular fa-chart-bar"></i>
+                </div>
+                <h3>Decisões melhores com dados visuais</h3>
+                <p>
+                    Gráficos simples mostram seus hábitos financeiros e ajudam você
+                    a entender onde pode economizar ou se planejar melhor.
+                </p>
+            </div>
+
+            <div class="lk-benefit-card">
+                <div class="lk-benefit-icon">
+                    <i class="fa-regular fa-face-smile"></i>
+                </div>
+                <h3>Fácil de usar, mesmo para iniciantes</h3>
+                <p>
+                    O Lukrato foi pensado para qualquer pessoa, mesmo quem nunca usou
+                    um sistema financeiro antes. Tudo é simples, intuitivo e direto.
+                </p>
+            </div>
+
+        </div>
+        <div class="lk-benefits-cta">
+            <h3>Pronto para cuidar melhor do seu dinheiro?</h3>
+            <p>Comece agora mesmo, sem complicação e sem custos iniciais.</p>
+
+            <a href="#planos" class="lk-btn-primary">
+                Começar grátis
+            </a>
+        </div>
+
+
+    </div>
 </section>
 
-<section id="planos" class="lk-section lk-section-planos">
-    <!-- tabela/quadros de planos -->
+
+<section id="planos" class="plans-section">
+    <div class="plans-header">
+        <h2>Planos simples, sem complicação</h2>
+        <p>
+            Comece grátis e evolua para o Pro quando quiser mais controle, organização e tranquilidade no dia a dia.
+        </p>
+    </div>
+
+    <div class="plans-grid">
+        <!-- Plano Gratuito -->
+        <div class="plan-card">
+            <h3>Grátis</h3>
+
+            <p class="plan-price">R$ 0</p>
+            <p class="plan-desc">
+                Ideal para testar o sistema e entender sua organização financeira.
+            </p>
+
+            <ul class="plan-features">
+                <li class="is-included">Controle financeiro essencial</li>
+                <li class="is-excluded">Relatórios avançados</li>
+                <li class="is-excluded">Agendamentos de pagamentos</li>
+                <li class="is-excluded">Exportação de dados</li>
+                <li class="is-excluded">Categorias ilimitadas</li>
+                <li class="is-excluded">Suporte prioritário</li>
+            </ul>
+
+
+
+            <a href="/register" class="plan-btn outline">
+                Começar grátis
+            </a>
+        </div>
+
+        <!-- Plano Pro -->
+        <div class="plan-card featured">
+            <span class="plan-badge">Mais escolhido</span>
+
+            <h3>Pro</h3>
+            <p class="plan-price">
+                R$ 14,90 <span>/ mês</span>
+            </p>
+
+            <p class="plan-desc">
+                Menos que um lanche por mês para ter controle total do seu dinheiro.
+            </p>
+
+            <ul class="plan-features">
+                <li class="is-included">Controle financeiro essencial</li>
+                <li class="is-included">Relatórios avançados</li>
+                <li class="is-included">Agendamentos de pagamentos</li>
+                <li class="is-included">Exportação de dados</li>
+                <li class="is-included">Categorias ilimitadas</li>
+                <li class="is-included">Suporte prioritário</li>
+            </ul>
+
+
+            <a href="/billing" class="plan-btn primary">
+                Assinar Pro
+            </a>
+        </div>
+    </div>
+
+    <p class="plans-note">
+        Sem fidelidade. Cancele quando quiser, direto pelo sistema.
+    </p>
 </section>
 
-<section id="contato" class="lk-section lk-section-contato">
-    <!-- formulário de contato / redes sociais -->
+<section id="garantia" class="lk-section lk-garantia">
+    <div class="lk-container lk-garantia-inner">
+
+        <h2 class="lk-garantia-title">
+            Sem riscos, sem surpresas
+        </h2>
+
+        <p class="lk-garantia-subtitle">
+            O Lukrato foi criado para simplificar sua vida financeira.
+            Você começa grátis e só evolui para o Pro se fizer sentido para você.
+        </p>
+
+        <ul class="lk-garantia-list">
+            <li>
+                <span class="lk-garantia-icon">✓</span>
+                Comece grátis, sem cartão de crédito
+            </li>
+            <li>
+                <span class="lk-garantia-icon">✓</span>
+                Cancele quando quiser, direto pelo sistema
+            </li>
+            <li>
+                <span class="lk-garantia-icon">✓</span>
+                Seus dados são privados e protegidos
+            </li>
+        </ul>
+
+        <div class="lk-garantia-cta">
+            <a href="#planos" class="lk-btn-primary">
+                Começar grátis agora
+            </a>
+            <small>Leva menos de 2 minutos para começar</small>
+        </div>
+
+    </div>
+</section>
+
+
+
+<section id="contato" class="lk-section lk-contact">
+    <div class="lk-container lk-contact-container">
+        <header class="lk-contact-header">
+            <h2 class="lk-contact-title">Fale com a gente</h2>
+            <p class="lk-contact-subtitle">
+                Tirou dúvidas, quer sugestões ou precisa de ajuda? Escolha o canal abaixo.
+            </p>
+
+            <div class="lk-contact-toggle" role="tablist" aria-label="Escolha o canal de contato">
+                <button type="button" class="lk-toggle-btn is-active" data-target="whatsapp" role="tab"
+                    aria-selected="true">
+                    WhatsApp
+                </button>
+                <button type="button" class="lk-toggle-btn" data-target="email" role="tab" aria-selected="false">
+                    E-mail
+                </button>
+            </div>
+        </header>
+
+        <div class="lk-contact-panels">
+            <!-- WhatsApp -->
+            <article class="lk-contact-panel is-active" data-panel="whatsapp" role="tabpanel">
+                <div class="lk-contact-card">
+                    <div class="lk-contact-card-head">
+                        <h3>Atendimento rápido</h3>
+                        <p>Normalmente respondemos em poucos minutos em horário comercial.</p>
+                    </div>
+
+                    <div class="lk-contact-actions">
+                        <!-- Troque os links pelos seus números -->
+                        <a class="lk-btn lk-btn-primary" target="_blank" rel="noopener"
+                            href="https://wa.me/5544999506302?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20Lukrato.">
+                            WhatsApp (Comercial)
+                        </a>
+
+                        <a class="lk-btn lk-btn-ghost" target="_blank" rel="noopener"
+                            href="https://wa.me/5544997178938?text=Ol%C3%A1!%20Preciso%20de%20suporte%20no%20Lukrato.">
+                            WhatsApp (Suporte)
+                        </a>
+                    </div>
+
+                    <div class="lk-contact-badges">
+                        <span class="lk-badge">✅ Sem compromisso</span>
+                        <span class="lk-badge">🔒 Seus dados ficam privados</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- E-mail -->
+            <article class="lk-contact-panel" data-panel="email" role="tabpanel">
+                <div class="lk-contact-card">
+                    <div class="lk-contact-card-head">
+                        <h3>Envie uma mensagem</h3>
+                        <p>Prefere e-mail? Mande sua dúvida e respondemos em até 1 dia útil.</p>
+                    </div>
+
+                    <form class="lk-contact-form" action="<?= BASE_URL ?>contato/enviar" method="POST">
+                        <div class="lk-form-grid">
+                            <div class="lk-field">
+                                <label for="ct-name">Seu nome</label>
+                                <input id="ct-name" name="name" type="text" placeholder="Ex: Mauro" required />
+                            </div>
+
+                            <div class="lk-field">
+                                <label for="ct-phone">WhatsApp (opcional)</label>
+                                <input id="ct-phone" name="phone" type="tel" placeholder="(44) 99999-9999" />
+                            </div>
+                        </div>
+
+                        <div class="lk-field">
+                            <label for="ct-email">Seu e-mail</label>
+                            <input id="ct-email" name="email" type="email" placeholder="voce@email.com" required />
+                        </div>
+
+                        <div class="lk-field">
+                            <label for="ct-subject">Assunto</label>
+                            <input id="ct-subject" name="subject" type="text" placeholder="Ex: Dúvida sobre o plano Pro"
+                                required />
+                        </div>
+
+                        <div class="lk-field">
+                            <label for="ct-message">Mensagem</label>
+                            <textarea id="ct-message" name="message" rows="6" placeholder="Escreva sua dúvida aqui..."
+                                required></textarea>
+                        </div>
+
+                        <button class="lk-btn lk-btn-primary lk-btn-block" type="submit">
+                            Enviar mensagem
+                        </button>
+
+                        <p class="lk-contact-hint">Ao enviar, você concorda em ser contatado para retorno do
+                            atendimento.</p>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </div>
 </section>
