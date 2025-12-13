@@ -33,10 +33,24 @@ class LoginController extends BaseController
             return;
         }
 
+        $activeTab = $_SESSION['auth_active_tab'] ?? 'login';
+        unset($_SESSION['auth_active_tab']);
+
+        $registerErrors = $_SESSION['register_errors'] ?? null;
+        unset($_SESSION['register_errors']);
+
+        if (!empty($registerErrors)) {
+            $activeTab = 'register';
+        }
+
+        $errorMessage = $this->getError();
         $socialSuccess = isset($_GET['new_google']) && $_GET['new_google'] == 1;
 
         $this->render('admin/admins/login', [
-            'error' => $this->getError(),
+            'error' => $errorMessage,
+            'registerErrorMessage' => $errorMessage,
+            'registerErrors' => $registerErrors,
+            'activeTab' => $activeTab,
             'success' => $this->getSuccess(),
             'socialSuccess' => $socialSuccess,
             'csrf_token' => CsrfMiddleware::generateToken('login_form'),

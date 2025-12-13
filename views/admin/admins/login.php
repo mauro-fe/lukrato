@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<?php
+$activeTab = isset($activeTab) && $activeTab === 'register' ? 'register' : 'login';
+$registerErrorMessage = $registerErrorMessage ?? '';
+?>
 
 <head>
     <meta charset="UTF-8">
@@ -32,12 +36,12 @@
             </section>
 
             <section class="login-right">
-                <div class="card" data-active="login">
+                <div class="card" data-active="<?= $activeTab ?>">
                     <div class="tabs">
-                        <button class="tab-btn is-active" data-tab="login" type="button">
+                        <button class="tab-btn <?= $activeTab === 'login' ? 'is-active' : '' ?>" data-tab="login" type="button">
                             Entrar
                         </button>
-                        <button class="tab-btn" data-tab="register" type="button">
+                        <button class="tab-btn <?= $activeTab === 'register' ? 'is-active' : '' ?>" data-tab="register" type="button">
                             Cadastrar
                         </button>
                     </div>
@@ -155,7 +159,9 @@
                                         <span>Cadastrar com Google</span>
                                     </a>
 
-                                    <div id="registerGeneralError" class="msg msg-error general-message"></div>
+                                    <div id="registerGeneralError" class="msg msg-error general-message <?= !empty($registerErrorMessage) ? 'show' : '' ?>">
+                                        <?= !empty($registerErrorMessage) ? htmlspecialchars($registerErrorMessage, ENT_QUOTES, 'UTF-8') : '' ?>
+                                    </div>
                                     <div id="registerGeneralSuccess" class="msg msg-success general-message"></div>
                                 </form>
                             </div>

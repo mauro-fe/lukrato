@@ -153,12 +153,19 @@ class RegistroController extends BaseController
             'errors' => $e->getErrors()
         ]);
 
+        $errors  = $e->getErrors();
+        $message = $errors['email'] ?? 'Corrija os dados do cadastro e tente novamente.';
+
         if ($isAjax) {
-            $this->fail($e->getMessage(), 422, $e->getErrors());
-        } else {
-            $_SESSION['form_errors'] = $e->getErrors();
-            $this->redirect('register');
+            $this->fail($message, 422, $errors);
+            return;
         }
+
+        $_SESSION['register_errors'] = $errors;
+        $_SESSION['auth_active_tab'] = 'register';
+
+        $this->setError($message);
+        $this->redirect('login');
     }
 
     private function respondToRegistrationError(Throwable $e, bool $isAjax, string $email): void
@@ -177,7 +184,8 @@ class RegistroController extends BaseController
             $this->fail($message, 500);
         } else {
             $this->setError($message);
-            $this->redirect('register');
+            $_SESSION['auth_active_tab'] = 'register';
+            $this->redirect('login');
         }
     }
 }

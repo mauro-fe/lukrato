@@ -46,7 +46,7 @@ main.lukrato-auth {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px 20px;
+  padding: 20px 10px;
   background: radial-gradient(
     ellipse 1200px 800px at 20% 30%,
     #1b3145 0%,
@@ -238,7 +238,7 @@ main.lukrato-auth {
   position: relative;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 650px;
+  height: 680px;
 }
 
 @keyframes borderFlow {
@@ -269,7 +269,7 @@ main.lukrato-auth {
   color: var(--muted);
   font-weight: 700;
   font-size: 17px;
-  padding: 20px;
+  padding: 16px;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -485,7 +485,7 @@ main.lukrato-auth {
 .auth-separator {
   display: flex;
   align-items: center;
-  margin: 15px 0;
+  margin: 10px 0;
   color: var(--muted);
   font-size: 14px;
 }
