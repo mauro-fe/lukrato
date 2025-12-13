@@ -755,4 +755,761 @@ body {
   }
 }
 
-/*------------SEÇÃO BENEFICIOS---------------------------------------*/
+/* ===========================
+   SEÇÃO: BENEFÍCIOS
+   =========================== */
+
+.lk-section-beneficios {
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Cabeçalho da seção */
+.lk-section-beneficios .lk-section-header {
+  max-width: 760px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+
+.lk-section-beneficios .lk-section-header h2 {
+  margin: 0 0 10px;
+  font-family: var(
+    --font-primary,
+    var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif)
+  );
+  font-size: clamp(1.55rem, 2.6vw, 2.2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-text, #0f172a);
+}
+
+.lk-section-beneficios .lk-section-header p {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--color-text-muted, #475569);
+}
+
+/* Grid de benefícios */
+.lk-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+/* Cada card */
+.lk-benefit-card {
+  grid-column: span 6;
+
+  background: color-mix(
+    in srgb,
+    var(--color-surface, #ffffff) 85%,
+    transparent 15%
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-surface-muted, #e5e7eb) 75%, transparent 25%);
+  border-radius: var(--radius-xl, 18px);
+  box-shadow: var(--shadow-sm, 0 10px 28px rgba(15, 23, 42, 0.08));
+  padding: 18px 18px 16px;
+
+  transition: transform var(--transition-fast, 0.15s ease),
+    box-shadow var(--transition-fast, 0.15s ease),
+    border-color var(--transition-fast, 0.15s ease);
+}
+
+.lk-benefit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md, 0 18px 46px rgba(15, 23, 42, 0.12));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary, #e67e22) 22%,
+    transparent 78%
+  );
+}
+/* Destaca o último benefício */
+.lk-benefit-card:last-child {
+  grid-column: span 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Ícone */
+.lk-benefit-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-primary, #e67e22);
+  background: color-mix(
+    in srgb,
+    var(--color-primary, #e67e22) 12%,
+    #ffffff 88%
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary, #e67e22) 18%, transparent 82%);
+  margin-bottom: 10px;
+}
+
+.lk-benefit-icon i {
+  font-size: 18px;
+}
+
+/* Título do card */
+.lk-benefit-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  color: var(--color-text, #0f172a);
+  font-weight: 700;
+}
+
+/* Texto do card */
+.lk-benefit-card p {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--color-text-muted, #475569);
+}
+
+.lk-benefits-cta {
+  margin-top: 64px;
+  padding: 48px 24px;
+  text-align: center;
+
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.6));
+
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.lk-benefits-cta h3 {
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.lk-benefits-cta p {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  max-width: 520px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+
+.lk-benefits-cta .lk-btn-primary {
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.lk-benefits-cta::before {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--color-primary);
+  margin: 0 auto 20px;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .lk-benefits-cta {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .lk-benefits-cta-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ===========================
+   Responsivo
+   =========================== */
+
+/* tablets */
+@media (max-width: 900px) {
+  .lk-benefit-card {
+    grid-column: span 12;
+  }
+
+  .lk-section-beneficios .lk-section-header {
+    text-align: left;
+    margin-bottom: 18px;
+  }
+}
+
+/* mobile */
+@media (max-width: 600px) {
+  .lk-section-beneficios {
+    padding: 64px 0;
+  }
+
+  .lk-benefits-grid {
+    gap: 12px;
+  }
+
+  .lk-benefit-card {
+    padding: 16px 14px 14px;
+    border-radius: var(--radius-lg, 16px);
+  }
+
+  .lk-benefit-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+}
+
+/* ===============================
+   SEÇÃO DE PLANOS
+================================ */
+
+.plans-section {
+  background: #e6f0fa;
+}
+
+.plans-header {
+  max-width: 720px;
+  margin: 0 auto 56px;
+  text-align: center;
+}
+
+.plans-header h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.plans-header p {
+  font-size: 1.05rem;
+  color: #475569;
+}
+
+.plans-grid {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+/* Card base */
+.plan-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 28px;
+  border: 1px solid #dbe7f3;
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-card h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.plan-price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #e67e22;
+  margin: 8px 0;
+}
+
+.plan-price span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.plan-desc {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 20px;
+}
+
+.plan-features li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* Incluído */
+.plan-features li.is-included::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #e67e22;
+  font-weight: 700;
+}
+
+/* Não incluído */
+.plan-features li.is-excluded {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.plan-features li.is-excluded::before {
+  content: "✕";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+/* Botões */
+.plan-btn {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.plan-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.plan-btn.outline {
+  border: 1px solid #dbe7f3;
+  color: #1e293b;
+  background: transparent;
+}
+
+.plan-btn.primary {
+  background: #e67e22;
+  color: #ffffff;
+}
+
+/* Destaque Pro */
+.plan-card.featured {
+  border: 2px solid #e67e22;
+}
+
+.plan-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #fff2e8;
+  color: #e67e22;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* Nota final */
+.plans-note {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plans-header h2 {
+    font-size: 1.8rem;
+  }
+  .plan-card {
+    max-width: 310px !important;
+    margin-left: 30px !important;
+  }
+}
+
+/* ===============================
+   SEÇÃO DE GARANTIA
+   =============================== */
+
+.lk-garantia {
+  margin-top: 50px !important;
+  background: linear-gradient(to bottom, var(--color-bg), var(--color-surface));
+}
+
+.lk-garantia-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Título com mais presença */
+.lk-garantia-title {
+  font-size: 50px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+/* Subtítulo mais leve */
+.lk-garantia-subtitle {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  max-width: 620px;
+  margin: 0 auto 3rem;
+  line-height: 1.6;
+}
+
+/* Lista de garantias */
+.lk-garantia-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 3.5rem;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.lk-garantia-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 1rem;
+  color: var(--color-text);
+  justify-content: center;
+}
+
+/* Ícone simples, elegante */
+.lk-garantia-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* CTA */
+.lk-garantia-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lk-garantia-cta small {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* Botão (segue seu padrão) */
+.lk-btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 0.9rem 2.2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lk-btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+  .lk-garantia-title {
+    font-size: 1.8rem;
+  }
+
+  .lk-garantia-subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+/* ===============================
+   CONTATO (Landing)
+   =============================== */
+
+.lk-contact {
+  padding: 72px 0;
+  background: var(--color-bg) !important;
+}
+
+.lk-contact-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 18px;
+  margin-left: 350px;
+}
+
+.lk-contact-header {
+  text-align: center;
+  max-width: 760px;
+}
+
+.lk-contact-title {
+  font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+  line-height: 1.1;
+  margin: 0 0 10px;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  font-size: 50px;
+}
+
+.lk-contact-subtitle {
+  margin: 0 0 18px;
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.lk-contact-toggle {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+}
+
+.lk-toggle-btn {
+  border: 0;
+  background: transparent;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1f2937;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.lk-toggle-btn:hover {
+  transform: translateY(-1px);
+}
+
+.lk-toggle-btn.is-active {
+  background: #e67e22;
+  color: #fff;
+}
+
+.lk-contact-panels {
+  margin-top: 26px;
+}
+
+/* Painéis */
+.lk-contact-panel {
+  display: none;
+}
+
+.lk-contact-panel.is-active {
+  display: block;
+}
+
+/* Card base */
+.lk-contact-card {
+  width: min(700px, 100%);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  padding: 22px;
+  backdrop-filter: blur(10px);
+}
+
+.lk-contact-card-head h3 {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.lk-contact-card-head p {
+  margin: 0 0 18px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Botões (CTAs) */
+.lk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, filter 0.12s ease, background 0.12s ease,
+    border-color 0.12s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.lk-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+.lk-btn-primary {
+  background: #e67e22;
+  color: #fff;
+}
+
+.lk-btn-ghost {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+
+.lk-btn-block {
+  width: 100%;
+}
+
+/* ações do WhatsApp (2 botões lado a lado) */
+.lk-contact-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* badges */
+.lk-contact-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+/* ===============================
+   FORMULÁRIO (E-mail)
+   =============================== */
+
+.lk-contact-form {
+  margin-top: 4px;
+}
+
+.lk-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.lk-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lk-field label {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.lk-field input,
+.lk-field textarea {
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  padding: 12px 14px;
+  font-size: 1rem;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.lk-field textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.lk-field input:focus,
+.lk-field textarea:focus {
+  border-color: rgba(230, 126, 34, 0.45);
+  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.12);
+}
+
+.lk-contact-hint {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* ===============================
+   Responsivo
+   =============================== */
+
+@media (max-width: 860px) {
+  .lk-contact-header {
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .lk-contact-toggle {
+    margin-top: 6px;
+  }
+
+  .lk-contact-card {
+    margin: 0 auto;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 640px) {
+  .lk-contact {
+    padding: 56px 0;
+  }
+
+  .lk-contact-actions {
+    grid-template-columns: 1fr; /* CTAs empilham no mobile */
+  }
+
+  .lk-form-grid {
+    grid-template-columns: 1fr; /* campos empilham */
+  }
+
+  .lk-toggle-btn {
+    padding: 10px 14px;
+    font-size: 0.92rem;
+  }
+}
