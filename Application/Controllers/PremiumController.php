@@ -37,7 +37,7 @@ class PremiumController extends BaseController
             /** @var Usuario $usuario */
             $usuario = Usuario::findOrFail($userId);
 
-            // Já tem assinatura ativa ou pendente com Asaas?
+            // Já tem assinatura ativa/pendente?
             $assinaturaExistente = $usuario->assinaturas()
                 ->where('gateway', 'asaas')
                 ->whereIn('status', [
@@ -53,7 +53,6 @@ class PremiumController extends BaseController
                 return;
             }
 
-        // Busca plano PRO
             /** @var Plano $planoPro */
             $planoPro = Plano::where('code', 'pro')
                 ->where('ativo', 1)
@@ -64,19 +63,63 @@ class PremiumController extends BaseController
                 return;
             }
 
-            // ---------------------------------------------------------------------
-            // BUSCA DADOS COMPLEMENTARES NO BANCO (CPF, TELEFONE, ENDEREÇO)
-            // ---------------------------------------------------------------------
+            // BODY
+            $body = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
-            // CPF (tabela documentos, tipo = 1 = CPF)
+            $billingType = $body['billingType'] ?? 'CREDIT_CARD';
+            $creditCard  = $body['creditCard']  ?? null;
+            $holderInfo  = $body['creditCardHolderInfo'] ?? [];
+
+            // ============================
+            // NOVOS CAMPOS (ciclo)
+            // ============================
+            $months   = (int)($body['months'] ?? 1);
+            $discount = (int)($body['discount'] ?? 0);
+            $cycleUI  = trim((string)($body['cycle'] ?? 'monthly')); // monthly|semiannual|annual
+
+            // Valida months
+            if (!in_array($months, [1, 6, 12], true)) {
+                Response::error('Período inválido. Selecione mensal, semestral ou anual.');
+                return;
+            }
+
+            // Desconto esperado
+            $expectedDiscount = match ($months) {
+                1 => 0,
+                6 => 10,
+                12 => 15,
+                default => 0
+            };
+
+            if ($discount !== $expectedDiscount) {
+                Response::error('Desconto inválido para o período selecionado.');
+                return;
+            }
+
+            // Base mensal oficial (do banco)
+            $valorMensal = $planoPro->preco_centavos / 100;
+            if ($valorMensal <= 0) {
+                Response::error('Preço do plano PRO inválido.');
+                return;
+            }
+
+            // Total calculado no servidor
+            $total = round($valorMensal * $months * (1 - ($expectedDiscount / 100)), 2);
+            if ($total <= 0) {
+                Response::error('Valor total inválido. Tente novamente.');
+                return;
+            }
+
+            // ---------------------------------------------------------------------
+            // BUSCA DADOS COMPLEMENTARES (CPF/TELEFONE/ENDEREÇO) - seu código
+            // ---------------------------------------------------------------------
             $cpf = \Illuminate\Database\Capsule\Manager::table('documentos')
                 ->where('id_usuario', $usuario->id)
-                ->where('id_tipo', 1) // 1 = CPF
+                ->where('id_tipo', 1)
                 ->value('numero');
 
             $cpf = $cpf ? preg_replace('/\D+/', '', $cpf) : null;
 
-            // Telefone (telefones + ddd)
             $telefoneRow = \Illuminate\Database\Capsule\Manager::table('telefones as t')
                 ->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd')
                 ->where('t.id_usuario', $usuario->id)
@@ -91,8 +134,7 @@ class PremiumController extends BaseController
                 $mobilePhone = $fone !== '' ? $fone : null;
             }
 
-            // Endereço principal (relacionamento já existe no model Usuario)
-            $endereco = $usuario->enderecoPrincipal; // tabela enderecos (tipo = 'principal')
+            $endereco = $usuario->enderecoPrincipal;
 
             $postalCode        = null;
             $addressNumber     = null;
@@ -105,7 +147,7 @@ class PremiumController extends BaseController
             }
 
             // ---------------------------------------------------------------------
-            // GARANTE CLIENTE NO ASAAS (COM CPF, TELEFONE, CEP...)
+            // GARANTE CUSTOMER NO ASAAS
             // ---------------------------------------------------------------------
             $customerPayload = [
                 'name'              => $usuario->nome,
@@ -113,18 +155,13 @@ class PremiumController extends BaseController
                 'externalReference' => 'user:' . $usuario->id,
             ];
 
-            if ($cpf) {
-                $customerPayload['cpfCnpj'] = $cpf;
-            }
-            if ($mobilePhone) {
-                $customerPayload['mobilePhone'] = $mobilePhone;
-            }
+            if ($cpf) $customerPayload['cpfCnpj'] = $cpf;
+            if ($mobilePhone) $customerPayload['mobilePhone'] = $mobilePhone;
+
             if ($postalCode) {
                 $customerPayload['postalCode']    = $postalCode;
                 $customerPayload['addressNumber'] = $addressNumber ?: 'S/N';
-                if ($addressComplement) {
-                    $customerPayload['addressComplement'] = $addressComplement;
-                }
+                if ($addressComplement) $customerPayload['addressComplement'] = $addressComplement;
             }
 
             if (empty($usuario->external_customer_id) || $usuario->gateway !== 'asaas') {
@@ -140,90 +177,120 @@ class PremiumController extends BaseController
                 return;
             }
 
-            // ---------------------------------------------------------------------
-            // DADOS VINDOS DO FRONT (tipo de cobrança + cartão)
-            // ---------------------------------------------------------------------
-            $body = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-
-            $billingType = $body['billingType'] ?? 'CREDIT_CARD';
-            $creditCard  = $body['creditCard']  ?? null;
-            $holderInfo  = $body['creditCardHolderInfo'] ?? [];
-
-            $valorMensal = $planoPro->preco_centavos / 100;
-
-            $subscriptionData = [
-                'customerId'        => $usuario->external_customer_id,
-                'value'             => $valorMensal,
-                'description'       => $planoPro->nome,
-                'billingType'       => $billingType,
-                'cycle'             => 'MONTHLY',
-                'nextDueDate'       => date('Y-m-d'),
-                'externalReference' => 'sub:user:' . $usuario->id . ':plano:' . $planoPro->id,
+            // HolderInfo final (prioriza o que você já tem)
+            $holderInfoData = [
+                'name'  => $holderInfo['name']  ?? $usuario->nome,
+                'email' => $holderInfo['email'] ?? $usuario->email,
             ];
 
-            if ($billingType === 'CREDIT_CARD' && $creditCard) {
-                $holderInfoData = [
-                    'name'  => $holderInfo['name']  ?? $usuario->nome,
-                    'email' => $holderInfo['email'] ?? $usuario->email,
+            if ($cpf) $holderInfoData['cpfCnpj'] = $cpf;
+            if ($postalCode) {
+                $holderInfoData['postalCode']    = $postalCode;
+                $holderInfoData['addressNumber'] = $addressNumber ?: 'S/N';
+                if ($addressComplement) $holderInfoData['addressComplement'] = $addressComplement;
+            }
+            if ($mobilePhone) $holderInfoData['mobilePhone'] = $mobilePhone;
+
+            // ---------------------------------------------------------------------
+            // DECISÃO:
+            // - months=1 : assinatura MONTHLY
+            // - months=12: assinatura YEARLY (valor anual já com desconto)
+            // - months=6 : cobrança única (payment) com desconto
+            // ---------------------------------------------------------------------
+            $asaasResp = null;
+            $internalStatus = AssinaturaUsuario::ST_PENDING;
+            $renovaEm = null;
+
+            if ($months === 6) {
+                // Cobrança única (não existe ciclo semestral em assinatura padrão)
+                $paymentData = [
+                    'customer'          => $usuario->external_customer_id,
+                    'billingType'       => $billingType,
+                    'value'             => $total,
+                    'dueDate'           => date('Y-m-d'),
+                    'description'       => $planoPro->nome . ' (Semestral -10%)',
+                    'externalReference' => 'pay:user:' . $usuario->id . ':plano:' . $planoPro->id . ':m6',
                 ];
 
-                if ($cpf) {
-                    $holderInfoData['cpfCnpj'] = $cpf;
-                }
-                if ($postalCode) {
-                    $holderInfoData['postalCode']    = $postalCode;
-                    $holderInfoData['addressNumber'] = $addressNumber ?: 'S/N';
-                    if ($addressComplement) {
-                        $holderInfoData['addressComplement'] = $addressComplement;
-                    }
-                }
-                if ($mobilePhone) {
-                    $holderInfoData['mobilePhone'] = $mobilePhone;
+                if ($billingType === 'CREDIT_CARD' && $creditCard) {
+                    $paymentData['creditCard'] = $creditCard;
+                    $paymentData['creditCardHolderInfo'] = $holderInfoData;
+                    $paymentData['remoteIp'] = $_SERVER['REMOTE_ADDR'] ?? null;
                 }
 
-                // Preenche no array que será enviado para o AsaasService
-                $subscriptionData['creditCard']           = $creditCard;
-                $subscriptionData['creditCardHolderInfo'] = $holderInfoData;
-                $subscriptionData['remoteIp']             = $_SERVER['REMOTE_ADDR'] ?? null;
+                // ✅ precisa existir no seu AsaasService
+                $asaasResp = $this->asaas->createPayment($paymentData);
+
+                $asaasStatus = $asaasResp['status'] ?? null;
+                $internalStatus = match ($asaasStatus) {
+                    'CONFIRMED', 'RECEIVED' => AssinaturaUsuario::ST_ACTIVE,
+                    'PENDING'              => AssinaturaUsuario::ST_PENDING,
+                    default                => AssinaturaUsuario::ST_PENDING,
+                };
+
+                $renovaEm = date('Y-m-d', strtotime('+6 months'));
+            } else {
+                // Assinatura
+                $cycle = ($months === 12) ? 'YEARLY' : 'MONTHLY';
+                $desc  = $planoPro->nome . ($months === 12 ? ' (Anual -15%)' : '');
+
+                $subscriptionData = [
+                    'customerId'        => $usuario->external_customer_id,
+                    'value'             => ($months === 12 ? $total : $valorMensal),
+                    'description'       => $desc,
+                    'billingType'       => $billingType,
+                    'cycle'             => $cycle,
+                    'nextDueDate'       => date('Y-m-d'),
+                    'externalReference' => 'sub:user:' . $usuario->id . ':plano:' . $planoPro->id . ($months === 12 ? ':y1' : ':m1'),
+                ];
+
+                if ($billingType === 'CREDIT_CARD' && $creditCard) {
+                    $subscriptionData['creditCard'] = $creditCard;
+                    $subscriptionData['creditCardHolderInfo'] = $holderInfoData;
+                    $subscriptionData['remoteIp'] = $_SERVER['REMOTE_ADDR'] ?? null;
+                }
+
+                $asaasResp = $this->asaas->createSubscription($subscriptionData);
+
+                $asaasStatus = $asaasResp['status'] ?? null;
+                $internalStatus = match ($asaasStatus) {
+                    'ACTIVE'    => AssinaturaUsuario::ST_ACTIVE,
+                    'PENDING'   => AssinaturaUsuario::ST_PENDING,
+                    'EXPIRED',
+                    'SUSPENDED' => AssinaturaUsuario::ST_PAST_DUE,
+                    'CANCELED'  => AssinaturaUsuario::ST_CANCELED,
+                    default     => AssinaturaUsuario::ST_PENDING,
+                };
+
+                $renovaEm = $asaasResp['nextDueDate'] ?? (($months === 12) ? date('Y-m-d', strtotime('+1 year')) : date('Y-m-d', strtotime('+1 month')));
             }
 
-
-
-            // Cria assinatura no Asaas
-            $asaasSub = $this->asaas->createSubscription($subscriptionData);
-
-            // Cria registro local da assinatura
-            // Status retornado pelo Asaas (ACTIVE, PENDING, EXPIRED, SUSPENDED, CANCELED...)
-            $asaasStatus = $asaasSub['status'] ?? null;
-
-            // Converte para o status interno do seu sistema
-            $internalStatus = match ($asaasStatus) {
-                'ACTIVE'    => AssinaturaUsuario::ST_ACTIVE,
-                'PENDING'   => AssinaturaUsuario::ST_PENDING,
-                'EXPIRED',
-                'SUSPENDED' => AssinaturaUsuario::ST_PAST_DUE,
-                'CANCELED'  => AssinaturaUsuario::ST_CANCELED,
-                default     => AssinaturaUsuario::ST_PENDING,
-            };
-
-            // Salva no banco
+            // ---------------------------------------------------------------------
+            // REGISTRO LOCAL
+            // Observação: você só tem external_subscription_id no model.
+            // Para semestral (payment), vamos salvar o ID do pagamento nesse mesmo campo.
+            // Se quiser “perfeito”, depois criamos external_payment_id.
+            // ---------------------------------------------------------------------
             $assinatura = new AssinaturaUsuario([
                 'user_id'                  => $usuario->id,
                 'plano_id'                 => $planoPro->id,
                 'gateway'                  => 'asaas',
                 'external_customer_id'     => $usuario->external_customer_id,
-                'external_subscription_id' => $asaasSub['id'] ?? null,
+                'external_subscription_id' => $asaasResp['id'] ?? null,
                 'status'                   => $internalStatus,
-                'renova_em'                => $asaasSub['nextDueDate'] ?? null,
+                'renova_em'                => $renovaEm,
             ]);
-
             $assinatura->save();
 
-
             Response::success([
-                'message'         => 'Assinatura criada. Aguarde a confirmação do pagamento.',
-                'subscription_id' => $asaasSub['id'] ?? null,
-                'asaas_status'    => $asaasSub['status'] ?? null,
+                'message'      => ($months === 6)
+                    ? 'Cobrança semestral criada. Aguarde a confirmação do pagamento.'
+                    : 'Assinatura criada. Aguarde a confirmação do pagamento.',
+                'asaas_id'     => $asaasResp['id'] ?? null,
+                'asaas_status' => $asaasResp['status'] ?? null,
+                'months'       => $months,
+                'discount'     => $expectedDiscount,
+                'total'        => $total,
             ]);
         } catch (\Throwable $e) {
             if (class_exists(LogService::class)) {

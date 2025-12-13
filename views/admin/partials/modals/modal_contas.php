@@ -41,6 +41,10 @@
         animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
+    .lk-modal-card {
+        padding: var(--spacing-3);
+    }
+
     @keyframes modalSlideIn {
         from {
             opacity: 0;
@@ -87,8 +91,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: var(--spacing-6) var(--spacing-6) var(--spacing-4);
+        padding: var(--spacing-4) var(--spacing-4) var(--spacing-2);
         border-bottom: 1px solid var(--glass-border);
+        margin-bottom: 0;
     }
 
     .lk-modal-t {
@@ -100,7 +105,7 @@
 
     /* Body */
     .lk-modal-b {
-        padding: var(--spacing-6);
+        padding: var(--spacing-3);
         max-height: calc(90vh - 140px);
         overflow-y: auto;
     }
@@ -409,7 +414,8 @@
 </style>
 
 <!-- Modal: Nova Conta -->
-<div class="lk-modal" id="modalConta" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle">
+<div class="lk-modal" id="modalConta" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle"
+    data-lock-close="true">
     <div class="lk-modal-card">
         <div class="lk-modal-h">
             <div class="lk-modal-t" id="modalContaTitle">Nova conta</div>
@@ -448,7 +454,8 @@
 </div>
 
 <!-- Modal: Novo Lançamento na Conta -->
-<div class="lk-modal" id="modalLancConta" role="dialog" aria-modal="true" aria-labelledby="modalLancContaTitle">
+<div class="lk-modal" id="modalLancConta" role="dialog" aria-modal="true" aria-labelledby="modalLancContaTitle"
+    data-lock-close="true">
     <div class="lk-modal-card">
         <div class="lk-modal-h">
             <div class="lk-modal-t" id="modalLancContaTitle">Novo lan�amento</div>
@@ -506,7 +513,8 @@
 </div>
 
 <!-- Modal: Transferência -->
-<div class="lk-modal" id="modalTransfer" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
+<div class="lk-modal" id="modalTransfer" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle"
+    data-lock-close="true">
     <div class="lk-modal-card">
         <div class="lk-modal-h">
             <div class="lk-modal-t" id="modalTransferTitle">Transfer�ncia</div>
@@ -537,7 +545,8 @@
                     </div>
                     <div class="lk-field">
                         <label for="trValor">Valor</label>
-                        <input class="real" type="text" id="trValor" name="trValor" inputmode="decimal" placeholder="R$ 0,00" required>
+                        <input class="real" type="text" id="trValor" name="trValor" inputmode="decimal"
+                            placeholder="R$ 0,00" required>
                     </div>
                     <div class="lk-field full">
                         <label for="trDesc">Descrição (opcional)</label>
@@ -570,7 +579,3 @@
         });
     });
 </script>
-
-
-
-

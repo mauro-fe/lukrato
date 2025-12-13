@@ -26,8 +26,8 @@
        ========================================================================== */
     .billing-page {
         max-width: var(--billing-max-width);
-        margin: var(--billing-spacing) auto;
-        padding: clamp(32px, 6vw, 64px) clamp(24px, 5vw, 48px);
+        margin: var(--spacing-6) auto;
+        padding: var(--spacing-5);
         background: var(--glass-bg);
         backdrop-filter: var(--glass-backdrop);
         border-radius: var(--radius-xl);
@@ -85,7 +85,7 @@
         position: relative;
         z-index: 1;
         text-align: center;
-        margin-bottom: clamp(40px, 6vw, 64px);
+        margin-bottom: var(--spacing-6);
     }
 
     .billing-header__title {
@@ -128,7 +128,7 @@
         background: var(--color-surface);
         border: 2px solid var(--plan-border);
         border-radius: var(--radius-lg);
-        padding: var(--card-padding);
+        padding: var(--spacing-6);
         display: flex;
         flex-direction: column;
         gap: var(--spacing-5);
@@ -567,6 +567,42 @@
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
     }
+
+    .plan-billing-toggle {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: var(--spacing-2);
+    }
+
+    .plan-billing-toggle__btn {
+        border: 1px solid var(--glass-border);
+        background: var(--color-surface-muted);
+        color: var(--color-text);
+        border-radius: 999px;
+        padding: 10px 12px;
+        font-weight: 800;
+        font-size: .875rem;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .plan-billing-toggle__btn:hover {
+        transform: translateY(-1px);
+        border-color: var(--color-primary);
+    }
+
+    .plan-billing-toggle__btn.is-active {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: #fff;
+        border-color: transparent;
+    }
+
+    .plan-billing-toggle__off {
+        margin-left: 6px;
+        font-size: .75rem;
+        opacity: .95;
+    }
 </style>
 
 <?php
@@ -752,16 +788,37 @@ function formatInterval(string $interval): string
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
                         </button>
                     <?php else: ?>
+                        <?php if (strcasecmp($plan['code'], 'pro') === 0): ?>
+                            <div class="plan-billing-toggle" role="group" aria-label="Período de cobrança do Pro">
+                                <button type="button" class="plan-billing-toggle__btn is-active" data-cycle="monthly" data-months="1"
+                                    data-discount="0">
+                                    Mensal
+                                </button>
+
+                                <button type="button" class="plan-billing-toggle__btn" data-cycle="semiannual" data-months="6"
+                                    data-discount="10">
+                                    Semestral <span class="plan-billing-toggle__off">-10%</span>
+                                </button>
+
+                                <button type="button" class="plan-billing-toggle__btn" data-cycle="annual" data-months="12"
+                                    data-discount="15">
+                                    Anual <span class="plan-billing-toggle__off">-15%</span>
+                                </button>
+                            </div>
+                        <?php endif; ?>
+
                         <button <?= $buttonId ? 'id="' . $buttonId . '"' : '' ?>
                             class="plan-card__button plan-card__button--primary" data-plan-button="1"
                             data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
                             data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
                             data-plan-name="<?= htmlspecialchars($plan['name']) ?>"
                             data-plan-amount="<?= number_format($priceValue, 2, '.', '') ?>"
+                            data-plan-monthly="<?= number_format($priceValue, 2, '.', '') ?>"
                             data-plan-interval="<?= htmlspecialchars($intervalLabel) ?>">
                             <i class="plan-card__button-icon fa-solid fa-rocket" aria-hidden="true"></i>
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
                         </button>
+
 
                         <?php if ($buttonId): ?>
                             <div id="msg" role="status" aria-live="polite" aria-atomic="true"></div>

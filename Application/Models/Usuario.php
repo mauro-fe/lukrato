@@ -167,4 +167,26 @@ class Usuario extends Model
             ->where('tipo', 'principal')
             ->withDefault();
     }
+
+    private function isProUser(int $userId): bool
+    {
+        try {
+            /** @var Usuario|null $user */
+            $user = Usuario::query()->with(['assinaturaAtiva.plano'])->find($userId);
+            if (!$user) return false;
+
+            // Se não tem assinatura ativa, é FREE
+            $assinatura = $user->assinaturaAtiva;
+            if (!$assinatura) return false;
+
+            // Se tem assinatura ativa, considera PRO (com plano válido)
+            // Se você tiver um plano "free" registrado no banco, pode bloquear aqui:
+            $code = strtolower((string)($assinatura->plano?->code ?? ''));
+            if ($code === 'free') return false;
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 }

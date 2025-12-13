@@ -79,6 +79,7 @@ function registerAuthRoutes(): void
 Router::add('GET', '/termos', 'Site\\LegalController@terms');
 Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');
 
+Router::add('GET', '/api/lancamentos/usage', 'Api\\LancamentosController@usage');
 
 
 /* =========================

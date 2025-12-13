@@ -145,5 +145,8 @@
     </div>
 </section>
 
+<?php include __DIR__ . '/../partials/modals/editar-lancamentos.php'; ?>
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>

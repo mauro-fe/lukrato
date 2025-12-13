@@ -59,8 +59,8 @@ class AsaasService
             $response = $this->client->request($method, ltrim($uri, '/'), $options);
         } catch (GuzzleException $e) {
             // Se você tiver LogService, pode logar aqui
-            if (class_exists(\Application\Services\LogService::class)) {
-                \Application\Services\LogService::error('Erro HTTP ao chamar Asaas', [
+            if (class_exists(LogService::class)) {
+                LogService::error('Erro HTTP ao chamar Asaas', [
                     'exception' => $e->getMessage(),
                     'uri'       => $uri,
                     'method'    => $method,
@@ -76,8 +76,8 @@ class AsaasService
         $data       = json_decode($rawBody, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            if (class_exists(\Application\Services\LogService::class)) {
-                \Application\Services\LogService::error('Resposta inválida do Asaas (JSON)', [
+            if (class_exists(LogService::class)) {
+                LogService::error('Resposta inválida do Asaas (JSON)', [
                     'status' => $statusCode,
                     'body'   => $rawBody,
                 ]);
@@ -100,8 +100,8 @@ class AsaasService
             ?? $data['message']
             ?? 'Erro inesperado ao comunicar com o Asaas.';
 
-        if (class_exists(\Application\Services\LogService::class)) {
-            \Application\Services\LogService::warning('Erro de API do Asaas', [
+        if (class_exists(LogService::class)) {
+            LogService::warning('Erro de API do Asaas', [
                 'status'   => $statusCode,
                 'uri'      => $uri,
                 'method'   => $method,

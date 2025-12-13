@@ -7,9 +7,11 @@ use Application\Lib\Auth;
 use Application\Models\Categoria;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
+use Application\Models\Usuario;
 use Application\Services\LancamentoExportService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
+use Application\Services\LancamentoLimitService;
 use InvalidArgumentException;
 use ValueError;
 
@@ -26,12 +28,111 @@ enum LancamentoTipo: string
 
 class LancamentosController
 {
+    private LancamentoLimitService $limitService;
     private LancamentoExportService $exportService;
 
-    public function __construct(?LancamentoExportService $exportService = null)
-    {
+
+    public function __construct(
+        ?LancamentoExportService $exportService = null,
+        ?LancamentoLimitService $limitService = null
+    ) {
         $this->exportService = $exportService ?? new LancamentoExportService();
+        $this->limitService  = $limitService ?? new LancamentoLimitService();
     }
+    // =============================================================================
+    // LIMITES (FREE) + USAGE
+    // =============================================================================
+
+    private function getFreeLancamentosLimit(): int
+    {
+        return 50;
+    }
+
+    private function getFreeLancamentosWarningAt(): int
+    {
+        return 40;
+    }
+
+
+
+    /**
+     * IMPORTANTÍSSIMO:
+     * Ajuste este método para refletir como você guarda o plano do usuário no seu banco.
+     * Ex.: usuarios.plano = 'pro' | 'free'
+     * ou usuarios.is_premium = 1
+     */
+    private function isProUser(int $userId): bool
+    {
+        try {
+            /** @varUsuario|null $user */
+            $user = Usuario::find($userId);
+            if (!$user) {
+                return false;
+            }
+
+            // Busca assinatura ativa corretamente
+            $assinatura = $user->assinaturas()
+                ->where('status', 'active')
+                ->orderByDesc('created_at')
+                ->first();
+
+            if (!$assinatura) {
+                return false; // não tem assinatura ativa
+            }
+
+            // Carrega o plano
+            $plano = $assinatura->plano;
+            if (!$plano) {
+                return false;
+            }
+
+            // Se o plano NÃO for free, é PRO
+            $code = strtolower((string)$plano->code);
+
+            return $code !== 'free';
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+
+    private function countLancamentosNoMes(int $userId, string $ym): int
+    {
+        // $ym no formato YYYY-MM
+        $from = $ym . '-01';
+        $to   = date('Y-m-t', strtotime($from));
+
+        // Conta apenas lançamentos "normais" (sem saldo inicial e sem transferências)
+        return (int) Lancamento::where('user_id', $userId)
+            ->whereBetween('data', [$from, $to])
+            ->where('eh_saldo_inicial', 0)
+            ->where('eh_transferencia', 0)
+            ->count();
+    }
+
+    private function buildUsageMeta(int $userId, string $ym): array
+    {
+        $isPro = $this->isProUser($userId);
+
+        $limit = $this->getFreeLancamentosLimit();
+        $warn  = $this->getFreeLancamentosWarningAt();
+        $used  = $this->countLancamentosNoMes($userId, $ym);
+
+        return [
+            'month'       => $ym,
+            'plan'        => $isPro ? 'pro' : 'free',
+            'limit'       => $isPro ? null : $limit,
+            'used'        => $used,
+            'remaining'   => $isPro ? null : max(0, $limit - $used),
+            'warning_at'  => $warn,
+            'should_warn' => (!$isPro && $used >= $warn && $used < $limit),
+            'blocked'     => (!$isPro && $used >= $limit),
+        ];
+    }
+
+    // =============================================================================
+    // HELPERS
+    // =============================================================================
 
     private function getRequestPayload(): array
     {
@@ -66,7 +167,7 @@ class LancamentosController
         }
 
         if (!is_numeric($valorRaw) || !is_finite((float)$valorRaw)) {
-            $errors['valor'] = 'Valor invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido.';
+            $errors['valor'] = 'Valor inválido.';
             return 0.0;
         }
 
@@ -108,6 +209,10 @@ class LancamentosController
         $errors['conta_id'] = 'Conta invalida.';
         return null;
     }
+
+    // =============================================================================
+    // ENDPOINTS
+    // =============================================================================
 
     public function index(): void
     {
@@ -291,22 +396,38 @@ class LancamentosController
 
         $lancamento->loadMissing(['categoria', 'conta']);
 
+        $ym = substr($data, 0, 7);
+        try {
+            $usage = $this->limitService->assertCanCreate($userId, $data);
+        } catch (\DomainException $e) {
+            Response::error($e->getMessage(), 402);
+            return;
+        }
+
+
         Response::success([
-            'id'               => (int)$lancamento->id,
-            'data'             => (string)$lancamento->data,
-            'tipo'             => (string)$lancamento->tipo,
-            'valor'            => (float)$lancamento->valor,
-            'descricao'        => (string)($lancamento->descricao ?? ''),
-            'observacao'       => (string)($lancamento->observacao ?? ''),
-            'categoria_id'     => (int)$lancamento->categoria_id ?: null,
-            'conta_id'         => (int)$lancamento->conta_id ?: null,
-            'eh_transferencia' => (bool)$lancamento->eh_transferencia,
-            'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
-            'categoria'        => $lancamento->categoria?->nome ?? '',
-            'categoria_nome'   => $lancamento->categoria?->nome ?? '',
-            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+            'lancamento' => [
+                'id'               => (int)$lancamento->id,
+                'data'             => (string)$lancamento->data,
+                'tipo'             => (string)$lancamento->tipo,
+                'valor'            => (float)$lancamento->valor,
+                'descricao'        => (string)($lancamento->descricao ?? ''),
+                'observacao'       => (string)($lancamento->observacao ?? ''),
+                'categoria_id'     => (int)$lancamento->categoria_id ?: null,
+                'conta_id'         => (int)$lancamento->conta_id ?: null,
+                'eh_transferencia' => (bool)$lancamento->eh_transferencia,
+                'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
+                'categoria'        => $lancamento->categoria?->nome ?? '',
+                'categoria_nome'   => $lancamento->categoria?->nome ?? '',
+                'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+                'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+            ],
+            'usage' => $usage,
+            'ui_message' => ($usage['should_warn'] ?? false)
+                ? "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
+                : null
         ], 'Lancamento criado', 201);
+        $usage = $this->limitService->usage($userId, substr($data, 0, 7));
     }
 
     public function update(int $id): void
@@ -324,16 +445,16 @@ class LancamentosController
             ->first();
 
         if (!$lancamento) {
-            Response::error('LanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§amento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado', 404);
+            Response::error('Lancamento nao encontrado', 404);
             return;
         }
 
         if ((bool)($lancamento->eh_saldo_inicial ?? 0) === true) {
-            Response::error('NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© possÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel editar o saldo inicial.', 422);
+            Response::error('Nao e possivel editar o saldo inicial.', 422);
             return;
         }
         if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
-            Response::error('NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© possÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel editar uma transferÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia. Crie uma nova.', 422);
+            Response::error('Nao e possivel editar uma transferencia. Crie uma nova.', 422);
             return;
         }
 
@@ -343,7 +464,7 @@ class LancamentosController
         try {
             $tipo = LancamentoTipo::from($tipo)->value;
         } catch (ValueError) {
-            $errors['tipo'] = 'Tipo invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido. Use "receita" ou "despesa".';
+            $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
         }
 
         $data = (string)($payload['data'] ?? $lancamento->data ?? '');
@@ -418,16 +539,44 @@ class LancamentosController
             ->first();
 
         if (!$t) {
-            Response::error('LanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§amento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado', 404);
+            Response::error('Lancamento nao encontrado', 404);
             return;
         }
 
         if ((bool)($t->eh_saldo_inicial ?? 0) === true) {
-            Response::error('NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© possÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­vel excluir o saldo inicial.', 422);
+            Response::error('Nao e possivel excluir o saldo inicial.', 422);
             return;
         }
 
         $t->delete();
         Response::success(['ok' => true]);
+    }
+
+    /**
+     * Endpoint para o front consultar uso do mês (mostrar banner no dashboard, etc.)
+     * GET /api/lancamentos/usage?month=YYYY-MM
+     */
+    public function usage(): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
+            Response::validationError(['month' => 'Formato invalido (YYYY-MM)']);
+            return;
+        }
+
+        $usage = $this->buildUsageMeta($userId, $month);
+
+        Response::success([
+            'usage' => $usage,
+            'ui_message' => ($usage['should_warn'] ?? false)
+                ? "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
+                : null
+        ]);
     }
 }

@@ -104,9 +104,9 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding: 0;
-  background: var(--color-surface) !important;
-
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg) !important;
 }
 
 .date-group {
@@ -146,12 +146,16 @@
 }
 
 .export-range .date-range:hover {
-  border-color: color-mix(in srgb,
-      var(--color-primary) 50%,
-      transparent) !important;
-  background: color-mix(in srgb,
-      var(--color-primary) 10%,
-      transparent) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 50%,
+    transparent
+  ) !important;
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    transparent
+  ) !important;
   /* Leve tintura ao invés de cor sólida */
 }
 
@@ -200,7 +204,6 @@
    RESPONSIVIDADE (MOBILE)
    ========================================= */
 @media (max-width: 768px) {
-
   /* CONTAINER PRINCIPAL DAS DATAS */
   /* Força grid de 2 colunas iguais (50% / 50%) */
   .export-range .mes {
@@ -239,10 +242,7 @@
     text-align: center;
     font-size: 0.85rem;
   }
-
-
 }
-
 
 /* ============================================================================
    FILTROS
@@ -384,7 +384,10 @@
   padding: var(--spacing-3) var(--spacing-4);
 }
 
-.table-container .tabulator .tabulator-cell .tabulator-responsive-collapse-toggle {
+.table-container
+  .tabulator
+  .tabulator-cell
+  .tabulator-responsive-collapse-toggle {
   color: var(--color-text);
   opacity: 0.85;
 }
@@ -395,9 +398,11 @@
   gap: var(--spacing-2);
   color: var(--color-text);
   font-size: var(--font-size-sm);
-  background: linear-gradient(135deg,
-      color-mix(in srgb, var(--color-surface) 75%, transparent) 0%,
-      color-mix(in srgb, var(--color-surface) 55%, transparent) 100%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-surface) 75%, transparent) 0%,
+    color-mix(in srgb, var(--color-surface) 55%, transparent) 100%
+  );
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: var(--spacing-3) var(--spacing-4);
@@ -487,9 +492,11 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  background: color-mix(in srgb,
-      var(--color-primary) 8%,
-      var(--color-surface-muted));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 8%,
+    var(--color-surface-muted)
+  );
   color: var(--color-text);
   border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
@@ -529,9 +536,11 @@
 
 #modalEditarLancamento .modal-header {
   border: 0;
-  background: linear-gradient(135deg,
-      var(--color-surface-muted) 0%,
-      transparent 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-surface-muted) 0%,
+    transparent 100%
+  );
   padding: var(--spacing-5);
 }
 
@@ -585,9 +594,11 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--ring);
-  background: color-mix(in srgb,
-      var(--color-primary) 5%,
-      var(--color-surface-muted));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    var(--color-surface-muted)
+  );
 }
 
 #modalEditarLancamento .btn {
@@ -619,7 +630,8 @@
 #modalEditarLancamento .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 #modalEditarLancamento .alert {
@@ -689,9 +701,8 @@
     width: 100%;
   }
 
-  .export-label{
-  margin: 0 auto;
-
+  .export-label {
+    margin: 0 auto;
   }
 
   .export-range {
@@ -872,7 +883,11 @@
     font-weight: 600;
   }
 
-  .table-container .tabulator .tabulator-row .tabulator-cell .tabulator-responsive-collapse-toggle {
+  .table-container
+    .tabulator
+    .tabulator-row
+    .tabulator-cell
+    .tabulator-responsive-collapse-toggle {
     color: var(--color-primary);
     font-size: 0.95em;
     opacity: 1;
@@ -911,9 +926,11 @@
 
   .export-range .date-range:focus,
   .export-range .lk-select:focus {
-    background: color-mix(in srgb,
-        var(--color-primary) 5%,
-        var(--color-surface));
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface)
+    );
   }
 
   .categoria-chip {
@@ -957,7 +974,6 @@
    ============================================================================ */
 
 @media print {
-
   .lan-header,
   .export-range,
   .type-filter,
@@ -981,9 +997,11 @@
 
 .btn-primary:hover {
   border-color: var(--color-primary);
-  background-color: color-mix(in srgb,
-      var(--glass-bg) 5%,
-      var(--color-primary) 70%) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--glass-bg) 5%,
+    var(--color-primary) 70%
+  ) !important;
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-md);
 }
@@ -994,7 +1012,6 @@
    ======================================================================== */
 
 @media (max-width: 576px) {
-
   /* Tirar os filtros do cabe�alho no mobile */
   .table-container .tabulator .tabulator-header-filter {
     display: none !important;
@@ -1032,7 +1049,10 @@
   }
 
   /* Aumentar �rea de clique da setinha */
-  .table-container .tabulator .tabulator-cell .tabulator-responsive-collapse-toggle {
+  .table-container
+    .tabulator
+    .tabulator-cell
+    .tabulator-responsive-collapse-toggle {
     font-size: 1.1rem;
     padding: 4px;
   }
@@ -1096,7 +1116,6 @@
 
 /* A partir daqui, s� mobile */
 @media (max-width: 768px) {
-
   /* Esconde a tabela Tabulator no mobile */
   .table-container {
     display: none !important;
@@ -1125,7 +1144,6 @@
     color: var(--color-text);
   }
 
-  
   .lan-cards-header span {
     white-space: nowrap;
   }
@@ -1142,7 +1160,7 @@
     row-gap: 0.35rem;
   }
 
-  .lan-card+.lan-card {
+  .lan-card + .lan-card {
     border-top: 1px solid rgba(255, 255, 255, 0.03);
   }
 
@@ -1437,7 +1455,6 @@
 }
 
 @media (min-width: 769px) {
-
   .lan-cards-wrapper,
   .lan-cards-container,
   .lan-cards-pager {

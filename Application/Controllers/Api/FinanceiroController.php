@@ -6,12 +6,15 @@ use Application\Core\Request;
 use Application\Core\Response;
 use Application\Models\Lancamento;
 use Application\Models\Categoria;
+use Application\Services\LancamentoLimitService;
 use Application\Models\Conta;
 use Carbon\Carbon;
 use Application\Lib\Auth;
 use ValueError;
 use Throwable;
 use Illuminate\Database\Eloquent\Builder;
+use DomainException;
+
 
 
 enum LancamentoTipo: string
@@ -23,6 +26,13 @@ enum LancamentoTipo: string
 
 class FinanceiroController
 {
+    private LancamentoLimitService $limitService;
+
+    public function __construct(?LancamentoLimitService $limitService = null)
+    {
+        $this->limitService = $limitService ?? new LancamentoLimitService();
+    }
+
 
     private function getRequestPayload(): array
     {
@@ -208,15 +218,31 @@ class FinanceiroController
     {
         try {
             $data = $this->getRequestPayload();
-            $uid = Auth::id();
+            $uid  = Auth::id();
 
-            $tipo = $this->validateTipo($data['tipo'] ?? LancamentoTipo::DESPESA->value);
+            if (!$uid) {
+                Response::error('Nao autenticado', 401);
+                return;
+            }
+
+            $tipo    = $this->validateTipo($data['tipo'] ?? LancamentoTipo::DESPESA->value);
             $dataStr = $this->validateData($data['data'] ?? date('Y-m-d'));
-            $valor = $this->validateAndSanitizeValor($data['valor'] ?? 0);
+            $valor   = $this->validateAndSanitizeValor($data['valor'] ?? 0);
+
+            // ============================
+            // LIMITE MENSAL (FREE) - CENTRALIZADO
+            // ============================
+            try {
+                $usage = $this->limitService->assertCanCreate($uid, $dataStr);
+            } catch (DomainException $e) {
+                Response::error($e->getMessage(), 402);
+                return;
+            }
 
             $categoriaId = $data['categoria_id'] ?? null;
             if ($categoriaId !== null && $categoriaId !== '') {
                 $categoriaId = (int)$categoriaId;
+
                 /** @var Categoria|null $cat */
                 $cat = Categoria::where('id', $categoriaId)
                     ->where(fn(Builder $q) => $q->whereNull('user_id')->orWhere('user_id', $uid))
@@ -225,6 +251,7 @@ class FinanceiroController
                 if (!$cat) {
                     throw new ValueError('Categoria inválida.');
                 }
+
                 if (!in_array($cat->tipo, [LancamentoTipo::AMBAS->value, $tipo], true)) {
                     throw new ValueError('Categoria incompatível com o tipo de lançamento.');
                 }
@@ -235,6 +262,7 @@ class FinanceiroController
             $contaId = $data['conta_id'] ?? null;
             if ($contaId !== null && $contaId !== '') {
                 $contaId = (int)$contaId;
+
                 if (!Conta::forUser($uid)->find($contaId)) {
                     throw new ValueError('Conta inválida.');
                 }
@@ -252,16 +280,29 @@ class FinanceiroController
                 'observacao'        => isset($data['observacao']) ? trim((string)$data['observacao']) : null,
                 'valor'             => $valor,
                 'eh_transferencia'  => 0,
+                'eh_saldo_inicial'  => 0, // garante que entra na contagem (se seu default já é 0, ok)
             ]);
+
             $t->save();
 
-            Response::json(['ok' => true, 'id' => (int)$t->id], 201);
+            // Atualiza usage depois de salvar, pra front já mostrar warning certinho
+            $usage = $this->limitService->usage($uid, substr($dataStr, 0, 7));
+
+            Response::success([
+                'ok' => true,
+                'id' => (int)$t->id,
+                'usage' => $usage,
+                'ui_message' => ($usage['should_warn'] ?? false)
+                    ? "⚠️ Atenção: você já usou {$usage['used']} de {$this->limitService->getFreeLimit()} lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
+                    : null
+            ], 'Lancamento criado', 201);
         } catch (ValueError $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            Response::validationError(['message' => $e->getMessage()]);
         } catch (Throwable $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error('Erro ao salvar lancamento.', 500);
         }
     }
+
 
 
     public function update(mixed $routeParam = null): void

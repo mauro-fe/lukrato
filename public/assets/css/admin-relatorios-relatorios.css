@@ -126,7 +126,7 @@
   flex-wrap: wrap;
   align-items: center;
 }
-.export-controls-select{
+.export-controls-select {
   display: flex;
   gap: var(--spacing-3);
 }

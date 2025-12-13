@@ -135,3 +135,20 @@ function buscarValor($respostas, string $chave): ?string
     }
     return null;
 }
+
+function config(string $key, $default = null)
+{
+    static $configs = [];
+
+    [$file, $item] = explode('.', $key, 2);
+
+    if (!isset($configs[$file])) {
+        $path = __DIR__ . "/../Config/{$file}.php";
+
+        $configs[$file] = file_exists($path)
+            ? require $path
+            : [];
+    }
+
+    return $configs[$file][$item] ?? $default;
+}

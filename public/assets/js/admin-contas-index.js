@@ -173,7 +173,12 @@
         },
 
         getTodayISO() {
-            return new Date().toISOString().slice(0, 10);
+            // Usa data local (sem UTC) para evitar adiantar 1 dia em fusos negativos
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
     };
 
@@ -850,9 +855,6 @@
                 const cancelBtn = DOM.$('#btnCancel', DOM.modal);
                 closeBtn?.addEventListener('click', () => ContaModal.close());
                 cancelBtn?.addEventListener('click', () => ContaModal.close());
-                DOM.modal.addEventListener('click', (e) => {
-                    if (e.target === DOM.modal) ContaModal.close();
-                });
             }
 
             DOM.form?.addEventListener('submit', ContaModal.submit);
@@ -868,9 +870,6 @@
                 const cancelBtn = DOM.$('#lancCancel', DOM.modalLanc);
                 closeBtn?.addEventListener('click', () => LancamentoModal.close());
                 cancelBtn?.addEventListener('click', () => LancamentoModal.close());
-                DOM.modalLanc.addEventListener('click', (e) => {
-                    if (e.target === DOM.modalLanc) LancamentoModal.close();
-                });
 
                 const tipoInput = DOM.$('#lanTipo', DOM.modalLanc);
                 tipoInput?.addEventListener('change', () => LancamentoModal.refreshCategorias());
@@ -889,9 +888,6 @@
                 const cancelBtn = DOM.$('#trCancel', DOM.modalTr);
                 closeBtn?.addEventListener('click', () => TransferenciaModal.close());
                 cancelBtn?.addEventListener('click', () => TransferenciaModal.close());
-                DOM.modalTr.addEventListener('click', (e) => {
-                    if (e.target === DOM.modalTr) TransferenciaModal.close();
-                });
 
                 const valorInput = DOM.$('#trValor', DOM.modalTr);
                 valorInput?.addEventListener('blur', () => {
@@ -925,11 +921,7 @@
             });
 
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    if (DOM.modal?.classList.contains('open')) ContaModal.close();
-                    if (DOM.modalLanc?.classList.contains('open')) LancamentoModal.close();
-                    if (DOM.modalTr?.classList.contains('open')) TransferenciaModal.close();
-                }
+                if (e.key === 'Escape') return;
 
                 if (e.ctrlKey && e.key === 'n' && !e.shiftKey) {
                     e.preventDefault();
