@@ -62,7 +62,7 @@
 
         <div class="lk-func-media">
             <div class="lk-device-card">
-                <img src="<?= BASE_URL ?>/assets/img/mockups/dashboard.png" alt="Dashboard do Lukrato no computador"
+                <img src="<?= BASE_URL ?>/assets/img/mockups/mockup.png" alt="Dashboard do Lukrato no computador"
                     loading="lazy" />
             </div>
         </div>
@@ -71,37 +71,62 @@
 </section>
 
 
-<!-- MODAL / GALERIA SIMPLES -->
+<!-- MODAL / GALERIA -->
 <div class="lk-modal" id="func-gallery" aria-hidden="true">
     <div class="lk-modal-backdrop" data-close="func-gallery"></div>
 
     <div class="lk-modal-dialog" role="dialog" aria-modal="true" aria-label="Galeria do sistema">
-        <button type="button" class="lk-modal-close" data-close="func-gallery">
+        <button type="button" class="lk-modal-close" data-close="func-gallery" aria-label="Fechar">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
         <h3>Um pouco do Lukrato por dentro</h3>
 
-        <div class="lk-gallery">
+        <div class="lk-gallery" aria-live="polite">
             <div class="lk-gallery-track">
-                <!-- Aqui você coloca prints reais do sistema -->
-                <img src="<?= BASE_URL ?>/assets/img/mockups/1.png" alt="Tela inicial do Lukrato">
-                <img src="<?= BASE_URL ?>/assets/img/mockups/2.png" alt="Relatórios">
-                <img src="<?= BASE_URL ?>/assets/img/mockups/3.png" alt="Contas">
-                <img src="<?= BASE_URL ?>/assets/img/mockups/5.png" alt="Dashboard Claro">
+                <img src="<?= BASE_URL ?>/assets/img/mockups/dashboard.png" alt="Tela do Dashboard do Lukrato"
+                    loading="lazy" data-title="Dashboard"
+                    data-desc="Visão geral rápida: saldo, receitas e despesas do mês." />
+
+                <img src="<?= BASE_URL ?>/assets/img/mockups/contas.png" alt="Tela de Contas do Lukrato" loading="lazy"
+                    data-title="Contas" data-desc="Crie e gerencie contas: banco, carteira, investimentos." />
+
+                <img src="<?= BASE_URL ?>/assets/img/mockups/categorias.png" alt="Tela de Categorias do Lukrato"
+                    loading="lazy" data-title="Categorias"
+                    data-desc="Organize receitas e despesas por categoria com facilidade." />
+
+                <img src="<?= BASE_URL ?>/assets/img/mockups/relatorios.png" alt="Tela de Relatórios do Lukrato"
+                    loading="lazy" data-title="Relatórios"
+                    data-desc="Gráficos e insights para entender seus gastos e evolução." />
+
+                <img src="<?= BASE_URL ?>/assets/img/mockups/5.png" alt="Dashboard em tema claro" loading="lazy"
+                    data-title="Tema claro" data-desc="Escolha o tema que preferir para usar no dia a dia." />
             </div>
         </div>
 
+        <!-- Legenda fixa (fora da imagem) -->
+        <div class="lk-gallery-meta">
+            <div class="lk-gallery-meta-left">
+                <div class="lk-gallery-meta-title" id="lkGalleryTitle">—</div>
+                <div class="lk-gallery-meta-desc" id="lkGalleryDesc">—</div>
+            </div>
+
+            <div class="lk-gallery-meta-right" id="lkGalleryCount">1/1</div>
+        </div>
+
         <div class="lk-gallery-controls">
-            <button type="button" class="lk-gallery-prev">
+            <button type="button" class="lk-gallery-prev" aria-label="Imagem anterior">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <button type="button" class="lk-gallery-next">
+
+            <button type="button" class="lk-gallery-next" aria-label="Próxima imagem">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
     </div>
 </div>
+
+
 
 
 <section id="beneficios" class="lk-section lk-section-beneficios">
@@ -393,3 +418,7 @@
         </div>
     </div>
 </section>
+<!-- Botão Voltar ao Topo -->
+<button type="button" class="lk-back-to-top" id="lkBackToTop" aria-label="Voltar ao topo" title="Voltar ao topo">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
