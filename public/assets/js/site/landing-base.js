@@ -60,73 +60,141 @@ function initLandingScripts() {
         closeMenu();
       }
     });
-  })();
+  })();}
 
-  /*------- Modal / Galeria -------*/
-  (function setupGallery() {
-    const modalId = "func-gallery";
-    const modal = document.getElementById(modalId);
+ /*------- Modal / Galeria -------*/
+(function setupGallery() {
+  const modalId = "func-gallery";
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
 
-    if (!modal) return;
+  const openButtons  = document.querySelectorAll(`[data-open="${modalId}"]`);
+  const closeButtons = modal.querySelectorAll(`[data-close="${modalId}"]`);
 
-    const openButtons = document.querySelectorAll('[data-open="' + modalId + '"]');
-    const closeButtons = modal.querySelectorAll('[data-close="' + modalId + '"]');
-    const track = modal.querySelector(".lk-gallery-track");
-    const slides = track ? track.querySelectorAll("img") : [];
-    const prevBtn = modal.querySelector(".lk-gallery-prev");
-    const nextBtn = modal.querySelector(".lk-gallery-next");
+  const track  = modal.querySelector(".lk-gallery-track");
+  const slides = track ? Array.from(track.querySelectorAll("img")) : [];
 
-    let currentIndex = 0;
+  const prevBtn = modal.querySelector(".lk-gallery-prev");
+  const nextBtn = modal.querySelector(".lk-gallery-next");
 
-    function openModal() {
-      modal.setAttribute("aria-hidden", "false");
-      modal.classList.add("is-open");
-      document.body.style.overflow = "hidden";
+  const titleEl = modal.querySelector("#lkGalleryTitle");
+  const descEl  = modal.querySelector("#lkGalleryDesc");
+  const countEl = modal.querySelector("#lkGalleryCount");
 
-      requestAnimationFrame(updateGallery);
-    }
+  const gallery = modal.querySelector(".lk-gallery");
 
-    function closeModal() {
-      modal.setAttribute("aria-hidden", "true");
-      modal.classList.remove("is-open");
-      document.body.style.overflow = "";
-    }
+  let currentIndex = 0;
+  let startX = 0;
+  let isDragging = false;
 
-    openButtons.forEach((btn) => btn.addEventListener("click", openModal));
-    closeButtons.forEach((btn) => btn.addEventListener("click", closeModal));
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal.classList.contains("is-open")) {
-        closeModal();
-      }
+  function openModal() {
+    modal.setAttribute("aria-hidden", "false");
+    modal.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      updateGallery(true);
     });
+  }
 
-    function updateGallery() {
-      if (!track || slides.length === 0) return;
-      const width = slides[0].clientWidth;
-      track.style.transform = `translateX(-${currentIndex * width}px)`;
-    }
+  function closeModal() {
+    modal.setAttribute("aria-hidden", "true");
+    modal.classList.remove("is-open");
+    document.body.style.overflow = "";
+  }
 
-    if (prevBtn) {
-      prevBtn.addEventListener("click", () => {
-        if (slides.length === 0) return;
-        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-        updateGallery();
+  function updateMeta() {
+    if (!slides.length) return;
+
+    const s = slides[currentIndex];
+    const t = s.dataset.title || s.alt || "Tela";
+    const d = s.dataset.desc || "";
+
+    if (titleEl) titleEl.textContent = t;
+    if (descEl)  descEl.textContent = d;
+    if (countEl) countEl.textContent = `${currentIndex + 1}/${slides.length}`;
+  }
+
+  function updateGallery(skipAnim = false) {
+    if (!track || slides.length === 0) return;
+
+    const width = slides[0].clientWidth;
+    if (skipAnim) track.style.transition = "none";
+    track.style.transform = `translateX(-${currentIndex * width}px)`;
+    updateMeta();
+
+    if (skipAnim) {
+      requestAnimationFrame(() => {
+        track.style.transition = "transform 0.28s ease";
       });
     }
+  }
 
-    if (nextBtn) {
-      nextBtn.addEventListener("click", () => {
-        if (slides.length === 0) return;
-        currentIndex = (currentIndex + 1) % slides.length;
-        updateGallery();
-      });
-    }
-
+  function goNext() {
+    if (!slides.length) return;
+    currentIndex = (currentIndex + 1) % slides.length;
     updateGallery();
-    window.addEventListener("resize", updateGallery);
-  })();
-}
+  }
+
+  function goPrev() {
+    if (!slides.length) return;
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    updateGallery();
+  }
+
+  openButtons.forEach(btn => btn.addEventListener("click", openModal));
+  closeButtons.forEach(btn => btn.addEventListener("click", closeModal));
+
+  if (prevBtn) prevBtn.addEventListener("click", goPrev);
+  if (nextBtn) nextBtn.addEventListener("click", goNext);
+
+  // Clique na imagem para avançar
+  slides.forEach(img => img.addEventListener("click", goNext));
+
+  // Teclado
+  document.addEventListener("keydown", (e) => {
+    if (!modal.classList.contains("is-open")) return;
+
+    if (e.key === "Escape") closeModal();
+    if (e.key === "ArrowRight") goNext();
+    if (e.key === "ArrowLeft") goPrev();
+  });
+
+  // Swipe (touch)
+  if (gallery) {
+    gallery.addEventListener("touchstart", (e) => {
+      if (!modal.classList.contains("is-open")) return;
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }, { passive: true });
+
+    gallery.addEventListener("touchmove", (e) => {
+      if (!isDragging) return;
+    }, { passive: true });
+
+    gallery.addEventListener("touchend", (e) => {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].clientX;
+      const diff = endX - startX;
+
+      // threshold
+      if (Math.abs(diff) > 45) {
+        if (diff < 0) goNext();
+        else goPrev();
+      }
+
+      isDragging = false;
+    });
+  }
+
+  // Resize
+  window.addEventListener("resize", () => updateGallery(true));
+
+  // Inicializa meta
+  updateMeta();
+})();
+
+
+
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initLandingScripts);
@@ -242,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await Swal.fire({
           icon: 'success',
           title: 'Mensagem enviada! ',
-          text: 'Obrigado por entrar em contato com a Lukrato. Nossa equipe responderá em breve.',
+          text: 'message',
           confirmButtonText: 'Ok',
           confirmButtonColor: '#e67e22'
         });
@@ -284,3 +352,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+/* ------- Back to Top ------- */
+(function setupBackToTop() {
+  const btn = document.getElementById('lkBackToTop');
+  if (!btn) return;
+
+  // Quanto rolar pra aparecer (ajuste se quiser)
+  const SHOW_AFTER = 420;
+
+  // Throttle simples pra performance
+  let ticking = false;
+
+  function update() {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+
+    if (y > SHOW_AFTER) btn.classList.add('is-visible');
+    else btn.classList.remove('is-visible');
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Estado inicial (caso carregue já no meio da página)
+  update();
+})();
