@@ -579,7 +579,7 @@
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%23e67e22'%3ELukrato%3C/text%3E%3C/svg%3E" alt="Lukrato">
+                        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
                     </div>
                 </div>
 
@@ -598,13 +598,8 @@
                     <form action="<?= BASE_URL ?>resetar-senha" method="POST" novalidate id="resetForm">
                         <?= csrf_input('reset_form') ?>
                         <div class="field">
-                            <input
-                                type="password"
-                                name="password"
-                                id="password"
-                                placeholder="Nova senha (mínimo 8 caracteres)"
-                                required
-                                minlength="8">
+                            <input type="password" name="password" id="password"
+                                placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8">
                             <button type="button" class="toggle-password" data-target="password">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
@@ -618,13 +613,8 @@
                         </div>
 
                         <div class="field">
-                            <input
-                                type="password"
-                                name="password_confirmation"
-                                id="password_confirmation"
-                                placeholder="Confirmar nova senha"
-                                required
-                                minlength="8">
+                            <input type="password" name="password_confirmation" id="password_confirmation"
+                                placeholder="Confirmar nova senha" required minlength="8">
                             <button type="button" class="toggle-password" data-target="password_confirmation">
                                 <i class="fa-solid fa-eye"></i>
                             </button>

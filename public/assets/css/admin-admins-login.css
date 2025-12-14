@@ -147,6 +147,7 @@ main.lukrato-auth {
   width: 100%;
   display: flex;
   justify-content: center;
+  animation: logoFloat 3s ease-in-out infinite;
 }
 
 .imagem-logo {

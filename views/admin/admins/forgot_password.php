@@ -154,6 +154,7 @@
 
         .brand {
             margin-bottom: 32px;
+            text-align: center;
         }
 
         .imagem-logo {
@@ -185,6 +186,10 @@
             filter: drop-shadow(0 6px 20px rgba(230, 126, 34, 0.5));
         }
 
+        .welcome {
+            text-align: center;
+        }
+
         .welcome h2 {
             font-size: 42px;
             line-height: 1.1;
@@ -211,7 +216,6 @@
         .welcome p {
             color: var(--muted);
             line-height: 1.65;
-            max-width: 50ch;
         }
 
         /* RIGHT SECTION */
@@ -551,7 +555,7 @@
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%23e67e22'%3ELukrato%3C/text%3E%3C/svg%3E" alt="Lukrato">
+                        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
                     </div>
                 </div>
 
@@ -571,13 +575,8 @@
                     <form action="<?= BASE_URL ?>recuperar-senha" method="POST" novalidate id="recoverForm">
                         <?= csrf_input('forgot_form') ?>
                         <div class="field">
-                            <input
-                                type="email"
-                                name="email"
-                                id="email"
-                                placeholder="Digite seu e-mail"
-                                autocomplete="email"
-                                required>
+                            <input type="email" name="email" id="email" placeholder="Digite seu e-mail"
+                                autocomplete="email" required>
                         </div>
 
                         <button type="submit" class="btn-primary" id="submitBtn">
@@ -591,7 +590,8 @@
 
                         <p class="extra-link">
                             <small>
-                                <strong>Dica:</strong> Se você se cadastrou com o Google, use o botão "Entrar com Google" na página de login.
+                                <strong>Dica:</strong> Se você se cadastrou com o Google, use o botão "Entrar com
+                                Google" na página de login.
                             </small>
                         </p>
                     </form>
@@ -705,7 +705,8 @@
                         (data && data.message) ||
                         (response.status === 429 ?
                             'Muitas tentativas. Aguarde um pouco e tente novamente.' :
-                            'Não foi possível enviar o link de recuperação. Verifique o e-mail e tente novamente.');
+                            'Não foi possível enviar o link de recuperação. Verifique o e-mail e tente novamente.'
+                        );
 
                     showMessage('error', message);
 

@@ -23,7 +23,6 @@ $registerErrorMessage = $registerErrorMessage ?? '';
                     <div class="imagem-logo" aria-label="Lukrato">
                         <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
                     </div>
-
                 </div>
 
                 <header class="welcome">
@@ -38,10 +37,12 @@ $registerErrorMessage = $registerErrorMessage ?? '';
             <section class="login-right">
                 <div class="card" data-active="<?= $activeTab ?>">
                     <div class="tabs">
-                        <button class="tab-btn <?= $activeTab === 'login' ? 'is-active' : '' ?>" data-tab="login" type="button">
+                        <button class="tab-btn <?= $activeTab === 'login' ? 'is-active' : '' ?>" data-tab="login"
+                            type="button">
                             Entrar
                         </button>
-                        <button class="tab-btn <?= $activeTab === 'register' ? 'is-active' : '' ?>" data-tab="register" type="button">
+                        <button class="tab-btn <?= $activeTab === 'register' ? 'is-active' : '' ?>" data-tab="register"
+                            type="button">
                             Cadastrar
                         </button>
                     </div>
@@ -159,7 +160,8 @@ $registerErrorMessage = $registerErrorMessage ?? '';
                                         <span>Cadastrar com Google</span>
                                     </a>
 
-                                    <div id="registerGeneralError" class="msg msg-error general-message <?= !empty($registerErrorMessage) ? 'show' : '' ?>">
+                                    <div id="registerGeneralError"
+                                        class="msg msg-error general-message <?= !empty($registerErrorMessage) ? 'show' : '' ?>">
                                         <?= !empty($registerErrorMessage) ? htmlspecialchars($registerErrorMessage, ENT_QUOTES, 'UTF-8') : '' ?>
                                     </div>
                                     <div id="registerGeneralSuccess" class="msg msg-success general-message"></div>
