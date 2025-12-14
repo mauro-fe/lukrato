@@ -25,4 +25,14 @@ class LegalController extends BaseController
             'site/partials/footer'
         );
     }
+
+    public function lgpd()
+    {
+        return $this->render(
+            'site/legal/lgpd',
+            [],
+            'site/partials/header',
+            'site/partials/footer'
+        );
+    }
 }

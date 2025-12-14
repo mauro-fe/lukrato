@@ -167,31 +167,83 @@ body {
   display: none;
 }
 
-/* Footer */
-.lk-site-footer {
-  border-top: 1px solid
-    color-mix(in srgb, var(--color-surface-muted, #1f2937) 70%, transparent 30%);
-  padding: 1rem 1.25rem;
-  font-size: 0.8rem;
-  color: var(--color-text-muted, #9ca3af);
-  background: var(--color-surface, #020617);
+.lk-footer {
+  background: #f4f9ff;
+  border-top: 1px solid #e2e8f0;
+  padding: 48px 24px 24px;
+  font-size: 0.95rem;
+  color: #475569;
+  margin-top: 64px;
 }
 
-.lk-site-footer-inner {
-  max-width: 1120px;
+.lk-footer-container {
+  max-width: 1100px;
   margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 32px;
 }
 
-.lk-site-footer-badge {
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  background: var(--color-surface-muted, #111827);
-  color: var(--color-text-muted, #9ca3af);
+.lk-footer-brand p {
+  margin-top: 8px;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+.lk-footer-logo {
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.lk-footer-links,
+.lk-footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lk-footer-links strong,
+.lk-footer-contact strong {
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.lk-footer a {
+  color: #475569;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.lk-footer a:hover {
+  color: #e67e22;
+}
+
+.lk-footer-muted {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.lk-footer-bottom {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #d7e5f3;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+.lk-footer-note {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .lk-footer-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }
 
 .lk-site-login {
@@ -1403,7 +1455,6 @@ body {
 .lk-contact-badges {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 .lk-badge {
@@ -1492,6 +1543,25 @@ body {
   .lk-contact-card {
     margin: 0 auto;
     max-width: 350px;
+    padding: 26px !important;
+  }
+  .lk-contact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 18px;
+  }
+
+  .lk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #334155;
+    font-weight: 600;
+    font-size: 12px !important;
   }
 }
 

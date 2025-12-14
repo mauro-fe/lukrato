@@ -35,11 +35,8 @@ registerBillingRoutes();
 Router::add('GET', '/', 'Site\\LandingController@index');
 
 
-// Página de planos
-Router::add('GET', '/planos', 'Site\\LandingController@plans');
 
-// (Opcional) Página “por que controlar finanças”
-Router::add('GET', '/por-que-controlar-financas', 'Site\\LandingController@whyFinance');
+
 
 /* =========================
 
@@ -78,6 +75,7 @@ function registerAuthRoutes(): void
 // PÁGINAS LEGAIS DO SITE / TERMOS
 Router::add('GET', '/termos', 'Site\\LegalController@terms');
 Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');
+Router::add('GET', '/lgpd', 'Site\\LegalController@lgpd');
 
 Router::add('GET', '/api/lancamentos/usage', 'Api\\LancamentosController@usage');
 
@@ -183,6 +181,10 @@ function registerApiRoutes(): void
 {
     // Segurança / utilidades
     Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
+
+    // Contato
+    Router::add('POST', '/api/contato/enviar', 'Api\\ContactController@send');
+
 
     // Perfil
 
