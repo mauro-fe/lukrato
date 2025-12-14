@@ -1,86 +1,163 @@
 <style>
-    .legal-page {
-        padding: 48px 0;
-        background: var(--color-bg);
+    .lk-legal-page {
+        background: var(--color-bg, #e6f0fa);
+        padding: 60px 16px;
     }
 
-    .legal-page .container {
-        width: min(900px, 95%);
+    .lk-legal-container {
+        max-width: 880px;
         margin: 0 auto;
-        background: var(--color-surface);
+    }
+
+    .lk-back-home {
+        display: inline-block;
+        margin-bottom: 20px;
+        text-decoration: none;
+        color: var(--color-primary, #e67e22);
+        font-weight: 600;
+    }
+
+    .lk-legal-container h1 {
+        font-size: 2.2rem;
+        color: var(--color-text, #1e293b);
+        margin-bottom: 8px;
+    }
+
+    .lk-legal-updated {
+        font-size: 0.9rem;
+        color: var(--color-text-muted, #475569);
+        margin-bottom: 32px;
+    }
+
+    .lk-legal-card {
+        background: var(--color-surface, #f8fbff);
+        border-radius: 16px;
         padding: 32px;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
     }
 
-    .legal-page h1 {
-        margin-bottom: 16px;
-        font-size: 2rem;
-        color: var(--color-primary);
-    }
-
-    .legal-page h2 {
+    .lk-legal-card h2 {
+        font-size: 1.1rem;
         margin-top: 24px;
-        color: var(--color-text);
+        margin-bottom: 8px;
+        color: var(--color-text, #1e293b);
     }
 
-    .legal-page p {
-        margin-top: 8px;
-        color: var(--color-text-muted);
+    .lk-legal-card h2:first-child {
+        margin-top: 0;
+    }
+
+    .lk-legal-card p {
+        font-size: 0.95rem;
         line-height: 1.6;
+        color: var(--color-text-muted, #475569);
     }
 
-    .legal-page a {
-        color: var(--color-primary);
+    .lk-legal-card a {
+        color: var(--color-primary, #e67e22);
+        font-weight: 500;
         text-decoration: none;
     }
 
-    .legal-page a:hover {
+    .lk-legal-card a:hover {
         text-decoration: underline;
+    }
+
+    .lk-legal-footer {
+        margin-top: 32px;
+        text-align: center;
+    }
+
+    .lk-btn-primary {
+        display: inline-block;
+        padding: 14px 28px;
+        background: var(--color-primary, #e67e22);
+        color: #fff;
+        border-radius: 999px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .lk-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(230, 126, 34, 0.35);
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+        .lk-legal-card {
+            padding: 24px;
+        }
+
+        .lk-legal-container h1 {
+            font-size: 1.8rem;
+        }
     }
 </style>
 
 <?php loadPageCss(); ?>
 
-<main class="legal-page">
-    <div class="container">
-        <h1>Política de Privacidade</h1>
-        <p>Última atualização: <?= date('d/m/Y') ?></p>
+<section class="lk-legal-page">
+    <div class="lk-legal-container">
 
-        <section>
+        <a href="<?= BASE_URL ?>/" class="lk-back-home">← Voltar para a Home</a>
+
+        <h1>Política de Privacidade</h1>
+        <p class="lk-legal-updated">Última atualização: <?= date('d/m/Y') ?></p>
+
+        <div class="lk-legal-card">
+
             <h2>1. Coleta de Dados</h2>
             <p>
-                Coletamos informações fornecidas diretamente por você, como nome, email e dados financeiros inseridos na
-                plataforma.
+                Coletamos apenas as informações necessárias para o funcionamento do
+                Lukrato, como nome, e-mail e dados financeiros inseridos pelo próprio
+                usuário.
             </p>
-        </section>
 
-        <section>
             <h2>2. Uso das Informações</h2>
             <p>
-                Usamos seus dados para melhorar sua experiência e oferecer funcionalidades do sistema.
+                Os dados são utilizados exclusivamente para oferecer as funcionalidades
+                do sistema, melhorar a experiência do usuário e garantir a segurança da
+                plataforma.
             </p>
-        </section>
 
-        <section>
-            <h2>3. Compartilhamento</h2>
+            <h2>3. Compartilhamento de Dados</h2>
             <p>
-                Não vendemos nem compartilhamos seus dados com terceiros, exceto quando exigido por lei.
+                Não vendemos nem compartilhamos seus dados com terceiros, exceto quando
+                exigido por lei ou ordem judicial.
             </p>
-        </section>
 
-        <section>
             <h2>4. Cookies</h2>
             <p>
-                Utilizamos cookies para manter sua sessão ativa e otimizar o desempenho da plataforma.
+                Utilizamos cookies estritamente necessários para manter sua sessão ativa
+                e garantir o correto funcionamento do sistema.
             </p>
-        </section>
 
-        <section>
-            <h2>5. Seus Direitos</h2>
+            <h2>5. Seus Direitos (LGPD)</h2>
             <p>
-                Você pode solicitar a exclusão ou correção de seus dados a qualquer momento.
+                Você pode solicitar a qualquer momento o acesso, correção ou exclusão de
+                seus dados pessoais, conforme a Lei Geral de Proteção de Dados (LGPD).
             </p>
-        </section>
+
+            <h2>6. Segurança</h2>
+            <p>
+                Adotamos medidas técnicas e organizacionais para proteger seus dados
+                contra acessos não autorizados, perda ou uso indevido.
+            </p>
+
+            <h2>7. Contato</h2>
+            <p>
+                Em caso de dúvidas sobre esta Política de Privacidade ou sobre seus dados,
+                entre em contato pelo e-mail
+                <strong>lukratosistema@gmail.com</strong>.
+            </p>
+
+        </div>
+
+        <div class="lk-legal-footer">
+            <a href="<?= BASE_URL ?>/" class="lk-btn-primary">Voltar para a Home</a>
+        </div>
+
     </div>
-</main>
+</section>

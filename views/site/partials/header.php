@@ -46,11 +46,11 @@ $extraCss  = $extraCss  ?? [];
 
 
                 <div class="lk-site-actions">
-                    <a href="<?= BASE_URL ?>/login" class="lk-site-login">
+                    <a href="<?= BASE_URL ?>login" class="lk-site-login">
                         <i class="fa-regular fa-user"></i>
                         <span>Login</span>
                     </a>
-                    <a href="<?= BASE_URL ?>/register" class="lk-site-cta">Começar grátis</a>
+                    <a href="<?= BASE_URL ?>login" class="lk-site-cta">Começar grátis</a>
                 </div>
             </div>
 

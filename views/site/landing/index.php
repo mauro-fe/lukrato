@@ -44,7 +44,7 @@
             </ul>
 
             <div class="lk-func-ctas">
-                <a href="<?= BASE_URL ?>/register/criar" class="lk-btn-primary">
+                <a href="<?= BASE_URL ?>login" class="lk-btn-primary">
                     Começar grátis
                 </a>
 
@@ -178,7 +178,7 @@
             <h3>Pronto para cuidar melhor do seu dinheiro?</h3>
             <p>Comece agora mesmo, sem complicação e sem custos iniciais.</p>
 
-            <a href="#planos" class="lk-btn-primary">
+            <a href="<?= BASE_URL ?>login" class="lk-btn-primary">
                 Começar grátis
             </a>
         </div>
@@ -217,7 +217,7 @@
 
 
 
-            <a href="/register" class="plan-btn outline">
+            <a href="<?= BASE_URL ?>login" class="plan-btn outline">
                 Começar grátis
             </a>
         </div>
@@ -245,7 +245,7 @@
             </ul>
 
 
-            <a href="/billing" class="plan-btn primary">
+            <a href="<?= BASE_URL ?>billing" class="plan-btn primary">
                 Assinar Pro
             </a>
         </div>
@@ -284,7 +284,7 @@
         </ul>
 
         <div class="lk-garantia-cta">
-            <a href="#planos" class="lk-btn-primary">
+            <a href="<?= BASE_URL ?>login" class="lk-btn-primary">
                 Começar grátis agora
             </a>
             <small>Leva menos de 2 minutos para começar</small>
@@ -351,43 +351,43 @@
                         <p>Prefere e-mail? Mande sua dúvida e respondemos em até 1 dia útil.</p>
                     </div>
 
-                    <form class="lk-contact-form" action="<?= BASE_URL ?>contato/enviar" method="POST">
-                        <div class="lk-form-grid">
+                    <form id="contactForm" class="lk-contact-form">
+                        <div class="lk-row">
                             <div class="lk-field">
-                                <label for="ct-name">Seu nome</label>
-                                <input id="ct-name" name="name" type="text" placeholder="Ex: Mauro" required />
+                                <label for="lk_nome">Seu nome</label>
+                                <input id="lk_nome" name="nome" type="text" placeholder="Seu nome" required>
                             </div>
 
                             <div class="lk-field">
-                                <label for="ct-phone">WhatsApp (opcional)</label>
-                                <input id="ct-phone" name="phone" type="tel" placeholder="(44) 99999-9999" />
+                                <label for="lk_whatsapp">WhatsApp (opcional)</label>
+                                <input type="text" name="whatsapp" id="whatsapp" placeholder="(00) 00000-0000"
+                                    autocomplete="tel" />
                             </div>
                         </div>
 
                         <div class="lk-field">
-                            <label for="ct-email">Seu e-mail</label>
-                            <input id="ct-email" name="email" type="email" placeholder="voce@email.com" required />
+                            <label for="lk_email">Seu e-mail</label>
+                            <input id="lk_email" name="email" type="email" placeholder="voce@email.com" required>
                         </div>
 
                         <div class="lk-field">
-                            <label for="ct-subject">Assunto</label>
-                            <input id="ct-subject" name="subject" type="text" placeholder="Ex: Dúvida sobre o plano Pro"
-                                required />
+                            <label for="lk_assunto">Assunto</label>
+                            <input id="lk_assunto" name="assunto" type="text" placeholder="Ex: Dúvida sobre o plano Pro"
+                                required>
                         </div>
 
                         <div class="lk-field">
-                            <label for="ct-message">Mensagem</label>
-                            <textarea id="ct-message" name="message" rows="6" placeholder="Escreva sua dúvida aqui..."
+                            <label for="lk_mensagem">Mensagem</label>
+                            <textarea id="lk_mensagem" name="mensagem" rows="6" placeholder="Escreva sua mensagem..."
                                 required></textarea>
                         </div>
 
-                        <button class="lk-btn lk-btn-primary lk-btn-block" type="submit">
+                        <button class="lk-btn lk-btn-primary" type="submit">
                             Enviar mensagem
                         </button>
-
-                        <p class="lk-contact-hint">Ao enviar, você concorda em ser contatado para retorno do
-                            atendimento.</p>
                     </form>
+
+
                 </div>
             </article>
         </div>
