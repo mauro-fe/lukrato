@@ -382,7 +382,8 @@
 </style>
 
 <!-- Modal: Agendar pagamento -->
-<div class="modal fade" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoTitle" aria-hidden="true">
+<div class="modal fade" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoTitle" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content">
             <div class="modal-header">

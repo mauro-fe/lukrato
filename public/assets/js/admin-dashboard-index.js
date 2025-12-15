@@ -49,6 +49,27 @@
         isLoading: false
     };
 
+    const getThemeColors = () => {
+        const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+            || Utils?.isLightTheme?.();
+        return {
+            isLightTheme,
+            axisColor: isLightTheme
+                ? (Utils.getCssVar('--color-primary', '#e67e22') || '#e67e22')
+                : 'rgba(255, 255, 255, 0.6)',
+            yTickColor: isLightTheme ? '#000' : '#fff',
+            xTickColor: isLightTheme
+                ? (Utils.getCssVar('--color-text-muted', '#6c757d') || '#6c757d')
+                : 'rgba(255, 255, 255, 0.6)',
+            gridColor: isLightTheme
+                ? 'rgba(0, 0, 0, 0.08)'
+                : 'rgba(255, 255, 255, 0.05)',
+            tooltipBg: isLightTheme ? 'rgba(255, 255, 255, 0.92)' : 'rgba(0, 0, 0, 0.85)',
+            tooltipColor: isLightTheme ? '#0f172a' : '#f8fafc',
+            labelColor: isLightTheme ? '#0f172a' : '#f8fafc'
+        };
+    };
+
     const Utils = {
         money: (n) => {
             try {
@@ -508,18 +529,15 @@
                     }]
                 };
 
-                const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
-                    || Utils.isLightTheme();
-                const axisColor = isLightTheme
-                    ? (Utils.getCssVar('--color-primary', '#e67e22') || '#e67e22')
-                    : 'rgba(255, 255, 255, 0.6)';
-                const yTickColor = isLightTheme ? '#000' : '#fff';
-                const xTickColor = isLightTheme
-                    ? (Utils.getCssVar('--color-text-muted', '#6c757d') || '#6c757d')
-                    : 'rgba(255, 255, 255, 0.6)';
-                const gridColor = isLightTheme
-                    ? 'rgba(0, 0, 0, 0.08)'
-                    : 'rgba(255, 255, 255, 0.05)';
+                const {
+                    axisColor,
+                    yTickColor,
+                    xTickColor,
+                    gridColor,
+                    tooltipBg,
+                    tooltipColor,
+                    labelColor
+                } = getThemeColors();
 
                 const options = {
                     responsive: true,
@@ -530,10 +548,15 @@
                     },
                     plugins: {
                         legend: {
-                            display: false
+                            display: false,
+                            labels: {
+                                color: labelColor
+                            }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            backgroundColor: tooltipBg,
+                            titleColor: tooltipColor,
+                            bodyColor: tooltipColor,
                             padding: 12,
                             titleFont: {
                                 size: 14,
@@ -573,15 +596,14 @@
                 };
 
                 if (STATE.chartInstance) {
-                    STATE.chartInstance.data = chartData;
-                    STATE.chartInstance.update('none');
-                } else {
-                    STATE.chartInstance = new Chart(ctx, {
-                        type: 'line',
-                        data: chartData,
-                        options
-                    });
+                    STATE.chartInstance.destroy();
                 }
+
+                STATE.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options
+                });
             } catch (err) {
                 console.error('Erro ao renderizar gráfico:', err);
             } finally {
@@ -700,6 +722,12 @@
             document.addEventListener('lukrato:theme-changed', () => {
                 DashboardManager.refresh();
             });
+
+            // Fallback para quando o evento n‹o vier: observa o atributo data-theme
+            const observer = new MutationObserver(() => {
+                DashboardManager.refresh();
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
     };
 
@@ -719,7 +747,3 @@
 
     init();
 })();
-
-
-
-

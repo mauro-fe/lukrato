@@ -399,7 +399,8 @@
     }
 </style>
 
-<div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLancamentoTitle" aria-hidden="true">
+<div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLancamentoTitle" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content">
             <div class="modal-header">

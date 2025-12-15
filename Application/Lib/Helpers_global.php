@@ -70,6 +70,49 @@ if (!function_exists('csrf_meta')) {
             . '<meta name="csrf-token-id" content="' . $idEsc . '">';
     }
 }
+
+if (!function_exists('public_path')) {
+    /**
+     * Retorna o caminho absoluto da pasta pública (document root da aplicação).
+     * Funciona com /public no local e também quando o public é a própria raiz no host.
+     */
+    function public_path(string $relative = ''): string
+    {
+        // Se existe constante, use (você pode definir em config quando quiser)
+        if (defined('PUBLIC_PATH') && is_string(PUBLIC_PATH) && PUBLIC_PATH !== '') {
+            $base = rtrim(PUBLIC_PATH, DIRECTORY_SEPARATOR);
+        } else {
+            // SCRIPT_FILENAME costuma apontar pro arquivo realmente executado (index.php)
+            $script = $_SERVER['SCRIPT_FILENAME'] ?? '';
+
+            // pasta onde está o index.php (ou arquivo front controller)
+            $base = $script ? dirname($script) : getcwd();
+
+            // Se o index.php estiver dentro de /public, ok.
+            // Se estiver fora, tentamos achar /public ao lado.
+            if ($base && is_dir($base . DIRECTORY_SEPARATOR . 'public')) {
+                $base = $base . DIRECTORY_SEPARATOR . 'public';
+            }
+        }
+
+        $relative = ltrim($relative, '/\\');
+        return $relative === ''
+            ? $base
+            : $base . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relative);
+    }
+}
+
+if (!function_exists('asset_url')) {
+    /**
+     * Monta URL do asset usando BASE_URL e normaliza barras.
+     */
+    function asset_url(string $path): string
+    {
+        $path = ltrim($path, '/');
+        return rtrim(BASE_URL, '/') . '/' . $path;
+    }
+}
+
 if (!function_exists('loadPageCss')) {
     function loadPageCss(?string $name = null): void
     {
@@ -77,19 +120,16 @@ if (!function_exists('loadPageCss')) {
         if ($view === '') return;
 
         $cssPath = 'assets/css/' . $view . '.css';
-        $abs     = __DIR__ . '/../../public/' . $cssPath;
+        $abs     = public_path($cssPath);
 
-        if (file_exists($abs)) {
-            $v = filemtime($abs) ?: time();
-            echo '<link rel="stylesheet" href="' . BASE_URL . $cssPath . '?v=' . $v . '">' . PHP_EOL;
+        if (is_file($abs)) {
+            $v = @filemtime($abs) ?: time();
+            echo '<link rel="stylesheet" href="' . asset_url($cssPath) . '?v=' . $v . '">' . PHP_EOL;
         }
     }
 }
 
-
-
 if (!function_exists('loadPageJs')) {
-
     function loadPageJs(?string $view = null): void
     {
         static $loadedScripts = [];
@@ -106,13 +146,15 @@ if (!function_exists('loadPageJs')) {
             $candidates[] = 'assets/js/' . implode('-', array_slice($parts, 0, -1)) . '.js';
         }
 
-        $publicRoot = __DIR__ . '/../../public/';
         foreach ($candidates as $jsPath) {
-            if (file_exists($publicRoot . $jsPath)) {
-                if (in_array($jsPath, $loadedScripts, true)) {
-                    return;
-                }
-                echo '<script src="' . BASE_URL . $jsPath . '" defer></script>' . PHP_EOL;
+            $abs = public_path($jsPath);
+
+            if (is_file($abs)) {
+                if (in_array($jsPath, $loadedScripts, true)) return;
+
+                $v = @filemtime($abs) ?: time();
+                echo '<script src="' . asset_url($jsPath) . '?v=' . $v . '" defer></script>' . PHP_EOL;
+
                 $loadedScripts[] = $jsPath;
                 return;
             }

@@ -106,6 +106,8 @@
     const categoriaSelect = document.getElementById('agCategoria');
     const contaSelect = document.getElementById('agConta');
     const tipoSelect = document.getElementById('agTipo');
+    const valorInput = document.getElementById('agValor');
+    const dataHoraInput = document.getElementById('agDataHora');
     const agModal = document.getElementById('modalAgendamento');
     const selectCache = {
         contas: null,
@@ -241,6 +243,30 @@
         });
     };
 
+    const moneyMask = (() => {
+        const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const format = (num) => {
+            const n = Number(num);
+            return Number.isFinite(n) ? formatter.format(n) : '';
+        };
+
+        const bind = (input) => {
+            if (!input) return;
+            const onInput = (e) => {
+                const digits = String(e.target.value || '').replace(/[^\d]/g, '');
+                const num = Number(digits || '0') / 100;
+                e.target.value = format(num);
+            };
+            input.addEventListener('input', onInput, { passive: true });
+            input.addEventListener('focus', () => {
+                if (!input.value) input.value = format(0);
+            });
+        };
+
+        return { format, bind };
+    })();
+
     const parseMoneyToCents = (value) => {
         if (value === null || value === undefined) return 0;
         const normalized = String(value)
@@ -253,6 +279,21 @@
         }
         return 0;
     };
+
+    const getLocalDateTimeInputValue = () => {
+        const now = new Date();
+        const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 16);
+    };
+
+    // Máscara e valores padrão
+    moneyMask.bind(valorInput);
+    if (valorInput && !valorInput.value) {
+        valorInput.value = moneyMask.format(0);
+    }
+    if (dataHoraInput && !dataHoraInput.value) {
+        dataHoraInput.value = getLocalDateTimeInputValue();
+    }
 
     const getCsrf = () => {
         if (typeof LK !== 'undefined' && typeof LK.getCSRF === 'function') {
@@ -870,6 +911,12 @@
                 loadContasSelect(),
                 loadCategoriasSelect(tipoSelect?.value || 'despesa')
             ]);
+            if (dataHoraInput && !dataHoraInput.value) {
+                dataHoraInput.value = getLocalDateTimeInputValue();
+            }
+            if (valorInput && !valorInput.value) {
+                valorInput.value = moneyMask.format(0);
+            }
             hideFormError();
         } catch (error) {
             console.error(error);
@@ -986,8 +1033,5 @@
     loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
     loadAgendamentos();
 });
-
-
-
 
 

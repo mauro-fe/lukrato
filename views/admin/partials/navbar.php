@@ -3,6 +3,14 @@
 use Application\Lib\Auth;
 
 $navbarUser = $currentUser ?? Auth::user();
+$subTitle = $subTitle ?? '';
+$navbarName = $navbarUser->nome ?? ($navbarUser->name ?? '');
+$navbarFirstName = '';
+if ($navbarName) {
+    $navbarFirstName = trim($navbarName);
+    $parts = preg_split('/\s+/', $navbarFirstName);
+    $navbarFirstName = $parts[0] ?? $navbarFirstName;
+}
 $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser && method_exists($navbarUser, 'isPro') && $navbarUser->isPro());
 
 ?>
@@ -26,7 +34,6 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     }
 
     .lk-navbar-inner {
-        max-width: 1200px;
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -41,24 +48,39 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
  * =============================== */
     .lk-navbar-left {
         display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-3);
+        flex-direction: column;
+    }
+
+    .lk-welcome {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        display: flex;
         align-items: center;
-        gap: var(--spacing-6);
+        gap: 6px;
+        letter-spacing: 0.01em;
+    }
+
+    .lk-welcome strong {
+        color: var(--color-text);
+        font-weight: 700;
     }
 
     .lk-navbar-left h1 {
-        font-size: 1.6rem;
-        font-weight: 600;
+        font-size: 1.55rem;
+        font-weight: 700;
         color: var(--color-primary);
         margin: 0;
-        border-bottom: 3px solid var(--color-primary);
-        letter-spacing: 1px;
-        line-height: 1.5;
+        letter-spacing: 0.5px;
+        line-height: 1.4;
     }
 
     .lk-navbar-left h1 span {
         color: var(--color-text);
-        font-size: 1.4rem;
-
+        font-size: 1.2rem;
+        font-weight: 600;
     }
 
     @media (max-width: 576px) {
@@ -69,15 +91,30 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
         .lk-navbar-inner {
             gap: var(--spacing-2) !important;
+            align-items: stretch;
+        }
+
+        .lk-navbar-left {
+            gap: var(--spacing-1);
+            width: 100%;
+        }
+
+        .lk-welcome {
+            font-size: 0.85rem;
         }
 
         .lk-navbar-left h1 {
-            font-size: 1.25rem;
-            line-height: 1.3;
+            font-size: 1.2rem;
+            line-height: 1.25;
         }
 
         .lk-navbar-left h1 span {
-            font-size: 1.1rem;
+            font-size: 1rem;
+        }
+
+        .lk-navbar-right {
+            width: 100%;
+            justify-content: flex-end;
         }
     }
 
@@ -270,11 +307,11 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
     @media (max-width: 300px) {
         .lk-navbar-left h1 {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .lk-navbar-left h1 span {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
         }
 
         .lk-navbar-right .theme-toggle,
@@ -292,12 +329,113 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
             font-size: 0.7rem !important;
         }
     }
+
+    .lk-welcome {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--color-text-muted);
+        font-size: 13px;
+    }
+
+    .lk-welcome strong {
+        color: var(--color-text);
+        font-weight: 700;
+    }
+
+    .lk-plan-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .6px;
+        text-transform: uppercase;
+        border: 1px solid var(--glass-border, rgba(255, 255, 255, .12));
+        background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+        box-shadow: var(--shadow-sm);
+        user-select: none;
+        transition: var(--transition);
+    }
+
+    .lk-plan-badge i {
+        font-size: 12px;
+        opacity: .95;
+    }
+
+    .lk-plan-badge--pro {
+        color: var(--color-warning);
+        background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+    }
+
+    .lk-plan-badge--free {
+        color: var(--color-neutral);
+        background: color-mix(in srgb, var(--color-neutral) 12%, transparent);
+    }
+
+    .lk-plan-badge:focus {
+        outline: 2px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+        outline-offset: 2px;
+    }
+
+    /* Tooltip */
+    .lk-plan-badge[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 50%;
+        top: -10px;
+        transform: translate(-50%, -100%);
+        white-space: nowrap;
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        border: 1px solid var(--glass-border, rgba(255, 255, 255, .12));
+        box-shadow: var(--shadow-md);
+        opacity: 0;
+        pointer-events: none;
+        transition: var(--transition);
+        font-size: 12px;
+        z-index: 30;
+    }
+
+    .lk-plan-badge:hover::after,
+    .lk-plan-badge:focus::after {
+        opacity: 1;
+    }
 </style>
 
 <nav class="lk-navbar" data-aos="fade-up">
     <div class="lk-navbar-inner">
         <div class="lk-navbar-left">
-            <h1><?= $pageTitle ?? 'Painel' ?> <span> - <?= $subTitle ?></span></h1>
+            <div class="lk-welcome">
+                <span>Bem-vindo,</span>
+                <strong><?= $navbarFirstName ?: 'usuário' ?></strong>
+
+                <?php
+                // Ajuste aqui conforme o seu sistema:
+                // Ex.: $isPro = ($usuario->plano === 'pro');
+                $isPro = !($showNavbarUpgradeCTA ?? true); // se você mostra CTA de upgrade, normalmente o user é Free
+                $planLabel = $isPro ? 'PRO' : 'FREE';
+                $planClass = $isPro ? 'lk-plan-badge--pro' : 'lk-plan-badge--free';
+                $planTip   = $isPro ? 'Plano Pro ativo' : 'Você está no Free. Faça upgrade para liberar recursos.';
+                ?>
+
+                <span class="lk-plan-badge <?= $planClass ?>"
+                    tabindex="0"
+                    role="status"
+                    aria-label="<?= htmlspecialchars($planTip, ENT_QUOTES, 'UTF-8') ?>"
+                    data-tooltip="<?= htmlspecialchars($planTip, ENT_QUOTES, 'UTF-8') ?>">
+                    <i class="fa-solid <?= $isPro ? 'fa-crown' : 'fa-leaf' ?>"></i>
+                    <?= $planLabel ?>
+                </span>
+            </div>
+
+            <h1><?= $pageTitle ?? 'Painel' ?> <span><?= $subTitle ? " – {$subTitle}" : '' ?></span></h1>
         </div>
 
         <div class="lk-navbar-right">

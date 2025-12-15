@@ -273,6 +273,49 @@
     // NOTIFICAÃ‡Ã•ES
     // ============================================================================
 
+    // ============================================================================
+    // MÁSCARA DE MOEDA
+    // ============================================================================
+
+    const MoneyMask = (() => {
+        const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const format = (value) => {
+            const num = Number(value);
+            return Number.isFinite(num) ? formatter.format(num) : '';
+        };
+
+        const unformat = (value) => {
+            const normalized = String(value || '')
+                .replace(/\s|[R$]/g, '')
+                .replace(/\./g, '')
+                .replace(',', '.');
+            const num = Number(normalized);
+            return Number.isFinite(num) ? num : 0;
+        };
+
+        const bind = (input) => {
+            if (!input) return;
+
+            const onInput = (e) => {
+                const digits = String(e.target.value || '').replace(/[^\d]/g, '');
+                const num = Number(digits || '0') / 100;
+                e.target.value = format(num);
+            };
+
+            input.addEventListener('input', onInput, { passive: true });
+            input.addEventListener('focus', () => {
+                if (!input.value) input.value = format(0);
+            });
+        };
+
+        return { format, unformat, bind };
+    })();
+
+    // ============================================================================
+    // NOTIFICACOES
+    // ============================================================================
+
     const Notifications = {
         ask: async (title, text = '') => {
             if (Utils.hasSwal()) {
@@ -1385,7 +1428,7 @@
 
             if (DOM.inputLancValor) {
                 const valor = Math.abs(Number(data?.valor ?? 0));
-                DOM.inputLancValor.value = Number.isFinite(valor) ? valor.toFixed(2) : '';
+                DOM.inputLancValor.value = Number.isFinite(valor) ? MoneyMask.format(valor) : '';
             }
 
             if (DOM.inputLancDescricao) {
@@ -1406,15 +1449,14 @@
             const tipoValue = DOM.selectLancTipo?.value || '';
             const contaValue = DOM.selectLancConta?.value || '';
             const categoriaValue = DOM.selectLancCategoria?.value || '';
-            let valorValue = DOM.inputLancValor?.value || '';
+            const valorValue = DOM.inputLancValor?.value || '';
             const descricaoValue = (DOM.inputLancDescricao?.value || '').trim();
 
             if (!dataValue) return ModalManager.showLancAlert('Informe a data do lançamento.');
             if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lançamento.');
             if (!contaValue) return ModalManager.showLancAlert('Selecione a conta.');
 
-            valorValue = valorValue.replace(/\s+/g, '').replace(',', '.');
-            const valorFloat = Math.abs(Number(valorValue));
+            const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
             if (!Number.isFinite(valorFloat)) {
                 return ModalManager.showLancAlert('Informe um valor vÃ¡lido.');
             }
@@ -1622,6 +1664,7 @@
 
     const EventListeners = {
         init: () => {
+            MoneyMask.bind(DOM.inputLancValor);
             // Tipo de lançamento mudou - atualizar categorias
             DOM.selectLancTipo?.addEventListener('change', () => {
                 OptionsManager.populateCategoriaSelect(
@@ -1694,5 +1737,3 @@
     // Iniciar aplicação
     init();
 })();
-
-

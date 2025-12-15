@@ -46,8 +46,8 @@
 
                         <div class="col-md-3">
                             <label for="editLancValor" class="form-label">Valor</label>
-                            <input type="number" class="form-control form-control-sm" id="editLancValor" step="0.01"
-                                required aria-required="true">
+                            <input type="text" class="form-control form-control-sm money-mask" id="editLancValor"
+                                inputmode="decimal" placeholder="R$ 0,00" required aria-required="true">
                         </div>
                     </div>
 
