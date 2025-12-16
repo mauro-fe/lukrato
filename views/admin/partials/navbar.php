@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Application\Lib\Auth;
 
@@ -183,6 +183,52 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     font-size: 1rem;
 }
 
+.theme-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full, 999px);
+    border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.14));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 70%, transparent), color-mix(in srgb, var(--color-primary) 6%, transparent));
+    box-shadow: var(--shadow-sm);
+    color: var(--color-text);
+    padding: 0;
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.theme-toggle:hover {
+    background: color-mix(in srgb, var(--color-surface) 78%, var(--color-primary) 8%);
+    border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+    box-shadow: var(--shadow-md);
+}
+
+.theme-toggle:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.theme-toggle .theme-toggle__icon {
+    font-size: 1.1rem;
+    transition: transform 420ms cubic-bezier(.4, 0, .2, 1), opacity 420ms cubic-bezier(.4, 0, .2, 1), filter 420ms cubic-bezier(.4, 0, .2, 1);
+    display: inline-flex;
+}
+
+.theme-toggle.is-animating .theme-toggle__icon {
+    transform: rotate(180deg) scale(0.9);
+    opacity: 0;
+    filter: blur(0.3px);
+}
+
+.theme-toggle.dark {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 55%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
+    border-color: color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-toggle,
+    .theme-toggle .theme-toggle__icon {
+        transition: none !important;
+    }
+}
+
 
 .lk-navbar-notifications .lk-popover {
     position: absolute;
@@ -221,63 +267,6 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     background: var(--color-surface-muted);
 }
 
-
-/* =========================================================
- * HEADER CONTROLS (menu lateral & tema)
- * =======================================================*/
-
-.theme-toggle {
-    border: 1px solid var(--glass-border);
-    backdrop-filter: var(--glass-backdrop);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    transition: background var(--transition-fast);
-    color: var(--color-text) !important;
-}
-
-.lk-header .header-menu-btn {
-    z-index: 1200;
-}
-
-
-.theme-toggle:hover {
-    background-color: var(--color-primary) !important;
-}
-
-.theme-toggle i {
-    position: absolute;
-    font-size: 18px;
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-.theme-toggle i.fa-sun {
-    opacity: 1;
-    transform: rotate(0deg);
-
-}
-
-.theme-toggle i.fa-moon {
-    opacity: 0;
-    transform: rotate(-90deg);
-}
-
-.theme-toggle.dark i.fa-sun {
-    opacity: 0;
-    transform: rotate(90deg);
-
-}
-
-.theme-toggle.dark i.fa-moon {
-    opacity: 1;
-    transform: rotate(0deg);
-
-}
 
 @media (max-width: 600px) {
 
@@ -411,7 +400,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     opacity: 1;
 }
 
-/* Animação de entrada do badge */
+/* AnimaÃ§Ã£o de entrada do badge */
 @keyframes lkBadgeIn {
     from {
         opacity: 0;
@@ -424,13 +413,13 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     }
 }
 
-/* Aplica a animação apenas no carregamento */
+/* Aplica a animaÃ§Ã£o apenas no carregamento */
 .lk-plan-badge--pro {
     animation: lkBadgeIn 420ms cubic-bezier(.16, 1, .3, 1);
 }
 
 /* ===============================
-   Acessibilidade – Redução de movimento
+   Acessibilidade â€“ ReduÃ§Ã£o de movimento
    =============================== */
 @media (prefers-reduced-motion: reduce) {
 
@@ -447,15 +436,15 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         <div class="lk-navbar-left">
             <div class="lk-welcome">
                 <span>Bem-vindo</span>
-                <strong><?= $navbarFirstName ?: 'usuário' ?></strong>
+                <strong><?= $navbarFirstName ?: 'usuÃ¡rio' ?></strong>
 
                 <?php
                 // Ajuste aqui conforme o seu sistema:
                 // Ex.: $isPro = ($usuario->plano === 'pro');
-                $isPro = !($showNavbarUpgradeCTA ?? true); // se você mostra CTA de upgrade, normalmente o user é Free
+                $isPro = !($showNavbarUpgradeCTA ?? true); // se vocÃª mostra CTA de upgrade, normalmente o user Ã© Free
                 $planLabel = $isPro ? 'PRO' : 'FREE';
                 $planClass = $isPro ? 'lk-plan-badge--pro' : 'lk-plan-badge--free';
-                $planTip   = $isPro ? 'Plano Pro ativo' : 'Você está no Free. Faça upgrade para liberar recursos.';
+                $planTip   = $isPro ? 'Plano Pro ativo' : 'VocÃª estÃ¡ no Free. FaÃ§a upgrade para liberar recursos.';
                 ?>
 
                 <span class="lk-plan-badge <?= $planClass ?>" tabindex="0" role="status"
@@ -466,13 +455,13 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
                 </span>
             </div>
 
-            <h1><?= $pageTitle ?? 'Painel' ?> <span><?= $subTitle ? " – {$subTitle}" : '' ?></span></h1>
+            <h1><?= $pageTitle ?? 'Painel' ?> <span><?= $subTitle ? " â€“ {$subTitle}" : '' ?></span></h1>
         </div>
 
         <div class="lk-navbar-right">
             <button id="toggleTheme" type="button" class="theme-toggle" aria-label="Alternar tema"
                 title="Modo claro/escuro">
-                <i id="themeIcon" class="fa-solid fa-sun"></i>
+                <i id="themeIcon" class="theme-toggle__icon fa-solid fa-sun"></i>
             </button>
 
             <?php include __DIR__ . '/notificacoes/bell.php'; ?>
@@ -494,8 +483,11 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     const icon = document.getElementById('themeIcon');
     const STORAGE_KEY = 'lukrato-theme';
     const THEME_EVENT = 'lukrato:theme-changed';
+    const THEME_ANIMATION_MS = 420;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let isAnimating = false;
 
-    // Detecta se é FA 5 ou FA 6 (pra usar o prefixo correto)
+    // Detecta se eh FA 5 ou FA 6 (pra usar o prefixo correto)
     const FA_PREFIX = (() => {
         const link = [...document.styleSheets].find(s => (s.href || '').includes('font-awesome/5'));
         return link ? 'fas' : 'fa-solid';
@@ -509,32 +501,56 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
 
+    function updateIconAndLabel(theme) {
+        if (!icon || !btn) return;
+        icon.className = '';
+        icon.classList.add(FA_PREFIX, 'theme-toggle__icon', theme === 'dark' ? 'fa-moon' : 'fa-sun');
+        const label = theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro';
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('title', label);
+        btn.classList.toggle('dark', theme === 'dark');
+    }
+
     function notifyThemeChange(theme) {
         document.dispatchEvent(new CustomEvent(THEME_EVENT, {
-            detail: {
-                theme
-            }
+            detail: { theme }
         }));
     }
 
-    function applyTheme(theme) {
+    function applyTheme(theme, options = { updateUi: true }) {
         root.setAttribute('data-theme', theme);
         localStorage.setItem(STORAGE_KEY, theme);
-        updateIcon(theme);
+        if (options.updateUi) updateIconAndLabel(theme);
         notifyThemeChange(theme);
     }
 
-    function updateIcon(theme) {
-        if (!icon) return;
-        icon.className = ''; // limpa as classes antigas
-        icon.classList.add(FA_PREFIX, theme === 'dark' ? 'fa-moon' : 'fa-sun');
-        btn?.classList.toggle('dark', theme === 'dark');
+    function animateAndApplyTheme(nextTheme) {
+        if (!btn || !icon || prefersReducedMotion.matches) {
+            applyTheme(nextTheme);
+            return;
+        }
+
+        if (isAnimating) return;
+        isAnimating = true;
+        btn.classList.add('is-animating');
+
+        const halfway = THEME_ANIMATION_MS / 2;
+
+        // Troca o tema e o icone no meio da animacao para evitar flicker
+        setTimeout(() => {
+            updateIconAndLabel(nextTheme);
+            applyTheme(nextTheme, { updateUi: false });
+        }, halfway);
+
+        setTimeout(() => {
+            btn.classList.remove('is-animating');
+            isAnimating = false;
+        }, THEME_ANIMATION_MS + 20);
     }
 
     function toggleTheme() {
         const next = getTheme() === 'dark' ? 'light' : 'dark';
-        applyTheme(next);
-        // applyTheme already dispara o evento
+        animateAndApplyTheme(next);
     }
 
     btn?.addEventListener('click', toggleTheme);
@@ -555,3 +571,5 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     });
 })();
 </script>
+
+

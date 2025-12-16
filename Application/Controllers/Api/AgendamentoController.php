@@ -46,8 +46,31 @@ class AgendamentoController extends BaseController
             Response::forbidden('Agendamentos são exclusivos do plano Pro.');
             return false;
         }
-        
+
         return true;
+    }
+
+    private function normalizeDataPagamento(array $data): array
+    {
+        if (!isset($data['data_pagamento'])) {
+            return $data;
+        }
+
+        $raw = (string) $data['data_pagamento'];
+        if ($raw === '') {
+            return $data;
+        }
+
+        $sanitized = str_replace('T', ' ', $raw);
+
+        try {
+            $dt = new DateTimeImmutable($sanitized);
+            $data['data_pagamento'] = $dt->format('Y-m-d H:i:s');
+        } catch (Throwable) {
+            $data['data_pagamento'] = $sanitized;
+        }
+
+        return $data;
     }
 
     private function getUserId(): int
@@ -135,7 +158,7 @@ class AgendamentoController extends BaseController
             'tipo'                   => $data['tipo'],
             'valor_centavos'         => (int) $valorCentavos,
             'moeda'                  => $data['moeda'] ?? 'BRL',
-            'data_pagamento'         => str_replace('T', ' ', $data['data_pagamento']),
+            'data_pagamento'         => $data['data_pagamento'],
             'proxima_execucao'       => $proximaExecucao,
             'lembrar_antes_segundos' => $lembrarSegundos,
             'canal_email'            => $this->boolFromMixed($data['canal_email'] ?? false),
@@ -158,6 +181,7 @@ class AgendamentoController extends BaseController
 
         try {
             $data = $this->validator->sanitize($_POST);
+            $data = $this->normalizeDataPagamento($data);
             $this->setValidationRules();
 
             if (!$this->validator->run($data)) {
@@ -199,6 +223,7 @@ class AgendamentoController extends BaseController
         try {
             $agendamentos = Agendamento::with(['categoria:id,nome', 'conta:id,nome'])
                 ->where('user_id', $this->getUserId())
+                ->whereIn('status', [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::CANCELADO->value])
                 ->orderBy('data_pagamento', 'asc')
                 ->limit(100)
                 ->get();
@@ -213,6 +238,76 @@ class AgendamentoController extends BaseController
             ]);
             
             Response::error('Erro ao buscar agendamentos.', 500);
+        }
+    }
+
+    public function update(int $id): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->ensureSchedulingAccess()) {
+            return;
+        }
+
+        try {
+            $agendamento = $this->buscarAgendamentoOuFalhar($id);
+            if (!$agendamento) {
+                return;
+            }
+
+            if ($agendamento->status !== AgendamentoStatus::PENDENTE->value) {
+                Response::error('Somente agendamentos pendentes podem ser editados.', 400);
+                return;
+            }
+
+            $data = $this->validator->sanitize($_POST);
+            $data = $this->normalizeDataPagamento($data);
+            $this->setValidationRules();
+
+            if (!$this->validator->run($data)) {
+                $errors = $this->validator->get_errors_array();
+
+                LogService::warning('Falha de validaÇõÇœo ao atualizar agendamento.', [
+                    'errors' => $errors,
+                    'user_id' => $this->getUserId(),
+                    'agendamento_id' => $id,
+                ]);
+
+                Response::validationError($errors);
+                return;
+            }
+
+            $dadosAgendamento = $this->prepararDadosAgendamento($data);
+
+            $payload = [
+                'titulo'                 => $dadosAgendamento['titulo'],
+                'data_pagamento'         => $dadosAgendamento['data_pagamento'],
+                'lembrar_antes_segundos' => $dadosAgendamento['lembrar_antes_segundos'],
+                'tipo'                   => $dadosAgendamento['tipo'],
+                'categoria_id'           => $dadosAgendamento['categoria_id'],
+                'conta_id'               => $dadosAgendamento['conta_id'],
+                'valor_centavos'         => $dadosAgendamento['valor_centavos'],
+                'descricao'              => $dadosAgendamento['descricao'],
+                'recorrente'             => $dadosAgendamento['recorrente'],
+                'canal_inapp'            => $dadosAgendamento['canal_inapp'],
+                'canal_email'            => $dadosAgendamento['canal_email'],
+                'proxima_execucao'       => $dadosAgendamento['proxima_execucao'],
+                'moeda'                  => $dadosAgendamento['moeda'] ?? 'BRL',
+            ];
+
+            $agendamento->update($payload);
+            $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
+
+            Response::success(['agendamento' => $agendamento]);
+        } catch (Throwable $e) {
+            LogService::error('Erro inesperado ao atualizar agendamento.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'agendamento_id' => $id,
+                'user_id' => $this->getUserId()
+            ]);
+
+            Response::error('Erro ao atualizar agendamento.', 500);
         }
     }
 
@@ -353,6 +448,11 @@ class AgendamentoController extends BaseController
                 return;
             }
 
+            if ($agendamento->status !== AgendamentoStatus::PENDENTE->value) {
+                Response::error('Somente agendamentos pendentes podem ser cancelados.', 400);
+                return;
+            }
+
             $agendamento->update([
                 'status' => AgendamentoStatus::CANCELADO->value,
                 'concluido_em' => null,
@@ -371,6 +471,45 @@ class AgendamentoController extends BaseController
             ]);
             
             Response::error('Erro ao cancelar agendamento.', 500);
+        }
+    }
+
+    public function restore(int $id): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->ensureSchedulingAccess()) {
+            return;
+        }
+
+        try {
+            $agendamento = $this->buscarAgendamentoOuFalhar($id);
+            if (!$agendamento) {
+                return;
+            }
+
+            if ($agendamento->status !== AgendamentoStatus::CANCELADO->value) {
+                Response::error('Somente agendamentos cancelados podem ser reativados.', 400);
+                return;
+            }
+
+            $agendamento->update([
+                'status' => AgendamentoStatus::PENDENTE->value,
+                'concluido_em' => null,
+            ]);
+
+            $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
+
+            Response::success(['agendamento' => $agendamento]);
+        } catch (Throwable $e) {
+            LogService::error('Erro inesperado ao reativar agendamento.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'agendamento_id' => $id,
+                'user_id' => $this->getUserId()
+            ]);
+
+            Response::error('Erro ao reativar agendamento.', 500);
         }
     }
 }

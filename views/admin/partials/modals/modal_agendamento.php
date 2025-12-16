@@ -395,6 +395,7 @@
                 <div id="agAlert" class="alert alert-danger d-none" role="alert"></div>
 
                 <form id="formAgendamento" novalidate>
+                    <input type="hidden" id="agId" name="id" value="">
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="agTitulo" class="form-label">📝 Título</label>

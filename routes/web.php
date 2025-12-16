@@ -330,9 +330,13 @@ function registerApiRoutes(): void
 
     Router::add('GET',  '/api/agendamentos',                 'Api\\AgendamentoController@index',        ['auth']);
 
+    Router::add('POST', '/api/agendamentos/{id}',            'Api\\AgendamentoController@update',       ['auth', 'csrf']);
+
     Router::add('POST', '/api/agendamentos/{id}/status',     'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
 
     Router::add('POST', '/api/agendamentos/{id}/cancelar',   'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
+
+    Router::add('POST', '/api/agendamentos/{id}/reativar',   'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
 
 
 

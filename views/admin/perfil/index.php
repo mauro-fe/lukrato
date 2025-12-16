@@ -1,7 +1,6 @@
 <style>
     .settings-section {
-        background: var(--bg-glass) !important;
-
+        background: var(--glass-bg);
     }
 
     .settings-danger {
@@ -198,7 +197,7 @@ $menu      = $menu ?? 'perfil';
     </div>
 </div>
 
-<section class="settings-section settings-danger">
+<section class="settings-section settings-danger" data-aos="fade-up">
     <h2>Excluir conta</h2>
     <p>
         Ao excluir sua conta, todos os seus dados financeiros serão apagados de forma permanente.

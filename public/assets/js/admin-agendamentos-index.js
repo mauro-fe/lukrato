@@ -4,6 +4,8 @@
     const base = (typeof LK !== 'undefined' && typeof LK.getBase === 'function')
         ? LK.getBase()
         : (document.querySelector('meta[name="base-url"]')?.content || '/');
+    const tokenId = document.querySelector('meta[name="csrf-token-id"]')?.content || 'default';
+    let csrfToken = '';
 
     const tableElement = document.getElementById('agendamentosTable');
     const tableContainer = document.getElementById('agList');
@@ -103,12 +105,17 @@
     };
 
     const form = document.getElementById('formAgendamento');
+    const agIdInput = document.getElementById('agId');
     const categoriaSelect = document.getElementById('agCategoria');
     const contaSelect = document.getElementById('agConta');
     const tipoSelect = document.getElementById('agTipo');
     const valorInput = document.getElementById('agValor');
     const dataHoraInput = document.getElementById('agDataHora');
     const agModal = document.getElementById('modalAgendamento');
+    const modalTitle = document.getElementById('modalAgendamentoTitle');
+    const modalSubmitBtn = document.querySelector('#modalAgendamento [type=\"submit\"]');
+    const recurrenceButton = document.getElementById('agRecorrenteToggle');
+    const recurrenceInput = document.getElementById('agRecorrente');
     const selectCache = {
         contas: null,
         categorias: new Map()
@@ -301,6 +308,90 @@
         }
         return document.querySelector('meta[name="csrf-token"]')?.content || '';
     };
+    const applyCsrfToken = (token) => {
+        if (!token) return;
+        csrfToken = token;
+        document.querySelectorAll(`[data-csrf-id="${tokenId}"]`).forEach((el) => {
+            if (el.tagName === 'META') {
+                el.setAttribute('content', token);
+            } else if ('value' in el) {
+                el.value = token;
+            }
+        });
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) meta.setAttribute('content', token);
+        if (window.LK) {
+            window.LK.csrfToken = token;
+        }
+    };
+    const refreshCsrf = async () => {
+        const res = await fetch(`${base}api/csrf/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ token_id: tokenId })
+        });
+        const data = await res.json().catch(() => null);
+        if (data?.token) {
+            applyCsrfToken(data.token);
+            return data.token;
+        }
+        throw new Error('Falha ao renovar CSRF');
+    };
+    applyCsrfToken(getCsrf());
+
+    const fetchWithCsrf = async (url, options = {}, retry = true) => {
+        const res = await fetch(url, {
+            credentials: options.credentials || 'include',
+            ...options,
+            headers: {
+                'Accept': 'application/json',
+                ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+                'X-CSRF-TOKEN': csrfToken || getCsrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(options.headers || {})
+            }
+        });
+        const resClone = res.clone();
+        let json = null;
+        try { json = await res.json(); } catch (_) { }
+
+        const isCsrfError = res.status === 403 && (
+            (json?.errors && json.errors.csrf_token) ||
+            String(json?.message || '').toLowerCase().includes('csrf')
+        );
+
+        if (isCsrfError && retry) {
+            try {
+                await refreshCsrf();
+                return fetchWithCsrf(url, options, false);
+            } catch (_) {
+                // segue para o fluxo normal de erro
+            }
+        }
+
+        if (res.status === 403 && typeof handleFetch403 === 'function') {
+            await handleFetch403(resClone);
+        }
+
+        if (!res.ok || (json && json.status === 'error')) {
+            if (res.status === 422 && json?.errors) {
+                const detalhes = Object.values(json.errors).flat().join('\n');
+                throw new Error(detalhes || json?.message || 'Erros de validacao.');
+            }
+            const msg = json?.message || `HTTP ${res.status}`;
+            throw new Error(msg);
+        }
+
+        if (json?.token) {
+            applyCsrfToken(json.token);
+        }
+
+        return json;
+    };
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (match) => ({
         '&': '&amp;',
@@ -330,6 +421,32 @@
         } catch {
             return value;
         }
+    };
+
+    const toDateTimeLocalValue = (value) => {
+        if (!value) return '';
+        try {
+            const dt = new Date(String(value).replace(' ', 'T'));
+            if (Number.isNaN(dt.getTime())) return '';
+            const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+            return local.toISOString().slice(0, 16);
+        } catch {
+            return '';
+        }
+    };
+
+    const resetFormMode = () => {
+        if (agIdInput) agIdInput.value = '';
+        if (modalTitle) modalTitle.textContent = 'Agendar pagamento';
+        if (modalSubmitBtn) modalSubmitBtn.textContent = 'Salvar Agendamento';
+    };
+
+    const applyRecurrenceVisual = (isActive) => {
+        if (!recurrenceButton) return;
+        recurrenceButton.dataset.recorrente = isActive ? '1' : '0';
+        recurrenceButton.classList.toggle('btn-primary', isActive);
+        recurrenceButton.classList.toggle('btn-outline-secondary', !isActive);
+        recurrenceButton.textContent = isActive ? 'Sim, recorrente' : 'Nao, agendamento unico';
     };
 
     const statusBadge = (status) => {
@@ -460,16 +577,33 @@
                 const conta = item?.conta?.nome || item?.conta_nome || '-';
                 const recorrente = item?.recorrente === 1 || item?.recorrente === '1';
                 const descricao = item?.descricao || '--';
-                const status = item?.status || '-';
+                const status = String(item?.status || '').toLowerCase();
 
-                const actionsHtml = `
-                    <button class="lk-btn ghost ag-card-btn" data-ag-action="pagar" data-id="${id}" title="Confirmar pagamento">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${id}" title="Cancelar agendamento">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
+                const actions = [];
+                if (status === 'pendente') {
+                    actions.push(`
+                        <button class="lk-btn ghost ag-card-btn" data-ag-action="pagar" data-id="${id}" title="Confirmar pagamento">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    `);
+                    actions.push(`
+                        <button class="lk-btn ghost ag-card-btn" data-ag-action="editar" data-id="${id}" title="Editar agendamento">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    `);
+                    actions.push(`
+                        <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${id}" title="Cancelar agendamento">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `);
+                } else if (status === 'cancelado') {
+                    actions.push(`
+                        <button class="lk-btn ghost ag-card-btn" data-ag-action="reativar" data-id="${id}" title="Reativar agendamento">
+                            <i class="fas fa-undo-alt"></i>
+                        </button>
+                    `);
+                }
+                const actionsHtml = actions.join('');
 
                 parts.push(`
                     <article class="ag-card card-item" data-id="${id}" aria-expanded="false">
@@ -709,13 +843,22 @@
                     field: 'acoes',
                     headerSort: false,
                     hozAlign: 'center',
-                    width: 150,
-                    formatter: () => (
-                        '<div class="d-flex justify-content-center gap-2">' +
-                        '<button type="button" class="lk-btn ghost btn-pay" data-action="pagar" title="Confirmar pagamento"><i class="fas fa-check"></i></button>' +
-                        '<button type="button" class="lk-btn ghost btn-cancel" data-action="cancelar" title="Cancelar agendamento"><i class="fas fa-times"></i></button>' +
-                        '</div>'
-                    ),
+                    width: 190,
+                    formatter: (cell) => {
+                        const data = cell.getRow()?.getData?.() || {};
+                        const status = String(data?.status || '').toLowerCase();
+                        const buttons = [];
+
+                        if (status === 'pendente') {
+                            buttons.push('<button type="button" class="lk-btn ghost btn-pay" data-action="pagar" title="Confirmar pagamento"><i class="fas fa-check"></i></button>');
+                            buttons.push('<button type="button" class="lk-btn ghost btn-edit" data-action="editar" title="Editar agendamento"><i class="fas fa-pencil-alt"></i></button>');
+                            buttons.push('<button type="button" class="lk-btn ghost btn-cancel" data-action="cancelar" title="Cancelar agendamento"><i class="fas fa-times"></i></button>');
+                        } else if (status === 'cancelado') {
+                            buttons.push('<button type="button" class="lk-btn ghost btn-restore" data-action="reativar" title="Reativar agendamento"><i class="fas fa-undo-alt"></i></button>');
+                        }
+
+                        return `<div class="d-flex justify-content-center gap-2">${buttons.join('')}</div>`;
+                    },
                     cellClick: (e, cell) => {
                         const button = e.target.closest('[data-action]');
                         if (!button) return;
@@ -783,10 +926,107 @@
         }
     }
 
+    const getAgendamentoFromCache = (id) => {
+        const key = id ? String(id) : '';
+        return key && cache.has(key) ? cache.get(key) : null;
+    };
+
+    const openAgendamentoModal = () => {
+        if (!agModal) return null;
+        if (window.bootstrap) {
+            const modal = bootstrap.Modal.getOrCreateInstance(agModal);
+            modal.show();
+            return modal;
+        }
+        agModal.classList.add('show');
+        agModal.style.display = 'block';
+        return agModal;
+    };
+
+    const closeAgendamentoModal = () => {
+        if (!agModal) return;
+        if (window.bootstrap) {
+            const modal = bootstrap.Modal.getInstance(agModal) || bootstrap.Modal.getOrCreateInstance(agModal);
+            modal.hide();
+            return;
+        }
+        document.querySelector('#modalAgendamento .btn-close')?.click();
+    };
+
+    const fillAgendamentoForm = async (record) => {
+        if (!record || !form) return;
+
+        const tipo = String(record.tipo || 'despesa').toLowerCase();
+        await loadContasSelect();
+        await loadCategoriasSelect(tipo);
+
+        if (agIdInput) agIdInput.value = record.id ?? '';
+        if (modalTitle) modalTitle.textContent = 'Editar agendamento';
+        if (modalSubmitBtn) modalSubmitBtn.textContent = 'Salvar alterações';
+
+        const tituloInput = document.getElementById('agTitulo');
+        const lembrarInput = document.getElementById('agLembrar');
+        const categoriaInput = document.getElementById('agCategoria');
+        const contaInput = document.getElementById('agConta');
+        const valorInputLocal = document.getElementById('agValor');
+        const descricaoInput = document.getElementById('agDescricao');
+        const canalInappInput = document.getElementById('agCanalInapp');
+        const canalEmailInput = document.getElementById('agCanalEmail');
+
+        if (tituloInput) tituloInput.value = record.titulo || '';
+        if (dataHoraInput) {
+            const dtValue = toDateTimeLocalValue(record.data_pagamento || record.created_at);
+            dataHoraInput.value = dtValue || getLocalDateTimeInputValue();
+        }
+        if (lembrarInput) lembrarInput.value = String(record.lembrar_antes_segundos ?? '0');
+        if (tipoSelect) tipoSelect.value = tipo;
+
+        const categoriaId = record.categoria_id ?? record.categoria?.id ?? '';
+        const contaId = record.conta_id ?? record.conta?.id ?? '';
+        if (categoriaInput) categoriaInput.value = categoriaId ? String(categoriaId) : '';
+        if (contaInput) contaInput.value = contaId ? String(contaId) : '';
+
+        const valorCentavos = Number(record.valor_centavos ?? record.valor ?? 0);
+        if (valorInputLocal) valorInputLocal.value = moneyMask.format(valorCentavos / 100);
+        if (descricaoInput) descricaoInput.value = record.descricao || '';
+
+        const recorrenteValor = record.recorrente === 1 || record.recorrente === '1';
+        if (recurrenceInput) {
+            recurrenceInput.value = recorrenteValor ? '1' : '0';
+            applyRecurrenceVisual(recorrenteValor);
+        }
+
+        if (canalInappInput) {
+            const canalInappValor = record.canal_inapp;
+            const canalInapp = canalInappValor === null || canalInappValor === undefined
+                ? true
+                : (canalInappValor === 1 || canalInappValor === '1' || canalInappValor === true);
+            canalInappInput.checked = canalInapp;
+        }
+        if (canalEmailInput) {
+            const canalEmailValor = record.canal_email;
+            const canalEmail = canalEmailValor === null || canalEmailValor === undefined
+                ? true
+                : (canalEmailValor === 1 || canalEmailValor === '1' || canalEmailValor === true);
+            canalEmailInput.checked = canalEmail;
+        }
+
+        hideFormError();
+    };
+
+    const startEditAgendamento = async (record) => {
+        if (!record) return;
+        await fillAgendamentoForm(record);
+        openAgendamentoModal();
+    };
+
     form?.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!form) return;
         hideFormError();
+
+        const agendamentoId = (agIdInput?.value || '').trim();
+        const isEditMode = !!agendamentoId;
 
         const tituloInput = document.getElementById('agTitulo');
         const dataHoraInput = document.getElementById('agDataHora');
@@ -796,7 +1036,7 @@
         const contaInput = document.getElementById('agConta');
         const valorInput = document.getElementById('agValor');
         const descricaoInput = document.getElementById('agDescricao');
-        const recorrenteInput = document.getElementById('agRecorrente');
+        const recorrenteInput = recurrenceInput || document.getElementById('agRecorrente');
         const canalInappInput = document.getElementById('agCanalInapp');
         const canalEmailInput = document.getElementById('agCanalEmail');
 
@@ -848,46 +1088,34 @@
         payload.append('canal_email', canalEmail ? '1' : '0');
 
         Swal.fire({
-            title: 'Salvando...',
+            title: isEditMode ? 'Salvando alterações...' : 'Salvando...',
             text: 'Aguarde enquanto o agendamento e salvo.',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
 
         try {
-            const res = await fetch(`${base}api/agendamentos`, {
+            const endpoint = isEditMode ? `${base}api/agendamentos/${agendamentoId}` : `${base}api/agendamentos`;
+            const json = await fetchWithCsrf(endpoint, {
                 method: 'POST',
-                body: payload,
-                credentials: 'include'
+                body: payload
             });
 
-            let json = null;
-            try {
-                json = await res.json();
-            } catch (_) { }
-
-            if (!res.ok) {
-                if (res.status === 422 && json?.errors) {
-                    const detalhes = Object.values(json.errors).flat().join('\n');
-                    showFormError(detalhes || (json?.message || 'Erros de validacao.'));
-                    throw new Error('Erros de validacao.');
-                }
-                const message = json?.message || Erro;
-                throw new Error(message);
+            if (json?.errors) {
+                const detalhes = Object.values(json.errors).flat().join('\n');
+                showFormError(detalhes || (json?.message || 'Erros de validacao.'));
+                throw new Error('Erros de validacao.');
             }
 
-            Swal.fire('Sucesso', 'Agendamento salvo com sucesso!', 'success');
+            Swal.fire('Sucesso', isEditMode ? 'Agendamento atualizado com sucesso!' : 'Agendamento salvo com sucesso!', 'success');
             form.reset();
             hideFormError();
+            resetFormMode();
             if (recorrenteInput) recorrenteInput.value = '0';
-            const toggle = document.getElementById('agRecorrenteToggle');
-            if (toggle) {
-                toggle.dataset.recorrente = '0';
-                toggle.classList.remove('btn-primary');
-                toggle.classList.add('btn-outline-secondary');
-                toggle.textContent = 'Nao, agendamento unico';
-            }
-            document.querySelector('#modalAgendamento .btn-close')?.click();
+            applyRecurrenceVisual(false);
+            if (dataHoraInput) dataHoraInput.value = getLocalDateTimeInputValue();
+            if (valorInput) valorInput.value = moneyMask.format(0);
+            closeAgendamentoModal();
             await loadAgendamentos(true);
         } catch (error) {
             console.error(error);
@@ -924,16 +1152,35 @@
         }
     });
 
+    agModal?.addEventListener('hidden.bs.modal', () => {
+        resetFormMode();
+        hideFormError();
+        if (agIdInput) agIdInput.value = '';
+        if (recurrenceInput) recurrenceInput.value = '0';
+        applyRecurrenceVisual(false);
+    });
+
     document.addEventListener('lukrato:agendamento-action', async (event) => {
         const detail = event?.detail || {};
         const id = detail.id ? Number(detail.id) : null;
         const action = detail.action || '';
         if (!id || !action) return;
 
+        const record = detail.record || getAgendamentoFromCache(id);
+
+        if (action === 'editar') {
+            if (!record) {
+                Swal.fire('Erro', 'Agendamento não encontrado para edição.', 'error');
+                return;
+            }
+            await startEditAgendamento(record);
+            return;
+        }
+
         if (action === 'pagar') {
             const confirm = await Swal.fire({
                 title: 'Confirmar pagamento?',
-                text: 'O agendamento sera marcado como concluido.',
+                text: 'Isso vai gerar um lançamento e remover o agendamento desta lista.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Sim',
@@ -944,28 +1191,24 @@
             const fd = new FormData();
             const token = getCsrf();
             if (token) {
-                fd.append('_token', token);
-                fd.append('csrf_token', token);
-            }
-            fd.append('status', 'concluido');
+            fd.append('_token', token);
+            fd.append('csrf_token', token);
+        }
+        fd.append('status', 'concluido');
 
-            try {
-                const res = await fetch(`${base}api/agendamentos/${id}/status`, {
-                    method: 'POST',
-                    body: fd,
-                    credentials: 'include'
-                });
-                if (await handleFetch403(res)) return;
-                if (await handleFetch403(res)) { Swal.close(); return; }
-                const json = await res.json();
-                if (!res.ok || json?.status !== 'success') {
-                    throw new Error(json?.message || 'Erro ' + res.status);
-                }
-                Swal.fire('Sucesso', 'Agendamento concluido!', 'success');
-                await loadAgendamentos(true);
-                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
-                    detail: { resource: 'transactions', action: 'create' }
-                }));
+        try {
+            const json = await fetchWithCsrf(`${base}api/agendamentos/${id}/status`, {
+                method: 'POST',
+                body: fd
+            });
+            if (!json || json?.status !== 'success') {
+                throw new Error(json?.message || 'Falha ao concluir o agendamento.');
+            }
+            Swal.fire('Sucesso', 'Agendamento concluido!', 'success');
+            await loadAgendamentos(true);
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: { resource: 'transactions', action: 'create' }
+            }));
             } catch (err) {
                 console.error(err);
                 Swal.fire('Erro', err.message || 'Falha ao concluir agendamento.', 'error');
@@ -973,7 +1216,7 @@
         } else if (action === 'cancelar') {
             const confirm = await Swal.fire({
                 title: 'Cancelar agendamento?',
-                text: 'Ele sera marcado como cancelado.',
+                text: 'Ele vai para Cancelados e pode ser reativado.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim',
@@ -989,15 +1232,12 @@
             }
 
             try {
-                const res = await fetch(`${base}api/agendamentos/${id}/cancelar`, {
+                const json = await fetchWithCsrf(`${base}api/agendamentos/${id}/cancelar`, {
                     method: 'POST',
-                    body: fd,
-                    credentials: 'include'
+                    body: fd
                 });
-                if (await handleFetch403(res)) return;
-                const json = await res.json();
-                if (!res.ok || json?.status !== 'success') {
-                    throw new Error(json?.message || 'Erro ' + res.status);
+                if (!json || json?.status !== 'success') {
+                    throw new Error(json?.message || 'Falha ao cancelar o agendamento.');
                 }
                 Swal.fire('Sucesso', 'Agendamento cancelado.', 'success');
                 await loadAgendamentos(true);
@@ -1005,18 +1245,40 @@
                 console.error(err);
                 Swal.fire('Erro', err.message || 'Falha ao cancelar agendamento.', 'error');
             }
+        } else if (action === 'reativar') {
+            const confirm = await Swal.fire({
+                title: 'Reativar agendamento?',
+                text: 'Volta para Pendentes.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Nao'
+            });
+            if (!confirm.isConfirmed) return;
+
+            const fd = new FormData();
+            const token = getCsrf();
+            if (token) {
+                fd.append('_token', token);
+                fd.append('csrf_token', token);
+            }
+
+            try {
+                const json = await fetchWithCsrf(`${base}api/agendamentos/${id}/reativar`, {
+                    method: 'POST',
+                    body: fd
+                });
+                if (!json || json?.status !== 'success') {
+                    throw new Error(json?.message || 'Falha ao reativar o agendamento.');
+                }
+                Swal.fire('Sucesso', 'Agendamento reativado.', 'success');
+                await loadAgendamentos(true);
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Erro', err.message || 'Falha ao reativar agendamento.', 'error');
+            }
         }
     });
-
-    const recurrenceButton = document.getElementById('agRecorrenteToggle');
-    const recurrenceInput = document.getElementById('agRecorrente');
-    const applyRecurrenceVisual = (isActive) => {
-        if (!recurrenceButton) return;
-        recurrenceButton.dataset.recorrente = isActive ? '1' : '0';
-        recurrenceButton.classList.toggle('btn-primary', isActive);
-        recurrenceButton.classList.toggle('btn-outline-secondary', !isActive);
-        recurrenceButton.textContent = isActive ? 'Sim, recorrente' : 'Nao, agendamento unico';
-    };
 
     if (recurrenceButton && recurrenceInput) {
         applyRecurrenceVisual(recurrenceInput.value === '1');
@@ -1033,5 +1295,3 @@
     loadCategoriasSelect(tipoSelect?.value || 'despesa').catch(console.error);
     loadAgendamentos();
 });
-
-
