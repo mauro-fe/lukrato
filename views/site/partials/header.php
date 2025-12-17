@@ -10,20 +10,19 @@ $extraCss  = $extraCss  ?? [];
     <title><?= htmlspecialchars($pageTitle) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Design system -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/landing-base.css">
+    <link rel="icon" href="<?= BASE_URL ?>assets/img/icone.png" alt="icone lukrato">
 
-    <!-- CSS base da landing (header, footer, coisas comuns do site) -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/site/landing-base.css">
-
-    <!-- CSS específicos da página -->
     <?php foreach ($extraCss as $css): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/site/<?= htmlspecialchars($css) ?>.css">
+        <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
     <?php endforeach; ?>
+
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 
 </head>
 
@@ -31,17 +30,17 @@ $extraCss  = $extraCss  ?? [];
     <header class="lk-site-header">
         <div class="lk-site-header-inner">
             <!-- Logo / marca -->
-            <a href="<?= BASE_URL ?>/" class="lk-site-logo">
-                <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Lukrato" loading="lazy">
+            <a href="<?= BASE_URL ?>" class="lk-site-logo">
+                <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato" loading="lazy">
             </a>
 
             <!-- Menu desktop + mobile -->
             <div class="lk-site-menu">
                 <nav class="lk-site-nav" aria-label="Navegação principal">
-                    <a href="<?= BASE_URL ?>/#funcionalidades" class="lk-site-nav-link">Funcionalidades</a>
-                    <a href="<?= BASE_URL ?>/#beneficios" class="lk-site-nav-link">Benefícios</a>
-                    <a href="<?= BASE_URL ?>/#planos" class="lk-site-nav-link">Planos</a>
-                    <a href="<?= BASE_URL ?>/#contato" class="lk-site-nav-link">Contato</a>
+                    <a href="<?= BASE_URL ?>#funcionalidades" class="lk-site-nav-link">Funcionalidades</a>
+                    <a href="<?= BASE_URL ?>#beneficios" class="lk-site-nav-link">Benefícios</a>
+                    <a href="<?= BASE_URL ?>#planos" class="lk-site-nav-link">Planos</a>
+                    <a href="<?= BASE_URL ?>#contato" class="lk-site-nav-link">Contato</a>
                 </nav>
 
 
@@ -60,5 +59,3 @@ $extraCss  = $extraCss  ?? [];
             </button>
         </div>
     </header>
-
-    <main class="lk-site-main">

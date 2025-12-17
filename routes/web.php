@@ -25,14 +25,7 @@ registerBillingRoutes();
 
 
 
-/**
- * ===============================
- *  ÁREA PÚBLICA (LANDING / SITE)
- * ===============================
- */
 
-// Landing principal
-Router::add('GET', '/', 'Site\\LandingController@index');
 
 
 
@@ -71,6 +64,14 @@ function registerAuthRoutes(): void
 
     Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete');
 }
+
+// Landing principal
+Router::add('GET', '/', 'Site\\LandingController@index');
+
+Router::add('GET', '/funcionalidades', 'Site\\LandingController@index');
+Router::add('GET', '/beneficios',       'Site\\LandingController@index');
+Router::add('GET', '/planos',           'Site\\LandingController@index');
+Router::add('GET', '/contato',          'Site\\LandingController@index');
 
 // PÁGINAS LEGAIS DO SITE / TERMOS
 Router::add('GET', '/termos', 'Site\\LegalController@terms');

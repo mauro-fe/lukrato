@@ -764,7 +764,19 @@ body {
   }
 
   .lk-gallery {
-    height: 320px;
+    height: auto !important; /* remove altura fixa */
+    aspect-ratio: 16 / 9 !important; /* quadro no formato da tela */
+    background: #000 !important;
+  }
+
+  .lk-gallery-track {
+    height: 100% !important;
+  }
+
+  .lk-gallery img {
+    height: auto !important;
+    object-fit: cover; /* sem corte */
+    object-position: center;
   }
 
   .lk-gallery-meta {

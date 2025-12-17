@@ -1,5 +1,72 @@
 console.log("JS da landing carregado!");
 
+/*-------URLS------------------------*/
+
+(function () {
+  const basePath = "<?= rtrim(parse_url(BASE_URL, PHP_URL_PATH), '/') ?>/";
+  const slugs = ["funcionalidades", "beneficios", "planos", "contato"];
+
+  function headerOffset() {
+    const h = document.querySelector("header, .lk-site-header");
+    return h ? h.offsetHeight + 10 : 0;
+  }
+
+  function scrollToSlug(slug) {
+    const el = document.getElementById(slug);
+    if (!el) return;
+
+    const y = el.getBoundingClientRect().top + window.pageYOffset - headerOffset();
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }
+
+  function getSlugFromPath(pathname) {
+    if (!pathname.startsWith(basePath)) return null;
+
+    const rest = pathname.slice(basePath.length).replace(/^\/+/, "");
+    const slug = rest.split("/")[0];
+    return slugs.includes(slug) ? slug : null;
+  }
+
+  // 🔹 Ao carregar a página diretamente (/planos)
+  document.addEventListener("DOMContentLoaded", () => {
+    const slug = getSlugFromPath(location.pathname);
+    if (!slug) return;
+
+    history.replaceState(null, "", basePath + slug);
+    requestAnimationFrame(() => scrollToSlug(slug));
+  });
+
+  // 🔹 Clique no menu (sem #)
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("a[href]");
+    if (!link) return;
+
+    let href = link.getAttribute("href");
+    if (!href) return;
+
+    // Normaliza URL absoluta ou relativa
+    try {
+      href = new URL(href, location.origin).pathname;
+    } catch {
+      return;
+    }
+
+    const slug = getSlugFromPath(href);
+    if (!slug) return;
+
+    e.preventDefault();
+    history.pushState(null, "", basePath + slug);
+    scrollToSlug(slug);
+  });
+
+  // 🔹 Back / forward
+  window.addEventListener("popstate", () => {
+    const slug = getSlugFromPath(location.pathname);
+    if (slug) scrollToSlug(slug);
+  });
+})();
+
+
 function initLandingScripts() {
   if (window.lkLandingBootstrapped) return;
   window.lkLandingBootstrapped = true;
@@ -60,9 +127,10 @@ function initLandingScripts() {
         closeMenu();
       }
     });
-  })();}
+  })();
+}
 
- /*------- Modal / Galeria -------*/
+/*------- Modal / Galeria -------*/
 (function setupGallery() {
   const modalId = "func-gallery";
   const modal = document.getElementById(modalId);
@@ -193,15 +261,11 @@ function initLandingScripts() {
   updateMeta();
 })();
 
-
-
-
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initLandingScripts);
 } else {
   initLandingScripts();
 }
-
 
 /*---------Seção Contato------------*/
 
@@ -234,8 +298,6 @@ if (document.readyState === "loading") {
   // default: whatsapp
   show('whatsapp');
 })();
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('contactForm');
@@ -352,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
 /* ------- Back to Top ------- */
 (function setupBackToTop() {
   const btn = document.getElementById('lkBackToTop');
