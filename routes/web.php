@@ -73,6 +73,10 @@ Router::add('GET', '/beneficios',       'Site\\LandingController@index');
 Router::add('GET', '/planos',           'Site\\LandingController@index');
 Router::add('GET', '/contato',          'Site\\LandingController@index');
 
+// Cartão Digital (Bio do Instagram)
+Router::add('GET', '/card', 'Site\\CardController@index');
+Router::add('GET', '/links', 'Site\\CardController@index'); // Alias alternativo
+
 // PÁGINAS LEGAIS DO SITE / TERMOS
 Router::add('GET', '/termos', 'Site\\LegalController@terms');
 Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');

@@ -21,16 +21,30 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
     .lk-navbar {
         color: var(--color-text);
-        padding: 30px 10px;
-        box-shadow: var(--shadow-sm);
-        border-bottom: 1px solid var(--color-border);
+        padding: 20px 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border-bottom: 1px solid var(--glass-border);
         position: sticky;
         top: 0;
         z-index: 1000;
-        margin: 0 auto;
-        border-radius: var(--radius-md);
-        background-color: var(--glass-bg);
-        height: 100px;
+        margin: 0 auto var(--spacing-5);
+        border-radius: var(--radius-lg);
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-backdrop);
+        height: 90px;
+        transition: all 0.3s ease;
+    }
+
+    .lk-navbar::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, 
+            color-mix(in srgb, var(--color-primary) 3%, transparent), 
+            color-mix(in srgb, var(--color-secondary) 3%, transparent));
+        border-radius: var(--radius-lg);
+        opacity: 0.5;
+        pointer-events: none;
     }
 
     .lk-navbar-inner {
@@ -83,37 +97,150 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         font-weight: 600;
     }
 
-    @media (max-width: 576px) {
+    @media (max-width: 768px) {
         .lk-navbar {
-            padding: 18px 10px;
+            padding: 14px 8px;
             height: auto;
+            min-height: 70px;
+            margin: 0;
         }
 
         .lk-navbar-inner {
             gap: var(--spacing-2) !important;
+            flex-wrap: wrap;
+            padding: 0 12px;
+        }
+
+        .lk-navbar-left {
+            gap: var(--spacing-2);
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .lk-navbar-left h1 {
+            font-size: 1.35rem;
+        }
+
+        .lk-navbar-right {
+            gap: 10px;
+        }
+
+        .lk-navbar-right .lk-upgrade-btn {
+            padding: 9px 14px;
+            font-size: 0.8125rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .lk-navbar {
+            padding: 12px 8px;
+            height: auto;
+            margin: 0;
+            margin-bottom: var(--spacing-5);
+            border-radius: var(--radius-md);
+        }
+
+        .lk-navbar-inner {
+            gap: var(--spacing-3) !important;
+            flex-direction: column;
             align-items: stretch;
+            padding: 0;
         }
 
         .lk-navbar-left {
             gap: var(--spacing-1);
             width: 100%;
+            align-items: flex-start;
         }
 
+        /* Linha 1: Bem-vindo + Badge */
         .lk-welcome {
-            font-size: 0.85rem;
+            font-size: 0.8125rem;
+            justify-content: center;
+            width: 100%;
         }
 
+        /* Linha 2: Título da página */
         .lk-navbar-left h1 {
-            font-size: 1.2rem;
-            line-height: 1.25;
+            font-size: 1.25rem;
+            line-height: 1.3;
+            text-align: center;
+            margin-top: 0;
+            width: 100%;
         }
 
         .lk-navbar-left h1 span {
             font-size: 1rem;
         }
 
+        /* Linha 3: Botões */
         .lk-navbar-right {
-            justify-content: flex-end;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .lk-navbar-right .lk-upgrade-btn {
+            padding: 10px 16px;
+            font-size: 0.8125rem;
+        }
+
+        .lk-navbar-right .lk-upgrade-btn i {
+            font-size: 1rem;
+        }
+
+        .lk-plan-badge {
+            height: 24px;
+            padding: 0 10px;
+            font-size: 0.65rem;
+        }
+
+        /* Toggle theme menos arredondado no mobile */
+        .theme-toggle {
+            border-radius: var(--radius-md);
+        }
+
+        .theme-toggle::before,
+        .theme-toggle::after {
+            border-radius: var(--radius-md);
+        }
+    }
+
+    @media (max-width: 430px) {
+        .lk-navbar {
+            padding: 10px 6px;
+        }
+
+        .lk-navbar-left h1 {
+            font-size: 1.125rem;
+        }
+
+        .lk-navbar-left h1 span {
+            display: none;
+        }
+
+        .lk-welcome {
+            font-size: 0.75rem;
+        }
+
+        .lk-navbar-right {
+            gap: 8px;
+        }
+
+        .lk-navbar-right .lk-upgrade-btn {
+            padding: 9px 14px;
+            font-size: 0.75rem;
+        }
+
+        .lk-navbar-right .lk-upgrade-btn i {
+            font-size: 0.9rem;
+        }
+
+        .lk-plan-badge {
+            font-size: 0.6rem;
+            padding: 0 8px;
+            height: 22px;
         }
     }
 
@@ -131,47 +258,109 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         align-items: center;
         justify-content: center;
         gap: var(--spacing-5);
-        background-color: var(--color-primary);
-        color: var(--color-text);
+        background-color: transparent;
+        color: #fff !important;
         border-radius: var(--radius-md);
         font-size: 0.9rem;
         padding: 8px 14px;
         cursor: pointer;
         transition: all var(--transition-fast);
         height: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .lk-navbar-right button:hover {
-        background-color: var(--color-bg);
+        background-color: rgba(255, 255, 255, 0.1);
         color: #fff;
-        border-color: var(--color-primary);
+        border-color: rgba(255, 255, 255, 0.2);
         transform: translateY(-2px);
     }
 
     .lk-navbar-right .lk-upgrade-btn {
+        position: relative;
         display: inline-flex;
         align-items: center;
         gap: var(--spacing-2);
-        padding: 10px 18px;
+        padding: 12px 24px;
         border-radius: var(--radius-full, 999px);
-        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
-        color: #fff;
-        font-weight: 600;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: #fff !important;
+        font-weight: 700;
+        font-size: 0.9375rem;
         text-decoration: none;
-        box-shadow: var(--shadow-md);
-        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         white-space: nowrap;
+        overflow: hidden;
+        border: 2px solid transparent;
+    }
+
+    .lk-navbar-right .lk-upgrade-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, 
+            color-mix(in srgb, var(--color-primary) 120%, white), 
+            color-mix(in srgb, var(--color-secondary) 120%, white));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .lk-navbar-right .lk-upgrade-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
     }
 
     .lk-navbar-right .lk-upgrade-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-        color: #fff;
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 28px color-mix(in srgb, var(--color-primary) 60%, transparent);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .lk-navbar-right .lk-upgrade-btn:hover::before {
+        opacity: 1;
+    }
+
+    .lk-navbar-right .lk-upgrade-btn:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+
+    .lk-navbar-right .lk-upgrade-btn:active {
+        transform: translateY(-1px) scale(1.02);
     }
 
     .lk-navbar-right .lk-upgrade-btn i {
-        font-size: 1rem;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+        animation: starPulse 2s ease-in-out infinite;
+        color: #fff !important;
+    }
 
+    .lk-navbar-right .lk-upgrade-btn span {
+        position: relative;
+        z-index: 1;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #fff !important;
+    }
+
+    @keyframes starPulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2);
+        }
     }
 
     .lk-navbar-right button:focus-visible {
@@ -181,45 +370,158 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
     .lk-navbar-right button i {
         font-size: 1rem;
+        color: #fff !important;
+    }
+
+    /* SOBRESCREVER .btn-ghost NO NAVBAR - FORÇA BRANCO */
+    .lk-navbar-right .btn,
+    .lk-navbar-right .btn-ghost,
+    .lk-navbar-right button,
+    #lk-bell.btn,
+    #lk-bell.btn-ghost {
+        color: #fff !important;
+    }
+
+    .lk-navbar-right .btn i,
+    .lk-navbar-right .btn-ghost i,
+    .lk-navbar-right button i,
+    .lk-navbar-right .fas,
+    .lk-navbar-right .fa-solid,
+    .lk-navbar-right .fa-regular,
+    .lk-navbar-right .fa-bell,
+    #lk-bell i,
+    #lk-bell .fas,
+    #lk-bell .fa-bell {
+        color: #fff !important;
     }
 
     .theme-toggle {
-        width: 44px;
-        height: 44px;
-        border-radius: var(--radius-full, 999px);
-        border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.14));
-        background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 70%, transparent), color-mix(in srgb, var(--color-primary) 6%, transparent));
-        box-shadow: var(--shadow-sm);
-        color: var(--color-text);
+        position: relative;
+        width: 68px;
+        height: 34px;
+        border-radius: 999px;
+        border: none;
+        background: #e2e8f0;
         padding: 0;
-        transition: background-color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
-    }
-
-    .theme-toggle:hover {
-        background: color-mix(in srgb, var(--color-surface) 78%, var(--color-primary) 8%);
-        border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
-        box-shadow: var(--shadow-md);
-    }
-
-    .theme-toggle:active {
-        transform: translateY(1px) scale(0.98);
-    }
-
-    .theme-toggle .theme-toggle__icon {
-        font-size: 1.1rem;
-        transition: transform 420ms cubic-bezier(.4, 0, .2, 1), opacity 420ms cubic-bezier(.4, 0, .2, 1), filter 420ms cubic-bezier(.4, 0, .2, 1);
-        display: inline-flex;
-    }
-
-    .theme-toggle.is-animating .theme-toggle__icon {
-        transform: rotate(180deg) scale(0.9);
-        opacity: 0;
-        filter: blur(0.3px);
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.15);
     }
 
     .theme-toggle.dark {
-        background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 55%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
-        border-color: color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+        background: #1e293b;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .theme-toggle:hover {
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.15),
+                    0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+    }
+
+    .theme-toggle.dark:hover {
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4),
+                    0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+    }
+
+    .theme-toggle:active {
+        transform: scale(0.96);
+    }
+
+    /* Container dos ícones - atrás da bolinha */
+    .theme-toggle__icon-wrapper {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 9px;
+        z-index: 1;
+    }
+
+    .theme-toggle__icon {
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Ícone do sol (esquerda) - FORÇAR BRANCO */
+    .theme-toggle__icon--sun {
+        color: #ffffff !important;
+        opacity: 0;
+    }
+
+    .theme-toggle.dark .theme-toggle__icon--sun {
+        opacity: 1;
+        color: #ffffff !important;
+    }
+
+    /* Ícone da lua (direita) - FORÇAR BRANCO */
+    .theme-toggle__icon--moon {
+        color: #ffffff !important;
+        opacity: 1;
+    }
+
+    .theme-toggle.dark .theme-toggle__icon--moon {
+        opacity: 0;
+        color: #ffffff !important;
+    }
+
+    /* Slider (bolinha que desliza) - por cima dos ícones */
+    .theme-toggle::before {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2),
+                    0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .theme-toggle.dark::before {
+        left: calc(100% - 31px);
+        background: #f8fafc;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4),
+                    0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle:hover::before {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25),
+                    0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Ícone dentro da bolinha */
+    .theme-toggle::after {
+        content: '☀️';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        z-index: 4;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+    }
+
+    .theme-toggle.dark::after {
+        content: '🌙';
+        left: calc(100% - 31px);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -270,13 +572,42 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
 
     @media (max-width: 600px) {
+        .lk-navbar-right .theme-toggle {
+            width: 58px;
+            height: 30px;
+        }
 
-        .lk-navbar-right .theme-toggle,
+        .lk-navbar-right .theme-toggle::before,
+        .lk-navbar-right .theme-toggle::after {
+            width: 24px;
+            height: 24px;
+            top: 3px;
+            left: 3px;
+        }
+
+        .lk-navbar-right .theme-toggle.dark::before,
+        .lk-navbar-right .theme-toggle.dark::after {
+            left: calc(100% - 27px);
+        }
+
+        .lk-navbar-right .theme-toggle::after {
+            font-size: 0.75rem;
+        }
+
+        .lk-navbar-right .theme-toggle__icon {
+            font-size: 0.75rem;
+            width: 14px;
+            height: 14px;
+        }
+
+        .lk-navbar-right .theme-toggle__icon-wrapper {
+            padding: 0 8px;
+        }
+
         .lk-navbar-right button {
             font-size: 0.65rem !important;
             height: 32px;
             width: 32px;
-            border-radius: 50% !important;
         }
 
         .lk-navbar-right i {
@@ -341,18 +672,25 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        height: 22px;
-        padding: 0 10px;
+        height: 26px;
+        padding: 0 12px;
         border-radius: 999px;
         font-size: 11px;
         font-weight: 800;
-        letter-spacing: .6px;
+        letter-spacing: .8px;
         text-transform: uppercase;
-        border: 1px solid var(--glass-border, rgba(255, 255, 255, .12));
+        border: 2px solid var(--glass-border, rgba(255, 255, 255, .12));
         background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-        box-shadow: var(--shadow-sm);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         user-select: none;
-        transition: var(--transition);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+    }
+
+    .lk-plan-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .lk-plan-badge i {
@@ -362,7 +700,26 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
 
     .lk-plan-badge--pro {
         color: var(--color-warning);
-        background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+        background: linear-gradient(135deg, 
+            color-mix(in srgb, var(--color-warning) 15%, transparent),
+            color-mix(in srgb, var(--color-primary) 12%, transparent));
+        border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+        box-shadow: 0 2px 12px color-mix(in srgb, var(--color-warning) 20%, transparent);
+    }
+
+    .lk-plan-badge--pro i {
+        animation: crownShine 3s ease-in-out infinite;
+    }
+
+    @keyframes crownShine {
+        0%, 100% {
+            opacity: 1;
+            filter: drop-shadow(0 0 2px currentColor);
+        }
+        50% {
+            opacity: 0.8;
+            filter: drop-shadow(0 0 4px currentColor);
+        }
     }
 
     .lk-plan-badge--free {
@@ -462,14 +819,17 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         <div class="lk-navbar-right">
             <button id="toggleTheme" type="button" class="theme-toggle" aria-label="Alternar tema"
                 title="Modo claro/escuro">
-                <i id="themeIcon" class="theme-toggle__icon fa-solid fa-sun"></i>
+                <div class="theme-toggle__icon-wrapper">
+                    <i class="theme-toggle__icon theme-toggle__icon--sun fa-solid fa-sun" style="color: #fff !important;"></i>
+                    <i class="theme-toggle__icon theme-toggle__icon--moon fa-solid fa-moon" style="color: #fff !important;"></i>
+                </div>
             </button>
 
             <?php include __DIR__ . '/notificacoes/bell.php'; ?>
 
             <?php if ($showNavbarUpgradeCTA): ?>
                 <a href="<?= BASE_URL ?>billing" class="lk-upgrade-btn">
-                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star" style="color: #fff !important;"></i>
                     <span>Pro</span>
                 </a>
             <?php endif; ?>
@@ -481,18 +841,11 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     (() => {
         const root = document.documentElement;
         const btn = document.getElementById('toggleTheme');
-        const icon = document.getElementById('themeIcon');
         const STORAGE_KEY = 'lukrato-theme';
         const THEME_EVENT = 'lukrato:theme-changed';
         const THEME_ANIMATION_MS = 420;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         let isAnimating = false;
-
-        // Detecta se eh FA 5 ou FA 6 (pra usar o prefixo correto)
-        const FA_PREFIX = (() => {
-            const link = [...document.styleSheets].find(s => (s.href || '').includes('font-awesome/5'));
-            return link ? 'fas' : 'fa-solid';
-        })();
 
         function getTheme() {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -503,9 +856,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         }
 
         function updateIconAndLabel(theme) {
-            if (!icon || !btn) return;
-            icon.className = '';
-            icon.classList.add(FA_PREFIX, 'theme-toggle__icon', theme === 'dark' ? 'fa-moon' : 'fa-sun');
+            if (!btn) return;
             const label = theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro';
             btn.setAttribute('aria-label', label);
             btn.setAttribute('title', label);
@@ -530,7 +881,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         }
 
         function animateAndApplyTheme(nextTheme) {
-            if (!btn || !icon || prefersReducedMotion.matches) {
+            if (!btn || prefersReducedMotion.matches) {
                 applyTheme(nextTheme);
                 return;
             }
@@ -539,15 +890,11 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
             isAnimating = true;
             btn.classList.add('is-animating');
 
-            const halfway = THEME_ANIMATION_MS / 2;
-
-            // Troca o tema e o icone no meio da animacao para evitar flicker
-            setTimeout(() => {
-                updateIconAndLabel(nextTheme);
-                applyTheme(nextTheme, {
-                    updateUi: false
-                });
-            }, halfway);
+            // Aplica o tema imediatamente
+            updateIconAndLabel(nextTheme);
+            applyTheme(nextTheme, {
+                updateUi: false
+            });
 
             setTimeout(() => {
                 btn.classList.remove('is-animating');
@@ -575,6 +922,50 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
             if (e.key !== STORAGE_KEY) return;
             const newTheme = (e.newValue === 'light' || e.newValue === 'dark') ? e.newValue : getTheme();
             applyTheme(newTheme);
+        });
+    })();
+
+    // FORÇA ÍCONES BRANCOS NO NAVBAR
+    (() => {
+        function forceWhiteIcons() {
+            const selectors = [
+                '.lk-navbar-right i',
+                '.lk-navbar-right .fa-solid',
+                '.lk-navbar-right .fa-regular',
+                '.lk-navbar-right .fas',
+                '.theme-toggle__icon',
+                '.theme-toggle__icon--sun',
+                '.theme-toggle__icon--moon',
+                '#lk-bell i',
+                '.lk-upgrade-btn i'
+            ];
+            
+            selectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => {
+                    el.style.setProperty('color', '#ffffff', 'important');
+                });
+            });
+        }
+
+        // Aplica imediatamente
+        forceWhiteIcons();
+        
+        // Aplica após o DOM estar totalmente carregado
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', forceWhiteIcons);
+        }
+        
+        // Aplica após 100ms (para garantir que sobrescreva qualquer JS)
+        setTimeout(forceWhiteIcons, 100);
+        
+        // Observa mudanças no DOM e reaplica
+        const observer = new MutationObserver(forceWhiteIcons);
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
         });
     })();
 </script>

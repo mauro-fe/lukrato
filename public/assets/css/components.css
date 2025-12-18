@@ -501,10 +501,11 @@
    5. FAB (Floating Action Button)
    ============================================================================ */
 .fab-container {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 2000;
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 24px !important;
+  right: auto !important;
+  z-index: 2000 !important;
 }
 
 .fab {
@@ -547,7 +548,7 @@
 /* FAB Menu */
 .fab-menu {
   position: absolute;
-  left: 72px;
+  right: 72px;
   bottom: 0;
   display: none;
   flex-direction: column;

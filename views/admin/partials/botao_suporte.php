@@ -1,8 +1,9 @@
 <style>
     .lk-support-button {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        left: auto !important;
         width: 64px;
         height: 64px;
         background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
@@ -14,11 +15,11 @@
         font-size: 26px;
         box-shadow: none !important;
         transition: all var(--transition-normal);
-        z-index: 9999;
+        z-index: 9999 !important;
         cursor: pointer;
         border: none;
         text-decoration: none;
-        overflow: visible;
+        overflow: visible !important;
     }
 
     .lk-support-button::before {
@@ -58,29 +59,31 @@
 
     /* Tooltip animado */
     .lk-support-button::after {
-        content: '💬 Precisa de ajuda?';
-        position: absolute;
-        right: 80px;
-        top: 50%;
-        transform: translateY(-50%) translateX(10px);
-        background: var(--color-surface);
-        color: var(--color-text);
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--radius-md);
-        font-size: var(--font-size-sm);
-        font-weight: 600;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        box-shadow: var(--shadow-lg);
-        border: 2px solid var(--color-primary);
-        transition: all var(--transition-normal);
-        font-family: var(--font-primary);
+        content: '💬 Fale com o suporte' !important;
+        position: absolute !important;
+        right: 100% !important;
+        top: 50% !important;
+        margin-right: 12px !important;
+        transform: translateY(-50%) translateX(10px) !important;
+        background: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        padding: 0.75rem 1.25rem !important;
+        border-radius: var(--radius-md) !important;
+        font-size: var(--font-size-sm) !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        box-shadow: var(--shadow-lg) !important;
+        border: 2px solid var(--color-primary) !important;
+        transition: all var(--transition-normal) !important;
+        font-family: var(--font-primary) !important;
+        z-index: 10000 !important;
     }
 
     .lk-support-button:hover::after {
-        opacity: 1;
-        transform: translateY(-50%) translateX(0);
+        opacity: 1 !important;
+        transform: translateY(-50%) translateX(0) !important;
     }
 
     /* Customização do SweetAlert2 */

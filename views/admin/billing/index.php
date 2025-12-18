@@ -15,10 +15,12 @@
         --card-padding: clamp(28px, 4vw, 40px);
         --card-gap: clamp(24px, 4vw, 32px);
 
-        /* Cores contextuais */
+        /* Cores contextuais usando variáveis do sistema */
         --plan-border: var(--glass-border);
         --plan-hover-border: var(--color-primary);
-        --badge-bg: linear-gradient(135deg, #f59e0b, #d97706);
+        --badge-bg: linear-gradient(135deg, var(--color-warning), var(--color-primary));
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.15);
     }
 
     /* ==========================================================================
@@ -44,37 +46,40 @@
         position: absolute;
         border-radius: 50%;
         pointer-events: none;
-        opacity: 0.06;
-        filter: blur(60px);
+        opacity: 0.08;
+        filter: blur(80px);
     }
 
     .billing-page::before {
         top: -15%;
         right: -10%;
-        width: 500px;
-        height: 500px;
+        width: 600px;
+        height: 600px;
         background: radial-gradient(circle, var(--color-primary), transparent 70%);
-        animation: float 12s ease-in-out infinite;
+        animation: float 15s ease-in-out infinite;
     }
 
     .billing-page::after {
         bottom: -20%;
         left: -10%;
-        width: 450px;
-        height: 450px;
+        width: 550px;
+        height: 550px;
         background: radial-gradient(circle, var(--color-secondary), transparent 70%);
-        animation: float 15s ease-in-out infinite reverse;
+        animation: float 18s ease-in-out infinite reverse;
     }
 
     @keyframes float {
-
         0%,
         100% {
-            transform: translate(0, 0);
+            transform: translate(0, 0) scale(1);
         }
 
-        50% {
-            transform: translate(30px, -30px);
+        33% {
+            transform: translate(40px, -40px) scale(1.05);
+        }
+
+        66% {
+            transform: translate(-30px, 30px) scale(0.95);
         }
     }
 
@@ -89,25 +94,51 @@
     }
 
     .billing-header__title {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 800;
+        font-size: clamp(2.25rem, 5vw, 3.5rem);
+        font-weight: 900;
         margin: 0 0 var(--spacing-4);
-        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-primary) 100%);
+        background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        letter-spacing: -0.02em;
-        line-height: 1.2;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        animation: gradientShift 8s ease infinite;
+        position: relative;
+        display: inline-block;
+    }
+
+    @keyframes gradientShift {
+        0%, 100% {
+            background-position: 0% center;
+        }
+        50% {
+            background-position: 100% center;
+        }
+    }
+
+    .billing-header__title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+        border-radius: 2px;
     }
 
     .billing-header__subtitle {
-        font-size: clamp(1rem, 2vw, 1.125rem);
+        font-size: clamp(1rem, 2vw, 1.25rem);
         color: var(--color-text-muted);
-        margin: 0;
+        margin: var(--spacing-4) 0 0;
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
-        line-height: 1.6;
+        line-height: 1.7;
+        font-weight: 500;
     }
 
     /* ==========================================================================
@@ -115,10 +146,30 @@
        ========================================================================== */
     .plans-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
         gap: var(--card-gap);
         position: relative;
         z-index: 1;
+    }
+
+    /* Animação de entrada dos cards */
+    .plan-card {
+        animation: cardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    }
+
+    .plan-card:nth-child(1) { animation-delay: 0.1s; }
+    .plan-card:nth-child(2) { animation-delay: 0.2s; }
+    .plan-card:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes cardSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
 
     /* ==========================================================================
@@ -127,7 +178,7 @@
     .plan-card {
         background: var(--color-surface);
         border: 2px solid var(--plan-border);
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-xl);
         padding: var(--spacing-6);
         display: flex;
         flex-direction: column;
@@ -135,6 +186,7 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+        box-shadow: var(--card-shadow);
     }
 
     /* Barra superior colorida */
@@ -147,13 +199,14 @@
         height: 4px;
         background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: all 0.3s ease;
+        pointer-events: none;
     }
 
     .plan-card:hover {
-        transform: translateY(-8px);
-        border-color: var(--plan-hover-border);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+        border-color: color-mix(in srgb, var(--color-primary) 30%, var(--glass-border));
     }
 
     .plan-card:hover::before {
@@ -164,45 +217,67 @@
     .plan-card--recommended::after {
         content: '⭐ Recomendado';
         position: absolute;
-        top: 24px;
-        right: 24px;
+        top: 20px;
+        right: 20px;
         background: var(--badge-bg);
         color: white;
         font-size: 0.75rem;
         font-weight: 700;
-        padding: 6px 14px;
-        border-radius: var(--radius-md);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        padding: 8px 16px;
+        border-radius: var(--radius-lg);
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        z-index: 2;
+        letter-spacing: 0.08em;
+        z-index: 3;
+        pointer-events: none;
         animation: pulse 3s ease-in-out infinite;
     }
 
     @keyframes pulse {
-
         0%,
         100% {
-            transform: scale(1);
+            transform: scale(1) translateY(0);
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
         }
 
         50% {
-            transform: scale(1.05);
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 50%, transparent);
         }
     }
 
     /* Plano ativo */
     .plan-card--active {
         border-color: var(--color-success);
+        border-width: 3px;
         background: linear-gradient(to bottom,
                 color-mix(in srgb, var(--color-success) 8%, var(--color-surface)),
                 var(--color-surface));
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 15%, transparent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 20%, transparent),
+                    0 8px 32px color-mix(in srgb, var(--color-success) 25%, transparent);
+        position: relative;
     }
 
     .plan-card--active::before {
         background: var(--color-success);
         opacity: 1;
+        height: 5px;
+    }
+
+    /* Efeito de pulso no plano ativo */
+    @keyframes activePulse {
+        0%, 100% {
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 20%, transparent),
+                        0 8px 32px color-mix(in srgb, var(--color-success) 25%, transparent);
+        }
+        50% {
+            box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-success) 15%, transparent),
+                        0 12px 40px color-mix(in srgb, var(--color-success) 30%, transparent);
+        }
+    }
+
+    .plan-card--active {
+        animation: activePulse 3s ease-in-out infinite;
     }
 
     /* ==========================================================================
@@ -215,16 +290,24 @@
     }
 
     .plan-card__icon {
-        width: 48px;
-        height: 48px;
+        width: 56px;
+        height: 56px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: white;
-        border-radius: var(--radius-md);
-        font-size: 1.5rem;
+        border-radius: var(--radius-lg);
+        font-size: 1.75rem;
         flex-shrink: 0;
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 30%, transparent);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .plan-card:hover .plan-card__icon {
+        transform: scale(1.08);
+        box-shadow: 0 10px 24px color-mix(in srgb, var(--color-primary) 35%, transparent);
     }
 
     .plan-card__title-wrapper {
@@ -281,16 +364,44 @@
     .plan-card__price {
         font-size: 3rem;
         font-weight: 800;
-        color: var(--color-primary);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         letter-spacing: -0.03em;
-        line-height: 1;
-        margin: var(--spacing-2) 0;
+        line-height: 1.1;
+        margin: var(--spacing-3) 0;
+        display: flex;
+        align-items: baseline;
+        gap: var(--spacing-2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .plan-card__price-value {
+        display: inline-block;
+        animation: priceAppear 0.5s ease;
+    }
+
+    @keyframes priceAppear {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .plan-card__price-period {
-        font-size: 1rem;
-        font-weight: 500;
+        font-size: 1.125rem;
+        font-weight: 600;
         color: var(--color-text-muted);
+        opacity: 0.8;
+    }
+
+    .plan-card:hover .plan-card__price {
+        transform: scale(1.02);
     }
 
     /* ==========================================================================
@@ -312,7 +423,10 @@
         gap: var(--spacing-3);
         font-size: 0.9375rem;
         line-height: 1.6;
-        transition: transform 0.2s ease;
+        padding: var(--spacing-2);
+        border-radius: var(--radius-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: var(--color-text);
     }
 
     .plan-card__feature:hover {
@@ -320,26 +434,33 @@
     }
 
     .plan-card__feature-icon {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
+        width: 26px;
+        height: 26px;
+        min-width: 26px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         margin-top: 2px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .plan-card__feature-icon--check {
-        background: var(--color-success);
+        background: linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 80%, black));
         color: white;
+    }
+
+    .plan-card__feature:hover .plan-card__feature-icon--check {
+        transform: scale(1.1);
+        box-shadow: 0 3px 10px color-mix(in srgb, var(--color-success) 30%, transparent);
     }
 
     .plan-card__feature-icon--times {
         background: var(--color-surface-muted);
         color: var(--color-text-muted);
-        opacity: 0.6;
+        opacity: 0.5;
     }
 
     /* ==========================================================================
@@ -370,15 +491,35 @@
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: white;
         box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .plan-card__button--primary::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .plan-card__button--primary:hover::before {
+        width: 300px;
+        height: 300px;
     }
 
     .plan-card__button--primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 32px color-mix(in srgb, var(--color-primary) 50%, transparent);
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 14px 40px color-mix(in srgb, var(--color-primary) 60%, transparent);
     }
 
     .plan-card__button--primary:active {
-        transform: translateY(-1px);
+        transform: translateY(-2px) scale(1);
     }
 
     /* Botão do plano ativo */
@@ -508,25 +649,39 @@
 
     @media (max-width: 768px) {
         .billing-page {
-            margin: 32px 16px;
-            padding: 32px 20px;
+            margin: 16px 8px;
+            padding: 24px 16px;
+        }
+
+        .billing-header {
+            margin-bottom: var(--spacing-4);
         }
 
         .plan-card--recommended::after {
-            top: 16px;
-            right: 16px;
+            top: 12px;
+            right: 12px;
             font-size: 0.65rem;
-            padding: 4px 10px;
+            padding: 4px 8px;
         }
     }
 
     @media (max-width: 480px) {
         .billing-page {
-            padding: 24px 16px;
+            margin: 8px 4px;
+            padding: 20px 12px;
+            border-radius: var(--radius-lg);
+        }
+
+        .billing-header__title {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+        }
+
+        .billing-header__subtitle {
+            font-size: 0.9375rem;
         }
 
         .plan-card {
-            padding: 24px 20px;
+            padding: 20px 16px;
         }
 
         .plan-card__icon {
@@ -540,12 +695,57 @@
         }
 
         .plan-card__price {
-            font-size: 2.5rem;
+            font-size: 2.25rem;
         }
 
         .plan-card__button {
-            padding: 14px 24px;
-            font-size: 0.9375rem;
+            padding: 12px 20px;
+            font-size: 0.875rem;
+        }
+
+        .plan-billing-toggle {
+            flex-direction: column;
+            gap: var(--spacing-2);
+            padding: var(--spacing-2);
+        }
+
+        .plan-billing-toggle__btn {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: .875rem;
+            justify-content: center;
+        }
+
+        .plan-billing-toggle__off {
+            font-size: .75rem;
+            padding: 2px 6px;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .billing-page {
+            margin: 4px 2px;
+            padding: 16px 8px;
+        }
+
+        .billing-header__title {
+            font-size: 1.5rem;
+        }
+
+        .billing-header__subtitle {
+            font-size: 0.875rem;
+        }
+
+        .plan-card {
+            padding: 16px 12px;
+        }
+
+        .plan-card__price {
+            font-size: 2rem;
+        }
+
+        .plan-card__feature {
+            font-size: 0.875rem;
         }
     }
 
@@ -570,38 +770,77 @@
 
     .plan-billing-toggle {
         display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: var(--spacing-2);
+        gap: var(--spacing-2);
+        flex-wrap: nowrap;
+        margin-top: var(--spacing-3);
+        padding: var(--spacing-2);
+        background: var(--color-surface-muted);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--glass-border);
     }
 
     .plan-billing-toggle__btn {
-        border: 1px solid var(--glass-border);
-        background: var(--color-surface-muted);
+        flex: 1;
+        min-width: 0;
+        border: 2px solid transparent;
+        background: transparent;
         color: var(--color-text);
-        border-radius: 999px;
-        padding: 10px 12px;
-        font-weight: 800;
-        font-size: .875rem;
+        border-radius: var(--radius-md);
+        padding: 10px 8px;
+        font-weight: 700;
+        font-size: .8125rem;
         cursor: pointer;
-        transition: .2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .plan-billing-toggle__btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
     }
 
     .plan-billing-toggle__btn:hover {
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         border-color: var(--color-primary);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent);
     }
 
     .plan-billing-toggle__btn.is-active {
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: #fff;
         border-color: transparent;
+        box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        transform: translateY(-2px);
+    }
+
+    .plan-billing-toggle__btn.is-active::before {
+        opacity: 1;
     }
 
     .plan-billing-toggle__off {
-        margin-left: 6px;
-        font-size: .75rem;
-        opacity: .95;
+        font-size: .65rem;
+        font-weight: 800;
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 2px 5px;
+        border-radius: 3px;
+        display: inline-block;
+    }
+
+    .plan-billing-toggle__btn:not(.is-active) .plan-billing-toggle__off {
+        background: var(--color-success);
+        color: white;
     }
 </style>
 
@@ -729,10 +968,12 @@ function formatInterval(string $interval): string
                     </p>
 
                     <!-- Preço -->
-                    <div class="plan-card__price"
+                    <div class="plan-card__price" 
+                        <?= strcasecmp($plan['code'], 'pro') === 0 ? 'id="planProPrice"' : '' ?>
+                        data-base-price="<?= number_format($priceValue, 2, '.', '') ?>"
                         aria-label="<?= $priceCents > 0 ? 'Preço: ' . number_format($priceValue, 2, ',', '.') . ' por ' . $intervalLabel : 'Plano gratuito' ?>">
                         <?php if ($priceCents > 0): ?>
-                            R$ <?= number_format($priceValue, 2, ',', '.') ?>
+                            <span class="plan-card__price-value">R$ <?= number_format($priceValue, 2, ',', '.') ?></span>
                             <span class="plan-card__price-period">/<?= $intervalLabel ?></span>
                         <?php else: ?>
                             Gratuito
@@ -792,17 +1033,17 @@ function formatInterval(string $interval): string
                             <div class="plan-billing-toggle" role="group" aria-label="Período de cobrança do Pro">
                                 <button type="button" class="plan-billing-toggle__btn is-active" data-cycle="monthly" data-months="1"
                                     data-discount="0">
-                                    Mensal
+                                    <span>Mensal</span>
                                 </button>
 
                                 <button type="button" class="plan-billing-toggle__btn" data-cycle="semiannual" data-months="6"
                                     data-discount="10">
-                                    Semestral <span class="plan-billing-toggle__off">-10%</span>
+                                    <span>Semestral</span> <span class="plan-billing-toggle__off">💰 -10%</span>
                                 </button>
 
                                 <button type="button" class="plan-billing-toggle__btn" data-cycle="annual" data-months="12"
                                     data-discount="15">
-                                    Anual <span class="plan-billing-toggle__off">-15%</span>
+                                    <span>Anual</span> <span class="plan-billing-toggle__off">🎉 -15%</span>
                                 </button>
                             </div>
                         <?php endif; ?>

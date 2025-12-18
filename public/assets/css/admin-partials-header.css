@@ -325,7 +325,7 @@ body.sidebar-collapsed .sidebar .nav-item {
   width: 100%;
   padding: var(--spacing-4);
   font-weight: 600;
-  color: #fff;
+  color: #fff !important;
   border-radius: var(--radius-full, 999px);
   text-decoration: none;
   background: linear-gradient(
@@ -341,11 +341,15 @@ body.sidebar-collapsed .sidebar .nav-item {
 .sidebar-pro-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  color: #fff;
+  color: #fff !important;
 }
 
 .sidebar-pro-btn i {
   font-size: 1rem;
+}
+
+.sidebar-pro-btn span {
+  color: #fff !important;
 }
 
 body.sidebar-collapsed .sidebar-pro-cta {
@@ -390,7 +394,6 @@ body.sidebar-collapsed .content-wrapper {
 
 .lk-main {
   flex: 1;
-  padding-top: 2rem;
   padding-bottom: 2rem;
   background: var(--color-bg);
 }
@@ -1385,7 +1388,6 @@ body.sidebar-open-mobile .sidebar-backdrop {
   }
 
   .lk-main {
-    padding-top: max(var(--header-height), clamp(24px, 6vw, 40px));
     padding-bottom: clamp(24px, 6vw, 40px);
   }
 

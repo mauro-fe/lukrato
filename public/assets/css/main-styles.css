@@ -205,11 +205,12 @@ h3 {
   font-size: var(--font-size-lg);
   min-width: 20px;
   text-align: center;
-  color: currentColor;
+  color: var(--color-text);
   transition: transform var(--transition-fast);
 }
 
 .sidebar .nav-item span {
+  color: var(--color-text);
   transition: opacity var(--transition-fast), width var(--transition-fast);
 }
 
@@ -371,7 +372,7 @@ body.sidebar-collapsed .edge-menu-btn {
   padding: var(--spacing-4);
   font-weight: 600;
   font-size: var(--font-size-sm);
-  color: #fff;
+  color: #fff !important;
   border-radius: 999px;
   text-decoration: none;
   background: linear-gradient(
@@ -387,11 +388,15 @@ body.sidebar-collapsed .edge-menu-btn {
 .sidebar-pro-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  color: #fff;
+  color: #fff !important;
 }
 
 .sidebar-pro-btn i {
   font-size: 1rem;
+}
+
+.sidebar-pro-btn span {
+  color: #fff !important;
 }
 
 body.sidebar-collapsed .sidebar-pro-cta {
