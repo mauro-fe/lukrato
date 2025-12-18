@@ -101,7 +101,7 @@
                 
                 <!-- Card principal -->
                 <div class="relative bg-white rounded-3xl shadow-2xl p-4 transform hover:scale-105 transition-transform duration-500">
-                    <img src="<?= BASE_URL ?>/assets/img/mockups/mockup.png" 
+                    <img src="<?= BASE_URL ?>/assets/img/mockups/notebook.jpeg" 
                          alt="Dashboard do Lukrato"
                          class="w-full h-auto rounded-2xl"
                          loading="eager" />
