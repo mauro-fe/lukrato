@@ -390,7 +390,6 @@ body.sidebar-collapsed .content-wrapper {
 
 .lk-main {
   flex: 1;
-  padding-top: 2rem;
   padding-bottom: 2rem;
   background: var(--color-bg);
 }
@@ -1385,7 +1384,6 @@ body.sidebar-open-mobile .sidebar-backdrop {
   }
 
   .lk-main {
-    padding-top: max(var(--header-height), clamp(24px, 6vw, 40px));
     padding-bottom: clamp(24px, 6vw, 40px);
   }
 

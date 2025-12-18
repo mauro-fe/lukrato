@@ -56,6 +56,9 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
+    
+    <!-- Enhancements por último para sobrescrever tudo -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css">
 
     <!-- ============================================================================
          SCRIPTS EXTERNOS
@@ -64,6 +67,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
+    <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
 
     <!-- ============================================================================
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)

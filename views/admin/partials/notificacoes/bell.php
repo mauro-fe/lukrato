@@ -14,10 +14,10 @@
     /* Container que envolve o bot├úo e o popover */
 }
 
-/* Bot├úo do Sino */
+/* Botão do Sino */
 #lk-bell {
-    background-color: var(--color-primary);
-    color: var(--color-text);
+    background-color: transparent;
+    color: #fff !important;
     border-radius: var(--radius-md);
     padding: 8px 14px;
     font-size: 0.9rem;
@@ -26,9 +26,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     height: 40px;
+}
+
+#lk-bell:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+#lk-bell i,
+#lk-bell .fas,
+#lk-bell .fa-bell {
+    color: #fff !important;
+}
+
+/* Sobrescrever btn-ghost para o sino */
+#lk-bell.btn-ghost,
+#lk-bell.btn-ghost:not(:hover),
+#lk-bell.btn {
+    color: #fff !important;
 }
 
 /* Vibracao do sino quando ha nao lidas */
@@ -296,7 +314,7 @@ $badgeStyle = $initialUnread > 0 ? 'inline-flex' : 'none';
 $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 ?>
 <button id="lk-bell" class="btn btn-ghost relative" aria-label="Notificacoes" aria-expanded="false">
-    <i class="fas fa-bell"></i>
+    <i class="fas fa-bell" style="color: #fff !important;"></i>
     <span id="lk-bell-badge" class="absolute -top-1 -right-1" style="display: <?= $badgeStyle ?>;">
         <?= $initialBadgeLabel ?>
     </span>

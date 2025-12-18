@@ -73,13 +73,14 @@ if (isset($user) && $user) {
     .payment-modal__content {
         background: var(--color-surface);
         border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-xl);
+        border: 2px solid var(--glass-border);
+        box-shadow: var(--shadow-xl), 0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
         max-width: 700px;
         width: 100%;
         max-height: 90vh;
         overflow-y: auto;
         position: relative;
-        animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @keyframes slideUp {
@@ -144,12 +145,35 @@ if (isset($user) && $user) {
         gap: var(--spacing-2);
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: #fff;
-        font-size: 1.125rem;
-        font-weight: 700;
-        padding: var(--spacing-3) var(--spacing-5);
-        border-radius: var(--radius-lg);
+        font-size: 1.25rem;
+        font-weight: 800;
+        padding: var(--spacing-3) var(--spacing-6);
+        border-radius: var(--radius-xl);
         margin-top: var(--spacing-4);
-        box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .payment-modal__price::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: translateX(-100%);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        to {
+            transform: translateX(100%);
+        }
+    }
+
+    .payment-modal__price:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 32px color-mix(in srgb, var(--color-primary) 50%, transparent);
     }
 
     .payment-modal__body {
@@ -182,19 +206,26 @@ if (isset($user) && $user) {
 
     .payment-form__input {
         border-radius: var(--radius-md);
-        border: 1px solid var(--glass-border);
+        border: 2px solid var(--glass-border);
         background: var(--color-surface-muted);
-        padding: 10px 12px;
-        font-size: .9375rem;
+        padding: 12px 14px;
+        font-size: 1rem;
         color: var(--color-text);
         outline: none;
-        transition: border-color .2s, box-shadow .2s, background .2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+    }
+
+    .payment-form__input:hover {
+        border-color: color-mix(in srgb, var(--color-primary) 50%, var(--glass-border));
     }
 
     .payment-form__input:focus {
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent),
+                    0 4px 12px color-mix(in srgb, var(--color-primary) 15%, transparent);
         background: var(--color-surface);
+        transform: translateY(-1px);
     }
 
     .payment-form__actions {
@@ -221,23 +252,43 @@ if (isset($user) && $user) {
 
     .btn-primary {
         border-radius: var(--radius-lg);
-        padding: 12px 22px;
+        padding: 14px 28px;
         border: none;
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: #fff;
         cursor: pointer;
-        font-size: .9375rem;
-        font-weight: 600;
+        font-size: 1rem;
+        font-weight: 700;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
-        transition: all .2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-primary:hover::before {
+        width: 300px;
+        height: 300px;
     }
 
     .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 12px 24px color-mix(in srgb, var(--color-primary) 50%, transparent);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 14px 32px color-mix(in srgb, var(--color-primary) 60%, transparent);
     }
 
     .btn-primary[disabled] {
@@ -245,6 +296,11 @@ if (isset($user) && $user) {
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
+    }
+
+    .btn-primary[disabled]:hover::before {
+        width: 0;
+        height: 0;
     }
 
     @media (max-width:768px) {
@@ -570,6 +626,34 @@ if (isset($user) && $user) {
                 b.addEventListener('click', () => {
                     buttons.forEach(x => x.classList.remove('is-active'));
                     b.classList.add('is-active');
+
+                    // Atualizar o preço exibido no card do plano Pro com animação
+                    const proPriceElement = document.getElementById('planProPrice');
+                    if (proPriceElement) {
+                        const basePrice = Number(proPriceElement.dataset.basePrice || 0);
+                        const months = Number(b.dataset.months || 1);
+                        const discount = Number(b.dataset.discount || 0);
+                        
+                        const total = calcTotal(basePrice, months, discount);
+                        const period = cycleLabel(months);
+                        
+                        const priceValueElement = proPriceElement.querySelector('.plan-card__price-value');
+                        const pricePeriodElement = proPriceElement.querySelector('.plan-card__price-period');
+                        
+                        if (priceValueElement) {
+                            // Adiciona animação de saída
+                            priceValueElement.style.animation = 'none';
+                            // Força reflow
+                            void priceValueElement.offsetWidth;
+                            // Atualiza o valor
+                            priceValueElement.textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            // Adiciona animação de entrada
+                            priceValueElement.style.animation = 'priceAppear 0.5s ease';
+                        }
+                        if (pricePeriodElement) {
+                            pricePeriodElement.textContent = `/${period}`;
+                        }
+                    }
 
                     if (!currentPlanConfig) return;
 
