@@ -12,6 +12,7 @@ $extraCss  = $extraCss  ?? [];
 
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/landing-base.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">
     <link rel="icon" href="<?= BASE_URL ?>assets/img/icone.png" alt="icone lukrato">
 
     <?php foreach ($extraCss as $css): ?>

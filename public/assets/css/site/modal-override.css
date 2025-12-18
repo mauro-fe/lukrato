@@ -1,0 +1,20 @@
+/**
+ * Modal Override - Força o modal a ficar escondido por padrão
+ * Este arquivo é carregado DEPOIS do landing-base.css
+ */
+
+#func-gallery {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#func-gallery.is-open {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
