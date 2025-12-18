@@ -31,103 +31,12 @@ class LancamentosController
     private LancamentoLimitService $limitService;
     private LancamentoExportService $exportService;
 
-
     public function __construct(
         ?LancamentoExportService $exportService = null,
         ?LancamentoLimitService $limitService = null
     ) {
         $this->exportService = $exportService ?? new LancamentoExportService();
         $this->limitService  = $limitService ?? new LancamentoLimitService();
-    }
-    // =============================================================================
-    // LIMITES (FREE) + USAGE
-    // =============================================================================
-
-    private function getFreeLancamentosLimit(): int
-    {
-        return 50;
-    }
-
-    private function getFreeLancamentosWarningAt(): int
-    {
-        return 40;
-    }
-
-
-
-    /**
-     * IMPORTANTÍSSIMO:
-     * Ajuste este método para refletir como você guarda o plano do usuário no seu banco.
-     * Ex.: usuarios.plano = 'pro' | 'free'
-     * ou usuarios.is_premium = 1
-     */
-    private function isProUser(int $userId): bool
-    {
-        try {
-            /** @varUsuario|null $user */
-            $user = Usuario::find($userId);
-            if (!$user) {
-                return false;
-            }
-
-            // Busca assinatura ativa corretamente
-            $assinatura = $user->assinaturas()
-                ->where('status', 'active')
-                ->orderByDesc('created_at')
-                ->first();
-
-            if (!$assinatura) {
-                return false; // não tem assinatura ativa
-            }
-
-            // Carrega o plano
-            $plano = $assinatura->plano;
-            if (!$plano) {
-                return false;
-            }
-
-            // Se o plano NÃO for free, é PRO
-            $code = strtolower((string)$plano->code);
-
-            return $code !== 'free';
-        } catch (\Throwable $e) {
-            return false;
-        }
-    }
-
-
-    private function countLancamentosNoMes(int $userId, string $ym): int
-    {
-        // $ym no formato YYYY-MM
-        $from = $ym . '-01';
-        $to   = date('Y-m-t', strtotime($from));
-
-        // Conta apenas lançamentos "normais" (sem saldo inicial e sem transferências)
-        return (int) Lancamento::where('user_id', $userId)
-            ->whereBetween('data', [$from, $to])
-            ->where('eh_saldo_inicial', 0)
-            ->where('eh_transferencia', 0)
-            ->count();
-    }
-
-    private function buildUsageMeta(int $userId, string $ym): array
-    {
-        $isPro = $this->isProUser($userId);
-
-        $limit = $this->getFreeLancamentosLimit();
-        $warn  = $this->getFreeLancamentosWarningAt();
-        $used  = $this->countLancamentosNoMes($userId, $ym);
-
-        return [
-            'month'       => $ym,
-            'plan'        => $isPro ? 'pro' : 'free',
-            'limit'       => $isPro ? null : $limit,
-            'used'        => $used,
-            'remaining'   => $isPro ? null : max(0, $limit - $used),
-            'warning_at'  => $warn,
-            'should_warn' => (!$isPro && $used >= $warn && $used < $limit),
-            'blocked'     => (!$isPro && $used >= $limit),
-        ];
     }
 
     // =============================================================================
@@ -396,6 +305,7 @@ class LancamentosController
 
         $lancamento->loadMissing(['categoria', 'conta']);
 
+        // Valida limites e obtém informações de uso
         $ym = substr($data, 0, 7);
         try {
             $usage = $this->limitService->assertCanCreate($userId, $data);
@@ -404,30 +314,30 @@ class LancamentosController
             return;
         }
 
+        // Prepara resposta com dados do lançamento
+        $lancamentoData = [
+            'id'               => (int) $lancamento->id,
+            'data'             => (string) $lancamento->data,
+            'tipo'             => (string) $lancamento->tipo,
+            'valor'            => (float) $lancamento->valor,
+            'descricao'        => (string) ($lancamento->descricao ?? ''),
+            'observacao'       => (string) ($lancamento->observacao ?? ''),
+            'categoria_id'     => (int) $lancamento->categoria_id ?: null,
+            'conta_id'         => (int) $lancamento->conta_id ?: null,
+            'eh_transferencia' => (bool) $lancamento->eh_transferencia,
+            'eh_saldo_inicial' => (bool) $lancamento->eh_saldo_inicial,
+            'categoria'        => $lancamento->categoria?->nome ?? '',
+            'categoria_nome'   => $lancamento->categoria?->nome ?? '',
+            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+        ];
 
         Response::success([
-            'lancamento' => [
-                'id'               => (int)$lancamento->id,
-                'data'             => (string)$lancamento->data,
-                'tipo'             => (string)$lancamento->tipo,
-                'valor'            => (float)$lancamento->valor,
-                'descricao'        => (string)($lancamento->descricao ?? ''),
-                'observacao'       => (string)($lancamento->observacao ?? ''),
-                'categoria_id'     => (int)$lancamento->categoria_id ?: null,
-                'conta_id'         => (int)$lancamento->conta_id ?: null,
-                'eh_transferencia' => (bool)$lancamento->eh_transferencia,
-                'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
-                'categoria'        => $lancamento->categoria?->nome ?? '',
-                'categoria_nome'   => $lancamento->categoria?->nome ?? '',
-                'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-                'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            ],
-            'usage' => $usage,
-            'ui_message' => ($usage['should_warn'] ?? false)
-                ? "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
-                : null
+            'lancamento' => $lancamentoData,
+            'usage'      => $usage,
+            'ui_message' => $this->limitService->getWarningMessage($usage),
+            'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
         ], 'Lancamento criado', 201);
-        $usage = $this->limitService->usage($userId, substr($data, 0, 7));
     }
 
     public function update(int $id): void
@@ -570,13 +480,12 @@ class LancamentosController
             return;
         }
 
-        $usage = $this->buildUsageMeta($userId, $month);
+        $usage = $this->limitService->usage($userId, $month);
 
         Response::success([
-            'usage' => $usage,
-            'ui_message' => ($usage['should_warn'] ?? false)
-                ? "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
-                : null
+            'usage'       => $usage,
+            'ui_message'  => $this->limitService->getWarningMessage($usage),
+            'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
         ]);
     }
 }

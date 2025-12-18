@@ -285,16 +285,15 @@ class FinanceiroController
 
             $t->save();
 
-            // Atualiza usage depois de salvar, pra front já mostrar warning certinho
+            // Atualiza uso e gera mensagens apropriadas
             $usage = $this->limitService->usage($uid, substr($dataStr, 0, 7));
 
             Response::success([
-                'ok' => true,
-                'id' => (int)$t->id,
-                'usage' => $usage,
-                'ui_message' => ($usage['should_warn'] ?? false)
-                    ? "⚠️ Atenção: você já usou {$usage['used']} de {$this->limitService->getFreeLimit()} lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
-                    : null
+                'ok'          => true,
+                'id'          => (int) $t->id,
+                'usage'       => $usage,
+                'ui_message'  => $this->limitService->getWarningMessage($usage),
+                'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
             ], 'Lancamento criado', 201);
         } catch (ValueError $e) {
             Response::validationError(['message' => $e->getMessage()]);

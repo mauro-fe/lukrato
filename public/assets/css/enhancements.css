@@ -288,7 +288,7 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-b
     color: #fff !important;
 }
 
-/* Força ícones do SIDEBAR (menu lateral) a serem brancos */
+/* Força ícones do SIDEBAR (menu lateral) a seguirem o tema */
 .sidebar .nav-item i,
 .sidebar .nav-item .fa,
 .sidebar .nav-item .fas,
@@ -301,7 +301,7 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-b
 .sidebar-nav a .fa,
 .sidebar-nav a .fas,
 .sidebar-nav a .fa-solid {
-    color: #fff !important;
+    color: var(--color-text) !important;
 }
 
 /* Força também nos itens ativos e hover do sidebar */
