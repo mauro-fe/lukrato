@@ -11,6 +11,7 @@ use Application\Services\LogService;
 use Application\Services\PdfExportService;
 use Application\Services\ReportService;
 use Application\DTO\ReportParameters;
+use Application\Enums\LancamentoTipo;
 use Carbon\Carbon;
 use ValueError;
 use InvalidArgumentException;
@@ -62,12 +63,6 @@ enum ReportType: string
             throw new InvalidArgumentException("Tipo de relatório '{$shorthand}' inválido.");
         }
     }
-}
-
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
 }
 
 class RelatoriosController extends BaseController

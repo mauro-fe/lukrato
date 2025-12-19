@@ -127,6 +127,19 @@ abstract class BaseController
         return $this->jsonBodyCache[$key] ?? $default;
     }
 
+    /**
+     * Obtém o payload da requisição (JSON ou POST).
+     * Útil para APIs que aceitam ambos formatos.
+     */
+    protected function getRequestPayload(): array
+    {
+        $payload = $this->getJson() ?? [];
+        if (empty($payload)) {
+            $payload = $this->request->post() ?? $_POST ?? [];
+        }
+        return $payload;
+    }
+
     protected function sanitize(string $value): string
     {
         return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');

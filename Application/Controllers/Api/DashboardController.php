@@ -6,17 +6,11 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
+use Application\Enums\LancamentoTipo;
 use Illuminate\Database\Eloquent\Builder;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use Throwable;
-
-
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-}
 
 class DashboardController
 {

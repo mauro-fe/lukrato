@@ -2,150 +2,30 @@
 
 namespace Application\Controllers\Api;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Conta;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
+use Application\Services\ContaBalanceService;
+use Application\Repositories\ContaRepository;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Capsule\Manager;
-use DateTimeImmutable;
+use Application\Enums\LancamentoTipo;
+use Application\Enums\Moeda;
 use Throwable;
 use ValueError;
 
-enum LancamentoTipo: string
+
+class ContasController extends BaseController
 {
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-}
+    private ContaRepository $contaRepo;
 
-enum Moeda: string
-{
-    case BRL = 'BRL';
-    case USD = 'USD';
-    case EUR = 'EUR';
-
-    public static function listValues(): array
+    public function __construct()
     {
-        return array_column(self::cases(), 'value');
+        parent::__construct();
+        $this->contaRepo = new ContaRepository();
     }
-}
-
-class ContasBalanceService
-{
-    private int $userId;
-    private array $accountIds;
-    private string $endDate;
-
-    public function __construct(int $userId, array $accountIds, string $month)
-    {
-        $this->userId = $userId;
-        $this->accountIds = $accountIds;
-
-        $dt = \DateTime::createFromFormat('Y-m', $month);
-        if (!$dt || $dt->format('Y-m') !== $month) {
-            $dt = new \DateTime(date('Y-m') . '-01');
-        }
-        $this->endDate = (new DateTimeImmutable($dt->format('Y-m-01')))
-            ->modify('last day of this month')
-            ->format('Y-m-d');
-    }
-
-    public function getInitialBalances(): array
-    {
-        if (empty($this->accountIds)) return [];
-
-        return Lancamento::where('user_id', $this->userId)
-            ->whereIn('conta_id', $this->accountIds)
-            ->where('eh_saldo_inicial', 1)
-            ->selectRaw("
-                conta_id,
-                SUM(
-                    CASE
-                        WHEN tipo = ?
-                            THEN -valor
-                        ELSE valor
-                    END
-                ) as total
-            ", [LancamentoTipo::DESPESA->value])
-            ->groupBy('conta_id')
-            ->pluck('total', 'conta_id')
-            ->all();
-    }
-
-
-    public function calculateFinalBalances(array $initialBalances): array
-    {
-        if (empty($this->accountIds)) return [];
-
-
-        $rec = Lancamento::where('user_id', $this->userId)
-            ->whereIn('conta_id', $this->accountIds)
-            ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
-            ->where('data', '<=', $this->endDate)
-            ->where('tipo', LancamentoTipo::RECEITA->value)
-            ->selectRaw('conta_id, SUM(valor) as tot')
-            ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
-
-        $des = Lancamento::where('user_id', $this->userId)
-            ->whereIn('conta_id', $this->accountIds)
-            ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
-            ->where('data', '<=', $this->endDate)
-            ->where('tipo', LancamentoTipo::DESPESA->value)
-            ->selectRaw('conta_id, SUM(valor) as tot')
-            ->groupBy('conta_id')->pluck('tot', 'conta_id')->all();
-
-        $tin = Lancamento::where('user_id', $this->userId)
-            ->whereIn('conta_id_destino', $this->accountIds)
-            ->where('eh_transferencia', 1)
-            ->where('data', '<=', $this->endDate)
-            ->selectRaw('conta_id_destino as cid, SUM(valor) as tot')
-            ->groupBy('cid')->pluck('tot', 'cid')->all();
-
-        $tout = Lancamento::where('user_id', $this->userId)
-            ->whereIn('conta_id', $this->accountIds)
-            ->where('eh_transferencia', 1)
-            ->where('data', '<=', $this->endDate)
-            ->selectRaw('conta_id as cid, SUM(valor) as tot')
-            ->groupBy('cid')->pluck('tot', 'cid')->all();
-
-        $extras = [];
-        foreach ($this->accountIds as $cid) {
-            $r = (float)($rec[$cid] ?? 0);
-            $d = (float)($des[$cid] ?? 0);
-            $i = (float)($tin[$cid] ?? 0);
-            $o = (float)($tout[$cid] ?? 0);
-            $si = (float)($initialBalances[$cid] ?? 0);
-
-            $saldoAtual = $si + $r - $d + $i - $o;
-
-            $extras[$cid] = [
-                'saldoAtual'    => $saldoAtual,
-                'entradasTotal' => $r + $i,
-                'saidasTotal'   => $d + $o,
-                'saldoInicial'  => $si,
-            ];
-        }
-
-        return $extras;
-    }
-}
-
-
-class ContasController
-{
-
-    private function getRequestPayload(): array
-    {
-        $data = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (empty($data) && strtolower($_SERVER['REQUEST_METHOD'] ?? '') === 'post') {
-            $data = $_POST;
-        }
-        return $data;
-    }
-
-
     public function index(): void
     {
         $userId = Auth::id();
@@ -155,21 +35,21 @@ class ContasController
         $withBalances = (int)($_GET['with_balances'] ?? 0) === 1;
         $month        = trim((string)($_GET['month'] ?? date('Y-m')));
 
-        $q = Conta::forUser($userId);
         if ($archived) {
-            $q->arquivadas();
+            $rows = $this->contaRepo->findArchived($userId);
         } elseif ($onlyActive) {
-            $q->ativas();
+            $rows = $this->contaRepo->findActive($userId);
+        } else {
+            $rows = $this->contaRepo->findByUser($userId);
         }
 
-        $rows = $q->orderBy('nome')->get();
         $ids = $rows->pluck('id')->all();
 
         $extras = [];
         $saldoIniciais = [];
 
         if ($rows->count()) {
-            $balanceService = new ContasBalanceService($userId, $ids, $month);
+            $balanceService = new ContaBalanceService($userId, $ids, $month);
 
             $saldoIniciais = $balanceService->getInitialBalances();
 
@@ -261,7 +141,7 @@ class ContasController
     {
         $userId = Auth::id();
 
-        $conta = Conta::forUser($userId)->find($id);
+        $conta = $this->contaRepo->findByIdAndUser($id, $userId);
         if (!$conta) {
             Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
             return;
@@ -346,30 +226,25 @@ class ContasController
     {
         $userId = Auth::id();
 
-        $conta = Conta::forUser($userId)->find($id);
-
-        if (!$conta) {
+        try {
+            $this->contaRepo->archive($id, $userId);
+            Response::json(['ok' => true, 'message' => 'Conta arquivada.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
-            return;
         }
-        $conta->ativo = 0;
-        $conta->save();
-        Response::json(['ok' => true, 'message' => 'Conta arquivada.']);
     }
 
 
     public function restore(int $id): void
     {
         $userId = Auth::id();
-        $conta = Conta::forUser($userId)->find($id);
-
-        if (!$conta) {
+        
+        try {
+            $this->contaRepo->restore($id, $userId);
+            Response::json(['ok' => true, 'message' => 'Conta restaurada.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
-            return;
         }
-        $conta->ativo = 1;
-        $conta->save();
-        Response::json(['ok' => true, 'message' => 'Conta restaurada.']);
     }
 
 

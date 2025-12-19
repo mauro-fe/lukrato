@@ -2,12 +2,15 @@
 
 namespace Application\Controllers\Api;
 
+use Application\Controllers\BaseController;
 use Application\Core\Request;
 use Application\Core\Response;
 use Application\Models\Lancamento;
 use Application\Models\Categoria;
 use Application\Services\LancamentoLimitService;
 use Application\Models\Conta;
+use Application\Enums\LancamentoTipo;
+use Application\Enums\CategoriaTipo;
 use Carbon\Carbon;
 use Application\Lib\Auth;
 use ValueError;
@@ -15,16 +18,7 @@ use Throwable;
 use Illuminate\Database\Eloquent\Builder;
 use DomainException;
 
-
-
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-    case AMBAS = 'ambas';
-}
-
-class FinanceiroController
+class FinanceiroController extends BaseController
 {
     private LancamentoLimitService $limitService;
 
@@ -32,19 +26,6 @@ class FinanceiroController
     {
         $this->limitService = $limitService ?? new LancamentoLimitService();
     }
-
-
-    private function getRequestPayload(): array
-    {
-        $raw = file_get_contents('php://input');
-        $data = json_decode($raw, true) ?: [];
-
-        if (empty($data)) {
-            $data = $_POST ?? [];
-        }
-        return $data;
-    }
-
 
     private function validateTipo(string $tipo): string
     {
@@ -190,7 +171,7 @@ class FinanceiroController
             $baseCatsQuery = fn(string $tipo) => Categoria::where(function (Builder $q) use ($uid) {
                 $q->whereNull('user_id')->orWhere('user_id', $uid);
             })
-                ->whereIn('tipo', [$tipo, LancamentoTipo::AMBAS->value])
+                ->whereIn('tipo', [$tipo, CategoriaTipo::AMBAS->value])
                 ->orderBy('nome')
                 ->get(['id', 'nome']);
 
@@ -252,7 +233,7 @@ class FinanceiroController
                     throw new ValueError('Categoria inválida.');
                 }
 
-                if (!in_array($cat->tipo, [LancamentoTipo::AMBAS->value, $tipo], true)) {
+                if (!in_array($cat->tipo, [CategoriaTipo::AMBAS->value, $tipo], true)) {
                     throw new ValueError('Categoria incompatível com o tipo de lançamento.');
                 }
             } else {
@@ -352,7 +333,7 @@ class FinanceiroController
                 if (!$cat) {
                     throw new ValueError('Categoria inválida.');
                 }
-                if (!in_array($cat->tipo, [LancamentoTipo::AMBAS->value, $tipo], true)) {
+                if (!in_array($cat->tipo, [CategoriaTipo::AMBAS->value, $tipo], true)) {
                     throw new ValueError('Categoria incompatível com o tipo de lançamento.');
                 }
             } else {

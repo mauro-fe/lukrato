@@ -8,34 +8,12 @@ use Application\Models\Provento;
 use Application\Repositories\InvestimentoRepository;
 use Application\Core\Exceptions\ValidationException;
 use Application\Services\LogService;
+use Application\Enums\TransacaoTipo;
+use Application\Enums\ProventoTipo;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;
 use GUMP;
 use Throwable;
-
-
-enum TransacaoTipo: string
-{
-    case COMPRA = 'compra';
-    case VENDA  = 'venda';
-
-    public static function listValues(): string
-    {
-        return implode(';', array_column(self::cases(), 'value'));
-    }
-}
-
-enum ProventoTipo: string
-{
-    case DIVIDENDO  = 'dividendo';
-    case JCP        = 'jcp';
-    case RENDIMENTO = 'rendimento';
-
-    public static function listValues(): string
-    {
-        return implode(';', array_column(self::cases(), 'value'));
-    }
-}
 
 class InvestimentoService
 {

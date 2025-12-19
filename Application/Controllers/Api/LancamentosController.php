@@ -2,6 +2,7 @@
 
 namespace Application\Controllers\Api;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Categoria;
@@ -12,25 +13,20 @@ use Application\Services\LancamentoExportService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
 use Application\Services\LancamentoLimitService;
+use Application\Enums\LancamentoTipo;
+use Application\Repositories\LancamentoRepository;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
 use InvalidArgumentException;
 use ValueError;
 
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-
-    public static function listValues(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
-}
-
-class LancamentosController
+class LancamentosController extends BaseController
 {
     private LancamentoLimitService $limitService;
     private LancamentoExportService $exportService;
-
+    private LancamentoRepository $lancamentoRepo;
+    private CategoriaRepository $categoriaRepo;
+    private ContaRepository $contaRepo;
 
     public function __construct(
         ?LancamentoExportService $exportService = null,
@@ -38,6 +34,9 @@ class LancamentosController
     ) {
         $this->exportService = $exportService ?? new LancamentoExportService();
         $this->limitService  = $limitService ?? new LancamentoLimitService();
+        $this->lancamentoRepo = new LancamentoRepository();
+        $this->categoriaRepo = new CategoriaRepository();
+        $this->contaRepo = new ContaRepository();
     }
     // =============================================================================
     // LIMITES (FREE) + USAGE
@@ -98,16 +97,7 @@ class LancamentosController
 
     private function countLancamentosNoMes(int $userId, string $ym): int
     {
-        // $ym no formato YYYY-MM
-        $from = $ym . '-01';
-        $to   = date('Y-m-t', strtotime($from));
-
-        // Conta apenas lançamentos "normais" (sem saldo inicial e sem transferências)
-        return (int) Lancamento::where('user_id', $userId)
-            ->whereBetween('data', [$from, $to])
-            ->where('eh_saldo_inicial', 0)
-            ->where('eh_transferencia', 0)
-            ->count();
+        return $this->lancamentoRepo->countByMonth($userId, $ym);
     }
 
     private function buildUsageMeta(int $userId, string $ym): array
@@ -133,15 +123,6 @@ class LancamentosController
     // =============================================================================
     // HELPERS
     // =============================================================================
-
-    private function getRequestPayload(): array
-    {
-        $payload = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (empty($payload)) {
-            $payload = $_POST ?? [];
-        }
-        return $payload;
-    }
 
     private function parseCategoriaParam(string $param): array
     {
@@ -181,14 +162,7 @@ class LancamentosController
             return null;
         }
 
-        $exists = Categoria::where('id', $id)
-            ->where(function ($q) use ($userId) {
-                $q->whereNull('user_id')
-                    ->orWhere('user_id', $userId);
-            })
-            ->exists();
-
-        if ($exists) {
+        if ($this->categoriaRepo->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -202,7 +176,7 @@ class LancamentosController
             return null;
         }
 
-        if (Conta::forUser($userId)->where('id', $id)->exists()) {
+        if ($this->contaRepo->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -380,7 +354,7 @@ class LancamentosController
             return;
         }
 
-        $lancamento = Lancamento::create([
+        $lancamento = $this->lancamentoRepo->create([
             'user_id' => $userId,
             'tipo' => $tipo,
             'data' => $data,
@@ -440,9 +414,7 @@ class LancamentosController
 
         $payload = $this->getRequestPayload();
 
-        $lancamento = Lancamento::where('user_id', $userId)
-            ->where('id', $id)
-            ->first();
+        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
 
         if (!$lancamento) {
             Response::error('Lancamento nao encontrado', 404);
@@ -494,18 +466,20 @@ class LancamentosController
             return;
         }
 
-        $lancamento->tipo = $tipo;
-        $lancamento->data = $data;
-        $lancamento->valor = $valor;
-        $lancamento->descricao = $descricao;
-        $lancamento->observacao = $observacao;
-        $lancamento->categoria_id = $categoriaId;
-        $lancamento->conta_id = $contaId;
-        $lancamento->conta_id_destino = null;
-        $lancamento->eh_transferencia = 0;
-        $lancamento->save();
+        $this->lancamentoRepo->update($id, [
+            'tipo' => $tipo,
+            'data' => $data,
+            'valor' => $valor,
+            'descricao' => $descricao,
+            'observacao' => $observacao,
+            'categoria_id' => $categoriaId,
+            'conta_id' => $contaId,
+            'conta_id_destino' => null,
+            'eh_transferencia' => 0,
+        ]);
 
-        $lancamento->refresh()->loadMissing(['categoria', 'conta']);
+        $lancamento = $this->lancamentoRepo->find($id);
+        $lancamento->loadMissing(['categoria', 'conta']);
 
         Response::success([
             'id'               => (int)$lancamento->id,
@@ -533,10 +507,7 @@ class LancamentosController
             return;
         }
 
-        /** @var Lancamento|null $t */
-        $t = Lancamento::where('user_id', $uid)
-            ->where('id', $id)
-            ->first();
+        $t = $this->lancamentoRepo->findByIdAndUser($id, $uid);
 
         if (!$t) {
             Response::error('Lancamento nao encontrado', 404);
@@ -548,7 +519,7 @@ class LancamentosController
             return;
         }
 
-        $t->delete();
+        $this->lancamentoRepo->delete($id);
         Response::success(['ok' => true]);
     }
 

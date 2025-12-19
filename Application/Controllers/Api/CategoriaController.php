@@ -6,38 +6,21 @@ use Application\Controllers\BaseController;
 use Application\Models\Categoria;
 use Application\Core\Response;
 use Application\Services\LogService;
+use Application\Repositories\CategoriaRepository;
+use Application\Enums\CategoriaTipo;
 use GUMP;
 use Exception;
 use ValueError;
 
-
-enum CategoriaTipo: string
-{
-    case RECEITA = 'receita';
-    case DESPESA = 'despesa';
-    case TRANSFERENCIA = 'transferencia';
-    case AMBAS = 'ambas';
-
-
-    public static function listValues(): string
-    {
-        return implode(';', array_column(self::cases(), 'value'));
-    }
-}
-
 class CategoriaController extends BaseController
 {
+    private CategoriaRepository $categoriaRepo;
 
-    private function getRequestPayload(): array
+    public function __construct()
     {
-        $payload = $this->getJson() ?? [];
-        if (empty($payload)) {
-            $payload = $this->request->post();
-        }
-        return $payload;
+        parent::__construct();
+        $this->categoriaRepo = new CategoriaRepository();
     }
-
-
     private function extractId(mixed $routeParam, array $payload): int
     {
         if (is_array($routeParam) && isset($routeParam['id'])) {
@@ -62,19 +45,19 @@ class CategoriaController extends BaseController
 
             $tipo = $this->request?->get('tipo');
 
-            $query = Categoria::forUser($this->userId)
-                ->orderBy('nome', 'asc');
-
             if ($tipo) {
                 try {
-                    CategoriaTipo::from(strtolower($tipo));
-                    $query->where('tipo', $tipo);
+                    $tipoEnum = CategoriaTipo::from(strtolower($tipo));
+                    $categorias = $this->categoriaRepo->findByType($this->userId, $tipoEnum);
                 } catch (ValueError) {
                     LogService::warning('Filtro de tipo de categoria inválido', ['tipo' => $tipo]);
+                    $categorias = $this->categoriaRepo->findByUser($this->userId);
                 }
+            } else {
+                $categorias = $this->categoriaRepo->findByUser($this->userId);
             }
 
-            Response::success($query->get());
+            Response::success($categorias);
         } catch (Exception $e) {
             LogService::error('Falha ao listar categorias', [
                 'user_id'   => $this->userId ?? null,
@@ -104,7 +87,7 @@ class CategoriaController extends BaseController
             try {
                 CategoriaTipo::from($tipo);
             } catch (ValueError) {
-                $erros['tipo'] = 'Tipo inválido. Tipos permitidos: ' . CategoriaTipo::listValues();
+                $erros['tipo'] = 'Tipo inválido. Tipos permitidos: ' . CategoriaTipo::listValuesString();
             }
 
             if ($erros) {
@@ -112,21 +95,15 @@ class CategoriaController extends BaseController
                 return;
             }
 
-            $duplicada = Categoria::forUser($this->userId)
-                ->whereRaw('LOWER(nome) = ?', [mb_strtolower($nome)])
-                ->where('tipo', $tipo)
-                ->first();
-
-            if ($duplicada) {
+            if ($this->categoriaRepo->hasDuplicate($this->userId, $nome, $tipo)) {
                 Response::error('Categoria já existe com este nome e tipo.', 409);
                 return;
             }
 
-            $categoria = new Categoria();
-            $categoria->user_id = $this->userId;
-            $categoria->nome = $nome;
-            $categoria->tipo = $tipo;
-            $categoria->save();
+            $categoria = $this->categoriaRepo->createForUser($this->userId, [
+                'nome' => $nome,
+                'tipo' => $tipo,
+            ]);
 
             Response::success($categoria->fresh(), 'Categoria criada com sucesso', 201);
         } catch (Exception $e) {
@@ -166,7 +143,7 @@ class CategoriaController extends BaseController
 
             $gump->validation_rules([
                 'nome' => 'required|min_len,2|max_len,100',
-                'tipo' => 'required|contains_list,' . CategoriaTipo::listValues(),
+                'tipo' => 'required|contains_list,' . CategoriaTipo::listValuesString(),
             ]);
 
             $gump->filter_rules([
