@@ -62,12 +62,38 @@ class CsrfMiddleware
             return false;
         }
 
-        if (time() - $stored['time'] > self::TOKEN_TTL) {
+        $age = time() - $stored['time'];
+        if ($age > self::TOKEN_TTL) {
             unset($_SESSION['csrf_tokens'][$tokenId]);
             return false;
         }
 
         return hash_equals((string) $stored['value'], (string) $token);
+    }
+
+    /**
+     * Retorna o tempo restante (em segundos) para o token expirar.
+     * Retorna 0 se não existe ou já expirou.
+     */
+    public static function getTokenRemainingTtl(string $tokenId = 'default'): int
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['csrf_tokens'][$tokenId])) {
+            return 0;
+        }
+
+        $stored = $_SESSION['csrf_tokens'][$tokenId];
+        if (!is_array($stored) || !isset($stored['time'])) {
+            return 0;
+        }
+
+        $age = time() - $stored['time'];
+        $remaining = self::TOKEN_TTL - $age;
+
+        return max(0, $remaining);
     }
 
     /**
@@ -110,9 +136,13 @@ class CsrfMiddleware
             'user_id'        => $_SESSION['user_id'] ?? $_SESSION['admin_id'] ?? null,
         ]);
 
+        $remainingTtl = self::getTokenRemainingTtl($tokenId);
+        
         throw new ValidationException([
-            'csrf_token' => "Token CSRF invalido ou expirado (tokenId: {$tokenId}). Recarregue a pagina."
-        ], 403);
+            'csrf_token' => "Token CSRF invalido ou expirado (tokenId: {$tokenId}). Recarregue a pagina.",
+            'csrf_expired' => true,
+            'remaining_ttl' => $remainingTtl
+        ], 419); // 419 = Session Expired (Laravel convention)
     }
 
     /**

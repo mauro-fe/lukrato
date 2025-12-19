@@ -5,6 +5,7 @@ namespace Application\Services;
 use Application\Models\Agendamento;
 use Application\Models\Lancamento;
 use Application\Lib\Auth;
+use Application\Services\LogService;
 use RuntimeException;
 
 class AgendamentoService
@@ -99,5 +100,119 @@ class AgendamentoService
             'eh_transferencia' => 0,
             'eh_saldo_inicial' => 0,
         ]);
+    }
+
+    /**
+     * Processa agendamentos pendentes e cria lançamentos
+     * 
+     * @param Agendamento $agendamento
+     * @return bool
+     */
+    public function processarAgendamento(Agendamento $agendamento): bool
+    {
+        if ($agendamento->status !== 'pendente') {
+            return false;
+        }
+
+        try {
+            // Criar lançamento
+            $lancamento = $this->createLancamentoFromAgendamento($agendamento);
+            
+            if ($lancamento) {
+                // Atualizar agendamento para concluído
+                $agendamento->update([
+                    'status' => 'concluido',
+                    'data_pagamento' => date('Y-m-d'),
+                ]);
+
+                return true;
+            }
+
+            return false;
+        } catch (\Throwable $e) {
+            LogService::error('Erro ao processar agendamento', [
+                'agendamento_id' => $agendamento->id,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Calcula a próxima data de vencimento baseada na recorrência
+     * 
+     * @param string $dataBase Data base (Y-m-d)
+     * @param string $recorrencia Tipo de recorrência (mensal, semanal, anual)
+     * @return string Nova data (Y-m-d)
+     */
+    public function calcularProximaData(string $dataBase, string $recorrencia): string
+    {
+        $data = \DateTime::createFromFormat('Y-m-d', $dataBase);
+        
+        if (!$data) {
+            return date('Y-m-d');
+        }
+
+        return match(strtolower($recorrencia)) {
+            'semanal' => $data->modify('+1 week')->format('Y-m-d'),
+            'mensal' => $data->modify('+1 month')->format('Y-m-d'),
+            'anual' => $data->modify('+1 year')->format('Y-m-d'),
+            default => $dataBase,
+        };
+    }
+
+    /**
+     * Processa recorrência do agendamento
+     * 
+     * @param Agendamento $agendamento
+     * @return bool
+     */
+    public function processarRecorrencia(Agendamento $agendamento): bool
+    {
+        if ($agendamento->recorrencia === 'unico' || !$agendamento->recorrencia) {
+            return false;
+        }
+
+        try {
+            $proximaData = $this->calcularProximaData(
+                $agendamento->data_vencimento,
+                $agendamento->recorrencia
+            );
+
+            // Criar novo agendamento
+            Agendamento::create([
+                'user_id' => $agendamento->user_id,
+                'tipo' => $agendamento->tipo,
+                'titulo' => $agendamento->titulo,
+                'descricao' => $agendamento->descricao,
+                'valor_centavos' => $agendamento->valor_centavos,
+                'categoria_id' => $agendamento->categoria_id,
+                'conta_id' => $agendamento->conta_id,
+                'data_vencimento' => $proximaData,
+                'data_pagamento' => null,
+                'recorrencia' => $agendamento->recorrencia,
+                'status' => 'pendente',
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            LogService::error('Erro ao processar recorrência', [
+                'agendamento_id' => $agendamento->id,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Valida data de pagamento
+     * 
+     * @param string $data Data a validar
+     * @return bool
+     */
+    public function validarDataPagamento(string $data): bool
+    {
+        $dt = \DateTime::createFromFormat('Y-m-d', $data);
+        return $dt && $dt->format('Y-m-d') === $data;
     }
 }

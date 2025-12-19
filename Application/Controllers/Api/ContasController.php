@@ -8,23 +8,26 @@ use Application\Models\Conta;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Services\ContaBalanceService;
+use Application\Services\SaldoInicialService;
+use Application\Formatters\ContaResponseFormatter;
 use Application\Repositories\ContaRepository;
+use Application\DTOs\Requests\CreateContaDTO;
+use Application\DTOs\Requests\UpdateContaDTO;
+use Application\Validators\ContaValidator;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Capsule\Manager;
-use Application\Enums\LancamentoTipo;
-use Application\Enums\Moeda;
 use Throwable;
-use ValueError;
-
 
 class ContasController extends BaseController
 {
     private ContaRepository $contaRepo;
+    private SaldoInicialService $saldoService;
 
     public function __construct()
     {
         parent::__construct();
         $this->contaRepo = new ContaRepository();
+        $this->saldoService = new SaldoInicialService();
     }
     public function index(): void
     {
@@ -58,75 +61,38 @@ class ContasController extends BaseController
             }
         }
 
-        Response::json($rows->map(function (Conta $c) use ($extras, $saldoIniciais) {
-            $cid = (int)$c->id;
-            $x = $extras[$cid] ?? null;
-            $initial = (float)($saldoIniciais[$cid] ?? 0);
-
-            return [
-                'id'             => $cid,
-                'nome'           => (string)$c->nome,
-                'instituicao'    => (string)($c->instituicao ?? ''),
-                'moeda'          => (string)($c->moeda ?? 'BRL'),
-                'saldoInicial'   => $initial,
-                'saldoAtual'     => $x['saldoAtual'] ?? null,
-                'entradasTotal'  => $x['entradasTotal'] ?? 0.0,
-                'saidasTotal'    => $x['saidasTotal'] ?? 0.0,
-                'ativo'          => (bool)$c->ativo,
-                'arquivada'      => !(bool)$c->ativo,
-            ];
-        })->all());
+        Response::json(ContaResponseFormatter::formatCollection($rows, $extras, $saldoIniciais));
     }
 
     public function store(): void
     {
-        $data = $this->getRequestPayload();
+        $userId = Auth::id();
+        $payload = $this->getRequestPayload();
 
-        $nome = trim((string)($data['nome'] ?? ''));
-        if ($nome === '') {
-            Response::json(['status' => 'error', 'message' => 'Nome obrigatório.'], 422);
+        // Validar dados
+        $errors = ContaValidator::validateCreate($payload);
+        if (!empty($errors)) {
+            Response::json(['status' => 'error', 'errors' => $errors], 422);
             return;
         }
 
-        $moeda = strtoupper(trim((string)($data['moeda'] ?? 'BRL')));
-        try {
-            $moeda = Moeda::from($moeda)->value;
-        } catch (ValueError) {
-            $moeda = Moeda::BRL->value;
-        }
-
-        $tipoId = isset($data['tipo_id']) && $data['tipo_id'] !== '' ? (int)$data['tipo_id'] : null;
-        $saldoInicial = (float)($data['saldo_inicial'] ?? 0);
-        $userId = Auth::id();
+        // Criar DTO
+        $dto = CreateContaDTO::fromRequest($userId, $payload);
+        $saldoInicial = (float)($payload['saldo_inicial'] ?? 0);
 
         DB::beginTransaction();
         try {
-            $conta = new Conta([
-                'user_id'     => $userId,
-                'nome'        => $nome,
-                'instituicao' => $data['instituicao'] ?? null,
-                'moeda'       => $moeda,
-                'tipo_id'     => $tipoId,
-                'ativo'       => 1,
-            ]);
-            $conta->save();
+            // Criar conta
+            $conta = $this->contaRepo->create($dto->toArray());
 
+            // Criar lançamento de saldo inicial se necessário
             if (abs($saldoInicial) > 0.00001) {
-                $isReceita = $saldoInicial >= 0;
-
-                Lancamento::create([
-                    'user_id'           => $userId,
-                    'tipo'              => $isReceita ? LancamentoTipo::RECEITA->value : LancamentoTipo::DESPESA->value,
-                    'data'              => date('Y-m-d'),
-                    'categoria_id'      => null,
-                    'conta_id'          => $conta->id,
-                    'conta_id_destino'  => null,
-                    'descricao'         => 'Saldo inicial da conta ' . $nome,
-                    'observacao'        => null,
-                    'valor'             => abs($saldoInicial),
-                    'eh_transferencia'  => 0,
-                    'eh_saldo_inicial'  => 1,
-                ]);
+                $this->saldoService->createOrUpdate(
+                    $userId,
+                    $conta->id,
+                    $dto->nome,
+                    $saldoInicial
+                );
             }
 
             DB::commit();
@@ -147,69 +113,53 @@ class ContasController extends BaseController
             return;
         }
 
-        $data = $this->getRequestPayload();
+        $payload = $this->getRequestPayload();
 
-        $data = array_map(function ($value) {
-            return is_string($value) ? trim($value) : $value;
-        }, $data);
+        // Mesclar dados existentes com novos dados
+        $data = [
+            'nome'        => $payload['nome'] ?? $conta->nome,
+            'instituicao' => $payload['instituicao'] ?? $conta->instituicao,
+            'moeda'       => $payload['moeda'] ?? $conta->moeda,
+            'tipo_id'     => $payload['tipo_id'] ?? $conta->tipo_id,
+        ];
 
-        $conta->nome        = $data['nome'] ?? $conta->nome;
-        $conta->instituicao = $data['instituicao'] ?? $conta->instituicao;
-
-        if (array_key_exists('moeda', $data)) {
-            $moeda = strtoupper($data['moeda']);
-            try {
-                $conta->moeda = Moeda::from($moeda)->value;
-            } catch (ValueError) {
-            }
+        // Validar dados
+        $errors = ContaValidator::validateUpdate($data);
+        if (!empty($errors)) {
+            Response::json(['status' => 'error', 'errors' => $errors], 422);
+            return;
         }
 
-        if (array_key_exists('ativo', $data)) {
-            $conta->ativo = (int)($data['ativo'] ?? 0);
-        }
+        // Criar DTO
+        $dto = UpdateContaDTO::fromRequest($data);
 
         DB::beginTransaction();
         try {
-            $conta->save();
+            // Atualizar conta
+            $this->contaRepo->update($conta->id, $dto->toArray());
 
-            if (array_key_exists('saldo_inicial', $data)) {
-                $novoSaldo = (float) $data['saldo_inicial'];
+            // Atualizar saldo inicial se fornecido
+            if (array_key_exists('saldo_inicial', $payload)) {
+                $novoSaldo = (float) $payload['saldo_inicial'];
+                $this->saldoService->createOrUpdate(
+                    $userId,
+                    $conta->id,
+                    $dto->nome ?? $conta->nome,
+                    $novoSaldo
+                );
+            }
 
-                $lanc = Lancamento::where('user_id', $userId)
-                    ->where('conta_id', $conta->id)
-                    ->where('eh_transferencia', 0)
-                    ->where('eh_saldo_inicial', 1)
-                    ->first();
-
-                if (abs($novoSaldo) <= 0.00001) {
-                    if ($lanc) $lanc->delete();
-                } else {
-                    $isReceita = $novoSaldo >= 0;
-
-                    $payloadLancamento = [
-                        'user_id'           => $userId,
-                        'tipo'              => $isReceita ? LancamentoTipo::RECEITA->value : LancamentoTipo::DESPESA->value,
-                        'data'              => $lanc?->data?->format('Y-m-d') ?? date('Y-m-d'),
-                        'categoria_id'      => null,
-                        'conta_id'          => $conta->id,
-                        'conta_id_destino'  => null,
-                        'descricao'         => 'Saldo inicial da conta ' . ($conta->nome ?? ''),
-                        'observacao'        => null,
-                        'valor'             => abs($novoSaldo),
-                        'eh_transferencia'  => 0,
-                        'eh_saldo_inicial'  => 1,
-                    ];
-
-                    if ($lanc) {
-                        $lanc->fill($payloadLancamento)->save();
-                    } else {
-                        Lancamento::create($payloadLancamento);
-                    }
-                }
+            // Atualizar ativo se fornecido
+            if (array_key_exists('ativo', $payload)) {
+                $conta->ativo = (int)($payload['ativo'] ?? 0);
+                $conta->save();
             }
 
             DB::commit();
-            Response::json(['ok' => true, 'ativo' => (bool)$conta->ativo]);
+            
+            // Recarregar conta para pegar dados atualizados
+            $contaAtualizada = $this->contaRepo->find($conta->id);
+            Response::json(['ok' => true, 'ativo' => (bool)$contaAtualizada->ativo]);
         } catch (Throwable $e) {
             DB::rollBack();
             Response::json(['status' => 'error', 'message' => 'Falha ao atualizar: ' . $e->getMessage()], 500);

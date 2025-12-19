@@ -320,10 +320,10 @@ class CategoriaRepository extends BaseRepository
             ->withCount(['lancamentos' => function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             }])
-            ->having('lancamentos_count', '>', 0)
-            ->orderBy('lancamentos_count', 'desc')
-            ->limit($limit)
-            ->get();
+            ->get()
+            ->where('lancamentos_count', '>', 0)
+            ->sortByDesc('lancamentos_count')
+            ->take($limit);
     }
 
     /**

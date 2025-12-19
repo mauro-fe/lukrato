@@ -38,11 +38,21 @@ class Application
         }
         require_once $configPath;
 
-        $routesPath = BASE_PATH . '/routes/web.php';
-        if (!file_exists($routesPath)) {
-            die('Erro: Arquivo de rotas não encontrado.');
+        // Carregar arquivos de rotas
+        $routeFiles = [
+            BASE_PATH . '/routes/web.php',
+            BASE_PATH . '/routes/auth.php',
+            BASE_PATH . '/routes/admin.php',
+            BASE_PATH . '/routes/api.php',
+            BASE_PATH . '/routes/webhooks.php',
+        ];
+
+        foreach ($routeFiles as $routeFile) {
+            if (!file_exists($routeFile)) {
+                die("Erro: Arquivo de rotas não encontrado: {$routeFile}");
+            }
+            require_once $routeFile;
         }
-        require_once $routesPath;
     }
 
     private function handleRequest(): void

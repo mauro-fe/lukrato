@@ -74,7 +74,7 @@ class ContaRepository extends BaseRepository
     }
 
     /**
-     * Busca contas ativas de um usuário.
+     * Busca contas ativas de um usuário (não arquivadas).
      * 
      * @param int $userId
      * @return Collection
@@ -83,22 +83,21 @@ class ContaRepository extends BaseRepository
     {
         return $this->query()
             ->where('user_id', $userId)
-            ->where('ativo', 1)
+            ->whereNull('deleted_at')
             ->orderBy('nome')
             ->get();
     }
 
     /**
-     * Busca contas arquivadas de um usuário.
+     * Busca contas arquivadas de um usuário (soft deleted).
      * 
      * @param int $userId
      * @return Collection
      */
     public function findArchived(int $userId): Collection
     {
-        return $this->query()
+        return Conta::onlyTrashed()
             ->where('user_id', $userId)
-            ->where('ativo', 0)
             ->orderBy('nome')
             ->get();
     }
@@ -129,7 +128,6 @@ class ContaRepository extends BaseRepository
     public function createForUser(int $userId, array $data): Conta
     {
         $data['user_id'] = $userId;
-        $data['ativo'] = $data['ativo'] ?? 1;
         
         return $this->create($data);
     }
@@ -160,8 +158,7 @@ class ContaRepository extends BaseRepository
     public function archive(int $id, int $userId): bool
     {
         $conta = $this->findByIdAndUserOrFail($id, $userId);
-        $conta->ativo = 0;
-        return $conta->save();
+        return (bool) $conta->delete();
     }
 
     /**
@@ -174,9 +171,12 @@ class ContaRepository extends BaseRepository
      */
     public function restore(int $id, int $userId): bool
     {
-        $conta = $this->findByIdAndUserOrFail($id, $userId);
-        $conta->ativo = 1;
-        return $conta->save();
+        $conta = Conta::onlyTrashed()
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+        
+        return (bool) $conta->restore();
     }
 
     /**
@@ -203,7 +203,7 @@ class ContaRepository extends BaseRepository
     {
         return $this->query()
             ->where('user_id', $userId)
-            ->where('ativo', 1)
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -215,7 +215,7 @@ class ContaRepository extends BaseRepository
      */
     public function countByUser(int $userId): int
     {
-        return $this->query()
+        return Conta::withTrashed()
             ->where('user_id', $userId)
             ->count();
     }
@@ -265,14 +265,14 @@ class ContaRepository extends BaseRepository
      */
     public function findWithLancamentos(int $userId, bool $onlyActive = true): Collection
     {
-        $query = $this->query()
+        $query = Conta::withTrashed()
             ->where('user_id', $userId)
             ->with(['lancamentos' => function ($q) {
                 $q->orderBy('data', 'desc');
             }]);
 
         if ($onlyActive) {
-            $query->where('ativo', 1);
+            $query->whereNull('deleted_at');
         }
 
         return $query->orderBy('nome')->get();
@@ -287,12 +287,12 @@ class ContaRepository extends BaseRepository
      */
     public function getIdsByUser(int $userId, bool $onlyActive = false): array
     {
-        $query = $this->query()
+        $query = Conta::withTrashed()
             ->where('user_id', $userId)
             ->select('id');
 
         if ($onlyActive) {
-            $query->where('ativo', 1);
+            $query->whereNull('deleted_at');
         }
 
         return $query->pluck('id')->toArray();

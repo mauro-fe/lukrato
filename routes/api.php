@@ -1,0 +1,161 @@
+<?php
+
+declare(strict_types=1);
+
+use Application\Core\Router;
+
+/**
+ * ============================================
+ * ROTAS DA API REST
+ * ============================================
+ * Padrão REST com autenticação e CSRF
+ */
+
+// ============================================
+// SEGURANÇA / UTILIDADES
+// ============================================
+
+Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
+
+// ============================================
+// CONTATO / SUPORTE (Público)
+// ============================================
+
+Router::add('POST', '/api/contato/enviar', 'Api\\ContactController@send');
+Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send');
+
+// ============================================
+// PERFIL
+// ============================================
+
+Router::add('GET',  '/api/perfil', 'Api\\PerfilController@show',   ['auth']);
+Router::add('POST', '/api/perfil', 'Api\\PerfilController@update', ['auth', 'csrf']);
+
+// ============================================
+// DASHBOARD
+// ============================================
+
+Router::add('GET', '/api/dashboard/metrics',      'Api\\FinanceiroController@metrics',      ['auth']);
+Router::add('GET', '/api/dashboard/transactions', 'Api\\DashboardController@transactions',  ['auth']);
+Router::add('GET', '/api/options',                'Api\\FinanceiroController@options',      ['auth']);
+
+// ============================================
+// RELATÓRIOS
+// ============================================
+
+Router::add('GET', '/api/reports',            'Api\\RelatoriosController@index',      ['auth']);
+Router::add('GET', '/api/reports/overview',   'Api\\RelatoriosController@overview',   ['auth']);
+Router::add('GET', '/api/reports/table',      'Api\\RelatoriosController@table',      ['auth']);
+Router::add('GET', '/api/reports/timeseries', 'Api\\RelatoriosController@timeseries', ['auth']);
+Router::add('GET', '/api/reports/export',     'Api\\RelatoriosController@export',     ['auth']);
+
+// ============================================
+// LANÇAMENTOS (REST)
+// ============================================
+
+Router::add('GET',    '/api/lancamentos',        'Api\\LancamentosController@index',   ['auth']);
+Router::add('POST',   '/api/lancamentos',        'Api\\LancamentosController@store',   ['auth', 'csrf']);
+Router::add('PUT',    '/api/lancamentos/{id}',   'Api\\LancamentosController@update',  ['auth', 'csrf']);
+Router::add('DELETE', '/api/lancamentos/{id}',   'Api\\LancamentosController@destroy', ['auth', 'csrf']);
+Router::add('GET',    '/api/lancamentos/usage',  'Api\\LancamentosController@usage',   ['auth']);
+Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export',  ['auth']);
+
+// ============================================
+// TRANSAÇÕES / TRANSFERÊNCIAS
+// ============================================
+
+Router::add('POST', '/api/transactions',            'Api\\FinanceiroController@store',    ['auth', 'csrf']);
+Router::add('PUT',  '/api/transactions/{id}',       'Api\\FinanceiroController@update',   ['auth', 'csrf']);
+Router::add('POST', '/api/transactions/{id}/update','Api\\FinanceiroController@update',   ['auth', 'csrf']); // Compat
+Router::add('POST', '/api/transfers',               'Api\\FinanceiroController@transfer', ['auth', 'csrf']);
+
+// ============================================
+// CONTAS (REST)
+// ============================================
+
+Router::add('GET',    '/api/accounts',              'Api\\ContasController@index',      ['auth']);
+Router::add('POST',   '/api/accounts',              'Api\\ContasController@store',      ['auth', 'csrf']);
+Router::add('PUT',    '/api/accounts/{id}',         'Api\\ContasController@update',     ['auth', 'csrf']);
+Router::add('DELETE', '/api/accounts/{id}',         'Api\\ContasController@delete',     ['auth', 'csrf']);
+Router::add('POST',   '/api/accounts/{id}/archive', 'Api\\ContasController@archive',    ['auth', 'csrf']);
+Router::add('POST',   '/api/accounts/{id}/restore', 'Api\\ContasController@restore',    ['auth', 'csrf']);
+Router::add('POST',   '/api/accounts/{id}/delete',  'Api\\ContasController@hardDelete', ['auth', 'csrf']);
+
+// Rotas legadas (manter compatibilidade)
+Router::add('POST', '/api/accounts/archive',   'Api\\ContasController@archive',   ['auth', 'csrf']);
+Router::add('POST', '/api/accounts/unarchive', 'Api\\ContasController@unarchive', ['auth', 'csrf']);
+
+// ============================================
+// CATEGORIAS (REST)
+// ============================================
+
+Router::add('GET',    '/api/categorias',     'Api\\CategoriaController@index',  ['auth']);
+Router::add('POST',   '/api/categorias',     'Api\\CategoriaController@store',  ['auth', 'csrf']);
+Router::add('PUT',    '/api/categorias/{id}','Api\\CategoriaController@update', ['auth', 'csrf']);
+Router::add('DELETE', '/api/categorias/{id}','Api\\CategoriaController@delete', ['auth', 'csrf']);
+
+// ============================================
+// AGENDAMENTOS (REST)
+// ============================================
+
+Router::add('GET',  '/api/agendamentos',                  'Api\\AgendamentoController@index',        ['auth']);
+Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoController@store',        ['auth', 'csrf']);
+Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
+Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']); // Compat
+Router::add('POST', '/api/agendamentos/{id}/status',      'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
+Router::add('POST', '/api/agendamentos/{id}/cancelar',    'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
+Router::add('POST', '/api/agendamentos/{id}/reativar',    'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
+
+// ============================================
+// INVESTIMENTOS
+// ============================================
+
+// Estatísticas e categorias (devem vir antes das rotas dinâmicas)
+Router::add('GET', '/api/investimentos/stats',      'Api\\InvestimentosController@stats',      ['auth']);
+Router::add('GET', '/api/investimentos/categorias', 'Api\\InvestimentosController@categorias', ['auth']);
+
+// CRUD de investimentos
+Router::add('GET',  '/api/investimentos',             'Api\\InvestimentosController@index',   ['auth']);
+Router::add('POST', '/api/investimentos',             'Api\\InvestimentosController@store',   ['auth', 'csrf']);
+Router::add('GET',  '/api/investimentos/{id}',        'Api\\InvestimentosController@show',    ['auth']);
+Router::add('POST', '/api/investimentos/{id}/update', 'Api\\InvestimentosController@update',  ['auth', 'csrf']);
+Router::add('POST', '/api/investimentos/{id}/delete', 'Api\\InvestimentosController@destroy', ['auth', 'csrf']);
+Router::add('POST', '/api/investimentos/{id}/preco',  'Api\\InvestimentosController@atualizarPreco', ['auth', 'csrf']);
+
+// Transações de investimentos
+Router::add('GET',  '/api/investimentos/{id}/transacoes', 'Api\\InvestimentosController@transacoes',     ['auth']);
+Router::add('POST', '/api/investimentos/{id}/transacoes', 'Api\\InvestimentosController@criarTransacao', ['auth', 'csrf']);
+
+// Proventos de investimentos
+Router::add('GET',  '/api/investimentos/{id}/proventos', 'Api\\InvestimentosController@proventos',     ['auth']);
+Router::add('POST', '/api/investimentos/{id}/proventos', 'Api\\InvestimentosController@criarProvento', ['auth', 'csrf']);
+
+// ============================================
+// NOTIFICAÇÕES
+// ============================================
+
+Router::add('GET',  '/api/notificacoes',            'Api\\NotificacaoController@index',            ['auth']);
+Router::add('GET',  '/api/notificacoes/unread',     'Api\\NotificacaoController@unreadCount',      ['auth']);
+Router::add('POST', '/api/notificacoes/marcar',     'Api\\NotificacaoController@marcarLida',       ['auth', 'csrf']);
+Router::add('POST', '/api/notificacoes/marcar-todas','Api\\NotificacaoController@marcarTodasLidas',['auth', 'csrf']);
+
+// ============================================
+// PREFERÊNCIAS DE USUÁRIO
+// ============================================
+
+Router::add('GET',  '/api/user/theme', 'Api\\PreferenciaUsuarioController@show',   ['auth']);
+Router::add('POST', '/api/user/theme', 'Api\\PreferenciaUsuarioController@update', ['auth', 'csrf']);
+
+// ============================================
+// PREMIUM / ASSINATURA
+// ============================================
+
+Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth', 'csrf']);
+Router::add('POST', '/premium/cancel',   'PremiumController@cancel',   ['auth', 'csrf']);
+
+// ============================================
+// PAGAMENTOS (MercadoPago)
+// ============================================
+
+Router::add('POST', '/api/mercadopago/checkout', 'Api\\MercadoPagoController@createCheckout', ['auth', 'csrf']);
+Router::add('POST', '/api/mercadopago/pay',      'Api\\MercadoPagoController@pay',            ['auth', 'csrf']);

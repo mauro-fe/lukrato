@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\DTO;
+namespace Application\DTOs;
 
 /**
  * Data Transfer Object para dados de endereço.

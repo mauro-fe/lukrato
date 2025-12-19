@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Services;
 
 use Application\Contracts\ReportExporterInterface;
-use Application\DTO\ReportData;
+use Application\DTOs\ReportData;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 

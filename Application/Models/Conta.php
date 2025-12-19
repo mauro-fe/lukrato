@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Conta extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'contas';
 
     protected $fillable = [
@@ -23,6 +28,8 @@ class Conta extends Model
         'tipo_id',
         'ativo'         => 'bool',
     ];
+
+    protected $dates = ['deleted_at'];
 
     public function usuario()
     {

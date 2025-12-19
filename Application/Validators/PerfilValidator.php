@@ -2,7 +2,7 @@
 
 namespace Application\Validators;
 
-use Application\DTO\PerfilUpdateDTO;
+use Application\DTOs\PerfilUpdateDTO;
 use Application\Formatters\DocumentFormatter;
 use Application\Formatters\TelefoneFormatter;
 use Application\Formatters\DateFormatter;
