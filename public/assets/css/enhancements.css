@@ -274,17 +274,35 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-b
 .lk-navbar-right .lk-upgrade-btn *,
 .lk-navbar-right .lk-upgrade-btn i,
 .lk-navbar-right .lk-upgrade-btn span,
-#lk-bell,
-#lk-bell *,
-#lk-bell i,
-#lk-bell .fa,
-#lk-bell .fa-solid,
 .theme-toggle__icon,
 .theme-toggle__icon--sun,
 .theme-toggle__icon--moon,
 .theme-toggle__icon i,
 .theme-toggle__icon .fa,
 .theme-toggle__icon .fa-solid {
+    color: #fff !important;
+}
+
+/* EXCEÇÃO: Sininho de notificações - Laranja no light, Branco no dark */
+[data-theme="light"] .top-nav-bell-wrapper button,
+[data-theme="light"] .top-nav-bell-wrapper button *,
+[data-theme="light"] .top-nav-bell-wrapper button i,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell *,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell i,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell i.fa,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell i.fa-solid {
+    color: #e67e22 !important;
+}
+
+[data-theme="dark"] .top-nav-bell-wrapper button,
+[data-theme="dark"] .top-nav-bell-wrapper button *,
+[data-theme="dark"] .top-nav-bell-wrapper button i,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell *,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell i,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell i.fa,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell i.fa-solid {
     color: #fff !important;
 }
 
@@ -311,6 +329,15 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-b
 .sidebar-nav .nav-item.active i,
 .sidebar-nav .nav-item[aria-current="page"] i,
 .sidebar-nav .nav-item:hover i {
+    color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] .sidebar .nav-item.active i,
+[data-theme="dark"] .sidebar .nav-item[aria-current="page"] i,
+[data-theme="dark"] .sidebar .nav-item:hover i,
+[data-theme="dark"] .sidebar-nav .nav-item.active i,
+[data-theme="dark"] .sidebar-nav .nav-item[aria-current="page"] i,
+[data-theme="dark"] .sidebar-nav .nav-item:hover i {
     color: #fff !important;
 }
 

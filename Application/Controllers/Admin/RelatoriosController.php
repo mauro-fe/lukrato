@@ -13,8 +13,8 @@ class RelatoriosController extends BaseController
         $this->requireAuth();
 
         $this->render(
-            'admin/relatorios/relatorios',
-            ['pageTitle' => 'Relatórios', 'subTitle' => 'Gerencie seus gastos'],
+            'admin/relatorios/index',
+            ['pageTitle' => 'Relatórios', 'subTitle' => 'Análise detalhada das suas finanças'],
             'admin/partials/header',
             'admin/partials/footer'
         );

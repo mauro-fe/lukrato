@@ -1,140 +1,100 @@
 ﻿<style>
-/* Vari├íveis de cor e tamanho (assumindo que j├í est├úo definidas globalmente) */
-/* Ex: --color-primary, --color-text, --color-surface, --radius-md, etc. */
-
 .hidden {
     display: none !important;
 }
 
 /* ===============================
- * NOTIFICACOES
+ * MODERN NOTIFICATIONS
  * =============================== */
 .lk-navbar-notifications {
-    position: relative;
-    /* Container que envolve o bot├úo e o popover */
+    position: static;
 }
 
-/* Botão do Sino */
+/* Botão do Sino Modernizado */
 #lk-bell {
-    background-color: transparent;
-    color: #fff !important;
-    border-radius: var(--radius-md);
-    padding: 8px 14px;
-    font-size: 0.9rem;
-    transition: all var(--transition-fast);
     position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(230, 126, 34, 0.05));
+    border: 1px solid rgba(230, 126, 34, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-    height: 40px;
+    padding: 0;
 }
 
 #lk-bell:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.15), rgba(230, 126, 34, 0.08));
+    border-color: rgba(230, 126, 34, 0.3);
+    transform: scale(1.05);
 }
 
-#lk-bell i,
-#lk-bell .fas,
-#lk-bell .fa-bell {
-    color: #fff !important;
+#lk-bell:active {
+    transform: scale(0.95);
 }
 
-/* Sobrescrever btn-ghost para o sino */
-#lk-bell.btn-ghost,
-#lk-bell.btn-ghost:not(:hover),
-#lk-bell.btn {
-    color: #fff !important;
+#lk-bell i {
+    font-size: 18px;
 }
 
-/* Vibracao do sino quando ha nao lidas */
+/* Badge de Contagem Modernizado */
+#lk-bell-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 10px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+    border: 2px solid var(--color-surface);
+}
+
+/* Animação do sino quando há não lidas */
 .lk-bell-alert i {
     animation: lk-bell-shake 1s ease-in-out infinite;
     transform-origin: top center;
 }
 
 @keyframes lk-bell-shake {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    15% {
-        transform: rotate(-10deg);
-    }
-
-    30% {
-        transform: rotate(8deg);
-    }
-
-    45% {
-        transform: rotate(-6deg);
-    }
-
-    60% {
-        transform: rotate(4deg);
-    }
-
-    75% {
-        transform: rotate(-2deg);
-    }
-
-    100% {
-        transform: rotate(0deg);
-    }
+    0%, 100% { transform: rotate(0deg); }
+    15% { transform: rotate(-15deg); }
+    30% { transform: rotate(12deg); }
+    45% { transform: rotate(-10deg); }
+    60% { transform: rotate(8deg); }
+    75% { transform: rotate(-4deg); }
 }
 
-
-#lk-bell:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-/* Badge de Contagem */
-#lk-bell-badge {
-    background: var(--color-danger);
-    color: #fff;
-    font-size: 0.75rem;
-    /* Tamanho levemente maior */
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    line-height: 1;
-    border-radius: 9999px;
-    /* Círculo perfeito */
-    text-align: center;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-}
-
-/* Popover Container */
+/* Popover Modernizado */
 .lk-popover {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    width: 320px;
-    /* Levemente mais largo para melhor leitura */
+    position: fixed;
+    top: 80px;
+    right: 16px;
+    width: 380px;
     max-width: 90vw;
-    z-index: 2000;
+    z-index: 99999;
     background: var(--color-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    color: var(--color-text);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    /* Remove visibility da transi├º├úo para evitar flash */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Quando vis├¡vel (controlado pelo JS) */
 .lk-popover.visible {
     opacity: 1;
     visibility: visible;
@@ -145,111 +105,163 @@
 .lk-popover-card {
     display: flex;
     flex-direction: column;
-    max-height: 400px;
-    /* Aumentado um pouco para mostrar mais itens */
+    max-height: 480px;
     overflow: hidden;
 }
 
-/* Cabe├ºalho */
+/* Cabeçalho Modernizado */
 .lk-popover-h {
-    font-weight: 600;
-    color: var(--color-primary);
-    padding: 12px 16px;
-    /* Padding ajustado */
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--color-text);
+    padding: 20px 20px 16px;
     border-bottom: 1px solid var(--glass-border);
-    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Corpo (lista de notifica├º├Áes) */
+.lk-popover-h::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+    border-radius: 4px;
+}
+
+/* Corpo - lista de notificações */
 .lk-popover-b {
-    max-height: 300px;
-    /* Altura ajustada */
+    max-height: 340px;
     overflow-y: auto;
-    background: var(--color-surface-muted, #f7f7f7);
-    padding: 0;
+    padding: 8px;
     flex-grow: 1;
-    /* Permite que o corpo ocupe o espa├ºo restante */
 }
 
-/* Item de notifica├º├úo */
+/* Item de notificação Modernizado */
 .lk-popover-item {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--glass-border);
-    transition: background 0.2s ease;
-    line-height: 1.4;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
     cursor: pointer;
-    /* Indica que ├® clic├ível */
+    background: var(--color-surface-muted);
+    border: 1px solid transparent;
 }
 
 .lk-popover-item:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .lk-popover-item:hover {
-    background: var(--color-hover-subtle, rgba(255, 255, 255, 0.08));
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-muted));
+    border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+    transform: translateX(-2px);
 }
 
-/* Estilo para notifica├º├úo n├úo lida (melhora o destaque) */
+/* Notificação não lida */
 .lk-popover-item:not(.is-read) {
-    background: var(--color-unread-bg, rgba(var(--color-primary-rgb), 0.05));
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+    border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .lk-popover-item:not(.is-read):hover {
-    background: var(--color-hover-unread, rgba(var(--color-primary-rgb), 0.1));
+    background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
 }
 
 .lk-popover-item-content {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .lk-item-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.9rem;
+    gap: 8px;
 }
 
 .lk-item-title {
     font-weight: 600;
-    color: var(--color-primary);
+    font-size: 14px;
+    color: var(--color-text);
     flex-grow: 1;
 }
 
 .lk-item-tag {
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    margin-left: 10px;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     white-space: nowrap;
 }
 
 .lk-item-tag-new {
-    background: var(--color-primary);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
 }
 
 .lk-item-tag-read {
-    background: var(--color-secondary, #64748b);
-    color: #fff;
+    background: var(--color-text-muted);
+    color: white;
+    opacity: 0.7;
 }
 
 .lk-item-body {
-    font-size: 0.85rem;
-    opacity: 0.9;
+    font-size: 13px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
 }
 
 .lk-item-time {
-    font-size: 0.75rem;
-    opacity: 0.6;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    opacity: 0.7;
     text-align: right;
 }
 
-/* Scrollbar */
+/* Rodapé com botão */
+.lk-popover-f {
+    padding: 12px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.lk-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lk-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.3);
+}
+
+.lk-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.lk-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Scrollbar Modernizada */
 .lk-popover-b::-webkit-scrollbar {
     width: 6px;
+}
+
+.lk-popover-b::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .lk-popover-b::-webkit-scrollbar-thumb {
@@ -261,47 +273,19 @@
     background: var(--color-primary);
 }
 
+/* Mobile */
 @media (max-width: 600px) {
+    .lk-popover {
+        width: 340px;
+    }
+    
     #lk-bell {
-        padding: 6px 10px;
-        font-size: 0.65rem;
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
     }
-
+    
     #lk-bell i {
-        font-size: 0.85rem !important;
-    }
-
-    #lk-bell-badge {
-        font-size: 0.6rem !important;
-        min-width: 16px;
-        padding: 2px 4px;
-        top: -2px;
-        right: -2px;
-    }
-
-
-}
-
-
-@media (max-width: 300px) {
-    #lk-bell {
-        padding: 6px 10px;
-        font-size: 0.65rem;
-        height: 32px;
-    }
-
-    #lk-bell i {
-        font-size: 0.85rem !important;
-    }
-
-    #lk-bell-badge {
-        font-size: 0.6rem !important;
-        min-width: 16px;
-        padding: 2px 4px;
-        top: -2px;
-        right: -2px;
+        font-size: 16px;
     }
 }
 </style>
@@ -314,7 +298,7 @@ $badgeStyle = $initialUnread > 0 ? 'inline-flex' : 'none';
 $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 ?>
 <button id="lk-bell" class="btn btn-ghost relative" aria-label="Notificacoes" aria-expanded="false">
-    <i class="fas fa-bell" style="color: #fff !important;"></i>
+    <i class="fas fa-bell"></i>
     <span id="lk-bell-badge" class="absolute -top-1 -right-1" style="display: <?= $badgeStyle ?>;">
         <?= $initialBadgeLabel ?>
     </span>
