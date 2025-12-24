@@ -2,253 +2,237 @@
 
 namespace Application\Controllers\Api;
 
-use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Models\Conta;
 use Application\Lib\Auth;
-use Application\Models\Lancamento;
-use Application\Services\ContaBalanceService;
-use Application\Services\SaldoInicialService;
-use Application\Formatters\ContaResponseFormatter;
-use Application\Repositories\ContaRepository;
-use Application\DTOs\Requests\CreateContaDTO;
-use Application\DTOs\Requests\UpdateContaDTO;
-use Application\Validators\ContaValidator;
-use Illuminate\Database\Capsule\Manager as DB;
-use Illuminate\Database\Capsule\Manager;
-use Throwable;
+use Application\Models\InstituicaoFinanceira;
+use Application\Services\ContaService;
+use Application\DTO\CreateContaDTO;
+use Application\DTO\UpdateContaDTO;
+use Application\Middlewares\CsrfMiddleware;
 
-class ContasController extends BaseController
+class ContasController
 {
-    private ContaRepository $contaRepo;
-    private SaldoInicialService $saldoService;
+    private ContaService $service;
 
     public function __construct()
     {
-        parent::__construct();
-        $this->contaRepo = new ContaRepository();
-        $this->saldoService = new SaldoInicialService();
+        $this->service = new ContaService();
     }
+
+    private function getRequestPayload(): array
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        if (empty($data) && strtolower($_SERVER['REQUEST_METHOD'] ?? '') === 'post') {
+            $data = $_POST;
+        }
+        return $data;
+    }
+
+    private function addCsrfToResponse(array $response): array
+    {
+        $response['csrf_token'] = CsrfMiddleware::generateToken('default');
+        return $response;
+    }
+
+    /**
+     * GET /api/v2/contas
+     * Listar contas do usuário
+     */
     public function index(): void
     {
         $userId = Auth::id();
 
-        $archived     = (int)($_GET['archived'] ?? 0) === 1;
-        $onlyActive   = (int)($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
-        $withBalances = (int)($_GET['with_balances'] ?? 0) === 1;
-        $month        = trim((string)($_GET['month'] ?? date('Y-m')));
+        $archived = (int) ($_GET['archived'] ?? 0) === 1;
+        $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
+        $withBalances = (int) ($_GET['with_balances'] ?? 0) === 1;
+        $month = trim((string) ($_GET['month'] ?? date('Y-m')));
 
-        if ($archived) {
-            $rows = $this->contaRepo->findArchived($userId);
-        } elseif ($onlyActive) {
-            $rows = $this->contaRepo->findActive($userId);
-        } else {
-            $rows = $this->contaRepo->findByUser($userId);
-        }
+        $contas = $this->service->listarContas(
+            userId: $userId,
+            arquivadas: $archived,
+            apenasAtivas: $onlyActive,
+            comSaldos: $withBalances,
+            mes: $month
+        );
 
-        $ids = $rows->pluck('id')->all();
-
-        $extras = [];
-        $saldoIniciais = [];
-
-        if ($rows->count()) {
-            $balanceService = new ContaBalanceService($userId, $ids, $month);
-
-            $saldoIniciais = $balanceService->getInitialBalances();
-
-            if ($withBalances) {
-                $extras = $balanceService->calculateFinalBalances($saldoIniciais);
-            }
-        }
-
-        Response::json(ContaResponseFormatter::formatCollection($rows, $extras, $saldoIniciais));
+        Response::json($contas);
     }
 
+    /**
+     * POST /api/v2/contas
+     * Criar nova conta
+     */
     public function store(): void
     {
         $userId = Auth::id();
-        $payload = $this->getRequestPayload();
+        $data = $this->getRequestPayload();
 
-        // Validar dados
-        $errors = ContaValidator::validateCreate($payload);
-        if (!empty($errors)) {
-            Response::json(['status' => 'error', 'errors' => $errors], 422);
-            return;
-        }
+        // LOG: Início da criação
+        \Application\Services\LogService::info('📥 INÍCIO - Criação de conta', [
+            'user_id' => $userId,
+            'request_id' => uniqid('req_'),
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+            'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 100),
+            'data_recebida' => $data
+        ]);
 
-        // Criar DTO
-        $dto = CreateContaDTO::fromRequest($userId, $payload);
-        $saldoInicial = (float)($payload['saldo_inicial'] ?? 0);
-
-        DB::beginTransaction();
-        try {
-            // Criar conta
-            $conta = $this->contaRepo->create($dto->toArray());
-
-            // Criar lançamento de saldo inicial se necessário
-            if (abs($saldoInicial) > 0.00001) {
-                $this->saldoService->createOrUpdate(
-                    $userId,
-                    $conta->id,
-                    $dto->nome,
-                    $saldoInicial
-                );
-            }
-
-            DB::commit();
-            Response::json(['ok' => true, 'id' => (int) $conta->id], 201);
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Response::json(['status' => 'error', 'message' => 'Falha ao criar conta: ' . $e->getMessage()], 500);
-        }
-    }
-
-    public function update(int $id): void
-    {
-        $userId = Auth::id();
-
-        $conta = $this->contaRepo->findByIdAndUser($id, $userId);
-        if (!$conta) {
-            Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
-            return;
-        }
-
-        $payload = $this->getRequestPayload();
-
-        // Mesclar dados existentes com novos dados
-        $data = [
-            'nome'        => $payload['nome'] ?? $conta->nome,
-            'instituicao' => $payload['instituicao'] ?? $conta->instituicao,
-            'moeda'       => $payload['moeda'] ?? $conta->moeda,
-            'tipo_id'     => $payload['tipo_id'] ?? $conta->tipo_id,
-        ];
-
-        // Validar dados
-        $errors = ContaValidator::validateUpdate($data);
-        if (!empty($errors)) {
-            Response::json(['status' => 'error', 'errors' => $errors], 422);
-            return;
-        }
-
-        // Criar DTO
-        $dto = UpdateContaDTO::fromRequest($data);
-
-        DB::beginTransaction();
-        try {
-            // Atualizar conta
-            $this->contaRepo->update($conta->id, $dto->toArray());
-
-            // Atualizar saldo inicial se fornecido
-            if (array_key_exists('saldo_inicial', $payload)) {
-                $novoSaldo = (float) $payload['saldo_inicial'];
-                $this->saldoService->createOrUpdate(
-                    $userId,
-                    $conta->id,
-                    $dto->nome ?? $conta->nome,
-                    $novoSaldo
-                );
-            }
-
-            // Atualizar ativo se fornecido
-            if (array_key_exists('ativo', $payload)) {
-                $conta->ativo = (int)($payload['ativo'] ?? 0);
-                $conta->save();
-            }
-
-            DB::commit();
-            
-            // Recarregar conta para pegar dados atualizados
-            $contaAtualizada = $this->contaRepo->find($conta->id);
-            Response::json(['ok' => true, 'ativo' => (bool)$contaAtualizada->ativo]);
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Response::json(['status' => 'error', 'message' => 'Falha ao atualizar: ' . $e->getMessage()], 500);
-        }
-    }
-
-    public function destroy(int $id): void
-    {
-        $this->archive($id);
-    }
-
-
-    public function archive(int $id): void
-    {
-        $userId = Auth::id();
-
-        try {
-            $this->contaRepo->archive($id, $userId);
-            Response::json(['ok' => true, 'message' => 'Conta arquivada.']);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-            Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
-        }
-    }
-
-
-    public function restore(int $id): void
-    {
-        $userId = Auth::id();
+        $dto = CreateContaDTO::fromArray($data, $userId);
         
-        try {
-            $this->contaRepo->restore($id, $userId);
-            Response::json(['ok' => true, 'message' => 'Conta restaurada.']);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-            Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
-        }
-    }
+        // LOG: DTO criado
+        \Application\Services\LogService::info('📋 DTO criado para nova conta', [
+            'user_id' => $userId,
+            'nome' => $dto->nome,
+            'instituicao_id' => $dto->instituicaoFinanceiraId,
+            'tipo_conta' => $dto->tipoConta,
+            'saldo_inicial' => $dto->saldoInicial
+        ]);
+        
+        $resultado = $this->service->criarConta($dto);
 
-
-    public function hardDelete(int $id): void
-    {
-        $uid = Auth::id();
-        $conta = Conta::forUser($uid)->find($id);
-
-        if (!$conta) {
-            Response::json(['status' => 'error', 'message' => 'Conta não encontrada'], 404);
-            return;
-        }
-
-        $payload = $this->getRequestPayload();
-
-        $force = (int)($_GET['force'] ?? 0) === 1 || filter_var($payload['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-        $countOrig = Lancamento::where('user_id', $uid)->where('conta_id', $id)->count();
-        $countDest = Lancamento::where('user_id', $uid)->where('conta_id_destino', $id)->count();
-        $totalLanc = $countOrig + $countDest;
-
-        if ($totalLanc > 0 && !$force) {
+        if (!$resultado['success']) {
+            // LOG: Erro na criação
+            \Application\Services\LogService::warning('❌ ERRO ao criar conta', [
+                'user_id' => $userId,
+                'erro' => $resultado['message'],
+                'errors' => $resultado['errors'] ?? null
+            ]);
+            
             Response::json([
-                'status'       => 'confirm_delete',
-                'message'      => 'Esta conta possui lançamentos vinculados. Deseja excluir a conta e TODOS os lançamentos vinculados?',
-                'counts'       => [
-                    'origem'   => $countOrig,
-                    'destino'  => $countDest,
-                    'total'    => $totalLanc,
-                ],
-                'suggestion'   => 'Reenvie a requisição com ?force=1 ou JSON {"force": true} para confirmar a exclusão permanente dos lançamentos.',
+                'status' => 'error',
+                'message' => $resultado['message'],
+                'errors' => $resultado['errors'] ?? null,
             ], 422);
             return;
         }
 
-        if ($totalLanc > 0 && !$force) {
-            $conta->ativo = 0;
-            $conta->save();
-            Response::json(['ok' => true, 'archived' => true, 'message' => 'Conta arquivada em vez de excluída permanentemente.']);
+        // LOG: Conta criada com sucesso
+        \Application\Services\LogService::info('✅ SUCESSO - Conta criada', [
+            'user_id' => $userId,
+            'conta_id' => $resultado['id'],
+            'nome' => $resultado['data']['nome'] ?? null
+        ]);
+
+        Response::json($this->addCsrfToResponse([
+            'success' => true,
+            'ok' => true,
+            'id' => $resultado['id'],
+            'data' => $resultado['data'],
+        ]), 201);
+    }
+
+    /**
+     * PUT /api/v2/contas/{id}
+     * Atualizar conta
+     */
+    public function update(int $id): void
+    {
+        $userId = Auth::id();
+        $data = $this->getRequestPayload();
+
+        $dto = UpdateContaDTO::fromArray($data);
+        $resultado = $this->service->atualizarConta($id, $userId, $dto);
+
+        if (!$resultado['success']) {
+            Response::json([
+                'status' => 'error',
+                'message' => $resultado['message'],
+                'errors' => $resultado['errors'] ?? null,
+            ], isset($resultado['message']) && str_contains($resultado['message'], 'não encontrada') ? 404 : 422);
             return;
         }
 
-        Manager::connection()->transaction(function () use ($uid, $id, $conta, $totalLanc) {
-            Lancamento::where('user_id', $uid)->where('conta_id', $id)->delete();
-            Lancamento::where('user_id', $uid)->where('conta_id_destino', $id)->delete();
+        Response::json($this->addCsrfToResponse([
+            'success' => true,
+            'ok' => true,
+            'data' => $resultado['data'],
+        ]));
+    }
 
-            $conta->delete();
+    /**
+     * POST /api/v2/contas/{id}/archive
+     * Arquivar conta
+     */
+    public function archive(int $id): void
+    {
+        $userId = Auth::id();
+        $resultado = $this->service->arquivarConta($id, $userId);
+
+        if (!$resultado['success']) {
+            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            return;
+        }
+
+        Response::json($resultado);
+    }
+
+    /**
+     * POST /api/v2/contas/{id}/restore
+     * Restaurar conta
+     */
+    public function restore(int $id): void
+    {
+        $userId = Auth::id();
+        $resultado = $this->service->restaurarConta($id, $userId);
+
+        if (!$resultado['success']) {
+            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            return;
+        }
+
+        Response::json($resultado);
+    }
+
+    /**
+     * DELETE /api/v2/contas/{id}
+     * Excluir conta
+     */
+    public function destroy(int $id): void
+    {
+        $userId = Auth::id();
+        $data = $this->getRequestPayload();
+        $force = (int) ($_GET['force'] ?? 0) === 1 || filter_var($data['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $resultado = $this->service->excluirConta($id, $userId, $force);
+
+        if (!$resultado['success']) {
+            $statusCode = isset($resultado['requires_confirmation']) && $resultado['requires_confirmation'] ? 422 : 404;
+            Response::json([
+                'status' => $resultado['requires_confirmation'] ?? false ? 'confirm_delete' : 'error',
+                'message' => $resultado['message'],
+                'counts' => $resultado['counts'] ?? null,
+            ], $statusCode);
+            return;
+        }
+
+        Response::json($resultado);
+    }
+
+    /**
+     * GET /api/v2/instituicoes
+     * Listar instituições financeiras disponíveis
+     */
+    public function instituicoes(): void
+    {
+        $tipo = isset($_GET['tipo']) ? trim((string) $_GET['tipo']) : null;
+
+        $query = InstituicaoFinanceira::ativas();
+
+        if ($tipo) {
+            $query->porTipo($tipo);
+        }
+
+        $instituicoes = $query->orderBy('nome')->get()->map(function ($inst) {
+            return [
+                'id' => $inst->id,
+                'nome' => $inst->nome,
+                'codigo' => $inst->codigo,
+                'tipo' => $inst->tipo,
+                'cor_primaria' => $inst->cor_primaria,
+                'cor_secundaria' => $inst->cor_secundaria,
+                'logo_url' => $inst->logo_url,
+            ];
         });
 
-        Response::json([
-            'ok'                    => true,
-            'deleted'               => true,
-            'deleted_lancamentos'   => $totalLanc,
-            'message'               => 'Conta e lançamentos vinculados excluídos definitivamente.',
-        ]);
+        Response::json($instituicoes);
     }
 }

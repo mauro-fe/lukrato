@@ -413,7 +413,7 @@
             try {
                 Renderer.showLoading();
                 const yearMonth = new Date().toISOString().slice(0, 7);
-                const data = await API.fetch(`accounts?with_balances=1&month=${yearMonth}`, {
+                const data = await API.fetch(`contas?with_balances=1&month=${yearMonth}`, {
                     credentials: 'same-origin'
                 }).then(API.processResponse);
 
@@ -499,7 +499,7 @@
 
             try {
                 const method = id ? 'PUT' : 'POST';
-                const path = id ? `accounts/${id}` : 'accounts';
+                const path = id ? `contas/${id}` : 'contas';
 
                 const data = await API.fetch(path, {
                     method,
@@ -788,7 +788,7 @@
             if (!confirmed) return;
 
             try {
-                await API.fetch(`accounts/${id}/archive`, {
+                await API.fetch(`contas/${id}/archive`, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: API.getHeaders(false)
@@ -811,7 +811,7 @@
             if (!confirmed) return;
 
             try {
-                await API.fetch(`accounts/${id}/restore`, {
+                await API.fetch(`contas/${id}/restore`, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: API.getHeaders(false)

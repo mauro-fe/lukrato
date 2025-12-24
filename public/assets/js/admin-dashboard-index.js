@@ -247,7 +247,7 @@
 
         getAccountsBalances: async (month) => {
             return await API.fetch(
-                `${CONFIG.API_URL}accounts?with_balances=1&month=${encodeURIComponent(month)}&only_active=1`
+                `${CONFIG.API_URL}contas?with_balances=1&month=${encodeURIComponent(month)}&only_active=1`
             );
         },
 
@@ -532,7 +532,7 @@
 
             if (DOM.organizationText) {
                 const remaining = nextThreshold - gamificationData.points;
-                DOM.organizationText.textContent = remaining > 0 
+                DOM.organizationText.textContent = remaining > 0
                     ? `Faltam ${remaining} pontos para o nível ${gamificationData.level + 1}`
                     : 'Nível máximo alcançado!';
             }
@@ -661,9 +661,9 @@
                             (typeof transaction.categoria === 'string' ? transaction.categoria :
                                 transaction.categoria?.nome) ??
                             null;
-                        
-                        const categoriaDisplay = categoriaNome 
-                            ? categoriaNome 
+
+                        const categoriaDisplay = categoriaNome
+                            ? categoriaNome
                             : '<span class="categoria-empty">Sem categoria</span>';
 
                         const contaNome = Utils.getContaLabel(transaction);
@@ -967,8 +967,8 @@
                 ]);
 
                 // Processar transações
-                const allTransactions = Array.isArray(allTransactionsData) 
-                    ? allTransactionsData 
+                const allTransactions = Array.isArray(allTransactionsData)
+                    ? allTransactionsData
                     : (allTransactionsData?.data || allTransactionsData?.lancamentos || []);
 
                 STATE.allTransactions = allTransactions;

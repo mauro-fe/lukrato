@@ -221,10 +221,10 @@ class LancamentosController extends BaseController
         }
 
         $payload = $this->getRequestPayload();
-        
+
         // Validar com o validator
         $errors = LancamentoValidator::validateCreate($payload);
-        
+
         // Validar conta e categoria (regras de negócio)
         $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
         $contaId = is_scalar($contaId) ? (int)$contaId : null;
@@ -233,7 +233,7 @@ class LancamentosController extends BaseController
         $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
         $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
         $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
-        
+
         if (!empty($errors)) {
             Response::validationError($errors);
             return;

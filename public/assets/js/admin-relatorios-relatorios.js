@@ -262,7 +262,7 @@
 
         async fetchAccounts() {
             try {
-                const response = await fetch(`${CONFIG.BASE_URL}api/accounts`, {
+                const response = await fetch(`${CONFIG.BASE_URL}api/contas`, {
                     credentials: 'include',
                     headers: { 'Accept': 'application/json' }
                 });

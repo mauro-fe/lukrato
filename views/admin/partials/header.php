@@ -57,7 +57,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
-    
+
     <!-- Enhancements por último para sobrescrever tudo -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css">
 
@@ -181,12 +181,12 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
 <body>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
-    
+
     <!-- ============================================================================
          TOP NAVBAR
          ============================================================================ -->
     <?php include __DIR__ . '/top-navbar.php'; ?>
-    
+
     <!-- ============================================================================
          SIDEBAR COLLAPSE STATE (Pre-render)
          ============================================================================ -->

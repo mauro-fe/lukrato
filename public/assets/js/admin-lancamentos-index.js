@@ -544,7 +544,7 @@
         loadFilterOptions: async () => {
             const [categorias, contas] = await Promise.all([
                 DOM.selectCategoria ? API.fetchJsonList(`${CONFIG.BASE_URL}api/categorias`) : Promise.resolve([]),
-                DOM.selectConta ? API.fetchJsonList(`${CONFIG.BASE_URL}api/accounts?only_active=1`) : Promise.resolve([])
+                DOM.selectConta ? API.fetchJsonList(`${CONFIG.BASE_URL}api/contas?only_active=1`) : Promise.resolve([])
             ]);
 
             // Inicializar seletores de filtro
@@ -1700,7 +1700,7 @@
             document.addEventListener('lukrato:data-changed', (e) => {
                 const res = e.detail?.resource;
                 if (!res || res === 'transactions') DataManager.load();
-                if (res === 'categorias' || res === 'accounts') OptionsManager.loadFilterOptions();
+                if (res === 'categorias' || res === 'contas') OptionsManager.loadFilterOptions();
             });
 
             // Cliques nos cards (mobile)
