@@ -36,7 +36,7 @@ class ContaService
         if ($comSaldos && $contas->count() > 0) {
             $mes = $mes ?? date('Y-m');
             $saldos = $this->calcularSaldos($userId, $contas->pluck('id')->all(), $mes);
-            
+
             return $contas->map(function ($conta) use ($saldos) {
                 $saldo = $saldos[$conta->id] ?? null;
                 return array_merge($conta->toArray(), $saldo ?? []);
@@ -52,7 +52,7 @@ class ContaService
     public function criarConta(CreateContaDTO $dto): array
     {
         $data = $dto->toArray();
-        
+
         $errors = ContaValidator::validateCreate($data);
         if (!empty($errors)) {
             return [
@@ -73,7 +73,7 @@ class ContaService
             }
 
             DB::commit();
-            
+
             return [
                 'success' => true,
                 'data' => $conta->fresh()->load('instituicaoFinanceira')->toArray(),
@@ -94,7 +94,7 @@ class ContaService
     public function atualizarConta(int $contaId, int $userId, UpdateContaDTO $dto): array
     {
         $conta = Conta::forUser($userId)->find($contaId);
-        
+
         if (!$conta) {
             return [
                 'success' => false,
@@ -103,7 +103,7 @@ class ContaService
         }
 
         $data = $dto->toArray();
-        
+
         if (!empty($data)) {
             $errors = ContaValidator::validateUpdate($data);
             if (!empty($errors)) {
@@ -131,7 +131,7 @@ class ContaService
             }
 
             DB::commit();
-            
+
             return [
                 'success' => true,
                 'data' => $conta->fresh()->load('instituicaoFinanceira')->toArray(),
@@ -151,7 +151,7 @@ class ContaService
     public function arquivarConta(int $contaId, int $userId): array
     {
         $conta = Conta::forUser($userId)->find($contaId);
-        
+
         if (!$conta) {
             return ['success' => false, 'message' => 'Conta não encontrada.'];
         }
@@ -168,7 +168,7 @@ class ContaService
     public function restaurarConta(int $contaId, int $userId): array
     {
         $conta = Conta::forUser($userId)->find($contaId);
-        
+
         if (!$conta) {
             return ['success' => false, 'message' => 'Conta não encontrada.'];
         }
@@ -185,7 +185,7 @@ class ContaService
     public function excluirConta(int $contaId, int $userId, bool $force = false): array
     {
         $conta = Conta::forUser($userId)->find($contaId);
-        
+
         if (!$conta) {
             return ['success' => false, 'message' => 'Conta não encontrada.'];
         }
@@ -212,7 +212,7 @@ class ContaService
             // Excluir lançamentos
             Lancamento::where('user_id', $userId)->where('conta_id', $contaId)->delete();
             Lancamento::where('user_id', $userId)->where('conta_id_destino', $contaId)->delete();
-            
+
             // Excluir conta
             $conta->delete();
         });

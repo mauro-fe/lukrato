@@ -35,27 +35,36 @@ class ContasController
     }
 
     /**
-     * GET /api/v2/contas
+     * GET /api/contas
      * Listar contas do usuário
      */
     public function index(): void
     {
-        $userId = Auth::id();
+        try {
+            $userId = Auth::id();
 
-        $archived = (int) ($_GET['archived'] ?? 0) === 1;
-        $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
-        $withBalances = (int) ($_GET['with_balances'] ?? 0) === 1;
-        $month = trim((string) ($_GET['month'] ?? date('Y-m')));
+            $archived = (int) ($_GET['archived'] ?? 0) === 1;
+            $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
+            $withBalances = (int) ($_GET['with_balances'] ?? 0) === 1;
+            $month = trim((string) ($_GET['month'] ?? date('Y-m')));
 
-        $contas = $this->service->listarContas(
-            userId: $userId,
-            arquivadas: $archived,
-            apenasAtivas: $onlyActive,
-            comSaldos: $withBalances,
-            mes: $month
-        );
+            $contas = $this->service->listarContas(
+                userId: $userId,
+                arquivadas: $archived,
+                apenasAtivas: $onlyActive,
+                comSaldos: $withBalances,
+                mes: $month
+            );
 
-        Response::json($contas);
+            Response::json($contas);
+        } catch (\Throwable $e) {
+            \Application\Services\LogService::error('Erro ao listar contas', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            Response::json(['error' => 'Erro ao carregar contas: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -208,31 +217,40 @@ class ContasController
     }
 
     /**
-     * GET /api/v2/instituicoes
+     * GET /api/contas/instituicoes
      * Listar instituições financeiras disponíveis
      */
     public function instituicoes(): void
     {
-        $tipo = isset($_GET['tipo']) ? trim((string) $_GET['tipo']) : null;
+        try {
+            $tipo = isset($_GET['tipo']) ? trim((string) $_GET['tipo']) : null;
 
-        $query = InstituicaoFinanceira::ativas();
+            $query = InstituicaoFinanceira::ativas();
 
-        if ($tipo) {
-            $query->porTipo($tipo);
+            if ($tipo) {
+                $query->porTipo($tipo);
+            }
+
+            $instituicoes = $query->orderBy('nome')->get()->map(function ($inst) {
+                return [
+                    'id' => $inst->id,
+                    'nome' => $inst->nome,
+                    'codigo' => $inst->codigo,
+                    'tipo' => $inst->tipo,
+                    'cor_primaria' => $inst->cor_primaria,
+                    'cor_secundaria' => $inst->cor_secundaria,
+                    'logo_url' => $inst->logo_url,
+                ];
+            });
+
+            Response::json($instituicoes);
+        } catch (\Throwable $e) {
+            \Application\Services\LogService::error('Erro ao listar instituições', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            Response::json(['error' => 'Erro ao carregar instituições: ' . $e->getMessage()], 500);
         }
-
-        $instituicoes = $query->orderBy('nome')->get()->map(function ($inst) {
-            return [
-                'id' => $inst->id,
-                'nome' => $inst->nome,
-                'codigo' => $inst->codigo,
-                'tipo' => $inst->tipo,
-                'cor_primaria' => $inst->cor_primaria,
-                'cor_secundaria' => $inst->cor_secundaria,
-                'logo_url' => $inst->logo_url,
-            ];
-        });
-
-        Response::json($instituicoes);
     }
 }
