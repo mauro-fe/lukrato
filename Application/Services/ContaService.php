@@ -132,7 +132,8 @@ class ContaService
             // Atualizar campos da conta
             $camposAtualizados = [];
             foreach ($data as $key => $value) {
-                if ($key !== 'saldo_inicial' && property_exists($conta, $key)) {
+                // Usar in_array com fillable ao invés de property_exists
+                if ($key !== 'saldo_inicial' && in_array($key, $conta->getFillable())) {
                     $conta->$key = $value;
                     $camposAtualizados[$key] = $value;
                 }
