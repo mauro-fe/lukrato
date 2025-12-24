@@ -3,32 +3,52 @@
 ## 1. Imagens Responsivas (Próximas Fases)
 
 ### Implementar `<picture>` e `srcset`
+
 ```html
 <!-- Para o mockup principal -->
 <picture>
-    <source media="(min-width: 1024px)" 
-            srcset="/assets/img/mockups/mockup-lg.png 1x, /assets/img/mockups/mockup-lg@2x.png 2x">
-    <source media="(min-width: 768px)" 
-            srcset="/assets/img/mockups/mockup-md.png 1x, /assets/img/mockups/mockup-md@2x.png 2x">
-    <source media="(max-width: 767px)" 
-            srcset="/assets/img/mockups/mockup-sm.png 1x, /assets/img/mockups/mockup-sm@2x.png 2x">
-    <img src="/assets/img/mockups/mockup.png" 
-         alt="Dashboard do Lukrato no computador"
-         loading="lazy" 
-         decoding="async" />
+  <source
+    media="(min-width: 1024px)"
+    srcset="
+      /assets/img/mockups/mockup-lg.png    1x,
+      /assets/img/mockups/mockup-lg@2x.png 2x
+    "
+  />
+  <source
+    media="(min-width: 768px)"
+    srcset="
+      /assets/img/mockups/mockup-md.png    1x,
+      /assets/img/mockups/mockup-md@2x.png 2x
+    "
+  />
+  <source
+    media="(max-width: 767px)"
+    srcset="
+      /assets/img/mockups/mockup-sm.png    1x,
+      /assets/img/mockups/mockup-sm@2x.png 2x
+    "
+  />
+  <img
+    src="/assets/img/mockups/mockup.png"
+    alt="Dashboard do Lukrato no computador"
+    loading="lazy"
+    decoding="async"
+  />
 </picture>
 ```
 
 ### WebP com Fallback
+
 ```html
 <picture>
-    <source srcset="/assets/img/mockups/mockup.webp" type="image/webp">
-    <source srcset="/assets/img/mockups/mockup.png" type="image/png">
-    <img src="/assets/img/mockups/mockup.png" alt="..." loading="lazy" />
+  <source srcset="/assets/img/mockups/mockup.webp" type="image/webp" />
+  <source srcset="/assets/img/mockups/mockup.png" type="image/png" />
+  <img src="/assets/img/mockups/mockup.png" alt="..." loading="lazy" />
 </picture>
 ```
 
 ### Otimizar Imagens
+
 ```bash
 # Usar ferramentas como:
 # - ImageOptim (Mac)
@@ -45,65 +65,70 @@ cwebp mockup.png -o mockup.webp -q 85
 ## 2. CSS Avançado
 
 ### CSS Containment para Performance
+
 ```css
 .lk-benefit-card {
-    contain: layout style paint;
+  contain: layout style paint;
 }
 
 .lk-plans-grid {
-    contain: layout style paint;
+  contain: layout style paint;
 }
 ```
 
 ### CSS Subgrid (quando suportado)
+
 ```css
 .lk-benefits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .lk-benefit-card {
-    display: grid;
-    grid-template-columns: subgrid;
+  display: grid;
+  grid-template-columns: subgrid;
 }
 ```
 
 ### Dark Mode Support
+
 ```css
 @media (prefers-color-scheme: dark) {
-    body {
-        background: #0f172a;
-        color: #f0f5ff;
-    }
-    
-    .lk-benefit-card {
-        background: rgba(30, 41, 59, 0.7);
-        border-color: rgba(226, 232, 240, 0.1);
-    }
+  body {
+    background: #0f172a;
+    color: #f0f5ff;
+  }
+
+  .lk-benefit-card {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(226, 232, 240, 0.1);
+  }
 }
 ```
 
 ### High Contrast Mode
+
 ```css
 @media (prefers-contrast: more) {
-    .lk-btn-primary {
-        border: 2px solid currentColor;
-    }
-    
-    a {
-        text-decoration: underline;
-    }
+  .lk-btn-primary {
+    border: 2px solid currentColor;
+  }
+
+  a {
+    text-decoration: underline;
+  }
 }
 ```
 
 ### Reduced Motion
+
 ```css
 @media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 ```
 
@@ -112,122 +137,129 @@ cwebp mockup.png -o mockup.webp -q 85
 ## 3. JavaScript Enhancements
 
 ### Lazy Loading Avançado
+
 ```javascript
 // Usar Intersection Observer para melhor performance
-const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const img = entry.target;
-            img.src = img.dataset.src;
-            img.classList.add('loaded');
-            observer.unobserve(img);
-        }
+const imageObserver = new IntersectionObserver(
+  (entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.classList.add("loaded");
+        observer.unobserve(img);
+      }
     });
-}, {
-    rootMargin: '50px'
-});
+  },
+  {
+    rootMargin: "50px",
+  }
+);
 
-document.querySelectorAll('img[data-src]').forEach(img => {
-    imageObserver.observe(img);
+document.querySelectorAll("img[data-src]").forEach((img) => {
+  imageObserver.observe(img);
 });
 ```
 
 ### Smooth Scroll com JS (Fallback)
+
 ```javascript
 // Para navegadores que não suportam scroll-behavior: smooth
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
-    });
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute("href"));
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+  });
 });
 ```
 
 ### Form Validation Avançada
+
 ```javascript
 class FormValidator {
-    constructor(formSelector) {
-        this.form = document.querySelector(formSelector);
-        this.fields = this.form.querySelectorAll('input, textarea');
-        this.init();
+  constructor(formSelector) {
+    this.form = document.querySelector(formSelector);
+    this.fields = this.form.querySelectorAll("input, textarea");
+    this.init();
+  }
+
+  init() {
+    this.fields.forEach((field) => {
+      field.addEventListener("blur", () => this.validate(field));
+      field.addEventListener("input", () => this.clearError(field));
+    });
+  }
+
+  validate(field) {
+    let isValid = true;
+
+    if (field.required && !field.value.trim()) {
+      this.showError(field, "Campo obrigatório");
+      isValid = false;
     }
-    
-    init() {
-        this.fields.forEach(field => {
-            field.addEventListener('blur', () => this.validate(field));
-            field.addEventListener('input', () => this.clearError(field));
-        });
+
+    if (field.type === "email" && field.value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(field.value)) {
+        this.showError(field, "Email inválido");
+        isValid = false;
+      }
     }
-    
-    validate(field) {
-        let isValid = true;
-        
-        if (field.required && !field.value.trim()) {
-            this.showError(field, 'Campo obrigatório');
-            isValid = false;
-        }
-        
-        if (field.type === 'email' && field.value) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(field.value)) {
-                this.showError(field, 'Email inválido');
-                isValid = false;
-            }
-        }
-        
-        return isValid;
+
+    return isValid;
+  }
+
+  showError(field, message) {
+    field.classList.add("is-invalid");
+    field.setAttribute("aria-invalid", "true");
+
+    let errorElement = field.parentElement.querySelector(".error-message");
+    if (!errorElement) {
+      errorElement = document.createElement("span");
+      errorElement.className = "error-message";
+      field.parentElement.appendChild(errorElement);
     }
-    
-    showError(field, message) {
-        field.classList.add('is-invalid');
-        field.setAttribute('aria-invalid', 'true');
-        
-        let errorElement = field.parentElement.querySelector('.error-message');
-        if (!errorElement) {
-            errorElement = document.createElement('span');
-            errorElement.className = 'error-message';
-            field.parentElement.appendChild(errorElement);
-        }
-        errorElement.textContent = message;
-    }
-    
-    clearError(field) {
-        field.classList.remove('is-invalid');
-        field.setAttribute('aria-invalid', 'false');
-        const errorElement = field.parentElement.querySelector('.error-message');
-        if (errorElement) errorElement.remove();
-    }
+    errorElement.textContent = message;
+  }
+
+  clearError(field) {
+    field.classList.remove("is-invalid");
+    field.setAttribute("aria-invalid", "false");
+    const errorElement = field.parentElement.querySelector(".error-message");
+    if (errorElement) errorElement.remove();
+  }
 }
 
 // Usar
-const validator = new FormValidator('#contactForm');
+const validator = new FormValidator("#contactForm");
 ```
 
 ### Analytics de Interação
+
 ```javascript
 // Rastrear cliques em CTA
-document.querySelectorAll('.lk-btn-primary').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const sectionName = e.target.closest('section')?.id || 'unknown';
-        console.log(`CTA clicked in ${sectionName}`);
-        // Enviar para analytics
-    });
+document.querySelectorAll(".lk-btn-primary").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    const sectionName = e.target.closest("section")?.id || "unknown";
+    console.log(`CTA clicked in ${sectionName}`);
+    // Enviar para analytics
+  });
 });
 
 // Rastrear visibilidade de seções
 const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            console.log(`Section visible: ${entry.target.id}`);
-        }
-    });
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      console.log(`Section visible: ${entry.target.id}`);
+    }
+  });
 });
 
-document.querySelectorAll('section[id]').forEach(section => {
-    sectionObserver.observe(section);
+document.querySelectorAll("section[id]").forEach((section) => {
+  sectionObserver.observe(section);
 });
 ```
 
@@ -236,72 +268,78 @@ document.querySelectorAll('section[id]').forEach(section => {
 ## 4. Core Web Vitals Otimizações
 
 ### LCP (Largest Contentful Paint) < 2.5s
+
 ```css
 /* Preload fonts críticas */
 @font-face {
-    font-family: 'Primary Font';
-    src: url('/fonts/primary.woff2') format('woff2');
-    font-display: swap;
+  font-family: "Primary Font";
+  src: url("/fonts/primary.woff2") format("woff2");
+  font-display: swap;
 }
 
 /* Evitar layout shifts */
 .lk-device-card img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 ```
 
 ### FID (First Input Delay) < 100ms
+
 ```javascript
 // Usar event delegation para menos listeners
-document.addEventListener('click', (e) => {
-    if (e.target.closest('.lk-btn-primary')) {
-        handleButtonClick(e.target);
-    }
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".lk-btn-primary")) {
+    handleButtonClick(e.target);
+  }
 });
 
 // Debounce heavy operations
 function debounce(func, delay) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, delay);
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
     };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, delay);
+  };
 }
 
-window.addEventListener('resize', debounce(() => {
+window.addEventListener(
+  "resize",
+  debounce(() => {
     // Atualizar layout
-}, 250));
+  }, 250)
+);
 ```
 
 ### CLS (Cumulative Layout Shift) < 0.1
+
 ```css
 /* Evitar layout shifts */
 .lk-section {
-    padding: 80px 0;
-    /* Não mudar padding em media queries */
+  padding: 80px 0;
+  /* Não mudar padding em media queries */
 }
 
 /* Use aspect-ratio para imagens */
 .lk-device-card img {
-    aspect-ratio: 580 / 400;
+  aspect-ratio: 580 / 400;
 }
 
 /* Reserve espaço para fonts */
 @font-face {
-    font-family: 'Primary';
-    src: url('/fonts/primary.woff2');
-    font-display: swap;
+  font-family: "Primary";
+  src: url("/fonts/primary.woff2");
+  font-display: swap;
 }
 
 /* Não adicione borders que movem elementos */
 .lk-btn-primary {
-    border: 2px solid transparent; /* Reservar espaço */
+  border: 2px solid transparent; /* Reservar espaço */
 }
 ```
 
@@ -310,6 +348,7 @@ window.addEventListener('resize', debounce(() => {
 ## 5. Bundle & Minificação
 
 ### CSS Minificação
+
 ```bash
 # Usar cssnano
 npm install -g cssnano
@@ -321,6 +360,7 @@ cssnano landing-base.css -o landing-base.min.css
 ```
 
 ### Purge CSS (Remover CSS não usado)
+
 ```bash
 npm install -D purgecss
 
@@ -333,6 +373,7 @@ module.exports = {
 ```
 
 ### Compress Files
+
 ```bash
 # Gzip compression
 gzip -k landing-base.css
@@ -348,6 +389,7 @@ brotli landing-base.css
 ## 6. Server-Side Otimizações
 
 ### HTTP Headers
+
 ```apache
 # .htaccess
 
@@ -371,6 +413,7 @@ Header always set X-XSS-Protection "1; mode=block"
 ```
 
 ### PHP Output Buffering
+
 ```php
 <!-- Na seção de layout/header -->
 <?php
@@ -392,8 +435,9 @@ echo $output;
 ## 7. Monitoramento & Analytics
 
 ### Implementar Web Vitals Tracking
+
 ```javascript
-import {getCLS, getFID, getFCP, getLCP, getTTFB} from 'web-vitals';
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from "web-vitals";
 
 getCLS(console.log);
 getFID(console.log);
@@ -403,28 +447,35 @@ getTTFB(console.log);
 ```
 
 ### Google Analytics 4
+
 ```html
 <!-- Add GA4 script -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script
+  async
+  src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
+></script>
 <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'GA_MEASUREMENT_ID');
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+  gtag("config", "GA_MEASUREMENT_ID");
 </script>
 ```
 
 ### Custom Events
+
 ```javascript
 // Track CTA clicks
-gtag('event', 'cta_click', {
-    'section': 'features',
-    'button_text': 'Começar grátis',
+gtag("event", "cta_click", {
+  section: "features",
+  button_text: "Começar grátis",
 });
 
 // Track form submissions
-gtag('event', 'form_submit', {
-    'form_name': 'contact_form',
+gtag("event", "form_submit", {
+  form_name: "contact_form",
 });
 ```
 
@@ -433,37 +484,40 @@ gtag('event', 'form_submit', {
 ## 8. SEO Enhancements
 
 ### Schema Markup (Structured Data)
+
 ```html
 <script type="application/ld+json">
-{
+  {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Lukrato",
     "description": "Sistema de controle financeiro pessoal",
     "url": "https://lukrato.com",
     "offers": {
-        "@type": "Offer",
-        "price": "0.00",
-        "priceCurrency": "BRL"
+      "@type": "Offer",
+      "price": "0.00",
+      "priceCurrency": "BRL"
     }
-}
+  }
 </script>
 ```
 
 ### Open Graph Meta Tags
+
 ```html
-<meta property="og:title" content="Lukrato - Controle Financeiro Pessoal">
-<meta property="og:description" content="...">
-<meta property="og:image" content="/assets/img/og-image.png">
-<meta property="og:url" content="https://lukrato.com">
+<meta property="og:title" content="Lukrato - Controle Financeiro Pessoal" />
+<meta property="og:description" content="..." />
+<meta property="og:image" content="/assets/img/og-image.png" />
+<meta property="og:url" content="https://lukrato.com" />
 ```
 
 ### Twitter Card
+
 ```html
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Lukrato">
-<meta name="twitter:description" content="...">
-<meta name="twitter:image" content="/assets/img/twitter-image.png">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Lukrato" />
+<meta name="twitter:description" content="..." />
+<meta name="twitter:image" content="/assets/img/twitter-image.png" />
 ```
 
 ---
@@ -471,18 +525,21 @@ gtag('event', 'form_submit', {
 ## 9. Roadmap de Implementação
 
 ### Phase 1 (Sprint 1-2)
+
 - [ ] Implementar picture/srcset para imagens
 - [ ] Adicionar dark mode support
 - [ ] Minificar CSS e JS
 - [ ] Configurar caching headers
 
 ### Phase 2 (Sprint 3-4)
+
 - [ ] Implementar Service Worker
 - [ ] Adicionar PWA manifest
 - [ ] Otimizar fonts (WOFF2)
 - [ ] Implementar analytics
 
 ### Phase 3 (Sprint 5+)
+
 - [ ] A/B testing de CTA
 - [ ] Dynamic content loading
 - [ ] Multi-language support
@@ -492,15 +549,15 @@ gtag('event', 'form_submit', {
 
 ## 10. Métricas Alvo (2025)
 
-| Métrica | Atual | Alvo |
-|---------|-------|------|
-| Lighthouse Performance | 85 | 95+ |
-| Core Web Vitals | Good | Good |
-| LCP | 2.2s | < 1.8s |
-| FID | 80ms | < 50ms |
-| CLS | 0.05 | < 0.05 |
-| Accessibility | 95 | 98+ |
-| SEO | 92 | 98+ |
+| Métrica                | Atual | Alvo   |
+| ---------------------- | ----- | ------ |
+| Lighthouse Performance | 85    | 95+    |
+| Core Web Vitals        | Good  | Good   |
+| LCP                    | 2.2s  | < 1.8s |
+| FID                    | 80ms  | < 50ms |
+| CLS                    | 0.05  | < 0.05 |
+| Accessibility          | 95    | 98+    |
+| SEO                    | 92    | 98+    |
 
 ---
 
