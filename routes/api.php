@@ -85,6 +85,16 @@ Router::add('POST',   '/api/accounts/{id}/delete',  'Api\\ContasController@hardD
 Router::add('POST', '/api/accounts/archive',   'Api\\ContasController@archive',   ['auth', 'csrf']);
 Router::add('POST', '/api/accounts/unarchive', 'Api\\ContasController@unarchive', ['auth', 'csrf']);
 
+// Rotas em português (compatibilidade com frontend)
+Router::add('GET',    '/api/instituicoes',             'Api\\ContasController@instituicoes', ['auth']);
+Router::add('GET',    '/api/contas/instituicoes',      'Api\\ContasController@instituicoes', ['auth']);
+Router::add('GET',    '/api/contas',                   'Api\\ContasController@index',        ['auth']);
+Router::add('POST',   '/api/contas',                   'Api\\ContasController@store',        ['auth', 'csrf']);
+Router::add('PUT',    '/api/contas/{id}',              'Api\\ContasController@update',       ['auth', 'csrf']);
+Router::add('POST',   '/api/contas/{id}/archive',      'Api\\ContasController@archive',      ['auth', 'csrf']);
+Router::add('POST',   '/api/contas/{id}/restore',      'Api\\ContasController@restore',      ['auth', 'csrf']);
+Router::add('DELETE', '/api/contas/{id}',              'Api\\ContasController@destroy',      ['auth', 'csrf']);
+
 // ============================================
 // CATEGORIAS (REST)
 // ============================================

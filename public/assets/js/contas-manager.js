@@ -13,7 +13,7 @@ class ContasManager {
         this.currentMonth = this.getCurrentMonth();
         this.isSubmitting = false;
         this.contaSelecionadaLancamento = null;
-        
+
         this.init();
         this.setupMoneyMask();
         this.setupCartaoMoneyMask();
@@ -49,18 +49,18 @@ class ContasManager {
             console.log('✓ CSRF token obtido da meta tag:', metaToken.substring(0, 20) + '...');
             return metaToken;
         }
-        
+
         if (window.LK?.getCSRF) {
             const token = window.LK.getCSRF();
             console.log('✓ CSRF token obtido do LK.getCSRF:', token.substring(0, 20) + '...');
             return token;
         }
-        
+
         if (window.CSRF) {
             console.log('✓ CSRF token obtido do window.CSRF');
             return window.CSRF;
         }
-        
+
         console.error('❌ CSRF token não encontrado!');
         return '';
     }
@@ -98,18 +98,18 @@ class ContasManager {
         if (window.BASE_URL) {
             return window.BASE_URL;
         }
-        
+
         // Fallback: extrair do pathname
         const path = window.location.pathname;
         if (path.includes('/lukrato/public/')) {
             return '/lukrato/public/';
         }
-        
+
         // Extrair dinamicamente até /contas
         if (path.includes('/contas')) {
             return path.split('/contas')[0] + '/';
         }
-        
+
         // Último fallback
         return '/lukrato/public/';
     }
@@ -121,9 +121,9 @@ class ContasManager {
         try {
             const response = await fetch(`${this.baseUrl}/instituicoes`);
             if (!response.ok) throw new Error('Erro ao carregar instituições');
-            
+
             this.instituicoes = await response.json();
-            
+
             console.log('=== INSTITUIÇÕES CARREGADAS ===');
             console.log('Total:', this.instituicoes.length);
             if (this.instituicoes.length > 0) {
@@ -133,7 +133,7 @@ class ContasManager {
                     console.log('Logo URL:', nubank.logo_url);
                 }
             }
-            
+
             this.renderInstituicoesSelect();
         } catch (error) {
             console.error('Erro ao carregar instituições:', error);
@@ -147,7 +147,7 @@ class ContasManager {
     async loadContas() {
         try {
             this.showLoading(true);
-            
+
             const params = new URLSearchParams({
                 with_balances: '1',
                 month: this.currentMonth,
@@ -156,16 +156,16 @@ class ContasManager {
 
             const response = await fetch(`${this.baseUrl}/contas?${params}`);
             if (!response.ok) throw new Error('Erro ao carregar contas');
-            
+
             this.contas = await response.json();
-            
-            console.log('=== CONTAS CARREGADAS ===' );
+
+            console.log('=== CONTAS CARREGADAS ===');
             console.log('Total:', this.contas.length);
             if (this.contas.length > 0) {
                 console.log('Primeira conta:', this.contas[0]);
                 console.log('Instituição da primeira:', this.contas[0].instituicao_financeira);
             }
-            
+
             this.renderContas();
             this.updateStats();
         } catch (error) {
@@ -206,12 +206,12 @@ class ContasManager {
     createContaCard(conta) {
         // Buscar instituição do objeto conta ou da lista
         let instituicao = conta.instituicao_financeira || this.getInstituicao(conta.instituicao_financeira_id);
-        
+
         const logoUrl = instituicao?.logo_url || `${this.baseUrl}assets/img/banks/default.svg`;
         const corPrimaria = instituicao?.cor_primaria || '#667eea';
         const saldo = conta.saldo_atual || conta.saldoAtual || 0;
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
-        
+
         console.log('=== CRIANDO CARD ===');
         console.log('Conta:', conta.nome);
         console.log('ID Instituição:', conta.instituicao_financeira_id);
@@ -268,13 +268,13 @@ class ContasManager {
         if (!select) return;
 
         const grupos = this.groupByTipo(this.instituicoes);
-        
+
         select.innerHTML = '<option value="">Selecione uma instituição</option>';
-        
+
         Object.keys(grupos).forEach(tipo => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = this.formatTipo(tipo);
-            
+
             grupos[tipo].forEach(inst => {
                 const option = document.createElement('option');
                 option.value = inst.id;
@@ -283,7 +283,7 @@ class ContasManager {
                 option.dataset.cor = inst.cor_primaria;
                 optgroup.appendChild(option);
             });
-            
+
             select.appendChild(optgroup);
         });
     }
@@ -350,15 +350,15 @@ class ContasManager {
      */
     async createConta(data) {
         const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        
+
         try {
             console.log('🚀 [' + requestId + '] INÍCIO - Criar conta', data);
-            
+
             const csrfToken = await this.getCSRFToken();
             console.log('🔐 [' + requestId + '] CSRF token obtido:', csrfToken.substring(0, 20) + '...');
-            
+
             console.log('📤 [' + requestId + '] Enviando POST para:', `${this.baseUrl}/contas`);
-            
+
             const response = await fetch(`${this.baseUrl}/contas`, {
                 method: 'POST',
                 headers: {
@@ -393,7 +393,7 @@ class ContasManager {
             this.showToast('Conta criada com sucesso!', 'success');
             this.closeModal();
             await this.loadContas();
-            
+
             // Scroll ao topo da página (modo seguro)
             setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -430,7 +430,7 @@ class ContasManager {
         try {
             const csrfToken = await this.getCSRFToken();
             console.log('🔐 Usando CSRF token para atualizar conta:', csrfToken.substring(0, 20) + '...');
-            
+
             const response = await fetch(`${this.baseUrl}/contas/${contaId}`, {
                 method: 'POST',
                 headers: {
@@ -443,7 +443,7 @@ class ContasManager {
 
             console.log('📡 Response status:', response.status);
             console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-            
+
             // Capturar o texto da resposta primeiro
             const responseText = await response.text();
             console.log('📡 Response text:', responseText);
@@ -486,7 +486,7 @@ class ContasManager {
         try {
             const csrfToken = await this.getCSRFToken();
             console.log('🔐 Usando CSRF token para arquivar conta:', csrfToken.substring(0, 20) + '...');
-            
+
             const response = await fetch(`${this.baseUrl}/contas/${contaId}/archive`, {
                 method: 'POST',
                 headers: {
@@ -515,12 +515,12 @@ class ContasManager {
     async deleteConta(contaId) {
         const conta = this.contas.find(c => c.id === contaId);
         const nomeConta = conta ? conta.nome : 'esta conta';
-        
+
         this.showDeleteConfirmation(nomeConta, async () => {
             try {
                 const csrfToken = await this.getCSRFToken();
                 console.log('🔐 Usando CSRF token para deletar conta:', csrfToken.substring(0, 20) + '...');
-                
+
                 const response = await fetch(`${this.baseUrl}/contas/${contaId}`, {
                     method: 'POST',
                     headers: {
@@ -535,7 +535,7 @@ class ContasManager {
                 // Se precisa de confirmação de força (tem lançamentos)
                 if (result.status === 'confirm_delete') {
                     this.showDeleteConfirmation(
-                        nomeConta + ' (tem lançamentos vinculados)', 
+                        nomeConta + ' (tem lançamentos vinculados)',
                         async () => {
                             await this.forceDeleteConta(contaId);
                         },
@@ -563,7 +563,7 @@ class ContasManager {
     async forceDeleteConta(contaId) {
         try {
             const csrfToken = await this.getCSRFToken();
-            
+
             const response = await fetch(`${this.baseUrl}/contas/${contaId}?force=1`, {
                 method: 'POST',
                 headers: {
@@ -687,8 +687,8 @@ class ContasManager {
             opt.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const action = opt.dataset.action;
-                
-                switch(action) {
+
+                switch (action) {
                     case 'edit':
                         this.editConta(contaId);
                         break;
@@ -699,7 +699,7 @@ class ContasManager {
                         this.deleteConta(contaId);
                         break;
                 }
-                
+
                 menuEl.remove();
             });
         });
@@ -723,7 +723,7 @@ class ContasManager {
         const modalOverlay = document.getElementById('modalContaOverlay');
         const modal = document.getElementById('modalConta');
         const titulo = document.getElementById('modalContaTitulo');
-        
+
         if (!modalOverlay || !modal) return;
 
         // Atualizar título
@@ -734,21 +734,21 @@ class ContasManager {
         // Preencher formulário se for edição
         if (mode === 'edit' && data) {
             console.log('Preenchendo modal com:', data);
-            
+
             document.getElementById('contaId').value = data.id;
             document.getElementById('nomeConta').value = data.nome;
-            
+
             // Instituicao financeira - garantir que preenche corretamente
             const instituicaoId = data.instituicao_financeira_id || data.instituicao_financeira?.id || '';
             console.log('Instituicao ID a preencher:', instituicaoId);
             document.getElementById('instituicaoFinanceiraSelect').value = instituicaoId;
-            
+
             document.getElementById('tipoContaSelect').value = data.tipo_conta || 'conta_corrente';
             document.getElementById('moedaSelect').value = data.moeda || 'BRL';
-            
+
             // Atualizar símbolo da moeda
             this.updateCurrencySymbol(data.moeda || 'BRL');
-            
+
             // Formatar saldo inicial
             const saldo = data.saldoInicial || data.saldo_inicial || 0;
             const isNegative = saldo < 0;
@@ -759,14 +759,14 @@ class ContasManager {
             document.getElementById('formConta')?.reset();
             document.getElementById('contaId').value = '';
             document.getElementById('saldoInicial').value = '0,00';
-            
+
             // Garantir que o símbolo seja BRL ao criar nova conta
             this.updateCurrencySymbol('BRL');
         }
 
         // Mostrar modal
         modalOverlay.classList.add('active');
-        
+
         // Focar no primeiro campo após animação
         setTimeout(() => {
             document.getElementById('nomeConta')?.focus();
@@ -781,14 +781,14 @@ class ContasManager {
         if (!modalOverlay) return;
 
         modalOverlay.classList.remove('active');
-        
+
         // Restaurar scroll do body
         document.body.style.overflow = '';
         document.documentElement.style.overflow = '';
-        
+
         // Resetar flag de submissão
         this.isSubmitting = false;
-        
+
         // Limpar formulário após fechar
         setTimeout(() => {
             document.getElementById('formConta')?.reset();
@@ -821,14 +821,14 @@ class ContasManager {
             // Remover qualquer listener anterior
             const newFormCartao = formCartao.cloneNode(true);
             formCartao.parentNode.replaceChild(newFormCartao, formCartao);
-            
+
             // Adicionar novo listener
             newFormCartao.addEventListener('submit', (e) => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 this.handleCartaoSubmit(e.target);
             });
-            
+
             // Re-aplicar máscara de dinheiro após clonar
             this.setupCartaoMoneyMask();
         }
@@ -839,17 +839,17 @@ class ContasManager {
             // Remover qualquer listener anterior
             const newForm = formConta.cloneNode(true);
             formConta.parentNode.replaceChild(newForm, formConta);
-            
+
             // Adicionar novo listener
             newForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 e.stopImmediatePropagation(); // Impede múltiplos listeners
                 this.handleFormSubmit(e.target);
             });
-            
+
             // Re-aplicar máscara de dinheiro após clonar
             this.setupMoneyMask();
-            
+
             // Re-adicionar listener de mudança de moeda
             document.getElementById('moedaSelect')?.addEventListener('change', (e) => {
                 this.updateCurrencySymbol(e.target.value);
@@ -862,14 +862,14 @@ class ContasManager {
             // Remover qualquer listener anterior
             const newFormLancamento = formLancamento.cloneNode(true);
             formLancamento.parentNode.replaceChild(newFormLancamento, formLancamento);
-            
+
             // Adicionar novo listener
             newFormLancamento.addEventListener('submit', (e) => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 this.handleLancamentoSubmit(e.target);
             });
-            
+
             // Re-aplicar máscara de dinheiro após clonar
             this.setupLancamentoMoneyMask();
         }
@@ -936,7 +936,7 @@ class ContasManager {
         // Preencher informações da conta
         document.getElementById('lancamentoContaNome').textContent = conta.nome;
         document.getElementById('lancamentoContaSaldo').textContent = this.formatCurrency(conta.saldo_atual || 0);
-        
+
         // Armazenar conta selecionada
         this.contaSelecionadaLancamento = conta;
 
@@ -952,7 +952,7 @@ class ContasManager {
      */
     async carregarHistoricoRecente(contaId) {
         const historicoContainer = document.getElementById('lancamentoHistorico');
-        
+
         try {
             // TODO: Implementar endpoint de histórico
             // Por enquanto, mostrar vazio
@@ -978,32 +978,32 @@ class ContasManager {
      */
     mostrarFormularioLancamento(tipo) {
         console.log('🚀 Abrindo formulário de lançamento, tipo:', tipo);
-        
+
         // Ocultar seção de escolha
         document.getElementById('tipoSection').style.display = 'none';
-        
+
         // Mostrar formulário
         const formSection = document.getElementById('formSection');
         formSection.style.display = 'block';
-        
+
         // Preencher dados
         document.getElementById('lancamentoContaId').value = this.contaSelecionadaLancamento.id;
         document.getElementById('lancamentoTipo').value = tipo;
-        
+
         // Data de hoje
         const hoje = new Date().toISOString().split('T')[0];
         document.getElementById('lancamentoData').value = hoje;
-        
+
         // Carregar categorias
         console.log('📞 Chamando preencherCategorias...');
         this.preencherCategorias(tipo);
-        
+
         // Configurar botão e título baseado no tipo
         const btnSalvar = document.getElementById('btnSalvarLancamento');
         const titulo = document.getElementById('modalLancamentoTitulo');
-        
+
         const contaDestinoGroup = document.getElementById('contaDestinoGroup');
-        
+
         if (tipo === 'receita') {
             titulo.textContent = '💰 Nova Receita';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Receita';
@@ -1022,11 +1022,11 @@ class ContasManager {
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #17a2b8, #3498db)';
             contaDestinoGroup.style.display = 'block';
-            
+
             // Preencher select de contas destino
             this.preencherContasDestino();
         }
-        
+
         // Focar no primeiro campo
         setTimeout(() => {
             document.getElementById('lancamentoDescricao')?.focus();
@@ -1039,9 +1039,9 @@ class ContasManager {
     preencherContasDestino() {
         const select = document.getElementById('lancamentoContaDestino');
         const contaOrigemId = this.contaSelecionadaLancamento.id;
-        
+
         select.innerHTML = '<option value="">Selecione a conta de destino</option>';
-        
+
         this.contas.forEach(conta => {
             if (conta.id != contaOrigemId) {
                 const option = document.createElement('option');
@@ -1070,17 +1070,17 @@ class ContasManager {
                 const baseUrl = this.getBaseUrl();
                 const url = `${baseUrl}api/categorias`;
                 console.log('📡 Buscando categorias em:', url);
-                
+
                 const response = await fetch(url);
                 console.log('📥 Response status:', response.status);
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+
                 const result = await response.json();
                 console.log('✅ Resposta da API de categorias:', result);
-                
+
                 // A resposta pode vir como { success: true, data: [...] } ou diretamente [...]
                 if (result.success && result.data) {
                     this.categorias = result.data;
@@ -1113,7 +1113,7 @@ class ContasManager {
 
             // Preencher select
             select.innerHTML = '<option value="">Selecione a categoria (opcional)</option>';
-            
+
             categoriasFiltradas.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.id;
@@ -1127,7 +1127,7 @@ class ContasManager {
             console.error('❌ Erro ao carregar categorias:', error);
             console.error('Stack:', error.stack);
             select.innerHTML = '<option value="">Erro ao carregar categorias</option>';
-            
+
             // Mostrar erro visual para o usuário
             Swal.fire({
                 icon: 'error',
@@ -1144,13 +1144,13 @@ class ContasManager {
     voltarEscolhaTipo() {
         // Mostrar seção de escolha
         document.getElementById('tipoSection').style.display = 'block';
-        
+
         // Ocultar formulário
         document.getElementById('formSection').style.display = 'none';
-        
+
         // Limpar formulário
         document.getElementById('formLancamento').reset();
-        
+
         // Restaurar título
         document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
     }
@@ -1170,14 +1170,14 @@ class ContasManager {
         if (!modalOverlay) return;
 
         modalOverlay.classList.remove('active');
-        
+
         // Restaurar scroll
         document.body.style.overflow = '';
         document.documentElement.style.overflow = '';
-        
+
         // Limpar conta selecionada
         this.contaSelecionadaLancamento = null;
-        
+
         // Resetar para tela inicial
         setTimeout(() => {
             document.getElementById('tipoSection').style.display = 'block';
@@ -1197,7 +1197,7 @@ class ContasManager {
         }
 
         this.isSubmitting = true;
-        
+
         // Desabilitar botão submit
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn?.innerHTML;
@@ -1205,7 +1205,7 @@ class ContasManager {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
         }
-        
+
         try {
             const formData = new FormData(form);
             const tipo = formData.get('tipo');
@@ -1279,18 +1279,18 @@ class ContasManager {
             console.log('✅ Lançamento criado:', result);
 
             this.showNotification('Lançamento criado com sucesso!', 'success');
-            
+
             // Fechar modal
             this.closeLancamentoModal();
-            
+
             // Recarregar contas para atualizar saldo
             await this.loadContas();
 
         } catch (error) {
             console.error('❌ Erro ao criar lançamento:', error);
-            
-            if (error.message !== 'Conta destino obrigatória para transferências' && 
-                error.message !== 'Contas iguais' && 
+
+            if (error.message !== 'Conta destino obrigatória para transferências' &&
+                error.message !== 'Contas iguais' &&
                 error.message !== 'Valor inválido') {
                 this.showNotification(
                     error.message || 'Erro ao criar lançamento. Tente novamente.',
@@ -1303,7 +1303,7 @@ class ContasManager {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             }
-            
+
             this.isSubmitting = false;
         }
     }
@@ -1318,7 +1318,7 @@ class ContasManager {
         }
 
         this.isSubmitting = true;
-        
+
         // Desabilitar botão submit
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn?.innerHTML;
@@ -1326,7 +1326,7 @@ class ContasManager {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         }
-        
+
         try {
             const formData = new FormData(form);
             const contaId = document.getElementById('contaId')?.value;
@@ -1375,22 +1375,22 @@ class ContasManager {
 
         saldoInput.addEventListener('input', (e) => {
             let value = e.target.value;
-            
+
             // Remove tudo que não é número ou sinal de menos
             value = value.replace(/[^\d-]/g, '');
-            
+
             // Verifica se é negativo
             const isNegative = value.startsWith('-');
-            
+
             // Remove o sinal para processar
             value = value.replace('-', '');
-            
+
             // Converte para número
             let number = parseInt(value) || 0;
-            
+
             // Formata como moeda
             const formatted = this.formatMoneyInput(number, isNegative);
-            
+
             e.target.value = formatted;
         });
 
@@ -1407,16 +1407,16 @@ class ContasManager {
 
         limiteInput.addEventListener('input', (e) => {
             let value = e.target.value;
-            
+
             // Remove tudo que não é número
             value = value.replace(/[^\d]/g, '');
-            
+
             // Converte para número
             let number = parseInt(value) || 0;
-            
+
             // Formata como moeda
             const formatted = this.formatMoneyInput(number, false);
-            
+
             e.target.value = formatted;
         });
 
@@ -1433,16 +1433,16 @@ class ContasManager {
 
         valorInput.addEventListener('input', (e) => {
             let value = e.target.value;
-            
+
             // Remove tudo que não é número
             value = value.replace(/[^\d]/g, '');
-            
+
             // Converte para número
             let number = parseInt(value) || 0;
-            
+
             // Formata como moeda
             const formatted = this.formatMoneyInput(number, false);
-            
+
             e.target.value = formatted;
         });
 
@@ -1456,12 +1456,12 @@ class ContasManager {
     formatMoneyInput(value, isNegative = false) {
         // Converte centavos para reais
         const reais = value / 100;
-        
+
         // Formata com 2 casas decimais
         let formatted = reais.toFixed(2)
             .replace('.', ',')
             .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        
+
         return isNegative ? '-' + formatted : formatted;
     }
 
@@ -1470,12 +1470,12 @@ class ContasManager {
      */
     parseMoneyInput(value) {
         if (!value) return 0;
-        
+
         // Remove pontos de milhar e substitui vírgula por ponto
         const cleaned = value
             .replace(/\./g, '')
             .replace(',', '.');
-        
+
         return parseFloat(cleaned) || 0;
     }
 
@@ -1524,13 +1524,13 @@ class ContasManager {
                 <span>${message}</span>
             </div>
         `;
-        
+
         // Adicionar ao body
         document.body.appendChild(toast);
-        
+
         // Animar entrada
         setTimeout(() => toast.classList.add('lk-toast-show'), 10);
-        
+
         // Remover após 4 segundos
         setTimeout(() => {
             toast.classList.remove('lk-toast-show');
@@ -1545,7 +1545,7 @@ class ContasManager {
         const modalOverlay = document.getElementById('modalCartaoOverlay');
         const modal = document.getElementById('modalCartao');
         const titulo = document.getElementById('modalCartaoTitulo');
-        
+
         if (!modalOverlay || !modal) {
             this.showToast('Modal de cartão não encontrado', 'error');
             return;
@@ -1575,12 +1575,12 @@ class ContasManager {
             document.getElementById('contaVinculada').value = cartao.conta_id || '';
             document.getElementById('bandeira').value = cartao.bandeira || 'visa';
             document.getElementById('ultimosDigitos').value = cartao.ultimos_digitos || '';
-            
+
             // Formatar limite
             const limite = cartao.limite_total || 0;
             const limiteFormatado = this.formatMoneyInput(limite * 100, false);
             document.getElementById('limiteTotal').value = limiteFormatado;
-            
+
             document.getElementById('diaFechamento').value = cartao.dia_fechamento || '';
             document.getElementById('diaVencimento').value = cartao.dia_vencimento || '';
         } else {
@@ -1592,7 +1592,7 @@ class ContasManager {
 
         // Mostrar modal
         modalOverlay.classList.add('active');
-        
+
         // Focar no primeiro campo após animação
         setTimeout(() => {
             document.getElementById('nomeCartao')?.focus();
@@ -1607,11 +1607,11 @@ class ContasManager {
         if (!modalOverlay) return;
 
         modalOverlay.classList.remove('active');
-        
+
         // Restaurar scroll do body
         document.body.style.overflow = '';
         document.documentElement.style.overflow = '';
-        
+
         setTimeout(() => {
             document.getElementById('formCartao')?.reset();
             document.getElementById('cartaoId').value = '';
@@ -1640,10 +1640,10 @@ class ContasManager {
 
         try {
             const csrfToken = await this.getCSRFToken();
-            const url = isEdit 
-                ? `${this.baseUrl}/cartoes/${cartaoId}` 
+            const url = isEdit
+                ? `${this.baseUrl}/cartoes/${cartaoId}`
                 : `${this.baseUrl}/cartoes`;
-            
+
             const method = isEdit ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
@@ -1683,13 +1683,13 @@ let contasManager;
 // Prevenir múltiplas inicializações
 if (!window.__CONTAS_MANAGER_INITIALIZED__) {
     window.__CONTAS_MANAGER_INITIALIZED__ = true;
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         // Remover qualquer instância anterior
         if (window.contasManager) {
             console.warn('⚠️ Removendo instância anterior do ContasManager');
         }
-        
+
         console.log('🚀 Inicializando ContasManager v2.0');
         contasManager = new ContasManager();
         window.contasManager = contasManager; // Expor globalmente para debug
