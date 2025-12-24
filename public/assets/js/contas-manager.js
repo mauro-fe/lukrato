@@ -966,7 +966,12 @@ class ContasManager {
                 throw new Error('Erro ao carregar histórico');
             }
 
-            const lancamentos = await response.json();
+            const result = await response.json();
+            
+            // A resposta pode vir como array direto ou dentro de result.data
+            const lancamentos = Array.isArray(result) ? result : (result.data || result.lancamentos || []);
+
+            console.log('📊 Histórico carregado:', lancamentos);
 
             if (!lancamentos || lancamentos.length === 0) {
                 historicoContainer.innerHTML = `
