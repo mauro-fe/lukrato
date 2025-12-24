@@ -38,7 +38,7 @@ $pendentes = [];
 foreach ($migrationFiles as $file) {
     $basename = basename($file);
     $migrationName = str_replace('.php', '', $basename);
-    
+
     if (!in_array($migrationName, $executadas)) {
         $pendentes[] = $basename;
         echo "  ⏳ PENDENTE: $basename\n";

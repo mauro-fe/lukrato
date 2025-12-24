@@ -10,11 +10,11 @@ echo "=== DIAGNÓSTICO E CORREÇÃO TABELA CARTÕES ===\n\n";
 // Verificar se a tabela cartoes_credito já existe
 if (DB::schema()->hasTable('cartoes_credito')) {
     echo "✓ Tabela cartoes_credito já existe!\n";
-    
+
     // Verificar se há dados
     $count = DB::table('cartoes_credito')->count();
     echo "  Registros: $count\n\n";
-    
+
     echo "Tabela já está criada. Nenhuma ação necessária.\n";
     exit(0);
 }
@@ -36,18 +36,18 @@ try {
         $table->string('cor_cartao', 7)->nullable();
         $table->boolean('ativo')->default(true);
         $table->timestamps();
-        
+
         $table->index(['user_id', 'ativo']);
         $table->index('conta_id');
     });
-    
+
     echo "✓ Tabela cartoes_credito criada com sucesso!\n";
     echo "  (Foreign keys omitidas para evitar problemas de compatibilidade)\n\n";
-    
+
     // Registrar migration como executada
     $migrationName = '2025_12_23_000003_create_cartoes_credito_table';
     $exists = DB::table('migrations')->where('migration', $migrationName)->exists();
-    
+
     if (!$exists) {
         $nextBatch = DB::table('migrations')->max('batch') + 1;
         DB::table('migrations')->insert([
@@ -56,7 +56,6 @@ try {
         ]);
         echo "✓ Migration registrada no banco de dados\n";
     }
-    
 } catch (Exception $e) {
     echo "❌ Erro: " . $e->getMessage() . "\n";
     exit(1);

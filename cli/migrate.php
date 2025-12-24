@@ -41,32 +41,32 @@ $executadasAgora = 0;
 foreach ($migrationFiles as $file) {
     $basename = basename($file);
     $migrationName = str_replace('.php', '', $basename);
-    
+
     // Pular se já foi executada
     if (in_array($migrationName, $executadas)) {
         echo "⏭️  Pulando (já executada): $basename\n";
         continue;
     }
-    
+
     echo "Executando: $basename\n";
-    
+
     // Incluir arquivo e obter instância da classe anônima
     $migration = require $file;
-    
+
     if (!is_object($migration) || !method_exists($migration, 'up')) {
         echo "⚠️  Migration inválida: não retorna objeto com método up()\n\n";
         continue;
     }
-    
+
     try {
         $migration->up();
-        
+
         // Registrar migration executada
         DB::table('migrations')->insert([
             'migration' => $migrationName,
             'batch' => $nextBatch
         ]);
-        
+
         echo "✓ $basename executada com sucesso!\n\n";
         $executadasAgora++;
     } catch (Exception $e) {

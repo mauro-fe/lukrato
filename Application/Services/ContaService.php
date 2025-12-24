@@ -12,9 +12,6 @@ use Throwable;
 
 class ContaService
 {
-    public function __construct(
-        private readonly ContaValidator $validator = new ContaValidator()
-    ) {}
 
     /**
      * Lista contas do usuário com filtros
@@ -56,11 +53,12 @@ class ContaService
     {
         $data = $dto->toArray();
         
-        if (!$this->validator->validateCreate($data)) {
+        $errors = ContaValidator::validateCreate($data);
+        if (!empty($errors)) {
             return [
                 'success' => false,
-                'errors' => $this->validator->getErrors(),
-                'message' => $this->validator->getFirstError(),
+                'errors' => $errors,
+                'message' => reset($errors) ?: 'Erro de validação',
             ];
         }
 
@@ -106,12 +104,15 @@ class ContaService
 
         $data = $dto->toArray();
         
-        if (!empty($data) && !$this->validator->validateUpdate($data)) {
-            return [
-                'success' => false,
-                'errors' => $this->validator->getErrors(),
-                'message' => $this->validator->getFirstError(),
-            ];
+        if (!empty($data)) {
+            $errors = ContaValidator::validateUpdate($data);
+            if (!empty($errors)) {
+                return [
+                    'success' => false,
+                    'errors' => $errors,
+                    'message' => reset($errors) ?: 'Erro de validação',
+                ];
+            }
         }
 
         DB::beginTransaction();
