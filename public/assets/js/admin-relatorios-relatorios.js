@@ -262,7 +262,7 @@
 
         async fetchAccounts() {
             try {
-                const response = await fetch(`${CONFIG.BASE_URL}api/accounts`, {
+                const response = await fetch(`${CONFIG.BASE_URL}api/contas`, {
                     credentials: 'include',
                     headers: { 'Accept': 'application/json' }
                 });
@@ -359,12 +359,14 @@
                 : [entries];
 
             const html = `
-                <div class="chart-dual">
-                    ${chunks.map((_, idx) => `
-                        <div class="chart-wrapper">
-                            <canvas id="chart${idx}"></canvas>
-                        </div>
-                    `).join('')}
+                <div class="chart-container">
+                    <div class="chart-dual">
+                        ${chunks.map((_, idx) => `
+                            <div class="chart-wrapper">
+                                <canvas id="chart${idx}"></canvas>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             `;
 
@@ -437,7 +439,9 @@
 
             UI.setContent(`
                 <div class="chart-container">
-                    <canvas id="chart0"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="chart0"></canvas>
+                    </div>
                 </div>
             `);
 
@@ -494,7 +498,9 @@
 
             UI.setContent(`
                 <div class="chart-container">
-                    <canvas id="chart0"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="chart0"></canvas>
+                    </div>
                 </div>
             `);
 
@@ -609,7 +615,7 @@
             if (area) {
                 area.setAttribute('aria-busy', 'true');
                 area.innerHTML = `
-                    <div class="loading">
+                    <div class="loading-state">
                         <div class="spinner" aria-label="Carregando"></div>
                         <p>Carregando relatório...</p>
                     </div>
@@ -633,13 +639,13 @@
             const safeMessage = escapeHtml(message || PAYWALL_MESSAGE);
             area.setAttribute('aria-busy', 'false');
             area.innerHTML = `
-                <div class="empty-state paywall-state">
-                    <i class="fas fa-lock"></i>
-                    <h3>Recurso exclusivo do plano Pro</h3>
+                <div class="paywall-message" role="alert">
+                    <i class="fas fa-crown" aria-hidden="true"></i>
+                    <h3>Recurso Premium</h3>
                     <p>${safeMessage}</p>
-                    <button type="button" class="lk-btn btn btn-primary" data-action="go-pro">
+                    <button type="button" class="btn-upgrade" data-action="go-pro">
                         <i class="fas fa-crown"></i>
-                        Assinar plano Pro
+                        Fazer Upgrade para PRO
                     </button>
                 </div>
             `;

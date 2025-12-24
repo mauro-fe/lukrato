@@ -23,7 +23,19 @@ class RequestHandler
 
     public function getMethod(): string
     {
-        return $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        
+        // Suporte para method spoofing via header (prioridade 1)
+        if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+            return strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+        }
+        
+        // Suporte via POST _method (prioridade 2)
+        if ($method === 'POST' && isset($_POST['_method'])) {
+            return strtoupper($_POST['_method']);
+        }
+        
+        return $method;
     }
 
     private function getBasePath(): string

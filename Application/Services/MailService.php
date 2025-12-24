@@ -1,416 +1,321 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Services;
 
+use Application\Contracts\MailServiceInterface;
 use Application\Models\Agendamento;
 use Application\Models\Usuario;
+use Application\Services\Mail\EmailTemplate;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
-class MailService
+/**
+ * Serviço de envio de emails via SMTP.
+ */
+class MailService implements MailServiceInterface
 {
-  private array $config;
+    private array $config;
+    private LoggerInterface $logger;
 
-  public function __construct(array $config = [])
-  {
-    $defaults = [
-      'host'       => $_ENV['MAIL_HOST'] ?? '',
-      'username'   => $_ENV['MAIL_USERNAME'] ?? '',
-      'password'   => $_ENV['MAIL_PASSWORD'] ?? '',
-      'port'       => (int) ($_ENV['MAIL_PORT'] ?? 587),
-      'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? PHPMailer::ENCRYPTION_STARTTLS,
-      'from_email' => $_ENV['MAIL_FROM'] ?? ($_ENV['MAIL_USERNAME'] ?? 'no-reply@localhost'),
-      'from_name'  => $_ENV['MAIL_FROM_NAME'] ?? 'Lukrato',
-      'bcc'        => $_ENV['MAIL_BCC'] ?? null,
-    ];
+    public function __construct(array $config = [], ?LoggerInterface $logger = null)
+    {
+        $defaults = [
+            'host'       => $_ENV['MAIL_HOST'] ?? '',
+            'username'   => $_ENV['MAIL_USERNAME'] ?? '',
+            'password'   => $_ENV['MAIL_PASSWORD'] ?? '',
+            'port'       => (int) ($_ENV['MAIL_PORT'] ?? 587),
+            'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? PHPMailer::ENCRYPTION_STARTTLS,
+            'from_email' => $_ENV['MAIL_FROM'] ?? ($_ENV['MAIL_USERNAME'] ?? 'no-reply@localhost'),
+            'from_name'  => $_ENV['MAIL_FROM_NAME'] ?? 'Lukrato',
+            'bcc'        => $_ENV['MAIL_BCC'] ?? null,
+        ];
 
-    $this->config = array_merge($defaults, $config);
-  }
-
-  public function isConfigured(): bool
-  {
-    return !empty($this->config['host'])
-      && !empty($this->config['username'])
-      && !empty($this->config['from_email']);
-  }
-
-  public function send(
-    string $toEmail,
-    string $toName,
-    string $subject,
-    string $htmlBody,
-    ?string $textBody = null,
-    array $replyTo = []
-  ): void {
-    if (!$this->isConfigured()) {
-      throw new \RuntimeException('Configuracao de SMTP ausente. Verifique as variaveis MAIL_* no .env.');
+        $this->config = array_merge($defaults, $config);
+        $this->logger = $logger ?? new NullLogger();
     }
 
-    if (trim($toEmail) === '') {
-      throw new \InvalidArgumentException('Endereco de email do destinatario e obrigatorio.');
+    public function isConfigured(): bool
+    {
+        return !empty($this->config['host'])
+            && !empty($this->config['username'])
+            && !empty($this->config['from_email']);
     }
 
-    $mailer = $this->createMailer();
-    $mailer->addAddress($toEmail, $toName);
+    public function send(
+        string $toEmail,
+        string $toName,
+        string $subject,
+        string $htmlBody,
+        ?string $textBody = null,
+        array $replyTo = [],
+        array $attachments = []
+    ): bool {
+        if (!$this->isConfigured()) {
+            throw new \RuntimeException('Configuracao de SMTP ausente. Verifique as variaveis MAIL_* no .env.');
+        }
 
-    if (!empty($replyTo['email'])) {
-      $mailer->addReplyTo($replyTo['email'], $replyTo['name'] ?? '');
+        $toEmail = trim($toEmail);
+        if ($toEmail === '' || !$this->isValidEmail($toEmail)) {
+            throw new \InvalidArgumentException('Endereco de email do destinatario invalido: ' . $toEmail);
+        }
+
+        $mailer = $this->createMailer();
+        $mailer->addAddress($toEmail, $toName);
+
+        if (!empty($replyTo['email']) && $this->isValidEmail($replyTo['email'])) {
+            $mailer->addReplyTo($replyTo['email'], $replyTo['name'] ?? '');
+        }
+
+        if (!empty($this->config['bcc']) && $this->isValidEmail($this->config['bcc'])) {
+            $mailer->addBCC($this->config['bcc']);
+        }
+
+        // Adicionar anexos
+        foreach ($attachments as $attachment) {
+            if (isset($attachment['path']) && file_exists($attachment['path'])) {
+                $mailer->addAttachment(
+                    $attachment['path'],
+                    $attachment['name'] ?? basename($attachment['path'])
+                );
+            }
+        }
+
+        $mailer->Subject = $subject;
+        $mailer->Body    = $htmlBody;
+        $mailer->AltBody = $textBody ?? strip_tags($htmlBody);
+
+        try {
+            $success = $mailer->send();
+            
+            if ($success) {
+                $this->logger->info('[mail] Envio OK', [
+                    'to' => $toEmail,
+                    'subject' => $subject,
+                    'host' => $this->config['host'],
+                ]);
+            }
+            
+            return $success;
+        } catch (Exception $e) {
+            $this->logger->error('[mail] Falha ao enviar', [
+                'to' => $toEmail,
+                'subject' => $subject,
+                'host' => $this->config['host'],
+                'port' => $this->config['port'],
+                'error' => $mailer->ErrorInfo,
+                'exception' => $e->getMessage(),
+            ]);
+            
+            throw new \RuntimeException(
+                'Falha ao enviar email: ' . $mailer->ErrorInfo,
+                0,
+                $e
+            );
+        }
     }
 
-    if (!empty($this->config['bcc'])) {
-      $mailer->addBCC($this->config['bcc']);
+    public function sendPasswordReset(string $toEmail, string $toName, string $resetLink): bool
+    {
+        $subject = 'Recuperação de senha - Lukrato';
+
+        $safeName = htmlspecialchars($toName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $content = EmailTemplate::row(
+            'O que fazer agora?',
+            'Clique no botão abaixo para criar uma nova senha. Por segurança, este link é válido por tempo limitado.'
+        );
+
+        $content .= EmailTemplate::button('Criar nova senha', $resetLink);
+
+        $content .= EmailTemplate::row(
+            'Não foi você?',
+            'Se você não solicitou esta redefinição, pode ignorar este e-mail. Sua senha atual continuará válida.',
+            true
+        );
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            '#092741',
+            'Redefinição de senha',
+            "Olá {$safeName}, recebemos uma solicitação para redefinir sua senha na Lukrato.",
+            $content,
+            'Este e-mail foi enviado automaticamente pela plataforma Lukrato. Não responda esta mensagem.'
+        );
+
+        $text = "Olá {$toName},\n\n"
+            . "Recebemos uma solicitação para redefinir sua senha no Lukrato.\n\n"
+            . "Para continuar, acesse o link a seguir:\n{$resetLink}\n\n"
+            . "Se você não fez essa solicitação, pode ignorar este e-mail.\n";
+
+        return $this->send($toEmail, $toName, $subject, $html, $text);
     }
 
-    $mailer->Subject = $subject;
-    $mailer->Body    = $htmlBody;
-    $mailer->AltBody = $textBody ?? strip_tags($htmlBody);
+    public function sendAgendamentoReminder(Agendamento $agendamento, Usuario $usuario): bool
+    {
+        $titulo = $agendamento->titulo ?? 'Agendamento';
+        $dataPagamento = $agendamento->data_pagamento instanceof \DateTimeInterface
+            ? $agendamento->data_pagamento->format('d/m/Y H:i')
+            : (string) $agendamento->data_pagamento;
 
-    try {
-      $mailer->send();
-      // LogService::info('[mail] Envio OK', [
-      //     'to' => $toEmail,
-      //     'host' => $this->config['host'],
-      //     'port' => $this->config['port'],
-      //     'enc' => $this->config['encryption'],
-      //     'from' => $this->config['from_email'],
-      // ]);
-    } catch (Exception $e) {
-      // LogService::error('[mail] Falha ao enviar', [
-      //     'to' => $toEmail,
-      //     'host' => $this->config['host'],
-      //     'port' => $this->config['port'],
-      //     'enc' => $this->config['encryption'],
-      //     'from' => $this->config['from_email'],
-      //     'error' => $mailer->ErrorInfo,   // motivo direto do PHPMailer
-      //     'ex' => $e->getMessage(),        // exceção
-      // ]);
-      throw $e;
-    }
-  }
+        $valor = $agendamento->valor_centavos
+            ? 'R$ ' . number_format($agendamento->valor_centavos / 100, 2, ',', '.')
+            : '-';
 
-  public function sendPasswordReset(string $toEmail, string $toName, string $resetLink): void
-  {
-    $subject = 'Recuperação de senha - Lukrato';
+        $nomeUsuario = trim((string) ($usuario->primeiro_nome ?? $usuario->nome ?? ''));
 
-    $safeName = htmlspecialchars($toName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $safeLink = htmlspecialchars($resetLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $baseUrl = defined('BASE_URL')
+            ? rtrim(BASE_URL, '/')
+            : rtrim($_ENV['APP_URL'] ?? '', '/');
+        $link = $baseUrl ? $baseUrl . '/agendamentos' : '#';
 
-    $html = <<<HTML
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>{$subject}</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:24px;color:#1f2933;}
-    .card{max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,0.12);overflow:hidden;}
-    .header{background:#092741;color:#ffffff;padding:32px 28px;}
-    .header h1{margin:0;font-size:20px;}
-    .header p{margin:8px 0 0;font-size:14px;opacity:0.8;}
-    .content{padding:28px;}
-    .row{margin-bottom:18px;}
-    .label{display:block;font-size:11px;text-transform:uppercase;color:#6b7280;letter-spacing:0.08em;margin-bottom:4px;}
-    .value{font-size:16px;color:#1f2933;}
-    .cta{margin-top:24px;text-align:center;}
-    .btn{display:inline-block;padding:12px 20px;border-radius:10px;background:#e67e22;color:#ffffff !important;text-decoration:none;font-weight:600;}
-    .btn:hover{background-color: #f39c12;}
-    .footer{background:#f3f4f6;padding:18px 28px;font-size:12px;color:#6b7280;text-align:center;}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">
-      <h1>Redefinição de senha</h1>
-      <p>Olá {$safeName}, recebemos uma solicitação para redefinir sua senha na Lukrato.</p>
-    </div>
-    <div class="content">
-      <div class="row">
-        <span class="label">O que fazer agora?</span>
-        <span class="value">
-          Clique no botão abaixo para criar uma nova senha. 
-          Por segurança, este link é válido por tempo limitado.
-        </span>
-      </div>
-      <div class="cta">
-        <a class="btn" href="{$safeLink}" target="_blank" rel="noopener">
-          Criar nova senha
-        </a>
-      </div>
-      <div class="row" style="margin-top:24px;font-size:12px;color:#6b7280;">
-        <span class="label">Não foi você?</span>
-        <span class="value">
-          Se você não solicitou esta redefinição, pode ignorar este e-mail. 
-          Sua senha atual continuará válida.
-        </span>
-      </div>
-    </div>
-    <div class="footer">
-      Este e-mail foi enviado automaticamente pela plataforma Lukrato. Não responda esta mensagem.
-    </div>
-  </div>
-</body>
-</html>
-HTML;
+        $subject = 'Lembrete de pagamento: ' . $titulo;
 
-    $text = "Olá {$toName},\n\n"
-      . "Recebemos uma solicitação para redefinir sua senha no Lukrato.\n\n"
-      . "Para continuar, acesse o link a seguir:\n{$resetLink}\n\n"
-      . "Se você não fez essa solicitação, pode ignorar este e-mail.\n";
+        $content = EmailTemplate::row('Título', $titulo);
+        $content .= EmailTemplate::row('Data e hora programadas', $dataPagamento);
+        $content .= EmailTemplate::row('Valor', EmailTemplate::badge($valor), false);
+        $content .= EmailTemplate::row(
+            'Observação',
+            'Este lembrete foi configurado em seu painel da Lukrato.'
+        );
 
-    $this->send(
-      $toEmail,
-      $toName,
-      $subject,
-      $html,
-      $text
-    );
-  }
+        if ($link !== '#') {
+            $content .= EmailTemplate::button('Abrir painel', $link, true);
+        }
 
-  public function sendAgendamentoReminder(Agendamento $agendamento, Usuario $usuario): void
-  {
-    $titulo = $agendamento->titulo ?? 'Agendamento';
-    $dataPagamento = $agendamento->data_pagamento instanceof \DateTimeInterface
-      ? $agendamento->data_pagamento->format('d/m/Y H:i')
-      : (string) $agendamento->data_pagamento;
+        $html = EmailTemplate::wrap(
+            $subject,
+            '#111827',
+            'Lembrete de pagamento',
+            "Olá {$nomeUsuario}, preparamos este lembrete para você não esquecer.",
+            $content,
+            'Você está recebendo este aviso porque ativou notificações por e-mail para agendamentos.'
+        );
 
-    $valor = $agendamento->valor_centavos
-      ? 'R$ ' . number_format($agendamento->valor_centavos / 100, 2, ',', '.')
-      : '-';
+        $text = "Lembrete de pagamento: {$titulo}\n"
+            . "Quando: {$dataPagamento}\n"
+            . "Valor: {$valor}\n"
+            . ($link !== '#' ? "Painel: {$link}\n\n" : "\n")
+            . "Você está recebendo este aviso porque ativou notificações por e-mail na Lukrato.";
 
-    $nomeUsuario = trim((string) ($usuario->primeiro_nome ?? $usuario->nome ?? ''));
-
-    $baseUrl = defined('BASE_URL')
-      ? rtrim(BASE_URL, '/')
-      : rtrim($_ENV['APP_URL'] ?? '', '/');
-    $link = $baseUrl ? $baseUrl . '/agendamentos' : '#';
-
-    $subject = 'Lembrete de pagamento: ' . $titulo;
-
-    $html = <<<HTML
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>{$subject}</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:24px;color:#1f2933;}
-    .card{max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,0.12);overflow:hidden;}
-    .header{background:#111827;color:#ffffff;padding:32px 28px;}
-    .header h1{margin:0;font-size:20px;}
-    .header p{margin:8px 0 0;font-size:14px;opacity:0.8;}
-    .content{padding:28px;}
-    .row{margin-bottom:18px;}
-    .label{display:block;font-size:11px;text-transform:uppercase;color:#6b7280;letter-spacing:0.08em;margin-bottom:4px;}
-    .value{font-size:16px;color:#1f2933;}
-    .badge{display:inline-flex;align-items:center;background:#1f2933;color:#ffffff;font-size:12px;border-radius:999px;padding:4px 12px;}
-    .cta{margin-top:24px;text-align:center;}
-    .btn{display:inline-block;padding:12px 20px;border-radius:10px;background:#111827;color:#ffffff;text-decoration:none;font-weight:600;}
-    .footer{background:#f3f4f6;padding:18px 28px;font-size:12px;color:#6b7280;text-align:center;}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">
-      <h1>Lembrete de pagamento</h1>
-      <p>Ola {$nomeUsuario}, preparamos este lembrete para voce nao esquecer.</p>
-    </div>
-    <div class="content">
-      <div class="row">
-        <span class="label">Titulo</span>
-        <span class="value">{$titulo}</span>
-      </div>
-      <div class="row">
-        <span class="label">Data e hora programadas</span>
-        <span class="value">{$dataPagamento}</span>
-      </div>
-      <div class="row">
-        <span class="label">Valor</span>
-        <span class="badge">{$valor}</span>
-      </div>
-      <div class="row">
-        <span class="label">Observacao</span>
-        <span class="value">Este lembrete foi configurado em seu painel da Lukrato.</span>
-      </div>
-      <div class="cta">
-        <a class="btn" href="{$link}" target="_blank" rel="noopener">Abrir painel</a>
-      </div>
-    </div>
-    <div class="footer">
-      Voce esta recebendo este aviso porque ativou notificacoes por e-mail para agendamentos.
-    </div>
-  </div>
-</body>
-</html>
-HTML;
-
-    $text = "Lembrete de pagamento: {$titulo}\n"
-      . "Quando: {$dataPagamento}\n"
-      . "Valor: {$valor}\n"
-      . ($link !== '#' ? "Painel: {$link}\n\n" : "\n")
-      . "Voce esta recebendo este aviso porque ativou notificacoes por e-mail na Lukrato.";
-
-    $this->send(
-      $usuario->email,
-      $nomeUsuario,
-      $subject,
-      $html,
-      $text
-    );
-  }
-
-  private function createMailer(): PHPMailer
-  {
-    $mailer = new PHPMailer(true);
-    $mailer->isSMTP();
-    $mailer->Host       = $this->config['host'];
-    $mailer->SMTPAuth   = true;
-    $mailer->Username   = $this->config['username'];
-    $mailer->Password   = $this->config['password'];
-    $mailer->Port       = (int) $this->config['port'];
-    $mailer->CharSet    = 'UTF-8';
-
-    // Normaliza encryption: 'tls' => STARTTLS (587), 'ssl' => SMTPS (465)
-    $enc = strtolower((string)$this->config['encryption']);
-    if ($enc === 'tls') {
-      $mailer->SMTPSecure  = PHPMailer::ENCRYPTION_STARTTLS;
-      $mailer->SMTPAutoTLS = true; // sobe para TLS se o servidor suportar
-    } elseif ($enc === 'ssl' || $enc === PHPMailer::ENCRYPTION_SMTPS) {
-      $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-      if ($mailer->Port === 587) {
-        $mailer->Port = 465; // porta padrão do SSL
-      }
-    } else {
-      // fallback seguro: STARTTLS
-      $mailer->SMTPSecure  = PHPMailer::ENCRYPTION_STARTTLS;
-      $mailer->SMTPAutoTLS = true;
+        return $this->send($usuario->email, $nomeUsuario, $subject, $html, $text);
     }
 
-    // From deve bater com a conta, a menos que alias esteja verificado
-    $mailer->setFrom($this->config['from_email'], $this->config['from_name']);
-    $mailer->isHTML(true);
+    public function sendSupportMessage(
+        string $fromEmail,
+        string $name,
+        string $message,
+        ?string $phone = null,
+        ?string $preferredContact = null
+    ): bool {
+        if (trim($message) === '') {
+            throw new \InvalidArgumentException('A mensagem é obrigatória para o suporte.');
+        }
 
-    // Debug SMTP para log (sem expor senha)
-    if (($_ENV['APP_DEBUG'] ?? 'false') === 'true') {
-      $mailer->SMTPDebug  = 2; // SERVER
-      $mailer->Debugoutput = static function ($str, $level) {
-        // LogService::info('[SMTP] ' . trim($str));
-      };
+        // Pelo menos um meio de contato (email ou telefone)
+        $fromEmail = trim($fromEmail);
+        $phone = $phone ? trim($phone) : null;
+        
+        if ($fromEmail === '' && ($phone === null || $phone === '')) {
+            throw new \InvalidArgumentException('Informe ao menos um meio de contato (e-mail ou telefone).');
+        }
+
+        $supportEmail = $_ENV['SUPPORT_EMAIL']
+            ?? $this->config['from_email']
+            ?? ($_ENV['MAIL_FROM'] ?? $_ENV['MAIL_USERNAME'] ?? 'lukratosistema@gmail.com');
+
+        $supportName = 'Suporte Lukrato';
+        $subject = '[Suporte Lukrato] Nova mensagem de contato';
+
+        $preferredLabel = 'Não informado';
+        if ($preferredContact === 'whatsapp') {
+            $preferredLabel = 'WhatsApp';
+        } elseif ($preferredContact === 'email') {
+            $preferredLabel = 'E-mail';
+        }
+
+        $content = EmailTemplate::row('Nome', $name);
+        $content .= EmailTemplate::row('E-mail', $fromEmail !== '' ? $fromEmail : 'Não informado');
+        $content .= EmailTemplate::row('Telefone', $phone ?? 'Não informado');
+        $content .= EmailTemplate::row('Preferência de retorno', $preferredLabel);
+        $content .= EmailTemplate::messageBox($message);
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            '#111827',
+            'Nova mensagem de suporte',
+            'Um usuário enviou uma mensagem pelo botão de suporte no painel.',
+            $content,
+            'Este e-mail foi gerado automaticamente pela plataforma Lukrato a partir do botão de suporte.'
+        );
+
+        $text = "Nova mensagem de suporte Lukrato\n\n"
+            . "Nome: {$name}\n"
+            . "Email: " . ($fromEmail !== '' ? $fromEmail : 'Não informado') . "\n"
+            . "Telefone: " . ($phone ?? 'Não informado') . "\n"
+            . "Preferência de retorno: {$preferredLabel}\n\n"
+            . "Mensagem:\n{$message}\n";
+
+        $replyTo = [];
+        if ($fromEmail !== '' && $this->isValidEmail($fromEmail)) {
+            $replyTo = ['email' => $fromEmail, 'name' => $name];
+        }
+
+        return $this->send($supportEmail, $supportName, $subject, $html, $text, $replyTo);
     }
 
-    return $mailer;
-  }
-  public function sendSupportMessage(
-    string $fromEmail,
-    string $name,
-    string $message,
-    ?string $phone = null,
-    ?string $preferredContact = null // "email" ou "whatsapp"
-  ): void {
-    if (trim($message) === '') {
-      throw new \InvalidArgumentException('A mensagem é obrigatória para o suporte.');
+    /**
+     * Valida se um email é válido.
+     */
+    private function isValidEmail(string $email): bool
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
-    // Pelo menos um meio de contato (email ou telefone)
-    if (trim($fromEmail) === '' && ($phone === null || trim($phone) === '')) {
-      throw new \InvalidArgumentException('Informe ao menos um meio de contato (e-mail ou telefone).');
+    /**
+     * Cria instância configurada do PHPMailer.
+     */
+    private function createMailer(): PHPMailer
+    {
+        $mailer = new PHPMailer(true);
+        $mailer->isSMTP();
+        $mailer->Host       = $this->config['host'];
+        $mailer->SMTPAuth   = true;
+        $mailer->Username   = $this->config['username'];
+        $mailer->Password   = $this->config['password'];
+        $mailer->Port       = (int) $this->config['port'];
+        $mailer->CharSet    = 'UTF-8';
+
+        // Normaliza encryption: 'tls' => STARTTLS (587), 'ssl' => SMTPS (465)
+        $enc = strtolower((string)$this->config['encryption']);
+        if ($enc === 'tls') {
+            $mailer->SMTPSecure  = PHPMailer::ENCRYPTION_STARTTLS;
+            $mailer->SMTPAutoTLS = true;
+        } elseif ($enc === 'ssl' || $enc === PHPMailer::ENCRYPTION_SMTPS) {
+            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            if ($mailer->Port === 587) {
+                $mailer->Port = 465;
+            }
+        } else {
+            $mailer->SMTPSecure  = PHPMailer::ENCRYPTION_STARTTLS;
+            $mailer->SMTPAutoTLS = true;
+        }
+
+        $mailer->setFrom($this->config['from_email'], $this->config['from_name']);
+        $mailer->isHTML(true);
+
+        // Debug SMTP apenas em modo debug
+        if (($_ENV['APP_DEBUG'] ?? 'false') === 'true') {
+            $mailer->SMTPDebug = 2;
+            $logger = $this->logger;
+            $mailer->Debugoutput = static function ($str) use ($logger) {
+                $logger->debug('[SMTP] ' . trim($str));
+            };
+        }
+
+        return $mailer;
     }
-
-    $supportEmail = $_ENV['SUPPORT_EMAIL']
-      ?? $this->config['from_email']
-      ?? ($_ENV['MAIL_FROM'] ?? $_ENV['MAIL_USERNAME'] ?? 'lukratosistema@gmail.com');
-
-    $supportName = 'Suporte Lukrato';
-    $subject     = '[Suporte Lukrato] Nova mensagem de contato';
-
-    $safeName   = htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $safeFromEmail  = htmlspecialchars($fromEmail, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $safeMessage    = nl2br(htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
-    $safePhone      = $phone
-      ? htmlspecialchars($phone, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
-      : 'Não informado';
-
-    $preferredLabel = 'Não informado';
-    if ($preferredContact === 'whatsapp') {
-      $preferredLabel = 'WhatsApp';
-    } elseif ($preferredContact === 'email') {
-      $preferredLabel = 'E-mail';
-    }
-
-    $html = <<<HTML
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>{$subject}</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:24px;color:#1f2933;}
-    .card{max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,0.12);overflow:hidden;}
-    .header{background:#111827;color:#ffffff;padding:24px 20px;}
-    .header h1{margin:0;font-size:18px;}
-    .header p{margin:6px 0 0;font-size:13px;opacity:0.85;}
-    .content{padding:22px;}
-    .row{margin-bottom:14px;font-size:14px;}
-    .label{display:block;font-size:11px;text-transform:uppercase;color:#6b7280;letter-spacing:0.08em;margin-bottom:4px;}
-    .value{font-size:14px;color:#111827;}
-    .message-box{margin-top:8px;padding:12px 14px;border-radius:8px;background:#f9fafb;border:1px solid #e5e7eb;white-space:pre-wrap;}
-    .footer{background:#f3f4f6;padding:14px 20px;font-size:11px;color:#6b7280;text-align:center;}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">
-      <h1>Nova mensagem de suporte</h1>
-      <p>Um usuário enviou uma mensagem pelo botão de suporte no painel.</p>
-    </div>
-    <div class="content">
-      <div class="row">
-        <span class="label">Nome</span>
-        <span class="value">{$safeName}</span>
-      </div>
-      <div class="row">
-        <span class="label">E-mail</span>
-        <span class="value">{$safeFromEmail}</span>
-      </div>
-      <div class="row">
-        <span class="label">Telefone</span>
-        <span class="value">{$safePhone}</span>
-      </div>
-      <div class="row">
-        <span class="label">Preferência de retorno</span>
-        <span class="value">{$preferredLabel}</span>
-      </div>
-      <div class="row">
-        <span class="label">Mensagem</span>
-        <div class="message-box">{$safeMessage}</div>
-      </div>
-    </div>
-    <div class="footer">
-      Este e-mail foi gerado automaticamente pela plataforma Lukrato a partir do botão de suporte.
-    </div>
-  </div>
-</body>
-</html>
-HTML;
-
-    $text = "Nova mensagem de suporte Lukrato\n\n"
-      . "Nome: {$name}\n"
-      . "Email: " . ($fromEmail !== '' ? $fromEmail : 'Não informado') . "\n"
-      . "Telefone: " . ($phone !== null && $phone !== '' ? $phone : 'Não informado') . "\n"
-      . "Preferência de retorno: {$preferredLabel}\n\n"
-      . "Mensagem:\n{$message}\n";
-
-    $replyTo = null;
-    if ($fromEmail !== '') {
-      $replyTo = ['email' => $fromEmail, 'name' => $name];
-    }
-
-    $this->send(
-      $supportEmail,
-      $supportName,
-      $subject,
-      $html,
-      $text,
-      $replyTo
-    );
-  }
 }

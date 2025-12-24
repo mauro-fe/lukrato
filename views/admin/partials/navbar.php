@@ -13,464 +13,254 @@ if ($navbarName) {
 }
 $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser && method_exists($navbarUser, 'isPro') && $navbarUser->isPro());
 
+$isPro = !($showNavbarUpgradeCTA ?? true);
+$planLabel = $isPro ? 'PRO' : 'FREE';
+$planTip   = $isPro ? 'Plano Pro ativo' : 'Você está no Free. Faça upgrade para liberar recursos.';
 ?>
+
 <style>
-    /* =========================================================
- * NAVBAR
- * =======================================================*/
-
-    .lk-navbar {
-        color: var(--color-text);
-        padding: 30px 10px;
-        box-shadow: var(--shadow-sm);
-        border-bottom: 1px solid var(--color-border);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        margin: 0 auto;
-        border-radius: var(--radius-md);
-        background-color: var(--glass-bg);
-        height: 100px;
+    .tw-navbar {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.35);
+        border: 1px solid rgba(30, 41, 59, 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
     }
 
-    .lk-navbar-inner {
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--spacing-5);
-        height: 100%;
-        padding: 0 20px;
+    [data-theme="dark"] .tw-navbar {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.12);
     }
 
-    /* ===============================
- * LADO ESQUERDO (logo / titulo)
- * =============================== */
-    .lk-navbar-left {
+    .tw-navbar-content {
         display: flex;
-        align-items: flex-start;
-        gap: var(--spacing-3);
         flex-direction: column;
+        gap: 12px;
     }
 
-    .lk-welcome {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--color-text-muted);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        letter-spacing: 0.01em;
-    }
-
-    .lk-welcome strong {
-        color: var(--color-text);
-        font-weight: 700;
-    }
-
-    .lk-navbar-left h1 {
-        font-size: 1.55rem;
-        font-weight: 700;
-        color: var(--color-primary);
-        margin: 0;
-        letter-spacing: 0.5px;
-        line-height: 1.4;
-    }
-
-    .lk-navbar-left h1 span {
-        color: var(--color-text);
-        font-size: 1.2rem;
-        font-weight: 600;
-    }
-
-    @media (max-width: 576px) {
-        .lk-navbar {
-            padding: 18px 10px;
-            height: auto;
-        }
-
-        .lk-navbar-inner {
-            gap: var(--spacing-2) !important;
-            align-items: stretch;
-        }
-
-        .lk-navbar-left {
-            gap: var(--spacing-1);
-            width: 100%;
-        }
-
-        .lk-welcome {
-            font-size: 0.85rem;
-        }
-
-        .lk-navbar-left h1 {
-            font-size: 1.2rem;
-            line-height: 1.25;
-        }
-
-        .lk-navbar-left h1 span {
-            font-size: 1rem;
-        }
-
-        .lk-navbar-right {
-            justify-content: flex-end;
-        }
-    }
-
-    /* ===============================
- * LADO DIREITO (acoes / botoes)
- * =============================== */
-    .lk-navbar-right {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .lk-navbar-right button {
+    .tw-navbar-welcome {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: var(--spacing-5);
-        background-color: var(--color-primary);
-        color: var(--color-text);
-        border-radius: var(--radius-md);
-        font-size: 0.9rem;
-        padding: 8px 14px;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        height: 40px;
+        gap: 8px;
+        font-size: 14px;
     }
 
-    .lk-navbar-right button:hover {
-        background-color: var(--color-bg);
-        color: #fff;
-        border-color: var(--color-primary);
-        transform: translateY(-2px);
-    }
-
-    .lk-navbar-right .lk-upgrade-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-2);
-        padding: 10px 18px;
-        border-radius: var(--radius-full, 999px);
-        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
-        color: #fff;
-        font-weight: 600;
-        text-decoration: none;
-        box-shadow: var(--shadow-md);
-        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-        white-space: nowrap;
-    }
-
-    .lk-navbar-right .lk-upgrade-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-        color: #fff;
-    }
-
-    .lk-navbar-right .lk-upgrade-btn i {
-        font-size: 1rem;
-
-    }
-
-    .lk-navbar-right button:focus-visible {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-    }
-
-    .lk-navbar-right button i {
-        font-size: 1rem;
-    }
-
-    .theme-toggle {
-        width: 44px;
-        height: 44px;
-        border-radius: var(--radius-full, 999px);
-        border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.14));
-        background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 70%, transparent), color-mix(in srgb, var(--color-primary) 6%, transparent));
-        box-shadow: var(--shadow-sm);
-        color: var(--color-text);
-        padding: 0;
-        transition: background-color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
-    }
-
-    .theme-toggle:hover {
-        background: color-mix(in srgb, var(--color-surface) 78%, var(--color-primary) 8%);
-        border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
-        box-shadow: var(--shadow-md);
-    }
-
-    .theme-toggle:active {
-        transform: translateY(1px) scale(0.98);
-    }
-
-    .theme-toggle .theme-toggle__icon {
-        font-size: 1.1rem;
-        transition: transform 420ms cubic-bezier(.4, 0, .2, 1), opacity 420ms cubic-bezier(.4, 0, .2, 1), filter 420ms cubic-bezier(.4, 0, .2, 1);
-        display: inline-flex;
-    }
-
-    .theme-toggle.is-animating .theme-toggle__icon {
-        transform: rotate(180deg) scale(0.9);
-        opacity: 0;
-        filter: blur(0.3px);
-    }
-
-    .theme-toggle.dark {
-        background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 55%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
-        border-color: color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-
-        .theme-toggle,
-        .theme-toggle .theme-toggle__icon {
-            transition: none !important;
-        }
-    }
-
-
-    .lk-navbar-notifications .lk-popover {
-        position: absolute;
-        top: calc(100% + var(--spacing-2));
-        right: -30;
-        z-index: 1100;
-        width: clamp(250px, 40vw, 200px);
-    }
-
-    .lk-popover-card {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-md, 0 12px 32px rgba(0, 0, 0, 0.35));
-        overflow: hidden;
-    }
-
-    .lk-popover-h {
-        padding: 12px 16px;
-        font-weight: 600;
-        border-bottom: 1px solid var(--color-border);
-        background: var(--color-surface-muted);
-    }
-
-    .lk-popover-b {
-        max-height: 320px;
-        overflow-y: auto;
-        padding: 12px 16px;
-        background: var(--glass-bg);
-    }
-
-    .lk-popover-f {
-        padding: 12px 16px;
-        border-top: 1px solid var(--color-border);
-        text-align: right;
-        background: var(--color-surface-muted);
-    }
-
-
-    @media (max-width: 600px) {
-
-        .lk-navbar-right .theme-toggle,
-        .lk-navbar-right button {
-            font-size: 0.65rem !important;
-            height: 32px;
-            width: 32px;
-            border-radius: 50% !important;
-        }
-
-        .lk-navbar-right i {
-            font-size: 0.85rem !important;
-        }
-
-        .lk-upgrade-btn span {
-            font-size: 0.7rem !important;
-        }
-    }
-
-    @media (max-width: 500px) {
-        .lk-navbar-left span {
-            display: none !important;
-        }
-
-        .lk-welcome span {
-            display: block !important;
-        }
-    }
-
-    @media (max-width: 300px) {
-        .lk-navbar-left h1 {
-            font-size: 0.95rem;
-        }
-
-        .lk-navbar-left h1 span {
-            font-size: 0.8rem;
-        }
-
-        .lk-navbar-right .theme-toggle,
-        .lk-navbar-right button {
-            font-size: 0.65rem !important;
-            height: 32px;
-            width: 32px;
-        }
-
-        .lk-navbar-right i {
-            font-size: 0.85rem !important;
-        }
-
-        .lk-upgrade-btn span {
-            font-size: 0.7rem !important;
-        }
-    }
-
-    .lk-welcome {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    .tw-navbar-welcome span {
         color: var(--color-text-muted);
-        font-size: 13px;
     }
 
-    .lk-welcome strong {
+    .tw-navbar-welcome strong {
         color: var(--color-text);
-        font-weight: 700;
     }
 
-    .lk-plan-badge {
-        position: relative;
+    .tw-navbar-badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        height: 22px;
-        padding: 0 10px;
-        border-radius: 999px;
+        padding: 4px 10px;
+        border-radius: 8px;
         font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .6px;
+        font-weight: 600;
         text-transform: uppercase;
-        border: 1px solid var(--glass-border, rgba(255, 255, 255, .12));
-        background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-        box-shadow: var(--shadow-sm);
-        user-select: none;
-        transition: var(--transition);
     }
 
-    .lk-plan-badge i {
-        font-size: 12px;
-        opacity: .95;
+    .tw-navbar-badge.pro {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(249, 115, 22, 0.2));
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
     }
 
-    .lk-plan-badge--pro {
-        color: var(--color-warning);
-        background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+    [data-theme="dark"] .tw-navbar-badge.pro {
+        color: #fbbf24;
     }
 
-    .lk-plan-badge--free {
-        color: var(--color-neutral);
-        background: color-mix(in srgb, var(--color-neutral) 12%, transparent);
+    .tw-navbar-badge.free {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2));
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
     }
 
-    .lk-plan-badge:focus {
-        outline: 2px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
-        outline-offset: 2px;
+    [data-theme="dark"] .tw-navbar-badge.free {
+        color: #4ade80;
     }
 
-    /* Tooltip */
-    .lk-plan-badge[data-tooltip]::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        left: 50%;
-        top: -10px;
-        transform: translate(-50%, -100%);
-        white-space: nowrap;
-        padding: 8px 10px;
-        border-radius: 10px;
-        background: var(--color-surface);
+    .tw-navbar-title {
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
         color: var(--color-text);
-        border: 1px solid var(--glass-border, rgba(255, 255, 255, .12));
-        box-shadow: var(--shadow-md);
-        opacity: 0;
-        pointer-events: none;
-        transition: var(--transition);
-        font-size: 12px;
-        z-index: 30;
+        margin: 0;
     }
 
-    .lk-plan-badge:hover::after,
-    .lk-plan-badge:focus::after {
+    .tw-navbar-subtitle {
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--color-text-muted);
+    }
+
+    .tw-navbar-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .tw-theme-toggle {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(230, 126, 34, 0.05));
+        border: 1px solid rgba(230, 126, 34, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .tw-theme-toggle:hover {
+        background: linear-gradient(135deg, rgba(230, 126, 34, 0.15), rgba(230, 126, 34, 0.08));
+        border-color: rgba(230, 126, 34, 0.3);
+        transform: scale(1.05);
+    }
+
+    .tw-theme-toggle i {
+        position: absolute;
+        transition: all 0.3s ease;
+        font-size: 18px;
+    }
+
+    .tw-theme-toggle .fa-sun {
         opacity: 1;
+        transform: rotate(0deg) scale(1);
+        color: #f59e0b;
     }
 
-    /* AnimaÃ§Ã£o de entrada do badge */
-    @keyframes lkBadgeIn {
-        from {
-            opacity: 0;
-            transform: scale(0.95) translateY(-2px);
+    .tw-theme-toggle .fa-moon {
+        opacity: 0;
+        transform: rotate(-90deg) scale(0);
+        color: #60a5fa;
+    }
+
+    .tw-theme-toggle.dark .fa-sun {
+        opacity: 0;
+        transform: rotate(90deg) scale(0);
+    }
+
+    .tw-theme-toggle.dark .fa-moon {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+    }
+
+    .tw-upgrade-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        background: linear-gradient(135deg, #f59e0b, #ea580c);
+        color: white !important;
+        border: 1px solid rgba(249, 115, 22, 0.5);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .tw-upgrade-btn:hover {
+        background: linear-gradient(135deg, #d97706, #c2410c);
+        box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .tw-upgrade-btn:active {
+        transform: scale(0.95);
+    }
+
+    @media (min-width: 640px) {
+        .tw-navbar {
+            padding: 20px;
         }
 
-        to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
+        .tw-navbar-title {
+            font-size: 24px;
         }
     }
 
-    /* Aplica a animação apenas no carregamento */
-    .lk-plan-badge--pro {
-        animation: lkBadgeIn 420ms cubic-bezier(.16, 1, .3, 1);
-    }
+    @media (min-width: 1280px) {
+        .tw-navbar-content {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    /* ===============================
-   Acessibilidade â€“ Redução de movimento
-   =============================== */
-    @media (prefers-reduced-motion: reduce) {
+        .tw-navbar-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+        }
 
-        .lk-plan-badge,
-        .lk-plan-badge--pro {
-            animation: none !important;
-            transition: none !important;
+        .tw-navbar-welcome {
+            justify-content: flex-start;
+        }
+
+        .tw-navbar-title {
+            text-align: left;
+        }
+
+        .tw-navbar-actions {
+            justify-content: flex-end;
         }
     }
 </style>
 
-<nav class="lk-navbar" data-aos="fade-up">
-    <div class="lk-navbar-inner">
-        <div class="lk-navbar-left">
-            <div class="lk-welcome">
+<nav class="tw-navbar" data-aos="fade-up">
+    <div class="tw-navbar-content">
+        <div class="tw-navbar-left">
+            <div class="tw-navbar-welcome">
                 <span>Bem-vindo</span>
                 <strong><?= $navbarFirstName ?: 'usuário' ?></strong>
 
-                <?php
-                // Ajuste aqui conforme o seu sistema:
-                // Ex.: $isPro = ($usuario->plano === 'pro');
-                $isPro = !($showNavbarUpgradeCTA ?? true); // se você mostra CTA de upgrade, normalmente o user Ã© Free
-                $planLabel = $isPro ? 'PRO' : 'FREE';
-                $planClass = $isPro ? 'lk-plan-badge--pro' : 'lk-plan-badge--free';
-                $planTip   = $isPro ? 'Plano Pro ativo' : 'Você está no Free. Faça upgrade para liberar recursos.';
-                ?>
-
-                <span class="lk-plan-badge <?= $planClass ?>" tabindex="0" role="status"
+                <span class="tw-navbar-badge <?= $isPro ? 'pro' : 'free' ?>"
+                    tabindex="0" role="status"
                     aria-label="<?= htmlspecialchars($planTip, ENT_QUOTES, 'UTF-8') ?>"
-                    data-tooltip="<?= htmlspecialchars($planTip, ENT_QUOTES, 'UTF-8') ?>">
+                    title="<?= htmlspecialchars($planTip, ENT_QUOTES, 'UTF-8') ?>">
                     <i class="fa-solid <?= $isPro ? 'fa-crown' : 'fa-leaf' ?>"></i>
                     <?= $planLabel ?>
                 </span>
             </div>
 
-            <h1><?= $pageTitle ?? 'Painel' ?> <span><?= $subTitle ? "- {$subTitle}" : '' ?></span></h1>
+            <h1 class="tw-navbar-title">
+                <?= $pageTitle ?? 'Painel' ?>
+                <?php if ($subTitle): ?>
+                    <span class="tw-navbar-subtitle">- <?= $subTitle ?></span>
+                <?php endif; ?>
+            </h1>
         </div>
 
-        <div class="lk-navbar-right">
-            <button id="toggleTheme" type="button" class="theme-toggle" aria-label="Alternar tema"
-                title="Modo claro/escuro">
-                <i id="themeIcon" class="theme-toggle__icon fa-solid fa-sun"></i>
+        <div class="tw-navbar-actions">
+            <button id="toggleTheme" type="button" class="tw-theme-toggle"
+                aria-label="Alternar tema" title="Modo claro/escuro">
+                <i class="fa-solid fa-sun"></i>
+                <i class="fa-solid fa-moon"></i>
             </button>
 
             <?php include __DIR__ . '/notificacoes/bell.php'; ?>
 
             <?php if ($showNavbarUpgradeCTA): ?>
-                <a href="<?= BASE_URL ?>billing" class="lk-upgrade-btn">
-                    <i class="fa-solid fa-star"></i>
-                    <span>Pro</span>
+                <a href="<?= BASE_URL ?>billing" class="tw-upgrade-btn"
+                    aria-label="Fazer upgrade para Pro">
+                    <i class="fa-solid fa-crown"></i>
+                    <span class="d-none d-sm-inline">PRO</span>
+                    <span class="d-sm-none">PRO</span>
                 </a>
             <?php endif; ?>
         </div>
@@ -481,18 +271,8 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
     (() => {
         const root = document.documentElement;
         const btn = document.getElementById('toggleTheme');
-        const icon = document.getElementById('themeIcon');
         const STORAGE_KEY = 'lukrato-theme';
         const THEME_EVENT = 'lukrato:theme-changed';
-        const THEME_ANIMATION_MS = 420;
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-        let isAnimating = false;
-
-        // Detecta se eh FA 5 ou FA 6 (pra usar o prefixo correto)
-        const FA_PREFIX = (() => {
-            const link = [...document.styleSheets].find(s => (s.href || '').includes('font-awesome/5'));
-            return link ? 'fas' : 'fa-solid';
-        })();
 
         function getTheme() {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -503,9 +283,7 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
         }
 
         function updateIconAndLabel(theme) {
-            if (!icon || !btn) return;
-            icon.className = '';
-            icon.classList.add(FA_PREFIX, 'theme-toggle__icon', theme === 'dark' ? 'fa-moon' : 'fa-sun');
+            if (!btn) return;
             const label = theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro';
             btn.setAttribute('aria-label', label);
             btn.setAttribute('title', label);
@@ -520,61 +298,82 @@ $showNavbarUpgradeCTA = isset($showUpgradeCTA) ? $showUpgradeCTA : !($navbarUser
             }));
         }
 
+        async function saveThemeToDatabase(theme) {
+            console.log('🎨 [TEMA] Tentando salvar tema:', theme);
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                console.log('🎨 [TEMA] CSRF token:', csrfToken ? 'encontrado' : 'NÃO ENCONTRADO');
+
+                if (!csrfToken) {
+                    console.error('❌ [TEMA] CSRF token não encontrado');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('theme', theme);
+                formData.append('csrf_token', csrfToken);
+
+                const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '';
+                const url = baseUrl + 'api/perfil/tema';
+                console.log('🎨 [TEMA] Enviando requisição para:', url);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                console.log('🎨 [TEMA] Status da resposta:', response.status);
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('❌ [TEMA] Erro ao salvar tema. Status:', response.status, 'Resposta:', text);
+                } else {
+                    const data = await response.json();
+                    console.log('✅ [TEMA] Tema salvo com sucesso:', data);
+                }
+            } catch (error) {
+                console.error('❌ [TEMA] Erro ao salvar tema:', error);
+            }
+        }
+
         function applyTheme(theme, options = {
-            updateUi: true
+            updateUi: true,
+            saveToDb: true
         }) {
             root.setAttribute('data-theme', theme);
             localStorage.setItem(STORAGE_KEY, theme);
             if (options.updateUi) updateIconAndLabel(theme);
             notifyThemeChange(theme);
-        }
 
-        function animateAndApplyTheme(nextTheme) {
-            if (!btn || !icon || prefersReducedMotion.matches) {
-                applyTheme(nextTheme);
-                return;
+            // Salvar no banco de dados apenas se solicitado
+            if (options.saveToDb) {
+                saveThemeToDatabase(theme);
             }
-
-            if (isAnimating) return;
-            isAnimating = true;
-            btn.classList.add('is-animating');
-
-            const halfway = THEME_ANIMATION_MS / 2;
-
-            // Troca o tema e o icone no meio da animacao para evitar flicker
-            setTimeout(() => {
-                updateIconAndLabel(nextTheme);
-                applyTheme(nextTheme, {
-                    updateUi: false
-                });
-            }, halfway);
-
-            setTimeout(() => {
-                btn.classList.remove('is-animating');
-                isAnimating = false;
-            }, THEME_ANIMATION_MS + 20);
         }
 
         function toggleTheme() {
-            const next = getTheme() === 'dark' ? 'light' : 'dark';
-            animateAndApplyTheme(next);
+            const current = getTheme();
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
         }
 
-        btn?.addEventListener('click', toggleTheme);
+        // Initialize - não salvar no banco na inicialização
+        const initialTheme = getTheme();
+        updateIconAndLabel(initialTheme);
+        // Sincronizar localStorage com o atributo HTML (vindo do banco)
+        const htmlTheme = root.getAttribute('data-theme');
+        if (htmlTheme && (htmlTheme === 'light' || htmlTheme === 'dark')) {
+            localStorage.setItem(STORAGE_KEY, htmlTheme);
+            updateIconAndLabel(htmlTheme);
+        }
 
-        // aplica o tema inicial
-        applyTheme(getTheme());
+        // Event listeners
+        if (btn) btn.addEventListener('click', toggleTheme);
 
-        // sincroniza se o sistema mudar
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (!localStorage.getItem(STORAGE_KEY)) applyTheme(e.matches ? 'dark' : 'light');
-        });
-
-        // sincroniza entre abas
-        window.addEventListener('storage', (e) => {
-            if (e.key !== STORAGE_KEY) return;
-            const newTheme = (e.newValue === 'light' || e.newValue === 'dark') ? e.newValue : getTheme();
-            applyTheme(newTheme);
+        // Listen for theme changes from other sources
+        document.addEventListener(THEME_EVENT, (e) => {
+            updateIconAndLabel(e.detail.theme);
         });
     })();
 </script>

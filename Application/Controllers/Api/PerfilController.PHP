@@ -5,7 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\PerfilService;
-use Application\DTO\PerfilUpdateDTO;
+use Application\DTOs\PerfilUpdateDTO;
 use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
 use Throwable;
@@ -94,6 +94,53 @@ class PerfilController
             Response::error(
                 'Erro interno ao atualizar perfil',
                 $statusCode,
+                ['exception' => $e->getMessage()]
+            );
+        }
+    }
+
+    public function updateTheme(): void
+    {
+        try {
+            error_log("🎨 [TEMA] Requisição recebida - POST: " . json_encode($_POST));
+
+            $user = Auth::user();
+
+            if (!$user) {
+                error_log("🎨 [TEMA] Erro: Usuário não autenticado");
+                Response::error('Não autenticado', 401);
+                return;
+            }
+
+            error_log("🎨 [TEMA] Usuário autenticado: ID={$user->id}, Nome={$user->nome}");
+
+            $theme = $_POST['theme'] ?? null;
+            error_log("🎨 [TEMA] Tema recebido: " . var_export($theme, true));
+
+            // Validar tema
+            if (!in_array($theme, ['light', 'dark'], true)) {
+                error_log("🎨 [TEMA] Erro: Tema inválido - {$theme}");
+                Response::error('Tema inválido. Use "light" ou "dark"', 400);
+                return;
+            }
+
+            // Atualizar tema
+            $temaAnterior = $user->theme_preference;
+            $user->theme_preference = $theme;
+            $user->save();
+
+            error_log("🎨 [TEMA] Tema atualizado com sucesso: {$temaAnterior} -> {$theme}");
+
+            Response::success([
+                'message' => 'Tema atualizado com sucesso',
+                'theme' => $theme,
+            ]);
+        } catch (Throwable $e) {
+            error_log("🎨 [TEMA] ERRO: " . $e->getMessage());
+            error_log("🎨 [TEMA] Stack: " . $e->getTraceAsString());
+            Response::error(
+                'Erro ao atualizar tema',
+                500,
                 ['exception' => $e->getMessage()]
             );
         }

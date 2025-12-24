@@ -8,34 +8,28 @@ use Application\Models\Agendamento;
 use Application\Services\AgendamentoService;
 use Application\Services\LogService;
 use Application\Lib\Auth;
+use Application\Enums\AgendamentoStatus;
+use Application\Validators\AgendamentoValidator;
+use Application\DTO\CreateAgendamentoDTO;
+use Application\DTO\UpdateAgendamentoDTO;
+use Application\Repositories\AgendamentoRepository;
 use GUMP;
 use DateTimeImmutable;
 use Throwable;
 use ValueError;
 
-enum AgendamentoStatus: string
-{
-    case PENDENTE = 'pendente';
-    case CONCLUIDO = 'concluido';
-    case CANCELADO = 'cancelado';
-}
-
-enum TipoLancamento: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-}
-
 class AgendamentoController extends BaseController
 {
     private readonly GUMP $validator;
     private readonly AgendamentoService $service;
+    private readonly AgendamentoRepository $agendamentoRepo;
 
     public function __construct()
     {
         parent::__construct();
         $this->validator = new GUMP();
         $this->service = new AgendamentoService();
+        $this->agendamentoRepo = new AgendamentoRepository();
     }
 
     private function ensureSchedulingAccess(): bool
@@ -78,99 +72,6 @@ class AgendamentoController extends BaseController
         return (int) (property_exists($this, 'userId') ? $this->userId : Auth::user()->id);
     }
 
-    private function moneyToCents(?string $str): ?int
-    {
-        if (empty($str)) {
-            return null;
-        }
-
-        $s = preg_replace('/[^\d,.-]/', '', $str);
-
-        if (str_contains($s, ',') && str_contains($s, '.')) {
-            $s = str_replace('.', '', $s);
-            $s = str_replace(',', '.', $s);
-        } elseif (str_contains($s, ',')) {
-            $s = str_replace(',', '.', $s);
-        }
-
-        $valor = (float) $s;
-        return (int) round($valor * 100);
-    }
-
-    private function boolFromMixed(mixed $value): bool
-    {
-        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? !empty($value);
-    }
-
-    private function calcularProximaExecucao(string $dataPagamento, int $lembrarSegundos): string
-    {
-        $dataPagamento = str_replace('T', ' ', $dataPagamento);
-        
-        return (new DateTimeImmutable($dataPagamento))
-            ->modify("-{$lembrarSegundos} seconds")
-            ->format('Y-m-d H:i:s');
-    }
-
-    private function setValidationRules(): void
-    {
-        $tiposPermitidos = implode(';', [TipoLancamento::DESPESA->value, TipoLancamento::RECEITA->value]);
-        
-        $this->validator->validation_rules([
-            'titulo'                 => 'required|min_len,3|max_len,160',
-            'data_pagamento'         => 'required|date',
-            'lembrar_antes_segundos' => 'integer|min_numeric,0',
-            'canal_email'            => 'boolean',
-            'canal_inapp'            => 'boolean',
-            'valor_centavos'         => 'integer|min_numeric,0',
-            'tipo'                   => "required|contains_list,{$tiposPermitidos}",
-            'categoria_id'           => 'integer|min_numeric,1',
-            'conta_id'               => 'integer|min_numeric,1',
-            'recorrente'             => 'boolean',
-            'recorrencia_freq'       => 'contains_list,diario;semanal;mensal;anual',
-            'recorrencia_intervalo'  => 'integer|min_numeric,1',
-            'recorrencia_fim'        => 'date',
-        ]);
-
-        $this->validator->filter_rules([
-            'titulo'    => 'trim',
-            'descricao' => 'trim',
-            'moeda'     => 'trim|upper',
-        ]);
-    }
-
-    private function prepararDadosAgendamento(array $data): array
-    {
-        $valorCentavos = $data['valor_centavos'] ?? null;
-        
-        if ($valorCentavos === null || $valorCentavos === '') {
-            $valorCentavos = $this->moneyToCents($data['valor'] ?? $data['agValor'] ?? null);
-        }
-
-        $lembrarSegundos = (int) ($data['lembrar_antes_segundos'] ?? 0);
-        $proximaExecucao = $this->calcularProximaExecucao($data['data_pagamento'], $lembrarSegundos);
-
-        return [
-            'user_id'                => $this->getUserId(),
-            'conta_id'               => $data['conta_id'] ?? null,
-            'categoria_id'           => $data['categoria_id'] ?? null,
-            'titulo'                 => $data['titulo'],
-            'descricao'              => $data['descricao'] ?? null,
-            'tipo'                   => $data['tipo'],
-            'valor_centavos'         => (int) $valorCentavos,
-            'moeda'                  => $data['moeda'] ?? 'BRL',
-            'data_pagamento'         => $data['data_pagamento'],
-            'proxima_execucao'       => $proximaExecucao,
-            'lembrar_antes_segundos' => $lembrarSegundos,
-            'canal_email'            => $this->boolFromMixed($data['canal_email'] ?? false),
-            'canal_inapp'            => $this->boolFromMixed($data['canal_inapp'] ?? true),
-            'recorrente'             => $this->boolFromMixed($data['recorrente'] ?? false),
-            'recorrencia_freq'       => $data['recorrencia_freq'] ?? null,
-            'recorrencia_intervalo'  => $data['recorrencia_intervalo'] ?? null,
-            'recorrencia_fim'        => $data['recorrencia_fim'] ?? null,
-            'status'                 => AgendamentoStatus::PENDENTE->value,
-        ];
-    }
-
     public function store(): void
     {
         $this->requireAuthApi();
@@ -182,11 +83,10 @@ class AgendamentoController extends BaseController
         try {
             $data = $this->validator->sanitize($_POST);
             $data = $this->normalizeDataPagamento($data);
-            $this->setValidationRules();
 
-            if (!$this->validator->run($data)) {
-                $errors = $this->validator->get_errors_array();
-
+            // Validar com AgendamentoValidator
+            $errors = AgendamentoValidator::validateCreate($data);
+            if (!empty($errors)) {
                 LogService::warning('Falha de validação ao criar agendamento.', [
                     'errors' => $errors,
                     'user_id' => $this->getUserId()
@@ -196,8 +96,9 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            $dadosAgendamento = $this->prepararDadosAgendamento($data);
-            $agendamento = Agendamento::create($dadosAgendamento);
+            // Criar DTO e salvar
+            $dto = CreateAgendamentoDTO::fromRequest($this->getUserId(), $data);
+            $agendamento = $this->agendamentoRepo->create($dto->toArray());
 
             Response::success(['agendamento' => $agendamento]);
             
@@ -262,12 +163,11 @@ class AgendamentoController extends BaseController
 
             $data = $this->validator->sanitize($_POST);
             $data = $this->normalizeDataPagamento($data);
-            $this->setValidationRules();
 
-            if (!$this->validator->run($data)) {
-                $errors = $this->validator->get_errors_array();
-
-                LogService::warning('Falha de validaÇõÇœo ao atualizar agendamento.', [
+            // Validar com AgendamentoValidator
+            $errors = AgendamentoValidator::validateUpdate($data);
+            if (!empty($errors)) {
+                LogService::warning('Falha de validação ao atualizar agendamento.', [
                     'errors' => $errors,
                     'user_id' => $this->getUserId(),
                     'agendamento_id' => $id,
@@ -277,25 +177,19 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            $dadosAgendamento = $this->prepararDadosAgendamento($data);
+            // Criar DTO
+            $dto = UpdateAgendamentoDTO::fromRequest($data);
 
-            $payload = [
-                'titulo'                 => $dadosAgendamento['titulo'],
-                'data_pagamento'         => $dadosAgendamento['data_pagamento'],
-                'lembrar_antes_segundos' => $dadosAgendamento['lembrar_antes_segundos'],
-                'tipo'                   => $dadosAgendamento['tipo'],
-                'categoria_id'           => $dadosAgendamento['categoria_id'],
-                'conta_id'               => $dadosAgendamento['conta_id'],
-                'valor_centavos'         => $dadosAgendamento['valor_centavos'],
-                'descricao'              => $dadosAgendamento['descricao'],
-                'recorrente'             => $dadosAgendamento['recorrente'],
-                'canal_inapp'            => $dadosAgendamento['canal_inapp'],
-                'canal_email'            => $dadosAgendamento['canal_email'],
-                'proxima_execucao'       => $dadosAgendamento['proxima_execucao'],
-                'moeda'                  => $dadosAgendamento['moeda'] ?? 'BRL',
-            ];
+            // Recalcular próxima execução se necessário
+            $dataPagamento = $dto->data_pagamento ?? $agendamento->data_pagamento;
+            $lembrarSegundos = $dto->lembrar_antes_segundos ?? $agendamento->lembrar_antes_segundos;
+            
+            if ($dto->data_pagamento !== null || $dto->lembrar_antes_segundos !== null) {
+                $dto = $dto->withProximaExecucao($dataPagamento, $lembrarSegundos);
+            }
 
-            $agendamento->update($payload);
+            // Atualizar
+            $agendamento->update($dto->toArray());
             $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
 
             Response::success(['agendamento' => $agendamento]);

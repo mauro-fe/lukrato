@@ -7,7 +7,6 @@ use Application\Core\Response;
 use Application\Services\InvestimentoService;
 use Application\Core\Exceptions\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Throwable;
 
 class InvestimentosController extends BaseController
 {
@@ -21,33 +20,22 @@ class InvestimentosController extends BaseController
 
     public function index(): void
     {
-        try {
-            $userId = $this->requireAuthenticatedUser();
-
-            $filters = $this->extractFilters();
-
-            $items = $this->service->getInvestimentos($userId, $filters);
-
-            Response::success(['data' => $items]);
-
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao listar investimentos');
-        }
+        $userId = $this->requireAuthenticatedUser();
+        $filters = $this->extractFilters();
+        $items = $this->service->getInvestimentos($userId, $filters);
+        
+        Response::success(['data' => $items]);
     }
 
     public function show(int $id): void
     {
         try {
             $userId = $this->requireAuthenticatedUser();
-
             $data = $this->service->getInvestimentoById($id, $userId);
-
+            
             Response::success($data);
-
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao buscar investimento');
         }
     }
 
@@ -55,20 +43,15 @@ class InvestimentosController extends BaseController
     {
         try {
             $userId = $this->requireAuthenticatedUser();
-
             $data = $this->request->all();
-
             $investimento = $this->service->criarInvestimento($userId, $data);
 
             Response::success([
                 'message' => 'Investimento criado com sucesso',
                 'id' => (int)$investimento->id
             ], 201);
-
         } catch (ValidationException $e) {
             Response::validationError($e->getErrors());
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao criar investimento');
         }
     }
 
@@ -77,19 +60,15 @@ class InvestimentosController extends BaseController
         try {
             $userId = $this->requireAuthenticatedUser();
             $id = $this->extractIdFromRoute($routeParam);
-
             $data = $this->request->all();
-
+            
             $this->service->atualizarInvestimento($id, $userId, $data);
-
+            
             Response::success(['message' => 'Investimento atualizado com sucesso']);
-
         } catch (ValidationException $e) {
             Response::validationError($e->getErrors());
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao atualizar investimento');
         }
     }
 
@@ -98,15 +77,12 @@ class InvestimentosController extends BaseController
         try {
             $userId = $this->requireAuthenticatedUser();
             $id = $this->extractIdFromRoute($routeParam);
-
+            
             $this->service->excluirInvestimento($id, $userId);
-
+            
             Response::success(['message' => 'Investimento excluído com sucesso']);
-
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao excluir investimento');
         }
     }
 
@@ -115,63 +91,43 @@ class InvestimentosController extends BaseController
         try {
             $userId = $this->requireAuthenticatedUser();
             $id = $this->extractIdFromRoute($routeParam);
-
             $preco = $this->request->post('preco_atual');
-
+            
             $this->service->atualizarPreco($id, $userId, $preco);
-
+            
             Response::success(['message' => 'Preço atualizado com sucesso']);
-
         } catch (ValidationException $e) {
             Response::validationError($e->getErrors());
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao atualizar preço');
         }
     }
 
     public function stats(): void
     {
-        try {
-            $userId = $this->requireAuthenticatedUser();
-
-            $stats = $this->service->getStats($userId);
-
-            Response::success($stats);
-
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao calcular estatísticas');
-        }
+        $userId = $this->requireAuthenticatedUser();
+        $stats = $this->service->getStats($userId);
+        
+        Response::success($stats);
     }
 
     public function categorias(): void
     {
-        try {
-            $this->requireAuth();
-
-            $categorias = $this->service->getCategorias();
-
-            Response::success($categorias);
-
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao listar categorias');
-        }
+        $this->requireAuth();
+        $categorias = $this->service->getCategorias();
+        
+        Response::success($categorias);
     }
 
     public function transacoes(int $investimentoId): void
     {
         try {
             $userId = $this->requireAuthenticatedUser();
-
             $transacoes = $this->service->getTransacoes($investimentoId, $userId);
-
+            
             Response::success($transacoes);
-
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao listar transações');
         }
     }
 
@@ -179,22 +135,17 @@ class InvestimentosController extends BaseController
     {
         try {
             $userId = $this->requireAuthenticatedUser();
-
             $data = $this->request->all();
-
             $transacao = $this->service->criarTransacao($investimentoId, $userId, $data);
 
             Response::success([
                 'message' => 'Transação registrada com sucesso',
                 'id' => (int)$transacao->id
             ], 201);
-
         } catch (ValidationException $e) {
             Response::validationError($e->getErrors());
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleTransacaoError($e);
         }
     }
 
@@ -202,15 +153,11 @@ class InvestimentosController extends BaseController
     {
         try {
             $userId = $this->requireAuthenticatedUser();
-
             $proventos = $this->service->getProventos($investimentoId, $userId);
-
+            
             Response::success($proventos);
-
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao listar proventos');
         }
     }
 
@@ -218,22 +165,17 @@ class InvestimentosController extends BaseController
     {
         try {
             $userId = $this->requireAuthenticatedUser();
-
             $data = $this->request->all();
-
             $provento = $this->service->criarProvento($investimentoId, $userId, $data);
 
             Response::success([
                 'message' => 'Provento registrado com sucesso',
                 'id' => (int)$provento->id
             ], 201);
-
         } catch (ValidationException $e) {
             Response::validationError($e->getErrors());
         } catch (ModelNotFoundException $e) {
             Response::error('Investimento não encontrado', 404);
-        } catch (Throwable $e) {
-            $this->handleError($e, 'Falha ao registrar provento');
         }
     }
 
@@ -296,23 +238,5 @@ class InvestimentosController extends BaseController
             'order' => $this->request->get('order', 'nome'),
             'dir' => $this->request->get('dir', 'asc'),
         ];
-    }
-
-    private function handleTransacaoError(Throwable $e): void
-    {
-        $message = stripos($e->getMessage(), 'Quantidade indispon') !== false
-            ? 'Quantidade indisponível para venda.'
-            : 'Falha ao registrar transação.';
-
-        $statusCode = stripos($e->getMessage(), 'Quantidade indispon') !== false ? 422 : 500;
-
-        $this->handleError($e, $message, $statusCode);
-    }
-
-    private function handleError(Throwable $e, string $message, int $statusCode = 500): void
-    {
-        Response::error($message, $statusCode, [
-            'exception' => $e->getMessage()
-        ]);
     }
 }

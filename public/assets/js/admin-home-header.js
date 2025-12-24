@@ -29,7 +29,7 @@
                 sidebarLinks: '.sidebar .nav-item[href]',
             },
             api: {
-                accounts: 'api/accounts?only_active=1',
+                accounts: 'api/contas?only_active=1',
             },
             storageKey: STORAGE_KEY,
             baseUrl: getBaseUrl(),

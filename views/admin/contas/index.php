@@ -5,16 +5,30 @@
             <div class="stat-icon">
                 <i class="fas fa-wallet"></i>
             </div>
-            <div class="stat-value" id="totalContas" aria-live="polite">0</div>
-            <div class="stat-label">Total de Contas</div>
+            <div>
+                <div class="stat-value" id="totalContas" aria-live="polite">0</div>
+                <div class="stat-label">Total de Contas</div>
+            </div>
         </div>
 
         <div class="stat-card" data-aos="flip-right">
             <div class="stat-icon">
                 <i class="fas fa-coins"></i>
             </div>
-            <div class="stat-value" id="saldoTotal" aria-live="polite">R$ 0,00</div>
-            <div class="stat-label">Saldo Total</div>
+            <div>
+                <div class="stat-value" id="saldoTotal" aria-live="polite">R$ 0,00</div>
+                <div class="stat-label">Saldo Total</div>
+            </div>
+        </div>
+
+        <div class="stat-card" data-aos="flip-left">
+            <div class="stat-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <div>
+                <div class="stat-value" id="totalCartoes" aria-live="polite">0</div>
+                <div class="stat-label">Cartões de Crédito</div>
+            </div>
         </div>
     </div>
 
@@ -25,6 +39,9 @@
             <div class="lk-acc-actions">
                 <button class="btn btn-primary" id="btnNovaConta" aria-label="Criar nova conta">
                     <i class="fas fa-plus"></i> Nova Conta
+                </button>
+                <button class="btn btn-ghost" id="btnNovoCartao" aria-label="Adicionar cartão de crédito">
+                    <i class="fas fa-credit-card"></i> Novo Cartão
                 </button>
                 <button class="btn btn-ghost" id="btnReload" aria-label="Recarregar contas" title="Atualizar lista">
                     <i class="fas fa-sync-alt"></i>
@@ -49,4 +66,47 @@
 </div>
 
 <!-- ==================== MODAIS ==================== -->
-<?php include __DIR__ . '/../partials/modals/modal_contas.php'; ?>
+<?php include __DIR__ . '/../modals/conta-modal.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_cartoes_v2.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_lancamento_v2.php'; ?>
+
+<!-- ==================== SCRIPTS ==================== -->
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/contas-modern.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
+<script>
+    window.BASE_URL = '<?= BASE_URL ?>';
+
+    // Garantir que apenas o sistema moderno seja usado
+    // Bloquear qualquer tentativa de carregar o sistema antigo
+    (function() {
+        'use strict';
+
+        // Limpar cache de service workers e caches
+        if ('caches' in window) {
+            caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+        }
+
+        // Prevenir carregamento de scripts antigos
+        const oldScriptPattern = /admin-contas-index/;
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.tagName === 'SCRIPT' && oldScriptPattern.test(node.src)) {
+                        console.warn('🚫 Bloqueado script antigo:', node.src);
+                        node.remove();
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('✅ Sistema moderno de contas carregado');
+    })();
+</script>
+<script
+    src="<?= BASE_URL ?>assets/js/contas-manager.js?v=<?= md5_file(__DIR__ . '/../../../public/assets/js/contas-manager.js') ?>">
+</script>

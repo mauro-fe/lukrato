@@ -2,35 +2,35 @@
 
 namespace Application\Controllers\Api;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
-use Application\Models\Categoria;
-use Application\Models\Conta;
-use Application\Models\Lancamento;
-use Application\Models\Usuario;
 use Application\Services\LancamentoExportService;
+use Application\Services\GamificationService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
 use Application\Services\LancamentoLimitService;
+use Application\Services\UserPlanService;
+use Application\Formatters\LancamentoResponseFormatter;
+use Application\Enums\LancamentoTipo;
+use Application\Repositories\LancamentoRepository;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
+use Application\DTOs\Requests\CreateLancamentoDTO;
+use Application\DTOs\Requests\UpdateLancamentoDTO;
+use Application\Validators\LancamentoValidator;
 use InvalidArgumentException;
 use ValueError;
 
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-
-    public static function listValues(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
-}
-
-class LancamentosController
+class LancamentosController extends BaseController
 {
     private LancamentoLimitService $limitService;
     private LancamentoExportService $exportService;
-
+    private LancamentoRepository $lancamentoRepo;
+    private CategoriaRepository $categoriaRepo;
+    private ContaRepository $contaRepo;
+    private UserPlanService $planService;
+    private GamificationService $gamificationService;
 
     public function __construct(
         ?LancamentoExportService $exportService = null,
@@ -38,110 +38,15 @@ class LancamentosController
     ) {
         $this->exportService = $exportService ?? new LancamentoExportService();
         $this->limitService  = $limitService ?? new LancamentoLimitService();
+        $this->lancamentoRepo = new LancamentoRepository();
+        $this->categoriaRepo = new CategoriaRepository();
+        $this->contaRepo = new ContaRepository();
+        $this->planService = new UserPlanService();
+        $this->gamificationService = new GamificationService();
     }
-    // =============================================================================
-    // LIMITES (FREE) + USAGE
-    // =============================================================================
-
-    private function getFreeLancamentosLimit(): int
-    {
-        return 50;
-    }
-
-    private function getFreeLancamentosWarningAt(): int
-    {
-        return 40;
-    }
-
-
-
-    /**
-     * IMPORTANTÍSSIMO:
-     * Ajuste este método para refletir como você guarda o plano do usuário no seu banco.
-     * Ex.: usuarios.plano = 'pro' | 'free'
-     * ou usuarios.is_premium = 1
-     */
-    private function isProUser(int $userId): bool
-    {
-        try {
-            /** @varUsuario|null $user */
-            $user = Usuario::find($userId);
-            if (!$user) {
-                return false;
-            }
-
-            // Busca assinatura ativa corretamente
-            $assinatura = $user->assinaturas()
-                ->where('status', 'active')
-                ->orderByDesc('created_at')
-                ->first();
-
-            if (!$assinatura) {
-                return false; // não tem assinatura ativa
-            }
-
-            // Carrega o plano
-            $plano = $assinatura->plano;
-            if (!$plano) {
-                return false;
-            }
-
-            // Se o plano NÃO for free, é PRO
-            $code = strtolower((string)$plano->code);
-
-            return $code !== 'free';
-        } catch (\Throwable $e) {
-            return false;
-        }
-    }
-
-
-    private function countLancamentosNoMes(int $userId, string $ym): int
-    {
-        // $ym no formato YYYY-MM
-        $from = $ym . '-01';
-        $to   = date('Y-m-t', strtotime($from));
-
-        // Conta apenas lançamentos "normais" (sem saldo inicial e sem transferências)
-        return (int) Lancamento::where('user_id', $userId)
-            ->whereBetween('data', [$from, $to])
-            ->where('eh_saldo_inicial', 0)
-            ->where('eh_transferencia', 0)
-            ->count();
-    }
-
-    private function buildUsageMeta(int $userId, string $ym): array
-    {
-        $isPro = $this->isProUser($userId);
-
-        $limit = $this->getFreeLancamentosLimit();
-        $warn  = $this->getFreeLancamentosWarningAt();
-        $used  = $this->countLancamentosNoMes($userId, $ym);
-
-        return [
-            'month'       => $ym,
-            'plan'        => $isPro ? 'pro' : 'free',
-            'limit'       => $isPro ? null : $limit,
-            'used'        => $used,
-            'remaining'   => $isPro ? null : max(0, $limit - $used),
-            'warning_at'  => $warn,
-            'should_warn' => (!$isPro && $used >= $warn && $used < $limit),
-            'blocked'     => (!$isPro && $used >= $limit),
-        ];
-    }
-
     // =============================================================================
     // HELPERS
     // =============================================================================
-
-    private function getRequestPayload(): array
-    {
-        $payload = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (empty($payload)) {
-            $payload = $_POST ?? [];
-        }
-        return $payload;
-    }
 
     private function parseCategoriaParam(string $param): array
     {
@@ -157,38 +62,13 @@ class LancamentosController
         return ['id' => $id, 'isNull' => $isNull];
     }
 
-    private function validateAndSanitizeValor(mixed $valorRaw, array &$errors): float
-    {
-        if (is_string($valorRaw)) {
-            $s = trim($valorRaw);
-            $s = str_replace(['R$', ' ', '.'], '', $s);
-            $s = str_replace(',', '.', $s);
-            $valorRaw = $s;
-        }
-
-        if (!is_numeric($valorRaw) || !is_finite((float)$valorRaw)) {
-            $errors['valor'] = 'Valor inválido.';
-            return 0.0;
-        }
-
-        $valor = abs((float)$valorRaw);
-        return round($valor, 2);
-    }
-
     private function validateCategoria(?int $id, int $userId, array &$errors): ?int
     {
         if ($id === null || $id <= 0) {
             return null;
         }
 
-        $exists = Categoria::where('id', $id)
-            ->where(function ($q) use ($userId) {
-                $q->whereNull('user_id')
-                    ->orWhere('user_id', $userId);
-            })
-            ->exists();
-
-        if ($exists) {
+        if ($this->categoriaRepo->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -202,7 +82,7 @@ class LancamentosController
             return null;
         }
 
-        if (Conta::forUser($userId)->where('id', $id)->exists()) {
+        if ($this->contaRepo->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -344,23 +224,11 @@ class LancamentosController
         }
 
         $payload = $this->getRequestPayload();
-        $errors = [];
 
-        $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
-        try {
-            $tipo = LancamentoTipo::from($tipo)->value;
-        } catch (ValueError) {
-            $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
-        }
+        // Validar com o validator
+        $errors = LancamentoValidator::validateCreate($payload);
 
-        $data = (string)($payload['data'] ?? '');
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
-        }
-
-        $valorRaw = $payload['valor'] ?? 0;
-        $valor = $this->validateAndSanitizeValor($valorRaw, $errors);
-
+        // Validar conta e categoria (regras de negócio)
         $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
         $contaId = is_scalar($contaId) ? (int)$contaId : null;
         $contaId = $this->validateConta($contaId, $userId, $errors);
@@ -369,65 +237,63 @@ class LancamentosController
         $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
         $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
 
-        $descricao = trim((string)($payload['descricao'] ?? ''));
-        $observacao = trim((string)($payload['observacao'] ?? ''));
-
-        $descricao = mb_substr($descricao, 0, 190);
-        $observacao = mb_substr($observacao, 0, 500);
-
         if (!empty($errors)) {
             Response::validationError($errors);
             return;
         }
 
-        $lancamento = Lancamento::create([
-            'user_id' => $userId,
-            'tipo' => $tipo,
-            'data' => $data,
-            'valor' => $valor,
-            'descricao' => $descricao,
-            'observacao' => $observacao,
+        // Criar DTO
+        $dto = CreateLancamentoDTO::fromRequest($userId, [
+            'tipo' => strtolower(trim($payload['tipo'])),
+            'data' => $payload['data'],
+            'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
+            'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
+            'observacao' => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
             'categoria_id' => $categoriaId,
             'conta_id' => $contaId,
-            'conta_id_destino' => null,
-            'eh_transferencia' => 0,
-            'eh_saldo_inicial' => 0,
         ]);
 
-        $lancamento->loadMissing(['categoria', 'conta']);
-
-        $ym = substr($data, 0, 7);
+        // Verificar limite antes de criar
         try {
-            $usage = $this->limitService->assertCanCreate($userId, $data);
+            $usage = $this->limitService->assertCanCreate($userId, $dto->data);
         } catch (\DomainException $e) {
             Response::error($e->getMessage(), 402);
             return;
         }
 
+        // Criar lançamento
+        $lancamento = $this->lancamentoRepo->create($dto->toArray());
+        $lancamento->loadMissing(['categoria', 'conta']);
+
+        // 🎮 GAMIFICAÇÃO: Adicionar pontos e atualizar streak
+        $gamificationResult = [];
+        try {
+            // Adicionar pontos por criar lançamento
+            $pointsResult = $this->gamificationService->addPoints(
+                $userId,
+                \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
+                $lancamento->id,
+                'lancamento'
+            );
+
+            // Atualizar streak diária
+            $streakResult = $this->gamificationService->updateStreak($userId);
+
+            $gamificationResult = [
+                'points' => $pointsResult,
+                'streak' => $streakResult,
+            ];
+        } catch (\Exception $e) {
+            error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
+            // Não falhar a requisição por erro na gamificação
+        }
 
         Response::success([
-            'lancamento' => [
-                'id'               => (int)$lancamento->id,
-                'data'             => (string)$lancamento->data,
-                'tipo'             => (string)$lancamento->tipo,
-                'valor'            => (float)$lancamento->valor,
-                'descricao'        => (string)($lancamento->descricao ?? ''),
-                'observacao'       => (string)($lancamento->observacao ?? ''),
-                'categoria_id'     => (int)$lancamento->categoria_id ?: null,
-                'conta_id'         => (int)$lancamento->conta_id ?: null,
-                'eh_transferencia' => (bool)$lancamento->eh_transferencia,
-                'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
-                'categoria'        => $lancamento->categoria?->nome ?? '',
-                'categoria_nome'   => $lancamento->categoria?->nome ?? '',
-                'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-                'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            ],
+            'lancamento' => LancamentoResponseFormatter::format($lancamento),
             'usage' => $usage,
-            'ui_message' => ($usage['should_warn'] ?? false)
-                ? "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
-                : null
+            'ui_message' => $this->planService->getUsageMessage($usage),
+            'gamification' => $gamificationResult, // Dados de gamificação para o frontend
         ], 'Lancamento criado', 201);
-        $usage = $this->limitService->usage($userId, substr($data, 0, 7));
     }
 
     public function update(int $id): void
@@ -440,89 +306,62 @@ class LancamentosController
 
         $payload = $this->getRequestPayload();
 
-        $lancamento = Lancamento::where('user_id', $userId)
-            ->where('id', $id)
-            ->first();
+        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
 
         if (!$lancamento) {
             Response::error('Lancamento nao encontrado', 404);
             return;
         }
 
-        if ((bool)($lancamento->eh_saldo_inicial ?? 0) === true) {
-            Response::error('Nao e possivel editar o saldo inicial.', 422);
-            return;
-        }
         if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
             Response::error('Nao e possivel editar uma transferencia. Crie uma nova.', 422);
             return;
         }
 
-        $errors = [];
+        // Mesclar dados atuais com novos
+        $mergedData = [
+            'tipo' => $payload['tipo'] ?? $lancamento->tipo,
+            'data' => $payload['data'] ?? $lancamento->data,
+            'valor' => $payload['valor'] ?? $lancamento->valor,
+            'descricao' => $payload['descricao'] ?? $lancamento->descricao,
+            'observacao' => $payload['observacao'] ?? $lancamento->observacao,
+            'conta_id' => $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id,
+            'categoria_id' => $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id,
+        ];
 
-        $tipo = strtolower(trim((string)($payload['tipo'] ?? $lancamento->tipo ?? '')));
-        try {
-            $tipo = LancamentoTipo::from($tipo)->value;
-        } catch (ValueError) {
-            $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
-        }
+        // Validar
+        $errors = LancamentoValidator::validateUpdate($mergedData);
 
-        $data = (string)($payload['data'] ?? $lancamento->data ?? '');
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
-        }
-
-        $valorRaw = $payload['valor'] ?? $lancamento->valor ?? 0;
-        $valor = $this->validateAndSanitizeValor($valorRaw, $errors);
-
-        $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id;
-        $contaId = is_scalar($contaId) ? (int)$contaId : null;
+        // Validar conta e categoria (regras de negócio)
+        $contaId = is_scalar($mergedData['conta_id']) ? (int)$mergedData['conta_id'] : null;
         $contaId = $this->validateConta($contaId, $userId, $errors);
 
-        $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id;
-        $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
+        $categoriaId = is_scalar($mergedData['categoria_id']) ? (int)$mergedData['categoria_id'] : null;
         $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
-
-        $descricao = trim((string)($payload['descricao'] ?? $lancamento->descricao ?? ''));
-        $observacao = trim((string)($payload['observacao'] ?? $lancamento->observacao ?? ''));
-
-        $descricao = mb_substr($descricao, 0, 190);
-        $observacao = mb_substr($observacao, 0, 500);
 
         if (!empty($errors)) {
             Response::validationError($errors);
             return;
         }
 
-        $lancamento->tipo = $tipo;
-        $lancamento->data = $data;
-        $lancamento->valor = $valor;
-        $lancamento->descricao = $descricao;
-        $lancamento->observacao = $observacao;
-        $lancamento->categoria_id = $categoriaId;
-        $lancamento->conta_id = $contaId;
-        $lancamento->conta_id_destino = null;
-        $lancamento->eh_transferencia = 0;
-        $lancamento->save();
-
-        $lancamento->refresh()->loadMissing(['categoria', 'conta']);
-
-        Response::success([
-            'id'               => (int)$lancamento->id,
-            'data'             => (string)$lancamento->data,
-            'tipo'             => (string)$lancamento->tipo,
-            'valor'            => (float)$lancamento->valor,
-            'descricao'        => (string)($lancamento->descricao ?? ''),
-            'observacao'       => (string)($lancamento->observacao ?? ''),
-            'categoria_id'     => (int)$lancamento->categoria_id ?: null,
-            'conta_id'         => (int)$lancamento->conta_id ?: null,
-            'eh_transferencia' => (bool)$lancamento->eh_transferencia,
-            'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
-            'categoria'        => $lancamento->categoria?->nome ?? '',
-            'categoria_nome'   => $lancamento->categoria?->nome ?? '',
-            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+        // Criar DTO
+        $dto = UpdateLancamentoDTO::fromRequest([
+            'tipo' => strtolower(trim($mergedData['tipo'])),
+            'data' => $mergedData['data'],
+            'valor' => LancamentoValidator::sanitizeValor($mergedData['valor']),
+            'descricao' => mb_substr(trim($mergedData['descricao'] ?? ''), 0, 190),
+            'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
+            'categoria_id' => $categoriaId,
+            'conta_id' => $contaId,
         ]);
+
+        // Atualizar
+        $this->lancamentoRepo->update($id, $dto->toArray());
+
+        $lancamento = $this->lancamentoRepo->find($id);
+        $lancamento->loadMissing(['categoria', 'conta']);
+
+        Response::success(LancamentoResponseFormatter::format($lancamento));
     }
 
     public function destroy(int $id): void
@@ -533,22 +372,14 @@ class LancamentosController
             return;
         }
 
-        /** @var Lancamento|null $t */
-        $t = Lancamento::where('user_id', $uid)
-            ->where('id', $id)
-            ->first();
+        $t = $this->lancamentoRepo->findByIdAndUser($id, $uid);
 
         if (!$t) {
             Response::error('Lancamento nao encontrado', 404);
             return;
         }
 
-        if ((bool)($t->eh_saldo_inicial ?? 0) === true) {
-            Response::error('Nao e possivel excluir o saldo inicial.', 422);
-            return;
-        }
-
-        $t->delete();
+        $this->lancamentoRepo->delete($id);
         Response::success(['ok' => true]);
     }
 
@@ -570,13 +401,12 @@ class LancamentosController
             return;
         }
 
-        $usage = $this->buildUsageMeta($userId, $month);
+        $usage = $this->limitService->usage($userId, $month);
 
         Response::success([
             'usage' => $usage,
-            'ui_message' => ($usage['should_warn'] ?? false)
-                ? "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. Faltam {$usage['remaining']} este mês."
-                : null
+            'ui_message' => $this->limitService->getWarningMessage($usage),
+            'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null
         ]);
     }
 }

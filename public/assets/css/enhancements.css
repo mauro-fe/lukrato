@@ -1,0 +1,1034 @@
+/* ============================================================================
+   LUKRATO - MELHORIAS GERAIS
+   ============================================================================
+   Arquivo: enhancements.css
+   Descrição: Animações, micro-interações e efeitos visuais modernos
+   ============================================================================ */
+
+/* ============================================================================
+   1. ANIMAÇÕES DE ENTRADA
+   ============================================================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px color-mix(in srgb, var(--color-primary) 30%, transparent);
+    }
+    50% {
+        box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 60%, transparent);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes rotate360 {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   2. CARDS COM MELHORIAS
+   ============================================================================ */
+
+.card {
+    /* Removida animação automática para não conflitar com AOS */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+/* Efeito de reflexo ao passar o mouse */
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        color-mix(in srgb, var(--color-primary) 8%, transparent), 
+        transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.card:hover::before {
+    left: 100%;
+}
+
+/* KPI Cards específicos */
+.kpi-card {
+    /* Removido animation-delay para não conflitar com AOS */
+    border: 1px solid var(--glass-border);
+    backdrop-filter: var(--glass-backdrop);
+}
+
+.kpi-icon {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.kpi-card:hover .kpi-icon {
+    transform: scale(1.15) rotate(5deg);
+}
+
+.kpi-card:hover .kpi-icon.saldo {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.kpi-card:hover .kpi-icon.receitas {
+    animation: bounce 0.6s ease;
+}
+
+.kpi-card:hover .kpi-icon.despesas {
+    animation: bounce 0.6s ease;
+}
+
+/* Efeito de contagem para valores */
+.kpi-value {
+    transition: all 0.3s ease;
+}
+
+.kpi-value.updating {
+    animation: pulse 0.3s ease;
+}
+
+/* ============================================================================
+   3. BOTÕES COM MICRO-INTERAÇÕES
+   ============================================================================ */
+
+.btn,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button) {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ripple effect - excluindo botão de suporte para não conflitar com tooltip */
+.btn:not(.lk-support-button)::after,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    pointer-events: none;
+}
+
+.btn:not(.lk-support-button):active::after,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):active::after {
+    width: 300px;
+    height: 300px;
+    transition: width 0.1s, height 0.1s;
+}
+
+/* Hover elevado */
+.btn:not(:disabled):not(.lk-support-button):hover,
+button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Força todos os ícones e botões do navbar a serem brancos */
+.lk-navbar-right button,
+.lk-navbar-right button *,
+.lk-navbar-right button i,
+.lk-navbar-right button i.fa,
+.lk-navbar-right button i.fa-solid,
+.lk-navbar-right button .fa,
+.lk-navbar-right button .fa-solid,
+.lk-navbar-right a,
+.lk-navbar-right a *,
+.lk-navbar-right a i,
+.lk-navbar-right a i.fa,
+.lk-navbar-right a i.fa-solid,
+.lk-navbar-right a .fa,
+.lk-navbar-right a .fa-solid,
+.lk-navbar-right .lk-upgrade-btn,
+.lk-navbar-right .lk-upgrade-btn *,
+.lk-navbar-right .lk-upgrade-btn i,
+.lk-navbar-right .lk-upgrade-btn span,
+.theme-toggle__icon,
+.theme-toggle__icon--sun,
+.theme-toggle__icon--moon,
+.theme-toggle__icon i,
+.theme-toggle__icon .fa,
+.theme-toggle__icon .fa-solid {
+    color: #fff !important;
+}
+
+/* EXCEÇÃO: Sininho de notificações - Laranja no light, Branco no dark */
+[data-theme="light"] .top-nav-bell-wrapper button,
+[data-theme="light"] .top-nav-bell-wrapper button *,
+[data-theme="light"] .top-nav-bell-wrapper button i,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell *,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell i,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell i.fa,
+[data-theme="light"] .top-nav-bell-wrapper #lk-bell i.fa-solid {
+    color: #e67e22 !important;
+}
+
+[data-theme="dark"] .top-nav-bell-wrapper button,
+[data-theme="dark"] .top-nav-bell-wrapper button *,
+[data-theme="dark"] .top-nav-bell-wrapper button i,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell *,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell i,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell i.fa,
+[data-theme="dark"] .top-nav-bell-wrapper #lk-bell i.fa-solid {
+    color: #fff !important;
+}
+
+/* Força ícones do SIDEBAR (menu lateral) a seguirem o tema */
+.sidebar .nav-item i,
+.sidebar .nav-item .fa,
+.sidebar .nav-item .fas,
+.sidebar .nav-item .fa-solid,
+.sidebar-nav .nav-item i,
+.sidebar-nav .nav-item .fa,
+.sidebar-nav .nav-item .fas,
+.sidebar-nav .nav-item .fa-solid,
+.sidebar-nav a i,
+.sidebar-nav a .fa,
+.sidebar-nav a .fas,
+.sidebar-nav a .fa-solid {
+    color: var(--color-text) !important;
+}
+
+/* Força também nos itens ativos e hover do sidebar */
+.sidebar .nav-item.active i,
+.sidebar .nav-item[aria-current="page"] i,
+.sidebar .nav-item:hover i,
+.sidebar-nav .nav-item.active i,
+.sidebar-nav .nav-item[aria-current="page"] i,
+.sidebar-nav .nav-item:hover i {
+    color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] .sidebar .nav-item.active i,
+[data-theme="dark"] .sidebar .nav-item[aria-current="page"] i,
+[data-theme="dark"] .sidebar .nav-item:hover i,
+[data-theme="dark"] .sidebar-nav .nav-item.active i,
+[data-theme="dark"] .sidebar-nav .nav-item[aria-current="page"] i,
+[data-theme="dark"] .sidebar-nav .nav-item:hover i {
+    color: #fff !important;
+}
+
+/* Botão primário especial */
+.btn-primary,
+.btn.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 85%, #000));
+    border: none;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.btn-primary:hover,
+.btn.btn-primary:hover {
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--color-primary) 110%, white),
+        var(--color-primary));
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+/* Loading state */
+.btn.loading,
+button.loading {
+    pointer-events: none;
+    position: relative;
+    color: transparent !important;
+}
+
+.btn.loading::before,
+button.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: rotate360 0.6s linear infinite;
+}
+
+/* ============================================================================
+   4. INPUTS E FORMS
+   ============================================================================ */
+
+.form-control,
+.form-select,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--glass-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.form-control:focus,
+.form-select:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* Label animado */
+.form-label {
+    transition: all 0.3s ease;
+    transform-origin: left center;
+}
+
+.form-control:focus + .form-label,
+.form-control:not(:placeholder-shown) + .form-label {
+    transform: translateY(-1.5rem) scale(0.85);
+    color: var(--color-primary);
+}
+
+/* ============================================================================
+   5. TABELAS INTERATIVAS
+   ============================================================================ */
+
+.table tbody tr {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.table tbody tr:hover {
+    background: var(--glass-bg);
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Animação de entrada das linhas */
+.table tbody tr {
+    animation: fadeInLeft 0.4s ease both;
+    animation-delay: calc(var(--row-index, 0) * 0.05s);
+}
+
+/* ============================================================================
+   6. BADGES E TAGS
+   ============================================================================ */
+
+.badge,
+.tag {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: scaleIn 0.3s ease;
+}
+
+.badge:hover,
+.tag:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================================
+   7. MODAIS MELHORADOS
+   ============================================================================ */
+
+.modal,
+.lkh-modal {
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content,
+.lkh-modal-content {
+    animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal.show .modal-dialog,
+.lkh-modal.active .lkh-modal-content {
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================================================
+   8. LOADING STATES E SKELETON
+   ============================================================================ */
+
+.loading,
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        90deg,
+        var(--color-surface-muted) 0%,
+        color-mix(in srgb, var(--color-surface-muted) 90%, white) 50%,
+        var(--color-surface-muted) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5em;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-circle {
+    border-radius: 50%;
+}
+
+/* ============================================================================
+   9. TOOLTIPS MELHORADOS
+   ============================================================================ */
+
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: 8px 12px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* ============================================================================
+   10. SCROLLBAR PERSONALIZADO
+   ============================================================================ */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) var(--color-surface-muted);
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-sm);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: var(--radius-sm);
+    transition: background 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-primary) 85%, #000);
+}
+
+/* ============================================================================
+   11. NOTIFICAÇÕES E TOASTS
+   ============================================================================ */
+
+.toast,
+.notification {
+    animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ============================================================================
+   12. CHARTS E GRÁFICOS
+   ============================================================================ */
+
+.chart-container {
+    position: relative;
+}
+
+.chart-container canvas {
+    animation: fadeInUp 0.8s ease;
+}
+
+/* ============================================================================
+   13. DROPDOWN MENUS
+   ============================================================================ */
+
+.dropdown-menu {
+    animation: slideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid var(--glass-border);
+    background: var(--color-surface);
+    backdrop-filter: var(--glass-backdrop);
+    box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item {
+    transition: all 0.2s ease;
+    color: var(--color-text);
+}
+
+.dropdown-item:hover {
+    background: var(--glass-bg);
+    color: var(--color-primary);
+    transform: translateX(4px);
+}
+
+/* ============================================================================
+   14. GRID IMPROVEMENTS
+   ============================================================================ */
+
+/* Removido para não conflitar com animações AOS do dashboard */
+/* .kpi-grid > div,
+.charts-grid > div {
+    animation: fadeInUp 0.6s ease both;
+} */
+
+/* ============================================================================
+   15. LINKS MELHORADOS
+   ============================================================================ */
+
+a:not(.btn):not(.lk-upgrade-btn) {
+    position: relative;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button)::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--color-primary);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):hover::after {
+    width: 100%;
+}
+
+/* ============================================================================
+   16. ALERTAS E MENSAGENS
+   ============================================================================ */
+
+.alert {
+    animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: none;
+    border-left: 4px solid currentColor;
+    backdrop-filter: var(--glass-backdrop);
+}
+
+.alert-success {
+    background: color-mix(in srgb, var(--color-success) 15%, transparent);
+    color: var(--color-success);
+    border-left-color: var(--color-success);
+}
+
+.alert-danger {
+    background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+    color: var(--color-danger);
+    border-left-color: var(--color-danger);
+}
+
+.alert-warning {
+    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+    color: var(--color-warning);
+    border-left-color: var(--color-warning);
+}
+
+.alert-info {
+    background: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+    color: var(--color-secondary);
+    border-left-color: var(--color-secondary);
+}
+
+/* ============================================================================
+   17. EMPTY STATES
+   ============================================================================ */
+
+.empty-state {
+    animation: fadeInUp 0.6s ease;
+    text-align: center;
+    padding: var(--spacing-12);
+}
+
+.empty-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+.empty-icon i {
+    font-size: 4rem;
+    color: var(--color-primary);
+    opacity: 0.3;
+}
+
+/* ============================================================================
+   18. PROGRESS BARS
+   ============================================================================ */
+
+.progress {
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-full, 999px);
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+/* ============================================================================
+   19. SWITCHES E TOGGLES
+   ============================================================================ */
+
+.form-check-input,
+.form-switch input {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.form-check-input:checked,
+.form-switch input:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+}
+
+/* ============================================================================
+   20. ACESSIBILIDADE E MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================================================
+   21. FOCUS VISIBLE
+   ============================================================================ */
+
+*:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+button:focus-visible,
+.btn:focus-visible {
+    outline-offset: 4px;
+}
+
+/* ============================================================================
+   22. SELECTION
+   ============================================================================ */
+
+::selection {
+    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    color: var(--color-text);
+}
+
+::-moz-selection {
+    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    color: var(--color-text);
+}
+
+/* ============================================================================
+   23. UTILITY CLASSES
+   ============================================================================ */
+
+.fade-in {
+    animation: fadeInUp 0.5s ease;
+}
+
+.slide-in-left {
+    animation: fadeInLeft 0.5s ease;
+}
+
+.slide-in-right {
+    animation: fadeInRight 0.5s ease;
+}
+
+.scale-in {
+    animation: scaleIn 0.5s ease;
+}
+
+.pulse-animation {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.glow-animation {
+    animation: glow 2s ease-in-out infinite;
+}
+
+.float-animation {
+    animation: float 3s ease-in-out infinite;
+}
+
+.no-animation {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ============================================================================
+   24. INPUT FLOATING LABELS
+   ============================================================================ */
+
+.form-floating {
+    position: relative;
+}
+
+.form-floating input,
+.form-floating select,
+.form-floating textarea {
+    padding-top: 1.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.form-floating label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1rem 0.75rem;
+    pointer-events: none;
+    transform-origin: left top;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--color-text-muted);
+}
+
+.form-floating input:focus ~ label,
+.form-floating input:not(:placeholder-shown) ~ label,
+.form-floating select:focus ~ label,
+.form-floating select:not([value=""]) ~ label,
+.form-floating textarea:focus ~ label,
+.form-floating textarea:not(:placeholder-shown) ~ label {
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+    color: var(--color-primary);
+}
+
+/* ============================================================================
+   25. PAGE TRANSITIONS
+   ============================================================================ */
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-content {
+    animation: pageEnter 0.4s ease;
+}
+
+/* ============================================================================
+   26. GRADIENT ANIMATIONS
+   ============================================================================ */
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-animated {
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+}
+
+/* ============================================================================
+   27. STAGGER ANIMATIONS
+   ============================================================================ */
+
+.stagger-item {
+    animation: fadeInUp 0.5s ease both;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.stagger-item:nth-child(2) { animation-delay: 0.10s; }
+.stagger-item:nth-child(3) { animation-delay: 0.15s; }
+.stagger-item:nth-child(4) { animation-delay: 0.20s; }
+.stagger-item:nth-child(5) { animation-delay: 0.25s; }
+.stagger-item:nth-child(6) { animation-delay: 0.30s; }
+.stagger-item:nth-child(7) { animation-delay: 0.35s; }
+.stagger-item:nth-child(8) { animation-delay: 0.40s; }
+
+/* ============================================================================
+   28. CARD HOVER EFFECTS ESPECIAIS
+   ============================================================================ */
+
+.card-glow:hover {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 40%, transparent),
+                0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.card-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+}
+
+/* ============================================================================
+   29. LOADING SPINNER MELHORADO
+   ============================================================================ */
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-surface-muted);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+}
+
+/* ============================================================================
+   30. TEXT EFFECTS
+   ============================================================================ */
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+}
+
+.text-shimmer {
+    animation: gradientShift 3s ease infinite;
+}
+
+/* ============================================================================
+   31. ICON ANIMATIONS
+   ============================================================================ */
+
+.icon-spin {
+    animation: rotate360 2s linear infinite;
+}
+
+.icon-bounce:hover {
+    animation: bounce 0.6s ease;
+}
+
+.icon-pulse:hover {
+    animation: pulse 1s ease infinite;
+}
+
+/* ============================================================================
+   32. IMAGE EFFECTS
+   ============================================================================ */
+
+img.zoom-hover {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+img.zoom-hover:hover {
+    transform: scale(1.1);
+}
+
+/* ============================================================================
+   33. GLASSMORPHISM ENHANCED
+   ============================================================================ */
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.glass-card-hover:hover {
+    backdrop-filter: blur(16px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}

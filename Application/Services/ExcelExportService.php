@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Services;
 
 use Application\Contracts\ReportExporterInterface;
-use Application\DTO\ReportData;
+use Application\DTOs\ReportData;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;

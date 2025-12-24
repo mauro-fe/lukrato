@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Conta extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'contas';
 
     protected $fillable = [
@@ -13,6 +18,9 @@ class Conta extends Model
         'nome',
         'cor',
         'instituicao',
+        'instituicao_financeira_id',
+        'tipo_conta',
+        'saldo_inicial',
         'moeda',
         'tipo_id',
         'ativo',
@@ -20,13 +28,28 @@ class Conta extends Model
 
     protected $casts = [
         'user_id'       => 'int',
+        'instituicao_financeira_id' => 'int',
+        'saldo_inicial' => 'float',
         'tipo_id',
         'ativo'         => 'bool',
     ];
 
+    protected $with = ['instituicaoFinanceira'];
+    protected $dates = ['deleted_at'];
+
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');
+    }
+
+    public function instituicaoFinanceira()
+    {
+        return $this->belongsTo(InstituicaoFinanceira::class, 'instituicao_financeira_id');
+    }
+
+    public function cartoesCredito()
+    {
+        return $this->hasMany(CartaoCredito::class, 'conta_id');
     }
 
     public function lancamentos()

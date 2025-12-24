@@ -1,110 +1,142 @@
 ﻿<!-- Tabulator -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 
-<!-- CSS REFATORADO -->
+<!-- CSS MODERNIZADO -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lancamentos-modern.css">
 
 <section class="lan-page">
-    <!-- ==================== HEADER ==================== -->
-    <div class="lan-header">
-        <div class="lan-controls">
-            <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <!-- ==================== HEADER MODERNIZADO ==================== -->
+    <div class="lan-header-modern">
+        <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 
-            <!-- Exportação -->
-            <div class="export-range" data-aos="fade-left" aria-describedby="exportHint">
-                <label class="export-label" for="exportType">
-                    <i class="fas fa-file-export"></i> Exportar Lançamentos
-                </label>
-
-                <div class="export-content">
-                    <div class="mes">
-                        <div class="date-group">
-                            <label class="sr-only" for="exportStart">Data Inicial</label>
-                            <span>De</span>
-                            <input type="date" id="exportStart" class="lk-input lk-btn date-range" placeholder="Início"
-                                data-default-today="1" aria-label="Data inicial">
-                        </div>
-
-                        <div class="date-group">
-                            <label class="sr-only" for="exportEnd">Data Final</label>
-                            <span>Até</span>
-                            <input type="date" id="exportEnd" class="lk-input lk-btn date-range" placeholder="Fim"
-                                data-default-today="1" aria-label="Data final">
-                        </div>
-                    </div>
-
-                    <div class="export-actions">
-                        <label class="sr-only" for="exportFormat">Formato</label>
-                        <select id="exportFormat" class="lk-select btn btn-primary" aria-label="Formato">
-                            <option value="pdf">PDF</option>
-                            <option value="excel">Excel (.xlsx)</option>
-                        </select>
-
-                        <button id="btnExportar" type="button" class="lk-btn btn btn-primary" data-aos="fade-left"
-                            data-aos-delay="150" aria-label="Exportar">
-                            <i class="fas fa-download"></i> Exportar
-                        </button>
-                    </div>
+        <!-- CARD DE EXPORTAÇÃO -->
+        <div class="modern-card export-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-header-icon">
+                <div class="icon-wrapper export">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <div class="card-title-group">
+                    <h3 class="card-title">Exportar Lançamentos</h3>
+                    <p class="card-subtitle">Exporte seus dados em PDF ou Excel</p>
                 </div>
             </div>
 
-            <!-- Filtros -->
-            <div class="lan-card ft-card mt-4" data-aos="fade-up">
-                <div class="lan-filter">
-                    <div class="type-filter" role="group" aria-label="Filtros de lançamentos">
-                        <div class="mobile-filter-heading d-md-none" aria-hidden="true">
-                            <i class="fas fa-filter"></i>
-                            <span>Filtrar Lançamentos</span>
-                        </div>
+            <div class="export-controls">
+                <div class="date-range-group">
+                    <div class="input-group">
+                        <label for="exportStart" class="input-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Data Inicial</span>
+                        </label>
+                        <input type="date" id="exportStart" class="modern-input" 
+                               data-default-today="1" aria-label="Data inicial">
+                    </div>
 
-                        <!-- Tipo -->
-                        <label for="filtroTipo" class="sr-only">Filtrar por Tipo</label>
-                        <select id="filtroTipo" class="lk-select btn btn-primary" data-aos="fade-right"
-                            data-aos-delay="250" aria-label="Filtrar por tipo de lançamento">
+                    <div class="input-group">
+                        <label for="exportEnd" class="input-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Data Final</span>
+                        </label>
+                        <input type="date" id="exportEnd" class="modern-input" 
+                               data-default-today="1" aria-label="Data final">
+                    </div>
+                </div>
+
+                <div class="export-actions-group">
+                    <select id="exportFormat" class="modern-select" aria-label="Formato de exportação">
+                        <option value="pdf">📄 PDF</option>
+                        <option value="excel">📊 Excel (.xlsx)</option>
+                    </select>
+
+                    <button id="btnExportar" type="button" class="modern-btn primary" 
+                            aria-label="Exportar lançamentos">
+                        <i class="fas fa-download"></i>
+                        <span>Exportar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD DE FILTROS -->
+        <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-header-icon">
+                <div class="icon-wrapper filter">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="card-title-group">
+                    <h3 class="card-title">Filtros Avançados</h3>
+                    <p class="card-subtitle">Refine sua busca por tipo, categoria e conta</p>
+                </div>
+            </div>
+
+            <div class="filter-controls">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filtroTipo" class="filter-label">
+                            <i class="fas fa-tag"></i>
+                            <span>Tipo</span>
+                        </label>
+                        <select id="filtroTipo" class="modern-select" aria-label="Filtrar por tipo">
                             <option value="">Todos os Tipos</option>
-                            <option value="receita">Receitas</option>
-                            <option value="despesa">Despesas</option>
+                            <option value="receita">💰 Receitas</option>
+                            <option value="despesa">💸 Despesas</option>
                         </select>
+                    </div>
 
-                        <!-- Categoria -->
-                        <label for="filtroCategoria" class="sr-only">Filtrar por Categoria</label>
-                        <select id="filtroCategoria" class="lk-select btn btn-primary" data-aos="fade-right"
-                            aria-label="Filtrar por categoria">
+                    <div class="filter-group">
+                        <label for="filtroCategoria" class="filter-label">
+                            <i class="fas fa-folder"></i>
+                            <span>Categoria</span>
+                        </label>
+                        <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
                             <option value="">Todas as Categorias</option>
                             <option value="none">Sem Categoria</option>
                         </select>
+                    </div>
 
-                        <!-- Conta -->
-                        <label for="filtroConta" class="sr-only">Filtrar por Conta</label>
-                        <select id="filtroConta" class="lk-select btn btn-primary" data-aos="fade-up"
-                            aria-label="Filtrar por conta">
+                    <div class="filter-group">
+                        <label for="filtroConta" class="filter-label">
+                            <i class="fas fa-wallet"></i>
+                            <span>Conta</span>
+                        </label>
+                        <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
                             <option value="">Todas as Contas</option>
                         </select>
-
-                        <!-- Ações -->
-                        <button id="btnFiltrar" type="button" class="lk-btn btn btn-primary" data-aos="fade-left"
-                            aria-label="Aplicar filtros">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-
-                        <button id="btnExcluirSel" type="button" class="lk-btn danger btn" data-aos="fade-left"
-                            data-aos-delay="250" disabled aria-label="Excluir lançamentos selecionados">
-                            <i class="fas fa-trash"></i> Excluir Selecionados
-                        </button>
-
-                        <!-- Info de seleção -->
-                        <small id="selInfo" aria-live="polite">
-                            <i class="fas fa-check-square"></i>
-                            <span id="selCount">0</span> selecionado(s)
-                        </small>
                     </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button id="btnFiltrar" type="button" class="modern-btn primary" 
+                            aria-label="Aplicar filtros">
+                        <i class="fas fa-search"></i>
+                        <span>Aplicar Filtros</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ==================== TABELA ==================== -->
-    <div class="container-table" data-aos="fade-up">
+    <!-- ==================== TABELA MODERNIZADA ==================== -->
+    <div class="modern-table-wrapper" data-aos="fade-up" data-aos-delay="300">
+        <div class="table-header-info">
+            <div class="info-group">
+                <i class="fas fa-list-ul"></i>
+                <span>Seus Lançamentos</span>
+            </div>
+            <div class="table-actions">
+                <button id="btnExcluirSel" type="button" class="modern-btn danger" 
+                        disabled aria-label="Excluir registros selecionados">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Excluir (<span id="selCount">0</span>)</span>
+                </button>
+                
+                <button type="button" class="icon-btn" title="Atualizar" onclick="location.reload()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
         <div class="lan-table-container">
             <!-- DESKTOP: Tabela Tabulator -->
             <section class="table-container tab-desktop">
@@ -146,7 +178,5 @@
 </section>
 
 <?php include __DIR__ . '/../partials/modals/editar-lancamentos.php'; ?>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>

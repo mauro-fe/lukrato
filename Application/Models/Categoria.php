@@ -16,6 +16,11 @@ class Categoria extends Model
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
+    public function lancamentos()
+    {
+        return $this->hasMany(Lancamento::class, 'categoria_id');
+    }
+
     public function scopeReceitas($q)
     {
         return $q->where('tipo', 'receita');

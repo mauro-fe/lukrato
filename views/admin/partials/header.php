@@ -19,10 +19,18 @@ $showUpgradeCTA = !($currentUser && method_exists($currentUser, 'isPro') && $cur
 $active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
 $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
 
+// Obter tema do usuário do banco de dados
+$userTheme = 'dark'; // valor padrão
+if ($currentUser && isset($currentUser->theme_preference)) {
+    $userTheme = in_array($currentUser->theme_preference, ['light', 'dark'])
+        ? $currentUser->theme_preference
+        : 'dark';
+}
+
 ?>
 
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="<?= htmlspecialchars($userTheme, ENT_QUOTES, 'UTF-8') ?>">
 
 <head>
     <meta charset="utf-8" />
@@ -53,9 +61,13 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/main-styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css">
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
+
+    <!-- Enhancements por último para sobrescrever tudo -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css">
 
     <!-- ============================================================================
          SCRIPTS EXTERNOS
@@ -63,7 +75,13 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
+    <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
+
+    <!-- Sistema de Onboarding (carrega em todas as páginas) -->
+    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"
+        defer></script>
 
     <!-- ============================================================================
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
@@ -175,6 +193,12 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
 <body>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
+
+    <!-- ============================================================================
+         TOP NAVBAR
+         ============================================================================ -->
+    <?php include __DIR__ . '/top-navbar.php'; ?>
+
     <!-- ============================================================================
          SIDEBAR COLLAPSE STATE (Pre-render)
          ============================================================================ -->
@@ -208,7 +232,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <aside class="sidebar no-glass" id="sidebar-main">
         <!-- Logo -->
         <div class="sidebar-header">
-            <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
+            <a class="logo" href="<?= BASE_URL ?>dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
@@ -229,11 +253,11 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <span>Contas</span>
             </a>
 
-            <!-- Lançamentos -->
-            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Lançamentos</span>
+            <!-- Cartões -->
+            <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
+                title="Cartões de Crédito">
+                <i class="fas fa-credit-card" aria-hidden="true"></i>
+                <span>Cartões</span>
             </a>
 
             <!-- Categorias -->
@@ -242,6 +266,14 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <i class="fas fa-tags"></i>
                 <span>Categorias</span>
             </a>
+
+            <!-- Lançamentos -->
+            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
+                <?= $aria('lancamentos') ?> title="Lançamentos">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Lançamentos</span>
+            </a>
+
 
             <!-- Relatórios -->
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
@@ -313,4 +345,3 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          ============================================================================ -->
     <div class="content-wrapper">
         <main class="lk-main">
-            <?php include __DIR__ . '/navbar.php'; ?>

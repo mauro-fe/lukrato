@@ -6,8 +6,8 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
-use Application\DTO\ReportParameters;
-use Application\Controllers\Api\LancamentoTipo;
+use Application\DTOs\ReportParameters;
+use Application\Enums\LancamentoTipo;
 
 /**
  * Repositório para buscar dados brutos para os relatórios.
@@ -110,7 +110,6 @@ class ReportRepository
         $query = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->whereBetween('l.data', [$params->start, $params->end])
-            ->where('l.eh_saldo_inicial', 0)
             ->where('l.tipo', $tipo);
 
         return $this->applyUserScope($query, $params->userId, 'l');
@@ -143,11 +142,11 @@ class ReportRepository
 
     private function applyAccountCategoryFilter(QueryBuilder $query, int $accountId, string $tipo): void
     {
-        $query->where(function($q1) use ($accountId) {
-                $q1->where('l.eh_transferencia', 0)
-                    ->where('l.conta_id', $accountId);
-            })
-            ->orWhere(function($q2) use ($accountId, $tipo) {
+        $query->where(function ($q1) use ($accountId) {
+            $q1->where('l.eh_transferencia', 0)
+                ->where('l.conta_id', $accountId);
+        })
+            ->orWhere(function ($q2) use ($accountId, $tipo) {
                 $q2->where('l.eh_transferencia', 1);
                 if ($tipo === LancamentoTipo::RECEITA->value) {
                     $q2->where('l.conta_id_destino', $accountId);
@@ -159,10 +158,10 @@ class ReportRepository
 
     private function applyAccountTypeFilter(QueryBuilder $query, string $tipo): void
     {
-        $query->where(function($q) use ($tipo) {
-                $q->where('l.eh_transferencia', 0)
-                    ->where('l.tipo', $tipo);
-            })
+        $query->where(function ($q) use ($tipo) {
+            $q->where('l.eh_transferencia', 0)
+                ->where('l.tipo', $tipo);
+        })
             ->orWhere('l.eh_transferencia', 1);
     }
 
@@ -177,7 +176,7 @@ class ReportRepository
     private function applyAccountTransactionFilter(QueryBuilder $query): void
     {
         $query->whereColumn('l.conta_id', 'contas.id')
-            ->orWhere(function($w) {
+            ->orWhere(function ($w) {
                 $w->where('l.eh_transferencia', 1)
                     ->whereColumn('l.conta_id_destino', 'contas.id');
             });
@@ -213,7 +212,7 @@ class ReportRepository
     {
         $column = $this->sanitizeColumn($tableAlias, 'user_id');
 
-        return $query->where(function(QueryBuilder $q) use ($userId, $column) {
+        return $query->where(function (QueryBuilder $q) use ($userId, $column) {
             $q->whereNull($column);
             if ($userId !== null) {
                 $q->orWhere($column, $userId);
@@ -228,9 +227,9 @@ class ReportRepository
         }
 
         if ($includeTransfers) {
-            return $query->where(function(QueryBuilder $w) use ($accountId) {
+            return $query->where(function (QueryBuilder $w) use ($accountId) {
                 $w->where('lancamentos.conta_id', $accountId)
-                    ->orWhere(function(QueryBuilder $w2) use ($accountId) {
+                    ->orWhere(function (QueryBuilder $w2) use ($accountId) {
                         $w2->where('lancamentos.eh_transferencia', 1)
                             ->where('lancamentos.conta_id_destino', $accountId);
                     });

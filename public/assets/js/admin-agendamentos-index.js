@@ -3,7 +3,7 @@
 
     const base = (typeof LK !== 'undefined' && typeof LK.getBase === 'function')
         ? LK.getBase()
-        : (document.querySelector('meta[name="base-url"]')?.content || '/');
+        : (document.querySelector('meta[name="base-url"]')?.content || window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
     const tokenId = document.querySelector('meta[name="csrf-token-id"]')?.content || 'default';
     let csrfToken = '';
 
@@ -217,7 +217,7 @@
             return;
         }
 
-        const data = await fetchJSON(`${base}api/accounts?only_active=1&with_balances=0`);
+        const data = await fetchJSON(`${base}api/contas?only_active=1&with_balances=0`);
         if (!data) return;
         const items = listFromPayload(data);
         selectCache.contas = items;
@@ -1191,24 +1191,24 @@
             const fd = new FormData();
             const token = getCsrf();
             if (token) {
-            fd.append('_token', token);
-            fd.append('csrf_token', token);
-        }
-        fd.append('status', 'concluido');
-
-        try {
-            const json = await fetchWithCsrf(`${base}api/agendamentos/${id}/status`, {
-                method: 'POST',
-                body: fd
-            });
-            if (!json || json?.status !== 'success') {
-                throw new Error(json?.message || 'Falha ao concluir o agendamento.');
+                fd.append('_token', token);
+                fd.append('csrf_token', token);
             }
-            Swal.fire('Sucesso', 'Agendamento concluido!', 'success');
-            await loadAgendamentos(true);
-            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
-                detail: { resource: 'transactions', action: 'create' }
-            }));
+            fd.append('status', 'concluido');
+
+            try {
+                const json = await fetchWithCsrf(`${base}api/agendamentos/${id}/status`, {
+                    method: 'POST',
+                    body: fd
+                });
+                if (!json || json?.status !== 'success') {
+                    throw new Error(json?.message || 'Falha ao concluir o agendamento.');
+                }
+                Swal.fire('Sucesso', 'Agendamento concluido!', 'success');
+                await loadAgendamentos(true);
+                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                    detail: { resource: 'transactions', action: 'create' }
+                }));
             } catch (err) {
                 console.error(err);
                 Swal.fire('Erro', err.message || 'Falha ao concluir agendamento.', 'error');

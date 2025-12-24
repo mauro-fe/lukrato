@@ -1,77 +1,26 @@
-﻿<?php
-
+<?php
 
 
 use Application\Core\Router;
 
-
-
 /**
-
- * Registro de rotas
-
+ * ============================================
+ * ROTAS PÚBLICAS (LANDING PAGE)
+ * ============================================
  */
-
-registerAuthRoutes();
-
-registerRedirectRoutes();
-
-registerAppRoutes();
-
-registerApiRoutes();
-
-registerBillingRoutes();
-
-
-
-
-
-
-
-
-
-
-/* =========================
-
- * AUTH
-
- * =======================*/
-
-function registerAuthRoutes(): void
-{
-    // Login
-    Router::add('GET',  '/login',          'Auth\\LoginController@login');
-    Router::add('POST', '/login/entrar',   'Auth\\LoginController@processLogin');
-    Router::add('GET',  '/logout',         'Auth\\LoginController@logout');
-
-    // Cadastro
-    Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
-
-    // Login com Google
-    Router::add('GET',  '/auth/google/login',    'Auth\\GoogleLoginController@login');
-    Router::add('GET',  '/auth/google/register', 'Auth\\GoogleLoginController@login');
-    Router::add('GET',  '/auth/google/callback', 'Auth\\GoogleCallbackController@callback');
-
-    // 🔹 Recuperação de senha (Agora com controller correto!)
-    Router::add('GET',  '/recuperar-senha',   'Auth\\ForgotPasswordController@showRequestForm');
-    Router::add('POST', '/recuperar-senha',   'Auth\\ForgotPasswordController@sendResetLink');
-
-    Router::add('GET',  '/resetar-senha',     'Auth\\ForgotPasswordController@showResetForm');
-    Router::add('POST', '/resetar-senha',     'Auth\\ForgotPasswordController@resetPassword');
-
-    // Super admin
-    Router::add('GET',  '/super_admin', 'SysAdmin\\SuperAdminController@index');
-
-    Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete');
-}
 
 // Landing principal
 Router::add('GET', '/', 'Site\\LandingController@index');
 
+// Seções da landing
 Router::add('GET', '/funcionalidades', 'Site\\LandingController@index');
-Router::add('GET', '/beneficios',       'Site\\LandingController@index');
-Router::add('GET', '/planos',           'Site\\LandingController@index');
-Router::add('GET', '/contato',          'Site\\LandingController@index');
+Router::add('GET', '/beneficios',      'Site\\LandingController@index');
+Router::add('GET', '/planos',          'Site\\LandingController@index');
+Router::add('GET', '/contato',         'Site\\LandingController@index');
+
+// Cartão Digital (Bio do Instagram)
+Router::add('GET', '/card', 'Site\\CardController@index');
+Router::add('GET', '/links', 'Site\\CardController@index'); // Alias alternativo
 
 // PÁGINAS LEGAIS DO SITE / TERMOS
 Router::add('GET', '/termos', 'Site\\LegalController@terms');
@@ -155,6 +104,8 @@ function registerAppRoutes(): void
     Router::add('GET', '/contas',            'Admin\\ContasController@index',        ['auth']);
 
     Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth']);
+
+    Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth']);
 
     Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth']);
 
@@ -242,23 +193,25 @@ function registerApiRoutes(): void
 
 
 
-    // Contas
+    // Contas (versão unificada - antiga API V2)
+    Router::add('GET',    '/api/contas/instituicoes',     'Api\\ContasController@instituicoes', ['auth']);
+    Router::add('GET',    '/api/contas',                  'Api\\ContasController@index',        ['auth']);
+    Router::add('POST',   '/api/contas',                  'Api\\ContasController@store',        ['auth', 'csrf']);
+    Router::add('PUT',    '/api/contas/{id}',             'Api\\ContasController@update',       ['auth', 'csrf']);
+    Router::add('POST',   '/api/contas/{id}/archive',     'Api\\ContasController@archive',      ['auth', 'csrf']);
+    Router::add('POST',   '/api/contas/{id}/restore',     'Api\\ContasController@restore',      ['auth', 'csrf']);
+    Router::add('DELETE', '/api/contas/{id}',             'Api\\ContasController@destroy',      ['auth', 'csrf']);
 
-    Router::add('GET',   '/api/accounts',               'Api\\ContasController@index',   ['auth']);
-
-    Router::add('POST',  '/api/accounts',               'Api\\ContasController@store',   ['auth', 'csrf']);
-
-    Router::add('PUT',   '/api/accounts/{id}',          'Api\\ContasController@update',  ['auth', 'csrf']);
-
-    Router::add('DELETE', '/api/accounts/{id}',          'Api\\ContasController@delete',  ['auth', 'csrf']);
-
-    Router::add('POST',  '/api/accounts/archive',       'Api\\ContasController@archive', ['auth', 'csrf']);
-
-    Router::add('POST',  '/api/accounts/unarchive',     'Api\\ContasController@unarchive', ['auth', 'csrf']);
-    Router::add('POST',  '/api/accounts/{id}/archive',  'Api\\ContasController@archive', ['auth', 'csrf']);
-    Router::add('POST',  '/api/accounts/{id}/restore',  'Api\\ContasController@restore', ['auth', 'csrf']);
-    Router::add('POST',  '/api/accounts/{id}/delete',   'Api\\ContasController@hardDelete', ['auth', 'csrf']);
-
+    // Cartões de Crédito
+    Router::add('GET',    '/api/cartoes',                 'Api\\CartoesController@index',         ['auth']);
+    Router::add('GET',    '/api/cartoes/{id}',            'Api\\CartoesController@show',          ['auth']);
+    Router::add('POST',   '/api/cartoes',                 'Api\\CartoesController@store',         ['auth', 'csrf']);
+    Router::add('PUT',    '/api/cartoes/{id}',            'Api\\CartoesController@update',        ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/deactivate', 'Api\\CartoesController@deactivate',   ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/reactivate', 'Api\\CartoesController@reactivate',   ['auth', 'csrf']);
+    Router::add('DELETE', '/api/cartoes/{id}',            'Api\\CartoesController@destroy',       ['auth', 'csrf']);
+    Router::add('PUT',    '/api/cartoes/{id}/limite',     'Api\\CartoesController@updateLimit',   ['auth', 'csrf']);
+    Router::add('GET',    '/api/cartoes/resumo',          'Api\\CartoesController@summary',       ['auth']);
 
 
     // Categorias
@@ -273,6 +226,12 @@ function registerApiRoutes(): void
 
     // Router::add('POST','/api/categorias/delete',        'Api\\CategoriaController@delete', ['auth','csrf']);
 
+
+    // 🎮 GAMIFICAÇÃO
+    Router::add('GET',  '/api/gamification/progress',      'Api\\GamificationController@getProgress',         ['auth']);
+    Router::add('GET',  '/api/gamification/achievements',  'Api\\GamificationController@getAchievements',     ['auth']);
+    Router::add('POST', '/api/gamification/achievements/mark-seen', 'Api\\GamificationController@markAchievementsSeen', ['auth', 'csrf']);
+    Router::add('GET',  '/api/gamification/leaderboard',   'Api\\GamificationController@getLeaderboard',      ['auth']);
 
 
     // Investimentos
@@ -407,3 +366,9 @@ function redirectToUserDashboard(): void
 
     exit;
 }
+
+// Registrar todas as rotas
+registerRedirectRoutes();
+registerAppRoutes();
+registerApiRoutes();
+registerBillingRoutes();

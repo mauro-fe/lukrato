@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Builders;
 
-use Application\Controllers\Api\ReportType;
-use Application\DTO\ReportData;
-use Application\DTO\ReportParameters;
+use Application\Enums\ReportType;
+use Application\DTOs\ReportData;
+use Application\DTOs\ReportParameters;
 use InvalidArgumentException;
 
 class ReportExportBuilder

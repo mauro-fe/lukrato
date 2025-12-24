@@ -1,191 +1,175 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
 use Application\Services\Auth\AuthService;
+use Application\Services\Auth\GoogleAuthService;
+use Application\Services\Auth\RegistrationResponseHandler;
 use Application\Core\Exceptions\ValidationException;
 use Application\Services\LogService;
-use Application\Models\Usuario;
-use Application\Lib\Auth;
 use Throwable;
 
+/**
+ * Controller para registro de novos usuários
+ */
 class RegistroController extends BaseController
 {
     private AuthService $authService;
+    private GoogleAuthService $googleAuthService;
+    private RegistrationResponseHandler $responseHandler;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?AuthService $authService = null,
+        ?GoogleAuthService $googleAuthService = null
+    ) {
         parent::__construct();
-        $this->authService = new AuthService();
+        $this->authService = $authService ?? new AuthService();
+        $this->googleAuthService = $googleAuthService ?? new GoogleAuthService();
+        $this->responseHandler = new RegistrationResponseHandler($this->request);
     }
 
+    /**
+     * Exibe formulário de registro
+     */
     public function showForm(): void
     {
-        // Dados vindos do login social (ex: Google)
         $socialData = $_SESSION['social_register'] ?? null;
 
         $this->render('auth/register', [
-            'errors'     => $this->getSessionErrors(),
-            'success'    => $this->getSuccess(),
-            'socialData' => $socialData, // usado na view para pré-preencher nome/email
+            'errors' => $this->getSessionErrors(),
+            'success' => $this->getSuccess(),
+            'socialData' => $socialData,
         ]);
     }
 
+    /**
+     * Processa registro de novo usuário
+     */
     public function store(): void
     {
-        $isAjax = $this->request->isAjax();
-
-        $emailTentativa = $this->request->post('email', 'não-informado');
-
-        // Verifica se veio de login social (Google)
-        $socialData     = $_SESSION['social_register'] ?? null;
-        $isGoogleSocial = !empty($socialData) && (($socialData['provider'] ?? null) === 'google');
+        $email = $this->request->post('email', 'não-informado');
+        $socialData = $_SESSION['social_register'] ?? null;
+        $isGoogleRegistration = !empty($socialData) && ($socialData['provider'] ?? null) === 'google';
 
         try {
-            // Payload base
-            $payload = [
-                'name'  => $this->request->post('name', ''),
-                'email' => $emailTentativa,
-            ];
-
-            if ($isGoogleSocial) {
-                // Cadastro via Google → conta social, sem senha obrigatória
-                $payload['google_id']             = $socialData['google_id'] ?? null;
-                $payload['password']              = null;
-                $payload['password_confirmation'] = null;
-                $payload['provider']              = 'google';
-            } else {
-                // Cadastro tradicional → exige senha
-                $payload['password']              = $this->request->post('password', '');
-                $payload['password_confirmation'] = $this->request->post('password_confirmation', '');
-            }
-
+            $payload = $this->buildRegistrationPayload($isGoogleRegistration, $socialData);
             $result = $this->authService->register($payload);
 
-            // Cadastro concluído → pode limpar os dados temporários do social login
-            if ($socialData) {
-                unset($_SESSION['social_register']);
+            // Limpa dados temporários de social login
+            unset($_SESSION['social_register']);
+
+            // Login automático se for registro via Google
+            if ($isGoogleRegistration) {
+                $this->handleGoogleRegistrationSuccess($result, $email);
+                return;
             }
 
-            $this->respondToRegistrationSuccess($result, $isAjax, $emailTentativa, $socialData);
+            $this->logRegistrationSuccess($email, $result, 'local');
+            $this->responseHandler->success($result, false);
         } catch (ValidationException $e) {
-            $this->respondToValidationError($e, $isAjax, $emailTentativa);
+            $this->handleValidationError($e, $email);
         } catch (Throwable $e) {
-            $this->respondToRegistrationError($e, $isAjax, $emailTentativa);
+            $this->handleRegistrationError($e, $email);
         }
     }
 
+    /**
+     * Constrói payload de registro baseado no tipo (local ou Google)
+     */
+    private function buildRegistrationPayload(bool $isGoogle, ?array $socialData): array
+    {
+        $payload = [
+            'name' => $this->request->post('name', ''),
+            'email' => $this->request->post('email', ''),
+        ];
+
+        if ($isGoogle) {
+            $payload['google_id'] = $socialData['google_id'] ?? null;
+            $payload['password'] = null;
+            $payload['password_confirmation'] = null;
+            $payload['provider'] = 'google';
+        } else {
+            $payload['password'] = $this->request->post('password', '');
+            $payload['password_confirmation'] = $this->request->post('password_confirmation', '');
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Trata sucesso de registro via Google (com login automático)
+     */
+    private function handleGoogleRegistrationSuccess(array $result, string $email): void
+    {
+        $userId = $result['user_id'] ?? null;
+
+        if ($userId) {
+            $loginSuccess = $this->googleAuthService->loginAfterRegistration($userId, $email);
+
+            if ($loginSuccess) {
+                $this->logRegistrationSuccess($email, $result, 'google');
+                $this->responseHandler->success($result, true);
+                return;
+            }
+        }
+
+        // Se falhou o login automático, redireciona para login manual
+        LogService::warning('Login automático falhou após registro Google', ['email' => $email]);
+        $this->responseHandler->success($result, false);
+    }
+
+    /**
+     * Loga sucesso do registro
+     */
+    private function logRegistrationSuccess(string $email, array $result, string $provider): void
+    {
+        LogService::info('Novo usuário registrado com sucesso.', [
+            'email' => $email,
+            'ip' => $this->request->ip() ?? 'unknown',
+            'user_id' => $result['user_id'] ?? 'unknown',
+            'provider' => $provider,
+        ]);
+    }
+
+    /**
+     * Trata erros de validação
+     */
+    private function handleValidationError(ValidationException $e, string $email): void
+    {
+        LogService::warning('Falha de validação no registro.', [
+            'email' => $email,
+            'ip' => $this->request->ip() ?? 'unknown',
+            'errors' => $e->getErrors(),
+        ]);
+
+        $this->responseHandler->validationError($e->getErrors());
+    }
+
+    /**
+     * Trata erros gerais de registro
+     */
+    private function handleRegistrationError(Throwable $e, string $email): void
+    {
+        LogService::error('Exceção crítica ao tentar registrar usuário.', [
+            'email' => $email,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        $this->responseHandler->generalError();
+    }
+
+    /**
+     * Obtém erros da sessão
+     */
     private function getSessionErrors(): ?array
     {
         $errors = $_SESSION['form_errors'] ?? null;
         unset($_SESSION['form_errors']);
         return $errors;
-    }
-
-    /**
-     * @param array      $result      Resultado retornado pelo AuthService::register()
-     * @param bool       $isAjax
-     * @param string     $email
-     * @param array|null $socialData  Dados de login social (ex: Google) ou null
-     */
-    private function respondToRegistrationSuccess(array $result, bool $isAjax, string $email, ?array $socialData = null): void
-    {
-        $provider = $socialData['provider'] ?? 'local';
-
-        LogService::info('Novo usuário registrado com sucesso.', [
-            'email'    => $email,
-            'ip'       => $this->request->ip() ?? 'unknown',
-            'user_id'  => $result['user_id'] ?? 'unknown',
-            'provider' => $provider,
-        ]);
-
-        // 👉 Se veio do Google, já faz login e manda pro dashboard
-        if ($provider === 'google') {
-            $userId = $result['user_id'] ?? null;
-            $usuario = null;
-
-            if ($userId) {
-                $usuario = Usuario::find($userId);
-            }
-
-            // fallback: busca por e-mail se por algum motivo não vier o ID
-            if (!$usuario) {
-                $usuario = Usuario::where('email', $email)->first();
-            }
-
-            if ($usuario) {
-                Auth::login($usuario);
-            }
-
-            // Resposta AJAX
-            if ($isAjax) {
-                $this->ok([
-                    'message'  => 'Conta criada com Google e login realizado com sucesso!',
-                    'redirect' => 'dashboard',
-                ], 201);
-                return;
-            }
-
-            // Resposta normal (HTTP tradicional)
-            $this->setSuccess('Conta criada com Google! Bem-vindo ao Lukrato.');
-            $this->redirect('dashboard');
-            return;
-        }
-
-        // Fluxo padrão (cadastro por e-mail/senha)
-        if ($isAjax) {
-            $this->ok([
-                'message'  => $result['message'],
-                'redirect' => $result['redirect'] ?? 'login'
-            ], 201);
-        } else {
-            $this->setSuccess('Conta criada com sucesso! Você já pode fazer o login.');
-            $this->redirect('login');
-        }
-    }
-
-    private function respondToValidationError(ValidationException $e, bool $isAjax, string $email): void
-    {
-        LogService::warning('Falha de validação no registro.', [
-            'email'  => $email,
-            'ip'     => $this->request->ip() ?? 'unknown',
-            'errors' => $e->getErrors()
-        ]);
-
-        $errors  = $e->getErrors();
-        $message = $errors['email'] ?? 'Corrija os dados do cadastro e tente novamente.';
-
-        if ($isAjax) {
-            $this->fail($message, 422, $errors);
-            return;
-        }
-
-        $_SESSION['register_errors'] = $errors;
-        $_SESSION['auth_active_tab'] = 'register';
-
-        $this->setError($message);
-        $this->redirect('login');
-    }
-
-    private function respondToRegistrationError(Throwable $e, bool $isAjax, string $email): void
-    {
-        LogService::error('Exceção crítica ao tentar registrar usuário.', [
-            'email'   => $email,
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-            'trace'   => $e->getTraceAsString()
-        ]);
-
-        $message = 'Falha ao cadastrar. Tente novamente mais tarde.';
-
-        if ($isAjax) {
-            $this->fail($message, 500);
-        } else {
-            $this->setError($message);
-            $_SESSION['auth_active_tab'] = 'register';
-            $this->redirect('login');
-        }
     }
 }

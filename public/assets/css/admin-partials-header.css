@@ -10,8 +10,8 @@
    ============================================================================ */
 :root {
   /* Layout Dimensions */
-  --sidebar-width: 200px;
-  --sidebar-collapsed-width: 80px;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 100px;
   --content-px: clamp(16px, 3vw, 32px);
   --header-height: 64px;
 
@@ -325,7 +325,7 @@ body.sidebar-collapsed .sidebar .nav-item {
   width: 100%;
   padding: var(--spacing-4);
   font-weight: 600;
-  color: #fff;
+  color: #fff !important;
   border-radius: var(--radius-full, 999px);
   text-decoration: none;
   background: linear-gradient(
@@ -341,11 +341,15 @@ body.sidebar-collapsed .sidebar .nav-item {
 .sidebar-pro-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  color: #fff;
+  color: #fff !important;
 }
 
 .sidebar-pro-btn i {
   font-size: 1rem;
+}
+
+.sidebar-pro-btn span {
+  color: #fff !important;
 }
 
 body.sidebar-collapsed .sidebar-pro-cta {
@@ -390,7 +394,6 @@ body.sidebar-collapsed .content-wrapper {
 
 .lk-main {
   flex: 1;
-  padding-top: 2rem;
   padding-bottom: 2rem;
   background: var(--color-bg);
 }
@@ -929,99 +932,9 @@ body.sidebar-collapsed .content-wrapper {
 }
 
 /* ============================================================================
-   12. FAB (Floating Action Button)
+   12. FAB (Floating Action Button) - Usa estilos de components.css
    ============================================================================ */
-.fab-container {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  z-index: 3000;
-}
-
-.fab {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-warning)
-  );
-  border: none;
-  color: var(--color-surface);
-  font-size: 20px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.fab:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-xl);
-}
-
-.fab.active {
-  transform: rotate(45deg);
-}
-
-.fab-menu {
-  position: absolute;
-  left: 72px;
-  bottom: 0;
-  display: none;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  background: var(--color-surface);
-  padding: 10px;
-  border-radius: 30px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-10px);
-  transition: opacity 0.25s, transform 0.25s, visibility 0.25s;
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-  color: var(--color-text);
-}
-
-.fab-container.open .fab-menu {
-  display: flex;
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-}
-
-.fab-menu-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: var(--glass-bg);
-  color: var(--color-primary);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all var(--transition-fast);
-  text-decoration: none;
-}
-
-.fab-menu-item i {
-  width: 20px;
-  text-align: center;
-}
-
-.fab-menu-item:hover {
-  background: var(--color-primary);
-  color: var(--branco);
-  transform: translateX(4px);
-  box-shadow: var(--shadow-lg);
-}
+/* Estilos movidos para components.css para evitar duplicação */
 
 /* ============================================================================
    13. TABELAS / TABULATOR
@@ -1385,7 +1298,6 @@ body.sidebar-open-mobile .sidebar-backdrop {
   }
 
   .lk-main {
-    padding-top: max(var(--header-height), clamp(24px, 6vw, 40px));
     padding-bottom: clamp(24px, 6vw, 40px);
   }
 

@@ -4,10 +4,6 @@
 
 </IfModule>
 
-
-
-
-
 <IfModule mod_rewrite.c>
 
     RewriteEngine On
@@ -24,8 +20,6 @@
 
 </IfModule>
 
-
-
 # Segurança extra
 
 <IfModule mod_headers.c>
@@ -38,8 +32,6 @@
 
 </IfModule>
 
-
-
 # Proteção contra acesso indevido
 
 <FilesMatch "\.(env|json|lock|gitignore|htaccess|sql)$">
@@ -50,13 +42,10 @@
 
 </FilesMatch>
 
-
-
-<Files "*.json">
+<Files "\*.json">
 
     Order allow,deny
 
     Deny from all
 
 </Files>
-
