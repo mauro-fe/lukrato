@@ -14,7 +14,7 @@
     // ============================================================================
 
     const CONFIG = {
-        BASE: (document.querySelector('meta[name="base-url"]')?.content || location.origin + '/'),
+        BASE: (document.querySelector('meta[name="base-url"]')?.content || window.BASE_URL || location.origin + '/').replace(/\/?$/, '/'),
         getCSRF: () => {
             const metaToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
             if (metaToken) return metaToken;
