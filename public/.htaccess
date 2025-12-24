@@ -8,7 +8,7 @@
 
     RewriteEngine On
 
-    RewriteBase /lukrato/
+    RewriteBase /lukrato/public/
 
 
 
