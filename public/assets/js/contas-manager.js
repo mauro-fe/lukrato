@@ -954,14 +954,58 @@ class ContasManager {
         const historicoContainer = document.getElementById('lancamentoHistorico');
 
         try {
-            // TODO: Implementar endpoint de histórico
-            // Por enquanto, mostrar vazio
-            historicoContainer.innerHTML = `
-                <div class="lk-historico-empty">
-                    <i class="fas fa-inbox"></i>
-                    <p>Nenhuma movimentação recente</p>
-                </div>
-            `;
+            // Buscar últimas 5 movimentações da conta
+            const params = new URLSearchParams({
+                account_id: contaId,
+                limit: '5',
+                month: new Date().toISOString().slice(0, 7) // Mês atual YYYY-MM
+            });
+
+            const response = await fetch(`${this.baseUrl}/lancamentos?${params}`);
+            if (!response.ok) {
+                throw new Error('Erro ao carregar histórico');
+            }
+
+            const lancamentos = await response.json();
+
+            if (!lancamentos || lancamentos.length === 0) {
+                historicoContainer.innerHTML = `
+                    <div class="lk-historico-empty">
+                        <i class="fas fa-inbox"></i>
+                        <p>Nenhuma movimentação recente</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Renderizar histórico
+            historicoContainer.innerHTML = lancamentos.map(l => {
+                const tipoClass = l.tipo === 'receita' ? 'receita' : l.tipo === 'despesa' ? 'despesa' : 'transferencia';
+                const tipoIcon = l.tipo === 'receita' ? 'arrow-down' : l.tipo === 'despesa' ? 'arrow-up' : 'exchange-alt';
+                const sinal = l.tipo === 'receita' ? '+' : '-';
+                const valorFormatado = this.formatCurrency(Math.abs(l.valor));
+                const dataFormatada = new Date(l.data + 'T00:00:00').toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'short'
+                });
+
+                return `
+                    <div class="lk-historico-item lk-historico-${tipoClass}">
+                        <div class="lk-historico-icon">
+                            <i class="fas fa-${tipoIcon}"></i>
+                        </div>
+                        <div class="lk-historico-info">
+                            <div class="lk-historico-desc">${l.descricao || 'Sem descrição'}</div>
+                            <div class="lk-historico-cat">${l.categoria || 'Sem categoria'}</div>
+                        </div>
+                        <div class="lk-historico-right">
+                            <div class="lk-historico-valor">${sinal} ${valorFormatado}</div>
+                            <div class="lk-historico-data">${dataFormatada}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
         } catch (error) {
             console.error('Erro ao carregar histórico:', error);
             historicoContainer.innerHTML = `

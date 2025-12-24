@@ -60,6 +60,9 @@ Router::add('DELETE', '/api/lancamentos/{id}',   'Api\\LancamentosController@des
 Router::add('GET',    '/api/lancamentos/usage',  'Api\\LancamentosController@usage',   ['auth']);
 Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export',  ['auth']);
 
+// Rota para histórico recente de uma conta (alias do index com limit)
+Router::add('GET',    '/api/contas/{id}/lancamentos', 'Api\\LancamentosController@index', ['auth']);
+
 // ============================================
 // TRANSAÇÕES / TRANSFERÊNCIAS
 // ============================================

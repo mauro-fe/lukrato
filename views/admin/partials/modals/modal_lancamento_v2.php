@@ -585,6 +585,147 @@
     }
 }
 
+/* ========================================
+   HISTÓRICO RECENTE
+   ======================================== */
+.lk-historico-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.lk-historico-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.lk-historico-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.lk-historico-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.lk-historico-receita {
+    border-left-color: #28a745;
+}
+
+.lk-historico-despesa {
+    border-left-color: #dc3545;
+}
+
+.lk-historico-transferencia {
+    border-left-color: #17a2b8;
+}
+
+.lk-historico-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.lk-historico-receita .lk-historico-icon {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.lk-historico-despesa .lk-historico-icon {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.lk-historico-transferencia .lk-historico-icon {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+}
+
+.lk-historico-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.lk-historico-desc {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #2c3e50;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lk-historico-cat {
+    font-size: 0.8125rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.lk-historico-right {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.lk-historico-valor {
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.lk-historico-receita .lk-historico-valor {
+    color: #28a745;
+}
+
+.lk-historico-despesa .lk-historico-valor {
+    color: #dc3545;
+}
+
+.lk-historico-transferencia .lk-historico-valor {
+    color: #17a2b8;
+}
+
+.lk-historico-data {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 2px;
+    text-transform: capitalize;
+}
+
+.lk-historico-empty {
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.lk-historico-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.3;
+}
+
+.lk-historico-empty p {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+/* ========================================
+   FIM DO HISTÓRICO
+   ======================================== */
+
 /* Formulário de Lançamento */
 .lk-form-section {
     animation: lk-slide-in 0.3s ease-out;

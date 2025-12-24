@@ -138,13 +138,13 @@ class ContaService
                     $camposAtualizados[$key] = $value;
                 }
             }
-            
+
             // LOG: Campos que serão atualizados
             \Application\Services\LogService::info('💾 Salvando alterações', [
                 'conta_id' => $contaId,
                 'campos_atualizados' => $camposAtualizados
             ]);
-            
+
             $conta->save();
 
             // Atualizar saldo inicial se fornecido
@@ -170,13 +170,13 @@ class ContaService
             ];
         } catch (Throwable $e) {
             DB::rollBack();
-            
+
             \Application\Services\LogService::error('❌ Erro ao salvar conta', [
                 'conta_id' => $contaId,
                 'erro' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Erro ao atualizar conta: ' . $e->getMessage(),

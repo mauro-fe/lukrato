@@ -147,12 +147,12 @@ class ContasController
         ]);
 
         $dto = UpdateContaDTO::fromArray($data);
-        
+
         // LOG: DTO criado
         \Application\Services\LogService::info('📋 DTO criado para atualização', [
             'dto_array' => $dto->toArray()
         ]);
-        
+
         $resultado = $this->service->atualizarConta($id, $userId, $dto);
 
         if (!$resultado['success']) {
@@ -162,7 +162,7 @@ class ContasController
                 'erro' => $resultado['message'],
                 'errors' => $resultado['errors'] ?? null
             ]);
-            
+
             Response::json([
                 'status' => 'error',
                 'message' => $resultado['message'],
