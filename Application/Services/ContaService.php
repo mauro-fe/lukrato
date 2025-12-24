@@ -104,6 +104,18 @@ class ContaService
 
         $data = $dto->toArray();
 
+        // LOG: Dados do DTO
+        \Application\Services\LogService::info('📊 ContaService - Dados para atualização', [
+            'conta_id' => $contaId,
+            'user_id' => $userId,
+            'data_dto' => $data,
+            'conta_antes' => [
+                'nome' => $conta->nome,
+                'instituicao_financeira_id' => $conta->instituicao_financeira_id,
+                'tipo_conta' => $conta->tipo_conta
+            ]
+        ]);
+
         if (!empty($data)) {
             $errors = ContaValidator::validateUpdate($data);
             if (!empty($errors)) {
@@ -118,11 +130,20 @@ class ContaService
         DB::beginTransaction();
         try {
             // Atualizar campos da conta
+            $camposAtualizados = [];
             foreach ($data as $key => $value) {
                 if ($key !== 'saldo_inicial' && property_exists($conta, $key)) {
                     $conta->$key = $value;
+                    $camposAtualizados[$key] = $value;
                 }
             }
+            
+            // LOG: Campos que serão atualizados
+            \Application\Services\LogService::info('💾 Salvando alterações', [
+                'conta_id' => $contaId,
+                'campos_atualizados' => $camposAtualizados
+            ]);
+            
             $conta->save();
 
             // Atualizar saldo inicial se fornecido
@@ -132,12 +153,29 @@ class ContaService
 
             DB::commit();
 
+            // LOG: Sucesso
+            \Application\Services\LogService::info('✅ Conta atualizada no banco', [
+                'conta_id' => $contaId,
+                'conta_depois' => [
+                    'nome' => $conta->nome,
+                    'instituicao_financeira_id' => $conta->instituicao_financeira_id,
+                    'tipo_conta' => $conta->tipo_conta
+                ]
+            ]);
+
             return [
                 'success' => true,
                 'data' => $conta->fresh()->load('instituicaoFinanceira')->toArray(),
             ];
         } catch (Throwable $e) {
             DB::rollBack();
+            
+            \Application\Services\LogService::error('❌ Erro ao salvar conta', [
+                'conta_id' => $contaId,
+                'erro' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return [
                 'success' => false,
                 'message' => 'Erro ao atualizar conta: ' . $e->getMessage(),

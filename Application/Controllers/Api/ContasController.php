@@ -138,10 +138,31 @@ class ContasController
         $userId = Auth::id();
         $data = $this->getRequestPayload();
 
+        // LOG: Dados recebidos
+        \Application\Services\LogService::info('📝 INÍCIO - Atualização de conta', [
+            'user_id' => $userId,
+            'conta_id' => $id,
+            'data_recebida' => $data,
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN'
+        ]);
+
         $dto = UpdateContaDTO::fromArray($data);
+        
+        // LOG: DTO criado
+        \Application\Services\LogService::info('📋 DTO criado para atualização', [
+            'dto_array' => $dto->toArray()
+        ]);
+        
         $resultado = $this->service->atualizarConta($id, $userId, $dto);
 
         if (!$resultado['success']) {
+            \Application\Services\LogService::warning('❌ ERRO ao atualizar conta', [
+                'user_id' => $userId,
+                'conta_id' => $id,
+                'erro' => $resultado['message'],
+                'errors' => $resultado['errors'] ?? null
+            ]);
+            
             Response::json([
                 'status' => 'error',
                 'message' => $resultado['message'],
@@ -149,6 +170,12 @@ class ContasController
             ], isset($resultado['message']) && str_contains($resultado['message'], 'não encontrada') ? 404 : 422);
             return;
         }
+
+        // LOG: Sucesso
+        \Application\Services\LogService::info('✅ SUCESSO - Conta atualizada', [
+            'user_id' => $userId,
+            'conta_id' => $id
+        ]);
 
         Response::json($this->addCsrfToResponse([
             'success' => true,
