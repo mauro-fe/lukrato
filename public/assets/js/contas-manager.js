@@ -927,15 +927,21 @@ class ContasManager {
             return;
         }
 
+        console.log('🏦 Abrindo modal para conta:', conta);
+        console.log('📊 Saldo atual:', conta.saldo_atual);
+        console.log('📊 Saldo:', conta.saldo);
+        console.log('📊 Objeto completo:', JSON.stringify(conta, null, 2));
+
         const modalOverlay = document.getElementById('modalLancamentoOverlay');
         if (!modalOverlay) {
             this.showToast('Modal de lançamento não encontrado', 'error');
             return;
         }
 
-        // Preencher informações da conta
+        // Preencher informações da conta - tentar diferentes campos de saldo
+        const saldo = conta.saldo_atual ?? conta.saldo ?? conta.balance ?? 0;
         document.getElementById('lancamentoContaNome').textContent = conta.nome;
-        document.getElementById('lancamentoContaSaldo').textContent = this.formatCurrency(conta.saldo_atual || 0);
+        document.getElementById('lancamentoContaSaldo').textContent = this.formatCurrency(saldo);
 
         // Armazenar conta selecionada
         this.contaSelecionadaLancamento = conta;
@@ -967,7 +973,7 @@ class ContasManager {
             }
 
             const result = await response.json();
-            
+
             // A resposta pode vir como array direto ou dentro de result.data
             const lancamentos = Array.isArray(result) ? result : (result.data || result.lancamentos || []);
 

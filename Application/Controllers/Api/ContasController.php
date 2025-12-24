@@ -9,6 +9,8 @@ use Application\Services\ContaService;
 use Application\DTO\CreateContaDTO;
 use Application\DTO\UpdateContaDTO;
 use Application\Middlewares\CsrfMiddleware;
+use Application\Services\LogService;
+
 
 class ContasController
 {
@@ -58,7 +60,7 @@ class ContasController
 
             Response::json($contas);
         } catch (\Throwable $e) {
-            \Application\Services\LogService::error('Erro ao listar contas', [
+            LogService::error('Erro ao listar contas', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
@@ -77,7 +79,7 @@ class ContasController
         $data = $this->getRequestPayload();
 
         // LOG: Início da criação
-        \Application\Services\LogService::info('📥 INÍCIO - Criação de conta', [
+        LogService::info('📥 INÍCIO - Criação de conta', [
             'user_id' => $userId,
             'request_id' => uniqid('req_'),
             'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
@@ -88,7 +90,7 @@ class ContasController
         $dto = CreateContaDTO::fromArray($data, $userId);
 
         // LOG: DTO criado
-        \Application\Services\LogService::info('📋 DTO criado para nova conta', [
+        LogService::info('📋 DTO criado para nova conta', [
             'user_id' => $userId,
             'nome' => $dto->nome,
             'instituicao_id' => $dto->instituicaoFinanceiraId,
@@ -100,7 +102,7 @@ class ContasController
 
         if (!$resultado['success']) {
             // LOG: Erro na criação
-            \Application\Services\LogService::warning('❌ ERRO ao criar conta', [
+            LogService::warning('❌ ERRO ao criar conta', [
                 'user_id' => $userId,
                 'erro' => $resultado['message'],
                 'errors' => $resultado['errors'] ?? null
@@ -115,7 +117,7 @@ class ContasController
         }
 
         // LOG: Conta criada com sucesso
-        \Application\Services\LogService::info('✅ SUCESSO - Conta criada', [
+        LogService::info('✅ SUCESSO - Conta criada', [
             'user_id' => $userId,
             'conta_id' => $resultado['id'],
             'nome' => $resultado['data']['nome'] ?? null
@@ -139,7 +141,7 @@ class ContasController
         $data = $this->getRequestPayload();
 
         // LOG: Dados recebidos
-        \Application\Services\LogService::info('📝 INÍCIO - Atualização de conta', [
+        LogService::info('📝 INÍCIO - Atualização de conta', [
             'user_id' => $userId,
             'conta_id' => $id,
             'data_recebida' => $data,
@@ -149,14 +151,14 @@ class ContasController
         $dto = UpdateContaDTO::fromArray($data);
 
         // LOG: DTO criado
-        \Application\Services\LogService::info('📋 DTO criado para atualização', [
+        LogService::info('📋 DTO criado para atualização', [
             'dto_array' => $dto->toArray()
         ]);
 
         $resultado = $this->service->atualizarConta($id, $userId, $dto);
 
         if (!$resultado['success']) {
-            \Application\Services\LogService::warning('❌ ERRO ao atualizar conta', [
+            LogService::warning('❌ ERRO ao atualizar conta', [
                 'user_id' => $userId,
                 'conta_id' => $id,
                 'erro' => $resultado['message'],
@@ -172,7 +174,7 @@ class ContasController
         }
 
         // LOG: Sucesso
-        \Application\Services\LogService::info('✅ SUCESSO - Conta atualizada', [
+        LogService::info('✅ SUCESSO - Conta atualizada', [
             'user_id' => $userId,
             'conta_id' => $id
         ]);
@@ -272,7 +274,7 @@ class ContasController
 
             Response::json($instituicoes);
         } catch (\Throwable $e) {
-            \Application\Services\LogService::error('Erro ao listar instituições', [
+            LogService::error('Erro ao listar instituições', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
