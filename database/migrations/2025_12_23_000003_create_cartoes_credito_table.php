@@ -8,8 +8,8 @@ return new class
     {
         Capsule::schema()->create('cartoes_credito', function ($table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('conta_id'); // Relacionamento com a conta
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conta_id'); // Relacionamento com a conta
             $table->string('nome_cartao', 100); // Ex: "Cartão Nubank Platinum"
             $table->string('bandeira', 30); // visa, mastercard, elo, amex, etc
             $table->string('ultimos_digitos', 4); // últimos 4 dígitos
