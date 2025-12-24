@@ -86,7 +86,7 @@ class ContasController
         ]);
 
         $dto = CreateContaDTO::fromArray($data, $userId);
-        
+
         // LOG: DTO criado
         \Application\Services\LogService::info('📋 DTO criado para nova conta', [
             'user_id' => $userId,
@@ -95,7 +95,7 @@ class ContasController
             'tipo_conta' => $dto->tipoConta,
             'saldo_inicial' => $dto->saldoInicial
         ]);
-        
+
         $resultado = $this->service->criarConta($dto);
 
         if (!$resultado['success']) {
@@ -105,7 +105,7 @@ class ContasController
                 'erro' => $resultado['message'],
                 'errors' => $resultado['errors'] ?? null
             ]);
-            
+
             Response::json([
                 'status' => 'error',
                 'message' => $resultado['message'],

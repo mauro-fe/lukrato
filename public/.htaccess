@@ -4,15 +4,11 @@
 
 </IfModule>
 
-
-
-
-
 <IfModule mod_rewrite.c>
 
     RewriteEngine On
 
-    RewriteBase /lukrato/public/
+    RewriteBase /lukrato/
 
 
 
@@ -23,8 +19,6 @@
     RewriteRule ^(.*)$ index.php [QSA,L]
 
 </IfModule>
-
-
 
 # Segurança extra
 
@@ -38,8 +32,6 @@
 
 </IfModule>
 
-
-
 # Proteção contra acesso indevido
 
 <FilesMatch "\.(env|json|lock|gitignore|htaccess|sql)$">
@@ -50,13 +42,10 @@
 
 </FilesMatch>
 
-
-
-<Files "*.json">
+<Files "\*.json">
 
     Order allow,deny
 
     Deny from all
 
 </Files>
-

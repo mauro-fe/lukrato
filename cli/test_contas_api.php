@@ -9,13 +9,13 @@ echo "=== TESTE API CONTAS ===\n\n";
 
 try {
     $service = new ContaService();
-    
+
     echo "✓ ContaService instanciado com sucesso!\n\n";
-    
+
     // Testar listarContas com userId 1
     $userId = 1;
     echo "Listando contas para user_id=$userId...\n";
-    
+
     $contas = $service->listarContas(
         userId: $userId,
         arquivadas: false,
@@ -23,14 +23,13 @@ try {
         comSaldos: false,
         mes: date('Y-m')
     );
-    
+
     echo "✓ Contas retornadas: " . count($contas) . "\n";
-    
+
     if (!empty($contas)) {
         echo "\nPrimeira conta:\n";
         print_r($contas[0]);
     }
-    
 } catch (\Throwable $e) {
     echo "❌ ERRO: " . $e->getMessage() . "\n";
     echo "Arquivo: " . $e->getFile() . "\n";
