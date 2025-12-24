@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Application\Services;
 
-use Application\Models\Lancamento;
-use Application\Enums\LancamentoTipo;
+use Application\Models\Conta;
 
 /**
  * Serviço para gerenciar saldo inicial de contas.
+ * ATUALIZADO: Agora usa o campo saldo_inicial da tabela contas
  */
 class SaldoInicialService
 {
     /**
-     * Cria ou atualiza o lançamento de saldo inicial de uma conta.
+     * Atualiza o saldo inicial de uma conta.
      */
     public function createOrUpdate(
         int $userId,
@@ -22,57 +22,31 @@ class SaldoInicialService
         float $saldoInicial,
         ?string $data = null
     ): void {
-        $data = $data ?? date('Y-m-d');
-
-        // Buscar lançamento de saldo inicial existente
-        $lancamento = Lancamento::where('user_id', $userId)
-            ->where('conta_id', $contaId)
-            ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 1)
+        $conta = Conta::where('id', $contaId)
+            ->where('user_id', $userId)
             ->first();
 
-        // Se saldo for zero, remover lançamento existente
-        if (abs($saldoInicial) <= 0.00001) {
-            if ($lancamento) {
-                $lancamento->delete();
-            }
-            return;
+        if (!$conta) {
+            throw new \Exception('Conta não encontrada');
         }
 
-        // Preparar dados do lançamento
-        $isReceita = $saldoInicial >= 0;
-        $payload = [
-            'user_id' => $userId,
-            'tipo' => $isReceita ? LancamentoTipo::RECEITA->value : LancamentoTipo::DESPESA->value,
-            'data' => $lancamento?->data?->format('Y-m-d') ?? $data,
-            'categoria_id' => null,
-            'conta_id' => $contaId,
-            'conta_id_destino' => null,
-            'descricao' => 'Saldo inicial da conta ' . $contaNome,
-            'observacao' => null,
-            'valor' => abs($saldoInicial),
-            'eh_transferencia' => 0,
-            'eh_saldo_inicial' => 1,
-        ];
-
-        // Atualizar ou criar lançamento
-        if ($lancamento) {
-            $lancamento->fill($payload)->save();
-        } else {
-            Lancamento::create($payload);
-        }
+        $conta->saldo_inicial = $saldoInicial;
+        $conta->save();
     }
 
     /**
-     * Remove o lançamento de saldo inicial de uma conta.
+     * Remove o saldo inicial de uma conta (seta para 0).
      */
     public function delete(int $userId, int $contaId): void
     {
-        Lancamento::where('user_id', $userId)
-            ->where('conta_id', $contaId)
-            ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 1)
-            ->delete();
+        $conta = Conta::where('id', $contaId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($conta) {
+            $conta->saldo_inicial = 0;
+            $conta->save();
+        }
     }
 
     /**
@@ -80,17 +54,10 @@ class SaldoInicialService
      */
     public function getSaldo(int $userId, int $contaId): float
     {
-        $lancamento = Lancamento::where('user_id', $userId)
-            ->where('conta_id', $contaId)
-            ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 1)
+        $conta = Conta::where('id', $contaId)
+            ->where('user_id', $userId)
             ->first();
 
-        if (!$lancamento) {
-            return 0.0;
-        }
-
-        $valor = (float) $lancamento->valor;
-        return $lancamento->tipo === LancamentoTipo::RECEITA->value ? $valor : -$valor;
+        return $conta ? (float) $conta->saldo_inicial : 0.0;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services;
 
 use Application\Models\Lancamento;
+use Application\Models\Conta;
 use Application\Enums\LancamentoTipo;
 use DateTimeImmutable;
 use DateTime;
@@ -39,7 +40,7 @@ class ContaBalanceService
         if (!$dt || $dt->format('Y-m') !== $month) {
             $dt = new DateTime(date('Y-m') . '-01');
         }
-        
+
         return (new DateTimeImmutable($dt->format('Y-m-01')))
             ->modify('last day of this month')
             ->format('Y-m-d');
@@ -47,6 +48,7 @@ class ContaBalanceService
 
     /**
      * Retorna os saldos iniciais de cada conta.
+     * ATUALIZADO: Busca do campo contas.saldo_inicial
      * 
      * @return array Array associativo [conta_id => saldo_inicial]
      */
@@ -56,21 +58,8 @@ class ContaBalanceService
             return [];
         }
 
-        return Lancamento::where('user_id', $this->userId)
-            ->whereIn('conta_id', $this->accountIds)
-            ->where('eh_saldo_inicial', 1)
-            ->selectRaw("
-                conta_id,
-                SUM(
-                    CASE
-                        WHEN tipo = ?
-                            THEN -valor
-                        ELSE valor
-                    END
-                ) as total
-            ", [LancamentoTipo::DESPESA->value])
-            ->groupBy('conta_id')
-            ->pluck('total', 'conta_id')
+        return Conta::whereIn('id', $this->accountIds)
+            ->pluck('saldo_inicial', 'id')
             ->all();
     }
 
@@ -102,7 +91,6 @@ class ContaBalanceService
         return Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
             ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
             ->where('data', '<=', $this->endDate)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->selectRaw('conta_id, SUM(valor) as tot')
@@ -119,7 +107,6 @@ class ContaBalanceService
         return Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
             ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
             ->where('data', '<=', $this->endDate)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->selectRaw('conta_id, SUM(valor) as tot')

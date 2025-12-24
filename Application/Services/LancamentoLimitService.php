@@ -79,7 +79,6 @@ class LancamentoLimitService
 
         return (int) Lancamento::where('user_id', $userId)
             ->whereBetween('data', [$from, $to])
-            ->where('eh_saldo_inicial', 0)
             ->where('eh_transferencia', 0)
             ->count();
     }
@@ -132,8 +131,8 @@ class LancamentoLimitService
      */
     private function getBlockedMessage(array $usage): string
     {
-        $template = $this->config['messages']['limit_reached'] ?? 
-                   'Você atingiu o limite de {limit} lançamentos deste mês no plano gratuito.';
+        $template = $this->config['messages']['limit_reached'] ??
+            'Você atingiu o limite de {limit} lançamentos deste mês no plano gratuito.';
 
         return $this->interpolateMessage($template, $usage);
     }
@@ -149,14 +148,14 @@ class LancamentoLimitService
 
         $percentage = $usage['percentage'] ?? 0;
         $criticalThreshold = $this->config['limits']['free']['warning_critical_at'] ?? 45;
-        
+
         // Determina qual template usar baseado na severidade
         if ($percentage >= 90 || $usage['used'] >= $criticalThreshold) {
-            $template = $this->config['messages']['warning_critical'] ?? 
-                       '🔴 Atenção crítica! Você já usou {used} de {limit} lançamentos ({percentage}%).';
+            $template = $this->config['messages']['warning_critical'] ??
+                '🔴 Atenção crítica! Você já usou {used} de {limit} lançamentos ({percentage}%).';
         } else {
-            $template = $this->config['messages']['warning_normal'] ?? 
-                       '⚠️ Atenção: Você já usou {used} de {limit} lançamentos ({percentage}%).';
+            $template = $this->config['messages']['warning_normal'] ??
+                '⚠️ Atenção: Você já usou {used} de {limit} lançamentos ({percentage}%).';
         }
 
         return $this->interpolateMessage($template, $usage);
@@ -186,7 +185,7 @@ class LancamentoLimitService
      */
     public function getUpgradeCta(): string
     {
-        return $this->config['messages']['upgrade_cta'] ?? 
-               'Assine o Lukrato Pro e tenha lançamentos ilimitados!';
+        return $this->config['messages']['upgrade_cta'] ??
+            'Assine o Lukrato Pro e tenha lançamentos ilimitados!';
     }
 }

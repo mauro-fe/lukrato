@@ -79,6 +79,44 @@ class ContasManager {
         }
     }
 
+    /**
+     * Exibir notificação para o usuário
+     */
+    showNotification(message, type = 'info') {
+        // Se houver função global showNotification, usar ela
+        if (typeof window.showNotification === 'function') {
+            window.showNotification(message, type);
+            return;
+        }
+
+        // Fallback: usar alert simples
+        console.log(`[${type.toUpperCase()}] ${message}`);
+
+        // Criar notificação toast simples
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // Remover após 3 segundos
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     async init() {
         await this.loadInstituicoes();
         await this.loadContas();
@@ -927,19 +965,14 @@ class ContasManager {
             return;
         }
 
-        console.log('🏦 Abrindo modal para conta:', conta);
-        console.log('📊 Saldo atual:', conta.saldo_atual);
-        console.log('📊 Saldo:', conta.saldo);
-        console.log('📊 Objeto completo:', JSON.stringify(conta, null, 2));
-
         const modalOverlay = document.getElementById('modalLancamentoOverlay');
         if (!modalOverlay) {
             this.showToast('Modal de lançamento não encontrado', 'error');
             return;
         }
 
-        // Preencher informações da conta - tentar diferentes campos de saldo
-        const saldo = conta.saldo_atual ?? conta.saldo ?? conta.balance ?? 0;
+        // Preencher informações da conta - o campo é saldoAtual (com A maiúsculo)
+        const saldo = conta.saldoAtual ?? conta.saldo_atual ?? conta.saldo ?? 0;
         document.getElementById('lancamentoContaNome').textContent = conta.nome;
         document.getElementById('lancamentoContaSaldo').textContent = this.formatCurrency(saldo);
 
@@ -1056,7 +1089,7 @@ class ContasManager {
         // Configurar botão e título baseado no tipo
         const btnSalvar = document.getElementById('btnSalvarLancamento');
         const titulo = document.getElementById('modalLancamentoTitulo');
-
+        const headerGradient = document.querySelector('#modalLancamentoOverlay .lk-modal-header-gradient');
         const contaDestinoGroup = document.getElementById('contaDestinoGroup');
 
         if (tipo === 'receita') {
@@ -1064,18 +1097,27 @@ class ContasManager {
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Receita';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+            if (headerGradient) {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #28a745 0%, #20c997 100%)', 'important');
+            }
             contaDestinoGroup.style.display = 'none';
         } else if (tipo === 'despesa') {
             titulo.textContent = '💸 Nova Despesa';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Despesa';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #dc3545, #e74c3c)';
+            if (headerGradient) {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)', 'important');
+            }
             contaDestinoGroup.style.display = 'none';
         } else if (tipo === 'transferencia') {
             titulo.textContent = '🔄 Nova Transferência';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Transferência';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #17a2b8, #3498db)';
+            if (headerGradient) {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #17a2b8 0%, #3498db 100%)', 'important');
+            }
             contaDestinoGroup.style.display = 'block';
 
             // Preencher select de contas destino
@@ -1135,18 +1177,31 @@ class ContasManager {
 
                 const result = await response.json();
                 console.log('✅ Resposta da API de categorias:', result);
+                console.log('📊 Tipo da resposta:', typeof result);
+                console.log('📊 result.success:', result.success);
+                console.log('📊 result.status:', result.status);
+                console.log('📊 result.data:', result.data);
+                console.log('📊 Array.isArray(result):', Array.isArray(result));
 
-                // A resposta pode vir como { success: true, data: [...] } ou diretamente [...]
-                if (result.success && result.data) {
+                // A resposta vem como { status: 'success', data: [...] }
+                if (result.status === 'success' && result.data) {
+                    console.log('✓ Usando result.data');
+                    this.categorias = result.data;
+                } else if (result.success && result.data) {
+                    console.log('✓ Usando result.data (success)');
                     this.categorias = result.data;
                 } else if (Array.isArray(result)) {
+                    console.log('✓ result é array direto');
                     this.categorias = result;
                 } else if (result.categorias) {
+                    console.log('✓ Usando result.categorias');
                     this.categorias = result.categorias;
                 } else {
                     console.warn('⚠️ Formato de resposta inesperado:', result);
                     this.categorias = [];
                 }
+
+                console.log('📦 Categorias salvas no cache:', this.categorias);
             }
 
             console.log('📦 Total de categorias no cache:', this.categorias?.length || 0);
@@ -1297,12 +1352,12 @@ class ContasManager {
                 observacao: formData.get('observacoes') || null,
             };
 
-            let apiUrl = '/api/lancamentos';
+            let apiUrl = `${this.baseUrl}/lancamentos`;
             let requestData = data;
 
             // Se for transferência, usar endpoint específico
             if (tipo === 'transferencia') {
-                apiUrl = '/api/transfers';
+                apiUrl = `${this.baseUrl}/transfers`;
                 requestData = {
                     origem_id: contaId,
                     destino_id: contaDestinoId,
@@ -1316,11 +1371,12 @@ class ContasManager {
             console.log('Enviando lançamento:', requestData);
 
             // Enviar para API
+            const csrfToken = await this.getCSRFToken();
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': this.getCsrfToken()
+                    'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify(requestData)
             });
@@ -1333,6 +1389,23 @@ class ContasManager {
             const result = await response.json();
             console.log('✅ Lançamento criado:', result);
 
+            // Exibir dados de gamificação se disponíveis
+            if (result.data?.gamification?.points) {
+                const gamif = result.data.gamification.points;
+                if (gamif.points_gained > 0) {
+                    console.log(`🎮 +${gamif.points_gained} pontos! Total: ${gamif.total_points} pts (Nível ${gamif.level})`);
+                }
+                if (gamif.new_achievements && gamif.new_achievements.length > 0) {
+                    gamif.new_achievements.forEach(ach => {
+                        console.log(`🏆 Nova conquista desbloqueada: ${ach.name} (+${ach.points_reward} pts)`);
+                        this.showNotification(`🏆 ${ach.name} desbloqueada!`, 'success');
+                    });
+                }
+                if (gamif.level_up) {
+                    this.showNotification(`🎉 Subiu para o Nível ${gamif.level}!`, 'success');
+                }
+            }
+
             this.showNotification('Lançamento criado com sucesso!', 'success');
 
             // Fechar modal
@@ -1340,6 +1413,18 @@ class ContasManager {
 
             // Recarregar contas para atualizar saldo
             await this.loadContas();
+
+            // Atualizar dashboard se estiver disponível
+            if (typeof window.refreshDashboard === 'function') {
+                console.log('🔄 Atualizando dashboard...');
+                window.refreshDashboard();
+            } else if (window.LK?.refreshDashboard) {
+                console.log('🔄 Atualizando dashboard (LK)...');
+                window.LK.refreshDashboard();
+            }
+
+            // Disparar evento customizado para outros componentes
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
 
         } catch (error) {
             console.error('❌ Erro ao criar lançamento:', error);

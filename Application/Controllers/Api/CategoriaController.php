@@ -10,6 +10,7 @@ use Application\Enums\CategoriaTipo;
 use Application\DTOs\Requests\CreateCategoriaDTO;
 use Application\DTOs\Requests\UpdateCategoriaDTO;
 use Application\Validators\CategoriaValidator;
+use Application\Services\GamificationService;
 use GUMP;
 use Exception;
 use ValueError;
@@ -27,19 +28,27 @@ class CategoriaController extends BaseController
     public function index(): void
     {
         $this->requireAuth();
+
+        error_log("📂 [CATEGORIAS] Requisição recebida - User ID: {$this->userId}");
+
         $tipo = $this->request?->get('tipo');
+        error_log("📂 [CATEGORIAS] Tipo filtro: " . var_export($tipo, true));
 
         if ($tipo) {
             try {
                 $tipoEnum = CategoriaTipo::from(strtolower($tipo));
                 $categorias = $this->categoriaRepo->findByType($this->userId, $tipoEnum);
+                error_log("📂 [CATEGORIAS] Filtradas por tipo: " . count($categorias) . " categorias");
             } catch (ValueError) {
                 $categorias = $this->categoriaRepo->findByUser($this->userId);
+                error_log("📂 [CATEGORIAS] Tipo inválido, retornando todas: " . count($categorias));
             }
         } else {
             $categorias = $this->categoriaRepo->findByUser($this->userId);
+            error_log("📂 [CATEGORIAS] Todas as categorias: " . count($categorias));
         }
 
+        error_log("📂 [CATEGORIAS] Retornando " . count($categorias) . " categorias");
         Response::success($categorias);
     }
 
@@ -70,7 +79,25 @@ class CategoriaController extends BaseController
         $dto = CreateCategoriaDTO::fromRequest($this->userId, ['nome' => $nome, 'tipo' => $tipo]);
         $categoria = $this->categoriaRepo->create($dto->toArray());
 
-        Response::success($categoria->fresh(), 'Categoria criada com sucesso', 201);
+        // 🎮 GAMIFICAÇÃO: Adicionar pontos por criar categoria
+        $gamificationResult = [];
+        try {
+            $gamificationService = new GamificationService();
+            $pointsResult = $gamificationService->addPoints(
+                $this->userId,
+                \Application\Enums\GamificationAction::CREATE_CATEGORIA,
+                $categoria->id,
+                'categoria'
+            );
+            $gamificationResult = ['points' => $pointsResult];
+        } catch (\Exception $e) {
+            error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
+        }
+
+        Response::success([
+            'categoria' => $categoria->fresh(),
+            'gamification' => $gamificationResult,
+        ], 'Categoria criada com sucesso', 201);
     }
 
 

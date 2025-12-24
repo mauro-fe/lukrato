@@ -20,6 +20,7 @@ class Conta extends Model
         'instituicao',
         'instituicao_financeira_id',
         'tipo_conta',
+        'saldo_inicial',
         'moeda',
         'tipo_id',
         'ativo',
@@ -28,6 +29,7 @@ class Conta extends Model
     protected $casts = [
         'user_id'       => 'int',
         'instituicao_financeira_id' => 'int',
+        'saldo_inicial' => 'float',
         'tipo_id',
         'ativo'         => 'bool',
     ];

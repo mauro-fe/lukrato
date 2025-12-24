@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API Tema</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .log {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+
+        .success {
+            color: #4CAF50;
+        }
+
+        .error {
+            color: #f44336;
+        }
+
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎨 Teste API de Tema</h1>
+
+    <div class="test-box">
+        <h2>Status do Sistema</h2>
+        <p><strong>URL Base:</strong> <span id="baseUrl"></span></p>
+        <p><strong>CSRF Token:</strong> <span id="csrfStatus"></span></p>
+        <p><strong>Tema Atual (HTML):</strong> <span id="currentTheme"></span></p>
+    </div>
+
+    <div class="test-box">
+        <h2>Ações</h2>
+        <button onclick="testThemeChange('light')">Mudar para Light</button>
+        <button onclick="testThemeChange('dark')">Mudar para Dark</button>
+        <button onclick="clearLogs()">Limpar Logs</button>
+    </div>
+
+    <div class="test-box">
+        <h2>Console de Logs</h2>
+        <div class="log" id="logContainer"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        function updateStatus() {
+            const baseUrl = document.querySelector('meta[name="base-url"]')?.content || 'NÃO ENCONTRADA';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'não definido';
+
+            document.getElementById('baseUrl').textContent = baseUrl;
+            document.getElementById('csrfStatus').textContent = csrfToken ? '✅ Presente' : '❌ Ausente';
+            document.getElementById('csrfStatus').className = csrfToken ? 'success' : 'error';
+            document.getElementById('currentTheme').textContent = currentTheme;
+
+            log(`Sistema inicializado - Tema: ${currentTheme}`, 'info');
+        }
+
+        async function testThemeChange(theme) {
+            log(`🎨 Iniciando mudança para tema: ${theme}`, 'info');
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                if (!csrfToken) {
+                    log('❌ CSRF token não encontrado!', 'error');
+                    return;
+                }
+
+                log('✓ CSRF token encontrado', 'info');
+
+                const formData = new FormData();
+                formData.append('theme', theme);
+                formData.append('csrf_token', csrfToken);
+
+                log('📤 Enviando requisição POST para /api/perfil/tema', 'info');
+
+                const response = await fetch('/api/perfil/tema', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                log(`📥 Resposta recebida - Status: ${response.status}`, 'info');
+
+                const contentType = response.headers.get('content-type');
+                log(`Content-Type: ${contentType}`, 'info');
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    log(`❌ Erro HTTP ${response.status}: ${text}`, 'error');
+                    return;
+                }
+
+                const data = await response.json();
+                log(`✅ Sucesso! Resposta: ${JSON.stringify(data)}`, 'success');
+
+                // Atualizar UI
+                document.documentElement.setAttribute('data-theme', theme);
+                updateStatus();
+
+            } catch (error) {
+                log(`❌ Erro na requisição: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // Inicializar ao carregar
+        window.addEventListener('DOMContentLoaded', updateStatus);
+    </script>
+</body>
+
+</html>

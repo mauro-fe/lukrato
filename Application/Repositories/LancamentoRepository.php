@@ -47,7 +47,7 @@ class LancamentoRepository extends BaseRepository
     public function findByUserAndMonth(int $userId, string $month): Collection
     {
         [$year, $monthNum] = explode('-', $month);
-        
+
         return $this->query()
             ->where('user_id', $userId)
             ->whereYear('data', (int)$year)
@@ -152,11 +152,11 @@ class LancamentoRepository extends BaseRepository
     public function findByIdAndUserOrFail(int $id, int $userId): Lancamento
     {
         $lancamento = $this->findByIdAndUser($id, $userId);
-        
+
         if (!$lancamento) {
             throw new ModelNotFoundException('Lançamento não encontrado');
         }
-        
+
         return $lancamento;
     }
 
@@ -166,17 +166,15 @@ class LancamentoRepository extends BaseRepository
      * @param int $userId
      * @param string $month Formato: Y-m
      * @param bool $excludeTransfers Excluir transferências
-     * @param bool $excludeInitialBalance Excluir saldo inicial
      * @return int
      */
     public function countByMonth(
         int $userId,
         string $month,
-        bool $excludeTransfers = true,
-        bool $excludeInitialBalance = true
+        bool $excludeTransfers = true
     ): int {
         [$year, $monthNum] = explode('-', $month);
-        
+
         $query = $this->query()
             ->where('user_id', $userId)
             ->whereYear('data', (int)$year)
@@ -184,10 +182,6 @@ class LancamentoRepository extends BaseRepository
 
         if ($excludeTransfers) {
             $query->where('eh_transferencia', 0);
-        }
-
-        if ($excludeInitialBalance) {
-            $query->where('eh_saldo_inicial', 0);
         }
 
         return $query->count();

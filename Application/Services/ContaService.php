@@ -64,13 +64,11 @@ class ContaService
 
         DB::beginTransaction();
         try {
+            // Incluir saldo inicial no array de dados
+            $data['saldo_inicial'] = $dto->saldoInicial ?? 0;
+
             $conta = new Conta($data);
             $conta->save();
-
-            // Criar lançamento de saldo inicial se necessário
-            if (abs($dto->saldoInicial) > 0.00001) {
-                $this->criarSaldoInicial($conta, $dto->saldoInicial);
-            }
 
             DB::commit();
 
@@ -129,14 +127,19 @@ class ContaService
 
         DB::beginTransaction();
         try {
-            // Atualizar campos da conta
+            // Atualizar campos da conta (agora incluindo saldo_inicial)
             $camposAtualizados = [];
             foreach ($data as $key => $value) {
-                // Usar in_array com fillable ao invés de property_exists
-                if ($key !== 'saldo_inicial' && in_array($key, $conta->getFillable())) {
+                if (in_array($key, $conta->getFillable())) {
                     $conta->$key = $value;
                     $camposAtualizados[$key] = $value;
                 }
+            }
+
+            // Atualizar saldo inicial se fornecido
+            if ($dto->saldoInicial !== null) {
+                $conta->saldo_inicial = $dto->saldoInicial;
+                $camposAtualizados['saldo_inicial'] = $dto->saldoInicial;
             }
 
             // LOG: Campos que serão atualizados
@@ -146,11 +149,6 @@ class ContaService
             ]);
 
             $conta->save();
-
-            // Atualizar saldo inicial se fornecido
-            if ($dto->saldoInicial !== null) {
-                $this->atualizarSaldoInicial($conta, $dto->saldoInicial, $userId);
-            }
 
             DB::commit();
 
@@ -264,66 +262,9 @@ class ContaService
     }
 
     /**
-     * Criar lançamento de saldo inicial
+     * REMOVIDO: Métodos criarSaldoInicial e atualizarSaldoInicial
+     * Agora o saldo inicial é armazenado diretamente no campo contas.saldo_inicial
      */
-    private function criarSaldoInicial(Conta $conta, float $valor): void
-    {
-        $isReceita = $valor >= 0;
-
-        Lancamento::create([
-            'user_id' => $conta->user_id,
-            'tipo' => $isReceita ? 'receita' : 'despesa',
-            'data' => date('Y-m-d'),
-            'categoria_id' => null,
-            'conta_id' => $conta->id,
-            'conta_id_destino' => null,
-            'descricao' => 'Saldo inicial da conta ' . $conta->nome,
-            'observacao' => null,
-            'valor' => abs($valor),
-            'eh_transferencia' => 0,
-            'eh_saldo_inicial' => 1,
-        ]);
-    }
-
-    /**
-     * Atualizar lançamento de saldo inicial
-     */
-    private function atualizarSaldoInicial(Conta $conta, float $novoValor, int $userId): void
-    {
-        $lancamento = Lancamento::where('user_id', $userId)
-            ->where('conta_id', $conta->id)
-            ->where('eh_saldo_inicial', 1)
-            ->first();
-
-        if (abs($novoValor) <= 0.00001) {
-            // Remover saldo inicial
-            if ($lancamento) {
-                $lancamento->delete();
-            }
-            return;
-        }
-
-        $isReceita = $novoValor >= 0;
-        $payload = [
-            'user_id' => $userId,
-            'tipo' => $isReceita ? 'receita' : 'despesa',
-            'data' => $lancamento?->data?->format('Y-m-d') ?? date('Y-m-d'),
-            'categoria_id' => null,
-            'conta_id' => $conta->id,
-            'conta_id_destino' => null,
-            'descricao' => 'Saldo inicial da conta ' . $conta->nome,
-            'observacao' => null,
-            'valor' => abs($novoValor),
-            'eh_transferencia' => 0,
-            'eh_saldo_inicial' => 1,
-        ];
-
-        if ($lancamento) {
-            $lancamento->fill($payload)->save();
-        } else {
-            Lancamento::create($payload);
-        }
-    }
 
     /**
      * Calcular saldos das contas
@@ -343,23 +284,15 @@ class ContaService
             ->modify('last day of this month')
             ->format('Y-m-d');
 
-        // Saldos iniciais
-        $saldosIniciais = Lancamento::where('user_id', $userId)
-            ->whereIn('conta_id', $contaIds)
-            ->where('eh_saldo_inicial', 1)
-            ->selectRaw("
-                conta_id,
-                SUM(CASE WHEN tipo = 'despesa' THEN -valor ELSE valor END) as total
-            ")
-            ->groupBy('conta_id')
-            ->pluck('total', 'conta_id')
+        // Saldos iniciais (agora do campo da tabela contas)
+        $saldosIniciais = Conta::whereIn('id', $contaIds)
+            ->pluck('saldo_inicial', 'id')
             ->all();
 
-        // Receitas
+        // Receitas (não precisa mais filtrar eh_saldo_inicial)
         $receitas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'receita')
             ->selectRaw('conta_id, SUM(valor) as total')
@@ -367,11 +300,10 @@ class ContaService
             ->pluck('total', 'conta_id')
             ->all();
 
-        // Despesas
+        // Despesas (não precisa mais filtrar eh_saldo_inicial)
         $despesas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'despesa')
             ->selectRaw('conta_id, SUM(valor) as total')

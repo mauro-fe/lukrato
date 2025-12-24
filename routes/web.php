@@ -105,6 +105,8 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth']);
 
+    Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth']);
+
     Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth']);
 
     Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth']);
@@ -224,6 +226,12 @@ function registerApiRoutes(): void
 
     // Router::add('POST','/api/categorias/delete',        'Api\\CategoriaController@delete', ['auth','csrf']);
 
+
+    // 🎮 GAMIFICAÇÃO
+    Router::add('GET',  '/api/gamification/progress',      'Api\\GamificationController@getProgress',         ['auth']);
+    Router::add('GET',  '/api/gamification/achievements',  'Api\\GamificationController@getAchievements',     ['auth']);
+    Router::add('POST', '/api/gamification/achievements/mark-seen', 'Api\\GamificationController@markAchievementsSeen', ['auth', 'csrf']);
+    Router::add('GET',  '/api/gamification/leaderboard',   'Api\\GamificationController@getLeaderboard',      ['auth']);
 
 
     // Investimentos
@@ -358,3 +366,9 @@ function redirectToUserDashboard(): void
 
     exit;
 }
+
+// Registrar todas as rotas
+registerRedirectRoutes();
+registerAppRoutes();
+registerApiRoutes();
+registerBillingRoutes();

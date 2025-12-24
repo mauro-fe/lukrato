@@ -8,6 +8,7 @@ date_default_timezone_set('America/Sao_Paulo');
 // Definir caminhos
 define('BASE_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', realpath(__DIR__));
+define('ASSETS_URL', '/lukrato/public/assets/');
 
 // Verificar autoload do Composer
 $autoloadPath = BASE_PATH . '/vendor/autoload.php';
@@ -27,7 +28,7 @@ if (!file_exists($envPath)) {
 try {
     $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
     $dotenv->load();
-    
+
     // Validar variáveis obrigatórias em produção
     $env = $_ENV['APP_ENV'] ?? 'production';
     if ($env === 'production') {
@@ -51,7 +52,7 @@ try {
     $app->run();
 } catch (Throwable $e) {
     http_response_code(500);
-    
+
     // Em desenvolvimento, mostrar erro detalhado
     if (($_ENV['APP_DEBUG'] ?? false) && $env !== 'production') {
         echo '<h1>Erro na Aplicação</h1>';
@@ -60,7 +61,7 @@ try {
     } else {
         // Em produção, mensagem genérica
         echo 'Erro interno do servidor. Por favor, tente novamente mais tarde.';
-        
+
         // Log do erro
         error_log('Application Error: ' . $e->getMessage());
     }

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+    <rect width="200" height="200" rx="20" fill="#f3ba2f" />
+    <g transform="translate(100, 100)">
+        <!-- Diamond shape (Binance logo) -->
+        <polygon points="0,-40 30,-20 30,20 0,40 -30,20 -30,-20" fill="white" />
+        <polygon points="0,-20 10,-10 10,10 0,20 -10,10 -10,-10" fill="#f3ba2f" />
+        <!-- Side diamonds -->
+        <polygon points="-50,0 -40,-10 -30,0 -40,10" fill="white" />
+        <polygon points="50,0 40,-10 30,0 40,10" fill="white" />
+    </g>
+    <text x="100" y="170" font-family="Arial, sans-serif" font-size="20" font-weight="bold"
+        text-anchor="middle" fill="white">BINANCE</text>
+</svg>

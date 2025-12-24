@@ -952,7 +952,7 @@
                 Renderers.updateMonthLabel(month);
 
                 // Buscar dados para gamificação (todas as transações do usuário)
-                const allTransactionsPromise = fetch(`${CONFIG.API_URL}lancamentos/list?limit=1000`, {
+                const allTransactionsPromise = fetch(`${CONFIG.API_URL}lancamentos?limit=1000`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'

@@ -19,10 +19,18 @@ $showUpgradeCTA = !($currentUser && method_exists($currentUser, 'isPro') && $cur
 $active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
 $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
 
+// Obter tema do usuário do banco de dados
+$userTheme = 'dark'; // valor padrão
+if ($currentUser && isset($currentUser->theme_preference)) {
+    $userTheme = in_array($currentUser->theme_preference, ['light', 'dark'])
+        ? $currentUser->theme_preference
+        : 'dark';
+}
+
 ?>
 
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="<?= htmlspecialchars($userTheme, ENT_QUOTES, 'UTF-8') ?>">
 
 <head>
     <meta charset="utf-8" />
@@ -70,6 +78,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
     <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
+
+    <!-- Sistema de Onboarding (carrega em todas as páginas) -->
+    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"
+        defer></script>
 
     <!-- ============================================================================
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
@@ -241,11 +253,11 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <span>Contas</span>
             </a>
 
-            <!-- Lançamentos -->
-            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Lançamentos</span>
+            <!-- Cartões -->
+            <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
+                title="Cartões de Crédito">
+                <i class="fas fa-credit-card" aria-hidden="true"></i>
+                <span>Cartões</span>
             </a>
 
             <!-- Categorias -->
@@ -254,6 +266,14 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <i class="fas fa-tags"></i>
                 <span>Categorias</span>
             </a>
+
+            <!-- Lançamentos -->
+            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
+                <?= $aria('lancamentos') ?> title="Lançamentos">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Lançamentos</span>
+            </a>
+
 
             <!-- Relatórios -->
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>

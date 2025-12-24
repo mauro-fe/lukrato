@@ -273,9 +273,6 @@ class FinanceiroController extends BaseController
             if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
                 throw new ValueError('Transferências não podem ser editadas aqui.');
             }
-            if ((bool)($lancamento->eh_saldo_inicial ?? 0) === true) {
-                throw new ValueError('Saldo inicial não pode ser editado.');
-            }
 
             $payload = $this->getRequestPayload();
 

@@ -6,6 +6,7 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\LancamentoExportService;
+use Application\Services\GamificationService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
 use Application\Services\LancamentoLimitService;
@@ -29,6 +30,7 @@ class LancamentosController extends BaseController
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
     private UserPlanService $planService;
+    private GamificationService $gamificationService;
 
     public function __construct(
         ?LancamentoExportService $exportService = null,
@@ -40,6 +42,7 @@ class LancamentosController extends BaseController
         $this->categoriaRepo = new CategoriaRepository();
         $this->contaRepo = new ContaRepository();
         $this->planService = new UserPlanService();
+        $this->gamificationService = new GamificationService();
     }
     // =============================================================================
     // HELPERS
@@ -262,10 +265,34 @@ class LancamentosController extends BaseController
         $lancamento = $this->lancamentoRepo->create($dto->toArray());
         $lancamento->loadMissing(['categoria', 'conta']);
 
+        // 🎮 GAMIFICAÇÃO: Adicionar pontos e atualizar streak
+        $gamificationResult = [];
+        try {
+            // Adicionar pontos por criar lançamento
+            $pointsResult = $this->gamificationService->addPoints(
+                $userId,
+                \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
+                $lancamento->id,
+                'lancamento'
+            );
+
+            // Atualizar streak diária
+            $streakResult = $this->gamificationService->updateStreak($userId);
+
+            $gamificationResult = [
+                'points' => $pointsResult,
+                'streak' => $streakResult,
+            ];
+        } catch (\Exception $e) {
+            error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
+            // Não falhar a requisição por erro na gamificação
+        }
+
         Response::success([
             'lancamento' => LancamentoResponseFormatter::format($lancamento),
             'usage' => $usage,
-            'ui_message' => $this->planService->getUsageMessage($usage)
+            'ui_message' => $this->planService->getUsageMessage($usage),
+            'gamification' => $gamificationResult, // Dados de gamificação para o frontend
         ], 'Lancamento criado', 201);
     }
 
@@ -286,10 +313,6 @@ class LancamentosController extends BaseController
             return;
         }
 
-        if ((bool)($lancamento->eh_saldo_inicial ?? 0) === true) {
-            Response::error('Nao e possivel editar o saldo inicial.', 422);
-            return;
-        }
         if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
             Response::error('Nao e possivel editar uma transferencia. Crie uma nova.', 422);
             return;
@@ -353,11 +376,6 @@ class LancamentosController extends BaseController
 
         if (!$t) {
             Response::error('Lancamento nao encontrado', 404);
-            return;
-        }
-
-        if ((bool)($t->eh_saldo_inicial ?? 0) === true) {
-            Response::error('Nao e possivel excluir o saldo inicial.', 422);
             return;
         }
 
