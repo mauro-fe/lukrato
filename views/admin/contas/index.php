@@ -75,10 +75,38 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
-    
-    // Limpar qualquer código JavaScript antigo em cache
-    if ('caches' in window) {
-        caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-    }
+
+    // Garantir que apenas o sistema moderno seja usado
+    // Bloquear qualquer tentativa de carregar o sistema antigo
+    (function() {
+        'use strict';
+
+        // Limpar cache de service workers e caches
+        if ('caches' in window) {
+            caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+        }
+
+        // Prevenir carregamento de scripts antigos
+        const oldScriptPattern = /admin-contas-index/;
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.tagName === 'SCRIPT' && oldScriptPattern.test(node.src)) {
+                        console.warn('🚫 Bloqueado script antigo:', node.src);
+                        node.remove();
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('✅ Sistema moderno de contas carregado');
+    })();
 </script>
-<script src="<?= BASE_URL ?>assets/js/contas-manager.js?v=<?= md5_file(__DIR__ . '/../../../public/assets/js/contas-manager.js') ?>"></script>
+<script
+    src="<?= BASE_URL ?>assets/js/contas-manager.js?v=<?= md5_file(__DIR__ . '/../../../public/assets/js/contas-manager.js') ?>">
+</script>
