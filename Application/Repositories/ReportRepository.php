@@ -6,8 +6,8 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
-use Application\DTO\ReportParameters;
-use Application\Controllers\Api\LancamentoTipo;
+use Application\DTOs\ReportParameters;
+use Application\Enums\LancamentoTipo;
 
 /**
  * Repositório para buscar dados brutos para os relatórios.

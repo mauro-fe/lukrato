@@ -2,34 +2,33 @@
 
 namespace Application\Controllers\Api;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
-use Application\Models\Categoria;
-use Application\Models\Conta;
-use Application\Models\Lancamento;
-use Application\Models\Usuario;
 use Application\Services\LancamentoExportService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
 use Application\Services\LancamentoLimitService;
+use Application\Services\UserPlanService;
+use Application\Formatters\LancamentoResponseFormatter;
+use Application\Enums\LancamentoTipo;
+use Application\Repositories\LancamentoRepository;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
+use Application\DTOs\Requests\CreateLancamentoDTO;
+use Application\DTOs\Requests\UpdateLancamentoDTO;
+use Application\Validators\LancamentoValidator;
 use InvalidArgumentException;
 use ValueError;
 
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-
-    public static function listValues(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
-}
-
-class LancamentosController
+class LancamentosController extends BaseController
 {
     private LancamentoLimitService $limitService;
     private LancamentoExportService $exportService;
+    private LancamentoRepository $lancamentoRepo;
+    private CategoriaRepository $categoriaRepo;
+    private ContaRepository $contaRepo;
+    private UserPlanService $planService;
 
     public function __construct(
         ?LancamentoExportService $exportService = null,
@@ -37,20 +36,14 @@ class LancamentosController
     ) {
         $this->exportService = $exportService ?? new LancamentoExportService();
         $this->limitService  = $limitService ?? new LancamentoLimitService();
+        $this->lancamentoRepo = new LancamentoRepository();
+        $this->categoriaRepo = new CategoriaRepository();
+        $this->contaRepo = new ContaRepository();
+        $this->planService = new UserPlanService();
     }
-
     // =============================================================================
     // HELPERS
     // =============================================================================
-
-    private function getRequestPayload(): array
-    {
-        $payload = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (empty($payload)) {
-            $payload = $_POST ?? [];
-        }
-        return $payload;
-    }
 
     private function parseCategoriaParam(string $param): array
     {
@@ -66,38 +59,13 @@ class LancamentosController
         return ['id' => $id, 'isNull' => $isNull];
     }
 
-    private function validateAndSanitizeValor(mixed $valorRaw, array &$errors): float
-    {
-        if (is_string($valorRaw)) {
-            $s = trim($valorRaw);
-            $s = str_replace(['R$', ' ', '.'], '', $s);
-            $s = str_replace(',', '.', $s);
-            $valorRaw = $s;
-        }
-
-        if (!is_numeric($valorRaw) || !is_finite((float)$valorRaw)) {
-            $errors['valor'] = 'Valor inválido.';
-            return 0.0;
-        }
-
-        $valor = abs((float)$valorRaw);
-        return round($valor, 2);
-    }
-
     private function validateCategoria(?int $id, int $userId, array &$errors): ?int
     {
         if ($id === null || $id <= 0) {
             return null;
         }
 
-        $exists = Categoria::where('id', $id)
-            ->where(function ($q) use ($userId) {
-                $q->whereNull('user_id')
-                    ->orWhere('user_id', $userId);
-            })
-            ->exists();
-
-        if ($exists) {
+        if ($this->categoriaRepo->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -111,7 +79,7 @@ class LancamentosController
             return null;
         }
 
-        if (Conta::forUser($userId)->where('id', $id)->exists()) {
+        if ($this->contaRepo->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -253,23 +221,11 @@ class LancamentosController
         }
 
         $payload = $this->getRequestPayload();
-        $errors = [];
-
-        $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
-        try {
-            $tipo = LancamentoTipo::from($tipo)->value;
-        } catch (ValueError) {
-            $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
-        }
-
-        $data = (string)($payload['data'] ?? '');
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
-        }
-
-        $valorRaw = $payload['valor'] ?? 0;
-        $valor = $this->validateAndSanitizeValor($valorRaw, $errors);
-
+        
+        // Validar com o validator
+        $errors = LancamentoValidator::validateCreate($payload);
+        
+        // Validar conta e categoria (regras de negócio)
         $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
         $contaId = is_scalar($contaId) ? (int)$contaId : null;
         $contaId = $this->validateConta($contaId, $userId, $errors);
@@ -277,66 +233,39 @@ class LancamentosController
         $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
         $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
         $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
-
-        $descricao = trim((string)($payload['descricao'] ?? ''));
-        $observacao = trim((string)($payload['observacao'] ?? ''));
-
-        $descricao = mb_substr($descricao, 0, 190);
-        $observacao = mb_substr($observacao, 0, 500);
-
+        
         if (!empty($errors)) {
             Response::validationError($errors);
             return;
         }
 
-        $lancamento = Lancamento::create([
-            'user_id' => $userId,
-            'tipo' => $tipo,
-            'data' => $data,
-            'valor' => $valor,
-            'descricao' => $descricao,
-            'observacao' => $observacao,
+        // Criar DTO
+        $dto = CreateLancamentoDTO::fromRequest($userId, [
+            'tipo' => strtolower(trim($payload['tipo'])),
+            'data' => $payload['data'],
+            'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
+            'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
+            'observacao' => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
             'categoria_id' => $categoriaId,
             'conta_id' => $contaId,
-            'conta_id_destino' => null,
-            'eh_transferencia' => 0,
-            'eh_saldo_inicial' => 0,
         ]);
 
-        $lancamento->loadMissing(['categoria', 'conta']);
-
-        // Valida limites e obtém informações de uso
-        $ym = substr($data, 0, 7);
+        // Verificar limite antes de criar
         try {
-            $usage = $this->limitService->assertCanCreate($userId, $data);
+            $usage = $this->limitService->assertCanCreate($userId, $dto->data);
         } catch (\DomainException $e) {
             Response::error($e->getMessage(), 402);
             return;
         }
 
-        // Prepara resposta com dados do lançamento
-        $lancamentoData = [
-            'id'               => (int) $lancamento->id,
-            'data'             => (string) $lancamento->data,
-            'tipo'             => (string) $lancamento->tipo,
-            'valor'            => (float) $lancamento->valor,
-            'descricao'        => (string) ($lancamento->descricao ?? ''),
-            'observacao'       => (string) ($lancamento->observacao ?? ''),
-            'categoria_id'     => (int) $lancamento->categoria_id ?: null,
-            'conta_id'         => (int) $lancamento->conta_id ?: null,
-            'eh_transferencia' => (bool) $lancamento->eh_transferencia,
-            'eh_saldo_inicial' => (bool) $lancamento->eh_saldo_inicial,
-            'categoria'        => $lancamento->categoria?->nome ?? '',
-            'categoria_nome'   => $lancamento->categoria?->nome ?? '',
-            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-        ];
+        // Criar lançamento
+        $lancamento = $this->lancamentoRepo->create($dto->toArray());
+        $lancamento->loadMissing(['categoria', 'conta']);
 
         Response::success([
-            'lancamento' => $lancamentoData,
-            'usage'      => $usage,
-            'ui_message' => $this->limitService->getWarningMessage($usage),
-            'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
+            'lancamento' => LancamentoResponseFormatter::format($lancamento),
+            'usage' => $usage,
+            'ui_message' => $this->planService->getUsageMessage($usage)
         ], 'Lancamento criado', 201);
     }
 
@@ -350,9 +279,7 @@ class LancamentosController
 
         $payload = $this->getRequestPayload();
 
-        $lancamento = Lancamento::where('user_id', $userId)
-            ->where('id', $id)
-            ->first();
+        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
 
         if (!$lancamento) {
             Response::error('Lancamento nao encontrado', 404);
@@ -368,71 +295,50 @@ class LancamentosController
             return;
         }
 
-        $errors = [];
+        // Mesclar dados atuais com novos
+        $mergedData = [
+            'tipo' => $payload['tipo'] ?? $lancamento->tipo,
+            'data' => $payload['data'] ?? $lancamento->data,
+            'valor' => $payload['valor'] ?? $lancamento->valor,
+            'descricao' => $payload['descricao'] ?? $lancamento->descricao,
+            'observacao' => $payload['observacao'] ?? $lancamento->observacao,
+            'conta_id' => $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id,
+            'categoria_id' => $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id,
+        ];
 
-        $tipo = strtolower(trim((string)($payload['tipo'] ?? $lancamento->tipo ?? '')));
-        try {
-            $tipo = LancamentoTipo::from($tipo)->value;
-        } catch (ValueError) {
-            $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
-        }
+        // Validar
+        $errors = LancamentoValidator::validateUpdate($mergedData);
 
-        $data = (string)($payload['data'] ?? $lancamento->data ?? '');
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
-        }
-
-        $valorRaw = $payload['valor'] ?? $lancamento->valor ?? 0;
-        $valor = $this->validateAndSanitizeValor($valorRaw, $errors);
-
-        $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id;
-        $contaId = is_scalar($contaId) ? (int)$contaId : null;
+        // Validar conta e categoria (regras de negócio)
+        $contaId = is_scalar($mergedData['conta_id']) ? (int)$mergedData['conta_id'] : null;
         $contaId = $this->validateConta($contaId, $userId, $errors);
 
-        $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id;
-        $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
+        $categoriaId = is_scalar($mergedData['categoria_id']) ? (int)$mergedData['categoria_id'] : null;
         $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
-
-        $descricao = trim((string)($payload['descricao'] ?? $lancamento->descricao ?? ''));
-        $observacao = trim((string)($payload['observacao'] ?? $lancamento->observacao ?? ''));
-
-        $descricao = mb_substr($descricao, 0, 190);
-        $observacao = mb_substr($observacao, 0, 500);
 
         if (!empty($errors)) {
             Response::validationError($errors);
             return;
         }
 
-        $lancamento->tipo = $tipo;
-        $lancamento->data = $data;
-        $lancamento->valor = $valor;
-        $lancamento->descricao = $descricao;
-        $lancamento->observacao = $observacao;
-        $lancamento->categoria_id = $categoriaId;
-        $lancamento->conta_id = $contaId;
-        $lancamento->conta_id_destino = null;
-        $lancamento->eh_transferencia = 0;
-        $lancamento->save();
-
-        $lancamento->refresh()->loadMissing(['categoria', 'conta']);
-
-        Response::success([
-            'id'               => (int)$lancamento->id,
-            'data'             => (string)$lancamento->data,
-            'tipo'             => (string)$lancamento->tipo,
-            'valor'            => (float)$lancamento->valor,
-            'descricao'        => (string)($lancamento->descricao ?? ''),
-            'observacao'       => (string)($lancamento->observacao ?? ''),
-            'categoria_id'     => (int)$lancamento->categoria_id ?: null,
-            'conta_id'         => (int)$lancamento->conta_id ?: null,
-            'eh_transferencia' => (bool)$lancamento->eh_transferencia,
-            'eh_saldo_inicial' => (bool)$lancamento->eh_saldo_inicial,
-            'categoria'        => $lancamento->categoria?->nome ?? '',
-            'categoria_nome'   => $lancamento->categoria?->nome ?? '',
-            'conta'            => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            'conta_nome'       => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
+        // Criar DTO
+        $dto = UpdateLancamentoDTO::fromRequest([
+            'tipo' => strtolower(trim($mergedData['tipo'])),
+            'data' => $mergedData['data'],
+            'valor' => LancamentoValidator::sanitizeValor($mergedData['valor']),
+            'descricao' => mb_substr(trim($mergedData['descricao'] ?? ''), 0, 190),
+            'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
+            'categoria_id' => $categoriaId,
+            'conta_id' => $contaId,
         ]);
+
+        // Atualizar
+        $this->lancamentoRepo->update($id, $dto->toArray());
+
+        $lancamento = $this->lancamentoRepo->find($id);
+        $lancamento->loadMissing(['categoria', 'conta']);
+
+        Response::success(LancamentoResponseFormatter::format($lancamento));
     }
 
     public function destroy(int $id): void
@@ -443,10 +349,7 @@ class LancamentosController
             return;
         }
 
-        /** @var Lancamento|null $t */
-        $t = Lancamento::where('user_id', $uid)
-            ->where('id', $id)
-            ->first();
+        $t = $this->lancamentoRepo->findByIdAndUser($id, $uid);
 
         if (!$t) {
             Response::error('Lancamento nao encontrado', 404);
@@ -458,7 +361,7 @@ class LancamentosController
             return;
         }
 
-        $t->delete();
+        $this->lancamentoRepo->delete($id);
         Response::success(['ok' => true]);
     }
 
@@ -483,9 +386,9 @@ class LancamentosController
         $usage = $this->limitService->usage($userId, $month);
 
         Response::success([
-            'usage'       => $usage,
-            'ui_message'  => $this->limitService->getWarningMessage($usage),
-            'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
+            'usage' => $usage,
+            'ui_message' => $this->limitService->getWarningMessage($usage),
+            'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null
         ]);
     }
 }

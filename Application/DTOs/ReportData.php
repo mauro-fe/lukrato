@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Application\DTO;
+namespace Application\DTOs;
 
 /**
  * Objeto imutável para garantir integridade dos dados do relatório.

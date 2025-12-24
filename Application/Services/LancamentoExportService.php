@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services;
 
-use Application\Controllers\Api\LancamentoTipo;
-use Application\DTO\ReportData;
+use Application\Enums\LancamentoTipo;
+use Application\DTOs\ReportData;
 use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;

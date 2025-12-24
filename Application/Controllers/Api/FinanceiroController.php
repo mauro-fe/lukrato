@@ -2,12 +2,22 @@
 
 namespace Application\Controllers\Api;
 
+use Application\Controllers\BaseController;
 use Application\Core\Request;
 use Application\Core\Response;
 use Application\Models\Lancamento;
 use Application\Models\Categoria;
 use Application\Services\LancamentoLimitService;
+use Application\Services\TransferenciaService;
 use Application\Models\Conta;
+use Application\Enums\LancamentoTipo;
+use Application\Enums\CategoriaTipo;
+use Application\Validators\LancamentoValidator;
+use Application\DTOs\Requests\CreateLancamentoDTO;
+use Application\DTOs\Requests\UpdateLancamentoDTO;
+use Application\Repositories\LancamentoRepository;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
 use Carbon\Carbon;
 use Application\Lib\Auth;
 use ValueError;
@@ -15,75 +25,27 @@ use Throwable;
 use Illuminate\Database\Eloquent\Builder;
 use DomainException;
 
-
-
-enum LancamentoTipo: string
-{
-    case DESPESA = 'despesa';
-    case RECEITA = 'receita';
-    case AMBAS = 'ambas';
-}
-
-class FinanceiroController
+class FinanceiroController extends BaseController
 {
     private LancamentoLimitService $limitService;
+    private TransferenciaService $transferenciaService;
+    private LancamentoRepository $lancamentoRepo;
+    private CategoriaRepository $categoriaRepo;
+    private ContaRepository $contaRepo;
 
-    public function __construct(?LancamentoLimitService $limitService = null)
-    {
+    public function __construct(
+        ?LancamentoLimitService $limitService = null,
+        ?TransferenciaService $transferenciaService = null,
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?CategoriaRepository $categoriaRepo = null,
+        ?ContaRepository $contaRepo = null
+    ) {
         $this->limitService = $limitService ?? new LancamentoLimitService();
+        $this->transferenciaService = $transferenciaService ?? new TransferenciaService();
+        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
+        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
+        $this->contaRepo = $contaRepo ?? new ContaRepository();
     }
-
-
-    private function getRequestPayload(): array
-    {
-        $raw = file_get_contents('php://input');
-        $data = json_decode($raw, true) ?: [];
-
-        if (empty($data)) {
-            $data = $_POST ?? [];
-        }
-        return $data;
-    }
-
-
-    private function validateTipo(string $tipo): string
-    {
-        $tipo = strtolower(trim($tipo));
-
-        if (!in_array($tipo, [LancamentoTipo::RECEITA->value, LancamentoTipo::DESPESA->value], true)) {
-            throw new ValueError('Tipo inválido. Use "receita" ou "despesa".');
-        }
-        return $tipo;
-    }
-
-
-    private function validateAndSanitizeValor(mixed $valorRaw): float
-    {
-        if (is_string($valorRaw)) {
-            $s = trim(str_replace(['R$', ' ', '.'], '', $valorRaw));
-            $s = str_replace(',', '.', $s);
-            $valor = is_numeric($s) ? (float)$s : null;
-        } else {
-            $valor = is_numeric($valorRaw) ? (float)$valorRaw : null;
-        }
-
-        if ($valor === null || !is_finite($valor) || $valor <= 0) {
-            throw new ValueError('Valor deve ser um número maior que zero.');
-        }
-
-        return round($valor, 2);
-    }
-
-
-    private function validateData(string $dataStr): string
-    {
-        $dt = \DateTime::createFromFormat('Y-m-d', $dataStr);
-        if (!$dt || $dt->format('Y-m-d') !== $dataStr) {
-            throw new ValueError('Data inválida (YYYY-MM-DD).');
-        }
-        return $dataStr;
-    }
-
 
     public function metrics(): void
     {
@@ -190,7 +152,7 @@ class FinanceiroController
             $baseCatsQuery = fn(string $tipo) => Categoria::where(function (Builder $q) use ($uid) {
                 $q->whereNull('user_id')->orWhere('user_id', $uid);
             })
-                ->whereIn('tipo', [$tipo, LancamentoTipo::AMBAS->value])
+                ->whereIn('tipo', [$tipo, CategoriaTipo::AMBAS->value])
                 ->orderBy('nome')
                 ->get(['id', 'nome']);
 
@@ -217,83 +179,66 @@ class FinanceiroController
     public function store(): void
     {
         try {
-            $data = $this->getRequestPayload();
-            $uid  = Auth::id();
+            $payload = $this->getRequestPayload();
+            $uid = Auth::id();
 
             if (!$uid) {
                 Response::error('Nao autenticado', 401);
                 return;
             }
 
-            $tipo    = $this->validateTipo($data['tipo'] ?? LancamentoTipo::DESPESA->value);
-            $dataStr = $this->validateData($data['data'] ?? date('Y-m-d'));
-            $valor   = $this->validateAndSanitizeValor($data['valor'] ?? 0);
+            // Validar com o validator
+            $errors = LancamentoValidator::validateCreate($payload);
 
-            // ============================
-            // LIMITE MENSAL (FREE) - CENTRALIZADO
-            // ============================
+            // Validar conta e categoria (regras de negócio)
+            $contaId = $payload['conta_id'] ?? null;
+            $contaId = is_scalar($contaId) ? (int)$contaId : null;
+            if ($contaId && !$this->contaRepo->belongsToUser($contaId, $uid)) {
+                $errors['conta_id'] = 'Conta inválida.';
+            }
+
+            $categoriaId = $payload['categoria_id'] ?? null;
+            $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
+            if ($categoriaId && !$this->categoriaRepo->belongsToUser($categoriaId, $uid)) {
+                $errors['categoria_id'] = 'Categoria inválida.';
+            }
+
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
+            }
+
+            // Verificar limite antes de criar
             try {
-                $usage = $this->limitService->assertCanCreate($uid, $dataStr);
+                $usage = $this->limitService->assertCanCreate($uid, $payload['data']);
             } catch (DomainException $e) {
                 Response::error($e->getMessage(), 402);
                 return;
             }
 
-            $categoriaId = $data['categoria_id'] ?? null;
-            if ($categoriaId !== null && $categoriaId !== '') {
-                $categoriaId = (int)$categoriaId;
-
-                /** @var Categoria|null $cat */
-                $cat = Categoria::where('id', $categoriaId)
-                    ->where(fn(Builder $q) => $q->whereNull('user_id')->orWhere('user_id', $uid))
-                    ->first();
-
-                if (!$cat) {
-                    throw new ValueError('Categoria inválida.');
-                }
-
-                if (!in_array($cat->tipo, [LancamentoTipo::AMBAS->value, $tipo], true)) {
-                    throw new ValueError('Categoria incompatível com o tipo de lançamento.');
-                }
-            } else {
-                $categoriaId = null;
-            }
-
-            $contaId = $data['conta_id'] ?? null;
-            if ($contaId !== null && $contaId !== '') {
-                $contaId = (int)$contaId;
-
-                if (!Conta::forUser($uid)->find($contaId)) {
-                    throw new ValueError('Conta inválida.');
-                }
-            } else {
-                $contaId = null;
-            }
-
-            $t = new Lancamento([
-                'user_id'           => $uid,
-                'tipo'              => $tipo,
-                'data'              => $dataStr,
-                'categoria_id'      => $categoriaId,
-                'conta_id'          => $contaId,
-                'descricao'         => isset($data['descricao']) ? trim((string)$data['descricao']) : null,
-                'observacao'        => isset($data['observacao']) ? trim((string)$data['observacao']) : null,
-                'valor'             => $valor,
-                'eh_transferencia'  => 0,
-                'eh_saldo_inicial'  => 0, // garante que entra na contagem (se seu default já é 0, ok)
+            // Criar DTO
+            $dto = CreateLancamentoDTO::fromRequest($uid, [
+                'tipo' => strtolower(trim($payload['tipo'])),
+                'data' => $payload['data'],
+                'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
+                'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
+                'observacao' => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
+                'categoria_id' => $categoriaId,
+                'conta_id' => $contaId,
             ]);
 
-            $t->save();
+            // Criar lançamento
+            $lancamento = $this->lancamentoRepo->create($dto->toArray());
 
-            // Atualiza uso e gera mensagens apropriadas
-            $usage = $this->limitService->usage($uid, substr($dataStr, 0, 7));
+            // Atualizar usage
+            $usage = $this->limitService->usage($uid, substr($payload['data'], 0, 7));
 
             Response::success([
-                'ok'          => true,
-                'id'          => (int) $t->id,
-                'usage'       => $usage,
-                'ui_message'  => $this->limitService->getWarningMessage($usage),
-                'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
+                'ok' => true,
+                'id' => (int)$lancamento->id,
+                'usage' => $usage,
+                'ui_message' => $this->limitService->getWarningMessage($usage),
+                'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null
             ], 'Lancamento criado', 201);
         } catch (ValueError $e) {
             Response::validationError(['message' => $e->getMessage()]);
@@ -319,65 +264,66 @@ class FinanceiroController
                 throw new ValueError('ID inválido.');
             }
 
-            $lanc = Lancamento::where('user_id', $uid)->find($id);
-            if (!$lanc) {
+            $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
+            if (!$lancamento) {
                 Response::json(['status' => 'error', 'message' => 'Lançamento não encontrado.'], 404);
                 return;
             }
 
-            if ((bool)($lanc->eh_transferencia ?? 0) === true) {
+            if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
                 throw new ValueError('Transferências não podem ser editadas aqui.');
             }
-            if ((bool)($lanc->eh_saldo_inicial ?? 0) === true) {
+            if ((bool)($lancamento->eh_saldo_inicial ?? 0) === true) {
                 throw new ValueError('Saldo inicial não pode ser editado.');
             }
 
-            $data = $this->getRequestPayload();
+            $payload = $this->getRequestPayload();
 
-            $tipo = $this->validateTipo($data['tipo'] ?? $lanc->tipo ?? LancamentoTipo::DESPESA->value);
-            $dataStr = $this->validateData($data['data'] ?? $lanc->data ?? date('Y-m-d'));
+            // Mesclar dados atuais com novos
+            $mergedData = [
+                'tipo' => $payload['tipo'] ?? $lancamento->tipo,
+                'data' => $payload['data'] ?? $lancamento->data,
+                'valor' => $payload['valor'] ?? $lancamento->valor,
+                'descricao' => $payload['descricao'] ?? $lancamento->descricao,
+                'observacao' => $payload['observacao'] ?? $lancamento->observacao,
+                'conta_id' => $payload['conta_id'] ?? $lancamento->conta_id,
+                'categoria_id' => $payload['categoria_id'] ?? $lancamento->categoria_id,
+            ];
 
-            $valorRaw = $data['valor'] ?? $lanc->valor;
-            $valor = $this->validateAndSanitizeValor($valorRaw);
+            // Validar
+            $errors = LancamentoValidator::validateUpdate($mergedData);
 
-            $categoriaId = $data['categoria_id'] ?? $lanc->categoria_id;
-            if ($categoriaId !== null && $categoriaId !== '') {
-                $categoriaId = (int)$categoriaId;
-                /** @var Categoria|null $cat */
-                $cat = Categoria::where('id', $categoriaId)
-                    ->where(fn(Builder $q) => $q->whereNull('user_id')->orWhere('user_id', $uid))
-                    ->first();
-
-                if (!$cat) {
-                    throw new ValueError('Categoria inválida.');
-                }
-                if (!in_array($cat->tipo, [LancamentoTipo::AMBAS->value, $tipo], true)) {
-                    throw new ValueError('Categoria incompatível com o tipo de lançamento.');
-                }
-            } else {
-                $categoriaId = null;
+            // Validar conta e categoria
+            $contaId = is_scalar($mergedData['conta_id']) ? (int)$mergedData['conta_id'] : null;
+            if ($contaId && !$this->contaRepo->belongsToUser($contaId, $uid)) {
+                $errors['conta_id'] = 'Conta inválida.';
             }
 
-            $contaId = $data['conta_id'] ?? $lanc->conta_id;
-            if ($contaId !== null && $contaId !== '') {
-                $contaId = (int)$contaId;
-                if (!Conta::forUser($uid)->find($contaId)) {
-                    throw new ValueError('Conta inválida.');
-                }
-            } else {
-                throw new ValueError('Conta é obrigatória.');
+            $categoriaId = is_scalar($mergedData['categoria_id']) ? (int)$mergedData['categoria_id'] : null;
+            if ($categoriaId && !$this->categoriaRepo->belongsToUser($categoriaId, $uid)) {
+                $errors['categoria_id'] = 'Categoria inválida.';
             }
 
-            $lanc->tipo = $tipo;
-            $lanc->data = $dataStr;
-            $lanc->valor = $valor;
-            $lanc->categoria_id = $categoriaId;
-            $lanc->conta_id = $contaId;
-            $lanc->descricao = isset($data['descricao']) ? trim((string)$data['descricao']) : $lanc->descricao;
-            $lanc->observacao = isset($data['observacao']) ? trim((string)$data['observacao']) : $lanc->observacao;
-            $lanc->save();
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
+            }
 
-            Response::json(['ok' => true, 'id' => (int)$lanc->id]);
+            // Criar DTO
+            $dto = UpdateLancamentoDTO::fromRequest([
+                'tipo' => strtolower(trim($mergedData['tipo'])),
+                'data' => $mergedData['data'],
+                'valor' => LancamentoValidator::sanitizeValor($mergedData['valor']),
+                'descricao' => mb_substr(trim($mergedData['descricao'] ?? ''), 0, 190),
+                'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
+                'categoria_id' => $categoriaId,
+                'conta_id' => $contaId,
+            ]);
+
+            // Atualizar
+            $this->lancamentoRepo->update($lancamento->id, $dto->toArray());
+
+            Response::json(['ok' => true, 'id' => (int)$lancamento->id]);
         } catch (ValueError $e) {
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 422);
         } catch (Throwable $e) {
@@ -392,37 +338,31 @@ class FinanceiroController
             $uid = Auth::id();
             $data = $this->getRequestPayload();
 
-            $dataStr = $this->validateData($data['data'] ?? date('Y-m-d'));
-            $valor = $this->validateAndSanitizeValor($data['valor'] ?? 0);
+            $dataStr = trim($data['data'] ?? date('Y-m-d'));
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataStr)) {
+                throw new ValueError('Data inválida (YYYY-MM-DD).');
+            }
+
+            $valor = LancamentoValidator::sanitizeValor($data['valor'] ?? 0);
+            if ($valor <= 0) {
+                throw new ValueError('Valor deve ser maior que zero.');
+            }
 
             $origemId  = (int)($data['conta_id'] ?? 0);
             $destinoId = (int)($data['conta_id_destino'] ?? 0);
 
-            if ($origemId <= 0 || $destinoId <= 0 || $origemId === $destinoId) {
-                throw new ValueError('Selecione contas de origem e destino diferentes.');
-            }
+            // Usar TransferenciaService
+            $transferencia = $this->transferenciaService->executarTransferencia(
+                userId: $uid,
+                contaOrigemId: $origemId,
+                contaDestinoId: $destinoId,
+                valor: $valor,
+                data: $dataStr,
+                descricao: $data['descricao'] ?? null,
+                observacao: $data['observacao'] ?? null
+            );
 
-            $origem  = Conta::forUser($uid)->find($origemId);
-            $destino = Conta::forUser($uid)->find($destinoId);
-            if (!$origem || !$destino) {
-                throw new ValueError('Conta de origem ou destino inválida.');
-            }
-
-            $t = new Lancamento([
-                'user_id'           => $uid,
-                'tipo'              => Lancamento::TIPO_TRANSFERENCIA,
-                'data'              => $dataStr,
-                'categoria_id'      => null,
-                'conta_id'          => $origemId,
-                'conta_id_destino'  => $destinoId,
-                'descricao'         => isset($data['descricao']) ? trim((string)$data['descricao']) : null,
-                'observacao'        => isset($data['observacao']) ? trim((string)$data['observacao']) : null,
-                'valor'             => $valor,
-                'eh_transferencia'  => 1,
-            ]);
-            $t->save();
-
-            Response::json(['ok' => true, 'id' => (int)$t->id], 201);
+            Response::json(['ok' => true, 'id' => (int)$transferencia->id], 201);
         } catch (ValueError $e) {
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 422);
         } catch (Throwable $e) {

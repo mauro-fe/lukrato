@@ -5,7 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\PerfilService;
-use Application\DTO\PerfilUpdateDTO;
+use Application\DTOs\PerfilUpdateDTO;
 use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
 use Throwable;

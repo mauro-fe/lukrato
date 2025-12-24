@@ -1,105 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Validators;
 
+use Application\Enums\Moeda;
+
+/**
+ * Validador para contas.
+ */
 class ContaValidator
 {
-    private array $errors = [];
-
-    public function validateCreate(array $data): bool
+    /**
+     * Valida dados para criação de conta.
+     */
+    public static function validateCreate(array $data): array
     {
-        $this->errors = [];
+        $errors = [];
 
-        // Nome obrigatório
-        if (empty(trim((string) ($data['nome'] ?? '')))) {
-            $this->errors['nome'] = 'Nome da conta é obrigatório.';
-        } elseif (strlen(trim($data['nome'])) > 100) {
-            $this->errors['nome'] = 'Nome da conta não pode exceder 100 caracteres.';
+        // Validar nome
+        $nome = trim($data['nome'] ?? '');
+        if (empty($nome)) {
+            $errors['nome'] = 'O nome é obrigatório.';
+        } elseif (mb_strlen($nome) > 100) {
+            $errors['nome'] = 'O nome não pode ter mais de 100 caracteres.';
         }
 
-        // Tipo de conta
-        $tiposPermitidos = ['conta_corrente', 'conta_poupanca', 'conta_investimento', 'carteira_digital', 'dinheiro'];
-        $tipoConta = trim((string) ($data['tipo_conta'] ?? 'conta_corrente'));
-        if (!in_array($tipoConta, $tiposPermitidos, true)) {
-            $this->errors['tipo_conta'] = 'Tipo de conta inválido.';
-        }
-
-        // Moeda
-        $moedasPermitidas = ['BRL', 'USD', 'EUR'];
-        $moeda = strtoupper(trim((string) ($data['moeda'] ?? 'BRL')));
-        if (!in_array($moeda, $moedasPermitidas, true)) {
-            $this->errors['moeda'] = 'Moeda inválida. Use BRL, USD ou EUR.';
-        }
-
-        // Saldo inicial
-        if (isset($data['saldo_inicial'])) {
-            $saldo = (float) $data['saldo_inicial'];
-            if ($saldo < -999999999 || $saldo > 999999999) {
-                $this->errors['saldo_inicial'] = 'Saldo inicial fora do intervalo permitido.';
+        // Validar moeda (opcional, padrão é BRL)
+        $moeda = strtoupper(trim($data['moeda'] ?? ''));
+        if (!empty($moeda)) {
+            try {
+                Moeda::from($moeda);
+            } catch (\ValueError) {
+                $errors['moeda'] = 'Moeda inválida. Use BRL, USD ou EUR.';
             }
         }
 
-        // Instituição financeira ID (se fornecido)
-        if (isset($data['instituicao_financeira_id']) && $data['instituicao_financeira_id'] !== '') {
-            $id = (int) $data['instituicao_financeira_id'];
-            if ($id <= 0) {
-                $this->errors['instituicao_financeira_id'] = 'ID da instituição financeira inválido.';
+        // Validar instituição (opcional)
+        $instituicao = trim($data['instituicao'] ?? '');
+        if (!empty($instituicao) && mb_strlen($instituicao) > 100) {
+            $errors['instituicao'] = 'A instituição não pode ter mais de 100 caracteres.';
+        }
+
+        // Validar saldo inicial (opcional)
+        $saldoInicial = $data['saldo_inicial'] ?? null;
+        if ($saldoInicial !== null && $saldoInicial !== '') {
+            if (!is_numeric($saldoInicial) || !is_finite((float)$saldoInicial)) {
+                $errors['saldo_inicial'] = 'Saldo inicial inválido.';
             }
         }
 
-        return empty($this->errors);
+        return $errors;
     }
 
-    public function validateUpdate(array $data): bool
+    /**
+     * Valida dados para atualização de conta.
+     */
+    public static function validateUpdate(array $data): array
     {
-        $this->errors = [];
-
-        // Nome (se fornecido)
-        if (isset($data['nome'])) {
-            $nome = trim((string) $data['nome']);
-            if ($nome === '') {
-                $this->errors['nome'] = 'Nome da conta não pode ser vazio.';
-            } elseif (strlen($nome) > 100) {
-                $this->errors['nome'] = 'Nome da conta não pode exceder 100 caracteres.';
-            }
-        }
-
-        // Tipo de conta (se fornecido)
-        if (isset($data['tipo_conta'])) {
-            $tiposPermitidos = ['conta_corrente', 'conta_poupanca', 'conta_investimento', 'carteira_digital', 'dinheiro'];
-            $tipoConta = trim((string) $data['tipo_conta']);
-            if (!in_array($tipoConta, $tiposPermitidos, true)) {
-                $this->errors['tipo_conta'] = 'Tipo de conta inválido.';
-            }
-        }
-
-        // Moeda (se fornecida)
-        if (isset($data['moeda'])) {
-            $moedasPermitidas = ['BRL', 'USD', 'EUR'];
-            $moeda = strtoupper(trim((string) $data['moeda']));
-            if (!in_array($moeda, $moedasPermitidas, true)) {
-                $this->errors['moeda'] = 'Moeda inválida. Use BRL, USD ou EUR.';
-            }
-        }
-
-        // Saldo inicial (se fornecido)
-        if (isset($data['saldo_inicial'])) {
-            $saldo = (float) $data['saldo_inicial'];
-            if ($saldo < -999999999 || $saldo > 999999999) {
-                $this->errors['saldo_inicial'] = 'Saldo inicial fora do intervalo permitido.';
-            }
-        }
-
-        return empty($this->errors);
-    }
-
-    public function getErrors(): array
-    {
-        return $this->errors;
-    }
-
-    public function getFirstError(): ?string
-    {
-        return !empty($this->errors) ? reset($this->errors) : null;
+        return self::validateCreate($data);
     }
 }

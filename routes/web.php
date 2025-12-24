@@ -1,77 +1,22 @@
-﻿<?php
-
+<?php
 
 
 use Application\Core\Router;
 
-
-
 /**
-
- * Registro de rotas
-
+ * ============================================
+ * ROTAS PÚBLICAS (LANDING PAGE)
+ * ============================================
  */
-
-registerAuthRoutes();
-
-registerRedirectRoutes();
-
-registerAppRoutes();
-
-registerApiRoutes();
-
-registerBillingRoutes();
-
-
-
-
-
-
-
-
-
-
-/* =========================
-
- * AUTH
-
- * =======================*/
-
-function registerAuthRoutes(): void
-{
-    // Login
-    Router::add('GET',  '/login',          'Auth\\LoginController@login');
-    Router::add('POST', '/login/entrar',   'Auth\\LoginController@processLogin');
-    Router::add('GET',  '/logout',         'Auth\\LoginController@logout');
-
-    // Cadastro
-    Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
-
-    // Login com Google
-    Router::add('GET',  '/auth/google/login',    'Auth\\GoogleLoginController@login');
-    Router::add('GET',  '/auth/google/register', 'Auth\\GoogleLoginController@login');
-    Router::add('GET',  '/auth/google/callback', 'Auth\\GoogleCallbackController@callback');
-
-    // 🔹 Recuperação de senha (Agora com controller correto!)
-    Router::add('GET',  '/recuperar-senha',   'Auth\\ForgotPasswordController@showRequestForm');
-    Router::add('POST', '/recuperar-senha',   'Auth\\ForgotPasswordController@sendResetLink');
-
-    Router::add('GET',  '/resetar-senha',     'Auth\\ForgotPasswordController@showResetForm');
-    Router::add('POST', '/resetar-senha',     'Auth\\ForgotPasswordController@resetPassword');
-
-    // Super admin
-    Router::add('GET',  '/super_admin', 'SysAdmin\\SuperAdminController@index');
-
-    Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete');
-}
 
 // Landing principal
 Router::add('GET', '/', 'Site\\LandingController@index');
 
+// Seções da landing
 Router::add('GET', '/funcionalidades', 'Site\\LandingController@index');
-Router::add('GET', '/beneficios',       'Site\\LandingController@index');
-Router::add('GET', '/planos',           'Site\\LandingController@index');
-Router::add('GET', '/contato',          'Site\\LandingController@index');
+Router::add('GET', '/beneficios',      'Site\\LandingController@index');
+Router::add('GET', '/planos',          'Site\\LandingController@index');
+Router::add('GET', '/contato',         'Site\\LandingController@index');
 
 // Cartão Digital (Bio do Instagram)
 Router::add('GET', '/card', 'Site\\CardController@index');

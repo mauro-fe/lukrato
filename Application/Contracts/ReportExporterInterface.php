@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Contracts;
 
-use Application\DTO\ReportData;
+use Application\DTOs\ReportData;
 
 interface ReportExporterInterface
 {

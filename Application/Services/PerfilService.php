@@ -2,7 +2,7 @@
 
 namespace Application\Services;
 
-use Application\DTO\PerfilUpdateDTO;
+use Application\DTOs\PerfilUpdateDTO;
 use Application\Repositories\UsuarioRepository;
 use Application\Repositories\DocumentoRepository;
 use Application\Repositories\TelefoneRepository;
