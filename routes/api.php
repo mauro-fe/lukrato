@@ -66,7 +66,7 @@ Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@exp
 
 Router::add('POST', '/api/transactions',            'Api\\FinanceiroController@store',    ['auth', 'csrf']);
 Router::add('PUT',  '/api/transactions/{id}',       'Api\\FinanceiroController@update',   ['auth', 'csrf']);
-Router::add('POST', '/api/transactions/{id}/update','Api\\FinanceiroController@update',   ['auth', 'csrf']); // Compat
+Router::add('POST', '/api/transactions/{id}/update', 'Api\\FinanceiroController@update',   ['auth', 'csrf']); // Compat
 Router::add('POST', '/api/transfers',               'Api\\FinanceiroController@transfer', ['auth', 'csrf']);
 
 // ============================================
@@ -101,8 +101,8 @@ Router::add('DELETE', '/api/contas/{id}',              'Api\\ContasController@de
 
 Router::add('GET',    '/api/categorias',     'Api\\CategoriaController@index',  ['auth']);
 Router::add('POST',   '/api/categorias',     'Api\\CategoriaController@store',  ['auth', 'csrf']);
-Router::add('PUT',    '/api/categorias/{id}','Api\\CategoriaController@update', ['auth', 'csrf']);
-Router::add('DELETE', '/api/categorias/{id}','Api\\CategoriaController@delete', ['auth', 'csrf']);
+Router::add('PUT',    '/api/categorias/{id}', 'Api\\CategoriaController@update', ['auth', 'csrf']);
+Router::add('DELETE', '/api/categorias/{id}', 'Api\\CategoriaController@delete', ['auth', 'csrf']);
 
 // ============================================
 // AGENDAMENTOS (REST)
@@ -147,7 +147,7 @@ Router::add('POST', '/api/investimentos/{id}/proventos', 'Api\\InvestimentosCont
 Router::add('GET',  '/api/notificacoes',            'Api\\NotificacaoController@index',            ['auth']);
 Router::add('GET',  '/api/notificacoes/unread',     'Api\\NotificacaoController@unreadCount',      ['auth']);
 Router::add('POST', '/api/notificacoes/marcar',     'Api\\NotificacaoController@marcarLida',       ['auth', 'csrf']);
-Router::add('POST', '/api/notificacoes/marcar-todas','Api\\NotificacaoController@marcarTodasLidas',['auth', 'csrf']);
+Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoController@marcarTodasLidas', ['auth', 'csrf']);
 
 // ============================================
 // PREFERÊNCIAS DE USUÁRIO
