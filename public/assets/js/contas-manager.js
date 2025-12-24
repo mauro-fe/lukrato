@@ -5,7 +5,7 @@
 
 class ContasManager {
     constructor() {
-        this.baseUrl = '/lukrato/public/api/v2';
+        this.baseUrl = '/lukrato/public/api';
         this.instituicoes = [];
         this.contas = [];
         this.categorias = null; // Cache de categorias
