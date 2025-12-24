@@ -3,7 +3,7 @@
 
     const base = (typeof LK !== 'undefined' && typeof LK.getBase === 'function')
         ? LK.getBase()
-        : (document.querySelector('meta[name="base-url"]')?.content || '/');
+        : (document.querySelector('meta[name="base-url"]')?.content || window.BASE_URL || '/lukrato/public/').replace(/\/?$/, '/');
     const tokenId = document.querySelector('meta[name="csrf-token-id"]')?.content || 'default';
     let csrfToken = '';
 
