@@ -90,6 +90,7 @@ class CsrfMiddleware
         $valid = is_string($token) && self::validateToken($token, $tokenId);
 
         if ($valid) {
+            // ✅ Token válido - NÃO regenerar, manter o mesmo token
             return;
         }
 

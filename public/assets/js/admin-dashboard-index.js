@@ -38,15 +38,30 @@
 
         tableBody: document.getElementById('transactionsTableBody'),
         table: document.getElementById('transactionsTable'),
+        cardsContainer: document.getElementById('transactionsCards'),
         emptyState: document.getElementById('emptyState'),
 
-        monthLabel: document.getElementById('currentMonthText')
+        monthLabel: document.getElementById('currentMonthText'),
+
+        // Gamificação
+        streakDays: document.getElementById('streakDays'),
+        organizationPercentage: document.getElementById('organizationPercentage'),
+        organizationBar: document.getElementById('organizationBar'),
+        organizationText: document.getElementById('organizationText'),
+        badgesGrid: document.getElementById('badgesGrid'),
+        userLevel: document.getElementById('userLevel'),
+        totalLancamentos: document.getElementById('totalLancamentos'),
+        totalCategorias: document.getElementById('totalCategorias'),
+        mesesAtivos: document.getElementById('mesesAtivos'),
+        pontosTotal: document.getElementById('pontosTotal')
     };
 
     const STATE = {
         chartInstance: null,
         currentMonth: null,
-        isLoading: false
+        isLoading: false,
+        gamificationData: null,
+        allTransactions: []
     };
 
     const getThemeColors = () => {
@@ -365,6 +380,202 @@
         }
     };
 
+    const Gamification = {
+        badges: [
+            { id: 'first', emoji: '🎯', name: 'Início', condition: (data) => data.totalTransactions >= 1 },
+            { id: 'week', emoji: '📊', name: '7 Dias', condition: (data) => data.streak >= 7 },
+            { id: 'month', emoji: '💎', name: '30 Dias', condition: (data) => data.streak >= 30 },
+            { id: 'saver', emoji: '💰', name: 'Economia', condition: (data) => data.savingsRate >= 10 },
+            { id: 'diverse', emoji: '🎨', name: 'Diverso', condition: (data) => data.uniqueCategories >= 5 },
+            { id: 'master', emoji: '👑', name: 'Mestre', condition: (data) => data.totalTransactions >= 100 }
+        ],
+
+        calculateStreak: (transactions) => {
+            if (!Array.isArray(transactions) || transactions.length === 0) return 0;
+
+            const dates = transactions
+                .map(t => t.data_lancamento || t.data)
+                .filter(Boolean)
+                .map(d => {
+                    const match = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/);
+                    return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+                })
+                .filter(Boolean)
+                .sort()
+                .reverse();
+
+            if (dates.length === 0) return 0;
+
+            const uniqueDates = [...new Set(dates)];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let streak = 0;
+            let checkDate = new Date(today);
+
+            for (const dateStr of uniqueDates) {
+                const [y, m, d] = dateStr.split('-').map(Number);
+                const transactionDate = new Date(y, m - 1, d);
+                transactionDate.setHours(0, 0, 0, 0);
+
+                const diffDays = Math.floor((checkDate - transactionDate) / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 0 || diffDays === 1) {
+                    streak++;
+                    checkDate = new Date(transactionDate);
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else if (diffDays > 1) {
+                    break;
+                }
+            }
+
+            return streak;
+        },
+
+        calculateLevel: (points) => {
+            if (points < 100) return 1;
+            if (points < 300) return 2;
+            if (points < 600) return 3;
+            if (points < 1000) return 4;
+            if (points < 1500) return 5;
+            if (points < 2500) return 6;
+            if (points < 5000) return 7;
+            if (points < 10000) return 8;
+            if (points < 20000) return 9;
+            return 10;
+        },
+
+        calculatePoints: (data) => {
+            let points = 0;
+            points += data.totalTransactions * 10;
+            points += data.streak * 50;
+            points += data.activeMonths * 100;
+            points += data.uniqueCategories * 20;
+            points += Math.floor(data.savingsRate) * 30;
+            return points;
+        },
+
+        calculateData: (transactions, metrics) => {
+            const totalTransactions = transactions.length;
+            const streak = Gamification.calculateStreak(transactions);
+
+            const uniqueCategories = new Set(
+                transactions
+                    .map(t => t.categoria_id || t.categoria)
+                    .filter(Boolean)
+            ).size;
+
+            const months = new Set(
+                transactions
+                    .map(t => {
+                        const date = t.data_lancamento || t.data;
+                        if (!date) return null;
+                        const match = String(date).match(/^(\d{4}-\d{2})/);
+                        return match ? match[1] : null;
+                    })
+                    .filter(Boolean)
+            );
+
+            const activeMonths = months.size;
+
+            const receitas = Number(metrics?.receitasMes || 0);
+            const despesas = Number(metrics?.despesasMes || 0);
+            const savingsRate = receitas > 0 ? ((receitas - despesas) / receitas) * 100 : 0;
+
+            const data = {
+                totalTransactions,
+                streak,
+                uniqueCategories,
+                activeMonths,
+                savingsRate: Math.max(0, savingsRate)
+            };
+
+            const points = Gamification.calculatePoints(data);
+            const level = Gamification.calculateLevel(points);
+
+            return { ...data, points, level };
+        },
+
+        render: (gamificationData) => {
+            if (!gamificationData) return;
+
+            // Streak
+            if (DOM.streakDays) {
+                DOM.streakDays.textContent = gamificationData.streak;
+            }
+
+            // Nível
+            if (DOM.userLevel) {
+                DOM.userLevel.innerHTML = `
+                    <i class="fas fa-star"></i>
+                    <span>Nível ${gamificationData.level}</span>
+                `;
+            }
+
+            // Progresso (baseado em pontos até próximo nível)
+            const levelThresholds = [0, 100, 300, 600, 1000, 1500, 2500, 5000, 10000, 20000, 50000];
+            const currentThreshold = levelThresholds[gamificationData.level - 1] || 0;
+            const nextThreshold = levelThresholds[gamificationData.level] || 50000;
+            const progressInLevel = gamificationData.points - currentThreshold;
+            const pointsNeeded = nextThreshold - currentThreshold;
+            const percentage = Math.min(100, Math.floor((progressInLevel / pointsNeeded) * 100));
+
+            if (DOM.organizationPercentage) {
+                DOM.organizationPercentage.textContent = `${percentage}%`;
+            }
+
+            if (DOM.organizationBar) {
+                setTimeout(() => {
+                    DOM.organizationBar.style.width = `${percentage}%`;
+                }, 100);
+            }
+
+            if (DOM.organizationText) {
+                const remaining = nextThreshold - gamificationData.points;
+                DOM.organizationText.textContent = remaining > 0 
+                    ? `Faltam ${remaining} pontos para o nível ${gamificationData.level + 1}`
+                    : 'Nível máximo alcançado!';
+            }
+
+            // Badges
+            if (DOM.badgesGrid) {
+                const badgesHTML = Gamification.badges.map((badge) => {
+                    const unlocked = badge.condition(gamificationData);
+                    const classes = ['badge-item'];
+                    if (unlocked) classes.push('unlocked');
+                    else classes.push('locked');
+
+                    return `
+                        <div class="${classes.join(' ')}" title="${badge.name}">
+                            <div class="badge-icon">${badge.emoji}</div>
+                            <div class="badge-name">${badge.name}</div>
+                            ${unlocked ? '<div class="badge-check"><i class="fas fa-check"></i></div>' : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                DOM.badgesGrid.innerHTML = badgesHTML;
+            }
+
+            // Stats
+            if (DOM.totalLancamentos) {
+                DOM.totalLancamentos.textContent = gamificationData.totalTransactions;
+            }
+
+            if (DOM.totalCategorias) {
+                DOM.totalCategorias.textContent = gamificationData.uniqueCategories;
+            }
+
+            if (DOM.mesesAtivos) {
+                DOM.mesesAtivos.textContent = gamificationData.activeMonths;
+            }
+
+            if (DOM.pontosTotal) {
+                DOM.pontosTotal.textContent = gamificationData.points.toLocaleString('pt-BR');
+            }
+        }
+    };
+
     const Renderers = {
         updateMonthLabel: (month) => {
             if (!DOM.monthLabel) return;
@@ -422,7 +633,9 @@
             try {
                 const transactions = await API.getTransactions(month, CONFIG.TRANSACTIONS_LIMIT);
 
-                DOM.tableBody.innerHTML = '';
+                // Limpar ambos
+                if (DOM.tableBody) DOM.tableBody.innerHTML = '';
+                if (DOM.cardsContainer) DOM.cardsContainer.innerHTML = '';
 
                 const hasData = Array.isArray(transactions) && transactions.length > 0;
 
@@ -434,11 +647,12 @@
                     DOM.table.style.display = hasData ? 'table' : 'none';
                 }
 
+                if (DOM.cardsContainer) {
+                    DOM.cardsContainer.style.display = hasData ? 'flex' : 'none';
+                }
+
                 if (hasData) {
                     transactions.forEach(transaction => {
-                        const tr = document.createElement('tr');
-                        tr.setAttribute('data-id', transaction.id);
-
                         const tipo = String(transaction.tipo || '').toLowerCase();
                         const tipoClass = Utils.getTipoClass(tipo);
                         const tipoLabel = String(transaction.tipo || '').replace(/_/g, ' ');
@@ -446,35 +660,92 @@
                         const categoriaNome = transaction.categoria_nome ??
                             (typeof transaction.categoria === 'string' ? transaction.categoria :
                                 transaction.categoria?.nome) ??
-                            '-';
+                            null;
+                        
+                        const categoriaDisplay = categoriaNome 
+                            ? categoriaNome 
+                            : '<span class="categoria-empty">Sem categoria</span>';
 
                         const contaNome = Utils.getContaLabel(transaction);
                         const descricao = transaction.descricao || transaction.observacao || '--';
                         const valor = Number(transaction.valor) || 0;
+                        const dataBR = Utils.dateBR(transaction.data);
+
+                        // TABELA DESKTOP
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', transaction.id);
 
                         tr.innerHTML = `
-              <td data-label="Data">${Utils.dateBR(transaction.data)}</td>
+              <td data-label="Data">${dataBR}</td>
               <td data-label="Tipo">
                 <span class="badge-tipo ${tipoClass}">${tipoLabel}</span>
               </td>
-              <td data-label="Categoria">${categoriaNome}</td>
+              <td data-label="Categoria">${categoriaDisplay}</td>
               <td data-label="Conta">${contaNome}</td>
               <td data-label="Descrição">${descricao}</td>
               <td data-label="Valor" class="valor-cell ${tipoClass}">${Utils.money(valor)}</td>
               <td data-label="Ações" class="text-end">
                 <div class="actions-cell">
                   <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
-                    <i class="fas fa-trash"></i>
+                    <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
               </td>
             `;
 
-                        DOM.tableBody.appendChild(tr);
+                        if (DOM.tableBody) {
+                            DOM.tableBody.appendChild(tr);
+                        }
+
+                        // CARDS MOBILE
+                        if (DOM.cardsContainer) {
+                            const card = document.createElement('div');
+                            card.className = 'transaction-card';
+                            card.setAttribute('data-id', transaction.id);
+
+                            card.innerHTML = `
+                <div class="transaction-card-header">
+                  <span class="transaction-date">${dataBR}</span>
+                  <span class="transaction-value ${tipoClass}">${Utils.money(valor)}</span>
+                </div>
+                <div class="transaction-card-body">
+                  <div class="transaction-info-row">
+                    <span class="transaction-label">Tipo</span>
+                    <span class="transaction-badge tipo-${tipoClass}">${tipoLabel}</span>
+                  </div>
+                  <div class="transaction-info-row">
+                    <span class="transaction-label">Categoria</span>
+                    <span class="transaction-text">${categoriaNome}</span>
+                  </div>
+                  <div class="transaction-info-row">
+                    <span class="transaction-label">Conta</span>
+                    <span class="transaction-text">${contaNome}</span>
+                  </div>
+                  ${descricao !== '--' ? `
+                  <div class="transaction-info-row">
+                    <span class="transaction-label">Descrição</span>
+                    <span class="transaction-description">${descricao}</span>
+                  </div>
+                  ` : ''}
+                </div>
+                <div class="transaction-actions">
+                  <button class="transaction-btn transaction-btn-edit" data-id="${transaction.id}">
+                    <i class="fas fa-edit"></i>
+                    Editar
+                  </button>
+                  <button class="transaction-btn transaction-btn-delete btn-del" data-id="${transaction.id}">
+                    <i class="fas fa-trash"></i>
+                    Excluir
+                  </button>
+                </div>
+              `;
+
+                            DOM.cardsContainer.appendChild(card);
+                        }
                     });
                 }
             } catch (err) {
-                console.error('Erro ao renderizar tabela:', err);
+                console.error('Erro ao renderizar transações:', err);
 
                 if (DOM.emptyState) {
                     DOM.emptyState.style.display = 'block';
@@ -482,6 +753,10 @@
 
                 if (DOM.table) {
                     DOM.table.style.display = 'none';
+                }
+
+                if (DOM.cardsContainer) {
+                    DOM.cardsContainer.style.display = 'none';
                 }
             }
         },
@@ -675,6 +950,33 @@
 
             try {
                 Renderers.updateMonthLabel(month);
+
+                // Buscar dados para gamificação (todas as transações do usuário)
+                const allTransactionsPromise = fetch(`${CONFIG.API_URL}lancamentos/list?limit=1000`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                }).then(res => res.ok ? res.json() : []).catch(() => []);
+
+                const metricsPromise = API.getMetrics(month);
+
+                const [allTransactionsData, metrics] = await Promise.all([
+                    allTransactionsPromise,
+                    metricsPromise
+                ]);
+
+                // Processar transações
+                const allTransactions = Array.isArray(allTransactionsData) 
+                    ? allTransactionsData 
+                    : (allTransactionsData?.data || allTransactionsData?.lancamentos || []);
+
+                STATE.allTransactions = allTransactions;
+
+                // Calcular e renderizar gamificação
+                const gamificationData = Gamification.calculateData(allTransactions, metrics);
+                STATE.gamificationData = gamificationData;
+                Gamification.render(gamificationData);
 
                 await Promise.allSettled([
                     Renderers.renderKPIs(month),

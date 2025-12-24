@@ -1,61 +1,86 @@
-﻿<!-- Tabulator -->
+<!-- Tabulator -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 
-<!-- CSS REFATORADO -->
+<!-- CSS -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/agendamentos-modern.css">
 
-<div data-aos="fade-up" class="ag-new-wrapper">
-    <button type="button" class="btn btn-primary ag-new-btn" data-bs-toggle="modal" data-bs-target="#modalAgendamento"
-        title="Adicionar agendamento">
-        <i class="fa-solid fa-plus"></i> Novo Agendamento
-    </button>
-</div>
-
-<div class="container-table" data-aos="fade-up">
-    <div id="agList" class="table-container">
-        <div class="ag-table-desktop">
-            <div id="agendamentosTable"></div>
+<div class="ag-page">
+    <!-- ==================== HEADER COM TÍTULO E BOTÃO ==================== -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="page-title">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Agendamentos</span>
+                </h1>
+                <p class="page-subtitle">Gerencie suas contas a pagar e receber agendadas</p>
+            </div>
+            <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#modalAgendamento">
+                <i class="fas fa-plus"></i>
+                <span>Novo Agendamento</span>
+            </button>
         </div>
-
-        <!-- MOBILE: Cards + paginação -->
-        <section class="ag-cards-wrapper cards-wrapper">
-            <section class="ag-cards-container cards-container" id="agCards"></section>
-
-            <nav class="lan-cards-pager cards-pager" id="lanCardsPager" aria-label="Paginação de lançamentos">
-                <button type="button" id="lanPagerFirst" class="lan-pager-btn pager-btn" disabled
-                    aria-label="Primeira página">
-                    <i class="fas fa-angle-double-left"></i>
-                </button>
-
-                <button type="button" id="lanPagerPrev" class="lan-pager-btn pager-btn" disabled
-                    aria-label="Página anterior">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-
-                <span id="lanPagerInfo" class="lan-pager-info pager-info">Nenhum lançamento</span>
-
-                <button type="button" id="lanPagerNext" class="lan-pager-btn pager-btn" disabled
-                    aria-label="Próxima página">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-
-                <button type="button" id="lanPagerLast" class="lan-pager-btn pager-btn" disabled
-                    aria-label="Última página">
-                    <i class="fas fa-angle-double-right"></i>
-                </button>
-            </nav>
-        </section>
     </div>
 
-    <div id="agPaywall" class="empty-state paywall-state d-none" role="alert" aria-live="polite" hidden>
-        <i class="fas fa-lock"></i>
-        <h3>Agendamentos exclusivos do plano Pro</h3>
+    <!-- ==================== CONTAINER DA TABELA ==================== -->
+    <div class="modern-card table-card" id="agList">
+        <div class="card-header">
+            <div class="header-left">
+                <i class="fas fa-list"></i>
+                <div class="header-text">
+                    <h3>Seus Agendamentos</h3>
+                    <p>Lista de contas a pagar e receber agendadas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- DESKTOP: Tabulator -->
+            <div class="ag-table-desktop">
+                <div id="agendamentosTable"></div>
+            </div>
+
+            <!-- MOBILE: Cards + paginação -->
+            <div class="ag-cards-wrapper">
+                <div class="ag-cards-container" id="agCards"></div>
+
+                <nav class="cards-pager" id="agCardsPager" aria-label="Paginação de agendamentos">
+                    <button type="button" id="agPagerFirst" class="pager-btn" disabled aria-label="Primeira página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+
+                    <button type="button" id="agPagerPrev" class="pager-btn" disabled aria-label="Página anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <span id="agPagerInfo" class="pager-info">Nenhum agendamento</span>
+
+                    <button type="button" id="agPagerNext" class="pager-btn" disabled aria-label="Próxima página">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    <button type="button" id="agPagerLast" class="pager-btn" disabled aria-label="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PAYWALL ==================== -->
+    <div id="agPaywall" class="paywall-message d-none" role="alert" hidden>
+        <i class="fas fa-crown"></i>
+        <h3>Recurso Premium</h3>
         <p id="agPaywallMessage">Agendamentos são exclusivos do plano Pro.</p>
-        <button type="button" class="lk-btn btn btn-primary" id="agPaywallCta">
-            <i class="fas fa-crown"></i> Assinar plano Pro
+        <button type="button" class="btn-upgrade" id="agPaywallCta">
+            <i class="fas fa-crown"></i>
+            Fazer Upgrade para PRO
         </button>
     </div>
 </div>
 
+<!-- ==================== SCRIPTS ==================== -->
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="<?= BASE_URL ?>assets/js/admin-agendamentos-index.js"></script>

@@ -13,6 +13,8 @@ class Conta extends Model
         'nome',
         'cor',
         'instituicao',
+        'instituicao_financeira_id',
+        'tipo_conta',
         'moeda',
         'tipo_id',
         'ativo',
@@ -20,13 +22,26 @@ class Conta extends Model
 
     protected $casts = [
         'user_id'       => 'int',
+        'instituicao_financeira_id' => 'int',
         'tipo_id',
         'ativo'         => 'bool',
     ];
 
+    protected $with = ['instituicaoFinanceira'];
+
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');
+    }
+
+    public function instituicaoFinanceira()
+    {
+        return $this->belongsTo(InstituicaoFinanceira::class, 'instituicao_financeira_id');
+    }
+
+    public function cartoesCredito()
+    {
+        return $this->hasMany(CartaoCredito::class, 'conta_id');
     }
 
     public function lancamentos()

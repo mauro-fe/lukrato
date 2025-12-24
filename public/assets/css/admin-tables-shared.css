@@ -224,28 +224,58 @@
 }
 
 /* ============================================================================
-   CARD BASE
+   CARD BASE - MODERNIZADO
    ============================================================================ */
 
 .card-item {
-  background: var(--color-surface);
+  background: linear-gradient(135deg,
+    var(--color-surface) 0%,
+    color-mix(in srgb, var(--color-surface) 98%, var(--color-primary) 2%) 100%);
   border: 1px solid var(--glass-border);
   border-top: none;
-  padding: 0.85rem 1rem 0.75rem;
+  padding: 1rem;
   display: grid;
   grid-template-columns: 1fr auto;
-  column-gap: var(--spacing-2);
-  row-gap: 0.35rem;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  column-gap: var(--spacing-3);
+  row-gap: var(--spacing-2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-item:hover::before {
+  opacity: 1;
 }
 
 .card-item + .card-item {
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  border-top: 1px solid color-mix(in srgb, var(--glass-border) 30%, transparent);
 }
 
 .card-item.open {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-primary) 5%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 3%, var(--color-surface)));
   border-color: var(--color-primary);
-  transform: translateY(-1px);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1),
+              -4px 0 0 var(--color-primary) inset;
+}
+
+.card-item:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Grid principal do card (data, tipo, valor, ações) */
@@ -262,10 +292,12 @@
 }
 
 .card-value {
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: left;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .card-value.receita,
@@ -283,65 +315,92 @@
 }
 
 /* ============================================================================
-   BADGES DE TIPO
+   BADGES DE TIPO - MODERNIZADO
    ============================================================================ */
 
 .badge-tipo {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-md);
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-lg);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
-  color: var(--color-text);
-  transition: var(--transition-fast);
+  letter-spacing: 0.08em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .badge-tipo::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
   background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .badge-tipo:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .badge-tipo.receita,
 .badge-tipo.tipo-receita {
-  color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-success), #27ae60);
+  border: 1px solid color-mix(in srgb, var(--color-success) 80%, transparent);
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+.badge-tipo.receita:hover,
+.badge-tipo.tipo-receita:hover {
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.4);
 }
 
 .badge-tipo.despesa,
 .badge-tipo.tipo-despesa {
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-danger), #c0392b);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 80%, transparent);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.badge-tipo.despesa:hover,
+.badge-tipo.tipo-despesa:hover {
+  box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
 }
 
 .badge-tipo.transferencia {
-  color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 80%, transparent);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+}
+
+.badge-tipo.transferencia:hover {
+  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.4);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
 }
 
 /* ============================================================================
-   AÇÕES DO CARD
+   AÇÕES DO CARD - MODERNIZADO
    ============================================================================ */
 
-/* Padrão: desktop e telas maiores
-   - mostra ações principais
-   - esconde ações de detalhes */
 .card-actions {
   display: flex;
   align-items: center;
@@ -353,43 +412,114 @@
 }
 
 .card-actions .lk-btn {
-  border-radius: 999px;
-  display: block;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-actions .lk-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-actions .lk-btn:hover::before {
+  opacity: 1;
+}
+
+.card-actions .lk-btn:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-actions .lk-btn.edit:hover {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.card-actions .lk-btn.danger:hover {
+  background: linear-gradient(135deg, var(--color-danger), #c0392b);
+  color: #ffffff;
+  border-color: var(--color-danger);
+}
+
+.card-actions .lk-btn:active {
+  transform: translateY(0) scale(0.95);
 }
 
 /* ============================================================================
-   TOGGLE DE DETALHES
+   TOGGLE DE DETALHES - MODERNIZADO
    ============================================================================ */
 
 .card-toggle {
   grid-column: 1 / -1;
-  margin-top: 0.25rem;
+  margin-top: var(--spacing-2);
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text);
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
   background: transparent;
   border: none;
-  padding: 0;
+  padding: var(--spacing-2) 0;
   cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.card-toggle:hover {
+  color: var(--color-secondary);
+  gap: var(--spacing-3);
 }
 
 .card-toggle-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1px solid var(--glass-border);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
+    color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface)));
+  border: 1px solid var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  transition: transform 0.2s ease;
+  font-size: 14px;
+  color: var(--color-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(230, 126, 34, 0.2);
+}
+
+.card-toggle:hover .card-toggle-icon {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
 }
 
 .card-item[aria-expanded="true"] .card-toggle-icon {
   transform: rotate(90deg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #ffffff;
+}
+
+.card-item[aria-expanded="true"] .card-toggle:hover .card-toggle-icon {
+  transform: rotate(90deg) scale(1.1);
 }
 
 /* ============================================================================
@@ -436,53 +566,84 @@
 }
 
 /* ============================================================================
-   PAGINAÇÃO
+   PAGINAÇÃO - MODERNIZADA
    ============================================================================ */
 
 .cards-pager {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  padding: 0.35rem 0.2rem;
-  background: rgba(255, 255, 255, 0.05);
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-surface) 95%, var(--color-primary) 5%),
+    var(--color-surface));
   backdrop-filter: blur(10px);
-  border-radius: 0 0 10px 10px;
-  font-size: 0.82rem;
-  color: var(--color-text-muted, #c5c8ce);
-  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--glass-border);
+  border-top: none;
 }
 
 .pager-btn {
-  border: none;
-  background: var(--color-primary);
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-text, #f1f1f1);
-  font-size: 0.7rem;
-  transition: all 0.15s ease;
+  color: #ffffff;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.pager-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pager-btn:hover:not(:disabled)::before {
+  opacity: 1;
 }
 
 .pager-btn:hover:not(:disabled) {
-  background: var(--color-warning);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.4);
+  border-color: var(--color-warning);
+}
+
+.pager-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .pager-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-  background: var(--ring);
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: var(--color-surface-muted);
+  box-shadow: none;
+  border-color: var(--glass-border);
 }
 
 .pager-info {
-  color: var(--color-text-muted, #bac0c8);
-  padding: 0 0.35rem;
-  font-weight: bold;
+  color: var(--color-text);
+  padding: 0 var(--spacing-4);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.02em;
+  min-width: 150px;
+  text-align: center;
 }
 
 /* ============================================================================

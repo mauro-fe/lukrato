@@ -53,6 +53,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/main-styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css">
 
     <?php loadPageCss(); ?>
     <?php loadPageCss('admin-partials-header'); ?>
@@ -179,6 +180,12 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
 <body>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
+    
+    <!-- ============================================================================
+         TOP NAVBAR
+         ============================================================================ -->
+    <?php include __DIR__ . '/top-navbar.php'; ?>
+    
     <!-- ============================================================================
          SIDEBAR COLLAPSE STATE (Pre-render)
          ============================================================================ -->
@@ -212,7 +219,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <aside class="sidebar no-glass" id="sidebar-main">
         <!-- Logo -->
         <div class="sidebar-header">
-            <a class="logo" href="<?= BASE_URL ?>/dashboard" aria-label="Ir para o Dashboard">
+            <a class="logo" href="<?= BASE_URL ?>dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
         </div>
@@ -317,4 +324,3 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          ============================================================================ -->
     <div class="content-wrapper">
         <main class="lk-main">
-            <?php include __DIR__ . '/navbar.php'; ?>

@@ -22,15 +22,11 @@
         // Formulário novo
         formNova: document.getElementById('formNova'),
 
-        // Filtro
-        filtroTipo: document.getElementById('filtroTipo'),
-
-        // Tabela
-        tabContainer: document.getElementById('tabCategorias'),
-        mobileWrapper: document.getElementById('catCards'),
-        mobileHeader: document.querySelector('.c-mobile-cat-header'),
-        mobileWrapper: document.getElementById('catCards'),
-        mobileHeader: document.querySelector('.c-mobile-cat-header'),
+        // Listas de categorias
+        receitasList: document.getElementById('receitasList'),
+        despesasList: document.getElementById('despesasList'),
+        receitasCount: document.getElementById('receitasCount'),
+        despesasCount: document.getElementById('despesasCount'),
 
         // Modal
         modalEditEl: document.getElementById('modalEditCategoria'),
@@ -211,148 +207,89 @@
         }
     };
 
-    // ==================== GERENCIAMENTO DE TABELA ====================
-    const TableManager = {
-        buildColumns: () => [{
-            title: 'Nome',
-            field: 'nome',
-            headerFilter: 'input',
-            headerFilterPlaceholder: 'Filtrar por nome',
-            widthGrow: 2,
-            formatter: (cell) => Utils.escapeHtml(cell.getValue() || '-')
-        },
-        {
-            title: 'Tipo',
-            field: 'tipo',
-            headerFilter: 'select',
-            headerFilterParams: {
-                values: {
-                    '': 'Todos',
-                    receita: 'Receita',
-                    despesa: 'Despesa'
-                }
-            },
-            width: 300,
-            hozAlign: 'center',
-            formatter: (cell) => {
-                const value = String(cell.getValue() || '').toLowerCase();
-                const tipo = ['receita', 'despesa'].includes(value) ? value : '';
-
-                if (!tipo) return '-';
-
-                return `<span class="badge-tipo ${tipo}">${Utils.capitalize(tipo)}</span>`;
-            }
-        },
-        {
-            title: 'Ações',
-            field: 'acoes',
-            headerSort: false,
-            hozAlign: 'center',
-            width: 300,
-            formatter: () => {
-                return `
-        <div class="actions-cell">
-            <button type="button" class="lk-btn ghost btn-edit" data-action="edit" title="Editar">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button type="button" class="lk-btn ghost btn-del" data-action="delete" title="Excluir">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-        `;
-            },
-            cellClick: async (e, cell) => {
-                const btn = e.target.closest('button[data-action]');
-                if (!btn) return;
-
-                const action = btn.getAttribute('data-action');
-                const rowData = cell.getRow().getData();
-                const id = rowData?.id;
-
-                if (!id) return;
-
-                btn.disabled = true;
-
-                if (action === 'edit') {
-                    await ModalManager.openEdit(id);
-                } else if (action === 'delete') {
-                    await DataManager.delete(id);
-                }
-
-                btn.disabled = false;
-            }
-        }
-        ],
-
-        build: () => {
-            if (!DOM.tabContainer) return null;
-
-            const instance = new Tabulator(DOM.tabContainer, {
-                height: CONFIG.TABLE_HEIGHT,
-                layout: 'fitColumns',
-                placeholder: 'Nenhuma categoria encontrada.',
-                index: 'id',
-                columns: TableManager.buildColumns()
-            });
-
-            return instance;
-        },
-
-        ensure: () => {
-            if (STATE.table || !DOM.tabContainer) return STATE.table;
-            STATE.table = TableManager.build();
-            return STATE.table;
-        },
-
-        setData: (items) => {
-            const table = TableManager.ensure();
-            if (table) {
-                table.setData(Array.isArray(items) ? items : []);
-            }
-        }
-    };
-
-    // ==================== LISTA MOBILE ====================`n    
-    const MobileCards = {
-        render: (items) => {
-            if (!DOM.mobileWrapper) return;
-
-            const header = DOM.mobileHeader;
-            if (header) {
-                header.style.display = 'grid';
-            }
+    // ==================== RENDERIZAÇÃO DE LISTAS ====================
+    const ListRenderer = {
+        renderList: (items, tipo) => {
+            const container = tipo === 'receita' ? DOM.receitasList : DOM.despesasList;
+            if (!container) return;
 
             if (!Array.isArray(items) || items.length === 0) {
-                DOM.mobileWrapper.innerHTML = '<div class="c-mobile-card empty">Nenhuma categoria cadastrada.</div>';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Nenhuma categoria de ${tipo} cadastrada</p>
+                    </div>
+                `;
                 return;
             }
 
             const html = items.map((cat) => {
                 const id = cat?.id ?? '';
                 const nome = Utils.escapeHtml(cat?.nome ?? '-');
-                const tipo = String(cat?.tipo || '').toLowerCase();
-                const label = ['receita', 'despesa'].includes(tipo) ? Utils.capitalize(tipo) : '-';
-                const badgeClass = tipo === 'receita' ? 'receita' : (tipo === 'despesa' ? 'despesa' : '');
 
                 return `
-          <div class="c-mobile-card" data-id="${id}">
-            <div class="c-cat-name">${nome}</div>
-            <div class="c-cat-type">
-              <span class="badge-tipo ${badgeClass}">${label}</span>
-            </div>
-            <div class="c-cat-actions">
-              <button type="button" class="lk-btn ghost btn-edit" data-action="edit" title="Editar" aria-label="Editar categoria">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button type="button" class="lk-btn ghost btn-del" data-action="delete" title="Excluir" aria-label="Excluir categoria">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        `;
+                    <div class="category-item" data-id="${id}">
+                        <div class="category-name">
+                            <i class="fas fa-tag"></i>
+                            <span>${nome}</span>
+                        </div>
+                        <div class="category-actions">
+                            <button type="button" class="action-btn edit" data-action="edit" data-id="${id}" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="action-btn delete" data-action="delete" data-id="${id}" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
             }).join('');
 
-            DOM.mobileWrapper.innerHTML = html;
+            container.innerHTML = html;
+
+            // Adicionar event listeners aos botões
+            container.querySelectorAll('button[data-action]').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const action = btn.getAttribute('data-action');
+                    const id = btn.getAttribute('data-id');
+                    
+                    if (!id) return;
+                    
+                    btn.disabled = true;
+                    
+                    try {
+                        if (action === 'edit') {
+                            await ModalManager.openEdit(id);
+                        } else if (action === 'delete') {
+                            await DataManager.delete(id);
+                        }
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+            });
+        },
+
+        updateCounts: (receitas, despesas) => {
+            if (DOM.receitasCount) {
+                DOM.receitasCount.textContent = receitas.length;
+            }
+            if (DOM.despesasCount) {
+                DOM.despesasCount.textContent = despesas.length;
+            }
+        },
+
+        render: (items) => {
+            if (!Array.isArray(items)) {
+                items = [];
+            }
+
+            const receitas = items.filter(cat => cat.tipo === 'receita');
+            const despesas = items.filter(cat => cat.tipo === 'despesa');
+
+            ListRenderer.renderList(receitas, 'receita');
+            ListRenderer.renderList(despesas, 'despesa');
+            ListRenderer.updateCounts(receitas, despesas);
         }
     };
     
@@ -470,10 +407,8 @@
     // ==================== GERENCIAMENTO DE DADOS ====================
     const DataManager = {
         load: async () => {
-            const tipo = DOM.filtroTipo?.value || '';
-
             try {
-                const result = await API.loadCategorias(tipo);
+                const result = await API.loadCategorias('');
 
                 if (result.status !== 'success') {
                     throw new Error(result.message || 'Falha ao carregar categorias');
@@ -490,14 +425,11 @@
                     }
                 });
 
-                TableManager.setData(items);
-                MobileCards.render(items);
-                MobileCards.render(items);
+                ListRenderer.render(items);
             } catch (err) {
                 console.error('Erro ao carregar categorias:', err);
                 Notifications.error(err.message);
-                TableManager.setData([]);
-                MobileCards.render([]);
+                ListRenderer.render([]);
             }
         },
 
@@ -588,9 +520,6 @@
     // ==================== EVENT LISTENERS ====================
     const EventListeners = {
         init: () => {
-            // Filtro de tipo
-            DOM.filtroTipo?.addEventListener('change', DataManager.load);
-
             // Formulário de nova categoria
             DOM.formNova?.addEventListener('submit', DataManager.create);
 
@@ -619,7 +548,6 @@
         console.log('🚀 Inicializando Sistema de Categorias...');
 
         // Inicializar componentes
-        TableManager.ensure();
         ModalManager.ensure();
         EventListeners.init();
 

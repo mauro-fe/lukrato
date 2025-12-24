@@ -7,50 +7,47 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
 
 ?>
 <style>
-    /* Header / Month selector */
+    /* Header / Month selector - Compact Version */
     .dash-lk-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        justify-content: flex-end;
         gap: var(--spacing-3);
-        margin: 0 auto;
-        padding: var(--spacing-4);
+        margin: 0 0 var(--spacing-3) 0;
+        padding: 0;
         width: 100%;
     }
 
     .dash-lk-header .header-left {
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex: 1 1 auto;
+        gap: var(--spacing-2);
+        flex: 0 0 auto;
     }
 
     .dash-lk-header .header-actions {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
-        flex: 0 0 auto;
         gap: var(--spacing-2);
-        min-width: 220px;
+        flex: 0 0 auto;
     }
 
     .dash-lk-header .month-selector {
         display: flex;
         align-items: center;
-        gap: var(--spacing-3);
-        flex-wrap: wrap;
+        gap: var(--spacing-2);
     }
 
     .lk-period,
     .lk-year-picker {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: var(--spacing-2);
+        gap: 0;
         background: var(--glass-bg);
         backdrop-filter: var(--glass-backdrop);
         border: 1px solid var(--glass-border);
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-md);
+        overflow: hidden;
         box-shadow: var(--shadow-sm);
     }
 
@@ -59,7 +56,6 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         background: none;
         border: 0;
         cursor: pointer;
-        border-radius: var(--radius-md);
         transition: all var(--transition-normal);
         display: flex;
         align-items: center;
@@ -67,19 +63,23 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         color: var(--color-text);
         font-family: var(--font-primary);
         position: relative;
+        height: 36px;
     }
 
     .dash-lk-header .month-nav-btn {
-        width: 40px;
-        height: 40px;
+        width: 36px;
         color: var(--color-text-muted);
+        border-right: 1px solid var(--glass-border);
+    }
+
+    .dash-lk-header .month-nav-btn:last-child {
+        border-right: 0;
+        border-left: 1px solid var(--glass-border);
     }
 
     .dash-lk-header .month-nav-btn:hover {
         background-color: var(--color-primary);
         color: white;
-        transform: scale(1.05);
-        box-shadow: var(--shadow-md);
     }
 
     .dash-lk-header .month-nav-btn:active {
@@ -89,32 +89,19 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
     .dash-lk-header .month-dropdown-btn {
         gap: var(--spacing-2);
         font-weight: 600;
-        font-size: var(--font-size-base);
-        min-width: 180px;
-        padding: var(--spacing-3) var(--spacing-4);
-        color: var(--color-primary);
-        position: relative;
-    }
-
-    .dash-lk-header .month-dropdown-btn::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: var(--color-primary);
-        opacity: 0;
-        border-radius: var(--radius-md);
-        transition: opacity var(--transition-fast);
-    }
-
-    .dash-lk-header .month-dropdown-btn:hover::before {
-        opacity: 0.08;
+        font-size: var(--font-size-sm);
+        min-width: 140px;
+        padding: 0 var(--spacing-3);
+        color: var(--color-text);
     }
 
     .dash-lk-header .month-dropdown-btn:hover {
-        transform: translateY(-1px);
+        background: rgba(230, 126, 34, 0.08);
+        color: var(--color-primary);
     }
 
     .dash-lk-header .month-dropdown-btn i {
+        font-size: 12px;
         transition: transform var(--transition-normal);
     }
 
@@ -126,26 +113,27 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         display: inline-flex;
         align-items: center;
         gap: var(--spacing-2);
-        padding: var(--spacing-3) var(--spacing-5);
-        border-radius: var(--radius-full, 999px);
+        padding: var(--spacing-2) var(--spacing-4);
+        height: 36px;
+        border-radius: var(--radius-md);
         background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
         color: #fff;
         font-weight: 600;
         font-size: var(--font-size-sm);
         text-decoration: none;
-        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-        box-shadow: var(--shadow-md);
+        transition: all var(--transition-fast);
+        box-shadow: var(--shadow-sm);
         white-space: nowrap;
     }
 
     .lk-pro-cta:hover {
         transform: translateY(-1px);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-md);
         color: #fff;
     }
 
     .lk-pro-cta i {
-        font-size: var(--font-size-base);
+        font-size: 14px;
     }
 
     /* Month dropdown */
@@ -156,9 +144,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
     .dash-lk-header .month-dropdown {
         position: absolute;
         top: calc(100% + 8px);
-        left: 50%;
-        transform: translateX(-50%) translateY(-8px);
-        width: min(280px, calc(100vw - 48px));
+        right: 0;
+        width: 280px;
         background: var(--color-surface);
         border: 1px solid var(--glass-border);
         border-radius: var(--radius-lg);
@@ -172,12 +159,13 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         transition: all var(--transition-normal);
         padding: var(--spacing-3);
         backdrop-filter: var(--glass-backdrop);
+        transform: translateY(-8px);
     }
 
     .dash-lk-header .month-dropdown.active {
         opacity: 1;
         visibility: visible;
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
     }
 
     /* Custom scrollbar */
@@ -373,59 +361,47 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
     }
 
     /* Responsividade */
-    @media (max-width: 640px) {
-        .dashboard-page .dash-lk-header {
-            margin-top: var(--spacing-3);
-            padding: var(--spacing-2);
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .lk-period {
-            padding: var(--spacing-1);
-        }
-
-        .dash-lk-header .month-nav-btn {
-            width: 36px;
-            height: 36px;
+    @media (max-width: 768px) {
+        .dash-lk-header {
+            justify-content: space-between;
         }
 
         .dash-lk-header .month-dropdown-btn {
-            min-width: 140px;
+            min-width: 120px;
+            font-size: var(--font-size-xs);
+        }
+
+        .dash-lk-header .month-nav-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .lk-pro-cta {
+            font-size: var(--font-size-xs);
             padding: var(--spacing-2) var(--spacing-3);
         }
 
         .dash-lk-header .month-dropdown {
             width: calc(100vw - 32px);
+            right: auto;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
         }
 
-        .dash-lk-header .header-left,
-        .dash-lk-header .header-actions {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .lk-pro-cta {
-            width: min(320px, 100%);
-            justify-content: center;
+        .dash-lk-header .month-dropdown.active {
+            transform: translateX(-50%) translateY(0);
         }
     }
 
-    @media (max-width: 370px) {
-
-        .dash-lk-header .month-dropdown-btn {
-
-            font-size: .85rem;
+    @media (max-width: 640px) {
+        .lk-pro-cta span {
+            display: none;
         }
 
-
-        .lk-period {
-            gap: 1px;
-            padding: 0;
-        }
-
-        .month-nav-btn {
-            font-size: .6rem !important;
+        .lk-pro-cta {
+            padding: var(--spacing-2);
+            width: 32px;
+            height: 32px;
         }
     }
 </style>

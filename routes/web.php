@@ -250,7 +250,8 @@ function registerApiRoutes(): void
 
     Router::add('GET',   '/api/accounts',               'Api\\ContasController@index',   ['auth']);
 
-    Router::add('POST',  '/api/accounts',               'Api\\ContasController@store',   ['auth', 'csrf']);
+    // DESATIVADA: Usar /api/v2/contas para criar novas contas
+    // Router::add('POST',  '/api/accounts',               'Api\\ContasController@store',   ['auth', 'csrf']);
 
     Router::add('PUT',   '/api/accounts/{id}',          'Api\\ContasController@update',  ['auth', 'csrf']);
 
@@ -263,6 +264,26 @@ function registerApiRoutes(): void
     Router::add('POST',  '/api/accounts/{id}/restore',  'Api\\ContasController@restore', ['auth', 'csrf']);
     Router::add('POST',  '/api/accounts/{id}/delete',   'Api\\ContasController@hardDelete', ['auth', 'csrf']);
 
+
+    // API V2 - Contas Modernas
+    Router::add('GET',    '/api/v2/instituicoes',         'Api\\ContasControllerV2@instituicoes', ['auth']);
+    Router::add('GET',    '/api/v2/contas',               'Api\\ContasControllerV2@index',        ['auth']);
+    Router::add('POST',   '/api/v2/contas',               'Api\\ContasControllerV2@store',        ['auth', 'csrf']);
+    Router::add('PUT',    '/api/v2/contas/{id}',          'Api\\ContasControllerV2@update',       ['auth', 'csrf']);
+    Router::add('POST',   '/api/v2/contas/{id}/archive',  'Api\\ContasControllerV2@archive',      ['auth', 'csrf']);
+    Router::add('POST',   '/api/v2/contas/{id}/restore',  'Api\\ContasControllerV2@restore',      ['auth', 'csrf']);
+    Router::add('DELETE', '/api/v2/contas/{id}',          'Api\\ContasControllerV2@destroy',      ['auth', 'csrf']);
+
+    // API V2 - Cartões de Crédito
+    Router::add('GET',    '/api/v2/cartoes',              'Api\\CartoesController@index',         ['auth']);
+    Router::add('GET',    '/api/v2/cartoes/{id}',         'Api\\CartoesController@show',          ['auth']);
+    Router::add('POST',   '/api/v2/cartoes',              'Api\\CartoesController@store',         ['auth', 'csrf']);
+    Router::add('PUT',    '/api/v2/cartoes/{id}',         'Api\\CartoesController@update',        ['auth', 'csrf']);
+    Router::add('POST',   '/api/v2/cartoes/{id}/deactivate', 'Api\\CartoesController@deactivate', ['auth', 'csrf']);
+    Router::add('POST',   '/api/v2/cartoes/{id}/reactivate', 'Api\\CartoesController@reactivate', ['auth', 'csrf']);
+    Router::add('DELETE', '/api/v2/cartoes/{id}',         'Api\\CartoesController@destroy',       ['auth', 'csrf']);
+    Router::add('PUT',    '/api/v2/cartoes/{id}/limite',  'Api\\CartoesController@updateLimit',   ['auth', 'csrf']);
+    Router::add('GET',    '/api/v2/cartoes/resumo',       'Api\\CartoesController@summary',       ['auth']);
 
 
     // Categorias
