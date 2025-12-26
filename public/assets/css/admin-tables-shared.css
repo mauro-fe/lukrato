@@ -228,9 +228,11 @@
    ============================================================================ */
 
 .card-item {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     var(--color-surface) 0%,
-    color-mix(in srgb, var(--color-surface) 98%, var(--color-primary) 2%) 100%);
+    color-mix(in srgb, var(--color-surface) 98%, var(--color-primary) 2%) 100%
+  );
   border: 1px solid var(--glass-border);
   border-top: none;
   padding: 1rem;
@@ -244,13 +246,17 @@
 }
 
 .card-item::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    180deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -264,13 +270,14 @@
 }
 
 .card-item.open {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 5%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 3%, var(--color-surface)));
+    color-mix(in srgb, var(--color-primary) 3%, var(--color-surface))
+  );
   border-color: var(--color-primary);
   transform: translateX(4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1),
-              -4px 0 0 var(--color-primary) inset;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), -4px 0 0 var(--color-primary) inset;
 }
 
 .card-item:hover {
@@ -377,7 +384,11 @@
 
 .badge-tipo.transferencia {
   color: #ffffff;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   border: 1px solid color-mix(in srgb, var(--color-primary) 80%, transparent);
   box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
 }
@@ -387,7 +398,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -428,10 +440,10 @@
 }
 
 .card-actions .lk-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+  background: var(--color-primary);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -446,7 +458,11 @@
 }
 
 .card-actions .lk-btn.edit:hover {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   color: #ffffff;
   border-color: var(--color-primary);
 }
@@ -492,9 +508,11 @@
   width: 24px;
   height: 24px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
-    color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface)));
+    color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface))
+  );
   border: 1px solid var(--color-primary);
   display: flex;
   align-items: center;
@@ -506,7 +524,11 @@
 }
 
 .card-toggle:hover .card-toggle-icon {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   color: #ffffff;
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
@@ -514,7 +536,11 @@
 
 .card-item[aria-expanded="true"] .card-toggle-icon {
   transform: rotate(90deg);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   color: #ffffff;
 }
 
@@ -575,9 +601,11 @@
   justify-content: center;
   gap: var(--spacing-2);
   padding: var(--spacing-4);
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-surface) 95%, var(--color-primary) 5%),
-    var(--color-surface));
+    var(--color-surface)
+  );
   backdrop-filter: blur(10px);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   font-size: var(--font-size-sm);
@@ -589,7 +617,11 @@
 
 .pager-btn {
   border: 1px solid var(--glass-border);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
@@ -606,10 +638,10 @@
 }
 
 .pager-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2));
+  background: var(--color-primary);
   opacity: 0;
   transition: opacity 0.3s ease;
 }

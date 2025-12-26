@@ -28,6 +28,10 @@
                         <i class="fas fa-tag"></i>
                         Nome da Conta
                     </label>
+<<<<<<< HEAD
+                    <input type="text" id="nomeConta" name="nome" class="form-input"
+                        placeholder="Ex: Nubank Conta, Itaú Poupança" required maxlength="100">
+=======
                     <input type="text"
                         id="nomeConta"
                         name="nome"
@@ -35,6 +39,7 @@
                         placeholder="Ex: Nubank Conta, Itaú Poupança"
                         required
                         maxlength="100">
+>>>>>>> mauro
                 </div>
 
                 <!-- Instituição Financeira -->
@@ -88,11 +93,15 @@
                     </label>
                     <div class="input-with-prefix">
                         <span class="input-prefix">R$</span>
+<<<<<<< HEAD
+                        <input type="text" id="saldoInicial" name="saldo_inicial" class="form-input" value="0,00"
+=======
                         <input type="text"
                             id="saldoInicial"
                             name="saldo_inicial"
                             class="form-input"
                             value="0,00"
+>>>>>>> mauro
                             placeholder="0,00">
                     </div>
                     <small class="form-help">Saldo atual disponível na conta</small>
@@ -104,21 +113,29 @@
                         <i class="fas fa-palette"></i>
                         Cor de Identificação
                     </label>
+<<<<<<< HEAD
+                    <input type="color" id="corConta" name="cor" class="form-input" value="#e67e22">
+=======
                     <input type="color"
                         id="corConta"
                         name="cor"
                         class="form-input"
                         value="#e67e22">
+>>>>>>> mauro
                     <small class="form-help">Escolha uma cor para identificar esta conta</small>
                 </div>
 
                 <!-- Checkbox Incluir no Saldo Total -->
                 <div class="form-group">
                     <label class="form-checkbox">
+<<<<<<< HEAD
+                        <input type="checkbox" id="incluirSaldoTotal" name="incluir_saldo_total" checked>
+=======
                         <input type="checkbox"
                             id="incluirSaldoTotal"
                             name="incluir_saldo_total"
                             checked>
+>>>>>>> mauro
                         <span class="form-checkbox-label">
                             <i class="fas fa-chart-line"></i>
                             Incluir no saldo total
