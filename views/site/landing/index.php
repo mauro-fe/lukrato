@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 ﻿<!-- Hero Section -->
-=======
-<!-- Hero Section -->
->>>>>>> origin/mauro
 <section
     class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
     <!-- Background Decorations -->
@@ -620,11 +616,7 @@
 
                 <!-- Toggle de Período -->
                 <div class="inline-flex bg-white border-2 border-gray-200 rounded-xl p-1.5 shadow-lg gap-2">
-<<<<<<< HEAD
-                    <button @click="period = 'mensal'; scrollToCard('plano-pro')"
-=======
                     <button @click="period = 'mensal'"
->>>>>>> origin/mauro
                         :class="period === 'mensal' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
                         class="px-6 py-3 rounded-lg font-semibold transition-all duration-300">
                         Mensal
@@ -651,7 +643,8 @@
 
                 <!-- Plano Gratuito -->
                 <?php if ($planoGratuito): ?>
-                    <div id="plano-gratuito" class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
+                    <div id="plano-gratuito"
+                        class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
                         data-aos="fade-right">
                         <div class="mb-6">
                             <h3 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($planoGratuito->nome) ?>
@@ -711,7 +704,8 @@
                     ];
                     $destaque = $plano->metadados['destaque'] ?? ($index === 0);
                 ?>
-                    <div id="plano-pro" class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                    <div id="plano-pro"
+                        class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                         data-aos="fade-left" x-data="{ 
                     basePrice: <?= $precoMensal ?>,
                     get currentPrice() {

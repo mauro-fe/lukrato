@@ -93,6 +93,8 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth']);
 
+    Router::add('GET', '/parcelamentos',     'Admin\\ParcelamentoController@index',  ['auth']);
+
     Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth']);
 
     Router::add('GET', '/config',            'Admin\\ConfigController@index',        ['auth']);

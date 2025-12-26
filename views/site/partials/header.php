@@ -33,9 +33,13 @@ $extraCss  = $extraCss  ?? [];
 
     <!-- Style para Alpine.js x-cloak -->
     <style>
-        [x-cloak] { display: none !important; }
-        html, body { 
-            overflow-x: hidden; 
+        [x-cloak] {
+            display: none !important;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
             width: 100%;
             max-width: 100vw;
         }
@@ -140,34 +144,34 @@ $extraCss  = $extraCss  ?? [];
     </header>
 
     <!-- Mobile Menu Backdrop -->
-    <div x-show="mobileMenuOpen" 
-         x-transition:enter="transition-opacity ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         @click="mobileMenuOpen = false"
-         class="fixed inset-0 bg-black bg-opacity-50 z-[60] lg:hidden"
-         x-cloak>
+    <div x-show="mobileMenuOpen"
+        x-transition:enter="transition-opacity ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="mobileMenuOpen = false"
+        class="fixed inset-0 bg-black bg-opacity-50 z-[60] lg:hidden"
+        x-cloak>
     </div>
 
     <!-- Mobile Menu Panel -->
     <div x-show="mobileMenuOpen"
-         x-transition:enter="transition ease-out duration-300 transform"
-         x-transition:enter-start="translate-x-full"
-         x-transition:enter-end="translate-x-0"
-         x-transition:leave="transition ease-in duration-200 transform"
-         x-transition:leave-start="translate-x-0"
-         x-transition:leave-end="translate-x-full"
-         class="fixed top-0 right-0 bottom-0 w-80 max-w-full bg-white shadow-2xl z-[70] lg:hidden overflow-y-auto"
-         x-cloak>
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        class="fixed top-0 right-0 bottom-0 w-80 max-w-full bg-white shadow-2xl z-[70] lg:hidden overflow-y-auto"
+        x-cloak>
         <div class="p-6">
             <!-- Header do Menu -->
             <div class="flex items-center justify-end mb-8">
                 <button @click="mobileMenuOpen = false"
-                        class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                        type="button">
+                    class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    type="button">
                     <i class="fa-solid fa-xmark text-2xl"></i>
                 </button>
             </div>
@@ -191,7 +195,7 @@ $extraCss  = $extraCss  ?? [];
                     Contato
                 </a>
             </nav>
-            
+
             <!-- Botões de Ação -->
             <div class="flex flex-col gap-3 pt-4 border-t border-gray-100">
                 <a href="<?= BASE_URL ?>login"

@@ -33,6 +33,9 @@ class Lancamento extends Model
         'total_parcelas',
         'lancamento_pai_id',
         'pago',
+        // Campos de parcelamento
+        'parcelamento_id',
+        'numero_parcela',
     ];
 
     protected $casts = [
@@ -44,6 +47,8 @@ class Lancamento extends Model
         'valor'             => 'float',
         'eh_transferencia'  => 'bool',
         'eh_saldo_inicial'  => 'bool',
+        'parcelamento_id'   => 'int',
+        'numero_parcela'    => 'int',
     ];
 
     public function categoria()
@@ -64,6 +69,22 @@ class Lancamento extends Model
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');
+    }
+
+    /**
+     * Relacionamento com o parcelamento
+     */
+    public function parcelamento()
+    {
+        return $this->belongsTo(Parcelamento::class, 'parcelamento_id');
+    }
+
+    /**
+     * Verifica se é uma parcela de um parcelamento
+     */
+    public function isParcela()
+    {
+        return !is_null($this->parcelamento_id);
     }
 
     public function scopeForUser($q, int $userId)
