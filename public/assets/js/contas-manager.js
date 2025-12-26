@@ -1082,9 +1082,15 @@ class ContasManager {
         const hoje = new Date().toISOString().split('T')[0];
         document.getElementById('lancamentoData').value = hoje;
 
-        // Carregar categorias
-        console.log('📞 Chamando preencherCategorias...');
-        this.preencherCategorias(tipo);
+        // Carregar categorias (exceto para transferência)
+        const categoriaGroup = document.getElementById('categoriaGroup');
+        if (tipo !== 'transferencia') {
+            console.log('📞 Chamando preencherCategorias...');
+            this.preencherCategorias(tipo);
+            if (categoriaGroup) categoriaGroup.style.display = 'block';
+        } else {
+            if (categoriaGroup) categoriaGroup.style.display = 'none';
+        }
 
         // Configurar botão e título baseado no tipo
         const btnSalvar = document.getElementById('btnSalvarLancamento');
@@ -1137,16 +1143,24 @@ class ContasManager {
         const select = document.getElementById('lancamentoContaDestino');
         const contaOrigemId = this.contaSelecionadaLancamento.id;
 
+        console.log('🔄 Preenchendo contas destino. Origem ID:', contaOrigemId);
+        console.log('🔄 Total de contas:', this.contas.length);
+
         select.innerHTML = '<option value="">Selecione a conta de destino</option>';
 
+        let contasAdicionadas = 0;
         this.contas.forEach(conta => {
+            console.log(`  → Conta ${conta.id} (${conta.nome}): ${conta.id != contaOrigemId ? 'INCLUÍDA' : 'IGNORADA (origem)'}`);
             if (conta.id != contaOrigemId) {
                 const option = document.createElement('option');
                 option.value = conta.id;
                 option.textContent = conta.nome;
                 select.appendChild(option);
+                contasAdicionadas++;
             }
         });
+
+        console.log(`✅ ${contasAdicionadas} contas adicionadas ao select de destino`);
     }
 
     /**
@@ -1323,15 +1337,24 @@ class ContasManager {
             const valorFormatado = formData.get('valor');
             const contaDestinoId = formData.get('conta_destino_id');
 
+            console.log('📋 Dados do formulário:', { tipo, contaId, contaDestinoId, valorFormatado });
+            console.log('📋 Tipos:', {
+                contaId: `${typeof contaId} = "${contaId}"`,
+                contaDestinoId: `${typeof contaDestinoId} = "${contaDestinoId}"`,
+                saoIguais: contaId === contaDestinoId,
+                saoIguaisString: String(contaId) === String(contaDestinoId)
+            });
+
             // Validações
             if (tipo === 'transferencia' && !contaDestinoId) {
                 this.showNotification('Selecione a conta de destino', 'error');
                 throw new Error('Conta destino obrigatória para transferências');
             }
 
-            if (tipo === 'transferencia' && contaId === contaDestinoId) {
+            // Validação extra: garantir que as contas são diferentes
+            if (tipo === 'transferencia' && String(contaId) === String(contaDestinoId)) {
                 this.showNotification('Conta de origem e destino devem ser diferentes', 'error');
-                throw new Error('Contas iguais');
+                throw new Error('Selecione contas de origem e destino diferentes.');
             }
 
             // Converter valor formatado para float
@@ -1359,8 +1382,8 @@ class ContasManager {
             if (tipo === 'transferencia') {
                 apiUrl = `${this.baseUrl}/transfers`;
                 requestData = {
-                    origem_id: contaId,
-                    destino_id: contaDestinoId,
+                    conta_id: contaId,
+                    conta_id_destino: contaDestinoId,
                     valor: valor,
                     data: formData.get('data'),
                     descricao: formData.get('descricao'),
@@ -1430,7 +1453,7 @@ class ContasManager {
             console.error('❌ Erro ao criar lançamento:', error);
 
             if (error.message !== 'Conta destino obrigatória para transferências' &&
-                error.message !== 'Contas iguais' &&
+                error.message !== 'Selecione contas de origem e destino diferentes.' &&
                 error.message !== 'Valor inválido') {
                 this.showNotification(
                     error.message || 'Erro ao criar lançamento. Tente novamente.',

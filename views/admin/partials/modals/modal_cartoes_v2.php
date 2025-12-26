@@ -1,13 +1,15 @@
 <!-- Modal de Cartão de Crédito MODERNO -->
 <div class="lk-modal-overlay" id="modalCartaoOverlay" onclick="contasManager.closeCartaoModal()">
-    <div class="lk-modal-modern" id="modalCartao" onclick="event.stopPropagation()" role="dialog" aria-labelledby="modalCartaoTitulo">
+    <div class="lk-modal-modern" id="modalCartao" onclick="event.stopPropagation()" role="dialog"
+        aria-labelledby="modalCartaoTitulo">
         <!-- Header com Gradiente Roxo -->
         <div class="lk-modal-header-gradient" style="background: linear-gradient(135deg, #8A05BE 0%, #5B047B 100%);">
             <div class="lk-modal-icon-wrapper">
                 <i class="fas fa-credit-card"></i>
             </div>
             <h2 class="lk-modal-title" id="modalCartaoTitulo">Novo Cartão de Crédito</h2>
-            <button class="lk-modal-close-btn" onclick="contasManager.closeCartaoModal()" type="button" aria-label="Fechar modal">
+            <button class="lk-modal-close-btn" onclick="contasManager.closeCartaoModal()" type="button"
+                aria-label="Fechar modal">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -23,23 +25,18 @@
                         <i class="fas fa-tag"></i>
                         Nome do Cartão
                     </label>
-                    <input type="text" 
-                           id="nomeCartao" 
-                           name="nome_cartao" 
-                           class="lk-input" 
-                           placeholder="Ex: Nubank Platinum, Itaú Gold" 
-                           required 
-                           maxlength="100">
+                    <input type="text" id="nomeCartao" name="nome_cartao" class="lk-input"
+                        placeholder="Ex: Nubank Platinum, Itaú Gold" required maxlength="100">
                 </div>
 
                 <!-- Conta Vinculada -->
                 <div class="lk-form-group">
-                    <label for="contaVinculada" class="lk-label required">
+                    <label for="contaVinculada" class="lk-label ">
                         <i class="fas fa-link"></i>
                         Conta Vinculada
                     </label>
                     <div class="lk-select-wrapper">
-                        <select id="contaVinculada" name="conta_id" class="lk-select" required>
+                        <select id="contaVinculada" name="conta_id" class="lk-select">
                             <option value="">Selecione a conta</option>
                             <!-- Preenchido via JS -->
                         </select>
@@ -72,18 +69,12 @@
 
                     <!-- Últimos dígitos -->
                     <div class="lk-form-group">
-                        <label for="ultimosDigitos" class="lk-label required">
+                        <label for="ultimosDigitos" class="lk-label ">
                             <i class="fas fa-hashtag"></i>
                             Últimos 4 dígitos
                         </label>
-                        <input type="text" 
-                               id="ultimosDigitos" 
-                               name="ultimos_digitos" 
-                               class="lk-input" 
-                               placeholder="1234" 
-                               required 
-                               maxlength="4" 
-                               pattern="\d{4}">
+                        <input type="text" id="ultimosDigitos" name="ultimos_digitos" class="lk-input"
+                            placeholder="1234" maxlength="4" pattern="\d{4}">
                     </div>
                 </div>
 
@@ -95,13 +86,8 @@
                     </label>
                     <div class="lk-input-money">
                         <span class="lk-currency-symbol">R$</span>
-                        <input type="text" 
-                               id="limiteTotal" 
-                               name="limite_total" 
-                               class="lk-input lk-input-with-prefix" 
-                               value="0,00"
-                               placeholder="0,00"
-                               autocomplete="off">
+                        <input type="text" id="limiteTotal" name="limite_total" class="lk-input lk-input-with-prefix"
+                            value="0,00" placeholder="0,00" autocomplete="off">
                     </div>
                     <small class="lk-helper-text">💡 Limite total disponível no cartão</small>
                 </div>
@@ -114,13 +100,8 @@
                             <i class="fas fa-calendar-check"></i>
                             Dia de Fechamento
                         </label>
-                        <input type="number" 
-                               id="diaFechamento" 
-                               name="dia_fechamento" 
-                               class="lk-input" 
-                               min="1" 
-                               max="31" 
-                               placeholder="Ex: 10">
+                        <input type="number" id="diaFechamento" name="dia_fechamento" class="lk-input" min="1" max="31"
+                            placeholder="Ex: 10">
                         <small class="lk-helper-text">Dia que a fatura fecha</small>
                     </div>
 
@@ -130,13 +111,8 @@
                             <i class="fas fa-calendar-alt"></i>
                             Dia de Vencimento
                         </label>
-                        <input type="number" 
-                               id="diaVencimento" 
-                               name="dia_vencimento" 
-                               class="lk-input" 
-                               min="1" 
-                               max="31" 
-                               placeholder="Ex: 15">
+                        <input type="number" id="diaVencimento" name="dia_vencimento" class="lk-input" min="1" max="31"
+                            placeholder="Ex: 15">
                         <small class="lk-helper-text">Dia do vencimento da fatura</small>
                     </div>
                 </div>

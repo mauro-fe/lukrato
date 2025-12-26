@@ -331,7 +331,6 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- ============================================================================
          MODAIS
          ============================================================================ -->
-    <?php include __DIR__ . '/modals/modal_lancamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
     <?php include __DIR__ . '/modals/aviso-lancamentos.php'; ?>

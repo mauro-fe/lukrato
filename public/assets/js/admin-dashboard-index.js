@@ -610,7 +610,8 @@
                     return sum + (isFinite(value) ? Number(value) : 0);
                 }, 0);
 
-                const saldoFinal = Number.isFinite(saldoAcumulado) ? saldoAcumulado : totalSaldoContas;
+                // SEMPRE usar a soma dos saldos das contas
+                const saldoFinal = totalSaldoContas;
 
                 if (DOM.saldoValue) {
                     DOM.saldoValue.textContent = Utils.money(saldoFinal);

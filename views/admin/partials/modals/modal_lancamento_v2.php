@@ -1,204 +1,181 @@
 <!-- Modal de Novo Lançamento -->
 <div class="lk-modal-overlay" id="modalLancamentoOverlay" onclick="contasManager.closeLancamentoModal()">
-    <div class="lk-modal-modern lk-modal-lancamento" onclick="event.stopPropagation()" role="dialog" aria-labelledby="modalLancamentoTitulo">
+    <div class="lk-modal-modern lk-modal-lancamento" onclick="event.stopPropagation()" role="dialog"
+        aria-labelledby="modalLancamentoTitulo">
         <!-- Header com Gradiente -->
-        <div class="lk-modal-header-gradient" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);">
-            <div class="lk-modal-icon-wrapper">
-                <i class="fas fa-exchange-alt"></i>
+        <div class="lk-modal-header-gradient"">
+            <div class=" lk-modal-icon-wrapper">
+            <i class="fas fa-exchange-alt"></i>
+        </div>
+        <h2 class="lk-modal-title" id="modalLancamentoTitulo">Nova Movimentação</h2>
+        <button class="lk-modal-close-btn" onclick="contasManager.closeLancamentoModal()" type="button"
+            aria-label="Fechar modal">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Body do Modal -->
+    <div class="lk-modal-body-modern">
+        <!-- Conta Selecionada -->
+        <div class="lk-conta-info">
+            <div class="lk-conta-badge">
+                <i class="fas fa-wallet"></i>
+                <span id="lancamentoContaNome">Conta</span>
             </div>
-            <h2 class="lk-modal-title" id="modalLancamentoTitulo">Nova Movimentação</h2>
-            <button class="lk-modal-close-btn" onclick="contasManager.closeLancamentoModal()" type="button" aria-label="Fechar modal">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="lk-conta-saldo">
+                Saldo atual: <strong id="lancamentoContaSaldo">R$ 0,00</strong>
+            </div>
         </div>
 
-        <!-- Body do Modal -->
-        <div class="lk-modal-body-modern">
-            <!-- Conta Selecionada -->
-            <div class="lk-conta-info">
-                <div class="lk-conta-badge">
-                    <i class="fas fa-wallet"></i>
-                    <span id="lancamentoContaNome">Conta</span>
-                </div>
-                <div class="lk-conta-saldo">
-                    Saldo atual: <strong id="lancamentoContaSaldo">R$ 0,00</strong>
+        <!-- Histórico Recente -->
+        <div class="lk-historico-section">
+            <h3 class="lk-section-title">
+                <i class="fas fa-history"></i>
+                Últimas Movimentações
+            </h3>
+            <div class="lk-historico-list" id="lancamentoHistorico">
+                <!-- Preenchido via JS -->
+                <div class="lk-historico-empty">
+                    <i class="fas fa-inbox"></i>
+                    <p>Nenhuma movimentação recente</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Histórico Recente -->
-            <div class="lk-historico-section">
-                <h3 class="lk-section-title">
-                    <i class="fas fa-history"></i>
-                    Últimas Movimentações
-                </h3>
-                <div class="lk-historico-list" id="lancamentoHistorico">
-                    <!-- Preenchido via JS -->
-                    <div class="lk-historico-empty">
-                        <i class="fas fa-inbox"></i>
-                        <p>Nenhuma movimentação recente</p>
+        <!-- Escolha do Tipo de Lançamento -->
+        <div class="lk-tipo-section" id="tipoSection">
+            <h3 class="lk-section-title">
+                <i class="fas fa-tasks"></i>
+                Escolha o tipo de movimentação
+            </h3>
+
+            <div class="lk-tipo-grid">
+                <!-- Receita -->
+                <button type="button" class="lk-tipo-card lk-tipo-receita"
+                    onclick="contasManager.mostrarFormularioLancamento('receita')">
+                    <div class="lk-tipo-icon">
+                        <i class="fas fa-arrow-down"></i>
                     </div>
-                </div>
-            </div>
-
-            <!-- Escolha do Tipo de Lançamento -->
-            <div class="lk-tipo-section" id="tipoSection">
-                <h3 class="lk-section-title">
-                    <i class="fas fa-tasks"></i>
-                    Escolha o tipo de movimentação
-                </h3>
-
-                <div class="lk-tipo-grid">
-                    <!-- Receita -->
-                    <button type="button" class="lk-tipo-card lk-tipo-receita" onclick="contasManager.mostrarFormularioLancamento('receita')">
-                        <div class="lk-tipo-icon">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <h4>Receita</h4>
-                        <p>Dinheiro que entra</p>
-                        <div class="lk-tipo-badge">+ Entrada</div>
-                    </button>
-
-                    <!-- Despesa -->
-                    <button type="button" class="lk-tipo-card lk-tipo-despesa" onclick="contasManager.mostrarFormularioLancamento('despesa')">
-                        <div class="lk-tipo-icon">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                        <h4>Despesa</h4>
-                        <p>Dinheiro que sai</p>
-                        <div class="lk-tipo-badge">- Saída</div>
-                    </button>
-
-                    <!-- Transferência -->
-                    <button type="button" class="lk-tipo-card lk-tipo-transferencia" onclick="contasManager.mostrarFormularioLancamento('transferencia')">
-                        <div class="lk-tipo-icon">
-                            <i class="fas fa-exchange-alt"></i>
-                        </div>
-                        <h4>Transferência</h4>
-                        <p>Entre contas</p>
-                        <div class="lk-tipo-badge">⇄ Mover</div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Formulário de Lançamento (oculto inicialmente) -->
-            <div class="lk-form-section" id="formSection" style="display: none;">
-                <!-- Botão voltar -->
-                <button type="button" class="lk-btn-voltar" onclick="contasManager.voltarEscolhaTipo()">
-                    <i class="fas fa-arrow-left"></i>
-                    Voltar
+                    <h4>Receita</h4>
+                    <p>Dinheiro que entra</p>
+                    <div class="lk-tipo-badge">+ Entrada</div>
                 </button>
 
-                <form id="formLancamento" autocomplete="off">
-                    <input type="hidden" id="lancamentoContaId" name="conta_id">
-                    <input type="hidden" id="lancamentoTipo" name="tipo">
-
-                    <!-- Descrição -->
-                    <div class="lk-form-group">
-                        <label for="lancamentoDescricao" class="lk-label required">
-                            <i class="fas fa-align-left"></i>
-                            Descrição
-                        </label>
-                        <input type="text"
-                            id="lancamentoDescricao"
-                            name="descricao"
-                            class="lk-input"
-                            placeholder="Ex: Salário, Aluguel, Compras..."
-                            required
-                            maxlength="200">
+                <!-- Despesa -->
+                <button type="button" class="lk-tipo-card lk-tipo-despesa"
+                    onclick="contasManager.mostrarFormularioLancamento('despesa')">
+                    <div class="lk-tipo-icon">
+                        <i class="fas fa-arrow-up"></i>
                     </div>
+                    <h4>Despesa</h4>
+                    <p>Dinheiro que sai</p>
+                    <div class="lk-tipo-badge">- Saída</div>
+                </button>
 
-                    <!-- Valor -->
-                    <div class="lk-form-group">
-                        <label for="lancamentoValor" class="lk-label required">
-                            <i class="fas fa-dollar-sign"></i>
-                            Valor
-                        </label>
-                        <div class="lk-input-money">
-                            <span class="lk-currency-symbol">R$</span>
-                            <input type="text"
-                                id="lancamentoValor"
-                                name="valor"
-                                class="lk-input lk-input-with-prefix"
-                                value="0,00"
-                                placeholder="0,00"
-                                autocomplete="off"
-                                required>
-                        </div>
+                <!-- Transferência -->
+                <button type="button" class="lk-tipo-card lk-tipo-transferencia"
+                    onclick="contasManager.mostrarFormularioLancamento('transferencia')">
+                    <div class="lk-tipo-icon">
+                        <i class="fas fa-exchange-alt"></i>
                     </div>
-
-                    <!-- Conta Destino (somente para transferência) -->
-                    <div class="lk-form-group" id="contaDestinoGroup" style="display: none;">
-                        <label for="lancamentoContaDestino" class="lk-label required">
-                            <i class="fas fa-exchange-alt"></i>
-                            Conta de Destino
-                        </label>
-                        <div class="lk-select-wrapper">
-                            <select id="lancamentoContaDestino" name="conta_destino_id" class="lk-select">
-                                <option value="">Selecione a conta de destino</option>
-                                <!-- Preenchido via JS -->
-                            </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
-                        </div>
-                        <small class="lk-helper-text">Para onde o dinheiro vai ser transferido</small>
-                    </div>
-
-                    <!-- Data -->
-                    <div class="lk-form-group">
-                        <label for="lancamentoData" class="lk-label required">
-                            <i class="fas fa-calendar"></i>
-                            Data
-                        </label>
-                        <input type="date"
-                            id="lancamentoData"
-                            name="data"
-                            class="lk-input"
-                            required>
-                    </div>
-
-                    <!-- Categoria (não obrigatório) -->
-                    <div class="lk-form-group">
-                        <label for="lancamentoCategoria" class="lk-label">
-                            <i class="fas fa-tag"></i>
-                            Categoria
-                        </label>
-                        <div class="lk-select-wrapper">
-                            <select id="lancamentoCategoria" name="categoria_id" class="lk-select">
-                                <option value="">Selecione (opcional)</option>
-                                <!-- Preenchido via JS -->
-                            </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
-                        </div>
-                    </div>
-
-                    <!-- Observações -->
-                    <div class="lk-form-group">
-                        <label for="lancamentoObservacoes" class="lk-label">
-                            <i class="fas fa-comment"></i>
-                            Observações
-                        </label>
-                        <textarea id="lancamentoObservacoes"
-                            name="observacoes"
-                            class="lk-input lk-textarea"
-                            rows="3"
-                            placeholder="Detalhes adicionais (opcional)"
-                            maxlength="500"></textarea>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="lk-modal-footer">
-                        <button type="button" class="lk-btn lk-btn-ghost" onclick="contasManager.closeLancamentoModal()">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
-                        <button type="submit" class="lk-btn lk-btn-primary" id="btnSalvarLancamento">
-                            <i class="fas fa-check"></i>
-                            Salvar Lançamento
-                        </button>
-                    </div>
-                </form>
+                    <h4>Transferência</h4>
+                    <p>Entre contas</p>
+                    <div class="lk-tipo-badge">⇄ Mover</div>
+                </button>
             </div>
         </div>
+
+        <!-- Formulário de Lançamento (oculto inicialmente) -->
+        <div class="lk-form-section" id="formSection" style="display: none;">
+            <!-- Botão voltar -->
+            <button type="button" class="lk-btn-voltar" onclick="contasManager.voltarEscolhaTipo()">
+                <i class="fas fa-arrow-left"></i>
+                Voltar
+            </button>
+
+            <form id="formLancamento" autocomplete="off">
+                <input type="hidden" id="lancamentoContaId" name="conta_id">
+                <input type="hidden" id="lancamentoTipo" name="tipo">
+
+                <!-- Descrição -->
+                <div class="lk-form-group">
+                    <label for="lancamentoDescricao" class="lk-label required">
+                        <i class="fas fa-align-left"></i>
+                        Descrição
+                    </label>
+                    <input type="text" id="lancamentoDescricao" name="descricao" class="lk-input"
+                        placeholder="Ex: Salário, Aluguel, Compras..." required maxlength="200">
+                </div>
+
+                <!-- Valor -->
+                <div class="lk-form-group">
+                    <label for="lancamentoValor" class="lk-label required">
+                        <i class="fas fa-dollar-sign"></i>
+                        Valor
+                    </label>
+                    <div class="lk-input-money">
+                        <span class="lk-currency-symbol">R$</span>
+                        <input type="text" id="lancamentoValor" name="valor" class="lk-input lk-input-with-prefix"
+                            value="0,00" placeholder="0,00" autocomplete="off" required>
+                    </div>
+                </div>
+
+                <!-- Conta Destino (somente para transferência) -->
+                <div class="lk-form-group" id="contaDestinoGroup" style="display: none;">
+                    <label for="lancamentoContaDestino" class="lk-label required">
+                        <i class="fas fa-exchange-alt"></i>
+                        Conta de Destino
+                    </label>
+                    <div class="lk-select-wrapper">
+                        <select id="lancamentoContaDestino" name="conta_destino_id" class="lk-select">
+                            <option value="">Selecione a conta de destino</option>
+                            <!-- Preenchido via JS -->
+                        </select>
+                        <i class="fas fa-chevron-down lk-select-icon"></i>
+                    </div>
+                    <small class="lk-helper-text">Para onde o dinheiro vai ser transferido</small>
+                </div>
+
+                <!-- Data -->
+                <div class="lk-form-group">
+                    <label for="lancamentoData" class="lk-label required">
+                        <i class="fas fa-calendar"></i>
+                        Data
+                    </label>
+                    <input type="date" id="lancamentoData" name="data" class="lk-input" required>
+                </div>
+
+                <!-- Categoria (não obrigatório) -->
+                <div class="lk-form-group" id="categoriaGroup">
+                    <label for="lancamentoCategoria" class="lk-label">
+                        <i class="fas fa-tag"></i>
+                        Categoria
+                    </label>
+                    <div class="lk-select-wrapper">
+                        <select id="lancamentoCategoria" name="categoria_id" class="lk-select">
+                            <option value="">Selecione (opcional)</option>
+                            <!-- Preenchido via JS -->
+                        </select>
+                        <i class="fas fa-chevron-down lk-select-icon"></i>
+                    </div>
+                </div>
+
+
+                <!-- Footer -->
+                <div class="lk-modal-footer">
+                    <button type="button" class="lk-btn lk-btn-ghost" onclick="contasManager.closeLancamentoModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="lk-btn lk-btn-primary" id="btnSalvarLancamento">
+                        <i class="fas fa-check"></i>
+                        Salvar Lançamento
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 </div>
 
 <style>
@@ -271,7 +248,6 @@
     }
 
     .lk-historico-list {
-        background: #f8f9fa;
         border-radius: 12px;
         padding: 1rem;
         max-height: 180px;
@@ -283,7 +259,6 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.75rem;
-        background: white;
         border-radius: 8px;
         margin-bottom: 0.5rem;
         transition: all 0.2s ease;
@@ -332,13 +307,12 @@
     .lk-historico-desc h5 {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #212529;
+        color: var(--color-text);
         margin: 0;
     }
 
     .lk-historico-desc p {
         font-size: 0.75rem;
-        color: #6c757d;
         margin: 0;
     }
 
@@ -384,7 +358,6 @@
     }
 
     .lk-tipo-card {
-        background: white;
         border: 2px solid #e9ecef;
         border-radius: 16px;
         padding: 1.5rem 1rem;
@@ -496,22 +469,16 @@
         font-size: 1.125rem;
         font-weight: 700;
         margin: 0 0 0.375rem;
-        color: #212529;
     }
 
-    .lk-tipo-card:hover h4 {
-        color: white;
-    }
 
     .lk-tipo-card p {
         font-size: 0.8125rem;
-        color: #6c757d;
         margin: 0 0 1rem;
+        color: var(--color-text) !important;
     }
 
-    .lk-tipo-card:hover p {
-        color: rgba(255, 255, 255, 0.9);
-    }
+
 
     .lk-tipo-badge {
         display: inline-block;
@@ -589,7 +556,6 @@
    HISTÓRICO RECENTE
    ======================================== */
     .lk-historico-section {
-        background: #f8f9fa;
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1.5rem;
@@ -608,7 +574,6 @@
         align-items: center;
         gap: 1rem;
         padding: 0.875rem;
-        background: white;
         border-radius: 8px;
         border-left: 3px solid #dee2e6;
         transition: all 0.2s ease;
@@ -664,7 +629,6 @@
     .lk-historico-desc {
         font-size: 0.9375rem;
         font-weight: 600;
-        color: #2c3e50;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -672,7 +636,6 @@
 
     .lk-historico-cat {
         font-size: 0.8125rem;
-        color: #6c757d;
         margin-top: 2px;
     }
 

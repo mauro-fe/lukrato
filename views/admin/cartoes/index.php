@@ -2,13 +2,7 @@
     <!-- ==================== HEADER COM ESTATÍSTICAS ==================== -->
     <div class="cartoes-header">
         <div class="header-top">
-            <div>
-                <h1 class="page-title">
-                    <i class="fas fa-credit-card"></i>
-                    Cartões de Crédito
-                </h1>
-                <p class="page-subtitle">Gerencie seus cartões e controle seus gastos</p>
-            </div>
+
             <button class="btn btn-primary" id="btnNovoCartao">
                 <i class="fas fa-plus"></i>
                 Adicionar Cartão
