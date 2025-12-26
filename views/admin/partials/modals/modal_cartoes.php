@@ -28,13 +28,8 @@
                         <i class="fas fa-tag"></i>
                         Nome do Cartão
                     </label>
-                    <input type="text"
-                        id="nomeCartao"
-                        name="nome_cartao"
-                        class="form-input"
-                        placeholder="Ex: Nubank Platinum, Itaú Gold"
-                        required
-                        maxlength="100">
+                    <input type="text" id="nomeCartao" name="nome_cartao" class="form-input"
+                        placeholder="Ex: Nubank Platinum, Itaú Gold" required maxlength="100">
                 </div>
 
                 <!-- Conta Vinculada -->
@@ -74,14 +69,8 @@
                             <i class="fas fa-hashtag"></i>
                             Últimos 4 dígitos
                         </label>
-                        <input type="text"
-                            id="ultimosDigitos"
-                            name="ultimos_digitos"
-                            class="form-input"
-                            placeholder="1234"
-                            required
-                            maxlength="4"
-                            pattern="\d{4}">
+                        <input type="text" id="ultimosDigitos" name="ultimos_digitos" class="form-input"
+                            placeholder="1234" required maxlength="4" pattern="\d{4}">
                     </div>
                 </div>
 
@@ -93,11 +82,7 @@
                     </label>
                     <div class="input-with-prefix">
                         <span class="input-prefix">R$</span>
-                        <input type="text"
-                            id="limiteTotal"
-                            name="limite_total"
-                            class="form-input"
-                            value="0,00"
+                        <input type="text" id="limiteTotal" name="limite_total" class="form-input" value="0,00"
                             placeholder="0,00">
                     </div>
                     <small class="form-help">Limite total disponível no cartão</small>
@@ -111,13 +96,8 @@
                             <i class="fas fa-calendar-check"></i>
                             Dia Fechamento
                         </label>
-                        <input type="number"
-                            id="diaFechamento"
-                            name="dia_fechamento"
-                            class="form-input"
-                            min="1"
-                            max="31"
-                            placeholder="Ex: 10">
+                        <input type="number" id="diaFechamento" name="dia_fechamento" class="form-input" min="1"
+                            max="31" placeholder="Ex: 10">
                         <small class="form-help">Dia que a fatura fecha</small>
                     </div>
 
@@ -127,13 +107,8 @@
                             <i class="fas fa-calendar-alt"></i>
                             Dia Vencimento
                         </label>
-                        <input type="number"
-                            id="diaVencimento"
-                            name="dia_vencimento"
-                            class="form-input"
-                            min="1"
-                            max="31"
-                            placeholder="Ex: 15">
+                        <input type="number" id="diaVencimento" name="dia_vencimento" class="form-input" min="1"
+                            max="31" placeholder="Ex: 15">
                         <small class="form-help">Dia do vencimento</small>
                     </div>
                 </div>

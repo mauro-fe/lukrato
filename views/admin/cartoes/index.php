@@ -124,7 +124,7 @@
 </div>
 
 <!-- ==================== MODAIS ==================== -->
-<?php include __DIR__ . '/../modals/cartao-modal.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_cartoes.php'; ?>
 
 <!-- ==================== SCRIPTS E ESTILOS ==================== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/cartoes-modern.css?v=<?= time() ?>">

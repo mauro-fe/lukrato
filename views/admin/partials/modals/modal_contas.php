@@ -1,20 +1,162 @@
-﻿<style>
-    /* Modal Container */
-    .lk-modal {
+﻿<!-- Modal de Nova Conta -->
+<div class="modal-overlay" id="modalContaOverlay">
+    <div class="modal-container" id="modalConta" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="modal-header-content">
+                <div class="modal-icon">
+                    <i class="fas fa-university"></i>
+                </div>
+                <div>
+                    <h2 class="modal-title" id="modalContaTitulo">Nova Conta</h2>
+                    <p class="modal-subtitle">Adicione uma nova conta bancária</p>
+                </div>
+            </div>
+            <button class="modal-close" type="button" aria-label="Fechar modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <form id="formConta" autocomplete="off">
+                <input type="hidden" id="contaId" name="conta_id">
+
+                <!-- Nome da Conta -->
+                <div class="form-group">
+                    <label for="nomeConta" class="form-label required">
+                        <i class="fas fa-tag"></i>
+                        Nome da Conta
+                    </label>
+                    <input type="text" id="nomeConta" name="nome" class="form-input"
+                        placeholder="Ex: Nubank Conta, Itaú Poupança" required maxlength="100">
+                </div>
+
+                <!-- Instituição Financeira -->
+                <div class="form-group">
+                    <label for="instituicaoFinanceiraSelect" class="form-label">
+                        <i class="fas fa-building"></i>
+                        Instituição Financeira
+                    </label>
+                    <select id="instituicaoFinanceiraSelect" name="instituicao_financeira_id" class="form-select">
+                        <option value="">Selecione uma instituição</option>
+                    </select>
+                    <small class="form-help">Escolha o banco ou fintech desta conta</small>
+                </div>
+
+                <!-- Grid 2 colunas -->
+                <div class="form-row">
+                    <!-- Tipo de Conta -->
+                    <div class="form-group">
+                        <label for="tipoContaSelect" class="form-label required">
+                            <i class="fas fa-wallet"></i>
+                            Tipo de Conta
+                        </label>
+                        <select id="tipoContaSelect" name="tipo_conta" class="form-select" required>
+                            <option value="conta_corrente">Conta Corrente</option>
+                            <option value="conta_poupanca">Conta Poupança</option>
+                            <option value="conta_investimento">Investimento</option>
+                            <option value="carteira_digital">Carteira Digital</option>
+                            <option value="dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+
+                    <!-- Moeda -->
+                    <div class="form-group">
+                        <label for="moedaSelect" class="form-label required">
+                            <i class="fas fa-dollar-sign"></i>
+                            Moeda
+                        </label>
+                        <select id="moedaSelect" name="moeda" class="form-select" required>
+                            <option value="BRL" selected>Real (BRL)</option>
+                            <option value="USD">Dólar (USD)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Saldo Inicial -->
+                <div class="form-group">
+                    <label for="saldoInicial" class="form-label">
+                        <i class="fas fa-coins"></i>
+                        Saldo Inicial
+                    </label>
+                    <div class="input-with-prefix">
+                        <span class="input-prefix">R$</span>
+                        <input type="text" id="saldoInicial" name="saldo_inicial" class="form-input" value="0,00"
+                            placeholder="0,00">
+                    </div>
+                    <small class="form-help">Saldo atual disponível na conta</small>
+                </div>
+
+                <!-- Cor da Conta -->
+                <div class="form-group">
+                    <label for="corConta" class="form-label">
+                        <i class="fas fa-palette"></i>
+                        Cor de Identificação
+                    </label>
+                    <input type="color" id="corConta" name="cor" class="form-input" value="#e67e22">
+                    <small class="form-help">Escolha uma cor para identificar esta conta</small>
+                </div>
+
+                <!-- Checkbox Incluir no Saldo Total -->
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="incluirSaldoTotal" name="incluir_saldo_total" checked>
+                        <span class="form-checkbox-label">
+                            <i class="fas fa-chart-line"></i>
+                            Incluir no saldo total
+                        </span>
+                    </label>
+                    <small class="form-help">Marque para considerar esta conta no saldo geral</small>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Salvar Conta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal usando variáveis do sistema */
+    .modal-overlay {
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(12px) saturate(180%);
+        backdrop-filter: blur(8px);
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 1000;
+        z-index: 9999;
         padding: var(--spacing-4);
         animation: fadeIn 0.3s ease;
     }
 
-    .lk-modal.active {
+    .modal-overlay.active {
         display: flex;
+    }
+
+    .modal-container {
+        background: var(--color-surface);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-xl);
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     @keyframes fadeIn {
@@ -27,28 +169,10 @@
         }
     }
 
-    /* Modal Card */
-    .lk-modal-card {
-        background: var(--color-surface);
-        border-radius: var(--radius-xl);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--shadow-xl), 0 0 0 1px rgba(230, 126, 34, 0.1);
-        max-width: 600px;
-        width: 100%;
-        max-height: 90vh;
-        overflow: hidden;
-        position: relative;
-        animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .lk-modal-card {
-        padding: var(--spacing-3);
-    }
-
-    @keyframes modalSlideIn {
+    @keyframes slideUp {
         from {
             opacity: 0;
-            transform: translateY(-30px) scale(0.95);
+            transform: translateY(30px) scale(0.95);
         }
 
         to {
@@ -57,224 +181,204 @@
         }
     }
 
-    /* Barra decorativa superior */
-    .lk-modal-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg,
-                transparent,
-                var(--color-primary) 30%,
-                var(--color-primary) 70%,
-                transparent);
-        opacity: 0.8;
-        animation: shimmer 3s ease-in-out infinite;
-    }
-
-    @keyframes shimmer {
-
-        0%,
-        100% {
-            opacity: 0.6;
-        }
-
-        50% {
-            opacity: 1;
-        }
-    }
-
     /* Header */
-    .lk-modal-h {
+    .modal-header {
+        padding: var(--spacing-6);
+        border-bottom: 1px solid var(--glass-border);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: var(--spacing-4) var(--spacing-4) var(--spacing-2);
-        border-bottom: 1px solid var(--glass-border);
-        margin-bottom: 0;
+        background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
+        color: white;
     }
 
-    .lk-modal-t {
+    .modal-header-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-4);
+    }
+
+    .modal-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .modal-title {
         font-size: var(--font-size-xl);
         font-weight: 700;
-        color: var(--color-primary);
-        letter-spacing: -0.02em;
+        margin: 0;
+        color: white;
+    }
+
+    .modal-subtitle {
+        font-size: var(--font-size-sm);
+        opacity: 0.9;
+        margin: var(--spacing-1) 0 0;
+        color: white;
+    }
+
+    .modal-close {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-normal);
+    }
+
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.1);
     }
 
     /* Body */
-    .lk-modal-b {
-        padding: var(--spacing-3);
-        max-height: calc(90vh - 140px);
+    .modal-body {
+        padding: var(--spacing-6);
         overflow-y: auto;
+        flex: 1;
     }
 
-    .lk-modal-b::-webkit-scrollbar {
-        width: 8px;
+    /* Form */
+    .form-group {
+        margin-bottom: var(--spacing-5);
     }
 
-    .lk-modal-b::-webkit-scrollbar-track {
-        background: var(--color-surface-muted);
-        border-radius: var(--radius-sm);
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: var(--spacing-2);
     }
 
-    .lk-modal-b::-webkit-scrollbar-thumb {
-        background: var(--color-primary);
-        border-radius: var(--radius-sm);
+    .form-label.required::after {
+        content: '*';
+        color: var(--color-danger);
+        margin-left: var(--spacing-1);
     }
 
-    /* Form Grid */
-    .lk-form-grid {
+    .form-input,
+    .form-select {
+        width: 100%;
+        padding: var(--spacing-3) var(--spacing-4);
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-base);
+        color: var(--color-text);
+        background: var(--color-bg);
+        transition: all var(--transition-normal);
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .form-help {
+        display: block;
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        margin-top: var(--spacing-2);
+    }
+
+    .form-row {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: var(--spacing-4);
     }
 
-    .lk-field {
+    .input-with-prefix {
+        position: relative;
         display: flex;
-        flex-direction: column;
-        gap: var(--spacing-2);
+        align-items: center;
     }
 
-    .lk-field.full {
-        grid-column: 1 / -1;
-    }
-
-    .lk-field label {
-        color: var(--color-text);
-        font-size: var(--font-size-sm);
+    .input-prefix {
+        position: absolute;
+        left: var(--spacing-4);
         font-weight: 600;
-        letter-spacing: 0.01em;
-    }
-
-    .lk-field input,
-    .lk-field select {
-        background: var(--color-surface-muted);
-        color: var(--color-text);
-        border: 1px solid var(--color-primary) !important;
-        border-radius: var(--radius-md);
-        font-size: var(--font-size-sm);
-        padding: var(--spacing-3) var(--spacing-4);
-        transition: var(--transition-normal);
-        font-family: var(--font-primary);
-        width: 100%;
-    }
-
-    .lk-field input::placeholder {
         color: var(--color-text-muted);
-        opacity: 0.6;
+        pointer-events: none;
     }
 
-    .lk-field input:focus,
-    .lk-field select:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 4px var(--ring);
-        background: var(--color-surface);
-        transform: translateY(-1px);
+    .input-with-prefix .form-input {
+        padding-left: calc(var(--spacing-4) * 2 + 1rem);
     }
 
-    .lk-field input:hover:not(:focus),
-    .lk-field select:hover:not(:focus) {
-        border-color: rgba(230, 126, 34, 0.4);
-    }
-
-    .lk-field input[readonly] {
-        background: var(--glass-bg);
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
-
-    /* Select customizado */
-    .lk-field select {
+    /* Checkbox */
+    .form-checkbox {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-3);
         cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23e67e22' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right var(--spacing-3) center;
-        background-size: 16px;
-        padding-right: var(--spacing-6);
     }
 
-    /* Input de Data customizado */
-    .lk-field input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(0.6) sepia(1) saturate(5) hue-rotate(360deg);
+    .form-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
         cursor: pointer;
-        opacity: 0.8;
-        transition: var(--transition-fast);
     }
 
-    .lk-field input[type="date"]::-webkit-calendar-picker-indicator:hover {
-        opacity: 1;
-        transform: scale(1.1);
+    .form-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-size: var(--font-size-base);
+        color: var(--color-text);
     }
 
     /* Footer */
-    .lk-modal-f {
+    .modal-footer {
+        padding: var(--spacing-6);
+        border-top: 1px solid var(--glass-border);
         display: flex;
         gap: var(--spacing-3);
         justify-content: flex-end;
-        padding-top: var(--spacing-5);
-        margin-top: var(--spacing-5);
-        border-top: 1px solid var(--glass-border);
+        background: var(--color-bg);
     }
 
-    /* Botões */
     .btn {
+        padding: var(--spacing-3) var(--spacing-5);
         border-radius: var(--radius-md);
         font-size: var(--font-size-sm);
         font-weight: 600;
-        padding: var(--spacing-3) var(--spacing-6);
-        transition: var(--transition-normal);
         border: none;
-        font-family: var(--font-primary);
-        letter-spacing: 0.02em;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: var(--spacing-2);
+        transition: all var(--transition-normal);
     }
 
-    .btn-ghost:hover {
-        background: var(--color-primary);
-        color: var(--branco);
-    }
-
-    .btn-light {
+    .btn-secondary {
         background: var(--glass-bg);
-        border: 2px solid var(--glass-border);
         color: var(--color-text);
+        border: 1px solid var(--glass-border);
     }
 
-    .btn-light:hover {
+    .btn-secondary:hover {
         background: var(--color-surface-muted);
-        border-color: var(--color-text-muted);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, var(--color-primary), #d35400);
-        color: var(--branco);
+        background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
+        color: white;
         box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-primary::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .btn-primary:hover::before {
-        left: 100%;
     }
 
     .btn-primary:hover {
@@ -282,300 +386,16 @@
         box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
     }
 
-    .btn-primary:active {
-        transform: translateY(0);
-    }
-
-    /* Demo buttons */
-    .demo-container {
-        display: flex;
-        gap: var(--spacing-4);
-        flex-wrap: wrap;
-    }
-
-    .demo-btn {
-        background: linear-gradient(135deg, var(--color-primary), #d35400);
-        color: white;
-        border: none;
-        padding: var(--spacing-4) var(--spacing-6);
-        border-radius: var(--radius-md);
-        font-size: var(--font-size-base);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition-normal);
-        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
-        font-family: var(--font-primary);
-    }
-
-    .demo-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
-    }
-
-
-
-    @keyframes pulse {
-
-        0%,
-        100% {
-            transform: scale(1);
+    /* Responsive */
+    @media (max-width: 768px) {
+        .modal-container {
+            max-width: 100%;
+            max-height: 100vh;
+            border-radius: 0;
         }
 
-        50% {
-            transform: scale(1.1);
-        }
-    }
-
-    @keyframes bounce {
-
-        0%,
-        100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-4px);
-        }
-    }
-
-    @keyframes rotate {
-        from {
-            transform: rotate(0deg);
-        }
-
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* Responsivo */
-    @media (max-width: 576px) {
-        .lk-modal-card {
-            border-radius: var(--radius-lg);
-        }
-
-        .lk-form-grid {
+        .form-row {
             grid-template-columns: 1fr;
         }
-
-        .lk-field {
-            grid-column: 1 / -1;
-        }
-
-        .lk-modal-h,
-        .lk-modal-b {
-            padding-left: var(--spacing-4);
-            padding-right: var(--spacing-4);
-        }
-
-
-
-        .lk-modal-f {
-            margin-right: 50px;
-        }
-
-
-
-        .btn {
-            justify-content: center;
-        }
-    }
-
-
-
-    /* Estados de validação */
-    .lk-field input:invalid:not(:placeholder-shown),
-    .lk-field select:invalid:not(:placeholder-shown) {
-        border-color: var(--color-danger);
-    }
-
-    .lk-field input:valid:not(:placeholder-shown):not([readonly]),
-    .lk-field select:valid:not(:placeholder-shown) {
-        border-color: var(--color-success);
-    }
-
-    /* Loading state */
-    .btn-primary:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    /* Tags de campo obrigatório */
-    .lk-field label::after {
-        content: '';
-    }
-
-    .lk-field:has(input[required]) label::after,
-    .lk-field:has(select[required]) label::after {
-        content: ' *';
-        color: var(--color-danger);
-        font-weight: 700;
     }
 </style>
-
-<!-- Modal: Nova Conta -->
-<div class="lk-modal" id="modalConta" role="dialog" aria-modal="true" aria-labelledby="modalContaTitle"
-    data-lock-close="true">
-    <div class="lk-modal-card">
-        <div class="lk-modal-h">
-            <div class="lk-modal-t" id="modalContaTitle">Nova conta</div>
-            <button class="btn btn-ghost" id="modalClose" type="button">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="lk-modal-b">
-            <form id="formConta">
-                <input type="hidden" id="contaId" value="">
-                <div class="lk-form-grid">
-                    <div class="lk-field full">
-                        <label for="nome">Nome da conta</label>
-                        <input id="nome" name="nome" type="text" placeholder="Ex.: Nubank, Dinheiro, PicPay" required>
-                    </div>
-                    <div class="lk-field">
-                        <label for="instituicao">Institui��o</label>
-                        <input id="instituicao" name="instituicao" type="text" placeholder="Ex.: Nubank, Caixa"
-                            required>
-                    </div>
-                    <div class="lk-field">
-                        <label for="saldo_inicial">Saldo inicial</label>
-                        <input class="real" id="saldo_inicial" name="saldo_inicial" type="text" inputmode="decimal"
-                            placeholder="R$ 0,00">
-                    </div>
-                </div>
-                <div class="lk-modal-f">
-                    <button type="button" class="btn btn-light" id="btnCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSave">
-                        <i class="fas fa-save"></i> Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Novo Lançamento na Conta -->
-<div class="lk-modal" id="modalLancConta" role="dialog" aria-modal="true" aria-labelledby="modalLancContaTitle"
-    data-lock-close="true">
-    <div class="lk-modal-card">
-        <div class="lk-modal-h">
-            <div class="lk-modal-t" id="modalLancContaTitle">Novo lan�amento</div>
-            <button class="btn btn-ghost" id="lancClose" type="button">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="lk-modal-b">
-            <form id="formLancConta">
-                <input type="hidden" id="lanContaId" name="lanContaId" value="">
-                <div class="lk-form-grid">
-                    <div class="lk-field full">
-                        <label for="lanContaNome">Conta selecionada</label>
-                        <input type="text" id="lanContaNome" placeholder="Escolha uma conta na lista" readonly>
-                    </div>
-                    <div class="lk-field">
-                        <label for="lanTipo">Tipo</label>
-                        <select id="lanTipo" name="lanTipo" required>
-                            <option value="despesa"> Despesa</option>
-                            <option value="receita"> Receita</option>
-                        </select>
-                    </div>
-                    <div class="lk-field">
-                        <label for="lanData">Data</label>
-                        <input type="date" id="lanData" name="lanData" required>
-                    </div>
-                    <div class="lk-field full">
-                        <label for="lanCategoria">Categoria</label>
-                        <select id="lanCategoria" name="lanCategoria" required>
-                            <option value="">Selecione uma categoria</option>
-                            <option value="1">Alimenta��o</option>
-                            <option value="2">Transporte</option>
-                            <option value="3">Moradia</option>
-                        </select>
-                    </div>
-                    <div class="lk-field full">
-                        <label for="lanDescricao">Descri��o</label>
-                        <input type="text" id="lanDescricao" name="lanDescricao" placeholder="Ex.: Mercado / Sal�rio">
-                    </div>
-                    <div class="lk-field full">
-                        <label for="lanValor">Valor</label>
-                        <input class="real" type="text" id="lanValor" name="lanValor" inputmode="decimal"
-                            placeholder="R$ 0,00" required>
-                    </div>
-                </div>
-                <div class="lk-modal-f">
-                    <button type="button" class="btn btn-light" id="lancCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-check"></i> Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Transferência -->
-<div class="lk-modal" id="modalTransfer" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle"
-    data-lock-close="true">
-    <div class="lk-modal-card">
-        <div class="lk-modal-h">
-            <div class="lk-modal-t" id="modalTransferTitle">Transfer�ncia</div>
-            <button class="btn btn-ghost" id="trClose" type="button">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="lk-modal-b">
-            <form id="formTransfer">
-                <input type="hidden" id="trOrigemId" name="trOrigemId">
-                <div class="lk-form-grid">
-                    <div class="lk-field full">
-                        <label>Origem</label>
-                        <input id="trOrigemNome" type="text" readonly value="Conta Corrente">
-                    </div>
-                    <div class="lk-field full">
-                        <label for="trDestinoId">Destino</label>
-                        <select id="trDestinoId" name="trDestinoId" required>
-                            <option value="">Selecione a conta de destino</option>
-                            <option value="1">Poupan�a</option>
-                            <option value="2">Investimentos</option>
-                            <option value="3">Carteira</option>
-                        </select>
-                    </div>
-                    <div class="lk-field">
-                        <label for="trData">Data</label>
-                        <input type="date" id="trData" name="trData" required>
-                    </div>
-                    <div class="lk-field">
-                        <label for="trValor">Valor</label>
-                        <input class="real" type="text" id="trValor" name="trValor" inputmode="decimal"
-                            placeholder="R$ 0,00" required>
-                    </div>
-                    <div class="lk-field full">
-                        <label for="trDesc">Descrição (opcional)</label>
-                        <input type="text" id="trDesc" name="trDesc" placeholder="Ex.: Transferência entre contas">
-                    </div>
-                </div>
-                <div class="lk-modal-f">
-                    <button type="button" class="btn btn-light" id="trCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-exchange-alt"></i> Transferir
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    function formatarReal(valor) {
-        valor = valor.replace(/\D/g, "");
-        valor = (valor / 100).toFixed(2) + "";
-        valor = valor.replace(".", ",");
-        valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        return valor;
-    }
-
-    document.querySelectorAll(".real").forEach(function(input) {
-        input.addEventListener("input", function() {
-            this.value = "R$ " + formatarReal(this.value);
-        });
-    });
-</script>
