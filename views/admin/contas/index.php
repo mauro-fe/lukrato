@@ -71,7 +71,6 @@
 <?php include __DIR__ . '/../partials/modals/modal_lancamento_v2.php'; ?>
 
 <!-- ==================== SCRIPTS ==================== -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/contas-modern.css?v=<?= time() ?>">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';

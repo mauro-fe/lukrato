@@ -136,6 +136,52 @@
                     <small class="lk-helper-text">Para onde o dinheiro vai ser transferido</small>
                 </div>
 
+                <!-- Cartão de Crédito (somente para despesa) -->
+                <div class="lk-form-group" id="cartaoCreditoGroup" style="display: none;">
+                    <label for="lancamentoCartaoCredito" class="lk-label">
+                        <i class="fas fa-credit-card"></i>
+                        Pagar com Cartão de Crédito
+                    </label>
+                    <div class="lk-select-wrapper">
+                        <select id="lancamentoCartaoCredito" name="cartao_credito_id" class="lk-select">
+                            <option value="">Não usar cartão (débito na conta)</option>
+                            <!-- Preenchido via JS -->
+                        </select>
+                        <i class="fas fa-chevron-down lk-select-icon"></i>
+                    </div>
+                    <small class="lk-helper-text">Se usar cartão, o débito será na data de vencimento da fatura</small>
+                </div>
+
+                <!-- Parcelamento (somente se cartão selecionado) -->
+                <div class="lk-form-group" id="parcelamentoGroup" style="display: none;">
+                    <div class="lk-checkbox-wrapper">
+                        <label class="lk-checkbox-label">
+                            <input type="checkbox" id="lancamentoParcelado" name="eh_parcelado" class="lk-checkbox">
+                            <span class="lk-checkbox-custom"></span>
+                            <span class="lk-checkbox-text">
+                                <i class="fas fa-calendar-alt"></i>
+                                Parcelar compra
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Número de Parcelas (quando parcelado) -->
+                <div class="lk-form-group" id="numeroParcelasGroup" style="display: none;">
+                    <label for="lancamentoTotalParcelas" class="lk-label required">
+                        <i class="fas fa-list-ol"></i>
+                        Número de Parcelas
+                    </label>
+                    <div class="lk-input-group">
+                        <input type="number" id="lancamentoTotalParcelas" name="total_parcelas" class="lk-input"
+                            min="2" max="48" value="2" placeholder="12">
+                        <span class="lk-input-suffix">vezes</span>
+                    </div>
+                    <div id="parcelamentoPreview" class="lk-parcelamento-preview" style="display: none;">
+                        <!-- Preview preenchido via JS -->
+                    </div>
+                </div>
+
                 <!-- Data -->
                 <div class="lk-form-group">
                     <label for="lancamentoData" class="lk-label required">
@@ -688,6 +734,123 @@
     /* ========================================
    FIM DO HISTÓRICO
    ======================================== */
+
+    /* Checkbox Custom */
+    .lk-checkbox-wrapper {
+        margin: 0.75rem 0;
+    }
+
+    .lk-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .lk-checkbox {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .lk-checkbox-custom {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ced4da;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        position: relative;
+        background: white;
+    }
+
+    .lk-checkbox:checked~.lk-checkbox-custom {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-color: #667eea;
+    }
+
+    .lk-checkbox:checked~.lk-checkbox-custom::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .lk-checkbox-text {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .lk-checkbox-text i {
+        color: #667eea;
+    }
+
+    /* Input Group */
+    .lk-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .lk-input-group .lk-input {
+        padding-right: 70px;
+    }
+
+    .lk-input-suffix {
+        position: absolute;
+        right: 1rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    /* Preview de Parcelamento */
+    .lk-parcelamento-preview {
+        margin-top: 0.75rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        border-radius: 12px;
+        border-left: 4px solid #667eea;
+        animation: lk-slide-in 0.3s ease-out;
+    }
+
+    .lk-parcelamento-preview-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #667eea;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.5px;
+    }
+
+    .lk-parcelamento-valor {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin: 0.25rem 0;
+    }
+
+    .lk-parcelamento-detalhes {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .lk-parcelamento-detalhes strong {
+        color: #495057;
+    }
 
     /* Formulário de Lançamento */
     .lk-form-section {

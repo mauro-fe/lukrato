@@ -7,6 +7,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\LancamentoExportService;
 use Application\Services\GamificationService;
+use Application\Services\CartaoCreditoLancamentoService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
 use Application\Services\LancamentoLimitService;
@@ -31,6 +32,7 @@ class LancamentosController extends BaseController
     private ContaRepository $contaRepo;
     private UserPlanService $planService;
     private GamificationService $gamificationService;
+    private CartaoCreditoLancamentoService $cartaoService;
 
     public function __construct(
         ?LancamentoExportService $exportService = null,
@@ -43,6 +45,7 @@ class LancamentosController extends BaseController
         $this->contaRepo = new ContaRepository();
         $this->planService = new UserPlanService();
         $this->gamificationService = new GamificationService();
+        $this->cartaoService = new CartaoCreditoLancamentoService();
     }
     // =============================================================================
     // HELPERS
@@ -260,6 +263,69 @@ class LancamentosController extends BaseController
             Response::error($e->getMessage(), 402);
             return;
         }
+
+        // ============================================================
+        // VERIFICAR SE É LANÇAMENTO COM CARTÃO DE CRÉDITO
+        // ============================================================
+        $cartaoCreditoId = $payload['cartao_credito_id'] ?? null;
+        $cartaoCreditoId = is_scalar($cartaoCreditoId) ? (int)$cartaoCreditoId : null;
+
+        if ($cartaoCreditoId && $cartaoCreditoId > 0 && $dto->tipo === 'despesa') {
+            // Usar serviço especializado para cartão de crédito
+            $resultado = $this->cartaoService->criarLancamentoCartao($userId, [
+                'cartao_credito_id' => $cartaoCreditoId,
+                'categoria_id' => $categoriaId,
+                'valor' => $dto->valor,
+                'data' => $dto->data,
+                'descricao' => $dto->descricao,
+                'observacao' => $dto->observacao,
+                'eh_parcelado' => (bool)($payload['eh_parcelado'] ?? false),
+                'total_parcelas' => (int)($payload['total_parcelas'] ?? 1),
+            ]);
+
+            if (!$resultado['success']) {
+                Response::error($resultado['message'], 422);
+                return;
+            }
+
+            // Pegar primeiro lançamento (ou o pai) para gamificação
+            $lancamento = $resultado['lancamentos'][0] ?? null;
+            if ($lancamento) {
+                $lancamento->loadMissing(['categoria']);
+            }
+
+            // Gamificação
+            $gamificationResult = [];
+            try {
+                $pointsResult = $this->gamificationService->addPoints(
+                    $userId,
+                    \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
+                    $lancamento->id,
+                    'lancamento'
+                );
+                $streakResult = $this->gamificationService->updateStreak($userId);
+                $gamificationResult = [
+                    'points' => $pointsResult,
+                    'streak' => $streakResult,
+                ];
+            } catch (\Exception $e) {
+                error_log("🎮 [GAMIFICATION] Erro: " . $e->getMessage());
+            }
+
+            Response::success([
+                'lancamento' => LancamentoResponseFormatter::format($lancamento),
+                'total_parcelas_criadas' => $resultado['total_criados'],
+                'eh_parcelado' => $resultado['total_criados'] > 1,
+                'usage' => $usage,
+                'ui_message' => $this->planService->getUsageMessage($usage),
+                'gamification' => $gamificationResult,
+            ], $resultado['message'], 201);
+            return;
+        }
+
+        // ============================================================
+        // LANÇAMENTO NORMAL (SEM CARTÃO)
+        // ============================================================
 
         // Criar lançamento
         $lancamento = $this->lancamentoRepo->create($dto->toArray());

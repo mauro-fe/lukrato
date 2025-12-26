@@ -258,6 +258,10 @@ class CartoesManager {
 
             const data = await response.json();
             this.cartoes = Array.isArray(data) ? data : (data.data || []);
+
+            // Verificar faturas pendentes para cada cartão
+            await this.verificarFaturasPendentes();
+
             this.filteredCartoes = [...this.cartoes];
 
             if (this.cartoes.length === 0) {
@@ -273,6 +277,42 @@ class CartoesManager {
             this.showToast('Erro ao carregar cartões', 'error');
             grid.innerHTML = '<p class="error-message">Erro ao carregar cartões. Tente novamente.</p>';
         }
+    }
+
+    /**
+     * Verificar se cartões têm faturas pendentes
+     */
+    async verificarFaturasPendentes() {
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth() + 1;
+        const anoAtual = hoje.getFullYear();
+
+        // Verificar para cada cartão se tem fatura pendente no mês atual
+        const promises = this.cartoes.map(async (cartao) => {
+            try {
+                const response = await fetch(`${this.baseUrl}api/cartoes/${cartao.id}/fatura?mes=${mesAtual}&ano=${anoAtual}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    const fatura = await response.json();
+                    // Se tem parcelas não pagas e total > 0, marca como pendente
+                    cartao.temFaturaPendente = fatura.parcelas && fatura.parcelas.length > 0 && fatura.total > 0;
+                } else {
+                    cartao.temFaturaPendente = false;
+                }
+            } catch (error) {
+                console.warn(`Erro ao verificar fatura do cartão ${cartao.id}:`, error);
+                cartao.temFaturaPendente = false;
+            }
+        });
+
+        await Promise.all(promises);
     }
 
     /**
@@ -338,12 +378,21 @@ class CartoesManager {
 
         return `
             <div class="credit-card" data-id="${cartao.id}" data-brand="${cartao.bandeira?.toLowerCase() || 'outros'}" style="background: ${corBg};">
+                ${cartao.temFaturaPendente ? `
+                    <div class="card-badge-fatura" title="Fatura pendente">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Fatura Pendente
+                    </div>
+                ` : ''}
                 <div class="card-header">
                     <div class="card-brand">
                         <i class="brand-icon ${brandIcon}"></i>
                         <span class="card-name">${this.escapeHtml(cartao.nome_cartao)}</span>
                     </div>
                     <div class="card-actions">
+                        <button class="card-action-btn" onclick="cartoesManager.verFatura(${cartao.id})" title="Ver Fatura">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </button>
                         <button class="card-action-btn" onclick="cartoesManager.editCartao(${cartao.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -448,8 +497,9 @@ class CartoesManager {
             document.getElementById('bandeira').value = cartaoData.bandeira;
             document.getElementById('ultimosDigitos').value = cartaoData.ultimos_digitos;
 
-            // Formata o limite total (valor vem como float, ex: 5000.50)
-            const limiteFormatado = (cartaoData.limite_total || 0).toFixed(2)
+            // Formata o limite total (converte para float primeiro)
+            const limiteValue = parseFloat(cartaoData.limite_total || 0);
+            const limiteFormatado = limiteValue.toFixed(2)
                 .replace('.', ',')
                 .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             document.getElementById('limiteTotal').value = limiteFormatado;
@@ -564,23 +614,6 @@ class CartoesManager {
      * Salvar cartão
      */
     async saveCartao() {
-        // VERIFICAR DUPLICAÇÃO DE IDs
-        const todosLimites = document.querySelectorAll('#limiteTotal');
-
-        alert(`TOTAL DE ELEMENTOS: ${todosLimites.length}\n\nValores:\n${Array.from(todosLimites).map((el, i) => `[${i}] ${el.value}`).join('\n')}`);
-
-        // CAPTURA IMEDIATA DO VALOR ANTES DE QUALQUER VALIDAÇÃO
-        const limiteInputElement = document.getElementById('limiteTotal');
-        const limiteValorAtual = limiteInputElement ? limiteInputElement.value : 'CAMPO NÃO EXISTE';
-
-        console.log('🔴 CAPTURA IMEDIATA:', {
-            totalElementos: todosLimites.length,
-            elemento: limiteInputElement,
-            valorCampo: limiteValorAtual,
-            todosValores: Array.from(todosLimites).map(el => el.value),
-            innerHTML: limiteInputElement?.outerHTML
-        });
-
         const form = document.getElementById('formCartao');
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -720,7 +753,7 @@ class CartoesManager {
                 // Se retornar 422, é porque tem lançamentos vinculados
                 if (response.status === 422 && (result.requires_confirmation || result.status === 'confirm_delete')) {
                     const total = result.total_lancamentos || 0;
-                    const mensagem = total > 0 
+                    const mensagem = total > 0
                         ? `Este cartão possui ${total} lançamento(s) vinculado(s).\n\nAo excluir o cartão, todos os lançamentos também serão excluídos.\n\nDeseja realmente continuar?`
                         : `${result.message}\n\nDeseja realmente excluir este cartão?`;
 
@@ -1036,5 +1069,239 @@ class CartoesManager {
             return result.isConfirmed;
         }
         return confirm(`${title}\n\n${message}`);
+    }
+
+    /**
+     * ===================================
+     * FATURA DO CARTÃO
+     * ===================================
+     */
+
+    /**
+     * Ver fatura do cartão
+     */
+    async verFatura(cartaoId) {
+        try {
+            // Data atual para carregar fatura do mês
+            const hoje = new Date();
+            const mes = hoje.getMonth() + 1; // 1-12
+            const ano = hoje.getFullYear();
+
+            console.log(`📄 Carregando fatura - Cartão ID: ${cartaoId}, Mês: ${mes}/${ano}`);
+
+            const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao carregar fatura');
+            }
+
+            const fatura = await response.json();
+            console.log('✅ Fatura carregada:', fatura);
+
+            this.mostrarModalFatura(fatura);
+        } catch (error) {
+            console.error('❌ Erro ao carregar fatura:', error);
+            this.showToast(error.message || 'Erro ao carregar fatura', 'error');
+        }
+    }
+
+    /**
+     * Mostrar modal da fatura
+     */
+    mostrarModalFatura(fatura) {
+        const modal = this.criarModalFatura(fatura);
+        document.body.appendChild(modal);
+
+        // Animar entrada
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+
+        // Fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.fecharModalFatura(modal);
+            }
+        });
+
+        // Botão fechar
+        modal.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
+            this.fecharModalFatura(modal);
+        });
+
+        // Botão pagar
+        modal.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
+            this.pagarFatura(fatura);
+        });
+    }
+
+    /**
+     * Criar HTML do modal da fatura
+     */
+    criarModalFatura(fatura) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-fatura-overlay';
+        modal.innerHTML = `
+            <div class="modal-fatura-container">
+                <div class="modal-fatura-header">
+                    <div>
+                        <h2>
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            Fatura ${fatura.cartao.nome} •••• ${fatura.cartao.ultimos_digitos}
+                        </h2>
+                        <p class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</p>
+                    </div>
+                    <button class="btn-fechar-fatura" title="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-fatura-body">
+                    ${fatura.parcelas.length === 0 ? `
+                        <div class="fatura-empty">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Nenhuma fatura pendente</h3>
+                            <p>Você não tem compras para pagar neste mês!</p>
+                        </div>
+                    ` : `
+                        <div class="fatura-resumo">
+                            <div class="fatura-total">
+                                <span>Total a Pagar:</span>
+                                <strong>${this.formatMoney(fatura.total)}</strong>
+                            </div>
+                            <div class="fatura-vencimento">
+                                <i class="fas fa-calendar-alt"></i>
+                                Vencimento: ${this.formatDate(fatura.vencimento)}
+                            </div>
+                        </div>
+
+                        <div class="fatura-parcelas">
+                            <h3>Parcelas desta Fatura</h3>
+                            <table class="table-parcelas">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Parcela</th>
+                                        <th>Vencimento</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${fatura.parcelas.map(parcela => `
+                                        <tr>
+                                            <td>${this.escapeHtml(parcela.descricao)}</td>
+                                            <td>${parcela.parcela_atual}/${parcela.total_parcelas}</td>
+                                            <td>${this.formatDate(parcela.data_vencimento)}</td>
+                                            <td class="valor">${this.formatMoney(parcela.valor)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `}
+                </div>
+
+                ${fatura.parcelas.length > 0 ? `
+                    <div class="modal-fatura-footer">
+                        <button class="btn btn-ghost btn-fechar-fatura">Fechar</button>
+                        <button class="btn btn-primary btn-pagar-fatura">
+                            <i class="fas fa-check"></i>
+                            Pagar Fatura (${this.formatMoney(fatura.total)})
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        return modal;
+    }
+
+    /**
+     * Fechar modal da fatura
+     */
+    fecharModalFatura(modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+
+    /**
+     * Pagar fatura
+     */
+    async pagarFatura(fatura) {
+        const confirmado = await this.showConfirmDialog(
+            'Confirmar Pagamento',
+            `Deseja pagar a fatura de ${this.formatMoney(fatura.total)}?\n\nEsta ação criará um lançamento de despesa na conta vinculada e liberará o limite do cartão.`,
+            'Sim, Pagar'
+        );
+
+        if (!confirmado) return;
+
+        try {
+            const csrfToken = await this.getCSRFToken();
+
+            const response = await fetch(`${this.baseUrl}api/cartoes/${fatura.cartao.id}/fatura/pagar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    mes: fatura.mes,
+                    ano: fatura.ano
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao pagar fatura');
+            }
+
+            const resultado = await response.json();
+            console.log('✅ Fatura paga:', resultado);
+
+            this.showToast(`Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`, 'success');
+
+            // Fechar modal
+            const modal = document.querySelector('.modal-fatura-overlay');
+            if (modal) {
+                this.fecharModalFatura(modal);
+            }
+
+            // Recarregar cartões para atualizar limite
+            this.loadCartoes();
+        } catch (error) {
+            console.error('❌ Erro ao pagar fatura:', error);
+            this.showToast(error.message || 'Erro ao pagar fatura', 'error');
+        }
+    }
+
+    /**
+     * Obter nome do mês
+     */
+    getNomeMes(mes) {
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return meses[mes - 1] || 'Mês inválido';
+    }
+
+    /**
+     * Formatar data para exibição
+     */
+    formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('pt-BR');
     }
 }

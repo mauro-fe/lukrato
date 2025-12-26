@@ -1097,6 +1097,7 @@ class ContasManager {
         const titulo = document.getElementById('modalLancamentoTitulo');
         const headerGradient = document.querySelector('#modalLancamentoOverlay .lk-modal-header-gradient');
         const contaDestinoGroup = document.getElementById('contaDestinoGroup');
+        const cartaoCreditoGroup = document.getElementById('cartaoCreditoGroup');
 
         if (tipo === 'receita') {
             titulo.textContent = '💰 Nova Receita';
@@ -1107,6 +1108,7 @@ class ContasManager {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #28a745 0%, #20c997 100%)', 'important');
             }
             contaDestinoGroup.style.display = 'none';
+            cartaoCreditoGroup.style.display = 'none';
         } else if (tipo === 'despesa') {
             titulo.textContent = '💸 Nova Despesa';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Despesa';
@@ -1116,6 +1118,10 @@ class ContasManager {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)', 'important');
             }
             contaDestinoGroup.style.display = 'none';
+            cartaoCreditoGroup.style.display = 'block';
+
+            // Carregar cartões de crédito
+            this.carregarCartoesCredito();
         } else if (tipo === 'transferencia') {
             titulo.textContent = '🔄 Nova Transferência';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Transferência';
@@ -1125,6 +1131,7 @@ class ContasManager {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #17a2b8 0%, #3498db 100%)', 'important');
             }
             contaDestinoGroup.style.display = 'block';
+            cartaoCreditoGroup.style.display = 'none';
 
             // Preencher select de contas destino
             this.preencherContasDestino();
@@ -1161,6 +1168,145 @@ class ContasManager {
         });
 
         console.log(`✅ ${contasAdicionadas} contas adicionadas ao select de destino`);
+    }
+
+    /**
+     * Carregar cartões de crédito no select
+     */
+    async carregarCartoesCredito() {
+        const select = document.getElementById('lancamentoCartaoCredito');
+        if (!select) return;
+
+        try {
+            const baseUrl = this.getBaseUrl();
+            const url = `${baseUrl}api/cartoes`;
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Erro ao carregar cartões');
+
+            const cartoes = await response.json();
+
+            select.innerHTML = '<option value="">Não usar cartão (débito na conta)</option>';
+
+            cartoes.forEach(cartao => {
+                const option = document.createElement('option');
+                option.value = cartao.id;
+                option.textContent = `${cartao.nome_cartao} •••• ${cartao.ultimos_digitos}`;
+                option.dataset.diaVencimento = cartao.dia_vencimento;
+                select.appendChild(option);
+            });
+
+            // Adicionar listener para mudança
+            select.addEventListener('change', () => this.aoSelecionarCartao());
+
+        } catch (error) {
+            console.error('Erro ao carregar cartões:', error);
+        }
+    }
+
+    /**
+     * Ao selecionar cartão de crédito
+     */
+    aoSelecionarCartao() {
+        const selectCartao = document.getElementById('lancamentoCartaoCredito');
+        const parcelamentoGroup = document.getElementById('parcelamentoGroup');
+
+        if (selectCartao.value) {
+            // Mostrar opção de parcelamento
+            parcelamentoGroup.style.display = 'block';
+
+            // Adicionar listener no checkbox
+            const checkboxParcelado = document.getElementById('lancamentoParcelado');
+            if (checkboxParcelado && !checkboxParcelado.dataset.listenerAdded) {
+                checkboxParcelado.addEventListener('change', () => this.aoMarcarParcelado());
+                checkboxParcelado.dataset.listenerAdded = 'true';
+            }
+        } else {
+            // Ocultar parcelamento
+            parcelamentoGroup.style.display = 'none';
+            document.getElementById('numeroParcelasGroup').style.display = 'none';
+            document.getElementById('lancamentoParcelado').checked = false;
+        }
+    }
+
+    /**
+     * Ao marcar/desmarcar parcelado
+     */
+    aoMarcarParcelado() {
+        const checkbox = document.getElementById('lancamentoParcelado');
+        const numeroParcelasGroup = document.getElementById('numeroParcelasGroup');
+
+        if (checkbox.checked) {
+            numeroParcelasGroup.style.display = 'block';
+
+            // Adicionar listeners para calcular preview
+            const inputValor = document.getElementById('lancamentoValor');
+            const inputParcelas = document.getElementById('lancamentoTotalParcelas');
+
+            inputValor.addEventListener('input', () => this.calcularPreviewParcelas());
+            inputParcelas.addEventListener('input', () => this.calcularPreviewParcelas());
+
+            // Calcular imediatamente
+            this.calcularPreviewParcelas();
+        } else {
+            numeroParcelasGroup.style.display = 'none';
+            document.getElementById('parcelamentoPreview').style.display = 'none';
+        }
+    }
+
+    /**
+     * Calcular e exibir preview das parcelas
+     */
+    calcularPreviewParcelas() {
+        const valorInput = document.getElementById('lancamentoValor');
+        const parcelasInput = document.getElementById('lancamentoTotalParcelas');
+        const preview = document.getElementById('parcelamentoPreview');
+
+        if (!valorInput || !parcelasInput || !preview) return;
+
+        const valorStr = valorInput.value || '0,00';
+        const valor = this.parseMoneyInput(valorStr);
+        const parcelas = parseInt(parcelasInput.value) || 2;
+
+        if (valor <= 0 || parcelas < 2) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        const valorParcela = valor / parcelas;
+        const selectCartao = document.getElementById('lancamentoCartaoCredito');
+        const selectedOption = selectCartao.options[selectCartao.selectedIndex];
+        const diaVencimento = selectedOption.dataset.diaVencimento || '10';
+
+        preview.style.display = 'block';
+        preview.innerHTML = `
+            <div class="lk-parcelamento-preview-title">Preview do Parcelamento</div>
+            <div class="lk-parcelamento-valor">${parcelas}x de ${this.formatCurrency(valorParcela)}</div>
+            <div class="lk-parcelamento-detalhes">
+                <span><strong>Valor total:</strong> ${this.formatCurrency(valor)}</span>
+                <span><strong>Vencimento:</strong> Todo dia ${diaVencimento}</span>
+                <span><strong>Primeira parcela:</strong> ${this.calcularProximaFatura(diaVencimento)}</span>
+            </div>
+        `;
+    }
+
+    /**
+     * Calcular data da próxima fatura
+     */
+    calcularProximaFatura(diaVencimento) {
+        const hoje = new Date();
+        const dia = parseInt(diaVencimento);
+        const mesAtual = hoje.getMonth();
+        const anoAtual = hoje.getFullYear();
+
+        let proximaFatura = new Date(anoAtual, mesAtual, dia);
+
+        // Se já passou o dia neste mês, próxima fatura é mês que vem
+        if (proximaFatura < hoje) {
+            proximaFatura = new Date(anoAtual, mesAtual + 1, dia);
+        }
+
+        return proximaFatura.toLocaleDateString('pt-BR');
     }
 
     /**
@@ -1275,6 +1421,12 @@ class ContasManager {
         // Limpar formulário
         document.getElementById('formLancamento').reset();
 
+        // Ocultar campos específicos
+        document.getElementById('cartaoCreditoGroup').style.display = 'none';
+        document.getElementById('parcelamentoGroup').style.display = 'none';
+        document.getElementById('numeroParcelasGroup').style.display = 'none';
+        document.getElementById('contaDestinoGroup').style.display = 'none';
+
         // Restaurar título
         document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
     }
@@ -1373,6 +1525,10 @@ class ContasManager {
                 data: formData.get('data'),
                 categoria_id: formData.get('categoria_id') || null,
                 observacao: formData.get('observacoes') || null,
+                // Campos de cartão de crédito
+                cartao_credito_id: formData.get('cartao_credito_id') || null,
+                eh_parcelado: formData.get('eh_parcelado') === 'on' || formData.get('eh_parcelado') === true,
+                total_parcelas: formData.get('total_parcelas') ? parseInt(formData.get('total_parcelas')) : null,
             };
 
             let apiUrl = `${this.baseUrl}/lancamentos`;
