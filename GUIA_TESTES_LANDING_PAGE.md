@@ -5,6 +5,7 @@
 ### 1. Testes de Responsividade
 
 #### DevTools do Chrome/Firefox
+
 ```
 1. Abra a landing page no navegador
 2. Pressione F12 para abrir Developer Tools
@@ -17,6 +18,7 @@
 ```
 
 #### Teste de Zoom
+
 ```
 1. Com F12 aberto, vá para Console
 2. Execute: document.documentElement.style.zoom = '200%'
@@ -25,6 +27,7 @@
 ```
 
 #### Teste de Orientação
+
 ```
 1. Em mobile, gire o dispositivo
 2. Verifique se o layout se adapta corretamente
@@ -36,6 +39,7 @@
 ### 2. Testes de Acessibilidade
 
 #### Navegação por Teclado
+
 ```
 1. Abra a landing page
 2. Pressione TAB para navegar
@@ -49,6 +53,7 @@
 ```
 
 #### Teste de Leitura de Tela (NVDA - Gratuito)
+
 ```
 1. Baixar NVDA: https://www.nvaccess.org/
 2. Instalar e abrir
@@ -61,6 +66,7 @@
 ```
 
 #### Teste de Contraste
+
 ```
 1. Abrir Developer Tools (F12)
 2. Selecionar um elemento de texto
@@ -70,6 +76,7 @@
 ```
 
 #### Teste de Focus States
+
 ```
 1. Pressione TAB em cada elemento interativo
 2. Verificar se outline é visível (2px solid)
@@ -84,6 +91,7 @@
 ### 3. Testes de Performance
 
 #### Lighthouse (Chrome DevTools)
+
 ```
 1. F12 → Lighthouse
 2. Gerar relatório:
@@ -98,6 +106,7 @@
 ```
 
 #### Web Vitals
+
 ```
 1. Instalar extensão: https://web.dev/vitals/
 2. Verificar:
@@ -107,6 +116,7 @@
 ```
 
 #### Teste de Imagens
+
 ```
 1. DevTools → Network
 2. Carregar página
@@ -122,6 +132,7 @@
 ### 4. Testes de Mobile Específicos
 
 #### Touch Targets
+
 ```
 1. Inspect cada botão/link
 2. Verificar computed size ≥ 44x44px
@@ -130,6 +141,7 @@
 ```
 
 #### Safe Areas (iPhone X+)
+
 ```
 1. Testar em iPhone 12/13/14
 2. Rotar para landscape
@@ -138,6 +150,7 @@
 ```
 
 #### Performance em 3G
+
 ```
 1. DevTools → Network
 2. Throttling: "Slow 3G"
@@ -150,6 +163,7 @@
 ### 5. Testes em Navegadores
 
 #### Desktop Browsers
+
 ```
 ✅ Chrome 90+
 ✅ Firefox 88+
@@ -158,6 +172,7 @@
 ```
 
 #### Mobile Browsers
+
 ```
 ✅ Chrome Mobile
 ✅ Safari iOS 14+
@@ -166,6 +181,7 @@
 ```
 
 #### Legacy Browsers (se necessário)
+
 ```
 ⚠️ IE 11 (sem suporte a CSS Grid, Flex)
 ⚠️ iOS Safari 12 (sem suporte a clamp())
@@ -177,6 +193,7 @@
 ### 6. Testes de Formulário
 
 #### Validação de Inputs
+
 ```
 1. Tentar enviar formulário vazio
 2. Verificar mensagens de erro
@@ -185,6 +202,7 @@
 ```
 
 #### Teste de Placeholders
+
 ```
 1. Verificar contrast em todos placeholders
 2. Placeholders não devem substituir labels
@@ -192,6 +210,7 @@
 ```
 
 #### Acessibilidade do Formulário
+
 ```
 1. Todos inputs têm <label for="id">
 2. Fieldset/legend em grupos
@@ -204,6 +223,7 @@
 ### 7. Checklist de Qualidade
 
 #### HTML
+
 - [ ] HTML válido (https://validator.w3.org/)
 - [ ] Sem erros de console
 - [ ] Sem warnings de deprecation
@@ -211,6 +231,7 @@
 - [ ] Headings em ordem (h1, h2, h3...)
 
 #### CSS
+
 - [ ] CSS válido (https://jigsaw.w3.org/css-validator/)
 - [ ] Sem media queries sobrepostas
 - [ ] Variables reutilizadas
@@ -218,6 +239,7 @@
 - [ ] Performance de seletores (avoid deep nesting)
 
 #### Acessibilidade (A11y)
+
 - [ ] WCAG 2.1 AA compliante
 - [ ] Navegação por teclado funcional
 - [ ] Focus estados visíveis
@@ -225,6 +247,7 @@
 - [ ] Alt text em imagens
 
 #### Mobile
+
 - [ ] Responsivo até 320px
 - [ ] Touch targets ≥ 44x44px
 - [ ] Viewport meta tag
@@ -232,6 +255,7 @@
 - [ ] Performance em 3G
 
 #### Performance
+
 - [ ] LCP < 2.5s
 - [ ] FID < 100ms
 - [ ] CLS < 0.1
@@ -243,6 +267,7 @@
 ## 🚀 Como Fazer Deploy
 
 ### 1. Backup
+
 ```bash
 # Criar backup dos arquivos originais
 cp public/assets/css/site/landing-base.css public/assets/css/site/landing-base.css.backup
@@ -250,6 +275,7 @@ cp views/site/landing/index.php views/site/landing/index.php.backup
 ```
 
 ### 2. Minificação (Opcional)
+
 ```bash
 # Instalar PostCSS
 npm install -g postcss-cli cssnano
@@ -259,6 +285,7 @@ postcss public/assets/css/site/landing-base.css --use cssnano -o public/assets/c
 ```
 
 ### 3. Verificar no Servidor
+
 ```bash
 # Testar em staging/production
 php -S localhost:8000
@@ -266,6 +293,7 @@ php -S localhost:8000
 ```
 
 ### 4. Cache Busting
+
 ```php
 <!-- Adicionar versionamento ao CSS -->
 <link rel="stylesheet" href="landing-base.css?v=2.0.0">
@@ -276,23 +304,27 @@ php -S localhost:8000
 ## 🔍 Ferramentas Recomendadas
 
 ### Acessibilidade
+
 - [WAVE Browser Extension](https://wave.webaim.org/extension/)
 - [axe DevTools](https://www.deque.com/axe/devtools/)
 - [NVDA Screen Reader](https://www.nvaccess.org/)
 - [JAWS Trial](https://www.freedomscientific.com/products/software/jaws/)
 
 ### Performance
+
 - [Google Lighthouse](https://developers.google.com/web/tools/lighthouse)
 - [WebPageTest](https://www.webpagetest.org/)
 - [GTmetrix](https://gtmetrix.com/)
 - [Pingdom](https://tools.pingdom.com/)
 
 ### Validação
+
 - [W3C HTML Validator](https://validator.w3.org/)
 - [W3C CSS Validator](https://jigsaw.w3.org/css-validator/)
 - [JSONLint](https://jsonlint.com/)
 
 ### Testing
+
 - [BrowserStack](https://www.browserstack.com/)
 - [Responsively App](https://responsively.app/)
 - [Polypane](https://polypane.app/)
@@ -303,33 +335,35 @@ php -S localhost:8000
 
 ### Antes vs Depois
 
-| Métrica | Antes | Depois | Melhoria |
-|---------|-------|--------|----------|
-| Mobile Score | 65/100 | 92/100 | +27 pontos |
-| A11y Score | 72/100 | 95/100 | +23 pontos |
-| Touch Targets | 60% adequados | 100% adequados | +40% |
-| Responsiveness | Parcial | Completa | 100% |
-| Focus States | 30% | 100% | +70% |
+| Métrica        | Antes         | Depois         | Melhoria   |
+| -------------- | ------------- | -------------- | ---------- |
+| Mobile Score   | 65/100        | 92/100         | +27 pontos |
+| A11y Score     | 72/100        | 95/100         | +23 pontos |
+| Touch Targets  | 60% adequados | 100% adequados | +40%       |
+| Responsiveness | Parcial       | Completa       | 100%       |
+| Focus States   | 30%           | 100%           | +70%       |
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Problema: Menu não fecha em mobile
+
 ```javascript
 // Adicionar ao seu JS
-const menuToggle = document.querySelector('.lk-site-burger');
-const menu = document.querySelector('.lk-site-menu');
-const menuLinks = document.querySelectorAll('.lk-site-nav-link');
+const menuToggle = document.querySelector(".lk-site-burger");
+const menu = document.querySelector(".lk-site-menu");
+const menuLinks = document.querySelectorAll(".lk-site-nav-link");
 
-menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        menu.classList.remove('is-open');
-    });
+menuLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    menu.classList.remove("is-open");
+  });
 });
 ```
 
 ### Problema: Imagens não carregam em mobile
+
 ```html
 <!-- Verificar se decoding="async" não está causando problemas -->
 <!-- Remover se necessário -->
@@ -337,6 +371,7 @@ menuLinks.forEach(link => {
 ```
 
 ### Problema: Focus outline não aparece
+
 ```css
 /* Garantir que outline não está sendo removido -->
 :focus-visible {
@@ -346,6 +381,7 @@ menuLinks.forEach(link => {
 ```
 
 ### Problema: Formulário muito grande em mobile
+
 ```css
 /* Aumentar altura de inputs em mobile pequeno -->
 @media (max-width: 480px) {
@@ -361,6 +397,7 @@ menuLinks.forEach(link => {
 ## 📞 Suporte & Contato
 
 Se encontrar problemas:
+
 1. Verificar console do navegador (F12)
 2. Testar em outro navegador
 3. Limpar cache (Ctrl+Shift+Delete)

@@ -83,7 +83,7 @@
                     <div class="input-with-prefix">
                         <span class="input-prefix">R$</span>
                         <input type="text" id="limiteTotal" name="limite_total" class="form-input" placeholder="0,00"
-                            required inputmode="numeric" autocomplete="off">
+                            required>
                     </div>
                     <small class="form-help">Limite total disponível no cartão</small>
                 </div>

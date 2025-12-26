@@ -376,7 +376,7 @@
         onclick="document.getElementById('galleryModal').style.display='none'"></div>
 
     <!-- Modal Content -->
-    <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden" @click.stop>
+    <div class="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden" @click.stop>
 
         <!-- Close button -->
         <button @click="open = false" onclick="document.getElementById('galleryModal').style.display='none'"

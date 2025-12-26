@@ -375,7 +375,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+        background: var(--color-primary);
         opacity: 0;
         transition: opacity 0.3s ease;
     }
