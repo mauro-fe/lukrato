@@ -1,4 +1,3 @@
-
 /* ===============================
    TOKENS BASE (fixos)
    =============================== */
@@ -67,7 +66,7 @@
 }
 
 /* ===============================
-   THEME LIGHT (azulado, harmônico)
+   THEME LIGHT (neutro e moderno)
    =============================== */
 :root[data-theme="light"] {
   --color-primary: #e67e22;
@@ -81,26 +80,33 @@
   --color-neutral: #94a3b8;
   /* cinza-azulado */
 
-  /* fundo / surface azulados */
-  --color-bg: #e6f0fa;
-  /* azul bem claro (fundo geral) */
-  --color-surface: #f0f6fc;
-  /* cards/surfaces */
-  --color-surface-muted: #d9e6f2;
-  /* blocos auxiliares */
+  /* fundo / surface neutros e limpos */
+  --color-bg: #f8fafc;
+  /* cinza muito claro (menos cansativo) */
+  --color-surface: #ffffff;
+  /* branco puro nos cards */
+  --color-surface-muted: #f1f5f9;
+  /* cinza clarinho para contraste suave */
+  --color-card-bg: #ffffff;
+  /* background dos cards */
+  --color-card-border: rgba(0, 0, 0, 0.05);
+  /* borda dos cards */
 
-  /* textos */
-  --color-text: #1e293b;
-  /* azul escuro para contraste */
-  --color-text-muted: #475569;
-  /* cinza-azulado médio */
+  /* textos com mais contraste */
+  --color-text: #0f172a;
+  /* quase preto azulado (melhor legibilidade) */
+  --color-text-muted: #64748b;
+  /* cinza médio equilibrado */
 
-  /* glass effect */
-  --glass-bg: rgba(255, 255, 255, 0.35);
-  --glass-border: rgba(30, 41, 59, 0.1);
+  /* glass effect mais sutil */
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(15, 23, 42, 0.08);
 
   /* ring (foco, inputs) */
   --ring: rgba(230, 126, 34, 0.25);
+
+  /* accent azul sutil para hover/badges (opcional) */
+  --accent-subtle: #e6f0fa;
 }
 
 /* ===============================
@@ -121,6 +127,10 @@
   --color-btn: #203c53;
   --color-text: #f8f9fa;
   --color-text-muted: #bdc3c7;
+  --color-card-bg: #1c2c3c;
+  /* background dos cards */
+  --color-card-border: rgba(255, 255, 255, 0.1);
+  /* borda dos cards */
 
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.12);

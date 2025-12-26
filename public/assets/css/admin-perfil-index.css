@@ -19,7 +19,11 @@
 .profile-title {
   font-size: var(--font-size-3xl);
   font-weight: 700;
-  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, black));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 70%, black)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -68,7 +72,11 @@
 .section-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, black));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 70%, black)
+  );
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -99,9 +107,15 @@
   margin-bottom: var(--spacing-4);
 }
 
-.form-row.cols-1 { grid-template-columns: 1fr; }
-.form-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
-.form-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.form-row.cols-1 {
+  grid-template-columns: 1fr;
+}
+.form-row.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.form-row.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
 
 .form-label {
   display: flex;
@@ -150,7 +164,11 @@
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-3) var(--spacing-8);
-  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 80%, black)
+  );
   border: none;
   border-radius: var(--radius-lg);
   color: white;
@@ -166,20 +184,36 @@
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1024px) {
-  .profile-grid { grid-template-columns: 1fr; }
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
   .form-row.cols-2,
-  .form-row.cols-3 { grid-template-columns: 1fr; }
+  .form-row.cols-3 {
+    grid-template-columns: 1fr;
+  }
 }

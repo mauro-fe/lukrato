@@ -2,13 +2,7 @@
     <!-- ==================== HEADER COM ESTATÍSTICAS ==================== -->
     <div class="cartoes-header">
         <div class="header-top">
-            <div>
-                <h1 class="page-title">
-                    <i class="fas fa-credit-card"></i>
-                    Cartões de Crédito
-                </h1>
-                <p class="page-subtitle">Gerencie seus cartões e controle seus gastos</p>
-            </div>
+
             <button class="btn btn-primary" id="btnNovoCartao">
                 <i class="fas fa-plus"></i>
                 Adicionar Cartão
@@ -130,7 +124,7 @@
 </div>
 
 <!-- ==================== MODAIS ==================== -->
-<?php include __DIR__ . '/../modals/cartao-modal.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_cartoes.php'; ?>
 
 <!-- ==================== SCRIPTS E ESTILOS ==================== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/cartoes-modern.css?v=<?= time() ?>">

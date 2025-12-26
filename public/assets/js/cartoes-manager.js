@@ -10,8 +10,44 @@ class CartoesManager {
         this.currentView = 'grid';
         this.currentFilter = 'all';
         this.searchTerm = '';
+        this.baseUrl = this.getBaseUrl();
+
+        console.log('🚀 CartoesManager inicializado');
+        console.log('📍 Base URL:', this.baseUrl);
 
         this.init();
+    }
+
+    /**
+     * Obter Base URL
+     */
+    getBaseUrl() {
+        try {
+            if (window.BASE_URL) {
+                const url = window.BASE_URL.endsWith('/') ? window.BASE_URL : window.BASE_URL + '/';
+                console.log('✅ BASE_URL encontrado:', url);
+                return url;
+            }
+
+            // Fallback: detectar automaticamente
+            const path = window.location.pathname;
+            const publicIndex = path.indexOf('/public/');
+
+            if (publicIndex !== -1) {
+                const base = path.substring(0, publicIndex + 8);
+                const url = window.location.origin + base;
+                console.log('⚠️ BASE_URL detectado automaticamente:', url);
+                return url;
+            }
+
+            // Último fallback
+            const url = window.location.origin + '/lukrato/public/';
+            console.log('⚠️ Usando fallback padrão:', url);
+            return url;
+        } catch (error) {
+            console.error('❌ Erro ao obter BASE_URL:', error);
+            return window.location.origin + '/lukrato/public/';
+        }
     }
 
     /**
@@ -72,6 +108,28 @@ class CartoesManager {
                 });
             });
         }
+
+        // Máscara para dias (fechamento e vencimento) - apenas 2 dígitos
+        const diaFechamentoInput = document.getElementById('diaFechamento');
+        const diaVencimentoInput = document.getElementById('diaVencimento');
+
+        [diaFechamentoInput, diaVencimentoInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', (e) => {
+                    // Remove tudo que não é número
+                    let value = e.target.value.replace(/\D/g, '');
+                    // Limita a 2 dígitos
+                    if (value.length > 2) {
+                        value = value.substring(0, 2);
+                    }
+                    // Limita de 1 a 31
+                    if (value !== '' && parseInt(value) > 31) {
+                        value = '31';
+                    }
+                    e.target.value = value;
+                });
+            }
+        });
 
         // Reload
         document.getElementById('btnReload')?.addEventListener('click', () => {
@@ -217,8 +275,13 @@ class CartoesManager {
         const brandIcon = this.getBrandIcon(cartao.bandeira);
         const limiteUtilizado = cartao.limite_total - cartao.limite_disponivel;
 
+        // Obter cor da instituição
+        const corBg = cartao.conta?.instituicao_financeira?.cor_primaria ||
+            cartao.instituicao_cor ||
+            this.getDefaultColor(cartao.bandeira);
+
         return `
-            <div class="credit-card" data-id="${cartao.id}" data-brand="${cartao.bandeira?.toLowerCase() || 'outros'}">
+            <div class="credit-card" data-id="${cartao.id}" data-brand="${cartao.bandeira?.toLowerCase() || 'outros'}" style="background: ${corBg};">
                 <div class="card-header">
                     <div class="card-brand">
                         <i class="brand-icon ${brandIcon}"></i>
@@ -328,7 +391,7 @@ class CartoesManager {
             document.getElementById('contaVinculada').value = cartaoData.conta_id;
             document.getElementById('bandeira').value = cartaoData.bandeira;
             document.getElementById('ultimosDigitos').value = cartaoData.ultimos_digitos;
-            document.getElementById('limiteTotal').value = this.formatMoney(cartaoData.limite_total);
+            document.getElementById('limiteTotal').value = this.formatMoneyInput(cartaoData.limite_total);
             document.getElementById('diaFechamento').value = cartaoData.dia_fechamento;
             document.getElementById('diaVencimento').value = cartaoData.dia_vencimento;
         } else {
@@ -340,6 +403,45 @@ class CartoesManager {
         // Mostrar modal
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // Reaplicar máscara de dinheiro no limite total (importante para modal dinâmico)
+        setTimeout(() => {
+            const limiteInput = document.getElementById('limiteTotal');
+            if (limiteInput) {
+                // Remove listeners anteriores clonando o elemento
+                const newLimiteInput = limiteInput.cloneNode(true);
+                limiteInput.parentNode.replaceChild(newLimiteInput, limiteInput);
+
+                // Adiciona novo listener com lógica corrigida
+                newLimiteInput.addEventListener('input', (e) => {
+                    // Pega apenas números
+                    let value = e.target.value.replace(/\D/g, '');
+
+                    // Converte para número (centavos)
+                    value = parseInt(value) || 0;
+
+                    // Converte centavos para reais
+                    const reais = value / 100;
+
+                    // Formata
+                    e.target.value = reais.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                });
+
+                // Aplicar formatação ao valor atual
+                const currentValue = newLimiteInput.value.replace(/\D/g, '');
+                if (currentValue) {
+                    const valor = parseInt(currentValue) || 0;
+                    const reais = valor / 100;
+                    newLimiteInput.value = reais.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            }
+        }, 100);
     }
 
     /**
@@ -359,14 +461,17 @@ class CartoesManager {
     async loadContasSelect() {
         const select = document.getElementById('contaVinculada');
         if (!select) {
-            console.error('Select contaVinculada não encontrado!');
+            console.error('❌ Select contaVinculada não encontrado!');
             return;
         }
 
-        console.log('Carregando contas no select...');
+        console.log('🔄 Carregando contas no select...');
 
         try {
-            const response = await fetch(`${window.BASE_URL}api/contas`, {
+            const url = `${this.baseUrl}api/contas?only_active=0`;
+            console.log('📡 URL completa:', url);
+
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -375,34 +480,59 @@ class CartoesManager {
                 credentials: 'same-origin'
             });
 
-            console.log('Response status:', response.status);
+            console.log('📥 Response status:', response.status);
 
-            if (!response.ok) throw new Error('Erro ao carregar contas');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Erro HTTP:', response.status, errorText);
+                throw new Error('Erro ao carregar contas');
+            }
 
             const data = await response.json();
-            console.log('Dados recebidos da API:', data);
+            console.log('✅ Dados recebidos da API:', data);
+            console.log('📊 Tipo de data:', typeof data);
+            console.log('📊 É array?', Array.isArray(data));
+            console.log('📊 Keys do objeto:', Object.keys(data));
+            console.log('📊 JSON completo:', JSON.stringify(data, null, 2));
 
-            const contas = data.data || data.contas || [];
-            console.log('Array de contas:', contas);
-            console.log('Total de contas:', contas.length);
+            // Tentar diferentes estruturas de resposta
+            let contas = [];
+            if (Array.isArray(data)) {
+                contas = data;
+            } else if (data.data) {
+                contas = Array.isArray(data.data) ? data.data : [];
+            } else if (data.contas) {
+                contas = Array.isArray(data.contas) ? data.contas : [];
+            }
+
+            console.log('📊 Array de contas extraído:', contas);
+            console.log('📊 Total de contas:', contas.length);
 
             if (contas.length === 0) {
                 select.innerHTML = '<option value="">Nenhuma conta cadastrada</option>';
-                console.warn('Nenhuma conta encontrada');
+                console.warn('⚠️ Nenhuma conta encontrada');
                 return;
             }
 
             const options = contas.map(conta => {
-                const nome = this.escapeHtml(conta.descricao || conta.nome || 'Sem nome');
-                const saldo = this.formatMoney(conta.saldo_atual || conta.saldo || 0);
-                console.log(`Conta: ID=${conta.id}, Nome=${nome}, Saldo=${saldo}`);
+                // Pegar nome da instituição de diferentes estruturas possíveis
+                const instituicao = conta.instituicao_financeira?.nome ||
+                    conta.instituicao?.nome ||
+                    conta.nome ||
+                    'Sem instituição';
+                const nome = this.escapeHtml(instituicao);
+                // Tentar pegar o saldo de diferentes campos possíveis
+                const saldoValue = parseFloat(conta.saldo_atual || conta.saldo || conta.saldo_inicial || 0);
+                const saldo = this.formatMoney(saldoValue);
+                console.log(`  → Conta: ID=${conta.id}, Instituição=${nome}, Saldo=${saldo}`);
                 return `<option value="${conta.id}">${nome} - ${saldo}</option>`;
             }).join('');
 
             select.innerHTML = '<option value="">Selecione a conta</option>' + options;
-            console.log('Select preenchido com sucesso. HTML:', select.innerHTML);
+            console.log('✅ Select preenchido com', contas.length, 'conta(s)');
         } catch (error) {
-            console.error('Erro ao carregar contas:', error);
+            console.error('❌ Erro ao carregar contas:', error);
+            console.error('Stack:', error.stack);
             select.innerHTML = '<option value="">Erro ao carregar contas</option>';
         }
     }
@@ -420,6 +550,11 @@ class CartoesManager {
         const cartaoId = document.getElementById('cartaoId').value;
         const isEdit = !!cartaoId;
 
+        // Obter token CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+            document.querySelector('input[name="csrf_token"]')?.value ||
+            '';
+
         const data = {
             nome_cartao: document.getElementById('nomeCartao').value,
             conta_id: document.getElementById('contaVinculada').value,
@@ -427,34 +562,69 @@ class CartoesManager {
             ultimos_digitos: document.getElementById('ultimosDigitos').value,
             limite_total: this.parseMoney(document.getElementById('limiteTotal').value),
             dia_fechamento: document.getElementById('diaFechamento').value || null,
-            dia_vencimento: document.getElementById('diaVencimento').value || null
+            dia_vencimento: document.getElementById('diaVencimento').value || null,
+            csrf_token: csrfToken
         };
+
+        console.log('💾 Salvando cartão:', data);
+        console.log('📝 Validações:', {
+            nome_cartao: data.nome_cartao,
+            conta_id: data.conta_id,
+            bandeira: data.bandeira,
+            ultimos_digitos: data.ultimos_digitos,
+            limite_total: data.limite_total,
+            csrf_token: csrfToken ? '✅ Presente' : '❌ Ausente'
+        });
 
         try {
             const url = isEdit
                 ? `${window.BASE_URL}api/cartoes/${cartaoId}`
                 : `${window.BASE_URL}api/cartoes`;
 
+            console.log('📡 URL:', url);
+            console.log('📤 Método:', isEdit ? 'PUT' : 'POST');
+
             const response = await fetch(url, {
                 method: isEdit ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify(data)
             });
 
+            console.log('📥 Response status:', response.status);
+
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Erro ao salvar cartão');
+                const errorText = await response.text();
+                console.error('❌ Erro HTTP:', response.status);
+                console.error('📄 Resposta completa:', errorText);
+
+                let error;
+                try {
+                    error = JSON.parse(errorText);
+                } catch (e) {
+                    error = { message: errorText };
+                }
+
+                // Se for erro de CSRF, recarregar a página
+                if (error.errors?.csrf_expired) {
+                    this.showToast('error', 'Sessão expirada. Recarregando página...');
+                    setTimeout(() => window.location.reload(), 2000);
+                    return;
+                }
+
+                throw new Error(error.message || error.error || 'Erro ao salvar cartão');
             }
 
             this.showToast('success', isEdit ? 'Cartão atualizado com sucesso!' : 'Cartão criado com sucesso!');
             this.closeModal();
             this.loadCartoes();
         } catch (error) {
-            console.error('Erro ao salvar cartão:', error);
+            console.error('❌ Erro ao salvar cartão:', error);
+            console.error('Stack:', error.stack);
             this.showToast('error', error.message || 'Erro ao salvar cartão');
         }
     }
@@ -606,12 +776,37 @@ class CartoesManager {
     }
 
     /**
+     * Obter cor padrão baseada na bandeira
+     */
+    getDefaultColor(bandeira) {
+        const colors = {
+            'visa': 'linear-gradient(135deg, #1A1F71 0%, #2D3A8C 100%)',
+            'mastercard': 'linear-gradient(135deg, #EB001B 0%, #F79E1B 100%)',
+            'elo': 'linear-gradient(135deg, #FFCB05 0%, #FFE600 100%)',
+            'amex': 'linear-gradient(135deg, #006FCF 0%, #0099CC 100%)',
+            'diners': 'linear-gradient(135deg, #0079BE 0%, #00558C 100%)',
+            'discover': 'linear-gradient(135deg, #FF6000 0%, #FF8500 100%)'
+        };
+        return colors[bandeira?.toLowerCase()] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    }
+
+    /**
      * Formatar dinheiro
      */
     formatMoney(value) {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
+        }).format(value || 0);
+    }
+
+    /**
+     * Formatar dinheiro para input (sem R$)
+     */
+    formatMoneyInput(value) {
+        return new Intl.NumberFormat('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(value || 0);
     }
 

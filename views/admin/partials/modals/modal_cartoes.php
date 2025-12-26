@@ -1,15 +1,15 @@
-<!-- Modal de Nova Conta -->
-<div class="modal-overlay" id="modalContaOverlay">
-    <div class="modal-container" id="modalConta" onclick="event.stopPropagation()">
+<!-- Modal de Cartão de Crédito -->
+<div class="modal-overlay" id="modalCartaoOverlay">
+    <div class="modal-container" id="modalCartao" onclick="event.stopPropagation()">
         <!-- Header -->
         <div class="modal-header">
             <div class="modal-header-content">
                 <div class="modal-icon">
-                    <i class="fas fa-university"></i>
+                    <i class="fas fa-credit-card"></i>
                 </div>
                 <div>
-                    <h2 class="modal-title" id="modalContaTitulo">Nova Conta</h2>
-                    <p class="modal-subtitle">Adicione uma nova conta bancária</p>
+                    <h2 class="modal-title" id="modalCartaoTitulo">Novo Cartão de Crédito</h2>
+                    <p class="modal-subtitle">Preencha os dados do seu cartão</p>
                 </div>
             </div>
             <button class="modal-close" type="button" aria-label="Fechar modal">
@@ -19,15 +19,16 @@
 
         <!-- Body -->
         <div class="modal-body">
-            <form id="formConta" autocomplete="off">
-                <input type="hidden" id="contaId" name="conta_id">
+            <form id="formCartao" autocomplete="off">
+                <input type="hidden" id="cartaoId" name="cartao_id">
 
-                <!-- Nome da Conta -->
+                <!-- Nome do Cartão -->
                 <div class="form-group">
-                    <label for="nomeConta" class="form-label required">
+                    <label for="nomeCartao" class="form-label required">
                         <i class="fas fa-tag"></i>
-                        Nome da Conta
+                        Nome do Cartão
                     </label>
+<<<<<<< HEAD:views/admin/modals/conta-modal.php
 <<<<<<< HEAD
                     <input type="text" id="nomeConta" name="nome" class="form-input"
                         placeholder="Ex: Nubank Conta, Itaú Poupança" required maxlength="100">
@@ -40,59 +41,63 @@
                         required
                         maxlength="100">
 >>>>>>> mauro
+=======
+                    <input type="text" id="nomeCartao" name="nome_cartao" class="form-input"
+                        placeholder="Ex: Nubank Platinum, Itaú Gold" required maxlength="100">
+>>>>>>> e7abdedd304ce8c36eb22118e5552d79f206206f:views/admin/partials/modals/modal_cartoes.php
                 </div>
 
-                <!-- Instituição Financeira -->
+                <!-- Conta Vinculada -->
                 <div class="form-group">
-                    <label for="instituicaoFinanceiraSelect" class="form-label">
-                        <i class="fas fa-building"></i>
-                        Instituição Financeira
+                    <label for="contaVinculada" class="form-label required">
+                        <i class="fas fa-link"></i>
+                        Conta Vinculada
                     </label>
-                    <select id="instituicaoFinanceiraSelect" name="instituicao_financeira_id" class="form-select">
-                        <option value="">Selecione uma instituição</option>
+                    <select id="contaVinculada" name="conta_id" class="form-select" required>
+                        <option value="">Selecione a conta</option>
                     </select>
-                    <small class="form-help">Escolha o banco ou fintech desta conta</small>
+                    <small class="form-help">Conta onde os pagamentos serão debitados</small>
                 </div>
 
                 <!-- Grid 2 colunas -->
                 <div class="form-row">
-                    <!-- Tipo de Conta -->
+                    <!-- Bandeira -->
                     <div class="form-group">
-                        <label for="tipoContaSelect" class="form-label required">
-                            <i class="fas fa-wallet"></i>
-                            Tipo de Conta
+                        <label for="bandeira" class="form-label required">
+                            <i class="fas fa-star"></i>
+                            Bandeira
                         </label>
-                        <select id="tipoContaSelect" name="tipo_conta" class="form-select" required>
-                            <option value="conta_corrente">Conta Corrente</option>
-                            <option value="conta_poupanca">Conta Poupança</option>
-                            <option value="conta_investimento">Investimento</option>
-                            <option value="carteira_digital">Carteira Digital</option>
-                            <option value="dinheiro">Dinheiro</option>
+                        <select id="bandeira" name="bandeira" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <option value="visa">Visa</option>
+                            <option value="mastercard">Mastercard</option>
+                            <option value="elo">Elo</option>
+                            <option value="amex">American Express</option>
+                            <option value="hipercard">Hipercard</option>
+                            <option value="diners">Diners Club</option>
                         </select>
                     </div>
 
-                    <!-- Moeda -->
+                    <!-- Últimos dígitos -->
                     <div class="form-group">
-                        <label for="moedaSelect" class="form-label required">
-                            <i class="fas fa-dollar-sign"></i>
-                            Moeda
+                        <label for="ultimosDigitos" class="form-label required">
+                            <i class="fas fa-hashtag"></i>
+                            Últimos 4 dígitos
                         </label>
-                        <select id="moedaSelect" name="moeda" class="form-select" required>
-                            <option value="BRL" selected>Real (BRL)</option>
-                            <option value="USD">Dólar (USD)</option>
-                            <option value="EUR">Euro (EUR)</option>
-                        </select>
+                        <input type="text" id="ultimosDigitos" name="ultimos_digitos" class="form-input"
+                            placeholder="1234" required maxlength="4" pattern="\d{4}">
                     </div>
                 </div>
 
-                <!-- Saldo Inicial -->
+                <!-- Limite Total -->
                 <div class="form-group">
-                    <label for="saldoInicial" class="form-label">
-                        <i class="fas fa-coins"></i>
-                        Saldo Inicial
+                    <label for="limiteTotal" class="form-label">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Limite Total
                     </label>
                     <div class="input-with-prefix">
                         <span class="input-prefix">R$</span>
+<<<<<<< HEAD:views/admin/modals/conta-modal.php
 <<<<<<< HEAD
                         <input type="text" id="saldoInicial" name="saldo_inicial" class="form-input" value="0,00"
 =======
@@ -102,11 +107,15 @@
                             class="form-input"
                             value="0,00"
 >>>>>>> mauro
+=======
+                        <input type="text" id="limiteTotal" name="limite_total" class="form-input" value="0,00"
+>>>>>>> e7abdedd304ce8c36eb22118e5552d79f206206f:views/admin/partials/modals/modal_cartoes.php
                             placeholder="0,00">
                     </div>
-                    <small class="form-help">Saldo atual disponível na conta</small>
+                    <small class="form-help">Limite total disponível no cartão</small>
                 </div>
 
+<<<<<<< HEAD:views/admin/modals/conta-modal.php
                 <!-- Cor da Conta -->
                 <div class="form-group">
                     <label for="corConta" class="form-label">
@@ -142,6 +151,31 @@
                         </span>
                     </label>
                     <small class="form-help">Marque para considerar esta conta no saldo geral</small>
+=======
+                <!-- Grid 2 colunas - Datas -->
+                <div class="form-row">
+                    <!-- Dia Fechamento -->
+                    <div class="form-group">
+                        <label for="diaFechamento" class="form-label">
+                            <i class="fas fa-calendar-check"></i>
+                            Dia Fechamento
+                        </label>
+                        <input type="number" id="diaFechamento" name="dia_fechamento" class="form-input" min="1"
+                            max="31" placeholder="Ex: 10">
+                        <small class="form-help">Dia que a fatura fecha</small>
+                    </div>
+
+                    <!-- Dia Vencimento -->
+                    <div class="form-group">
+                        <label for="diaVencimento" class="form-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Dia Vencimento
+                        </label>
+                        <input type="number" id="diaVencimento" name="dia_vencimento" class="form-input" min="1"
+                            max="31" placeholder="Ex: 15">
+                        <small class="form-help">Dia do vencimento</small>
+                    </div>
+>>>>>>> e7abdedd304ce8c36eb22118e5552d79f206206f:views/admin/partials/modals/modal_cartoes.php
                 </div>
 
                 <!-- Footer -->
@@ -152,7 +186,7 @@
                     </button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i>
-                        Salvar Conta
+                        Salvar Cartão
                     </button>
                 </div>
             </form>
@@ -351,28 +385,6 @@
 
     .input-with-prefix .form-input {
         padding-left: calc(var(--spacing-4) * 2 + 1rem);
-    }
-
-    /* Checkbox */
-    .form-checkbox {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-3);
-        cursor: pointer;
-    }
-
-    .form-checkbox input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-    }
-
-    .form-checkbox-label {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-2);
-        font-size: var(--font-size-base);
-        color: var(--color-text);
     }
 
     /* Footer */
