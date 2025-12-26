@@ -1,4 +1,4 @@
-<!-- Hero Section -->
+﻿<!-- Hero Section -->
 <section
     class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
     <!-- Background Decorations -->
@@ -376,7 +376,7 @@
         onclick="document.getElementById('galleryModal').style.display='none'"></div>
 
     <!-- Modal Content -->
-    <div class="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden" @click.stop>
+    <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden" @click.stop>
 
         <!-- Close button -->
         <button @click="open = false" onclick="document.getElementById('galleryModal').style.display='none'"
@@ -588,6 +588,17 @@
                     if (this.period === 'mensal') return 'mês';
                     if (this.period === 'semestral') return 'semestre';
                     return 'ano';
+                },
+                scrollToCard(cardId) {
+                    // Só rola em mobile (largura menor que 1024px)
+                    if (window.innerWidth < 1024) {
+                        const element = document.getElementById(cardId);
+                        if (element) {
+                            setTimeout(() => {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
+                        }
+                    }
                 }
             }">
 
@@ -610,14 +621,14 @@
                         class="px-6 py-3 rounded-lg font-semibold transition-all duration-300">
                         Mensal
                     </button>
-                    <button @click="period = 'semestral'"
+                    <button @click="period = 'semestral'; scrollToCard('plano-pro')"
                         :class="period === 'semestral' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
                         class="relative px-6 py-3 rounded-lg font-semibold transition-all duration-300">
                         Semestral
                         <span
                             class="absolute -top-3 -right-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">-10%</span>
                     </button>
-                    <button @click="period = 'anual'"
+                    <button @click="period = 'anual'; scrollToCard('plano-pro')"
                         :class="period === 'anual' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
                         class="relative px-6 py-3 rounded-lg font-semibold transition-all duration-300">
                         Anual
@@ -632,13 +643,18 @@
 
                 <!-- Plano Gratuito -->
                 <?php if ($planoGratuito): ?>
-                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
-                    data-aos="fade-right">
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($planoGratuito->nome) ?>
-                        </h3>
-                        <div class="flex items-baseline gap-2 mb-4">
-                            <span class="text-5xl font-bold text-gray-900">R$ 0</span>
+                    <div id="plano-gratuito"
+                        class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
+                        data-aos="fade-right">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($planoGratuito->nome) ?>
+                            </h3>
+                            <div class="flex items-baseline gap-2 mb-4">
+                                <span class="text-5xl font-bold text-gray-900">R$ 0</span>
+                            </div>
+                            <p class="text-gray-600">
+                                <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
+                            </p>
                         </div>
                         <p class="text-gray-600">
                             <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
@@ -647,28 +663,28 @@
 
                     <ul class="space-y-4 mb-8">
                         <?php
-                            $recursos = $planoGratuito->metadados['recursos'] ?? [
-                                'Controle financeiro essencial'
-                            ];
-                            $limitacoes = $planoGratuito->metadados['limitacoes'] ?? [
-                                'Relatórios avançados',
-                                'Agendamentos de pagamentos',
-                                'Exportação de dados',
-                                'Categorias ilimitadas',
-                                'Suporte prioritário'
-                            ];
-                            ?>
+                        $recursos = $planoGratuito->metadados['recursos'] ?? [
+                            'Controle financeiro essencial'
+                        ];
+                        $limitacoes = $planoGratuito->metadados['limitacoes'] ?? [
+                            'Relatórios avançados',
+                            'Agendamentos de pagamentos',
+                            'Exportação de dados',
+                            'Categorias ilimitadas',
+                            'Suporte prioritário'
+                        ];
+                        ?>
                         <?php foreach ($recursos as $recurso): ?>
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-check text-green-500 mt-1"></i>
-                            <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
-                        </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-check text-green-500 mt-1"></i>
+                                <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
+                            </li>
                         <?php endforeach; ?>
                         <?php foreach ($limitacoes as $limitacao): ?>
-                        <li class="flex items-start gap-3 opacity-50">
-                            <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
-                            <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
-                        </li>
+                            <li class="flex items-start gap-3 opacity-50">
+                                <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
+                                <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
+                            </li>
                         <?php endforeach; ?>
                     </ul>
 
@@ -676,24 +692,25 @@
                         class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white border-2 border-primary rounded-xl hover:bg-orange-50 transition-all duration-300">
                         Começar grátis
                     </a>
-                </div>
-                <?php endif; ?>
+            </div>
+        <?php endif; ?>
 
-                <!-- Planos Pagos -->
-                <?php foreach ($planosPagos as $index => $plano):
-                    $precoMensal = $plano->preco_centavos / 100;
-                    $recursos = $plano->metadados['recursos'] ?? [
-                        'Controle financeiro essencial',
-                        'Relatórios avançados',
-                        'Agendamentos de pagamentos',
-                        'Exportação de dados',
-                        'Categorias ilimitadas',
-                        'Suporte prioritário'
-                    ];
-                    $destaque = $plano->metadados['destaque'] ?? ($index === 0);
-                ?>
-                <div class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
-                    data-aos="fade-left" x-data="{ 
+        <!-- Planos Pagos -->
+        <?php foreach ($planosPagos as $index => $plano):
+            $precoMensal = $plano->preco_centavos / 100;
+            $recursos = $plano->metadados['recursos'] ?? [
+                'Controle financeiro essencial',
+                'Relatórios avançados',
+                'Agendamentos de pagamentos',
+                'Exportação de dados',
+                'Categorias ilimitadas',
+                'Suporte prioritário'
+            ];
+            $destaque = $plano->metadados['destaque'] ?? ($index === 0);
+        ?>
+            <div id="plano-pro"
+                class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                data-aos="fade-left" x-data="{ 
                     basePrice: <?= $precoMensal ?>,
                     get currentPrice() {
                         if (period === 'mensal') return this.basePrice.toFixed(2);
@@ -712,7 +729,7 @@
                     }
                  }">
 
-                    <?php if ($destaque): ?>
+                <?php if ($destaque): ?>
                     <!-- Badge -->
                     <div class="absolute -top-4 left-1/2 -translate-x-1/2">
                         <span
@@ -721,82 +738,82 @@
                             <?= htmlspecialchars($plano->metadados['badge'] ?? 'Mais escolhido') ?>
                         </span>
                     </div>
-                    <?php endif; ?>
+                <?php endif; ?>
 
-                    <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
-                    <div x-show="discount > 0" x-transition
-                        class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
-                        <span x-text="'-' + discount + '%'"></span>
+                <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
+                <div x-show="discount > 0" x-transition
+                    class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
+                    <span x-text="'-' + discount + '%'"></span>
+                </div>
+
+                <div class="mb-6 pt-4">
+                    <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+
+                    <!-- Preço Original Riscado (aparece apenas com desconto) -->
+                    <div x-show="originalPriceCalc" x-transition class="mb-1">
+                        <span class="text-lg line-through text-orange-200">
+                            R$ <span x-text="originalPriceCalc"></span>
+                        </span>
                     </div>
 
-                    <div class="mb-6 pt-4">
-                        <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+                    <div class="flex items-baseline gap-2 mb-2">
+                        <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
+                        <span class="text-xl text-orange-100">
+                            / <span x-text="periodLabel"></span>
+                        </span>
+                    </div>
 
-                        <!-- Preço Original Riscado (aparece apenas com desconto) -->
-                        <div x-show="originalPriceCalc" x-transition class="mb-1">
-                            <span class="text-lg line-through text-orange-200">
-                                R$ <span x-text="originalPriceCalc"></span>
-                            </span>
-                        </div>
+                    <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
+                    <div x-show="period !== 'mensal'" x-transition class="mb-2">
+                        <p class="text-orange-100 text-sm">
+                            Equivalente a
+                            <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
+                            por mês
+                        </p>
+                    </div>
 
-                        <div class="flex items-baseline gap-2 mb-2">
-                            <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
-                            <span class="text-xl text-orange-100">
-                                / <span x-text="periodLabel"></span>
-                            </span>
-                        </div>
-
-                        <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
-                        <div x-show="period !== 'mensal'" x-transition class="mb-2">
-                            <p class="text-orange-100 text-sm">
-                                Equivalente a
-                                <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
-                                por mês
-                            </p>
-                        </div>
-
-                        <p class="text-orange-100">
-                            <?php if (isset($plano->metadados['mensagens'])): ?>
+                    <p class="text-orange-100">
+                        <?php if (isset($plano->metadados['mensagens'])): ?>
                             <span
                                 x-show="period === 'mensal'"><?= htmlspecialchars($plano->metadados['mensagens']['mensal'] ?? 'Plano mensal flexível') ?></span>
                             <span
                                 x-show="period === 'semestral'"><?= htmlspecialchars($plano->metadados['mensagens']['semestral'] ?? 'Economize 10% pagando semestralmente!') ?></span>
                             <span
                                 x-show="period === 'anual'"><?= htmlspecialchars($plano->metadados['mensagens']['anual'] ?? 'Melhor oferta! Economize 15% no plano anual.') ?></span>
-                            <?php else: ?>
+                        <?php else: ?>
                             <span x-show="period === 'mensal'">Menos que um lanche por mês para ter controle total do
                                 seu dinheiro.</span>
                             <span x-show="period === 'semestral'">Economize 10% pagando semestralmente!</span>
                             <span x-show="period === 'anual'">Melhor oferta! Economize 15% no plano anual.</span>
-                            <?php endif; ?>
-                        </p>
-                    </div>
+                        <?php endif; ?>
+                    </p>
+                </div>
 
-                    <ul class="space-y-4 mb-8">
-                        <?php foreach ($recursos as $recurso): ?>
+                <ul class="space-y-4 mb-8">
+                    <?php foreach ($recursos as $recurso): ?>
                         <li class="flex items-start gap-3">
                             <i class="fa-solid fa-check text-green-300 mt-1"></i>
                             <span><?= htmlspecialchars($recurso) ?></span>
                         </li>
-                        <?php endforeach; ?>
-                    </ul>
+                    <?php endforeach; ?>
+                </ul>
 
-                    <a href="<?= BASE_URL ?>billing"
-                        class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
-                        Assinar <?= htmlspecialchars($plano->nome) ?>
-                    </a>
-                </div>
-                <?php endforeach; ?>
-
+                <a href="<?= BASE_URL ?>billing"
+                    class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
+                    Assinar <?= htmlspecialchars($plano->nome) ?>
+                </a>
             </div>
+        <?php endforeach; ?>
 
-            <!-- Nota de rodapé -->
-            <p class="text-center text-gray-600 max-w-2xl mx-auto" data-aos="fade-up">
-                <i class="fa-solid fa-shield-halved text-primary mr-2"></i>
-                Sem fidelidade. Cancele quando quiser, direto pelo sistema.
-            </p>
+        </div>
 
-        </div> <!-- Fim do container Alpine.js -->
+        <!-- Nota de rodapé -->
+        <p class="text-center text-gray-600 max-w-2xl mx-auto" data-aos="fade-up">
+            <i class="fa-solid fa-shield-halved text-primary mr-2"></i>
+            Sem fidelidade. Cancele quando quiser, direto pelo sistema.
+        </p>
+
+    </div> <!-- Fim do container Alpine.js -->
 
     </div>
 </section>
@@ -1060,115 +1077,115 @@
 
 <!-- Estilos Tailwind customizados e animações -->
 <style>
-@keyframes blob {
+    @keyframes blob {
 
-    0%,
-    100% {
-        transform: translate(0, 0) scale(1);
+        0%,
+        100% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
     }
 
-    33% {
-        transform: translate(30px, -50px) scale(1.1);
+    .animate-blob {
+        animation: blob 7s infinite;
     }
 
-    66% {
-        transform: translate(-20px, 20px) scale(0.9);
+    .animation-delay-2000 {
+        animation-delay: 2s;
     }
-}
 
-.animate-blob {
-    animation: blob 7s infinite;
-}
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
 
-.animation-delay-2000 {
-    animation-delay: 2s;
-}
+    [x-cloak] {
+        display: none !important;
+    }
 
-.animation-delay-4000 {
-    animation-delay: 4s;
-}
+    /* Smooth scroll */
+    html {
+        scroll-behavior: smooth;
+    }
 
-[x-cloak] {
-    display: none !important;
-}
-
-/* Smooth scroll */
-html {
-    scroll-behavior: smooth;
-}
-
-/* Melhorar a tipografia */
-body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+    /* Melhorar a tipografia */
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 </style>
 
 <script>
-// Formulário de contato
-document.addEventListener('DOMContentLoaded', function() {
-    const contactForm = document.getElementById('contactForm');
+    // Formulário de contato
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactForm = document.getElementById('contactForm');
 
-    if (contactForm) {
-        contactForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        if (contactForm) {
+            contactForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-            const submitButton = this.querySelector('button[type="submit"]');
-            const originalText = submitButton.innerHTML;
+                const submitButton = this.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
 
-            // Desabilita o botão e mostra loading
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
+                // Desabilita o botão e mostra loading
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
 
-            try {
-                const formData = new FormData(this);
+                try {
+                    const formData = new FormData(this);
 
-                const response = await fetch('<?= BASE_URL ?>api/contato/enviar', {
-                    method: 'POST',
-                    body: formData
-                });
+                    const response = await fetch('<?= BASE_URL ?>api/contato/enviar', {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                const data = await response.json();
+                    const data = await response.json();
 
-                if (response.ok && data.success) {
-                    // Sucesso
-                    showNotification(
-                        'Mensagem enviada com sucesso! Em breve entraremos em contato.',
-                        'success');
-                    this.reset();
-                } else {
-                    // Erro
-                    showNotification(data.message || 'Erro ao enviar mensagem. Tente novamente.',
-                        'error');
+                    if (response.ok && data.success) {
+                        // Sucesso
+                        showNotification(
+                            'Mensagem enviada com sucesso! Em breve entraremos em contato.',
+                            'success');
+                        this.reset();
+                    } else {
+                        // Erro
+                        showNotification(data.message || 'Erro ao enviar mensagem. Tente novamente.',
+                            'error');
+                    }
+
+                } catch (error) {
+                    console.error('Erro:', error);
+                    showNotification('Erro ao enviar mensagem. Tente novamente.', 'error');
+                } finally {
+                    // Restaura o botão
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
                 }
-
-            } catch (error) {
-                console.error('Erro:', error);
-                showNotification('Erro ao enviar mensagem. Tente novamente.', 'error');
-            } finally {
-                // Restaura o botão
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalText;
-            }
-        });
-    }
-
-    // Função para mostrar notificações
-    function showNotification(message, type = 'success') {
-        // Remove notificação anterior se existir
-        const oldNotification = document.querySelector('.contact-notification');
-        if (oldNotification) {
-            oldNotification.remove();
+            });
         }
 
-        // Cria nova notificação
-        const notification = document.createElement('div');
-        notification.className =
-            'contact-notification fixed top-8 right-8 z-50 max-w-md px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 ease-out';
+        // Função para mostrar notificações
+        function showNotification(message, type = 'success') {
+            // Remove notificação anterior se existir
+            const oldNotification = document.querySelector('.contact-notification');
+            if (oldNotification) {
+                oldNotification.remove();
+            }
 
-        if (type === 'success') {
-            notification.classList.add('bg-green-500', 'text-white');
-            notification.innerHTML = `
+            // Cria nova notificação
+            const notification = document.createElement('div');
+            notification.className =
+                'contact-notification fixed top-8 right-8 z-50 max-w-md px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 ease-out';
+
+            if (type === 'success') {
+                notification.classList.add('bg-green-500', 'text-white');
+                notification.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-check-circle text-2xl"></i>
                         <div>
@@ -1177,9 +1194,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 `;
-        } else {
-            notification.classList.add('bg-red-500', 'text-white');
-            notification.innerHTML = `
+            } else {
+                notification.classList.add('bg-red-500', 'text-white');
+                notification.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-exclamation-circle text-2xl"></i>
                         <div>
@@ -1188,56 +1205,56 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 `;
-        }
+            }
 
-        document.body.appendChild(notification);
+            document.body.appendChild(notification);
 
-        // Animação de entrada
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
+            // Animação de entrada
             setTimeout(() => {
-                notification.style.opacity = '1';
-                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                    notification.style.transform = 'translateX(0)';
+                }, 10);
             }, 10);
-        }, 10);
 
-        // Remove após 5 segundos
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
+            // Remove após 5 segundos
             setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 5000);
-    }
-});
-
-// Fallback para galeria (caso Alpine.js não carregue)
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('galleryModal');
-
-    // Adiciona listener global para o evento
-    window.addEventListener('open-gallery', function() {
-        if (modal) {
-            modal.style.display = 'flex';
-            // Se Alpine.js estiver carregado, ele cuida do resto
-            // Se não, pelo menos o modal fica visível
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 5000);
         }
     });
 
-    // Fallback: se clicar no botão e nada acontecer após 100ms, abre manualmente
-    setTimeout(function() {
-        const buttons = document.querySelectorAll('[\\@click*="open-gallery"]');
-        buttons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                setTimeout(function() {
-                    if (modal && modal.style.display === 'none') {
-                        modal.style.display = 'flex';
-                    }
-                }, 100);
-            });
+    // Fallback para galeria (caso Alpine.js não carregue)
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('galleryModal');
+
+        // Adiciona listener global para o evento
+        window.addEventListener('open-gallery', function() {
+            if (modal) {
+                modal.style.display = 'flex';
+                // Se Alpine.js estiver carregado, ele cuida do resto
+                // Se não, pelo menos o modal fica visível
+            }
         });
-    }, 1000);
-});
+
+        // Fallback: se clicar no botão e nada acontecer após 100ms, abre manualmente
+        setTimeout(function() {
+            const buttons = document.querySelectorAll('[\\@click*="open-gallery"]');
+            buttons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    setTimeout(function() {
+                        if (modal && modal.style.display === 'none') {
+                            modal.style.display = 'flex';
+                        }
+                    }, 100);
+                });
+            });
+        }, 1000);
+    });
 </script>

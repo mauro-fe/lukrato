@@ -1,0 +1,678 @@
+/**
+ * ============================================================================
+ * PARCELAMENTOS - ESTILO MODERNO
+ * ============================================================================
+ */
+
+:root {
+  --parc-primary: #6366f1;
+  --parc-success: #10b981;
+  --parc-warning: #f59e0b;
+  --parc-danger: #ef4444;
+  --parc-info: #3b82f6;
+  --parc-dark: #1f2937;
+  --parc-light: #f9fafb;
+  --parc-border: #e5e7eb;
+  --parc-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== CONTAINER PRINCIPAL ==================== */
+.parc-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ==================== HEADER ==================== */
+.parc-header-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.page-title-section {
+  flex: 1;
+  min-width: 250px;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--parc-dark);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-title i {
+  color: var(--parc-primary);
+  font-size: 1.75rem;
+}
+
+.page-subtitle {
+  color: #6b7280;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+}
+
+/* ==================== CARDS MODERNOS ==================== */
+.modern-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--parc-shadow);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--parc-border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-header-icon {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.icon-wrapper.filter {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.card-title-group {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--parc-dark);
+  margin: 0;
+}
+
+.card-subtitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+}
+
+/* ==================== FILTROS ==================== */
+.filter-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--parc-dark);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.filter-label i {
+  color: var(--parc-primary);
+}
+
+.modern-select,
+.modern-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--parc-border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-select:focus,
+.modern-input:focus {
+  outline: none;
+  border-color: var(--parc-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* ==================== BOTÕES MODERNOS ==================== */
+.modern-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.modern-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modern-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.modern-btn.secondary {
+  background: #f3f4f6;
+  color: var(--parc-dark);
+}
+
+.modern-btn.secondary:hover {
+  background: #e5e7eb;
+}
+
+.modern-btn.danger {
+  background: var(--parc-danger);
+  color: white;
+}
+
+.modern-btn.danger:hover {
+  background: #dc2626;
+}
+
+.modern-btn.large {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+.modern-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== GRID DE PARCELAMENTOS ==================== */
+.parcelamentos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.parcelamento-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--parc-shadow);
+  border: 2px solid var(--parc-border);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.parcelamento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  border-color: var(--parc-primary);
+}
+
+.parcelamento-card.status-ativo {
+  border-left: 4px solid var(--parc-success);
+}
+
+.parcelamento-card.status-concluido {
+  border-left: 4px solid var(--parc-info);
+}
+
+.parcelamento-card.status-cancelado {
+  border-left: 4px solid var(--parc-danger);
+  opacity: 0.7;
+}
+
+/* Cabeçalho do Card */
+.parc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.parc-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--parc-dark);
+  margin: 0;
+  flex: 1;
+}
+
+.parc-card-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-ativo {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-concluido {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Valores */
+.parc-card-values {
+  background: var(--parc-light);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.parc-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.parc-value-row:not(:last-child) {
+  border-bottom: 1px solid var(--parc-border);
+}
+
+.parc-value-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.parc-value-amount {
+  font-weight: 600;
+  color: var(--parc-dark);
+}
+
+.parc-value-amount.primary {
+  font-size: 1.25rem;
+  color: var(--parc-primary);
+}
+
+/* Progresso */
+.parc-progress-section {
+  margin-bottom: 1rem;
+}
+
+.parc-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.parc-progress-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.parc-progress-percent {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--parc-success);
+}
+
+.parc-progress-bar {
+  height: 8px;
+  background: var(--parc-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.parc-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--parc-success) 0%, #34d399 100%);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+/* Info adicional */
+.parc-card-info {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.parc-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.parc-info-item i {
+  color: var(--parc-primary);
+}
+
+/* Ações do Card */
+.parc-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--parc-border);
+}
+
+.parc-btn {
+  flex: 1;
+  padding: 0.625rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.parc-btn-view {
+  background: #f3f4f6;
+  color: var(--parc-dark);
+}
+
+.parc-btn-view:hover {
+  background: #e5e7eb;
+}
+
+.parc-btn-cancel {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.parc-btn-cancel:hover {
+  background: #fecaca;
+}
+
+/* ==================== LOADING ==================== */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.loading-spinner i {
+  font-size: 3rem;
+  color: var(--parc-primary);
+  margin-bottom: 1rem;
+}
+
+.loading-spinner p {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--parc-border);
+  margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  color: var(--parc-dark);
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+/* ==================== MODAL MODERNO ==================== */
+.modern-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+  padding: 1.5rem;
+  border: none;
+}
+
+.modern-modal .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.modern-modal .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.modern-modal .modal-body {
+  padding: 2rem;
+}
+
+.modern-modal .modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--parc-border);
+}
+
+/* Detalhes do Parcelamento */
+.detalhes-header {
+  background: var(--parc-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detalhes-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--parc-dark);
+  margin-bottom: 1rem;
+}
+
+.detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.detalhes-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detalhes-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.detalhes-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--parc-dark);
+}
+
+/* Tabela de Parcelas */
+.parcelas-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.parcelas-table thead th {
+  background: var(--parc-light);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.parcelas-table tbody tr {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.parcelas-table tbody tr:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.parcelas-table tbody td {
+  padding: 1rem;
+  border-top: 1px solid var(--parc-border);
+  border-bottom: 1px solid var(--parc-border);
+}
+
+.parcelas-table tbody td:first-child {
+  border-left: 1px solid var(--parc-border);
+  border-radius: 8px 0 0 8px;
+}
+
+.parcelas-table tbody td:last-child {
+  border-right: 1px solid var(--parc-border);
+  border-radius: 0 8px 8px 0;
+}
+
+.parcela-numero {
+  font-weight: 600;
+  color: var(--parc-primary);
+}
+
+.parcela-paga {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.parcela-pendente {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* ==================== RESPONSIVO ==================== */
+@media (max-width: 768px) {
+  .parc-page {
+    padding: 1rem;
+  }
+
+  .parc-header-modern {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .modern-btn.large {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .parcelamentos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+
+  .modern-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .parc-card-actions {
+    flex-direction: column;
+  }
+
+  .parcelas-table {
+    font-size: 0.875rem;
+  }
+
+  .parcelas-table thead {
+    display: none;
+  }
+
+  .parcelas-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    padding: 0.5rem;
+  }
+
+  .parcelas-table tbody td {
+    border: none !important;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .parcelas-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6b7280;
+  }
+}

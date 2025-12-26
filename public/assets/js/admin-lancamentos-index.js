@@ -1470,6 +1470,59 @@
                 categoria_id: categoriaValue ? Number(categoriaValue) : null
             };
 
+            // Detectar se é um parcelamento
+            const ehParcelado = payload.eh_parcelado == 1 || payload.eh_parcelado === '1';
+            const numeroParcelas = parseInt(payload.numero_parcelas) || 0;
+
+            // Se for parcelamento com múltiplas parcelas E não for edição (sem id), redirecionar para API de parcelamentos
+            if (!STATE.editingLancamentoId && ehParcelado && numeroParcelas > 1) {
+                try {
+                    const parcelamentoData = {
+                        descricao: payload.descricao,
+                        valor: parseFloat(payload.valor) || 0,
+                        numero_parcelas: numeroParcelas,
+                        categoria_id: payload.categoria_id,
+                        conta_id: payload.conta_id,
+                        tipo: payload.tipo,
+                        data: payload.data
+                    };
+
+                    const response = await fetch('/api/parcelamentos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        },
+                        body: JSON.stringify(parcelamentoData)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Erro ao criar parcelamento');
+                    }
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        text: result.message || `Parcelamento criado! ${numeroParcelas} parcelas foram geradas.`,
+                        timer: 3000
+                    });
+
+                    bootstrap.Modal.getInstance(DOM.modalEdit).hide();
+                    await LancamentoManager.load();
+                    return;
+                } catch (error) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: error.message || 'Erro ao criar parcelamento'
+                    });
+                    return;
+                }
+            }
+
+            // Continuar com lógica normal de lançamento simples...
             const submitBtn = DOM.formLanc.querySelector('button[type="submit"]');
             submitBtn?.setAttribute('disabled', 'disabled');
 

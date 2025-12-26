@@ -273,7 +273,12 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <i class="fas fa-exchange-alt"></i>
                 <span>Lançamentos</span>
             </a>
-
+            <!-- Parcelamentos -->
+            <a href="<?= BASE_URL ?>parcelamentos" class="nav-item <?= $active('parcelamentos') ?>"
+                <?= $aria('parcelamentos') ?> title="Parcelamentos">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Parcelamentos</span>
+            </a>
 
             <!-- Relatórios -->
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
