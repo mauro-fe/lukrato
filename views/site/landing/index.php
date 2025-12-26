@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿<!-- Hero Section -->
+=======
+<!-- Hero Section -->
+>>>>>>> origin/mauro
 <section
     class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
     <!-- Background Decorations -->
@@ -616,7 +620,11 @@
 
                 <!-- Toggle de Período -->
                 <div class="inline-flex bg-white border-2 border-gray-200 rounded-xl p-1.5 shadow-lg gap-2">
+<<<<<<< HEAD
                     <button @click="period = 'mensal'; scrollToCard('plano-pro')"
+=======
+                    <button @click="period = 'mensal'"
+>>>>>>> origin/mauro
                         :class="period === 'mensal' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
                         class="px-6 py-3 rounded-lg font-semibold transition-all duration-300">
                         Mensal

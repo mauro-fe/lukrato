@@ -28,23 +28,8 @@
                         <i class="fas fa-tag"></i>
                         Nome do Cartão
                     </label>
-<<<<<<< HEAD:views/admin/modals/conta-modal.php
-<<<<<<< HEAD
-                    <input type="text" id="nomeConta" name="nome" class="form-input"
-                        placeholder="Ex: Nubank Conta, Itaú Poupança" required maxlength="100">
-=======
-                    <input type="text"
-                        id="nomeConta"
-                        name="nome"
-                        class="form-input"
-                        placeholder="Ex: Nubank Conta, Itaú Poupança"
-                        required
-                        maxlength="100">
->>>>>>> mauro
-=======
                     <input type="text" id="nomeCartao" name="nome_cartao" class="form-input"
                         placeholder="Ex: Nubank Platinum, Itaú Gold" required maxlength="100">
->>>>>>> e7abdedd304ce8c36eb22118e5552d79f206206f:views/admin/partials/modals/modal_cartoes.php
                 </div>
 
                 <!-- Conta Vinculada -->
@@ -97,61 +82,12 @@
                     </label>
                     <div class="input-with-prefix">
                         <span class="input-prefix">R$</span>
-<<<<<<< HEAD:views/admin/modals/conta-modal.php
-<<<<<<< HEAD
-                        <input type="text" id="saldoInicial" name="saldo_inicial" class="form-input" value="0,00"
-=======
-                        <input type="text"
-                            id="saldoInicial"
-                            name="saldo_inicial"
-                            class="form-input"
-                            value="0,00"
->>>>>>> mauro
-=======
-                        <input type="text" id="limiteTotal" name="limite_total" class="form-input" value="0,00"
->>>>>>> e7abdedd304ce8c36eb22118e5552d79f206206f:views/admin/partials/modals/modal_cartoes.php
-                            placeholder="0,00">
+                        <input type="text" id="limiteTotal" name="limite_total" class="form-input" placeholder="0,00"
+                            required>
                     </div>
                     <small class="form-help">Limite total disponível no cartão</small>
                 </div>
 
-<<<<<<< HEAD:views/admin/modals/conta-modal.php
-                <!-- Cor da Conta -->
-                <div class="form-group">
-                    <label for="corConta" class="form-label">
-                        <i class="fas fa-palette"></i>
-                        Cor de Identificação
-                    </label>
-<<<<<<< HEAD
-                    <input type="color" id="corConta" name="cor" class="form-input" value="#e67e22">
-=======
-                    <input type="color"
-                        id="corConta"
-                        name="cor"
-                        class="form-input"
-                        value="#e67e22">
->>>>>>> mauro
-                    <small class="form-help">Escolha uma cor para identificar esta conta</small>
-                </div>
-
-                <!-- Checkbox Incluir no Saldo Total -->
-                <div class="form-group">
-                    <label class="form-checkbox">
-<<<<<<< HEAD
-                        <input type="checkbox" id="incluirSaldoTotal" name="incluir_saldo_total" checked>
-=======
-                        <input type="checkbox"
-                            id="incluirSaldoTotal"
-                            name="incluir_saldo_total"
-                            checked>
->>>>>>> mauro
-                        <span class="form-checkbox-label">
-                            <i class="fas fa-chart-line"></i>
-                            Incluir no saldo total
-                        </span>
-                    </label>
-                    <small class="form-help">Marque para considerar esta conta no saldo geral</small>
-=======
                 <!-- Grid 2 colunas - Datas -->
                 <div class="form-row">
                     <!-- Dia Fechamento -->
@@ -161,7 +97,7 @@
                             Dia Fechamento
                         </label>
                         <input type="number" id="diaFechamento" name="dia_fechamento" class="form-input" min="1"
-                            max="31" placeholder="Ex: 10">
+                            max="31" placeholder="Ex: 10" required>
                         <small class="form-help">Dia que a fatura fecha</small>
                     </div>
 
@@ -172,10 +108,9 @@
                             Dia Vencimento
                         </label>
                         <input type="number" id="diaVencimento" name="dia_vencimento" class="form-input" min="1"
-                            max="31" placeholder="Ex: 15">
+                            max="31" placeholder="Ex: 15" required>
                         <small class="form-help">Dia do vencimento</small>
                     </div>
->>>>>>> e7abdedd304ce8c36eb22118e5552d79f206206f:views/admin/partials/modals/modal_cartoes.php
                 </div>
 
                 <!-- Footer -->

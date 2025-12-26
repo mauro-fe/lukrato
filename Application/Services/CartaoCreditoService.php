@@ -87,8 +87,8 @@ class CartaoCreditoService
             ];
         } catch (Throwable $e) {
             DB::rollBack();
+            error_log('❌ Erro ao salvar cartão: ' . $e->getMessage());
             return [
-                'success' => false,
                 'message' => 'Erro ao criar cartão: ' . $e->getMessage(),
             ];
         }
@@ -209,7 +209,7 @@ class CartaoCreditoService
         DB::transaction(function () use ($cartao) {
             // Excluir lançamentos vinculados
             $cartao->lancamentos()->delete();
-            
+
             // Excluir cartão
             $cartao->delete();
         });
@@ -234,7 +234,7 @@ class CartaoCreditoService
 
         try {
             $cartao->atualizarLimiteDisponivel();
-            
+
             return [
                 'success' => true,
                 'limite_disponivel' => $cartao->limite_disponivel,
@@ -259,8 +259,8 @@ class CartaoCreditoService
         $totalLimite = $cartoes->sum('limite_total');
         $totalDisponivel = $cartoes->sum('limite_disponivel');
         $totalUtilizado = $totalLimite - $totalDisponivel;
-        $percentualUsoGeral = $totalLimite > 0 
-            ? round(($totalUtilizado / $totalLimite) * 100, 2) 
+        $percentualUsoGeral = $totalLimite > 0
+            ? round(($totalUtilizado / $totalLimite) * 100, 2)
             : 0;
 
         return [

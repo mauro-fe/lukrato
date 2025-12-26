@@ -203,15 +203,20 @@ function registerApiRoutes(): void
     Router::add('DELETE', '/api/contas/{id}',             'Api\\ContasController@destroy',      ['auth', 'csrf']);
 
     // Cartões de Crédito
-    Router::add('GET',    '/api/cartoes',                 'Api\\CartoesController@index',         ['auth']);
-    Router::add('GET',    '/api/cartoes/{id}',            'Api\\CartoesController@show',          ['auth']);
-    Router::add('POST',   '/api/cartoes',                 'Api\\CartoesController@store',         ['auth', 'csrf']);
-    Router::add('PUT',    '/api/cartoes/{id}',            'Api\\CartoesController@update',        ['auth', 'csrf']);
-    Router::add('POST',   '/api/cartoes/{id}/deactivate', 'Api\\CartoesController@deactivate',   ['auth', 'csrf']);
-    Router::add('POST',   '/api/cartoes/{id}/reactivate', 'Api\\CartoesController@reactivate',   ['auth', 'csrf']);
-    Router::add('DELETE', '/api/cartoes/{id}',            'Api\\CartoesController@destroy',       ['auth', 'csrf']);
-    Router::add('PUT',    '/api/cartoes/{id}/limite',     'Api\\CartoesController@updateLimit',   ['auth', 'csrf']);
-    Router::add('GET',    '/api/cartoes/resumo',          'Api\\CartoesController@summary',       ['auth']);
+    Router::add('GET',    '/api/cartoes',                     'Api\\CartoesController@index',           ['auth']);
+    Router::add('GET',    '/api/cartoes/{id}',                'Api\\CartoesController@show',            ['auth']);
+    Router::add('POST',   '/api/cartoes',                     'Api\\CartoesController@store',           ['auth', 'csrf']);
+    Router::add('PUT',    '/api/cartoes/{id}',                'Api\\CartoesController@update',          ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/deactivate',     'Api\\CartoesController@deactivate',      ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/reactivate',     'Api\\CartoesController@reactivate',      ['auth', 'csrf']);
+    Router::add('DELETE', '/api/cartoes/{id}',                'Api\\CartoesController@destroy',         ['auth', 'csrf']);
+    Router::add('PUT',    '/api/cartoes/{id}/limite',         'Api\\CartoesController@updateLimit',     ['auth', 'csrf']);
+    Router::add('GET',    '/api/cartoes/resumo',              'Api\\CartoesController@summary',         ['auth']);
+
+    // Faturas de Cartão
+    Router::add('GET',    '/api/cartoes/{id}/fatura',         'Api\\CartoesController@fatura',          ['auth']);
+    Router::add('POST',   '/api/cartoes/{id}/fatura/pagar',   'Api\\CartoesController@pagarFatura',     ['auth', 'csrf']);
+    Router::add('GET',    '/api/cartoes/{id}/faturas-pendentes', 'Api\\CartoesController@faturasPendentes', ['auth']);
 
 
     // Categorias

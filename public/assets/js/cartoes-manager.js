@@ -19,6 +19,39 @@ class CartoesManager {
     }
 
     /**
+     * Obter token CSRF (sempre fresco)
+     */
+    async getCSRFToken() {
+        try {
+            // Tentar buscar token fresco da API
+            const response = await fetch('/lukrato/public/api/csrf-token.php');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.token) {
+                    // Atualizar meta tag
+                    const metaTag = document.querySelector('meta[name="csrf-token"]');
+                    if (metaTag) {
+                        metaTag.setAttribute('content', data.token);
+                    }
+                    return data.token;
+                }
+            }
+        } catch (error) {
+            console.warn('Erro ao buscar token fresco, usando fallback:', error);
+        }
+
+        // Fallback: tentar meta tag
+        const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (metaToken) return metaToken;
+
+        if (window.LK?.getCSRF) return window.LK.getCSRF();
+        if (window.CSRF) return window.CSRF;
+
+        console.warn('⚠️ Nenhum token CSRF encontrado');
+        return '';
+    }
+
+    /**
      * Obter Base URL
      */
     getBaseUrl() {
@@ -87,25 +120,48 @@ class CartoesManager {
             btn.addEventListener('click', () => this.closeModal());
         });
 
+        // Event delegation para máscara de limite total
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.id === 'limiteTotal') {
+                let value = e.target.value;
+
+                // Remove tudo que não é número
+                value = value.replace(/[^\d]/g, '');
+
+                // Converte para número (centavos)
+                let number = parseInt(value) || 0;
+
+                // Converte centavos para reais e formata
+                const reais = number / 100;
+                const formatted = reais.toFixed(2)
+                    .replace('.', ',')
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                e.target.value = formatted;
+            }
+
+            // Validação para últimos 4 dígitos - apenas números
+            if (e.target && e.target.id === 'ultimosDigitos') {
+                let value = e.target.value;
+
+                // Remove tudo que não é número
+                value = value.replace(/\D/g, '');
+
+                // Limita a 4 dígitos
+                if (value.length > 4) {
+                    value = value.substring(0, 4);
+                }
+
+                e.target.value = value;
+            }
+        });
+
         // Form submit
         const form = document.getElementById('formCartao');
         if (form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.saveCartao();
-            });
-        }
-
-        // Máscara de dinheiro no limite total
-        const limiteInput = document.getElementById('limiteTotal');
-        if (limiteInput) {
-            limiteInput.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                value = (parseInt(value) || 0) / 100;
-                e.target.value = value.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
             });
         }
 
@@ -202,6 +258,10 @@ class CartoesManager {
 
             const data = await response.json();
             this.cartoes = Array.isArray(data) ? data : (data.data || []);
+
+            // Verificar faturas pendentes para cada cartão
+            await this.verificarFaturasPendentes();
+
             this.filteredCartoes = [...this.cartoes];
 
             if (this.cartoes.length === 0) {
@@ -217,6 +277,42 @@ class CartoesManager {
             this.showToast('Erro ao carregar cartões', 'error');
             grid.innerHTML = '<p class="error-message">Erro ao carregar cartões. Tente novamente.</p>';
         }
+    }
+
+    /**
+     * Verificar se cartões têm faturas pendentes
+     */
+    async verificarFaturasPendentes() {
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth() + 1;
+        const anoAtual = hoje.getFullYear();
+
+        // Verificar para cada cartão se tem fatura pendente no mês atual
+        const promises = this.cartoes.map(async (cartao) => {
+            try {
+                const response = await fetch(`${this.baseUrl}api/cartoes/${cartao.id}/fatura?mes=${mesAtual}&ano=${anoAtual}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    const fatura = await response.json();
+                    // Se tem parcelas não pagas e total > 0, marca como pendente
+                    cartao.temFaturaPendente = fatura.parcelas && fatura.parcelas.length > 0 && fatura.total > 0;
+                } else {
+                    cartao.temFaturaPendente = false;
+                }
+            } catch (error) {
+                console.warn(`Erro ao verificar fatura do cartão ${cartao.id}:`, error);
+                cartao.temFaturaPendente = false;
+            }
+        });
+
+        await Promise.all(promises);
     }
 
     /**
@@ -282,12 +378,21 @@ class CartoesManager {
 
         return `
             <div class="credit-card" data-id="${cartao.id}" data-brand="${cartao.bandeira?.toLowerCase() || 'outros'}" style="background: ${corBg};">
+                ${cartao.temFaturaPendente ? `
+                    <div class="card-badge-fatura" title="Fatura pendente">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Fatura Pendente
+                    </div>
+                ` : ''}
                 <div class="card-header">
                     <div class="card-brand">
                         <i class="brand-icon ${brandIcon}"></i>
                         <span class="card-name">${this.escapeHtml(cartao.nome_cartao)}</span>
                     </div>
                     <div class="card-actions">
+                        <button class="card-action-btn" onclick="cartoesManager.verFatura(${cartao.id})" title="Ver Fatura">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </button>
                         <button class="card-action-btn" onclick="cartoesManager.editCartao(${cartao.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -332,7 +437,7 @@ class CartoesManager {
         stats.limiteUtilizado = stats.limiteTotal - stats.limiteDisponivel;
 
         document.getElementById('totalCartoes').textContent = stats.total;
-        document.getElementById('limiteTotal').textContent = this.formatMoney(stats.limiteTotal);
+        document.getElementById('statLimiteTotal').textContent = this.formatMoney(stats.limiteTotal);
         document.getElementById('limiteDisponivel').textContent = this.formatMoney(stats.limiteDisponivel);
         document.getElementById('limiteUtilizado').textContent = this.formatMoney(stats.limiteUtilizado);
 
@@ -391,7 +496,14 @@ class CartoesManager {
             document.getElementById('contaVinculada').value = cartaoData.conta_id;
             document.getElementById('bandeira').value = cartaoData.bandeira;
             document.getElementById('ultimosDigitos').value = cartaoData.ultimos_digitos;
-            document.getElementById('limiteTotal').value = this.formatMoneyInput(cartaoData.limite_total);
+
+            // Formata o limite total (converte para float primeiro)
+            const limiteValue = parseFloat(cartaoData.limite_total || 0);
+            const limiteFormatado = limiteValue.toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            document.getElementById('limiteTotal').value = limiteFormatado;
+
             document.getElementById('diaFechamento').value = cartaoData.dia_fechamento;
             document.getElementById('diaVencimento').value = cartaoData.dia_vencimento;
         } else {
@@ -403,45 +515,6 @@ class CartoesManager {
         // Mostrar modal
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-
-        // Reaplicar máscara de dinheiro no limite total (importante para modal dinâmico)
-        setTimeout(() => {
-            const limiteInput = document.getElementById('limiteTotal');
-            if (limiteInput) {
-                // Remove listeners anteriores clonando o elemento
-                const newLimiteInput = limiteInput.cloneNode(true);
-                limiteInput.parentNode.replaceChild(newLimiteInput, limiteInput);
-
-                // Adiciona novo listener com lógica corrigida
-                newLimiteInput.addEventListener('input', (e) => {
-                    // Pega apenas números
-                    let value = e.target.value.replace(/\D/g, '');
-
-                    // Converte para número (centavos)
-                    value = parseInt(value) || 0;
-
-                    // Converte centavos para reais
-                    const reais = value / 100;
-
-                    // Formata
-                    e.target.value = reais.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                });
-
-                // Aplicar formatação ao valor atual
-                const currentValue = newLimiteInput.value.replace(/\D/g, '');
-                if (currentValue) {
-                    const valor = parseInt(currentValue) || 0;
-                    const reais = valor / 100;
-                    newLimiteInput.value = reais.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                }
-            }
-        }, 100);
     }
 
     /**
@@ -555,12 +628,15 @@ class CartoesManager {
             document.querySelector('input[name="csrf_token"]')?.value ||
             '';
 
+        const limiteOriginal = document.getElementById('limiteTotal').value;
+        const limiteParsed = this.parseMoney(limiteOriginal);
+
         const data = {
             nome_cartao: document.getElementById('nomeCartao').value,
             conta_id: document.getElementById('contaVinculada').value,
             bandeira: document.getElementById('bandeira').value,
             ultimos_digitos: document.getElementById('ultimosDigitos').value,
-            limite_total: this.parseMoney(document.getElementById('limiteTotal').value),
+            limite_total: limiteParsed,
             dia_fechamento: document.getElementById('diaFechamento').value || null,
             dia_vencimento: document.getElementById('diaVencimento').value || null,
             csrf_token: csrfToken
@@ -573,6 +649,8 @@ class CartoesManager {
             bandeira: data.bandeira,
             ultimos_digitos: data.ultimos_digitos,
             limite_total: data.limite_total,
+            limite_total_type: typeof data.limite_total,
+            limite_total_original: limiteOriginal,
             csrf_token: csrfToken ? '✅ Presente' : '❌ Ausente'
         });
 
@@ -635,7 +713,7 @@ class CartoesManager {
     async editCartao(id) {
         const cartao = this.cartoes.find(c => c.id === id);
         if (cartao) {
-            this.openModal('edit', id);
+            this.openModal('edit', cartao);
         }
     }
 
@@ -646,6 +724,7 @@ class CartoesManager {
         const cartao = this.cartoes.find(c => c.id === id);
         if (!cartao) return;
 
+        // Confirmação inicial
         const confirmacao = await this.showConfirmDialog(
             'Excluir Cartão',
             `Tem certeza que deseja excluir o cartão "${cartao.nome_cartao}"?`,
@@ -655,25 +734,67 @@ class CartoesManager {
         if (!confirmacao) return;
 
         try {
+            const csrfToken = await this.getCSRFToken();
+
+            // Primeira tentativa de exclusão
             const response = await fetch(`${window.BASE_URL}api/cartoes/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken
                 },
                 credentials: 'same-origin'
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                throw new Error('Erro ao excluir cartão');
+                // Se retornar 422, é porque tem lançamentos vinculados
+                if (response.status === 422 && (result.requires_confirmation || result.status === 'confirm_delete')) {
+                    const total = result.total_lancamentos || 0;
+                    const mensagem = total > 0
+                        ? `Este cartão possui ${total} lançamento(s) vinculado(s).\n\nAo excluir o cartão, todos os lançamentos também serão excluídos.\n\nDeseja realmente continuar?`
+                        : `${result.message}\n\nDeseja realmente excluir este cartão?`;
+
+                    const confirmarExclusao = await this.showConfirmDialog(
+                        '⚠️ Atenção',
+                        mensagem,
+                        'Sim, excluir tudo'
+                    );
+
+                    if (!confirmarExclusao) return;
+
+                    // Segunda tentativa com force=true
+                    const forceResponse = await fetch(`${window.BASE_URL}api/cartoes/${id}?force=1`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': csrfToken
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (!forceResponse.ok) {
+                        const forceResult = await forceResponse.json().catch(() => ({}));
+                        throw new Error(forceResult.message || 'Erro ao excluir cartão');
+                    }
+
+                    this.showToast('success', 'Cartão excluído com sucesso!');
+                    this.loadCartoes();
+                    return;
+                }
+
+                throw new Error(result.message || 'Erro ao excluir cartão');
             }
 
-            this.showToast('Cartão excluído com sucesso', 'success');
+            this.showToast('success', 'Cartão excluído com sucesso!');
             this.loadCartoes();
 
         } catch (error) {
             console.error('Erro ao excluir:', error);
-            this.showToast('Erro ao excluir cartão', 'error');
+            this.showToast('error', error.message || 'Erro ao excluir cartão');
         }
     }
 
@@ -804,10 +925,64 @@ class CartoesManager {
      * Formatar dinheiro para input (sem R$)
      */
     formatMoneyInput(value) {
+        // Se o value já for uma string formatada, retorna ela
+        if (typeof value === 'string' && value.includes(',')) {
+            return value;
+        }
+
+        // Se for número, converte centavos para reais e formata
+        if (typeof value === 'number') {
+            const reais = value / 100;
+            return reais.toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // Fallback: formata com Intl
         return new Intl.NumberFormat('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(value || 0);
+    }
+
+    /**
+     * Configurar máscara de dinheiro para limite do cartão
+     */
+    setupLimiteMoneyMask() {
+        const limiteInput = document.getElementById('limiteTotal');
+        if (!limiteInput) {
+            console.error('❌ Campo limiteTotal NÃO encontrado!');
+            return;
+        }
+
+        console.log('✅ Campo limiteTotal encontrado:', limiteInput);
+
+        // Handler da máscara
+        limiteInput.addEventListener('input', function (e) {
+            let value = e.target.value;
+
+            console.log('🔍 Input detectado:', value);
+
+            // Remove tudo que não é número
+            value = value.replace(/[^\d]/g, '');
+
+            // Converte para número (centavos)
+            let number = parseInt(value) || 0;
+
+            // Converte centavos para reais e formata
+            const reais = number / 100;
+            const formatted = reais.toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+            console.log('✅ Valor formatado:', formatted);
+            e.target.value = formatted;
+        });
+
+        console.log('✅ Máscara de dinheiro aplicada com sucesso!');
+
+        // Formata ao carregar
+        limiteInput.value = '0,00';
     }
 
     /**
@@ -879,6 +1054,254 @@ class CartoesManager {
      * Diálogo de confirmação
      */
     async showConfirmDialog(title, message, confirmText = 'Confirmar') {
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            });
+            return result.isConfirmed;
+        }
         return confirm(`${title}\n\n${message}`);
+    }
+
+    /**
+     * ===================================
+     * FATURA DO CARTÃO
+     * ===================================
+     */
+
+    /**
+     * Ver fatura do cartão
+     */
+    async verFatura(cartaoId) {
+        try {
+            // Data atual para carregar fatura do mês
+            const hoje = new Date();
+            const mes = hoje.getMonth() + 1; // 1-12
+            const ano = hoje.getFullYear();
+
+            console.log(`📄 Carregando fatura - Cartão ID: ${cartaoId}, Mês: ${mes}/${ano}`);
+
+            const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao carregar fatura');
+            }
+
+            const fatura = await response.json();
+            console.log('✅ Fatura carregada:', fatura);
+
+            this.mostrarModalFatura(fatura);
+        } catch (error) {
+            console.error('❌ Erro ao carregar fatura:', error);
+            this.showToast(error.message || 'Erro ao carregar fatura', 'error');
+        }
+    }
+
+    /**
+     * Mostrar modal da fatura
+     */
+    mostrarModalFatura(fatura) {
+        const modal = this.criarModalFatura(fatura);
+        document.body.appendChild(modal);
+
+        // Animar entrada
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+
+        // Fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.fecharModalFatura(modal);
+            }
+        });
+
+        // Botão fechar
+        modal.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
+            this.fecharModalFatura(modal);
+        });
+
+        // Botão pagar
+        modal.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
+            this.pagarFatura(fatura);
+        });
+    }
+
+    /**
+     * Criar HTML do modal da fatura
+     */
+    criarModalFatura(fatura) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-fatura-overlay';
+        modal.innerHTML = `
+            <div class="modal-fatura-container">
+                <div class="modal-fatura-header">
+                    <div>
+                        <h2>
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            Fatura ${fatura.cartao.nome} •••• ${fatura.cartao.ultimos_digitos}
+                        </h2>
+                        <p class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</p>
+                    </div>
+                    <button class="btn-fechar-fatura" title="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-fatura-body">
+                    ${fatura.parcelas.length === 0 ? `
+                        <div class="fatura-empty">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Nenhuma fatura pendente</h3>
+                            <p>Você não tem compras para pagar neste mês!</p>
+                        </div>
+                    ` : `
+                        <div class="fatura-resumo">
+                            <div class="fatura-total">
+                                <span>Total a Pagar:</span>
+                                <strong>${this.formatMoney(fatura.total)}</strong>
+                            </div>
+                            <div class="fatura-vencimento">
+                                <i class="fas fa-calendar-alt"></i>
+                                Vencimento: ${this.formatDate(fatura.vencimento)}
+                            </div>
+                        </div>
+
+                        <div class="fatura-parcelas">
+                            <h3>Parcelas desta Fatura</h3>
+                            <table class="table-parcelas">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Parcela</th>
+                                        <th>Vencimento</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${fatura.parcelas.map(parcela => `
+                                        <tr>
+                                            <td>${this.escapeHtml(parcela.descricao)}</td>
+                                            <td>${parcela.parcela_atual}/${parcela.total_parcelas}</td>
+                                            <td>${this.formatDate(parcela.data_vencimento)}</td>
+                                            <td class="valor">${this.formatMoney(parcela.valor)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `}
+                </div>
+
+                ${fatura.parcelas.length > 0 ? `
+                    <div class="modal-fatura-footer">
+                        <button class="btn btn-ghost btn-fechar-fatura">Fechar</button>
+                        <button class="btn btn-primary btn-pagar-fatura">
+                            <i class="fas fa-check"></i>
+                            Pagar Fatura (${this.formatMoney(fatura.total)})
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        return modal;
+    }
+
+    /**
+     * Fechar modal da fatura
+     */
+    fecharModalFatura(modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+
+    /**
+     * Pagar fatura
+     */
+    async pagarFatura(fatura) {
+        const confirmado = await this.showConfirmDialog(
+            'Confirmar Pagamento',
+            `Deseja pagar a fatura de ${this.formatMoney(fatura.total)}?\n\nEsta ação criará um lançamento de despesa na conta vinculada e liberará o limite do cartão.`,
+            'Sim, Pagar'
+        );
+
+        if (!confirmado) return;
+
+        try {
+            const csrfToken = await this.getCSRFToken();
+
+            const response = await fetch(`${this.baseUrl}api/cartoes/${fatura.cartao.id}/fatura/pagar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    mes: fatura.mes,
+                    ano: fatura.ano
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao pagar fatura');
+            }
+
+            const resultado = await response.json();
+            console.log('✅ Fatura paga:', resultado);
+
+            this.showToast(`Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`, 'success');
+
+            // Fechar modal
+            const modal = document.querySelector('.modal-fatura-overlay');
+            if (modal) {
+                this.fecharModalFatura(modal);
+            }
+
+            // Recarregar cartões para atualizar limite
+            this.loadCartoes();
+        } catch (error) {
+            console.error('❌ Erro ao pagar fatura:', error);
+            this.showToast(error.message || 'Erro ao pagar fatura', 'error');
+        }
+    }
+
+    /**
+     * Obter nome do mês
+     */
+    getNomeMes(mes) {
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return meses[mes - 1] || 'Mês inválido';
+    }
+
+    /**
+     * Formatar data para exibição
+     */
+    formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('pt-BR');
     }
 }

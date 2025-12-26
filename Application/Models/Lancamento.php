@@ -26,6 +26,13 @@ class Lancamento extends Model
         'valor',
         'eh_transferencia',
         'eh_saldo_inicial',
+        // Campos de cartão de crédito
+        'cartao_credito_id',
+        'eh_parcelado',
+        'parcela_atual',
+        'total_parcelas',
+        'lancamento_pai_id',
+        'pago',
     ];
 
     protected $casts = [

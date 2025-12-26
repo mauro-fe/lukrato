@@ -123,7 +123,8 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out,
+    border-color 0.25s ease-out;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -151,10 +152,10 @@
 }
 
 .stat-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 25px 70px rgba(230, 126, 34, 0.25),
-    0 10px 30px rgba(0, 0, 0, 0.15);
-  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(230, 126, 34, 0.15),
+    0 6px 16px rgba(0, 0, 0, 0.1);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .stat-icon {
@@ -335,8 +336,7 @@
 .filter-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.2);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.12);
 }
 
 .filter-btn.active {
@@ -410,7 +410,8 @@
   padding: 2rem;
   color: white;
   cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s ease-out, box-shadow 0.35s ease-out,
+    filter 0.35s ease-out;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
@@ -431,7 +432,7 @@
     transparent 70%
   );
   opacity: 0;
-  transition: all 0.6s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
   transform: scale(0);
 }
 
@@ -441,10 +442,10 @@
 }
 
 .credit-card:hover {
-  transform: translateY(-15px) scale(1.05) rotateX(2deg);
-  box-shadow: 0 35px 90px rgba(0, 0, 0, 0.45), 0 15px 40px rgba(0, 0, 0, 0.25),
-    0 0 80px rgba(230, 126, 34, 0.2);
-  filter: brightness(1.15) saturate(1.1);
+  transform: translateY(-6px);
+  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.3), 0 14px 28px rgba(0, 0, 0, 0.18),
+    0 0 32px rgba(230, 126, 34, 0.12);
+  filter: brightness(1.05) saturate(1.03);
 }
 
 /* Pattern decorativo */
@@ -520,7 +521,64 @@
 
 .card-action-btn:hover {
   background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.1);
+  transform: scale(1.03);
+}
+
+/* Card Badge Fatura Pendente */
+.card-badge-fatura {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  animation: pulse-badge 2s ease-in-out infinite;
+  z-index: 2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-badge-fatura i {
+  animation: shake 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: rotate(-3deg);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: rotate(3deg);
+  }
 }
 
 /* Card Number */
@@ -808,9 +866,336 @@
   }
 }
 
+/* ==================== MODAL DE FATURA ==================== */
+.modal-fatura-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.modal-fatura-overlay.show {
+  opacity: 1;
+}
+
+.modal-fatura-container {
+  background: var(--color-surface, #ffffff);
+  border-radius: 16px;
+  max-width: 900px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9) translateY(-20px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-fatura-overlay.show .modal-fatura-container {
+  transform: scale(1) translateY(0);
+}
+
+.modal-fatura-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+.modal-fatura-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a1f2e);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-fatura-header h2 i {
+  color: var(--color-primary, #e67e22);
+}
+
+.fatura-periodo {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #6c757d);
+  margin: 0.5rem 0 0 0;
+}
+
+.btn-fechar-fatura {
+  background: none;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6c757d);
+  transition: all 0.2s ease;
+}
+
+.btn-fechar-fatura:hover {
+  background: var(--color-background-hover, #f8f9fa);
+  color: var(--color-text-primary, #1a1f2e);
+}
+
+.modal-fatura-body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.fatura-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.fatura-empty i {
+  font-size: 4rem;
+  color: var(--color-success, #28a745);
+  margin-bottom: 1.5rem;
+}
+
+.fatura-empty h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a1f2e);
+  margin-bottom: 0.5rem;
+}
+
+.fatura-empty p {
+  color: var(--color-text-secondary, #6c757d);
+  font-size: 0.95rem;
+}
+
+.fatura-resumo {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, #e67e22) 0%,
+    #d35400 100%
+  );
+  border-radius: 12px;
+  padding: 2rem;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.fatura-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.fatura-total span {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.fatura-total strong {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.fatura-vencimento {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.fatura-parcelas {
+  margin-top: 2rem;
+}
+
+.fatura-parcelas h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a1f2e);
+  margin-bottom: 1.5rem;
+}
+
+.table-parcelas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table-parcelas thead tr {
+  background: var(--color-background-alt, #f8f9fa);
+  border-radius: 8px;
+}
+
+.table-parcelas th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6c757d);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table-parcelas tbody tr {
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  transition: background 0.2s ease;
+}
+
+.table-parcelas tbody tr:hover {
+  background: var(--color-background-hover, #f8f9fa);
+}
+
+.table-parcelas tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-parcelas td {
+  padding: 1rem;
+  color: var(--color-text-primary, #1a1f2e);
+}
+
+.table-parcelas td.valor {
+  font-weight: 600;
+  color: var(--color-primary, #e67e22);
+  text-align: right;
+}
+
+.modal-fatura-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--color-border, #e0e0e0);
+  background: var(--color-background-alt, #f8f9fa);
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-pagar-fatura {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .modal-fatura-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .modal-fatura-header {
+    padding: 1.5rem;
+  }
+
+  .modal-fatura-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-fatura-body {
+    padding: 1.5rem;
+  }
+
+  .fatura-resumo {
+    padding: 1.5rem;
+  }
+
+  .fatura-total strong {
+    font-size: 1.75rem;
+  }
+
+  .table-parcelas {
+    font-size: 0.85rem;
+  }
+
+  .table-parcelas th,
+  .table-parcelas td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .modal-fatura-footer {
+    padding: 1rem;
+  }
+}
+
 /* ==================== DARK MODE ==================== */
 @media (prefers-color-scheme: dark) {
   .card-skeleton {
     background: linear-gradient(90deg, #1a1f2e 0%, #2a3447 50%, #1a1f2e 100%);
+  }
+
+  .modal-fatura-container {
+    background: #1a1f2e;
+  }
+
+  .modal-fatura-header {
+    border-bottom-color: #2a3447;
+  }
+
+  .modal-fatura-header h2 {
+    color: #ffffff;
+  }
+
+  .fatura-periodo {
+    color: #8b95a5;
+  }
+
+  .btn-fechar-fatura {
+    color: #8b95a5;
+  }
+
+  .btn-fechar-fatura:hover {
+    background: #2a3447;
+    color: #ffffff;
+  }
+
+  .fatura-empty h3 {
+    color: #ffffff;
+  }
+
+  .fatura-empty p {
+    color: #8b95a5;
+  }
+
+  .fatura-parcelas h3 {
+    color: #ffffff;
+  }
+
+  .table-parcelas thead tr {
+    background: #2a3447;
+  }
+
+  .table-parcelas th {
+    color: #8b95a5;
+  }
+
+  .table-parcelas tbody tr {
+    border-bottom-color: #2a3447;
+  }
+
+  .table-parcelas tbody tr:hover {
+    background: #2a3447;
+  }
+
+  .table-parcelas td {
+    color: #ffffff;
+  }
+
+  .modal-fatura-footer {
+    border-top-color: #2a3447;
+    background: #151920;
   }
 }

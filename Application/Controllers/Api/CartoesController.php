@@ -5,16 +5,19 @@ namespace Application\Controllers\Api;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\CartaoCreditoService;
+use Application\Services\CartaoFaturaService;
 use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 
 class CartoesController
 {
     private CartaoCreditoService $service;
+    private CartaoFaturaService $faturaService;
 
     public function __construct()
     {
         $this->service = new CartaoCreditoService();
+        $this->faturaService = new CartaoFaturaService();
     }
 
     private function getRequestPayload(): array
@@ -163,8 +166,9 @@ class CartoesController
             Response::json([
                 'status' => $resultado['requires_confirmation'] ?? false ? 'confirm_delete' : 'error',
                 'message' => $resultado['message'],
+                'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
                 'total_lancamentos' => $resultado['total_lancamentos'] ?? 0,
-                'suggestion' => $resultado['requires_confirmation'] ?? false 
+                'suggestion' => $resultado['requires_confirmation'] ?? false
                     ? 'Reenvie a requisição com ?force=1 ou JSON {"force": true} para confirmar a exclusão permanente.'
                     : null,
             ], $statusCode);
@@ -205,5 +209,68 @@ class CartoesController
         $userId = Auth::id();
         $resumo = $this->service->obterResumo($userId);
         Response::json($resumo);
+    }
+
+    /**
+     * GET /api/cartoes/{id}/fatura?mes=1&ano=2025
+     * Obter fatura do mês de um cartão
+     */
+    public function fatura(int $id): void
+    {
+        $userId = Auth::id();
+
+        $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : (int) date('n');
+        $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
+
+        if ($mes < 1 || $mes > 12) {
+            Response::json(['status' => 'error', 'message' => 'Mês inválido'], 400);
+            return;
+        }
+
+        try {
+            $fatura = $this->faturaService->obterFaturaMes($id, $mes, $ano);
+            Response::json($fatura);
+        } catch (\Exception $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
+        }
+    }
+
+    /**
+     * POST /api/cartoes/{id}/fatura/pagar
+     * Pagar a fatura completa de um mês
+     */
+    public function pagarFatura(int $id): void
+    {
+        $userId = Auth::id();
+        $data = $this->getRequestPayload();
+
+        $mes = $data['mes'] ?? (int) date('n');
+        $ano = $data['ano'] ?? (int) date('Y');
+
+        try {
+            $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId);
+            Response::json($resultado);
+        } catch (\Exception $e) {
+            Response::json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * GET /api/cartoes/{id}/faturas-pendentes
+     * Listar meses que têm faturas pendentes de pagamento
+     */
+    public function faturasPendentes(int $id): void
+    {
+        $userId = Auth::id();
+
+        try {
+            $meses = $this->faturaService->obterMesesComFaturasPendentes($id, $userId);
+            Response::json(['meses' => $meses]);
+        } catch (\Exception $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
+        }
     }
 }
