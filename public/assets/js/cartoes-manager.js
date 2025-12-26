@@ -19,6 +19,39 @@ class CartoesManager {
     }
 
     /**
+     * Obter token CSRF (sempre fresco)
+     */
+    async getCSRFToken() {
+        try {
+            // Tentar buscar token fresco da API
+            const response = await fetch('/lukrato/public/api/csrf-token.php');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.token) {
+                    // Atualizar meta tag
+                    const metaTag = document.querySelector('meta[name="csrf-token"]');
+                    if (metaTag) {
+                        metaTag.setAttribute('content', data.token);
+                    }
+                    return data.token;
+                }
+            }
+        } catch (error) {
+            console.warn('Erro ao buscar token fresco, usando fallback:', error);
+        }
+
+        // Fallback: tentar meta tag
+        const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (metaToken) return metaToken;
+
+        if (window.LK?.getCSRF) return window.LK.getCSRF();
+        if (window.CSRF) return window.CSRF;
+
+        console.warn('⚠️ Nenhum token CSRF encontrado');
+        return '';
+    }
+
+    /**
      * Obter Base URL
      */
     getBaseUrl() {
@@ -87,25 +120,48 @@ class CartoesManager {
             btn.addEventListener('click', () => this.closeModal());
         });
 
+        // Event delegation para máscara de limite total
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.id === 'limiteTotal') {
+                let value = e.target.value;
+
+                // Remove tudo que não é número
+                value = value.replace(/[^\d]/g, '');
+
+                // Converte para número (centavos)
+                let number = parseInt(value) || 0;
+
+                // Converte centavos para reais e formata
+                const reais = number / 100;
+                const formatted = reais.toFixed(2)
+                    .replace('.', ',')
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                e.target.value = formatted;
+            }
+
+            // Validação para últimos 4 dígitos - apenas números
+            if (e.target && e.target.id === 'ultimosDigitos') {
+                let value = e.target.value;
+
+                // Remove tudo que não é número
+                value = value.replace(/\D/g, '');
+
+                // Limita a 4 dígitos
+                if (value.length > 4) {
+                    value = value.substring(0, 4);
+                }
+
+                e.target.value = value;
+            }
+        });
+
         // Form submit
         const form = document.getElementById('formCartao');
         if (form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.saveCartao();
-            });
-        }
-
-        // Máscara de dinheiro no limite total
-        const limiteInput = document.getElementById('limiteTotal');
-        if (limiteInput) {
-            limiteInput.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                value = (parseInt(value) || 0) / 100;
-                e.target.value = value.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
             });
         }
 
@@ -332,7 +388,7 @@ class CartoesManager {
         stats.limiteUtilizado = stats.limiteTotal - stats.limiteDisponivel;
 
         document.getElementById('totalCartoes').textContent = stats.total;
-        document.getElementById('limiteTotal').textContent = this.formatMoney(stats.limiteTotal);
+        document.getElementById('statLimiteTotal').textContent = this.formatMoney(stats.limiteTotal);
         document.getElementById('limiteDisponivel').textContent = this.formatMoney(stats.limiteDisponivel);
         document.getElementById('limiteUtilizado').textContent = this.formatMoney(stats.limiteUtilizado);
 
@@ -391,7 +447,13 @@ class CartoesManager {
             document.getElementById('contaVinculada').value = cartaoData.conta_id;
             document.getElementById('bandeira').value = cartaoData.bandeira;
             document.getElementById('ultimosDigitos').value = cartaoData.ultimos_digitos;
-            document.getElementById('limiteTotal').value = this.formatMoneyInput(cartaoData.limite_total);
+
+            // Formata o limite total (valor vem como float, ex: 5000.50)
+            const limiteFormatado = (cartaoData.limite_total || 0).toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            document.getElementById('limiteTotal').value = limiteFormatado;
+
             document.getElementById('diaFechamento').value = cartaoData.dia_fechamento;
             document.getElementById('diaVencimento').value = cartaoData.dia_vencimento;
         } else {
@@ -403,45 +465,6 @@ class CartoesManager {
         // Mostrar modal
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-
-        // Reaplicar máscara de dinheiro no limite total (importante para modal dinâmico)
-        setTimeout(() => {
-            const limiteInput = document.getElementById('limiteTotal');
-            if (limiteInput) {
-                // Remove listeners anteriores clonando o elemento
-                const newLimiteInput = limiteInput.cloneNode(true);
-                limiteInput.parentNode.replaceChild(newLimiteInput, limiteInput);
-
-                // Adiciona novo listener com lógica corrigida
-                newLimiteInput.addEventListener('input', (e) => {
-                    // Pega apenas números
-                    let value = e.target.value.replace(/\D/g, '');
-
-                    // Converte para número (centavos)
-                    value = parseInt(value) || 0;
-
-                    // Converte centavos para reais
-                    const reais = value / 100;
-
-                    // Formata
-                    e.target.value = reais.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                });
-
-                // Aplicar formatação ao valor atual
-                const currentValue = newLimiteInput.value.replace(/\D/g, '');
-                if (currentValue) {
-                    const valor = parseInt(currentValue) || 0;
-                    const reais = valor / 100;
-                    newLimiteInput.value = reais.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                }
-            }
-        }, 100);
     }
 
     /**
@@ -541,6 +564,23 @@ class CartoesManager {
      * Salvar cartão
      */
     async saveCartao() {
+        // VERIFICAR DUPLICAÇÃO DE IDs
+        const todosLimites = document.querySelectorAll('#limiteTotal');
+
+        alert(`TOTAL DE ELEMENTOS: ${todosLimites.length}\n\nValores:\n${Array.from(todosLimites).map((el, i) => `[${i}] ${el.value}`).join('\n')}`);
+
+        // CAPTURA IMEDIATA DO VALOR ANTES DE QUALQUER VALIDAÇÃO
+        const limiteInputElement = document.getElementById('limiteTotal');
+        const limiteValorAtual = limiteInputElement ? limiteInputElement.value : 'CAMPO NÃO EXISTE';
+
+        console.log('🔴 CAPTURA IMEDIATA:', {
+            totalElementos: todosLimites.length,
+            elemento: limiteInputElement,
+            valorCampo: limiteValorAtual,
+            todosValores: Array.from(todosLimites).map(el => el.value),
+            innerHTML: limiteInputElement?.outerHTML
+        });
+
         const form = document.getElementById('formCartao');
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -555,12 +595,15 @@ class CartoesManager {
             document.querySelector('input[name="csrf_token"]')?.value ||
             '';
 
+        const limiteOriginal = document.getElementById('limiteTotal').value;
+        const limiteParsed = this.parseMoney(limiteOriginal);
+
         const data = {
             nome_cartao: document.getElementById('nomeCartao').value,
             conta_id: document.getElementById('contaVinculada').value,
             bandeira: document.getElementById('bandeira').value,
             ultimos_digitos: document.getElementById('ultimosDigitos').value,
-            limite_total: this.parseMoney(document.getElementById('limiteTotal').value),
+            limite_total: limiteParsed,
             dia_fechamento: document.getElementById('diaFechamento').value || null,
             dia_vencimento: document.getElementById('diaVencimento').value || null,
             csrf_token: csrfToken
@@ -573,6 +616,8 @@ class CartoesManager {
             bandeira: data.bandeira,
             ultimos_digitos: data.ultimos_digitos,
             limite_total: data.limite_total,
+            limite_total_type: typeof data.limite_total,
+            limite_total_original: limiteOriginal,
             csrf_token: csrfToken ? '✅ Presente' : '❌ Ausente'
         });
 
@@ -635,7 +680,7 @@ class CartoesManager {
     async editCartao(id) {
         const cartao = this.cartoes.find(c => c.id === id);
         if (cartao) {
-            this.openModal('edit', id);
+            this.openModal('edit', cartao);
         }
     }
 
@@ -646,6 +691,7 @@ class CartoesManager {
         const cartao = this.cartoes.find(c => c.id === id);
         if (!cartao) return;
 
+        // Confirmação inicial
         const confirmacao = await this.showConfirmDialog(
             'Excluir Cartão',
             `Tem certeza que deseja excluir o cartão "${cartao.nome_cartao}"?`,
@@ -655,25 +701,67 @@ class CartoesManager {
         if (!confirmacao) return;
 
         try {
+            const csrfToken = await this.getCSRFToken();
+
+            // Primeira tentativa de exclusão
             const response = await fetch(`${window.BASE_URL}api/cartoes/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken
                 },
                 credentials: 'same-origin'
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                throw new Error('Erro ao excluir cartão');
+                // Se retornar 422, é porque tem lançamentos vinculados
+                if (response.status === 422 && (result.requires_confirmation || result.status === 'confirm_delete')) {
+                    const total = result.total_lancamentos || 0;
+                    const mensagem = total > 0 
+                        ? `Este cartão possui ${total} lançamento(s) vinculado(s).\n\nAo excluir o cartão, todos os lançamentos também serão excluídos.\n\nDeseja realmente continuar?`
+                        : `${result.message}\n\nDeseja realmente excluir este cartão?`;
+
+                    const confirmarExclusao = await this.showConfirmDialog(
+                        '⚠️ Atenção',
+                        mensagem,
+                        'Sim, excluir tudo'
+                    );
+
+                    if (!confirmarExclusao) return;
+
+                    // Segunda tentativa com force=true
+                    const forceResponse = await fetch(`${window.BASE_URL}api/cartoes/${id}?force=1`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': csrfToken
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (!forceResponse.ok) {
+                        const forceResult = await forceResponse.json().catch(() => ({}));
+                        throw new Error(forceResult.message || 'Erro ao excluir cartão');
+                    }
+
+                    this.showToast('success', 'Cartão excluído com sucesso!');
+                    this.loadCartoes();
+                    return;
+                }
+
+                throw new Error(result.message || 'Erro ao excluir cartão');
             }
 
-            this.showToast('Cartão excluído com sucesso', 'success');
+            this.showToast('success', 'Cartão excluído com sucesso!');
             this.loadCartoes();
 
         } catch (error) {
             console.error('Erro ao excluir:', error);
-            this.showToast('Erro ao excluir cartão', 'error');
+            this.showToast('error', error.message || 'Erro ao excluir cartão');
         }
     }
 
@@ -804,10 +892,64 @@ class CartoesManager {
      * Formatar dinheiro para input (sem R$)
      */
     formatMoneyInput(value) {
+        // Se o value já for uma string formatada, retorna ela
+        if (typeof value === 'string' && value.includes(',')) {
+            return value;
+        }
+
+        // Se for número, converte centavos para reais e formata
+        if (typeof value === 'number') {
+            const reais = value / 100;
+            return reais.toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // Fallback: formata com Intl
         return new Intl.NumberFormat('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(value || 0);
+    }
+
+    /**
+     * Configurar máscara de dinheiro para limite do cartão
+     */
+    setupLimiteMoneyMask() {
+        const limiteInput = document.getElementById('limiteTotal');
+        if (!limiteInput) {
+            console.error('❌ Campo limiteTotal NÃO encontrado!');
+            return;
+        }
+
+        console.log('✅ Campo limiteTotal encontrado:', limiteInput);
+
+        // Handler da máscara
+        limiteInput.addEventListener('input', function (e) {
+            let value = e.target.value;
+
+            console.log('🔍 Input detectado:', value);
+
+            // Remove tudo que não é número
+            value = value.replace(/[^\d]/g, '');
+
+            // Converte para número (centavos)
+            let number = parseInt(value) || 0;
+
+            // Converte centavos para reais e formata
+            const reais = number / 100;
+            const formatted = reais.toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+            console.log('✅ Valor formatado:', formatted);
+            e.target.value = formatted;
+        });
+
+        console.log('✅ Máscara de dinheiro aplicada com sucesso!');
+
+        // Formata ao carregar
+        limiteInput.value = '0,00';
     }
 
     /**
@@ -879,6 +1021,20 @@ class CartoesManager {
      * Diálogo de confirmação
      */
     async showConfirmDialog(title, message, confirmText = 'Confirmar') {
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            });
+            return result.isConfirmed;
+        }
         return confirm(`${title}\n\n${message}`);
     }
 }

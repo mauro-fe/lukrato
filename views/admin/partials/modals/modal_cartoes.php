@@ -82,8 +82,8 @@
                     </label>
                     <div class="input-with-prefix">
                         <span class="input-prefix">R$</span>
-                        <input type="text" id="limiteTotal" name="limite_total" class="form-input" value="0,00"
-                            placeholder="0,00">
+                        <input type="text" id="limiteTotal" name="limite_total" class="form-input" placeholder="0,00"
+                            required inputmode="numeric" autocomplete="off">
                     </div>
                     <small class="form-help">Limite total disponível no cartão</small>
                 </div>
@@ -97,7 +97,7 @@
                             Dia Fechamento
                         </label>
                         <input type="number" id="diaFechamento" name="dia_fechamento" class="form-input" min="1"
-                            max="31" placeholder="Ex: 10">
+                            max="31" placeholder="Ex: 10" required>
                         <small class="form-help">Dia que a fatura fecha</small>
                     </div>
 
@@ -108,7 +108,7 @@
                             Dia Vencimento
                         </label>
                         <input type="number" id="diaVencimento" name="dia_vencimento" class="form-input" min="1"
-                            max="31" placeholder="Ex: 15">
+                            max="31" placeholder="Ex: 15" required>
                         <small class="form-help">Dia do vencimento</small>
                     </div>
                 </div>

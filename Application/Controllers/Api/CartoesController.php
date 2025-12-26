@@ -163,8 +163,9 @@ class CartoesController
             Response::json([
                 'status' => $resultado['requires_confirmation'] ?? false ? 'confirm_delete' : 'error',
                 'message' => $resultado['message'],
+                'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
                 'total_lancamentos' => $resultado['total_lancamentos'] ?? 0,
-                'suggestion' => $resultado['requires_confirmation'] ?? false 
+                'suggestion' => $resultado['requires_confirmation'] ?? false
                     ? 'Reenvie a requisição com ?force=1 ou JSON {"force": true} para confirmar a exclusão permanente.'
                     : null,
             ], $statusCode);

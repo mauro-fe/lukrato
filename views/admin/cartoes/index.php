@@ -27,7 +27,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Total</div>
-                    <div class="stat-value" id="limiteTotal">R$ 0,00</div>
+                    <div class="stat-value" id="statLimiteTotal">R$ 0,00</div>
                 </div>
             </div>
 
@@ -125,6 +125,7 @@
 
 <!-- ==================== MODAIS ==================== -->
 <?php include __DIR__ . '/../partials/modals/modal_cartoes.php'; ?>
+
 
 <!-- ==================== SCRIPTS E ESTILOS ==================== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/cartoes-modern.css?v=<?= time() ?>">

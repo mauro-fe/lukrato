@@ -66,8 +66,8 @@
 </div>
 
 <!-- ==================== MODAIS ==================== -->
-<?php include __DIR__ . '/../modals/conta-modal.php'; ?>
-<?php include __DIR__ . '/../partials/modals/modal_cartoes_v2.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_contas.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_cartoes.php'; ?>
 <?php include __DIR__ . '/../partials/modals/modal_lancamento_v2.php'; ?>
 
 <!-- ==================== SCRIPTS ==================== -->
