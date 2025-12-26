@@ -632,21 +632,21 @@
 
                 <!-- Plano Gratuito -->
                 <?php if ($planoGratuito): ?>
-                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
-                        data-aos="fade-right">
-                        <div class="mb-6">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($planoGratuito->nome) ?>
-                            </h3>
-                            <div class="flex items-baseline gap-2 mb-4">
-                                <span class="text-5xl font-bold text-gray-900">R$ 0</span>
-                            </div>
-                            <p class="text-gray-600">
-                                <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
-                            </p>
+                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
+                    data-aos="fade-right">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($planoGratuito->nome) ?>
+                        </h3>
+                        <div class="flex items-baseline gap-2 mb-4">
+                            <span class="text-5xl font-bold text-gray-900">R$ 0</span>
                         </div>
+                        <p class="text-gray-600">
+                            <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
+                        </p>
+                    </div>
 
-                        <ul class="space-y-4 mb-8">
-                            <?php
+                    <ul class="space-y-4 mb-8">
+                        <?php
                             $recursos = $planoGratuito->metadados['recursos'] ?? [
                                 'Controle financeiro essencial'
                             ];
@@ -658,25 +658,25 @@
                                 'Suporte prioritário'
                             ];
                             ?>
-                            <?php foreach ($recursos as $recurso): ?>
-                                <li class="flex items-start gap-3">
-                                    <i class="fa-solid fa-check text-green-500 mt-1"></i>
-                                    <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                            <?php foreach ($limitacoes as $limitacao): ?>
-                                <li class="flex items-start gap-3 opacity-50">
-                                    <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
-                                    <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
+                        <?php foreach ($recursos as $recurso): ?>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-green-500 mt-1"></i>
+                            <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
+                        </li>
+                        <?php endforeach; ?>
+                        <?php foreach ($limitacoes as $limitacao): ?>
+                        <li class="flex items-start gap-3 opacity-50">
+                            <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
+                            <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
 
-                        <a href="<?= BASE_URL ?>login"
-                            class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white border-2 border-primary rounded-xl hover:bg-orange-50 transition-all duration-300">
-                            Começar grátis
-                        </a>
-                    </div>
+                    <a href="<?= BASE_URL ?>login"
+                        class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white border-2 border-primary rounded-xl hover:bg-orange-50 transition-all duration-300">
+                        Começar grátis
+                    </a>
+                </div>
                 <?php endif; ?>
 
                 <!-- Planos Pagos -->
@@ -692,8 +692,8 @@
                     ];
                     $destaque = $plano->metadados['destaque'] ?? ($index === 0);
                 ?>
-                    <div class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
-                        data-aos="fade-left" x-data="{ 
+                <div class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                    data-aos="fade-left" x-data="{ 
                     basePrice: <?= $precoMensal ?>,
                     get currentPrice() {
                         if (period === 'mensal') return this.basePrice.toFixed(2);
@@ -712,80 +712,80 @@
                     }
                  }">
 
-                        <?php if ($destaque): ?>
-                            <!-- Badge -->
-                            <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-                                <span
-                                    class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-full shadow-lg">
-                                    <i class="fa-solid fa-star"></i>
-                                    <?= htmlspecialchars($plano->metadados['badge'] ?? 'Mais escolhido') ?>
-                                </span>
-                            </div>
-                        <?php endif; ?>
+                    <?php if ($destaque): ?>
+                    <!-- Badge -->
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-full shadow-lg">
+                            <i class="fa-solid fa-star"></i>
+                            <?= htmlspecialchars($plano->metadados['badge'] ?? 'Mais escolhido') ?>
+                        </span>
+                    </div>
+                    <?php endif; ?>
 
-                        <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
-                        <div x-show="discount > 0" x-transition
-                            class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
-                            <span x-text="'-' + discount + '%'"></span>
+                    <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
+                    <div x-show="discount > 0" x-transition
+                        class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
+                        <span x-text="'-' + discount + '%'"></span>
+                    </div>
+
+                    <div class="mb-6 pt-4">
+                        <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+
+                        <!-- Preço Original Riscado (aparece apenas com desconto) -->
+                        <div x-show="originalPriceCalc" x-transition class="mb-1">
+                            <span class="text-lg line-through text-orange-200">
+                                R$ <span x-text="originalPriceCalc"></span>
+                            </span>
                         </div>
 
-                        <div class="mb-6 pt-4">
-                            <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+                        <div class="flex items-baseline gap-2 mb-2">
+                            <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
+                            <span class="text-xl text-orange-100">
+                                / <span x-text="periodLabel"></span>
+                            </span>
+                        </div>
 
-                            <!-- Preço Original Riscado (aparece apenas com desconto) -->
-                            <div x-show="originalPriceCalc" x-transition class="mb-1">
-                                <span class="text-lg line-through text-orange-200">
-                                    R$ <span x-text="originalPriceCalc"></span>
-                                </span>
-                            </div>
-
-                            <div class="flex items-baseline gap-2 mb-2">
-                                <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
-                                <span class="text-xl text-orange-100">
-                                    / <span x-text="periodLabel"></span>
-                                </span>
-                            </div>
-
-                            <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
-                            <div x-show="period !== 'mensal'" x-transition class="mb-2">
-                                <p class="text-orange-100 text-sm">
-                                    Equivalente a
-                                    <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
-                                    por mês
-                                </p>
-                            </div>
-
-                            <p class="text-orange-100">
-                                <?php if (isset($plano->metadados['mensagens'])): ?>
-                                    <span
-                                        x-show="period === 'mensal'"><?= htmlspecialchars($plano->metadados['mensagens']['mensal'] ?? 'Plano mensal flexível') ?></span>
-                                    <span
-                                        x-show="period === 'semestral'"><?= htmlspecialchars($plano->metadados['mensagens']['semestral'] ?? 'Economize 10% pagando semestralmente!') ?></span>
-                                    <span
-                                        x-show="period === 'anual'"><?= htmlspecialchars($plano->metadados['mensagens']['anual'] ?? 'Melhor oferta! Economize 15% no plano anual.') ?></span>
-                                <?php else: ?>
-                                    <span x-show="period === 'mensal'">Menos que um lanche por mês para ter controle total do
-                                        seu dinheiro.</span>
-                                    <span x-show="period === 'semestral'">Economize 10% pagando semestralmente!</span>
-                                    <span x-show="period === 'anual'">Melhor oferta! Economize 15% no plano anual.</span>
-                                <?php endif; ?>
+                        <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
+                        <div x-show="period !== 'mensal'" x-transition class="mb-2">
+                            <p class="text-orange-100 text-sm">
+                                Equivalente a
+                                <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
+                                por mês
                             </p>
                         </div>
 
-                        <ul class="space-y-4 mb-8">
-                            <?php foreach ($recursos as $recurso): ?>
-                                <li class="flex items-start gap-3">
-                                    <i class="fa-solid fa-check text-green-300 mt-1"></i>
-                                    <span><?= htmlspecialchars($recurso) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-
-                        <a href="<?= BASE_URL ?>billing"
-                            class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
-                            Assinar <?= htmlspecialchars($plano->nome) ?>
-                        </a>
+                        <p class="text-orange-100">
+                            <?php if (isset($plano->metadados['mensagens'])): ?>
+                            <span
+                                x-show="period === 'mensal'"><?= htmlspecialchars($plano->metadados['mensagens']['mensal'] ?? 'Plano mensal flexível') ?></span>
+                            <span
+                                x-show="period === 'semestral'"><?= htmlspecialchars($plano->metadados['mensagens']['semestral'] ?? 'Economize 10% pagando semestralmente!') ?></span>
+                            <span
+                                x-show="period === 'anual'"><?= htmlspecialchars($plano->metadados['mensagens']['anual'] ?? 'Melhor oferta! Economize 15% no plano anual.') ?></span>
+                            <?php else: ?>
+                            <span x-show="period === 'mensal'">Menos que um lanche por mês para ter controle total do
+                                seu dinheiro.</span>
+                            <span x-show="period === 'semestral'">Economize 10% pagando semestralmente!</span>
+                            <span x-show="period === 'anual'">Melhor oferta! Economize 15% no plano anual.</span>
+                            <?php endif; ?>
+                        </p>
                     </div>
+
+                    <ul class="space-y-4 mb-8">
+                        <?php foreach ($recursos as $recurso): ?>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-green-300 mt-1"></i>
+                            <span><?= htmlspecialchars($recurso) ?></span>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+
+                    <a href="<?= BASE_URL ?>billing"
+                        class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
+                        Assinar <?= htmlspecialchars($plano->nome) ?>
+                    </a>
+                </div>
                 <?php endforeach; ?>
 
             </div>
@@ -1060,115 +1060,115 @@
 
 <!-- Estilos Tailwind customizados e animações -->
 <style>
-    @keyframes blob {
+@keyframes blob {
 
-        0%,
-        100% {
-            transform: translate(0, 0) scale(1);
-        }
-
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
     }
 
-    .animate-blob {
-        animation: blob 7s infinite;
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
     }
 
-    .animation-delay-2000 {
-        animation-delay: 2s;
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
     }
+}
 
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
+.animate-blob {
+    animation: blob 7s infinite;
+}
 
-    [x-cloak] {
-        display: none !important;
-    }
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
 
-    /* Smooth scroll */
-    html {
-        scroll-behavior: smooth;
-    }
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
 
-    /* Melhorar a tipografia */
-    body {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+[x-cloak] {
+    display: none !important;
+}
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Melhorar a tipografia */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 </style>
 
 <script>
-    // Formulário de contato
-    document.addEventListener('DOMContentLoaded', function() {
-        const contactForm = document.getElementById('contactForm');
+// Formulário de contato
+document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.getElementById('contactForm');
 
-        if (contactForm) {
-            contactForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
+    if (contactForm) {
+        contactForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-                const submitButton = this.querySelector('button[type="submit"]');
-                const originalText = submitButton.innerHTML;
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
 
-                // Desabilita o botão e mostra loading
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
+            // Desabilita o botão e mostra loading
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
 
-                try {
-                    const formData = new FormData(this);
+            try {
+                const formData = new FormData(this);
 
-                    const response = await fetch('<?= BASE_URL ?>api/contato/enviar', {
-                        method: 'POST',
-                        body: formData
-                    });
+                const response = await fetch('<?= BASE_URL ?>api/contato/enviar', {
+                    method: 'POST',
+                    body: formData
+                });
 
-                    const data = await response.json();
+                const data = await response.json();
 
-                    if (response.ok && data.success) {
-                        // Sucesso
-                        showNotification(
-                            'Mensagem enviada com sucesso! Em breve entraremos em contato.',
-                            'success');
-                        this.reset();
-                    } else {
-                        // Erro
-                        showNotification(data.message || 'Erro ao enviar mensagem. Tente novamente.',
-                            'error');
-                    }
-
-                } catch (error) {
-                    console.error('Erro:', error);
-                    showNotification('Erro ao enviar mensagem. Tente novamente.', 'error');
-                } finally {
-                    // Restaura o botão
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalText;
+                if (response.ok && data.success) {
+                    // Sucesso
+                    showNotification(
+                        'Mensagem enviada com sucesso! Em breve entraremos em contato.',
+                        'success');
+                    this.reset();
+                } else {
+                    // Erro
+                    showNotification(data.message || 'Erro ao enviar mensagem. Tente novamente.',
+                        'error');
                 }
-            });
+
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Erro ao enviar mensagem. Tente novamente.', 'error');
+            } finally {
+                // Restaura o botão
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Função para mostrar notificações
+    function showNotification(message, type = 'success') {
+        // Remove notificação anterior se existir
+        const oldNotification = document.querySelector('.contact-notification');
+        if (oldNotification) {
+            oldNotification.remove();
         }
 
-        // Função para mostrar notificações
-        function showNotification(message, type = 'success') {
-            // Remove notificação anterior se existir
-            const oldNotification = document.querySelector('.contact-notification');
-            if (oldNotification) {
-                oldNotification.remove();
-            }
+        // Cria nova notificação
+        const notification = document.createElement('div');
+        notification.className =
+            'contact-notification fixed top-8 right-8 z-50 max-w-md px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 ease-out';
 
-            // Cria nova notificação
-            const notification = document.createElement('div');
-            notification.className =
-                'contact-notification fixed top-8 right-8 z-50 max-w-md px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 ease-out';
-
-            if (type === 'success') {
-                notification.classList.add('bg-green-500', 'text-white');
-                notification.innerHTML = `
+        if (type === 'success') {
+            notification.classList.add('bg-green-500', 'text-white');
+            notification.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-check-circle text-2xl"></i>
                         <div>
@@ -1177,9 +1177,9 @@
                         </div>
                     </div>
                 `;
-            } else {
-                notification.classList.add('bg-red-500', 'text-white');
-                notification.innerHTML = `
+        } else {
+            notification.classList.add('bg-red-500', 'text-white');
+            notification.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-exclamation-circle text-2xl"></i>
                         <div>
@@ -1188,56 +1188,56 @@
                         </div>
                     </div>
                 `;
-            }
+        }
 
-            document.body.appendChild(notification);
+        document.body.appendChild(notification);
 
-            // Animação de entrada
+        // Animação de entrada
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    notification.style.opacity = '1';
-                    notification.style.transform = 'translateX(0)';
-                }, 10);
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
             }, 10);
+        }, 10);
 
-            // Remove após 5 segundos
+        // Remove após 5 segundos
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            }, 5000);
+                notification.remove();
+            }, 300);
+        }, 5000);
+    }
+});
+
+// Fallback para galeria (caso Alpine.js não carregue)
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('galleryModal');
+
+    // Adiciona listener global para o evento
+    window.addEventListener('open-gallery', function() {
+        if (modal) {
+            modal.style.display = 'flex';
+            // Se Alpine.js estiver carregado, ele cuida do resto
+            // Se não, pelo menos o modal fica visível
         }
     });
 
-    // Fallback para galeria (caso Alpine.js não carregue)
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('galleryModal');
-
-        // Adiciona listener global para o evento
-        window.addEventListener('open-gallery', function() {
-            if (modal) {
-                modal.style.display = 'flex';
-                // Se Alpine.js estiver carregado, ele cuida do resto
-                // Se não, pelo menos o modal fica visível
-            }
-        });
-
-        // Fallback: se clicar no botão e nada acontecer após 100ms, abre manualmente
-        setTimeout(function() {
-            const buttons = document.querySelectorAll('[\\@click*="open-gallery"]');
-            buttons.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    setTimeout(function() {
-                        if (modal && modal.style.display === 'none') {
-                            modal.style.display = 'flex';
-                        }
-                    }, 100);
-                });
+    // Fallback: se clicar no botão e nada acontecer após 100ms, abre manualmente
+    setTimeout(function() {
+        const buttons = document.querySelectorAll('[\\@click*="open-gallery"]');
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                setTimeout(function() {
+                    if (modal && modal.style.display === 'none') {
+                        modal.style.display = 'flex';
+                    }
+                }, 100);
             });
-        }, 1000);
-    });
+        });
+    }, 1000);
+});
 </script>
