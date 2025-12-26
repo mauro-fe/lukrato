@@ -894,23 +894,22 @@ svg {
     font-size: 0.9rem;
   }
 }
-  .lk-func-media {
-    margin-top: 12px;
-  }
-  .lk-func-ctas {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    flex-wrap: nowrap;
-  }
+.lk-func-media {
+  margin-top: 12px;
+}
+.lk-func-ctas {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
 
-  .lk-func-ctas .lk-btn-primary,
-  .lk-func-ctas .lk-btn-ghost {
-    flex: 1;
-    justify-content: center;
-    padding: 10px 12px;
-    white-space: nowrap;
-  }
+.lk-func-ctas .lk-btn-primary,
+.lk-func-ctas .lk-btn-ghost {
+  flex: 1;
+  justify-content: center;
+  padding: 10px 12px;
+  white-space: nowrap;
 }
 
 /* ===== Modal / Galeria ===== */
@@ -1910,7 +1909,6 @@ svg {
   .lk-garantia-list li {
     font-size: 0.85rem;
   }
-}
 }
 
 /* CTA */
