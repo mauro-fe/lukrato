@@ -37,13 +37,8 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
             </div>
 
             <!-- Theme Toggle -->
-<<<<<<< HEAD
-            <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle" aria-label="Alternar tema"
-                title="Modo claro/escuro">
-=======
             <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle"
                 aria-label="Alternar tema" title="Modo claro/escuro">
->>>>>>> mauro
                 <i class="fa-solid fa-sun"></i>
                 <i class="fa-solid fa-moon"></i>
             </button>
@@ -55,24 +50,16 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 
             <!-- Upgrade Button (if not pro) -->
             <?php if (!$isPro): ?>
-<<<<<<< HEAD
-                <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn" title="Fazer upgrade para Pro">
-=======
                 <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn"
                     title="Fazer upgrade para Pro">
->>>>>>> mauro
                     <i class="fa-solid fa-crown"></i>
                     <span class="btn-text">Upgrade</span>
                 </a>
             <?php endif; ?>
 
             <!-- Logout Button -->
-<<<<<<< HEAD
-            <a href="<?= BASE_URL ?>logout" id="topNavLogout" class="top-nav-btn logout-btn" title="Sair do sistema">
-=======
             <a href="<?= BASE_URL ?>logout" id="topNavLogout" class="top-nav-btn logout-btn"
                 title="Sair do sistema">
->>>>>>> mauro
                 <i class="fas fa-sign-out-alt"></i>
                 <span class="btn-text">Sair</span>
             </a>

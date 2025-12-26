@@ -44,7 +44,11 @@
 .modern-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--glass-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 30%,
+    var(--glass-border)
+  );
 }
 
 /* Header do Card com Ícone */
@@ -70,12 +74,16 @@
 }
 
 .icon-wrapper::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -2px;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -88,16 +96,20 @@
 }
 
 .icon-wrapper.export {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
-    color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface)));
+    color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface))
+  );
   color: var(--color-primary);
 }
 
 .icon-wrapper.filter {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-secondary) 15%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)));
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
+  );
   color: var(--color-secondary);
 }
 
@@ -171,7 +183,11 @@
 }
 
 .modern-input:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--glass-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 40%,
+    var(--glass-border)
+  );
 }
 
 .modern-input:focus {
@@ -208,7 +224,11 @@
 
 .modern-select:hover {
   border-color: var(--color-primary);
-  background-color: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    var(--color-surface)
+  );
 }
 
 .modern-select:focus {
@@ -242,10 +262,9 @@
 }
 
 .modern-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -264,7 +283,11 @@
 
 /* Botão Primary */
 .modern-btn.primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
@@ -372,9 +395,11 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-4) var(--spacing-5);
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)),
-    color-mix(in srgb, var(--color-secondary) 5%, var(--color-surface)));
+    color-mix(in srgb, var(--color-secondary) 5%, var(--color-surface))
+  );
   border-bottom: 1px solid var(--glass-border);
   gap: var(--spacing-4);
   flex-wrap: wrap;
@@ -438,43 +463,52 @@
 }
 
 .tab-desktop .tabulator .tabulator-header {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-surface) 100%, transparent),
-    color-mix(in srgb, var(--color-surface-muted) 50%, transparent)) !important;
+    color-mix(in srgb, var(--color-surface-muted) 50%, transparent)
+  ) !important;
   border-bottom: 2px solid var(--glass-border) !important;
   font-weight: 700;
 }
 
 .tab-desktop .tabulator .tabulator-header .tabulator-col {
   background: transparent !important;
-  border-right: 1px solid color-mix(in srgb, var(--glass-border) 50%, transparent) !important;
+  border-right: 1px solid
+    color-mix(in srgb, var(--glass-border) 50%, transparent) !important;
   color: var(--color-text) !important;
 }
 
 .tab-desktop .tabulator .tabulator-row {
   background: var(--color-surface) !important;
-  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 30%, transparent) !important;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--glass-border) 30%, transparent) !important;
   transition: all 0.2s ease !important;
 }
 
 .tab-desktop .tabulator .tabulator-row:hover {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 4%, var(--color-surface))) !important;
+    color-mix(in srgb, var(--color-primary) 4%, var(--color-surface))
+  ) !important;
   transform: translateX(4px);
   box-shadow: -4px 0 0 var(--color-primary) inset;
 }
 
 .tab-desktop .tabulator .tabulator-row.tabulator-selected {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))) !important;
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
+  ) !important;
   box-shadow: -4px 0 0 var(--color-primary) inset;
 }
 
 .tab-desktop .tabulator .tabulator-cell {
   color: var(--color-text) !important;
-  border-right: 1px solid color-mix(in srgb, var(--glass-border) 20%, transparent) !important;
+  border-right: 1px solid
+    color-mix(in srgb, var(--glass-border) 20%, transparent) !important;
 }
 
 /* ============================================================================
@@ -588,7 +622,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -618,15 +653,19 @@
 }
 
 [data-theme="dark"] .icon-wrapper.export {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-secondary) 15%, var(--color-surface)));
+    color-mix(in srgb, var(--color-secondary) 15%, var(--color-surface))
+  );
 }
 
 [data-theme="dark"] .icon-wrapper.filter {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)));
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface))
+  );
 }
 
 /* Light Theme específico */
@@ -640,7 +679,9 @@
 }
 
 [data-theme="light"] .tab-desktop .tabulator .tabulator-row:hover {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--color-primary) 5%, #ffffff),
-    color-mix(in srgb, var(--color-primary) 2%, #ffffff)) !important;
+    color-mix(in srgb, var(--color-primary) 2%, #ffffff)
+  ) !important;
 }
