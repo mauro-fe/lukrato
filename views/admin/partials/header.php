@@ -87,100 +87,100 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
          ============================================================================ -->
     <script>
-        // Namespace global do Lukrato
-        window.LK = window.LK || {};
-        window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
+    // Namespace global do Lukrato
+    window.LK = window.LK || {};
+    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 
-        // ========================================================================
-        // HELPERS GLOBAIS
-        // ========================================================================
-        LK.getBase = () => {
-            const meta = document.querySelector('meta[name="base-url"]');
-            return (meta?.content || '/').replace(/\/?$/, '/');
+    // ========================================================================
+    // HELPERS GLOBAIS
+    // ========================================================================
+    LK.getBase = () => {
+        const meta = document.querySelector('meta[name="base-url"]');
+        return (meta?.content || '/').replace(/\/?$/, '/');
+    };
+
+    LK.getCSRF = () => {
+        return document.querySelector('meta[name="csrf-token"]')?.content ||
+            document.querySelector('input[name="_token"]')?.value || '';
+    };
+
+    LK.apiBase = () => LK.getBase() + 'api/';
+
+    LK.initPageTransitions = () => {
+        const overlay = document.getElementById('lkPageTransitionOverlay');
+        if (!overlay) return;
+
+        let isTransitioning = false;
+
+        const cleanup = () => {
+            isTransitioning = false;
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('page-transitioning');
         };
 
-        LK.getCSRF = () => {
-            return document.querySelector('meta[name="csrf-token"]')?.content ||
-                document.querySelector('input[name="_token"]')?.value || '';
+        const startTransition = (target) => {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            document.body.classList.add('page-transitioning');
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
+
+            setTimeout(() => {
+                window.location.href = target;
+            }, 220);
         };
 
-        LK.apiBase = () => LK.getBase() + 'api/';
+        const isSamePageAnchor = (href) => href?.startsWith('#');
 
-        LK.initPageTransitions = () => {
-            const overlay = document.getElementById('lkPageTransitionOverlay');
-            if (!overlay) return;
+        document.addEventListener('click', (event) => {
+            if (event.defaultPrevented || event.button !== 0) return;
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
-            let isTransitioning = false;
+            const link = event.target.closest('a[href]');
+            if (!link) return;
+            if (link.target && link.target !== '_self') return;
+            if (link.hasAttribute('download')) return;
+            if (link.dataset.noTransition === 'true') return;
 
-            const cleanup = () => {
-                isTransitioning = false;
-                overlay.classList.remove('active');
-                overlay.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('page-transitioning');
-            };
+            const href = link.getAttribute('href');
+            if (!href || isSamePageAnchor(href)) return;
 
-            const startTransition = (target) => {
-                if (isTransitioning) return;
-                isTransitioning = true;
-                document.body.classList.add('page-transitioning');
-                overlay.classList.add('active');
-                overlay.setAttribute('aria-hidden', 'false');
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+            if (url.pathname === window.location.pathname && url.search === window.location.search) return;
 
-                setTimeout(() => {
-                    window.location.href = target;
-                }, 220);
-            };
-
-            const isSamePageAnchor = (href) => href?.startsWith('#');
-
-            document.addEventListener('click', (event) => {
-                if (event.defaultPrevented || event.button !== 0) return;
-                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-                const link = event.target.closest('a[href]');
-                if (!link) return;
-                if (link.target && link.target !== '_self') return;
-                if (link.hasAttribute('download')) return;
-                if (link.dataset.noTransition === 'true') return;
-
-                const href = link.getAttribute('href');
-                if (!href || isSamePageAnchor(href)) return;
-
-                const url = new URL(link.href, window.location.href);
-                if (url.origin !== window.location.origin) return;
-                if (url.pathname === window.location.pathname && url.search === window.location.search) return;
-
-                event.preventDefault();
-                startTransition(url.href);
-            });
-
-            window.addEventListener('pageshow', cleanup);
-            cleanup();
-        };
-
-        // ========================================================================
-        // INICIALIZAÇÃO DOM
-        // ========================================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            // Header (sidebar active, logout confirm, seletor de contas)
-            if (window.LK?.initHeader) {
-                window.LK.initHeader();
-            }
-
-            // Sininho de notificações
-            if (window.initNotificationsBell) {
-                window.initNotificationsBell();
-            }
-
-            // Modais (abre/fecha via data-open-modal / data-close-modal)
-            if (window.LK?.initModals) {
-                window.LK.initModals();
-            }
-
-            if (window.LK?.initPageTransitions) {
-                window.LK.initPageTransitions();
-            }
+            event.preventDefault();
+            startTransition(url.href);
         });
+
+        window.addEventListener('pageshow', cleanup);
+        cleanup();
+    };
+
+    // ========================================================================
+    // INICIALIZAÇÃO DOM
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        // Header (sidebar active, logout confirm, seletor de contas)
+        if (window.LK?.initHeader) {
+            window.LK.initHeader();
+        }
+
+        // Sininho de notificações
+        if (window.initNotificationsBell) {
+            window.initNotificationsBell();
+        }
+
+        // Modais (abre/fecha via data-open-modal / data-close-modal)
+        if (window.LK?.initModals) {
+            window.LK.initModals();
+        }
+
+        if (window.LK?.initPageTransitions) {
+            window.LK.initPageTransitions();
+        }
+    });
     </script>
 
     <!-- ============================================================================
@@ -203,19 +203,19 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          SIDEBAR COLLAPSE STATE (Pre-render)
          ============================================================================ -->
     <script>
-        (function() {
-            try {
-                const STORAGE_KEY = 'lk.sidebar';
-                const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
-                const isDesktop = window.matchMedia('(min-width: 993px)').matches;
+    (function() {
+        try {
+            const STORAGE_KEY = 'lk.sidebar';
+            const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
+            const isDesktop = window.matchMedia('(min-width: 993px)').matches;
 
-                if (prefersCollapsed && isDesktop) {
-                    document.body.classList.add('sidebar-collapsed');
-                }
-            } catch (err) {
-                console.error('Erro ao restaurar estado da sidebar:', err);
+            if (prefersCollapsed && isDesktop) {
+                document.body.classList.add('sidebar-collapsed');
             }
-        })();
+        } catch (err) {
+            console.error('Erro ao restaurar estado da sidebar:', err);
+        }
+    })();
     </script>
 
     <!-- ============================================================================
@@ -276,7 +276,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Parcelamentos -->
             <a href="<?= BASE_URL ?>parcelamentos" class="nav-item <?= $active('parcelamentos') ?>"
                 <?= $aria('parcelamentos') ?> title="Parcelamentos">
-                <i class="fas fa-exchange-alt"></i>
+                <i class="fa-solid fa-layer-group"></i>
                 <span>Parcelamentos</span>
             </a>
 
@@ -308,11 +308,11 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <span>Perfil</span>
             </a>
             <?php if ($isSysAdmin): ?>
-                <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
-                    <?= $aria('super_admin') ?> title="SysAdmin">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <span>SysAdmin</span>
-                </a>
+            <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
+                <?= $aria('super_admin') ?> title="SysAdmin">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>SysAdmin</span>
+            </a>
             <?php endif; ?>
 
             <!-- Sair -->
@@ -323,12 +323,12 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
             <!-- CTA Upgrade Pro -->
             <?php if ($showUpgradeCTA): ?>
-                <div class="sidebar-pro-cta">
-                    <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                        <i class="fa-solid fa-star"></i>
-                        <span>Pro</span>
-                    </a>
-                </div>
+            <div class="sidebar-pro-cta">
+                <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Pro</span>
+                </a>
+            </div>
             <?php endif; ?>
         </nav>
     </aside>

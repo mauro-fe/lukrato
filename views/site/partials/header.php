@@ -13,19 +13,19 @@ $extraCss  = $extraCss  ?? [];
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#e67e22',
-                        secondary: '#2c3e50',
-                        success: '#2ecc71',
-                        warning: '#f39c12',
-                        danger: '#e74c3c',
-                    }
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#e67e22',
+                    secondary: '#2c3e50',
+                    success: '#2ecc71',
+                    warning: '#f39c12',
+                    danger: '#e74c3c',
                 }
             }
         }
+    }
     </script>
 
     <!-- Alpine.js -->
@@ -33,16 +33,16 @@ $extraCss  = $extraCss  ?? [];
 
     <!-- Style para Alpine.js x-cloak -->
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
+    [x-cloak] {
+        display: none !important;
+    }
 
-        html,
-        body {
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 100vw;
-        }
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
     </style>
 
     <!-- AOS (Animate On Scroll) -->
@@ -55,7 +55,7 @@ $extraCss  = $extraCss  ?? [];
     <link rel="icon" href="<?= BASE_URL ?>assets/img/icone.png" alt="icone lukrato">
 
     <?php foreach ($extraCss as $css): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
     <?php endforeach; ?>
 
 
@@ -64,29 +64,29 @@ $extraCss  = $extraCss  ?? [];
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
-        // Inicializar AOS quando a página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            AOS.init({
-                duration: 800,
-                once: true,
-                offset: 100
-            });
+    // Inicializar AOS quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
         });
+    });
     </script>
 
 </head>
 
 <body class="antialiased" x-data="{ mobileMenuOpen: false }">
     <!-- Header Premium -->
-    <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 20" :class="scrolled ? 'bg-white shadow-lg' : 'bg-white/95'"
+    <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 20"
+        :class="scrolled ? 'bg-white shadow-lg' : 'bg-white/95'"
         class="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg transition-all duration-300">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-
                 <!-- Logo com animação -->
                 <a href="<?= BASE_URL ?>" class="flex-shrink-0 group">
                     <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Lukrato"
-                        class="h-8 sm:h-10 transition-transform duration-300 group-hover:scale-110" loading="eager"
+                        class="h-8 sm:h-16 transition-transform duration-300 group-hover:scale-110" loading="eager"
                         onerror="console.error('Logo não carregou:', this.src)">
                 </a>
 
@@ -144,25 +144,17 @@ $extraCss  = $extraCss  ?? [];
     </header>
 
     <!-- Mobile Menu Backdrop -->
-    <div x-show="mobileMenuOpen"
-        x-transition:enter="transition-opacity ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition-opacity ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        @click="mobileMenuOpen = false"
-        class="fixed inset-0 bg-black bg-opacity-50 z-[60] lg:hidden"
-        x-cloak>
+    <div x-show="mobileMenuOpen" x-transition:enter="transition-opacity ease-out duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" @click="mobileMenuOpen = false"
+        class="fixed inset-0 bg-black bg-opacity-50 z-[60] lg:hidden" x-cloak>
     </div>
 
     <!-- Mobile Menu Panel -->
-    <div x-show="mobileMenuOpen"
-        x-transition:enter="transition ease-out duration-300 transform"
-        x-transition:enter-start="translate-x-full"
-        x-transition:enter-end="translate-x-0"
-        x-transition:leave="transition ease-in duration-200 transform"
-        x-transition:leave-start="translate-x-0"
+    <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
         class="fixed top-0 right-0 bottom-0 w-80 max-w-full bg-white shadow-2xl z-[70] lg:hidden overflow-y-auto"
         x-cloak>

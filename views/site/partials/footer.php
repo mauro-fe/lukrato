@@ -12,19 +12,22 @@ $extraJs = $extraJs ?? [];
             <!-- Marca -->
             <div class="space-y-4">
                 <a href="<?= BASE_URL ?>/" class="inline-block hover:opacity-80 transition-opacity">
-                    <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Lukrato" class="h-8" loading="lazy">
+                    <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Lukrato" class="h-14" loading="lazy">
                 </a>
                 <p class="text-gray-400 leading-relaxed">
                     Controle financeiro simples, inteligente e sem complicação.
                 </p>
                 <div class="flex gap-3 pt-2">
-                    <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
+                    <a href="#"
+                        class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
                         <i class="fa-brands fa-facebook-f"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
+                    <a href="#"
+                        class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
                         <i class="fa-brands fa-instagram"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
+                    <a href="#"
+                        class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
                         <i class="fa-brands fa-linkedin-in"></i>
                     </a>
                 </div>
@@ -34,7 +37,8 @@ $extraJs = $extraJs ?? [];
             <div>
                 <h3 class="font-bold text-lg mb-4">Produto</h3>
                 <nav class="flex flex-col gap-3">
-                    <a href="<?= BASE_URL ?>/#funcionalidades" class="text-gray-400 hover:text-primary transition-colors">
+                    <a href="<?= BASE_URL ?>/#funcionalidades"
+                        class="text-gray-400 hover:text-primary transition-colors">
                         Funcionalidades
                     </a>
                     <a href="<?= BASE_URL ?>/#beneficios" class="text-gray-400 hover:text-white transition-colors">
@@ -69,13 +73,13 @@ $extraJs = $extraJs ?? [];
             <div>
                 <h3 class="font-bold text-lg mb-4">Contato</h3>
                 <div class="flex flex-col gap-3">
-                    <a href="https://wa.me/5544999506302" 
-                       class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                    <a href="https://wa.me/5544999506302"
+                        class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
                         <i class="fa-brands fa-whatsapp"></i>
                         WhatsApp comercial
                     </a>
-                    <a href="mailto:lukratosistema@gmail.com" 
-                       class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors break-all">
+                    <a href="mailto:lukratosistema@gmail.com"
+                        class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors break-all">
                         <i class="fa-regular fa-envelope"></i>
                         lukratosistema@gmail.com
                     </a>
@@ -103,11 +107,11 @@ $extraJs = $extraJs ?? [];
 
 <!-- JS específicos da página -->
 <?php foreach ($extraJs as $js): ?>
-    <script src="<?= BASE_URL ?>/assets/js/site/<?= htmlspecialchars($js) ?>.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/site/<?= htmlspecialchars($js) ?>.js"></script>
 <?php endforeach; ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    window.APP_BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
+window.APP_BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
 </script>
 
 
