@@ -137,9 +137,14 @@ class ParcelamentosController extends BaseController
             $errors['categoria_id'] = 'Categoria é obrigatória';
         }
 
-        if (!$contaId && !$cartaoCreditoId) {
-            $errors['conta'] = 'Conta ou Cartão de Crédito é obrigatório';
+        if ($cartaoCreditoId && $contaId) {
+            $errors['origem'] = 'Informe apenas conta OU cartão, não ambos';
         }
+
+        if (!$cartaoCreditoId && !$contaId) {
+            $errors['origem'] = 'Informe uma conta ou um cartão de crédito';
+        }
+
 
         if (!empty($errors)) {
             Response::error('Dados inválidos', 422, $errors);

@@ -4,6 +4,7 @@ namespace Application\Services;
 
 use Application\Models\Lancamento;
 use Application\Models\CartaoCredito;
+use Application\Models\Parcelamento;
 use Illuminate\Database\Capsule\Manager as DB;
 use Exception;
 
@@ -37,14 +38,25 @@ class CartaoCreditoLancamentoService
                 ];
             }
 
+            // Determinar conta_id (usar do data ou do cartão)
+            $contaId = $data['conta_id'] ?? $cartao->conta_id;
+
+            LogService::info("[CARTAO] Dados recebidos", [
+                'conta_id_data' => $data['conta_id'] ?? 'null',
+                'conta_id_cartao' => $cartao->conta_id ?? 'null',
+                'conta_id_final' => $contaId ?? 'null',
+                'cartao_id' => $cartaoId,
+                'user_id' => $userId
+            ]);
+
             $lancamentos = [];
 
             if ($ehParcelado && $totalParcelas >= 2) {
                 // Criar lançamento parcelado
-                $lancamentos = $this->criarLancamentoParcelado($userId, $data, $cartao);
+                $lancamentos = $this->criarLancamentoParcelado($userId, $data, $cartao, $contaId);
             } else {
                 // Criar lançamento à vista no cartão
-                $lancamentos[] = $this->criarLancamentoVista($userId, $data, $cartao);
+                $lancamentos[] = $this->criarLancamentoVista($userId, $data, $cartao, $contaId);
             }
 
             DB::commit();
@@ -59,7 +71,10 @@ class CartaoCreditoLancamentoService
             ];
         } catch (Exception $e) {
             DB::rollBack();
-            error_log("Erro ao criar lançamento com cartão: " . $e->getMessage());
+            LogService::error("Erro ao criar lançamento com cartão", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return [
                 'success' => false,
@@ -71,7 +86,7 @@ class CartaoCreditoLancamentoService
     /**
      * Criar lançamento à vista no cartão
      */
-    private function criarLancamentoVista(int $userId, array $data, CartaoCredito $cartao): Lancamento
+    private function criarLancamentoVista(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): Lancamento
     {
         $dataCompra = $data['data'] ?? date('Y-m-d');
         $dataVencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento);
@@ -79,9 +94,9 @@ class CartaoCreditoLancamentoService
         $lancamento = Lancamento::create([
             'user_id' => $userId,
             'tipo' => 'despesa',
-            'conta_id' => null, // Não debita da conta imediatamente
+            'conta_id' => $contaId, // Conta vinculada ao cartão
             'cartao_credito_id' => $cartao->id,
-            'categoria_id' => $data['categoria_id'] ?? null,
+            'categoria_id' => $data['categoria_id'],
             'valor' => $data['valor'],
             'data' => $dataVencimento, // Data de vencimento da fatura
             'descricao' => $data['descricao'],
@@ -89,7 +104,6 @@ class CartaoCreditoLancamentoService
             'eh_parcelado' => false,
             'parcela_atual' => null,
             'total_parcelas' => null,
-            'lancamento_pai_id' => null,
         ]);
 
         // Atualizar limite disponível do cartão
@@ -101,7 +115,7 @@ class CartaoCreditoLancamentoService
     /**
      * Criar lançamento parcelado
      */
-    private function criarLancamentoParcelado(int $userId, array $data, CartaoCredito $cartao): array
+    private function criarLancamentoParcelado(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): array
     {
         $lancamentos = [];
         $valorTotal = $data['valor'];
@@ -115,14 +129,14 @@ class CartaoCreditoLancamentoService
         $dataCompra = $data['data'] ?? date('Y-m-d');
 
         // Criar PARCELAMENTO (cabeçalho auxiliar)
-        $parcelamento = \Application\Models\Parcelamento::create([
+        $parcelamento = Parcelamento::create([
             'user_id' => $userId,
             'descricao' => $data['descricao'],
             'valor_total' => $valorTotal,
             'numero_parcelas' => $totalParcelas,
             'parcelas_pagas' => 0,
             'categoria_id' => $data['categoria_id'] ?? null,
-            'conta_id' => null,
+            'conta_id' => $contaId, // Conta vinculada ao cartão
             'cartao_credito_id' => $cartao->id,
             'tipo' => 'saida',
             'status' => 'ativo',
@@ -134,10 +148,16 @@ class CartaoCreditoLancamentoService
             $dataVencimentoParcela = $this->calcularDataParcelaMes($dataCompra, $cartao->dia_vencimento, $i - 1);
             $valorDessaParcela = ($i === $totalParcelas) ? $valorUltimaParcela : $valorParcela;
 
+            LogService::info("[CARTAO] Criando parcela {$i}/{$totalParcelas}", [
+                'conta_id' => $contaId,
+                'cartao_id' => $cartao->id,
+                'valor' => $valorDessaParcela
+            ]);
+
             $parcela = Lancamento::create([
                 'user_id' => $userId,
                 'tipo' => 'despesa',
-                'conta_id' => null, // Não debita da conta
+                'conta_id' => $contaId, // Conta vinculada ao cartão
                 'cartao_credito_id' => $cartao->id,
                 'categoria_id' => $data['categoria_id'] ?? null,
                 'valor' => $valorDessaParcela,
@@ -150,7 +170,12 @@ class CartaoCreditoLancamentoService
                 'total_parcelas' => $totalParcelas,
                 'parcelamento_id' => $parcelamento->id, // Link com parcelamento
                 'numero_parcela' => $i,
-                'lancamento_pai_id' => null, // Não usa mais pai
+            ]);
+
+            LogService::info("[CARTAO] Parcela criada no banco", [
+                'parcela_id' => $parcela->id,
+                'conta_id_salvo' => $parcela->conta_id,
+                'conta_id_esperado' => $contaId
             ]);
 
             $lancamentos[] = $parcela;
@@ -240,51 +265,83 @@ class CartaoCreditoLancamentoService
     /**
      * Cancelar parcelas futuras de um lançamento parcelado
      */
-    public function cancelarParcelasFuturas(int $lancamentoId, int $userId): array
+    public function cancelarParcelamento(int $parcelamentoId, int $userId): array
     {
         try {
             DB::beginTransaction();
 
-            $lancamento = Lancamento::where('id', $lancamentoId)
+            $parcelamento = Parcelamento::where('id', $parcelamentoId)
                 ->where('user_id', $userId)
                 ->first();
 
-            if (!$lancamento) {
-                return ['success' => false, 'message' => 'Lançamento não encontrado'];
+            if (!$parcelamento) {
+                return [
+                    'success' => false,
+                    'message' => 'Parcelamento não encontrado'
+                ];
             }
 
-            if (!$lancamento->eh_parcelado) {
-                return ['success' => false, 'message' => 'Lançamento não é parcelado'];
+            if ($parcelamento->status !== 'ativo') {
+                return [
+                    'success' => false,
+                    'message' => 'Parcelamento não está ativo'
+                ];
             }
 
-            $lancamentoPaiId = $lancamento->lancamento_pai_id ?? $lancamento->id;
-
-            // Buscar e deletar todas as parcelas futuras (com data > hoje)
             $hoje = date('Y-m-d');
-            $parcelasFuturas = Lancamento::where('lancamento_pai_id', $lancamentoPaiId)
+
+            // Buscar parcelas FUTURAS (não vencidas)
+            $parcelasFuturas = Lancamento::where('parcelamento_id', $parcelamento->id)
                 ->where('data', '>', $hoje)
                 ->get();
 
-            $totalCanceladas = 0;
-            foreach ($parcelasFuturas as $parcela) {
-                // Devolver limite ao cartão
-                if ($parcela->cartao_credito_id) {
-                    $this->atualizarLimiteCartao($parcela->cartao_credito_id, $parcela->valor, 'credito');
-                }
-                $parcela->delete();
-                $totalCanceladas++;
+            if ($parcelasFuturas->isEmpty()) {
+                return [
+                    'success' => false,
+                    'message' => 'Não existem parcelas futuras para cancelar'
+                ];
             }
+
+            // Calcular valor total a devolver ao limite
+            $valorDevolver = $parcelasFuturas->sum('valor');
+
+            // Devolver limite do cartão (uma vez só)
+            if ($parcelamento->cartao_credito_id) {
+                $this->atualizarLimiteCartao(
+                    $parcelamento->cartao_credito_id,
+                    $valorDevolver,
+                    'credito'
+                );
+            }
+
+            // Cancelar parcelas futuras (soft delete recomendado)
+            foreach ($parcelasFuturas as $parcela) {
+                $parcela->status = 'cancelado'; // ou usar soft delete
+                $parcela->save();
+            }
+
+            // Atualizar status do parcelamento
+            $parcelamento->status = 'parcial';
+            $parcelamento->save();
 
             DB::commit();
 
             return [
                 'success' => true,
-                'total_canceladas' => $totalCanceladas,
-                'message' => "{$totalCanceladas} parcela(s) futura(s) cancelada(s)",
+                'parcelamento_id' => $parcelamento->id,
+                'parcelas_canceladas' => $parcelasFuturas->count(),
+                'valor_devolvido' => $valorDevolver,
+                'message' => 'Parcelamento cancelado parcialmente com sucesso'
             ];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-            return ['success' => false, 'message' => 'Erro ao cancelar parcelas: ' . $e->getMessage()];
+
+            error_log('[CARTAO] Erro ao cancelar parcelamento: ' . $e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Erro ao cancelar parcelamento'
+            ];
         }
     }
 }
