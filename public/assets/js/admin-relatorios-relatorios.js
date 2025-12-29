@@ -41,6 +41,7 @@
             BALANCE: 'balance',
             COMPARISON: 'comparison',
             ACCOUNTS: 'accounts',
+            CARDS: 'cards',
             EVOLUTION: 'evolution',
             ANNUAL_SUMMARY: 'annual_summary',
             ANNUAL_CATEGORY: 'annual_category'
@@ -286,6 +287,85 @@
             }
         },
 
+        async fetchSummaryStats() {
+            const [year, month] = state.currentMonth.split('-');
+            try {
+                const response = await fetch(
+                    `${CONFIG.BASE_URL}api/reports/summary?year=${year}&month=${month}`,
+                    {
+                        credentials: 'include',
+                        headers: { 'Accept': 'application/json' }
+                    }
+                );
+
+                if (await handleRestrictedAccess(response)) {
+                    return {
+                        totalReceitas: 0,
+                        totalDespesas: 0,
+                        saldo: 0,
+                        totalCartoes: 0
+                    };
+                }
+
+                if (!response.ok) throw new Error('Failed to fetch summary stats');
+
+                const json = await response.json();
+                return json.data || json;
+            } catch (error) {
+                console.error('Error fetching summary stats:', error);
+                return {
+                    totalReceitas: 0,
+                    totalDespesas: 0,
+                    saldo: 0,
+                    totalCartoes: 0
+                };
+            }
+        },
+
+        async fetchInsights() {
+            const [year, month] = state.currentMonth.split('-');
+            try {
+                const response = await fetch(
+                    `${CONFIG.BASE_URL}api/reports/insights?year=${year}&month=${month}`,
+                    {
+                        credentials: 'include',
+                        headers: { 'Accept': 'application/json' }
+                    }
+                );
+
+                if (await handleRestrictedAccess(response)) return { insights: [] };
+                if (!response.ok) throw new Error('Failed to fetch insights');
+
+                const json = await response.json();
+                return json.data || json;
+            } catch (error) {
+                console.error('Error fetching insights:', error);
+                return { insights: [] };
+            }
+        },
+
+        async fetchComparatives() {
+            const [year, month] = state.currentMonth.split('-');
+            try {
+                const response = await fetch(
+                    `${CONFIG.BASE_URL}api/reports/comparatives?year=${year}&month=${month}`,
+                    {
+                        credentials: 'include',
+                        headers: { 'Accept': 'application/json' }
+                    }
+                );
+
+                if (await handleRestrictedAccess(response)) return null;
+                if (!response.ok) throw new Error('Failed to fetch comparatives');
+
+                const json = await response.json();
+                return json.data || json;
+            } catch (error) {
+                console.error('Error fetching comparatives:', error);
+                return null;
+            }
+        },
+
         getReportType() {
             const typeMap = {
                 [CONFIG.VIEWS.CATEGORY]: state.categoryType,
@@ -293,6 +373,7 @@
                 [CONFIG.VIEWS.BALANCE]: 'saldo_mensal',
                 [CONFIG.VIEWS.COMPARISON]: 'receitas_despesas_diario',
                 [CONFIG.VIEWS.ACCOUNTS]: 'receitas_despesas_por_conta',
+                [CONFIG.VIEWS.CARDS]: 'cartoes_credito',
                 [CONFIG.VIEWS.EVOLUTION]: 'evolucao_12m',
                 [CONFIG.VIEWS.ANNUAL_SUMMARY]: 'resumo_anual'
             };
@@ -794,6 +875,9 @@
     async function renderReport() {
         showLoading();
 
+        // Atualizar cards de resumo
+        updateSummaryCards();
+
         const data = await fetchReportData();
 
         if (state.accessRestricted) {
@@ -818,9 +902,237 @@
             case CONFIG.VIEWS.ANNUAL_SUMMARY:
                 renderBarChart(data);
                 break;
+            case CONFIG.VIEWS.CARDS:
+                renderCardsReport(data);
+                break;
             default:
                 showEmptyState();
         }
+    }
+
+    async function updateSummaryCards() {
+        const stats = await API.fetchSummaryStats();
+        
+        const totalReceitasEl = document.getElementById('totalReceitas');
+        const totalDespesasEl = document.getElementById('totalDespesas');
+        const saldoMesEl = document.getElementById('saldoMes');
+        const totalCartoesEl = document.getElementById('totalCartoes');
+
+        if (totalReceitasEl) {
+            totalReceitasEl.textContent = formatCurrency(stats.totalReceitas || 0);
+        }
+        if (totalDespesasEl) {
+            totalDespesasEl.textContent = formatCurrency(stats.totalDespesas || 0);
+        }
+        if (saldoMesEl) {
+            const saldo = stats.saldo || 0;
+            saldoMesEl.textContent = formatCurrency(saldo);
+            saldoMesEl.style.color = saldo >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+        }
+        if (totalCartoesEl) {
+            totalCartoesEl.textContent = formatCurrency(stats.totalCartoes || 0);
+        }
+
+        // Atualizar insights se existir na página
+        await updateInsightsSection();
+        
+        // Atualizar comparativos se existir na página
+        await updateComparativesSection();
+    }
+
+    async function updateInsightsSection() {
+        const insightsContainer = document.getElementById('insightsContainer');
+        if (!insightsContainer) return;
+
+        const data = await API.fetchInsights();
+        if (!data || !data.insights || data.insights.length === 0) {
+            insightsContainer.innerHTML = '<p class="empty-message">Nenhum insight disponível no momento</p>';
+            return;
+        }
+
+        const insightsHTML = data.insights.map(insight => `
+            <div class="insight-card insight-${insight.type}">
+                <div class="insight-icon">
+                    <i class="fas fa-${insight.icon}"></i>
+                </div>
+                <div class="insight-content">
+                    <h4>${escapeHtml(insight.title)}</h4>
+                    <p>${escapeHtml(insight.message)}</p>
+                </div>
+            </div>
+        `).join('');
+
+        insightsContainer.innerHTML = insightsHTML;
+    }
+
+    async function updateComparativesSection() {
+        const comparativesContainer = document.getElementById('comparativesContainer');
+        if (!comparativesContainer) return;
+
+        const data = await API.fetchComparatives();
+        if (!data) {
+            comparativesContainer.innerHTML = '<p class="empty-message">Dados de comparação não disponíveis</p>';
+            return;
+        }
+
+        const monthlyHTML = renderComparative('Comparativo Mensal', data.monthly, 'mês anterior');
+        const yearlyHTML = renderComparative('Comparativo Anual', data.yearly, 'ano anterior');
+
+        comparativesContainer.innerHTML = monthlyHTML + yearlyHTML;
+    }
+
+    function renderComparative(title, data, period) {
+        const getArrow = (value) => {
+            if (value > 0) return '<i class="fas fa-arrow-up trend-up"></i>';
+            if (value < 0) return '<i class="fas fa-arrow-down trend-down"></i>';
+            return '<i class="fas fa-minus trend-neutral"></i>';
+        };
+
+        const getTrendClass = (value, isDespesa = false) => {
+            // Para despesas, invertemos a lógica: aumento é negativo, redução é positivo
+            if (isDespesa) {
+                if (value > 0) return 'negative';
+                if (value < 0) return 'positive';
+            } else {
+                if (value > 0) return 'positive';
+                if (value < 0) return 'negative';
+            }
+            return 'neutral';
+        };
+
+        return `
+            <div class="comparative-card">
+                <h3>${escapeHtml(title)}</h3>
+                <div class="comparative-grid">
+                    <div class="comparative-item">
+                        <span class="label">Receitas</span>
+                        <div class="values">
+                            <span class="current">${formatCurrency(data.current.receitas)}</span>
+                            <span class="previous">vs ${formatCurrency(data.previous.receitas)}</span>
+                        </div>
+                        <div class="variation ${getTrendClass(data.variation.receitas, false)}">
+                            ${getArrow(data.variation.receitas)}
+                            <span>${Math.abs(data.variation.receitas).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="comparative-item">
+                        <span class="label">Despesas</span>
+                        <div class="values">
+                            <span class="current">${formatCurrency(data.current.despesas)}</span>
+                            <span class="previous">vs ${formatCurrency(data.previous.despesas)}</span>
+                        </div>
+                        <div class="variation ${getTrendClass(data.variation.despesas, true)}">
+                            ${getArrow(data.variation.despesas)}
+                            <span>${Math.abs(data.variation.despesas).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="comparative-item">
+                        <span class="label">Saldo</span>
+                        <div class="values">
+                            <span class="current">${formatCurrency(data.current.saldo)}</span>
+                            <span class="previous">vs ${formatCurrency(data.previous.saldo)}</span>
+                        </div>
+                        <div class="variation ${getTrendClass(data.variation.saldo, false)}">
+                            ${getArrow(data.variation.saldo)}
+                            <span>${Math.abs(data.variation.saldo).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="comparative-note">Comparado com o ${period}</p>
+            </div>
+        `;
+    }
+
+    function renderCardsReport(data) {
+        const reportArea = document.getElementById('reportArea');
+        if (!reportArea) return;
+
+        reportArea.innerHTML = `
+            <div class="cards-report-container">
+                <div class="report-header">
+                    <h2>Relatório de Cartões de Crédito</h2>
+                    <p>Análise detalhada dos gastos por cartão, parcelamentos e impacto futuro</p>
+                </div>
+                <div class="cards-grid">
+                    ${data.cards && data.cards.length > 0 ? data.cards.map(card => `
+                        <div class="card-item ${card.percentual > 80 ? 'card-warning' : ''}">
+                            <div class="card-header-full">
+                                <div class="card-title">
+                                    <i class="fas fa-credit-card card-icon-${card.bandeira || 'outros'}"></i>
+                                    <h3>${escapeHtml(card.nome)}</h3>
+                                </div>
+                                ${card.alertas && card.alertas.length > 0 ? `
+                                    <div class="card-alerts">
+                                        ${card.alertas.map(alert => `
+                                            <span class="alert-badge alert-${alert.type}">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                                ${escapeHtml(alert.message)}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="label">Fatura Atual</span>
+                                    <span class="value value-primary">${formatCurrency(card.fatura_atual || 0)}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Limite Total</span>
+                                    <span class="value">${formatCurrency(card.limite || 0)}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Disponível</span>
+                                    <span class="value value-success">${formatCurrency(card.disponivel || 0)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-usage">
+                                <div class="usage-bar">
+                                    <div class="usage-fill ${card.percentual > 80 ? 'usage-danger' : card.percentual > 50 ? 'usage-warning' : ''}" 
+                                         style="width: ${Math.min(card.percentual || 0, 100)}%"></div>
+                                </div>
+                                <span class="usage-percent">${(card.percentual || 0).toFixed(1)}% utilizado</span>
+                            </div>
+                            
+                            ${card.parcelamentos && card.parcelamentos.ativos > 0 ? `
+                                <div class="card-parcels">
+                                    <div class="parcels-info">
+                                        <i class="fas fa-calendar-days"></i>
+                                        <span>${card.parcelamentos.ativos} parcelamento${card.parcelamentos.ativos > 1 ? 's' : ''} ativo${card.parcelamentos.ativos > 1 ? 's' : ''}</span>
+                                        <span class="parcels-value">${formatCurrency(card.parcelamentos.valor_total)}</span>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${card.proximos_meses && card.proximos_meses.length > 0 ? `
+                                <div class="card-future">
+                                    <h4>Impacto Futuro</h4>
+                                    <div class="future-timeline">
+                                        ${card.proximos_meses.map(mes => `
+                                            <div class="future-item">
+                                                <span class="future-month">${escapeHtml(mes.mes)}</span>
+                                                <span class="future-value">${formatCurrency(mes.valor)}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${card.dia_vencimento ? `
+                                <div class="card-footer">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>Vencimento dia ${card.dia_vencimento}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('') : '<p class="empty-message">Nenhum cartão de crédito encontrado</p>'}
+                </div>
+            </div>
+        `;
     }
 
     // ============================================================================

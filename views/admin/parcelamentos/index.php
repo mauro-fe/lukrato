@@ -3,15 +3,10 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/parcelamentos-modern.css">
 
 <section class="parc-page">
-    <!-- ==================== HEADER MODERNIZADO ==================== -->
+
+    <!-- ==================== HEADER COM SELETOR DE MÊS ==================== -->
     <div class="parc-header-modern">
-        <div class="page-title-section" data-aos="fade-down">
-            <h1 class="page-title">
-                <i class="fas fa-credit-card"></i>
-                Parcelamentos
-            </h1>
-            <p class="page-subtitle">Visualize e gerencie suas compras e receitas parceladas</p>
-        </div>
+        <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
     </div>
 
     <!-- ==================== FILTROS ==================== -->
@@ -99,8 +94,8 @@
                 <!-- Conteúdo carregado dinamicamente -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Fechar
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                    <i class="fas fa-check"></i> Salvar
                 </button>
             </div>
         </div>
@@ -110,4 +105,7 @@
 <!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    window.BASE_URL = '<?= BASE_URL ?>';
+</script>
 <script src="<?= BASE_URL ?>assets/js/admin-parcelamentos.js"></script>

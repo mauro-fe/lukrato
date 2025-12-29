@@ -63,7 +63,7 @@ Router::add('GET', '/admin/dashboard', function () {
 });
 
 Router::add('GET', '/admin/home', function () {
-    if (isset($_SESSION['usuario_id']) || isset($_SESSION['admin_username'])) {
+    if (isset($_SESSION['user_id']) || isset($_SESSION['admin_username'])) {
         header('Location: ' . BASE_URL . 'dashboard');
     } else {
         session_destroy();

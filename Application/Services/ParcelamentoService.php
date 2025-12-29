@@ -53,7 +53,7 @@ class ParcelamentoService
 
             // Preparar dados do parcelamento
             $dadosParcelamento = [
-                'usuario_id' => $usuarioId,
+                'user_id' => $usuarioId,
                 'descricao' => $data['descricao'] ?? 'Parcelamento',
                 'valor_total' => $valorTotal,
                 'numero_parcelas' => $numeroParcelas,
@@ -95,7 +95,7 @@ class ParcelamentoService
             DB::beginTransaction();
 
             $parcelamento = Parcelamento::where('id', $parcelamentoId)
-                ->where('usuario_id', $usuarioId)
+                ->where('user_id', $usuarioId)
                 ->first();
 
             if (!$parcelamento) {
@@ -178,14 +178,27 @@ class ParcelamentoService
     /**
      * Lista parcelamentos de um usuário
      */
-    public function listar(int $usuarioId, ?string $status = null): array
+    public function listar(int $usuarioId, ?string $status = null, ?int $mes = null, ?int $ano = null): array
     {
         try {
+            $query = Parcelamento::where('user_id', $usuarioId);
+
+            // Filtro por status
             if ($status) {
-                $parcelamentos = $this->repository->findByStatus($usuarioId, $status);
-            } else {
-                $parcelamentos = $this->repository->findByUsuario($usuarioId);
+                $query->where('status', $status);
             }
+
+            // Filtro por mês e ano baseado na data_criacao
+            if ($mes && $ano) {
+                $query->whereYear('data_criacao', $ano)
+                    ->whereMonth('data_criacao', $mes);
+            }
+
+            $parcelamentos = $query->with(['lancamentos' => function ($query) {
+                $query->orderBy('data', 'asc');
+            }])
+                ->orderBy('data_criacao', 'desc')
+                ->get();
 
             return [
                 'success' => true,
@@ -208,7 +221,7 @@ class ParcelamentoService
     {
         try {
             $parcelamento = Parcelamento::where('id', $parcelamentoId)
-                ->where('usuario_id', $usuarioId)
+                ->where('user_id', $usuarioId)
                 ->with(['lancamentos', 'categoria', 'conta'])
                 ->first();
 

@@ -193,9 +193,16 @@ class ContasManager {
             });
 
             const response = await fetch(`${this.baseUrl}/contas?${params}`);
-            if (!response.ok) throw new Error('Erro ao carregar contas');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta:', errorText);
+                throw new Error(`Erro ao carregar contas: ${response.status}`);
+            }
 
-            this.contas = await response.json();
+            const data = await response.json();
+            
+            // A resposta pode ser um array direto ou um objeto com data
+            this.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
 
             console.log('=== CONTAS CARREGADAS ===');
             console.log('Total:', this.contas.length);

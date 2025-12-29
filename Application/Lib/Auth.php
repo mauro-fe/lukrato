@@ -24,7 +24,7 @@ class Auth
 
     public static function isLoggedIn(): bool
     {
-        $new = (isset($_SESSION['usuario_logged_in']) && $_SESSION['usuario_logged_in'] === true && isset($_SESSION['usuario_id']));
+        $new = (isset($_SESSION['usuario_logged_in']) && $_SESSION['usuario_logged_in'] === true && isset($_SESSION['user_id']));
         $old = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true && isset($_SESSION['admin_id']));
         return $new || $old;
     }
@@ -58,8 +58,8 @@ class Auth
     }
     public static function id(): ?int
     {
-        if (isset($_SESSION['usuario_id'])) {
-            return (int) $_SESSION['usuario_id'];
+        if (isset($_SESSION['user_id'])) {
+            return (int) $_SESSION['user_id'];
         }
         if (isset($_SESSION['admin_id'])) {
             return (int) $_SESSION['admin_id'];
@@ -81,7 +81,7 @@ class Auth
     public static function login(Usuario $usuario): void
     {
         $_SESSION['usuario_logged_in'] = true;
-        $_SESSION['usuario_id']        = $usuario->id;
+        $_SESSION['user_id']        = $usuario->id;
         $_SESSION['usuario_nome']      = (string) ($usuario->nome ?? '');
         $_SESSION['login_time']        = time();
         $_SESSION['last_activity']     = time();

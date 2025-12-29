@@ -29,7 +29,7 @@ class ParcelamentoRepository extends BaseRepository
     public function findByUsuario(int $usuarioId): Collection
     {
         return $this->query()
-            ->where('usuario_id', $usuarioId)
+            ->where('user_id', $usuarioId)
             ->with(['categoria', 'conta', 'lancamentos'])
             ->orderBy('data_criacao', 'desc')
             ->get();
@@ -44,7 +44,7 @@ class ParcelamentoRepository extends BaseRepository
     public function findAtivos(int $usuarioId): Collection
     {
         return $this->query()
-            ->where('usuario_id', $usuarioId)
+            ->where('user_id', $usuarioId)
             ->where('status', Parcelamento::STATUS_ATIVO)
             ->with(['categoria', 'conta'])
             ->orderBy('data_criacao', 'desc')
@@ -61,7 +61,7 @@ class ParcelamentoRepository extends BaseRepository
     public function findByStatus(int $usuarioId, string $status): Collection
     {
         return $this->query()
-            ->where('usuario_id', $usuarioId)
+            ->where('user_id', $usuarioId)
             ->where('status', $status)
             ->with(['categoria', 'conta'])
             ->orderBy('data_criacao', 'desc')
@@ -100,7 +100,7 @@ class ParcelamentoRepository extends BaseRepository
             $dataVencimento->modify('+' . ($i - 1) . ' month');
 
             $parcelamento->lancamentos()->create([
-                'user_id' => $data['usuario_id'],
+                'user_id' => $data['user_id'],
                 'tipo' => $data['tipo'] === 'entrada' ? 'receita' : 'despesa',
                 'data' => $dataVencimento->format('Y-m-d'),
                 'categoria_id' => $data['categoria_id'],

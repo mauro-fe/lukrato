@@ -89,7 +89,8 @@
         editingLancamentoId: null,
         categoriaOptions: [],
         contaOptions: [],
-        loadTimer: null
+        loadTimer: null,
+        lancamentos: [] // Armazena dados originais para agrupamento
     };
 
     // ============================================================================
@@ -638,7 +639,8 @@
                 responsive: 5,
                 cellClick: (e, cell) => {
                     const data = cell.getRow().getData();
-                    if (Utils.isSaldoInicial(data)) {
+                    // Não permitir seleção de grupos ou saldo inicial
+                    if (data._isParcelamentoGroup || Utils.isSaldoInicial(data)) {
                         e.preventDefault();
                         cell.getRow().deselect();
                     }
@@ -755,6 +757,11 @@
                 minWidth: 180,
                 responsive: 3,
                 mutator: (value, data) => {
+                    // Se é grupo de parcelamento, usar descrição do grupo
+                    if (data._isParcelamentoGroup) {
+                        return data.descricao;
+                    }
+
                     let raw = value ??
                         data?.descricao ??
                         data?.descricao_titulo ??
@@ -765,7 +772,39 @@
                     }
                     return raw ? String(raw).trim() : '';
                 },
-                formatter: (cell) => cell.getValue() || '-',
+                formatter: (cell) => {
+                    const data = cell.getRow().getData();
+                    
+                    // Renderizar grupos de parcelamento
+                    if (data._isParcelamentoGroup) {
+                        const totalParcelas = data._parcelas.length;
+                        const parcelasPagas = data._parcelas.filter(p => p.pago).length;
+                        const valorTotal = data._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                        const valorParcela = valorTotal / totalParcelas;
+                        const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
+
+                        return `
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
+                                        data-parcelamento-id="${data.id.replace('grupo_', '')}"
+                                        title="Ver parcelas">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                <div>
+                                    <div class="fw-bold">
+                                        📦 ${Utils.escapeHtml(cell.getValue())}
+                                    </div>
+                                    <small class="text-muted">
+                                        ${totalParcelas}x de R$ ${valorParcela.toFixed(2)} 
+                                        · ${parcelasPagas}/${totalParcelas} pagas (${Math.round(percentual)}%)
+                                    </small>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    return cell.getValue() || '-';
+                },
                 headerFilterFunc: (headerValue, rowValue) => {
                     const needle = Utils.normalizeText(headerValue);
                     if (!needle) return true;
@@ -782,8 +821,34 @@
                 width: 150,
                 minWidth: 90,
                 responsive: 0,
+                mutator: (value, data) => {
+                    // Se é grupo, calcular valor total
+                    if (data._isParcelamentoGroup && data._parcelas) {
+                        return data._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                    }
+                    return value;
+                },
                 formatter: (cell) => {
-                    const tipoClass = Utils.getTipoClass(cell.getRow()?.getData()?.tipo);
+                    const data = cell.getRow().getData();
+                    const tipoClass = Utils.getTipoClass(data?.tipo);
+                    
+                    // Se é grupo, mostrar com barra de progresso
+                    if (data._isParcelamentoGroup) {
+                        const totalParcelas = data._parcelas.length;
+                        const parcelasPagas = data._parcelas.filter(p => p.pago).length;
+                        const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
+                        
+                        return `
+                            <div>
+                                <div class="fw-bold ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</div>
+                                <div class="progress mt-1" style="height: 4px;">
+                                    <div class="progress-bar bg-${data.tipo === 'receita' ? 'success' : 'danger'}" 
+                                         style="width: ${percentual}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
                     return `<span class="valor-cell ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</span>`;
                 },
                 headerFilterFunc: (headerValue, rowValue) => {
@@ -809,6 +874,34 @@
                     const data = cell.getRow().getData();
                     if (Utils.isSaldoInicial(data)) return '';
 
+                    // Se é grupo de parcelamento
+                    if (data._isParcelamentoGroup) {
+                        return `
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item toggle-parcelas-menu" 
+                                           href="#" 
+                                           data-parcelamento-id="${data.id.replace('grupo_', '')}">
+                                            <i class="fas fa-list"></i> Ver Parcelas
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-parcelamento" 
+                                           href="#" 
+                                           data-parcelamento-id="${data.id.replace('grupo_', '')}">
+                                            <i class="fas fa-trash"></i> Cancelar Parcelamento
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        `;
+                    }
+
                     const buttons = [];
                     if (Utils.canEditLancamento(data)) {
                         buttons.push('<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>');
@@ -820,6 +913,12 @@
                 cellClick: async (e, cell) => {
                     const row = cell.getRow();
                     const data = row.getData();
+                    
+                    // Se é grupo, não processar clicks normais
+                    if (data._isParcelamentoGroup) {
+                        return;
+                    }
+
                     const btn = e.target.closest('button[data-action]');
                     if (!btn) return;
 
@@ -973,7 +1072,11 @@
             const grid = TableManager.ensureTable();
             if (!grid) return;
             await TableManager.waitForTableReady(grid);
-            grid.setData(Array.isArray(items) ? items : []);
+            
+            // AGRUPAR PARCELAMENTOS
+            const processedItems = Array.isArray(items) ? ParcelamentoGrouper.processForTable(items) : [];
+            
+            grid.setData(processedItems);
             TableManager.updateSelectionInfo();
         },
 
@@ -1676,6 +1779,9 @@
                     limit: CONFIG.DATA_LIMIT
                 });
 
+                // Armazenar no STATE para uso do ParcelamentoGrouper
+                STATE.lancamentos = items;
+
                 await TableManager.renderRows(items);
                 MobileCards.setItems(items);
             }, CONFIG.DEBOUNCE_DELAY);
@@ -1767,11 +1873,367 @@
     };
 
     // ============================================================================
+    // AGRUPAMENTO DE PARCELAMENTOS
+    // ============================================================================
+
+    const ParcelamentoGrouper = {
+        /**
+         * Processa itens para a tabela (agrupa parcelamentos)
+         */
+        processForTable(items) {
+            const { agrupados, simples } = this.agrupar(items);
+            
+            // Retornar simples + grupos marcados
+            return [
+                ...simples,
+                ...agrupados.map(g => ({
+                    ...g,
+                    _isParcelamentoGroup: true,
+                    _parcelas: g.parcelas,
+                    // Para compatibilidade com Tabulator
+                    id: `grupo_${g.id}`,
+                    data: g.parcelas[0].data,
+                    pago: false
+                }))
+            ];
+        },
+
+        /**
+         * Interceptar renderização para agrupar parcelas
+         */
+        installInterceptor() {
+            // Não precisamos mais interceptar, processamos direto no renderRows
+        },
+
+        /**
+         * Agrupa itens por parcelamento_id
+         */
+        agrupar(items) {
+            const grupos = {};
+            const simples = [];
+
+            items.forEach(item => {
+                if (item.parcelamento_id) {
+                    if (!grupos[item.parcelamento_id]) {
+                        grupos[item.parcelamento_id] = {
+                            id: item.parcelamento_id,
+                            descricao: item.descricao.replace(/ \(\d+\/\d+\)$/, ''),
+                            tipo: item.tipo,
+                            categoria: item.categoria,
+                            conta: item.conta,
+                            cartao_credito: item.cartao_credito,
+                            parcelas: []
+                        };
+                    }
+                    grupos[item.parcelamento_id].parcelas.push(item);
+                } else {
+                    simples.push(item);
+                }
+            });
+
+            return {
+                agrupados: Object.values(grupos),
+                simples
+            };
+        },
+
+        /**
+         * Cria row visual de parcelamento
+         */
+        createRow(grupo) {
+            const totalParcelas = grupo.parcelas.length;
+            const parcelasPagas = grupo.parcelas.filter(p => p.pago).length;
+            const valorTotal = grupo.parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+            const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
+            
+            const primeira = grupo.parcelas[0];
+            const tipoClass = primeira.tipo === 'receita' ? 'success' : 'danger';
+            const tipoIcon = primeira.tipo === 'receita' ? '↑' : '↓';
+
+            const tr = document.createElement('tr');
+            tr.className = 'parcelamento-grupo bg-light';
+            tr.dataset.parcelamentoId = grupo.id;
+
+            tr.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
+                                data-parcelamento-id="${grupo.id}"
+                                title="Ver parcelas">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <div>
+                            <div class="fw-bold">
+                                📦 ${grupo.descricao}
+                            </div>
+                            <small class="text-muted">
+                                ${totalParcelas}x de R$ ${(valorTotal / totalParcelas).toFixed(2)}
+                            </small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-${tipoClass}">
+                        ${tipoIcon} ${primeira.tipo}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-secondary">${primeira.categoria || '-'}</span>
+                </td>
+                <td>
+                    ${primeira.conta || primeira.cartao_credito || '-'}
+                </td>
+                <td class="text-end">
+                    <div class="fw-bold">R$ ${valorTotal.toFixed(2)}</div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar bg-${tipoClass}" 
+                             role="progressbar"
+                             style="width: ${percentual}%"></div>
+                    </div>
+                    <small class="text-muted">
+                        ${parcelasPagas}/${totalParcelas} pagas (${Math.round(percentual)}%)
+                    </small>
+                </td>
+                <td class="text-center">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item toggle-parcelas-menu" 
+                                   href="#" 
+                                   data-parcelamento-id="${grupo.id}">
+                                    <i class="fas fa-list"></i> Ver Parcelas
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger delete-parcelamento" 
+                                   href="#" 
+                                   data-parcelamento-id="${grupo.id}">
+                                    <i class="fas fa-trash"></i> Cancelar Parcelamento
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+            `;
+
+            return tr;
+        },
+
+        /**
+         * Toggle parcelas (expandir/colapsar)
+         */
+        toggle(parcelamentoId) {
+            const grupoRow = document.querySelector(`tr[data-parcelamento-id="${parcelamentoId}"]`);
+            if (!grupoRow) return;
+
+            const icon = grupoRow.querySelector('.toggle-parcelas i');
+            const existingDetails = grupoRow.nextElementSibling;
+
+            // Se já está expandido, colapsar
+            if (existingDetails?.classList.contains('parcelas-detalhes')) {
+                existingDetails.remove();
+                icon.className = 'fas fa-chevron-right';
+                return;
+            }
+
+            // Expandir - buscar parcelas do STATE
+            const data = STATE.lancamentos || [];
+            const parcelas = data.filter(item => item.parcelamento_id == parcelamentoId)
+                                  .sort((a, b) => new Date(a.data) - new Date(b.data));
+
+            if (parcelas.length === 0) return;
+
+            // Criar row com detalhes
+            const detailsRow = document.createElement('tr');
+            detailsRow.className = 'parcelas-detalhes';
+            detailsRow.innerHTML = `
+                <td colspan="6" class="p-0 border-0">
+                    <div class="bg-white p-3 border-start border-end border-bottom">
+                        <h6 class="mb-3">📋 Parcelas:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Parcela</th>
+                                        <th>Data</th>
+                                        <th class="text-end">Valor</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${parcelas.map((parcela, idx) => `
+                                        <tr>
+                                            <td>${parcela.numero_parcela || (idx + 1)}/${parcelas.length}</td>
+                                            <td>${Utils.fmtDate(parcela.data)}</td>
+                                            <td class="text-end fw-bold">${Utils.fmtMoney(parcela.valor)}</td>
+                                            <td class="text-center">
+                                                ${parcela.pago 
+                                                    ? '<span class="badge bg-success">✓ Pago</span>' 
+                                                    : '<span class="badge bg-warning">⏳ Pendente</span>'}
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm ${parcela.pago ? 'btn-warning' : 'btn-success'} toggle-pago-parcela"
+                                                        data-lancamento-id="${parcela.id}"
+                                                        data-pago="${!parcela.pago}"
+                                                        title="${parcela.pago ? 'Marcar como não pago' : 'Marcar como pago'}">
+                                                    <i class="fas ${parcela.pago ? 'fa-times' : 'fa-check'}"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-primary edit-lancamento"
+                                                        data-lancamento-id="${parcela.id}"
+                                                        title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            grupoRow.after(detailsRow);
+            icon.className = 'fas fa-chevron-down';
+        },
+
+        /**
+         * Marca/desmarca parcela como paga
+         */
+        async togglePago(lancamentoId, pago) {
+            try {
+                const response = await fetch(`${CONFIG.ENDPOINT}/${lancamentoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({ pago: pago })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    await DataManager.load();
+                } else {
+                    throw new Error(data.message || 'Erro ao atualizar status');
+                }
+            } catch (error) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message
+                });
+            }
+        },
+
+        /**
+         * Deleta parcelamento inteiro (CASCADE)
+         */
+        async deletar(parcelamentoId) {
+            const result = await Swal.fire({
+                title: 'Cancelar Parcelamento?',
+                html: '<p>Isso irá <strong>deletar todas as parcelas</strong> deste parcelamento!</p>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, cancelar!',
+                cancelButtonText: 'Não'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Cancelado!',
+                            text: data.message || 'Parcelamento cancelado com sucesso',
+                            timer: 2000
+                        });
+                        await DataManager.load();
+                    } else {
+                        throw new Error(data.message || 'Erro ao cancelar parcelamento');
+                    }
+                } catch (error) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: error.message
+                    });
+                }
+            }
+        },
+
+        /**
+         * Instala event listeners
+         */
+        installListeners() {
+            document.addEventListener('click', (e) => {
+                // Toggle parcelas
+                if (e.target.closest('.toggle-parcelas') || e.target.closest('.toggle-parcelas-menu')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.toggle-parcelas') || e.target.closest('.toggle-parcelas-menu');
+                    const parcelamentoId = btn.dataset.parcelamentoId;
+                    ParcelamentoGrouper.toggle(parcelamentoId);
+                }
+
+                // Toggle pago/não pago de parcela
+                if (e.target.closest('.toggle-pago-parcela')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.toggle-pago-parcela');
+                    const lancamentoId = btn.dataset.lancamentoId;
+                    const pago = btn.dataset.pago === 'true';
+                    ParcelamentoGrouper.togglePago(lancamentoId, pago);
+                }
+
+                // Editar parcela
+                if (e.target.closest('.edit-lancamento')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.edit-lancamento');
+                    const lancamentoId = btn.dataset.lancamentoId;
+                    // Buscar item completo
+                    const item = STATE.lancamentos.find(l => l.id == lancamentoId);
+                    if (item) {
+                        ModalManager.openEditLancamento(item);
+                    }
+                }
+
+                // Deletar parcelamento
+                if (e.target.closest('.delete-parcelamento')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.delete-parcelamento');
+                    const parcelamentoId = btn.dataset.parcelamentoId;
+                    ParcelamentoGrouper.deletar(parcelamentoId);
+                }
+            });
+        }
+    };
+
+    // ============================================================================
     // INICIALIZAÃ‡ÃƒO
     // ============================================================================
 
     const init = async () => {
         console.log('ðŸš€ Inicializando Sistema de lançamentos...');
+
+        // Instalar sistema de agrupamento de parcelamentos
+        ParcelamentoGrouper.installInterceptor();
+        ParcelamentoGrouper.installListeners();
 
         // Inicializar componentes
         ExportManager.initDefaults();

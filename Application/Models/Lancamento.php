@@ -4,6 +4,19 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model Lancamento - Fonte única da verdade financeira
+ * 
+ * Este model representa TODOS os fatos financeiros do sistema:
+ * - Lançamentos simples (receita/despesa)
+ * - Parcelas de cartão de crédito (cada parcela = 1 lançamento)
+ * - Lançamentos oriundos de agendamentos pagos
+ * 
+ * Relacionamentos:
+ * - parcelamento: opcional, para agrupar parcelas visualmente
+ * - cartaoCredito: opcional, para lançamentos de cartão
+ * - agendamento: opcional, para rastreio de origem
+ */
 class Lancamento extends Model
 {
     protected $table = 'lancamentos';
@@ -47,32 +60,20 @@ class Lancamento extends Model
         'valor'             => 'float',
         'eh_transferencia'  => 'bool',
         'eh_saldo_inicial'  => 'bool',
+        'cartao_credito_id' => 'int',
+        'eh_parcelado'      => 'bool',
+        'parcela_atual'     => 'int',
+        'total_parcelas'    => 'int',
+        'lancamento_pai_id' => 'int',
+        'pago'              => 'bool',
         'parcelamento_id'   => 'int',
         'numero_parcela'    => 'int',
     ];
 
-    public function categoria()
-    {
-        return $this->belongsTo(Categoria::class, 'categoria_id');
-    }
-
-    public function conta()
-    {
-        return $this->belongsTo(Conta::class, 'conta_id');
-    }
-
-    public function contaDestino()
-    {
-        return $this->belongsTo(Conta::class, 'conta_id_destino');
-    }
-
-    public function usuario()
-    {
-        return $this->belongsTo(Usuario::class, 'user_id');
-    }
 
     /**
-     * Relacionamento com o parcelamento
+     * Relacionamento com Parcelamento (opcional - apenas para agrupamento)
+     * Um lançamento PODE pertencer a um parcelamento (cabeçalho)
      */
     public function parcelamento()
     {
@@ -80,12 +81,64 @@ class Lancamento extends Model
     }
 
     /**
-     * Verifica se é uma parcela de um parcelamento
+     * Relacionamento com Cartão de Crédito (opcional)
+     * Um lançamento PODE estar vinculado a um cartão de crédito
      */
-    public function isParcela()
+    public function cartaoCredito()
     {
-        return !is_null($this->parcelamento_id);
+        return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
     }
+
+    /**
+     * Relacionamento com Usuário (obrigatório)
+     */
+    public function usuario()
+    {
+        return $this->belongsTo(Usuario::class, 'user_id');
+    }
+
+    /**
+     * Relacionamento com Categoria (opcional)
+     */
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class, 'categoria_id');
+    }
+
+    /**
+     * Relacionamento com Conta (opcional)
+     */
+    public function conta()
+    {
+        return $this->belongsTo(Conta::class, 'conta_id');
+    }
+
+    /**
+     * Verifica se este lançamento é uma parcela (possui parcelamento_id)
+     */
+    public function isParcela(): bool
+    {
+        return !empty($this->parcelamento_id);
+    }
+
+    /**
+     * Verifica se este lançamento é de cartão de crédito
+     */
+    public function isCartaoCredito(): bool
+    {
+        return !empty($this->cartao_credito_id);
+    }
+
+
+
+    public function contaDestino()
+    {
+        return $this->belongsTo(Conta::class, 'conta_id_destino');
+    }
+
+
+
+
 
     public function scopeForUser($q, int $userId)
     {

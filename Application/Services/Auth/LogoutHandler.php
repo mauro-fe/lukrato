@@ -23,7 +23,7 @@ class LogoutHandler
 
         if ($id) {
             LogService::info('Logout realizado', [
-                'usuario_id' => $id,
+                'user_id' => $id,
                 'ip' => (new Request())->ip()
             ]);
         }

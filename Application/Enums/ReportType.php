@@ -16,6 +16,7 @@ enum ReportType: string
     case EVOLUCAO_12M = 'evolucao_12m';
     case RECEITAS_DESPESAS_POR_CONTA = 'receitas_despesas_por_conta';
     case RESUMO_ANUAL = 'resumo_anual';
+    case CARTOES_CREDITO = 'cartoes_credito';
 
     public static function fromShorthand(string $shorthand): self
     {
@@ -41,7 +42,7 @@ enum ReportType: string
         ];
 
         $normalized = strtolower(trim($shorthand));
-        
+
         if (isset($map[$normalized])) {
             return $map[$normalized];
         }

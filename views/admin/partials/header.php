@@ -276,7 +276,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Parcelamentos -->
             <a href="<?= BASE_URL ?>parcelamentos" class="nav-item <?= $active('parcelamentos') ?>"
                 <?= $aria('parcelamentos') ?> title="Parcelamentos">
-                <i class="fas fa-exchange-alt"></i>
+                <i class="fa-solid fa-layer-group"></i>
+
                 <span>Parcelamentos</span>
             </a>
 

@@ -44,11 +44,14 @@ Router::add('GET', '/api/options',                'Api\\FinanceiroController@opt
 // RELATÓRIOS
 // ============================================
 
-Router::add('GET', '/api/reports',            'Api\\RelatoriosController@index',      ['auth']);
-Router::add('GET', '/api/reports/overview',   'Api\\RelatoriosController@overview',   ['auth']);
-Router::add('GET', '/api/reports/table',      'Api\\RelatoriosController@table',      ['auth']);
-Router::add('GET', '/api/reports/timeseries', 'Api\\RelatoriosController@timeseries', ['auth']);
-Router::add('GET', '/api/reports/export',     'Api\\RelatoriosController@export',     ['auth']);
+Router::add('GET', '/api/reports',             'Api\\RelatoriosController@index',        ['auth']);
+Router::add('GET', '/api/reports/overview',    'Api\\RelatoriosController@overview',     ['auth']);
+Router::add('GET', '/api/reports/table',       'Api\\RelatoriosController@table',        ['auth']);
+Router::add('GET', '/api/reports/timeseries',  'Api\\RelatoriosController@timeseries',   ['auth']);
+Router::add('GET', '/api/reports/summary',     'Api\\RelatoriosController@summary',      ['auth']);
+Router::add('GET', '/api/reports/insights',    'Api\\RelatoriosController@insights',     ['auth']);
+Router::add('GET', '/api/reports/comparatives', 'Api\\RelatoriosController@comparatives', ['auth']);
+Router::add('GET', '/api/reports/export',      'Api\\RelatoriosController@export',       ['auth']);
 
 // ============================================
 // LANÇAMENTOS (REST)
@@ -182,7 +185,7 @@ Router::add('GET',    '/api/parcelamentos',              'Api\\ParcelamentosCont
 Router::add('POST',   '/api/parcelamentos',              'Api\\ParcelamentosController@store',       ['auth', 'csrf']);
 Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@show',        ['auth']);
 Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@destroy',     ['auth', 'csrf']);
-Router::add('PUT',    '/api/parcelamentos/parcelas/{id}/pagar', 'Api\\ParcelamentosController@marcarPaga', ['auth', 'csrf']);
+Router::add('PUT',    '/api/parcelamentos/parcelas/{id}/pagar', 'Api\\ParcelamentosController@marcarParcelaPaga', ['auth', 'csrf']);
 
 // Rota alternativa para lançamentos parcelados (compatibilidade)
 Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\ParcelamentosController@store',       ['auth', 'csrf']);

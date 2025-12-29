@@ -361,7 +361,7 @@ function redirectToUserDashboard(): void
 
 {
 
-    if (isset($_SESSION['usuario_id']) || isset($_SESSION['admin_username'])) {
+    if (isset($_SESSION['user_id']) || isset($_SESSION['admin_username'])) {
 
         header('Location: ' . BASE_URL . 'dashboard');
     } else {

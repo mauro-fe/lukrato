@@ -198,7 +198,7 @@ if (tipo_selecionado === "cartao_credito") {
 ```sql
 -- Lançamento Pai (não conta no saldo)
 INSERT INTO lancamentos (
-    usuario_id, tipo, categoria_id, conta_id, cartao_credito_id,
+    user_id, tipo, categoria_id, conta_id, cartao_credito_id,
     valor, data, descricao, eh_parcelado, total_parcelas
 ) VALUES (
     1, 'despesa', 10, NULL, 5,
@@ -207,7 +207,7 @@ INSERT INTO lancamentos (
 
 -- Parcelas (cada uma conta no mês correspondente)
 INSERT INTO lancamentos (
-    usuario_id, tipo, categoria_id, conta_id, cartao_credito_id,
+    user_id, tipo, categoria_id, conta_id, cartao_credito_id,
     valor, data, descricao, eh_parcelado, parcela_atual, total_parcelas, lancamento_pai_id
 ) VALUES
 (1, 'despesa', 10, NULL, 5, 100.00, '2025-01-10', 'Notebook Dell (1/12)', true, 1, 12, 100),

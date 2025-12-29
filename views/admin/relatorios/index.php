@@ -1,14 +1,99 @@
 <!-- Relatórios View -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/relatorios-modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-relatorios-relatorios.css">
 
 <div class="rel-page">
-    <!-- ==================== HEADER COM TÍTULO ==================== -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="fas fa-chart-line"></i>
-            <span>Relatórios</span>
-        </h1>
-        <p class="page-subtitle">Análise detalhada das suas finanças</p>
+
+
+    <!-- ==================== NAVEGAÇÃO DE MÊS ==================== -->
+    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+
+    <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->
+    <div class="quick-stats-grid">
+        <div class="stat-card stat-receitas">
+            <div class="stat-icon">
+                <i class="fas fa-arrow-trend-up"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Receitas do Mês</span>
+                <span class="stat-value" id="totalReceitas">R$ 0,00</span>
+                <span class="stat-hint">Total de entradas no período</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-despesas">
+            <div class="stat-icon">
+                <i class="fas fa-arrow-trend-down"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Despesas do Mês</span>
+                <span class="stat-value" id="totalDespesas">R$ 0,00</span>
+                <span class="stat-hint">Total de saídas no período</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-saldo">
+            <div class="stat-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Saldo do Mês</span>
+                <span class="stat-value" id="saldoMes">R$ 0,00</span>
+                <span class="stat-hint">Receitas menos despesas</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-cartoes">
+            <div class="stat-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Faturas Cartões</span>
+                <span class="stat-value" id="totalCartoes">R$ 0,00</span>
+                <span class="stat-hint">Gastos em cartões de crédito</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== INSIGHTS AUTOMÁTICOS ==================== -->
+    <div class="modern-card insights-card">
+        <div class="card-header">
+            <div class="header-left">
+                <i class="fas fa-lightbulb"></i>
+                <div class="header-text">
+                    <h3>Insights Inteligentes</h3>
+                    <p>Análise automática dos seus dados financeiros</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="insightsContainer" class="insights-grid">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Analisando seus dados...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== COMPARATIVOS ==================== -->
+    <div class="modern-card comparatives-card">
+        <div class="card-header">
+            <div class="header-left">
+                <i class="fas fa-chart-line"></i>
+                <div class="header-text">
+                    <h3>Comparativos</h3>
+                    <p>Análise de evolução temporal</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="comparativesContainer" class="comparatives-container">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Carregando comparativos...</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ==================== CARD DE EXPORTAÇÃO ==================== -->
@@ -37,6 +122,7 @@
                         <option value="receitas_despesas_diario">Receitas x Despesas Diário</option>
                         <option value="evolucao_12m">Evolução 12 Meses</option>
                         <option value="receitas_despesas_por_conta">Receitas x Despesas por Conta</option>
+                        <option value="cartoes_credito">Relatório de Cartões</option>
                         <option value="resumo_anual">Resumo Anual</option>
                         <option value="despesas_anuais_por_categoria">Despesas Anuais por Categoria</option>
                         <option value="receitas_anuais_por_categoria">Receitas Anuais por Categoria</option>
@@ -62,9 +148,6 @@
         </div>
     </div>
 
-    <!-- ==================== NAVEGAÇÃO DE MÊS ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
-
     <!-- ==================== TABS DE VISUALIZAÇÃO ==================== -->
     <div class="modern-card tabs-card">
         <div class="tabs-container" role="tablist">
@@ -86,6 +169,11 @@
             <button class="tab-btn" data-view="accounts" role="tab">
                 <i class="fas fa-wallet"></i>
                 <span>Por Conta</span>
+            </button>
+
+            <button class="tab-btn" data-view="cards" role="tab">
+                <i class="fas fa-credit-card"></i>
+                <span>Cartões de Crédito</span>
             </button>
 
             <button class="tab-btn" data-view="evolution" role="tab">

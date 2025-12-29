@@ -7,7 +7,7 @@ return new class {
     {
         DB::schema()->create('parcelamentos', function ($table) {
             $table->id();
-            $table->unsignedInteger('usuario_id');
+            $table->unsignedInteger('user_id');
             $table->string('descricao');
             $table->decimal('valor_total', 10, 2);
             $table->integer('numero_parcelas');

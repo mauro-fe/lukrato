@@ -15,9 +15,9 @@ class SessionManager implements SessionManagerInterface
         Auth::login($user);
         session_regenerate_id(true);
 
-        $_SESSION['usuario_id'] = (int) $user->id;
+        $_SESSION['user_id'] = (int) $user->id;
         $_SESSION['usuario_nome'] = (string) ($user->nome ?? '');
-        $_SESSION['admin_id'] ??= $_SESSION['usuario_id'];
+        $_SESSION['admin_id'] ??= $_SESSION['user_id'];
         $_SESSION['admin_username'] ??= ($_SESSION['usuario_nome'] ?: 'usuario');
     }
 

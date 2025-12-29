@@ -68,11 +68,11 @@ class CategoriaRepository extends BaseRepository
     public function findByIdAndUserOrFail(int $id, int $userId): Categoria
     {
         $categoria = $this->findByIdAndUser($id, $userId);
-        
+
         if (!$categoria) {
             throw new ModelNotFoundException('Categoria não encontrada');
         }
-        
+
         return $categoria;
     }
 
@@ -198,11 +198,11 @@ class CategoriaRepository extends BaseRepository
     public function findOwnByIdAndUserOrFail(int $id, int $userId): Categoria
     {
         $categoria = $this->findOwnByIdAndUser($id, $userId);
-        
+
         if (!$categoria) {
             throw new ModelNotFoundException('Categoria não encontrada ou não pertence ao usuário');
         }
-        
+
         return $categoria;
     }
 
@@ -231,16 +231,29 @@ class CategoriaRepository extends BaseRepository
      */
     public function hasDuplicate(int $userId, string $nome, string $tipo, ?int $excludeId = null): bool
     {
+        $nomeLower = mb_strtolower($nome);
+
+        error_log("🔍 [DUPLICATE CHECK] UserID={$userId}, Nome='{$nome}', NomeLower='{$nomeLower}', Tipo='{$tipo}', ExcludeId=" . ($excludeId ?? 'null'));
+
         $query = $this->query()
             ->where('user_id', $userId)
-            ->whereRaw('LOWER(nome) = ?', [mb_strtolower($nome)])
+            ->whereRaw('LOWER(nome) = ?', [$nomeLower])
             ->where('tipo', $tipo);
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
 
-        return $query->exists();
+        $exists = $query->exists();
+
+        if ($exists) {
+            $existing = $query->first();
+            error_log("🔍 [DUPLICATE CHECK] Duplicata encontrada! ID={$existing->id}, Nome='{$existing->nome}'");
+        } else {
+            error_log("🔍 [DUPLICATE CHECK] Nenhuma duplicata encontrada");
+        }
+
+        return $exists;
     }
 
     /**

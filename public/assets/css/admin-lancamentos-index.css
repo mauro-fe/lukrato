@@ -2003,3 +2003,105 @@
     color-mix(in srgb, var(--color-primary) 2%, #ffffff)
   ) !important;
 }
+/* ============================================================================
+   GRUPOS DE PARCELAMENTO
+   ============================================================================ */
+
+.parcelamento-grupo {
+  background-color: #f8f9fa !important;
+  border-left: 3px solid var(--color-primary, #007bff) !important;
+}
+
+.parcelamento-grupo:hover {
+  background-color: #e9ecef !important;
+}
+
+.toggle-parcelas {
+  transition: transform 0.2s ease;
+}
+
+.toggle-parcelas i {
+  transition: transform 0.2s ease;
+}
+
+.parcelas-detalhes {
+  background-color: #ffffff;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.parcelas-detalhes td {
+  padding: 0 !important;
+}
+
+.parcelas-detalhes .table {
+  margin-bottom: 0;
+}
+
+.parcelas-detalhes .table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Progress bar customizado */
+.progress {
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+/* Badges para status */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529;
+}
+
+/* Botões de ação dentro das parcelas */
+.parcelas-detalhes .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+[data-theme="dark"] .parcelamento-grupo {
+  background-color: #2b3035 !important;
+  border-left-color: var(--color-primary, #0d6efd) !important;
+}
+
+[data-theme="dark"] .parcelamento-grupo:hover {
+  background-color: #363a3f !important;
+}
+
+[data-theme="dark"] .parcelas-detalhes {
+  background-color: #1e2125;
+}
+
+[data-theme="dark"] .parcelas-detalhes .table tbody tr:hover {
+  background-color: #2b3035;
+}
+
+[data-theme="dark"] .progress {
+  background-color: #363a3f;
+}

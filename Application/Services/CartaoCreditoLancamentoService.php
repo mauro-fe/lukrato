@@ -114,28 +114,20 @@ class CartaoCreditoLancamentoService
 
         $dataCompra = $data['data'] ?? date('Y-m-d');
 
-        // Criar lançamento PAI (histórico, não conta no saldo)
-        $lancamentoPai = Lancamento::create([
+        // Criar PARCELAMENTO (cabeçalho auxiliar)
+        $parcelamento = \Application\Models\Parcelamento::create([
             'user_id' => $userId,
-            'tipo' => 'despesa',
+            'descricao' => $data['descricao'],
+            'valor_total' => $valorTotal,
+            'numero_parcelas' => $totalParcelas,
+            'parcelas_pagas' => 0,
+            'categoria_id' => $data['categoria_id'] ?? null,
             'conta_id' => null,
             'cartao_credito_id' => $cartao->id,
-            'categoria_id' => $data['categoria_id'] ?? null,
-            'valor' => 0, // Valor 0 para não afetar saldo (apenas histórico)
-            'data' => $dataCompra,
-            'descricao' => $data['descricao'] . ' [HISTÓRICO PARCELAMENTO]',
-            'observacao' => ($data['observacao'] ?? '') .
-                "\n📦 Compra parcelada em {$totalParcelas}x no cartão {$cartao->nome_cartao}" .
-                "\n💳 Valor total: R$ " . number_format($valorTotal, 2, ',', '.') .
-                "\n📊 Parcelas: {$totalParcelas}x de R$ " . number_format($valorParcela, 2, ',', '.') .
-                "\n⚠️ Este é apenas um registro histórico. As parcelas são lançadas separadamente.",
-            'eh_parcelado' => true,
-            'parcela_atual' => null, // Pai não tem parcela_atual
-            'total_parcelas' => $totalParcelas,
-            'lancamento_pai_id' => null,
+            'tipo' => 'saida',
+            'status' => 'ativo',
+            'data_criacao' => $dataCompra,
         ]);
-
-        $lancamentos[] = $lancamentoPai;
 
         // Criar cada parcela
         for ($i = 1; $i <= $totalParcelas; $i++) {
@@ -156,7 +148,9 @@ class CartaoCreditoLancamentoService
                 'eh_parcelado' => true,
                 'parcela_atual' => $i,
                 'total_parcelas' => $totalParcelas,
-                'lancamento_pai_id' => $lancamentoPai->id,
+                'parcelamento_id' => $parcelamento->id, // Link com parcelamento
+                'numero_parcela' => $i,
+                'lancamento_pai_id' => null, // Não usa mais pai
             ]);
 
             $lancamentos[] = $parcela;

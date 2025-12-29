@@ -298,7 +298,7 @@ async function pagarParcela(lancamentoId) {
 
 ```php
 $parcelamento->id
-$parcelamento->usuario_id
+$parcelamento->user_id
 $parcelamento->descricao
 $parcelamento->valor_total
 $parcelamento->numero_parcelas

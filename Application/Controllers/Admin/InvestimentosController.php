@@ -19,7 +19,7 @@ class InvestimentosController extends BaseController
 
     private function resolveUserId(): ?int
     {
-        return $this->userId ?? ($_SESSION['usuario_id'] ?? $_SESSION['user']['id'] ?? $_SESSION['auth']['id'] ?? null);
+        return $this->userId ?? ($_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? $_SESSION['auth']['id'] ?? null);
     }
 
 

@@ -5,15 +5,19 @@
  */
 
 :root {
-  --parc-primary: #6366f1;
-  --parc-success: #10b981;
-  --parc-warning: #f59e0b;
-  --parc-danger: #ef4444;
+  --parc-primary: var(--color-primary);
+  --parc-success: var(--color-success);
+  --parc-warning: var(--color-warning);
+  --parc-danger: var(--color-danger);
   --parc-info: #3b82f6;
-  --parc-dark: #1f2937;
-  --parc-light: #f9fafb;
-  --parc-border: #e5e7eb;
-  --parc-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --parc-dark: var(--color-secondary);
+  --parc-light: var(--color-bg);
+  --parc-border: var(--color-card-border);
+  --parc-shadow: var(--shadow-md);
+  --parc-text: var(--color-text);
+  --parc-text-muted: var(--color-text-muted);
+  --parc-surface: var(--color-surface);
+  --parc-card-bg: var(--color-card-bg);
 }
 
 /* ==================== CONTAINER PRINCIPAL ==================== */
@@ -61,7 +65,7 @@
 
 /* ==================== CARDS MODERNOS ==================== */
 .modern-card {
-  background: white;
+  background: var(--parc-card-bg);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: var(--parc-shadow);
@@ -88,7 +92,7 @@
 }
 
 .icon-wrapper.filter {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--parc-primary);
   color: white;
 }
 
@@ -99,12 +103,12 @@
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--parc-dark);
+  color: var(--parc-text);
   margin: 0;
 }
 
 .card-subtitle {
-  color: #6b7280;
+  color: var(--parc-text-muted);
   font-size: 0.875rem;
   margin: 0.25rem 0 0 0;
 }
@@ -150,14 +154,21 @@
   border-radius: 10px;
   font-size: 0.95rem;
   transition: all 0.3s ease;
-  background: white;
+  background: var(--parc-surface);
+  color: var(--parc-text);
 }
 
 .modern-select:focus,
 .modern-input:focus {
   outline: none;
   border-color: var(--parc-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+}
+
+.modern-select option {
+  background: var(--parc-surface);
+  color: var(--parc-text);
+  padding: 0.5rem;
 }
 
 /* ==================== BOTÕES MODERNOS ==================== */
@@ -176,22 +187,24 @@
 }
 
 .modern-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--parc-primary);
   color: white;
 }
 
 .modern-btn.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 16px rgba(230, 126, 34, 0.3);
+  opacity: 0.9;
 }
 
 .modern-btn.secondary {
-  background: #f3f4f6;
-  color: var(--parc-dark);
+  background: var(--parc-primary);
+  color: white;
 }
 
 .modern-btn.secondary:hover {
-  background: #e5e7eb;
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .modern-btn.danger {
@@ -221,7 +234,7 @@
 }
 
 .parcelamento-card {
-  background: white;
+  background: var(--parc-card-bg);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: var(--parc-shadow);
@@ -238,15 +251,14 @@
 }
 
 .parcelamento-card.status-ativo {
-  border-left: 4px solid var(--parc-success);
+  /* border-left removida */
 }
 
 .parcelamento-card.status-concluido {
-  border-left: 4px solid var(--parc-info);
+  /* border-left removida */
 }
 
 .parcelamento-card.status-cancelado {
-  border-left: 4px solid var(--parc-danger);
   opacity: 0.7;
 }
 
@@ -261,7 +273,7 @@
 .parc-card-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--parc-dark);
+  color: var(--parc-text);
   margin: 0;
   flex: 1;
 }
@@ -310,12 +322,12 @@
 
 .parc-value-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--parc-text-muted);
 }
 
 .parc-value-amount {
   font-weight: 600;
-  color: var(--parc-dark);
+  color: var(--parc-text);
 }
 
 .parc-value-amount.primary {
@@ -328,6 +340,12 @@
   margin-bottom: 1rem;
 }
 
+.parc-progress-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--parc-border);
+}
+
 .parc-progress-header {
   display: flex;
   justify-content: space-between;
@@ -337,7 +355,7 @@
 
 .parc-progress-text {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--parc-text-muted);
 }
 
 .parc-progress-percent {
@@ -360,6 +378,25 @@
   transition: width 0.5s ease;
 }
 
+/* Próxima Parcela */
+.parc-proxima-parcela {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.parc-proxima-parcela i {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
 /* Info adicional */
 .parc-card-info {
   display: flex;
@@ -373,7 +410,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--parc-text-muted);
 }
 
 .parc-info-item i {
@@ -404,11 +441,13 @@
 }
 
 .parc-btn-view {
-  background: #f3f4f6;
-  color: var(--parc-dark);
+  background: var(--parc-primary);
+  color: white;
 }
 
 .parc-btn-view:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
   background: #e5e7eb;
 }
 
@@ -458,7 +497,7 @@
 
 .empty-state h3 {
   font-size: 1.5rem;
-  color: var(--parc-dark);
+  color: var(--color-primary);
   margin-bottom: 0.75rem;
 }
 
@@ -468,8 +507,22 @@
 }
 
 /* ==================== MODAL MODERNO ==================== */
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  color: var(--bs-modal-color);
+  pointer-events: auto;
+  background-color: var(--bs-modal-bg);
+  background-clip: padding-box;
+  border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
+  border-radius: 20px;
+  outline: 0;
+}
+
 .modern-modal .modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--parc-primary);
   color: white;
   border-radius: 16px 16px 0 0;
   padding: 1.5rem;
@@ -488,11 +541,11 @@
 }
 
 .modern-modal .modal-body {
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .modern-modal .modal-footer {
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--parc-border);
 }
 
@@ -603,6 +656,267 @@
   display: inline-block;
 }
 
+/* ==================== DETALHES DO PARCELAMENTO ==================== */
+.parc-detalhes {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.detalhes-header {
+  margin-bottom: 2rem;
+}
+
+.detalhes-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.75rem;
+  color: var(--parc-text);
+  font-weight: 700;
+  border-bottom: 3px solid var(--parc-primary);
+  padding-bottom: 0.75rem;
+}
+
+.detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detalhes-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--parc-surface);
+  border-radius: 8px;
+}
+
+.detalhes-label {
+  font-size: 0.875rem;
+  color: var(--parc-text-light);
+  font-weight: 500;
+}
+
+.detalhes-value {
+  font-size: 1.125rem;
+  color: var(--parc-text);
+  font-weight: 600;
+}
+
+.detalhes-value-highlight {
+  color: var(--parc-primary);
+  font-size: 1.5rem;
+}
+
+/* Barra de Progresso no Modal */
+.detalhes-progresso {
+  background: var(--parc-primary);
+  padding: 1rem;
+  border-radius: 12px;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.progresso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.progresso-percent {
+  font-size: 1.25rem;
+}
+
+.progresso-barra {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.progresso-valores {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.valor-pago {
+  color: #d1fae5;
+}
+
+.valor-restante {
+  color: #fef3c7;
+}
+
+/* Lista de Parcelas */
+.parcelas-titulo {
+  margin: 1.5rem 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.parcelas-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-bg);
+}
+
+.parcelas-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.parcelas-table thead {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  border-bottom: 2px solid #e67e22;
+}
+
+.parcelas-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.parcelas-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.parcelas-table tbody tr.tr-paga {
+  background: #d4edda;
+  border-left: 3px solid #28a745;
+}
+
+.parcelas-table td {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: #212529;
+}
+
+.parcela-numero {
+  display: inline-block;
+  background: var(--parc-primary);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.parcela-desc {
+  font-weight: 500;
+  color: #212529;
+}
+
+.parcela-data {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.parcela-valor {
+  color: #212529;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.parcela-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-success);
+}
+
+.parcela-paga {
+  background: #28a745;
+  color: white;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+  white-space: nowrap;
+}
+
+.parcela-pendente {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 4px rgba(230, 126, 34, 0.3);
+  white-space: nowrap;
+}
+
+/* Botões de Toggle na Ação */
+.btn-toggle-parcela {
+  padding: 0.5rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 95px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.btn-pago {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-pago:hover {
+  background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+}
+
+.btn-pendente {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+}
+
+.btn-pendente:hover {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+}
+
+.btn-toggle-parcela:active {
+  transform: translateY(0);
+}
+
 /* ==================== RESPONSIVO ==================== */
 @media (max-width: 768px) {
   .parc-page {
@@ -640,6 +954,35 @@
     width: 100%;
     justify-content: center;
   }
+
+  /* Modal responsivo */
+  .modern-modal .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .modern-modal .modal-body {
+    padding: 1rem;
+  }
+
+  .detalhes-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .detalhes-item {
+    padding: 0.75rem;
+  }
+
+  .detalhes-progresso {
+    padding: 0.75rem;
+  }
+
+  .progresso-valores {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 576px) {
@@ -647,8 +990,81 @@
     flex-direction: column;
   }
 
+  /* Modal mobile */
+  .modern-modal .modal-dialog {
+    margin: 0;
+    max-width: 100%;
+    min-height: 100vh;
+  }
+
+  .modern-modal .modal-content {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+
+  .modern-modal .modal-header {
+    border-radius: 0;
+    padding: 1rem;
+  }
+
+  .modern-modal .modal-body {
+    padding: 0.75rem;
+  }
+
+  .modern-modal .modal-footer {
+    padding: 0.75rem;
+  }
+
+  .detalhes-title {
+    font-size: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .detalhes-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .detalhes-item {
+    padding: 0.65rem;
+  }
+
+  .detalhes-label {
+    font-size: 0.75rem;
+  }
+
+  .detalhes-value {
+    font-size: 1rem;
+  }
+
+  .detalhes-progresso {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .progresso-info {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .progresso-percent {
+    font-size: 1.1rem;
+  }
+
+  .progresso-valores {
+    font-size: 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .parcelas-titulo {
+    font-size: 0.95rem;
+    margin: 1rem 0 0.5rem 0;
+  }
+
   .parcelas-table {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   .parcelas-table thead {
@@ -658,21 +1074,67 @@
   .parcelas-table tbody tr {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #dee2e6;
     border-radius: 8px;
-    padding: 0.5rem;
+    padding: 0.75rem;
+    background: white;
+  }
+
+  .parcelas-table tbody tr.tr-paga {
+    border-color: #28a745;
+    background: #d4edda;
+    border-left-width: 3px;
   }
 
   .parcelas-table tbody td {
     border: none !important;
-    padding: 0.5rem;
+    padding: 0.4rem 0;
     display: flex;
     justify-content: space-between;
+    align-items: center;
   }
 
   .parcelas-table tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #6b7280;
+    color: #6c757d;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
+
+  .parcela-numero {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .parcela-desc {
+    font-size: 0.85rem;
+  }
+
+  .parcela-data {
+    font-size: 0.8rem;
+  }
+
+  .parcela-valor {
+    font-size: 0.9rem;
+  }
+
+  .parcela-paga,
+  .parcela-pendente {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .btn-toggle-parcela {
+    min-width: auto;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    letter-spacing: 0.02em;
+  }
+
+  .parcelas-table tbody td[data-label="Ação"] {
+    padding-top: 0.5rem;
   }
 }

@@ -8,8 +8,8 @@ return new class {
         // Adicionar foreign keys na tabela parcelamentos
         DB::statement('
             ALTER TABLE parcelamentos
-            ADD CONSTRAINT parcelamentos_usuario_id_foreign 
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+            ADD CONSTRAINT parcelamentos_user_id_foreign 
+            FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE
         ');
 
         DB::statement('
@@ -35,7 +35,7 @@ return new class {
     public function down()
     {
         DB::statement('ALTER TABLE lancamentos DROP FOREIGN KEY lancamentos_parcelamento_id_foreign');
-        DB::statement('ALTER TABLE parcelamentos DROP FOREIGN KEY parcelamentos_usuario_id_foreign');
+        DB::statement('ALTER TABLE parcelamentos DROP FOREIGN KEY parcelamentos_user_id_foreign');
         DB::statement('ALTER TABLE parcelamentos DROP FOREIGN KEY parcelamentos_categoria_id_foreign');
         DB::statement('ALTER TABLE parcelamentos DROP FOREIGN KEY parcelamentos_conta_id_foreign');
     }

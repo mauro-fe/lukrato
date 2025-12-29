@@ -25,35 +25,38 @@ class ReportService
     public function generateReport(ReportType $type, ReportParameters $params): array
     {
         return match ($type) {
-            ReportType::DESPESAS_POR_CATEGORIA => 
-                $this->handleCategoriasReport(LancamentoTipo::DESPESA, $params),
+            ReportType::DESPESAS_POR_CATEGORIA =>
+            $this->handleCategoriasReport(LancamentoTipo::DESPESA, $params),
 
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA =>
-                $this->handleAnnualCategoriasReport(LancamentoTipo::DESPESA, $params),
+            $this->handleAnnualCategoriasReport(LancamentoTipo::DESPESA, $params),
 
             ReportType::RECEITAS_ANUAIS_POR_CATEGORIA =>
-                $this->handleAnnualCategoriasReport(LancamentoTipo::RECEITA, $params),
-            
-            ReportType::RECEITAS_POR_CATEGORIA => 
-                $this->handleCategoriasReport(LancamentoTipo::RECEITA, $params),
+            $this->handleAnnualCategoriasReport(LancamentoTipo::RECEITA, $params),
 
-            ReportType::SALDO_MENSAL => 
-                $this->handleSaldoMensalReport($params),
+            ReportType::RECEITAS_POR_CATEGORIA =>
+            $this->handleCategoriasReport(LancamentoTipo::RECEITA, $params),
 
-            ReportType::RECEITAS_DESPESAS_DIARIO => 
-                $this->handleReceitasDespesasDiarioReport($params),
+            ReportType::SALDO_MENSAL =>
+            $this->handleSaldoMensalReport($params),
 
-            ReportType::EVOLUCAO_12M => 
-                $this->handleEvolucao12MReport($params),
+            ReportType::RECEITAS_DESPESAS_DIARIO =>
+            $this->handleReceitasDespesasDiarioReport($params),
 
-            ReportType::RECEITAS_DESPESAS_POR_CONTA => 
-                $this->handleReceitasDespesasPorContaReport($params),
+            ReportType::EVOLUCAO_12M =>
+            $this->handleEvolucao12MReport($params),
 
-            ReportType::RESUMO_ANUAL => 
-                $this->handleResumoAnualReport($params),
+            ReportType::RECEITAS_DESPESAS_POR_CONTA =>
+            $this->handleReceitasDespesasPorContaReport($params),
 
-            default => 
-                throw new InvalidArgumentException("Tipo de relatório '{$type->value}' não suportado."),
+            ReportType::RESUMO_ANUAL =>
+            $this->handleResumoAnualReport($params),
+
+            ReportType::CARTOES_CREDITO =>
+            $this->handleCartoesCreditoReport($params),
+
+            default =>
+            throw new InvalidArgumentException("Tipo de relatório '{$type->value}' não suportado."),
         };
     }
 
@@ -111,7 +114,7 @@ class ReportService
     private function handleEvolucao12MReport(ReportParameters $params): array
     {
         [$ini, $fim] = $this->get12MonthsRange($params);
-        
+
         $deltas = $this->repository->getMonthlyDelta($ini, $fim, $params, $params->useTransfers());
         $saldoInicial = $this->getSaldoInicial($params, $ini);
 
@@ -154,11 +157,11 @@ class ReportService
     private function handleResumoAnualReport(ReportParameters $params): array
     {
         [$yearStart, $yearEnd, $year] = $this->getYearRange($params);
-        
+
         $rows = $this->repository->getMonthlyRecDesForYear(
-            $yearStart, 
-            $yearEnd, 
-            $params, 
+            $yearStart,
+            $yearEnd,
+            $params,
             $params->useTransfers()
         );
 
@@ -177,8 +180,8 @@ class ReportService
     // --- Helpers de Construção de Séries ---
 
     private function buildDailySeries(
-        ReportParameters $params, 
-        Collection $deltas, 
+        ReportParameters $params,
+        Collection $deltas,
         float $saldoInicial
     ): array {
         return $this->buildRunningTotalSeries(
@@ -247,11 +250,11 @@ class ReportService
         while ($cursor <= $params->end) {
             $key = $cursor->toDateString();
             $row = $rows->get($key);
-            
+
             $labels[] = $cursor->format('d/m');
             $receitas[] = (float)($row?->receitas ?? 0.0);
             $despesas[] = (float)($row?->despesas ?? 0.0);
-            
+
             $cursor->addDay();
         }
 
@@ -265,8 +268,20 @@ class ReportService
             'despesas' => (float)$row->despesas,
         ])->all();
 
-        $monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
-                       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        $monthNames = [
+            'Jan',
+            'Fev',
+            'Mar',
+            'Abr',
+            'Mai',
+            'Jun',
+            'Jul',
+            'Ago',
+            'Set',
+            'Out',
+            'Nov',
+            'Dez'
+        ];
 
         $labels = [];
         $receitas = [];
@@ -310,5 +325,45 @@ class ReportService
         $yearEnd = (clone $yearStart)->endOfYear()->endOfDay();
 
         return [$yearStart, $yearEnd, $year];
+    }
+
+    // --- Relatório de Cartões de Crédito ---
+
+    private function handleCartoesCreditoReport(ReportParameters $params): array
+    {
+        $userId = $params->accountId; // Na verdade é o user_id
+        $month = $params->start->format('Y-m');
+
+        // Busca os cartões do usuário
+        $cartoes = \Application\Models\CartaoCredito::where('user_id', $userId)->get();
+
+        $cards = [];
+        foreach ($cartoes as $cartao) {
+            // Soma os lançamentos do cartão no mês
+            $totalMes = \Application\Models\Lancamento::where('user_id', $userId)
+                ->where('cartao_credito_id', $cartao->id)
+                ->where('tipo', 'despesa')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->sum('valor');
+
+            $limite = (float) $cartao->limite ?? 0;
+            $usado = (float) $totalMes;
+            $disponivel = $limite - $usado;
+            $percentual = $limite > 0 ? ($usado / $limite) * 100 : 0;
+
+            $cards[] = [
+                'nome' => $cartao->nome ?? 'Cartão',
+                'limite' => $limite,
+                'usado' => $usado,
+                'disponivel' => $disponivel,
+                'percentual' => round($percentual, 1),
+                'bandeira' => $cartao->bandeira ?? 'outros'
+            ];
+        }
+
+        return [
+            'cards' => $cards,
+            'total' => count($cards)
+        ];
     }
 }

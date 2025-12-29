@@ -41,7 +41,8 @@
         table: null,
         modalEdit: null,
         editingId: null,
-        categoriaCache: new Map()
+        categoriaCache: new Map(),
+        isCreating: false
     };
 
     // ==================== UTILITÁRIOS ====================
@@ -136,6 +137,9 @@
                 }
                 if (res.status === 404) {
                     throw new Error('Recurso não encontrado: ' + url);
+                }
+                if (res.status === 409) {
+                    throw new Error(data?.message || 'Categoria já existe com este nome e tipo.');
                 }
                 throw new Error(data?.message || `Erro ${res.status}`);
             }
@@ -436,6 +440,11 @@
         create: async (ev) => {
             ev.preventDefault();
 
+            // Prevenir múltiplas submissões
+            if (STATE.isCreating) {
+                return;
+            }
+
             const formData = new FormData(DOM.formNova);
             const nome = (formData.get('nome') || '').trim();
             const tipo = (formData.get('tipo') || '').trim();
@@ -455,6 +464,7 @@
 
             const submitBtn = DOM.formNova.querySelector('button[type="submit"]');
             submitBtn?.setAttribute('disabled', 'disabled');
+            STATE.isCreating = true;
 
             try {
                 const result = await API.createCategoria(formData);
@@ -478,10 +488,14 @@
                     }
                 }));
             } catch (err) {
-                console.error('Erro ao criar categoria:', err);
+                // Log apenas erros não esperados (não incluir conflitos de duplicata)
+                if (!err.message?.includes('já existe')) {
+                    console.error('Erro ao criar categoria:', err);
+                }
                 Notifications.error(err.message);
             } finally {
                 submitBtn?.removeAttribute('disabled');
+                STATE.isCreating = false;
             }
         },
 
