@@ -656,57 +656,61 @@
                                 <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
                             </p>
                         </div>
-
-                        <ul class="space-y-4 mb-8">
-                            <?php
-                            $recursos = $planoGratuito->metadados['recursos'] ?? [
-                                'Controle financeiro essencial'
-                            ];
-                            $limitacoes = $planoGratuito->metadados['limitacoes'] ?? [
-                                'Relatórios avançados',
-                                'Agendamentos de pagamentos',
-                                'Exportação de dados',
-                                'Categorias ilimitadas',
-                                'Suporte prioritário'
-                            ];
-                            ?>
-                            <?php foreach ($recursos as $recurso): ?>
-                                <li class="flex items-start gap-3">
-                                    <i class="fa-solid fa-check text-green-500 mt-1"></i>
-                                    <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                            <?php foreach ($limitacoes as $limitacao): ?>
-                                <li class="flex items-start gap-3 opacity-50">
-                                    <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
-                                    <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-
-                        <a href="<?= BASE_URL ?>login"
-                            class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white border-2 border-primary rounded-xl hover:bg-orange-50 transition-all duration-300">
-                            Começar grátis
-                        </a>
+                        <p class="text-gray-600">
+                            <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
+                        </p>
                     </div>
-                <?php endif; ?>
 
-                <!-- Planos Pagos -->
-                <?php foreach ($planosPagos as $index => $plano):
-                    $precoMensal = $plano->preco_centavos / 100;
-                    $recursos = $plano->metadados['recursos'] ?? [
-                        'Controle financeiro essencial',
-                        'Relatórios avançados',
-                        'Agendamentos de pagamentos',
-                        'Exportação de dados',
-                        'Categorias ilimitadas',
-                        'Suporte prioritário'
-                    ];
-                    $destaque = $plano->metadados['destaque'] ?? ($index === 0);
-                ?>
-                    <div id="plano-pro"
-                        class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
-                        data-aos="fade-left" x-data="{ 
+                    <ul class="space-y-4 mb-8">
+                        <?php
+                        $recursos = $planoGratuito->metadados['recursos'] ?? [
+                            'Controle financeiro essencial'
+                        ];
+                        $limitacoes = $planoGratuito->metadados['limitacoes'] ?? [
+                            'Relatórios avançados',
+                            'Agendamentos de pagamentos',
+                            'Exportação de dados',
+                            'Categorias ilimitadas',
+                            'Suporte prioritário'
+                        ];
+                        ?>
+                        <?php foreach ($recursos as $recurso): ?>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-check text-green-500 mt-1"></i>
+                                <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                        <?php foreach ($limitacoes as $limitacao): ?>
+                            <li class="flex items-start gap-3 opacity-50">
+                                <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
+                                <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+
+                    <a href="<?= BASE_URL ?>login"
+                        class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white border-2 border-primary rounded-xl hover:bg-orange-50 transition-all duration-300">
+                        Começar grátis
+                    </a>
+            </div>
+        <?php endif; ?>
+
+        <!-- Planos Pagos -->
+        <?php foreach ($planosPagos as $index => $plano):
+            $precoMensal = $plano->preco_centavos / 100;
+            $recursos = $plano->metadados['recursos'] ?? [
+                'Controle financeiro essencial',
+                'Relatórios avançados',
+                'Agendamentos de pagamentos',
+                'Exportação de dados',
+                'Categorias ilimitadas',
+                'Suporte prioritário'
+            ];
+            $destaque = $plano->metadados['destaque'] ?? ($index === 0);
+        ?>
+            <div id="plano-pro"
+                class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                data-aos="fade-left" x-data="{ 
                     basePrice: <?= $precoMensal ?>,
                     get currentPrice() {
                         if (period === 'mensal') return this.basePrice.toFixed(2);
@@ -725,91 +729,91 @@
                     }
                  }">
 
-                        <?php if ($destaque): ?>
-                            <!-- Badge -->
-                            <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-                                <span
-                                    class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-full shadow-lg">
-                                    <i class="fa-solid fa-star"></i>
-                                    <?= htmlspecialchars($plano->metadados['badge'] ?? 'Mais escolhido') ?>
-                                </span>
-                            </div>
-                        <?php endif; ?>
-
-                        <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
-                        <div x-show="discount > 0" x-transition
-                            class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
-                            <span x-text="'-' + discount + '%'"></span>
-                        </div>
-
-                        <div class="mb-6 pt-4">
-                            <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
-
-                            <!-- Preço Original Riscado (aparece apenas com desconto) -->
-                            <div x-show="originalPriceCalc" x-transition class="mb-1">
-                                <span class="text-lg line-through text-orange-200">
-                                    R$ <span x-text="originalPriceCalc"></span>
-                                </span>
-                            </div>
-
-                            <div class="flex items-baseline gap-2 mb-2">
-                                <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
-                                <span class="text-xl text-orange-100">
-                                    / <span x-text="periodLabel"></span>
-                                </span>
-                            </div>
-
-                            <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
-                            <div x-show="period !== 'mensal'" x-transition class="mb-2">
-                                <p class="text-orange-100 text-sm">
-                                    Equivalente a
-                                    <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
-                                    por mês
-                                </p>
-                            </div>
-
-                            <p class="text-orange-100">
-                                <?php if (isset($plano->metadados['mensagens'])): ?>
-                                    <span
-                                        x-show="period === 'mensal'"><?= htmlspecialchars($plano->metadados['mensagens']['mensal'] ?? 'Plano mensal flexível') ?></span>
-                                    <span
-                                        x-show="period === 'semestral'"><?= htmlspecialchars($plano->metadados['mensagens']['semestral'] ?? 'Economize 10% pagando semestralmente!') ?></span>
-                                    <span
-                                        x-show="period === 'anual'"><?= htmlspecialchars($plano->metadados['mensagens']['anual'] ?? 'Melhor oferta! Economize 15% no plano anual.') ?></span>
-                                <?php else: ?>
-                                    <span x-show="period === 'mensal'">Menos que um lanche por mês para ter controle total do
-                                        seu dinheiro.</span>
-                                    <span x-show="period === 'semestral'">Economize 10% pagando semestralmente!</span>
-                                    <span x-show="period === 'anual'">Melhor oferta! Economize 15% no plano anual.</span>
-                                <?php endif; ?>
-                            </p>
-                        </div>
-
-                        <ul class="space-y-4 mb-8">
-                            <?php foreach ($recursos as $recurso): ?>
-                                <li class="flex items-start gap-3">
-                                    <i class="fa-solid fa-check text-green-300 mt-1"></i>
-                                    <span><?= htmlspecialchars($recurso) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-
-                        <a href="<?= BASE_URL ?>billing"
-                            class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
-                            Assinar <?= htmlspecialchars($plano->nome) ?>
-                        </a>
+                <?php if ($destaque): ?>
+                    <!-- Badge -->
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-full shadow-lg">
+                            <i class="fa-solid fa-star"></i>
+                            <?= htmlspecialchars($plano->metadados['badge'] ?? 'Mais escolhido') ?>
+                        </span>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
 
+                <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
+                <div x-show="discount > 0" x-transition
+                    class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
+                    <span x-text="'-' + discount + '%'"></span>
+                </div>
+
+                <div class="mb-6 pt-4">
+                    <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+
+                    <!-- Preço Original Riscado (aparece apenas com desconto) -->
+                    <div x-show="originalPriceCalc" x-transition class="mb-1">
+                        <span class="text-lg line-through text-orange-200">
+                            R$ <span x-text="originalPriceCalc"></span>
+                        </span>
+                    </div>
+
+                    <div class="flex items-baseline gap-2 mb-2">
+                        <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
+                        <span class="text-xl text-orange-100">
+                            / <span x-text="periodLabel"></span>
+                        </span>
+                    </div>
+
+                    <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
+                    <div x-show="period !== 'mensal'" x-transition class="mb-2">
+                        <p class="text-orange-100 text-sm">
+                            Equivalente a
+                            <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
+                            por mês
+                        </p>
+                    </div>
+
+                    <p class="text-orange-100">
+                        <?php if (isset($plano->metadados['mensagens'])): ?>
+                            <span
+                                x-show="period === 'mensal'"><?= htmlspecialchars($plano->metadados['mensagens']['mensal'] ?? 'Plano mensal flexível') ?></span>
+                            <span
+                                x-show="period === 'semestral'"><?= htmlspecialchars($plano->metadados['mensagens']['semestral'] ?? 'Economize 10% pagando semestralmente!') ?></span>
+                            <span
+                                x-show="period === 'anual'"><?= htmlspecialchars($plano->metadados['mensagens']['anual'] ?? 'Melhor oferta! Economize 15% no plano anual.') ?></span>
+                        <?php else: ?>
+                            <span x-show="period === 'mensal'">Menos que um lanche por mês para ter controle total do
+                                seu dinheiro.</span>
+                            <span x-show="period === 'semestral'">Economize 10% pagando semestralmente!</span>
+                            <span x-show="period === 'anual'">Melhor oferta! Economize 15% no plano anual.</span>
+                        <?php endif; ?>
+                    </p>
+                </div>
+
+                <ul class="space-y-4 mb-8">
+                    <?php foreach ($recursos as $recurso): ?>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check text-green-300 mt-1"></i>
+                            <span><?= htmlspecialchars($recurso) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <a href="<?= BASE_URL ?>billing"
+                    class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
+                    Assinar <?= htmlspecialchars($plano->nome) ?>
+                </a>
             </div>
+        <?php endforeach; ?>
 
-            <!-- Nota de rodapé -->
-            <p class="text-center text-gray-600 max-w-2xl mx-auto" data-aos="fade-up">
-                <i class="fa-solid fa-shield-halved text-primary mr-2"></i>
-                Sem fidelidade. Cancele quando quiser, direto pelo sistema.
-            </p>
+        </div>
 
-        </div> <!-- Fim do container Alpine.js -->
+        <!-- Nota de rodapé -->
+        <p class="text-center text-gray-600 max-w-2xl mx-auto" data-aos="fade-up">
+            <i class="fa-solid fa-shield-halved text-primary mr-2"></i>
+            Sem fidelidade. Cancele quando quiser, direto pelo sistema.
+        </p>
+
+    </div> <!-- Fim do container Alpine.js -->
 
     </div>
 </section>
