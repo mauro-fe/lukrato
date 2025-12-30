@@ -884,6 +884,12 @@
             return;
         }
 
+        // Validação específica para cada tipo de relatório
+        if (state.currentView === CONFIG.VIEWS.CARDS) {
+            renderCardsReport(data);
+            return;
+        }
+
         if (!data || !data.labels || data.labels.length === 0) {
             return showEmptyState();
         }
@@ -901,9 +907,6 @@
             case CONFIG.VIEWS.ACCOUNTS:
             case CONFIG.VIEWS.ANNUAL_SUMMARY:
                 renderBarChart(data);
-                break;
-            case CONFIG.VIEWS.CARDS:
-                renderCardsReport(data);
                 break;
             default:
                 showEmptyState();
@@ -982,65 +985,138 @@
     }
 
     function renderComparative(title, data, period) {
-        const getArrow = (value) => {
-            if (value > 0) return '<i class="fas fa-arrow-up trend-up"></i>';
-            if (value < 0) return '<i class="fas fa-arrow-down trend-down"></i>';
-            return '<i class="fas fa-minus trend-neutral"></i>';
+        const getTrendIcon = (value, isDespesa = false) => {
+            // Para despesas, aumento é ruim (vermelho), redução é bom (verde)
+            if (isDespesa) {
+                if (value > 0) return '<i class="fas fa-arrow-up"></i>';
+                if (value < 0) return '<i class="fas fa-arrow-down"></i>';
+            } else {
+                if (value > 0) return '<i class="fas fa-arrow-up"></i>';
+                if (value < 0) return '<i class="fas fa-arrow-down"></i>';
+            }
+            return '<i class="fas fa-equals"></i>';
         };
 
         const getTrendClass = (value, isDespesa = false) => {
-            // Para despesas, invertemos a lógica: aumento é negativo, redução é positivo
             if (isDespesa) {
-                if (value > 0) return 'negative';
-                if (value < 0) return 'positive';
+                if (value > 0) return 'trend-negative';
+                if (value < 0) return 'trend-positive';
             } else {
-                if (value > 0) return 'positive';
-                if (value < 0) return 'negative';
+                if (value > 0) return 'trend-positive';
+                if (value < 0) return 'trend-negative';
             }
-            return 'neutral';
+            return 'trend-neutral';
+        };
+
+        const getTrendText = (value, isDespesa = false) => {
+            if (Math.abs(value) < 0.1) return 'Sem alteração';
+            
+            if (isDespesa) {
+                if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
+                if (value < 0) return `Reduziu ${Math.abs(value).toFixed(1)}%`;
+            } else {
+                if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
+                if (value < 0) return `Reduziu ${Math.abs(value).toFixed(1)}%`;
+            }
+            return 'Sem alteração';
+        };
+
+        // Formatar período atual e anterior
+        const getCurrentPeriod = () => {
+            if (period.includes('mês')) {
+                const [year, month] = state.currentMonth.split('-');
+                const date = new Date(year, month - 1);
+                return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+            } else {
+                return state.currentMonth.split('-')[0];
+            }
+        };
+
+        const getPreviousPeriod = () => {
+            if (period.includes('mês')) {
+                const [year, month] = state.currentMonth.split('-');
+                const date = new Date(year, month - 2);
+                return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+            } else {
+                return (parseInt(state.currentMonth.split('-')[0]) - 1).toString();
+            }
         };
 
         return `
             <div class="comparative-card">
-                <h3>${escapeHtml(title)}</h3>
-                <div class="comparative-grid">
-                    <div class="comparative-item">
-                        <span class="label">Receitas</span>
-                        <div class="values">
-                            <span class="current">${formatCurrency(data.current.receitas)}</span>
-                            <span class="previous">vs ${formatCurrency(data.previous.receitas)}</span>
+                <div class="comparative-header">
+                    <h3>${escapeHtml(title)}</h3>
+                    <div class="period-labels">
+                        <span class="period-current"><i class="fas fa-calendar"></i> ${getCurrentPeriod()}</span>
+                        <span class="period-separator">vs</span>
+                        <span class="period-previous">${getPreviousPeriod()}</span>
+                    </div>
+                </div>
+                
+                <div class="comparative-grid-new">
+                    <div class="comparative-item-new">
+                        <div class="item-header">
+                            <i class="fas fa-arrow-trend-up item-icon revenue"></i>
+                            <span class="item-label">RECEITAS</span>
                         </div>
-                        <div class="variation ${getTrendClass(data.variation.receitas, false)}">
-                            ${getArrow(data.variation.receitas)}
-                            <span>${Math.abs(data.variation.receitas).toFixed(1)}%</span>
+                        <div class="item-values">
+                            <div class="value-current">
+                                <span class="value-label">Atual</span>
+                                <span class="value-amount">${formatCurrency(data.current.receitas)}</span>
+                            </div>
+                            <div class="value-previous">
+                                <span class="value-label">Anterior</span>
+                                <span class="value-amount">${formatCurrency(data.previous.receitas)}</span>
+                            </div>
+                        </div>
+                        <div class="item-trend ${getTrendClass(data.variation.receitas, false)}">
+                            ${getTrendIcon(data.variation.receitas, false)}
+                            <span>${getTrendText(data.variation.receitas, false)}</span>
                         </div>
                     </div>
                     
-                    <div class="comparative-item">
-                        <span class="label">Despesas</span>
-                        <div class="values">
-                            <span class="current">${formatCurrency(data.current.despesas)}</span>
-                            <span class="previous">vs ${formatCurrency(data.previous.despesas)}</span>
+                    <div class="comparative-item-new">
+                        <div class="item-header">
+                            <i class="fas fa-arrow-trend-down item-icon expense"></i>
+                            <span class="item-label">DESPESAS</span>
                         </div>
-                        <div class="variation ${getTrendClass(data.variation.despesas, true)}">
-                            ${getArrow(data.variation.despesas)}
-                            <span>${Math.abs(data.variation.despesas).toFixed(1)}%</span>
+                        <div class="item-values">
+                            <div class="value-current">
+                                <span class="value-label">Atual</span>
+                                <span class="value-amount">${formatCurrency(data.current.despesas)}</span>
+                            </div>
+                            <div class="value-previous">
+                                <span class="value-label">Anterior</span>
+                                <span class="value-amount">${formatCurrency(data.previous.despesas)}</span>
+                            </div>
+                        </div>
+                        <div class="item-trend ${getTrendClass(data.variation.despesas, true)}">
+                            ${getTrendIcon(data.variation.despesas, true)}
+                            <span>${getTrendText(data.variation.despesas, true)}</span>
                         </div>
                     </div>
                     
-                    <div class="comparative-item">
-                        <span class="label">Saldo</span>
-                        <div class="values">
-                            <span class="current">${formatCurrency(data.current.saldo)}</span>
-                            <span class="previous">vs ${formatCurrency(data.previous.saldo)}</span>
+                    <div class="comparative-item-new">
+                        <div class="item-header">
+                            <i class="fas fa-wallet item-icon balance"></i>
+                            <span class="item-label">SALDO</span>
                         </div>
-                        <div class="variation ${getTrendClass(data.variation.saldo, false)}">
-                            ${getArrow(data.variation.saldo)}
-                            <span>${Math.abs(data.variation.saldo).toFixed(1)}%</span>
+                        <div class="item-values">
+                            <div class="value-current">
+                                <span class="value-label">Atual</span>
+                                <span class="value-amount">${formatCurrency(data.current.saldo)}</span>
+                            </div>
+                            <div class="value-previous">
+                                <span class="value-label">Anterior</span>
+                                <span class="value-amount">${formatCurrency(data.previous.saldo)}</span>
+                            </div>
+                        </div>
+                        <div class="item-trend ${getTrendClass(data.variation.saldo, false)}">
+                            ${getTrendIcon(data.variation.saldo, false)}
+                            <span>${getTrendText(data.variation.saldo, false)}</span>
                         </div>
                     </div>
                 </div>
-                <p class="comparative-note">Comparado com o ${period}</p>
             </div>
         `;
     }
@@ -1051,85 +1127,101 @@
 
         reportArea.innerHTML = `
             <div class="cards-report-container">
-                <div class="report-header">
-                    <h2>Relatório de Cartões de Crédito</h2>
-                    <p>Análise detalhada dos gastos por cartão, parcelamentos e impacto futuro</p>
-                </div>
                 <div class="cards-grid">
                     ${data.cards && data.cards.length > 0 ? data.cards.map(card => `
-                        <div class="card-item ${card.percentual > 80 ? 'card-warning' : ''}">
-                            <div class="card-header-full">
-                                <div class="card-title">
-                                    <i class="fas fa-credit-card card-icon-${card.bandeira || 'outros'}"></i>
-                                    <h3>${escapeHtml(card.nome)}</h3>
-                                </div>
-                                ${card.alertas && card.alertas.length > 0 ? `
-                                    <div class="card-alerts">
-                                        ${card.alertas.map(alert => `
-                                            <span class="alert-badge alert-${alert.type}">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                                ${escapeHtml(alert.message)}
-                                            </span>
-                                        `).join('')}
+                        <div class="card-item ${card.percentual > 80 ? 'card-warning' : ''}" style="--card-color: ${card.cor || '#E67E22'}">
+                            <!-- Header -->
+                            <div class="card-header-gradient">
+                                <div class="card-brand">
+                                    <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, color-mix(in srgb, ${card.cor || '#E67E22'} 70%, black));">
+                                        <i class="fas fa-credit-card"></i>
                                     </div>
-                                ` : ''}
+                                    <div class="card-info">
+                                        <h3 class="card-name">${escapeHtml(card.nome)}</h3>
+                                        ${card.conta ? `<p class="card-account"><i class="fas fa-building-columns" style="color: ${card.cor || '#E67E22'}"></i> ${escapeHtml(card.conta)}</p>` : ''}
+                                    </div>
+                                </div>
+                                ${card.dia_vencimento ? `<div class="card-due"><i class="fas fa-calendar"></i> Vence dia ${card.dia_vencimento}</div>` : ''}
                             </div>
-                            
-                            <div class="card-stats">
-                                <div class="stat">
-                                    <span class="label">Fatura Atual</span>
-                                    <span class="value value-primary">${formatCurrency(card.fatura_atual || 0)}</span>
+
+                            <!-- Alertas -->
+                            ${card.alertas && card.alertas.length > 0 ? `
+                                <div class="card-alerts">
+                                    ${card.alertas.map(alert => `
+                                        <span class="alert-badge alert-${alert.type}">
+                                            <i class="fas fa-${alert.type === 'danger' ? 'exclamation-triangle' : alert.type === 'warning' ? 'exclamation-circle' : 'info-circle'}"></i>
+                                            ${escapeHtml(alert.message)}
+                                        </span>
+                                    `).join('')}
                                 </div>
-                                <div class="stat">
-                                    <span class="label">Limite Total</span>
-                                    <span class="value">${formatCurrency(card.limite || 0)}</span>
+                            ` : ''}
+
+
+                            <!-- Stats principais -->
+                            <div class="card-balance">
+                                <div class="balance-main">
+                                    <span class="balance-label">Fatura do Mês</span>
+                                    <span class="balance-value">${formatCurrency(card.fatura_atual || 0)}</span>
                                 </div>
-                                <div class="stat">
-                                    <span class="label">Disponível</span>
-                                    <span class="value value-success">${formatCurrency(card.disponivel || 0)}</span>
+                                <div class="balance-grid">
+                                    <div class="balance-item">
+                                        <span class="balance-small-label">Limite</span>
+                                        <span class="balance-small-value">${formatCurrency(card.limite || 0)}</span>
+                                    </div>
+                                    <div class="balance-item">
+                                        <span class="balance-small-label">Disponível</span>
+                                        <span class="balance-small-value success">${formatCurrency(card.disponivel || 0)}</span>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div class="card-usage">
-                                <div class="usage-bar">
-                                    <div class="usage-fill ${card.percentual > 80 ? 'usage-danger' : card.percentual > 50 ? 'usage-warning' : ''}" 
-                                         style="width: ${Math.min(card.percentual || 0, 100)}%"></div>
+
+
+                            <!-- Barra de utilização -->
+                            <div class="card-usage-new">
+                                <div class="usage-header">
+                                    <span class="usage-label">Utilização do Limite</span>
+                                    <span class="usage-percentage">${(card.percentual || 0).toFixed(1)}%</span>
                                 </div>
-                                <span class="usage-percent">${(card.percentual || 0).toFixed(1)}% utilizado</span>
+                                <div class="usage-bar-new">
+                                    <div class="usage-fill-new ${card.percentual > 80 ? 'danger' : card.percentual > 50 ? 'warning' : ''}" 
+                                         style="width: ${Math.min(card.percentual || 0, 100)}%; background: ${card.percentual > 80 ? 'linear-gradient(90deg, #e74c3c, #c0392b)' : card.percentual > 50 ? 'linear-gradient(90deg, #f39c12, #e67e22)' : `linear-gradient(90deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}CC)`}"></div>
+                                </div>
                             </div>
-                            
+
                             ${card.parcelamentos && card.parcelamentos.ativos > 0 ? `
-                                <div class="card-parcels">
-                                    <div class="parcels-info">
-                                        <i class="fas fa-calendar-days"></i>
-                                        <span>${card.parcelamentos.ativos} parcelamento${card.parcelamentos.ativos > 1 ? 's' : ''} ativo${card.parcelamentos.ativos > 1 ? 's' : ''}</span>
-                                        <span class="parcels-value">${formatCurrency(card.parcelamentos.valor_total)}</span>
+                                <div class="card-installments">
+                                    <div class="installments-badge">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span class="installments-text">${card.parcelamentos.ativos} parcelamento${card.parcelamentos.ativos > 1 ? 's' : ''} ativo${card.parcelamentos.ativos > 1 ? 's' : ''}</span>
+                                        <span class="installments-value">${formatCurrency(card.parcelamentos.valor_total)}</span>
                                     </div>
                                 </div>
                             ` : ''}
-                            
-                            ${card.proximos_meses && card.proximos_meses.length > 0 ? `
-                                <div class="card-future">
-                                    <h4>Impacto Futuro</h4>
-                                    <div class="future-timeline">
-                                        ${card.proximos_meses.map(mes => `
-                                            <div class="future-item">
-                                                <span class="future-month">${escapeHtml(mes.mes)}</span>
-                                                <span class="future-value">${formatCurrency(mes.valor)}</span>
+
+
+                            ${card.proximos_meses && card.proximos_meses.length > 0 && card.proximos_meses.some(m => m.valor > 0) ? `
+                                <div class="card-forecast">
+                                    <h4 class="forecast-title"><i class="fas fa-chart-line"></i> Próximos Meses</h4>
+                                    <div class="forecast-grid">
+                                        ${card.proximos_meses.filter(m => m.valor > 0).map(mes => `
+                                            <div class="forecast-month">
+                                                <span class="forecast-month-name">${escapeHtml(mes.mes)}</span>
+                                                <span class="forecast-month-value">${formatCurrency(mes.valor)}</span>
                                             </div>
                                         `).join('')}
                                     </div>
                                 </div>
                             ` : ''}
-                            
-                            ${card.dia_vencimento ? `
-                                <div class="card-footer">
-                                    <i class="fas fa-calendar-check"></i>
-                                    <span>Vencimento dia ${card.dia_vencimento}</span>
-                                </div>
-                            ` : ''}
                         </div>
-                    `).join('') : '<p class="empty-message">Nenhum cartão de crédito encontrado</p>'}
+                    `).join('') : `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <h3>Nenhum cartão de crédito cadastrado</h3>
+                            <p>Cadastre seus cartões de crédito para visualizar relatórios detalhados de gastos e parcelamentos.</p>
+                        </div>
+                    `}
                 </div>
             </div>
         `;

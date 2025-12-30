@@ -46,6 +46,7 @@ class Lancamento extends Model
         'total_parcelas',
         'lancamento_pai_id',
         'pago',
+        'data_pagamento',
         // Campos de parcelamento
         'parcelamento_id',
         'numero_parcela',
@@ -57,6 +58,7 @@ class Lancamento extends Model
         'conta_id'          => 'int',
         'conta_id_destino'  => 'int',
         'data'              => 'date:Y-m-d',
+        'data_pagamento'    => 'date:Y-m-d',
         'valor'             => 'float',
         'eh_transferencia'  => 'bool',
         'eh_saldo_inicial'  => 'bool',

@@ -360,6 +360,11 @@
                     });
                 });
 
+                // Limpar foco antes de mostrar o modal
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
+
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
                 Swal.fire({
@@ -449,6 +454,22 @@
                     const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
                     const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
                     const rowClass = isPaga ? 'tr-paga' : '';
+                    
+                    // Data de pagamento (se existir)
+                    let dataPagamentoHtml = '';
+                    if (isPaga && parcela.data_pagamento) {
+                        const dataVenc = new Date(parcela.data + 'T00:00:00');
+                        const dataPag = new Date(parcela.data_pagamento + 'T00:00:00');
+                        const diasDiff = Math.floor((dataVenc - dataPag) / (1000 * 60 * 60 * 24));
+                        
+                        if (diasDiff > 0) {
+                            dataPagamentoHtml = `<small style="color: #10b981; display: block; margin-top: 3px;">💚 Pago ${diasDiff} dia(s) antes</small>`;
+                        } else if (diasDiff < 0) {
+                            dataPagamentoHtml = `<small style="color: #ef4444; display: block; margin-top: 3px;">⚠️ Pago ${Math.abs(diasDiff)} dia(s) atrasado</small>`;
+                        } else {
+                            dataPagamentoHtml = `<small style="color: #3b82f6; display: block; margin-top: 3px;">🎯 Pago no dia do vencimento</small>`;
+                        }
+                    }
 
                     html += `
                         <tr class="${rowClass}">
@@ -460,6 +481,7 @@
                             </td>
                             <td data-label="Vencimento">
                                 <span class="parcela-data">${Utils.formatDate(parcela.data)}</span>
+                                ${dataPagamentoHtml}
                             </td>
                             <td data-label="Valor">
                                 <span class="parcela-valor">${Utils.formatMoney(parcela.valor)}</span>
@@ -586,7 +608,22 @@
         async init() {
             try {
                 // Inicializar modal de detalhes
-                STATE.modalDetalhesInstance = new bootstrap.Modal(DOM.modalDetalhes);
+                STATE.modalDetalhesInstance = new bootstrap.Modal(DOM.modalDetalhes, {
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true
+                });
+
+                // Event listeners do modal para gerenciar foco corretamente
+                DOM.modalDetalhes.addEventListener('show.bs.modal', () => {
+                    // Remove foco de elementos externos antes de abrir
+                    document.activeElement?.blur();
+                });
+
+                DOM.modalDetalhes.addEventListener('hidden.bs.modal', () => {
+                    // Limpa qualquer foco residual
+                    document.activeElement?.blur();
+                });
 
                 // Carregar dados
                 await this.carregarParcelamentos();

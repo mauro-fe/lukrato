@@ -90,41 +90,40 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
         }
 
         async function saveThemeToDatabase(theme) {
-            console.log('🎨 [TEMA] Tentando salvar tema:', theme);
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                console.log('🎨 [TEMA] CSRF token:', csrfToken ? 'encontrado' : 'NÃO ENCONTRADO');
 
                 if (!csrfToken) {
-                    console.error('❌ [TEMA] CSRF token não encontrado');
+                    console.warn('[TEMA] CSRF token não encontrado, tema não será salvo no banco');
                     return;
                 }
 
-                const formData = new FormData();
-                formData.append('theme', theme);
-                formData.append('csrf_token', csrfToken);
-
                 const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '';
                 const url = baseUrl + 'api/perfil/tema';
-                console.log('🎨 [TEMA] Enviando requisição para:', url);
 
                 const response = await fetch(url, {
                     method: 'POST',
-                    body: formData,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        theme: theme,
+                        csrf_token: csrfToken
+                    }),
                     credentials: 'same-origin'
                 });
 
-                console.log('🎨 [TEMA] Status da resposta:', response.status);
-
                 if (!response.ok) {
-                    const text = await response.text();
-                    console.error('❌ [TEMA] Erro ao salvar tema. Status:', response.status, 'Resposta:', text);
+                    // Silenciosamente falha - não é crítico
+                    console.warn('[TEMA] Não foi possível salvar tema no banco:', response.status);
                 } else {
                     const data = await response.json();
-                    console.log('✅ [TEMA] Tema salvo com sucesso:', data);
+                    console.log('[TEMA] Tema salvo com sucesso');
                 }
             } catch (error) {
-                console.error('❌ [TEMA] Erro ao salvar tema:', error);
+                // Silenciosamente falha - não é crítico
+                console.warn('[TEMA] Erro ao salvar tema:', error.message);
             }
         }
 
