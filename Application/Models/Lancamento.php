@@ -44,7 +44,6 @@ class Lancamento extends Model
         'eh_parcelado',
         'parcela_atual',
         'total_parcelas',
-        'lancamento_pai_id',
         'pago',
         'data_pagamento',
         // Campos de parcelamento
@@ -66,7 +65,6 @@ class Lancamento extends Model
         'eh_parcelado'      => 'bool',
         'parcela_atual'     => 'int',
         'total_parcelas'    => 'int',
-        'lancamento_pai_id' => 'int',
         'pago'              => 'bool',
         'parcelamento_id'   => 'int',
         'numero_parcela'    => 'int',

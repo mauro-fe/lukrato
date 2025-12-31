@@ -78,6 +78,10 @@ class CartaoCreditoService
             $cartao = new CartaoCredito($data);
             $cartao->save();
 
+            // Garantir que o limite_disponivel esteja sincronizado com
+            // possíveis lançamentos já existentes vinculados ao cartão.
+            $cartao->atualizarLimiteDisponivel();
+
             DB::commit();
 
             return [

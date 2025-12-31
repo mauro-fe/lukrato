@@ -286,10 +286,52 @@ class ParcelamentosController extends BaseController
             return;
         }
 
-        // Atualizar status
+        // Atualizar status básico na parcela
+        $previouslyPaid = (bool)$lancamento->pago;
         $lancamento->pago = $pago ? 1 : 0;
-        // Registrar data de pagamento
+        // Registrar data de pagamento na parcela
         $lancamento->data_pagamento = $pago ? date('Y-m-d') : null;
+
+        // Se marcou como pago agora e ainda não estava pago, e a data da parcela
+        // for diferente da data do pagamento (pagamento adiantado), criaremos
+        // um lançamento financeiro real com data = hoje para refletir o movimento.
+        if ($pago && !$previouslyPaid) {
+            $today = date('Y-m-d');
+            if ($lancamento->data->format('Y-m-d') !== $today) {
+                // Criar um lançamento 'real' representando o pagamento hoje
+                $newId = DB::table('lancamentos')->insertGetId([
+                    'user_id' => $userId,
+                    'descricao' => 'Pagamento antecipado: ' . $lancamento->descricao,
+                    'valor' => $lancamento->valor,
+                    'data' => $today,
+                    'tipo' => $lancamento->tipo,
+                    'categoria_id' => $lancamento->categoria_id,
+                    'conta_id' => $lancamento->conta_id,
+                    'conta_id_destino' => $lancamento->conta_id_destino ?? null,
+                    'eh_parcelado' => 0,
+                    'pago' => 1,
+                    'data_pagamento' => $today,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+
+        // Se desmarcou pagamento, remover lançamento financeiro criado anteriormente
+        if (!$pago && $previouslyPaid) {
+            // Remover lançamento criado para o pagamento adiantado.
+            // Como não usamos mais `lancamento_pai_id`, buscamos pelo padrão de descrição,
+            // data, valor e usuário para identificar o registro criado.
+            $descricaoPattern = 'Pagamento antecipado: ' . $lancamento->descricao;
+            $today = date('Y-m-d');
+            DB::table('lancamentos')
+                ->where('user_id', $userId)
+                ->where('descricao', $descricaoPattern)
+                ->where('data', $today)
+                ->where('valor', $lancamento->valor)
+                ->delete();
+        }
+
         $lancamento->save();
 
         // Atualizar contador de parcelas pagas no parcelamento

@@ -132,11 +132,21 @@ class LancamentosController extends BaseController
             $tipo = null;
         }
 
+        // Listagem de lançamentos por mês (mantemos comportamento padrão: mostrar
+        // todos os lançamentos do mês). Se for necessário ocultar pagos em uma
+        // tela específica, o frontend deve passar `hide_paid=1` ou `include_paid=0`.
         $q = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->leftJoin('contas as a',     'a.id', '=', 'l.conta_id')
             ->where('l.user_id', $userId)
             ->whereBetween('l.data', [$from, $to])
+            // Excluir do resultado geral parcelas que já foram pagas (mantemos
+            // as parcelas no detalhe do parcelamento, mas não queremos duplicar
+            // o lançamento criado para o pagamento antecipado na listagem geral).
+            ->where(function ($w) {
+                $w->whereNull('l.parcelamento_id')
+                    ->orWhere('l.pago', 0);
+            })
             ->when($accId, fn($w) => $w->where(function (Builder $s) use ($accId) {
                 $s->where('l.conta_id', $accId)
                     ->orWhere('l.conta_id_destino', $accId);
