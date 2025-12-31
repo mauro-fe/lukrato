@@ -288,6 +288,8 @@ class ParcelamentosController extends BaseController
 
         // Atualizar status
         $lancamento->pago = $pago ? 1 : 0;
+        // Registrar data de pagamento
+        $lancamento->data_pagamento = $pago ? date('Y-m-d') : null;
         $lancamento->save();
 
         // Atualizar contador de parcelas pagas no parcelamento
@@ -313,6 +315,7 @@ class ParcelamentosController extends BaseController
             'lancamento' => [
                 'id' => $lancamento->id,
                 'pago' => (bool)$lancamento->pago,
+                'data_pagamento' => $lancamento->data_pagamento,
             ],
         ], $pago ? 'Parcela marcada como paga' : 'Parcela desmarcada');
     }
@@ -372,6 +375,7 @@ class ParcelamentosController extends BaseController
                     'valor' => $lancamento->valor,
                     'data' => $lancamento->data->format('Y-m-d'),
                     'pago' => (bool)$lancamento->pago,
+                    'data_pagamento' => $lancamento->data_pagamento ? $lancamento->data_pagamento->format('Y-m-d') : null,
                 ];
             })->toArray();
         }

@@ -331,11 +331,21 @@ class ReportService
 
     private function handleCartoesCreditoReport(ReportParameters $params): array
     {
-        $userId = $params->accountId; // Na verdade é o user_id
+        $userId = $params->userId;
         $month = $params->start->format('Y-m');
+        $dataInicio = $params->start->toDateString();
+        $dataFim = $params->end->toDateString();
 
         // Busca os cartões do usuário
-        $cartoes = \Application\Models\CartaoCredito::where('user_id', $userId)->get();
+        $query = \Application\Models\CartaoCredito::where('user_id', $userId)
+            ->where('ativo', 1);
+
+        // Aplica filtro de conta se especificado
+        if ($params->accountId) {
+            $query->where('conta_id', $params->accountId);
+        }
+
+        $cartoes = $query->get();
 
         $cards = [];
         foreach ($cartoes as $cartao) {
@@ -343,21 +353,98 @@ class ReportService
             $totalMes = \Application\Models\Lancamento::where('user_id', $userId)
                 ->where('cartao_credito_id', $cartao->id)
                 ->where('tipo', 'despesa')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->whereBetween('data', [$dataInicio, $dataFim])
                 ->sum('valor');
 
-            $limite = (float) $cartao->limite ?? 0;
-            $usado = (float) $totalMes;
-            $disponivel = $limite - $usado;
-            $percentual = $limite > 0 ? ($usado / $limite) * 100 : 0;
+            // Busca parcelamentos ativos deste cartão
+            $parcelamentosAtivos = \Application\Models\Parcelamento::where('user_id', $userId)
+                ->where('cartao_credito_id', $cartao->id)
+                ->where('status', 'ativo')
+                ->get();
+
+            $totalParcelamentos = $parcelamentosAtivos->sum('valor_total');
+            $qtdParcelamentos = $parcelamentosAtivos->count();
+
+            // Calcula impacto nos próximos 3 meses
+            $proximosMeses = [];
+            for ($i = 1; $i <= 3; $i++) {
+                $mesAnalise = $params->start->copy()->addMonths($i);
+                $valorMes = \Application\Models\Lancamento::where('user_id', $userId)
+                    ->where('cartao_credito_id', $cartao->id)
+                    ->where('tipo', 'despesa')
+                    ->whereYear('data', $mesAnalise->year)
+                    ->whereMonth('data', $mesAnalise->month)
+                    ->sum('valor');
+
+                $proximosMeses[] = [
+                    'mes' => $mesAnalise->locale('pt_BR')->isoFormat('MMM/YY'),
+                    'valor' => (float) $valorMes
+                ];
+            }
+
+            $limite = (float) ($cartao->limite_total ?? $cartao->limite ?? 0);
+            $faturaAtual = (float) $totalMes;
+            $disponivel = max(0, $limite - $faturaAtual);
+            $percentual = $limite > 0 ? ($faturaAtual / $limite) * 100 : 0;
+
+            // Gera alertas
+            $alertas = [];
+
+            // Verifica se há lançamentos futuros próximos
+            $lancamentosFuturosProximos = \Application\Models\Lancamento::where('user_id', $userId)
+                ->where('cartao_credito_id', $cartao->id)
+                ->where('tipo', 'despesa')
+                ->where('data', '>', $dataFim)
+                ->where('data', '<=', $params->start->copy()->addMonth()->endOfMonth()->toDateString())
+                ->sum('valor');
+
+            if ($lancamentosFuturosProximos > 0) {
+                $alertas[] = [
+                    'type' => 'info',
+                    'message' => 'Próximo mês: ' . number_format($lancamentosFuturosProximos, 2, ',', '.')
+                ];
+            }
+
+            if ($percentual > 80) {
+                $alertas[] = [
+                    'type' => 'danger',
+                    'message' => 'Limite quase esgotado'
+                ];
+            } elseif ($percentual > 50) {
+                $alertas[] = [
+                    'type' => 'warning',
+                    'message' => 'Mais de 50% do limite usado'
+                ];
+            }
+
+            if ($qtdParcelamentos > 0) {
+                $alertas[] = [
+                    'type' => 'info',
+                    'message' => "{$qtdParcelamentos} parcelamento" . ($qtdParcelamentos > 1 ? 's' : '') . " ativo" . ($qtdParcelamentos > 1 ? 's' : '')
+                ];
+            }
+
+            // Busca o nome e cor da conta
+            $conta = $cartao->conta;
+            $nomeConta = $conta ? ($conta->apelido ?? $conta->nome ?? 'Conta') : 'Sem conta';
+            $corConta = $conta && $conta->cor ? $conta->cor : '#E67E22';
 
             $cards[] = [
-                'nome' => $cartao->nome ?? 'Cartão',
+                'nome' => $cartao->nome_cartao ?? $cartao->nome ?? 'Cartão',
+                'bandeira' => strtolower($cartao->bandeira ?? 'outros'),
+                'conta' => $nomeConta,
+                'cor' => $corConta,
                 'limite' => $limite,
-                'usado' => $usado,
+                'fatura_atual' => $faturaAtual,
                 'disponivel' => $disponivel,
                 'percentual' => round($percentual, 1),
-                'bandeira' => $cartao->bandeira ?? 'outros'
+                'dia_vencimento' => $cartao->dia_vencimento,
+                'alertas' => $alertas,
+                'parcelamentos' => [
+                    'ativos' => $qtdParcelamentos,
+                    'valor_total' => $totalParcelamentos
+                ],
+                'proximos_meses' => $proximosMeses
             ];
         }
 
