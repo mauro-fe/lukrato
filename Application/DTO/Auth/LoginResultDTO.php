@@ -1,6 +1,6 @@
 <?php
-// Application/DTOs/Auth/LoginResultDTO.php
-namespace Application\DTOs\Auth;
+
+namespace Application\DTO\Auth;
 
 use Application\Models\Usuario;
 

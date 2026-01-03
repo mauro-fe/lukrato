@@ -4,6 +4,34 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Agendamento
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $conta_id
+ * @property int|null $categoria_id
+ * @property string|null $titulo
+ * @property string|null $descricao
+ * @property string $tipo
+ * @property int|null $valor_centavos
+ * @property string|null $moeda
+ * @property \Carbon\Carbon|null $data_pagamento
+ * @property \Carbon\Carbon|null $proxima_execucao
+ * @property int|null $lembrar_antes_segundos
+ * @property bool $canal_email
+ * @property bool $canal_inapp
+ * @property bool $recorrente
+ * @property string|null $recorrencia_freq
+ * @property int|null $recorrencia_intervalo
+ * @property \Carbon\Carbon|null $recorrencia_fim
+ * @property \Carbon\Carbon|null $notificado_em
+ * @property \Carbon\Carbon|null $concluido_em
+ * @property string|null $status
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|Agendamento where(string $column, $value = null)
+ * @mixin \Eloquent
+ */
 class Agendamento extends Model
 {
     protected $table = 'agendamentos';

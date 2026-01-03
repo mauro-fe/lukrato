@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Application\DTOs\Requests;
+namespace Application\DTO\Requests;
 
-/**
- * DTO para criação de categoria.
- */
 readonly class CreateCategoriaDTO
 {
     public function __construct(
@@ -16,9 +13,6 @@ readonly class CreateCategoriaDTO
         public ?string $icone = null,
     ) {}
 
-    /**
-     * Converte para array para uso com repository.
-     */
     public function toArray(): array
     {
         return [
@@ -29,9 +23,6 @@ readonly class CreateCategoriaDTO
         ];
     }
 
-    /**
-     * Cria DTO a partir de array de request.
-     */
     public static function fromRequest(int $userId, array $data): self
     {
         return new self(

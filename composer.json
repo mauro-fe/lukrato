@@ -22,6 +22,7 @@
     "wixel/gump": "^2.2"
   },
   "require-dev": {
+    "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^10.0",
     "squizlabs/php_codesniffer": "^3.7"
   },

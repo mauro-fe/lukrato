@@ -6,7 +6,7 @@
 // Application/Contracts/Auth/AuthHandlerInterface.php
 namespace Application\Contracts\Auth;
 
-use Application\DTOs\Auth\CredentialsDTO;
+use Application\DTO\Auth\CredentialsDTO;
 
 interface AuthHandlerInterface
 {
@@ -16,7 +16,7 @@ interface AuthHandlerInterface
 // Application/Contracts/Auth/ValidationStrategyInterface.php
 namespace Application\Contracts\Auth;
 
-use Application\DTOs\Auth\CredentialsDTO;
+use Application\DTO\Auth\CredentialsDTO;
 
 interface ValidationStrategyInterface
 {

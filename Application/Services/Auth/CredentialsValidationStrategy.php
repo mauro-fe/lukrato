@@ -2,7 +2,7 @@
 
 namespace Application\Services\Auth;
 
-use Application\DTOs\Auth\CredentialsDTO;
+use Application\DTO\Auth\CredentialsDTO;
 use Application\Models\Usuario;
 use Application\Core\Exceptions\ValidationException;
 

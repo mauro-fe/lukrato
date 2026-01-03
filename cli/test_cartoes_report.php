@@ -29,7 +29,7 @@ foreach ($cartoes as $c) {
 echo "\n=== Testando API de Relatórios ===\n\n";
 
 use Application\Services\ReportService;
-use Application\DTOs\ReportParameters;
+use Application\DTO\ReportParameters;
 use Application\Enums\ReportType;
 use Carbon\Carbon;
 

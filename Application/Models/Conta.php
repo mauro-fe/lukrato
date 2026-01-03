@@ -7,6 +7,26 @@ namespace Application\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $nome
+ * @property string|null $cor
+ * @property string|null $instituicao
+ * @property int|null $instituicao_financeira_id
+ * @property string|null $tipo_conta
+ * @property float|null $saldo_inicial
+ * @property string|null $moeda
+ * @property int|null $tipo_id
+ * @property bool $ativo
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)
+ * @method static \Illuminate\Database\Eloquent\Builder ativas()
+ * @method static \Illuminate\Database\Eloquent\Builder arquivadas()
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class Conta extends Model
 {
     use SoftDeletes;

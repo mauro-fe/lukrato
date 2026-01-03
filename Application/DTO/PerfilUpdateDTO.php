@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\DTOs;
+namespace Application\DTO;
 
 /**
  * Data Transfer Object para atualização de perfil.
@@ -19,9 +19,6 @@ class PerfilUpdateDTO
         public readonly EnderecoDTO $endereco
     ) {}
 
-    /**
-     * Cria uma instância do DTO a partir dos dados da requisição.
-     */
     public static function fromRequest(array $data): self
     {
         return new self(

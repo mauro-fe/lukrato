@@ -2,7 +2,7 @@
 
 namespace Application\Services\Auth;
 
-use Application\DTOs\Auth\RegistrationDTO;
+use Application\DTO\Auth\RegistrationDTO;
 use Application\Models\Usuario;
 use Application\Services\LogService;
 use Throwable;

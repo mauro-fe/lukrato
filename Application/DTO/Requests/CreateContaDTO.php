@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Application\DTOs\Requests;
+namespace Application\DTO\Requests;
 
-/**
- * DTO para criação de conta.
- */
 readonly class CreateContaDTO
 {
     public function __construct(
@@ -17,9 +14,6 @@ readonly class CreateContaDTO
         public float $saldoInicial = 0.00,
     ) {}
 
-    /**
-     * Converte para array para uso com repository.
-     */
     public function toArray(): array
     {
         return [
@@ -31,9 +25,6 @@ readonly class CreateContaDTO
         ];
     }
 
-    /**
-     * Cria DTO a partir de array de request.
-     */
     public static function fromRequest(int $userId, array $data): self
     {
         return new self(

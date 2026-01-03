@@ -30,6 +30,27 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Parcelamento extends Model
 {
+    /**
+     * @property int $id
+     * @property int $user_id
+     * @property string|null $descricao
+     * @property float $valor_total
+     * @property int $numero_parcelas
+     * @property int $parcelas_pagas
+     * @property int|null $categoria_id
+     * @property int|null $conta_id
+     * @property int|null $cartao_credito_id
+     * @property string $tipo
+     * @property string $status
+     * @property \Carbon\Carbon|null $data_criacao
+     *
+     * @property-read float $valor_parcela
+     * @property-read float $percentual_pago
+     * @property-read float $valor_restante
+     *
+     * @method static \Illuminate\Database\Eloquent\Builder|Parcelamento where(string $column, $value = null)
+     * @mixin \Eloquent
+     */
     protected $table = 'parcelamentos';
     public $timestamps = true;
 

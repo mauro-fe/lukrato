@@ -2,7 +2,7 @@
 
 namespace Application\Validators;
 
-use Application\DTOs\EnderecoDTO;
+use Application\DTO\EnderecoDTO;
 use Application\Formatters\DocumentFormatter;
 
 /**

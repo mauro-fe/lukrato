@@ -58,7 +58,7 @@ try {
     // Testar a API
     echo PHP_EOL . "=== Testando ReportService ===" . PHP_EOL;
 
-    $params = new \Application\DTOs\ReportParameters(
+    $params = new \Application\DTO\ReportParameters(
         \Carbon\Carbon::now()->startOfMonth(),
         \Carbon\Carbon::now()->endOfMonth(),
         null,

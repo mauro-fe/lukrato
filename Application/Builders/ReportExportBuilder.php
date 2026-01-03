@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Application\Builders;
 
 use Application\Enums\ReportType;
-use Application\DTOs\ReportData;
-use Application\DTOs\ReportParameters;
+use Application\DTO\ReportData;
+use Application\DTO\ReportParameters;
 use InvalidArgumentException;
 
 class ReportExportBuilder
 {
     private const EMPTY_DATA_MESSAGE = 'Nenhum dado disponível para o período selecionado';
     private const CURRENCY_SYMBOL = 'R$';
-    
+
     public function build(ReportType $type, ReportParameters $params, array $payload): ReportData
     {
         [$headers, $rows] = $this->processData($type, $payload);
@@ -35,27 +35,27 @@ class ReportExportBuilder
     {
         return match ($type) {
             ReportType::DESPESAS_POR_CATEGORIA,
-            ReportType::RECEITAS_POR_CATEGORIA => 
-                $this->processCategoryReport($payload, 'Categoria'),
+            ReportType::RECEITAS_POR_CATEGORIA =>
+            $this->processCategoryReport($payload, 'Categoria'),
 
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
-            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => 
-                $this->processCategoryReport($payload, 'Categoria'),
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA =>
+            $this->processCategoryReport($payload, 'Categoria'),
 
-            ReportType::SALDO_MENSAL => 
-                $this->processBalanceReport($payload),
+            ReportType::SALDO_MENSAL =>
+            $this->processBalanceReport($payload),
 
-            ReportType::EVOLUCAO_12M => 
-                $this->processEvolutionReport($payload),
+            ReportType::EVOLUCAO_12M =>
+            $this->processEvolutionReport($payload),
 
-            ReportType::RECEITAS_DESPESAS_DIARIO => 
-                $this->processIncomeExpenseReport($payload, 'Período'),
+            ReportType::RECEITAS_DESPESAS_DIARIO =>
+            $this->processIncomeExpenseReport($payload, 'Período'),
 
-            ReportType::RESUMO_ANUAL => 
-                $this->processAnnualSummary($payload),
+            ReportType::RESUMO_ANUAL =>
+            $this->processAnnualSummary($payload),
 
-            ReportType::RECEITAS_DESPESAS_POR_CONTA => 
-                $this->processAccountReport($payload),
+            ReportType::RECEITAS_DESPESAS_POR_CONTA =>
+            $this->processAccountReport($payload),
 
             default => throw new InvalidArgumentException(
                 "Tipo de relatório '{$type->value}' não implementado no exportador."
@@ -177,7 +177,7 @@ class ReportExportBuilder
 
         // Filtros aplicados
         $filters = [];
-        
+
         if ($params->accountId) {
             $filters[] = 'Conta especifica';
         }
@@ -199,17 +199,17 @@ class ReportExportBuilder
             ReportType::DESPESAS_POR_CATEGORIA,
             ReportType::RECEITAS_POR_CATEGORIA,
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
-            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA => 
-                $this->buildSingleValueTotals($payload),
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA =>
+            $this->buildSingleValueTotals($payload),
 
             ReportType::RECEITAS_DESPESAS_DIARIO,
             ReportType::RESUMO_ANUAL,
-            ReportType::RECEITAS_DESPESAS_POR_CONTA => 
-                $this->buildIncomeExpenseTotals($payload),
+            ReportType::RECEITAS_DESPESAS_POR_CONTA =>
+            $this->buildIncomeExpenseTotals($payload),
 
             ReportType::SALDO_MENSAL,
-            ReportType::EVOLUCAO_12M => 
-                $this->buildBalanceTotals($payload),
+            ReportType::EVOLUCAO_12M =>
+            $this->buildBalanceTotals($payload),
 
             default => [],
         };
@@ -218,7 +218,7 @@ class ReportExportBuilder
     private function buildSingleValueTotals(array $payload): array
     {
         $total = $this->sumValues($payload['values'] ?? []);
-        
+
         return [
             'Total Geral' => $this->formatMoney($total),
         ];
@@ -240,7 +240,7 @@ class ReportExportBuilder
     private function buildBalanceTotals(array $payload): array
     {
         $values = $payload['values'] ?? [];
-        
+
         if (empty($values)) {
             return [];
         }
@@ -257,7 +257,7 @@ class ReportExportBuilder
     private function createEmptyRow(array $headers): array
     {
         $emptyRow = [self::EMPTY_DATA_MESSAGE];
-        
+
         for ($i = 1; $i < count($headers); $i++) {
             $emptyRow[] = '-';
         }

@@ -6,8 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model: Achievement (Conquista)
- * 
+ *
  * Representa uma conquista disponível no sistema
+ *
+ * @property int $id
+ * @property string $code
+ * @property string $name
+ * @property string|null $description
+ * @property string|null $icon
+ * @property int $points_reward
+ * @property string|null $category
+ * @property bool $active
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder active()
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class Achievement extends Model
 {

@@ -4,6 +4,9 @@ namespace Application\Services;
 
 use Application\Models\Usuario;
 
+/**
+ * @var array<string, array<string, mixed>>
+ */
 final class FeatureGate
 {
     private static array $entitlements = [
@@ -24,7 +27,12 @@ final class FeatureGate
     public static function allows(Usuario $u, string $feature): bool
     {
         $plano = $u->planoAtual();
-        $code  = $plano?->code ?? ($u->plano ?? 'gratuito');
+        $code = 'gratuito';
+        if ($plano && ($plano->code ?? null)) {
+            $code = (string) $plano->code;
+        } elseif (!empty($u->plano)) {
+            $code = (string) $u->plano;
+        }
 
         $map = [
             'gratuito' => ['reports' => false, 'scheduling' => false, 'export' => false],

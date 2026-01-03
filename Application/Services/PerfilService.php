@@ -2,7 +2,7 @@
 
 namespace Application\Services;
 
-use Application\DTOs\PerfilUpdateDTO;
+use Application\DTO\PerfilUpdateDTO;
 use Application\Repositories\UsuarioRepository;
 use Application\Repositories\DocumentoRepository;
 use Application\Repositories\TelefoneRepository;
@@ -58,7 +58,7 @@ class PerfilService
 
             // 2. Atualiza ou remove CPF
             $cpfLimpo = $this->documentFormatter->digits($dto->cpf);
-            
+
             if ($cpfLimpo !== '') {
                 $this->documentoRepo->updateOrCreateCpf($userId, $cpfLimpo);
             } else {
@@ -78,7 +78,7 @@ class PerfilService
                 $this->enderecoRepo->deletePrincipal($userId);
             } else {
                 $this->enderecoRepo->updateOrCreatePrincipal(
-                    $userId, 
+                    $userId,
                     $dto->endereco->toArray()
                 );
             }

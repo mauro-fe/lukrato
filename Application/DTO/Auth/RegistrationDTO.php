@@ -1,6 +1,6 @@
 <?php
-// Application/DTOs/Auth/RegistrationDTO.php
-namespace Application\DTOs\Auth;
+
+namespace Application\DTO\Auth;
 
 class RegistrationDTO
 {

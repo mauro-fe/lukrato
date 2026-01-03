@@ -7,8 +7,8 @@
 namespace Application\Services\Auth;
 
 use Application\Contracts\Auth\AuthHandlerInterface;
-use Application\DTOs\Auth\CredentialsDTO;
-use Application\DTOs\Auth\LoginResultDTO;
+use Application\DTO\Auth\CredentialsDTO;
+use Application\DTO\Auth\LoginResultDTO;
 use Application\Core\Request;
 use Application\Services\CacheService;
 use Application\Services\LogService;

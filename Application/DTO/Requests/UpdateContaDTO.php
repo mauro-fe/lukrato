@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Application\DTOs\Requests;
+namespace Application\DTO\Requests;
 
-/**
- * DTO para atualização de conta.
- */
 readonly class UpdateContaDTO
 {
     public function __construct(
@@ -16,9 +13,6 @@ readonly class UpdateContaDTO
         public ?float $saldoInicial = null,
     ) {}
 
-    /**
-     * Converte para array para uso com repository.
-     */
     public function toArray(): array
     {
         $data = [
@@ -34,9 +28,6 @@ readonly class UpdateContaDTO
         return $data;
     }
 
-    /**
-     * Cria DTO a partir de array de request.
-     */
     public static function fromRequest(array $data): self
     {
         return new self(

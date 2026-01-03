@@ -3,8 +3,8 @@
 // Application/Services/Auth/RegistrationValidationStrategy.php
 namespace Application\Services\Auth;
 
-use Application\DTOs\Auth\RegistrationDTO;
-use Application\DTOs\Auth\CredentialsDTO;
+use Application\DTO\Auth\RegistrationDTO;
+use Application\DTO\Auth\CredentialsDTO;
 use Application\Models\Usuario;
 use GUMP;
 
