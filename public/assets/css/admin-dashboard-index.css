@@ -1147,7 +1147,6 @@
 
 @media (max-width: 768px) {
   .lk-btn {
-    width: 30px !important;
     height: 30px !important;
     border-radius: 50% !important;
   }

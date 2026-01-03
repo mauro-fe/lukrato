@@ -79,11 +79,7 @@
   inset: -2px;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
+  background: var(--color-primary);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -110,7 +106,7 @@
     color-mix(in srgb, var(--color-secondary) 15%, var(--color-surface)),
     color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
   );
-  color: var(--color-secondary);
+  color: var(--color-primary);
 }
 
 .card-title-group {
@@ -283,11 +279,7 @@
 
 /* Botão Primary */
 .modern-btn.primary {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
+  background: var(--color-primary);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
@@ -367,7 +359,7 @@
 }
 
 .filter-label i {
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-size: 14px;
 }
 

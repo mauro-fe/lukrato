@@ -168,14 +168,19 @@
 /* Ícone do calendário */
 .export-range .date-range::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.2s ease;
-  filter: invert(0.5);
-  /* Ajuda a aparecer em temas dark/light */
+  filter: invert(0.5) sepia(1) saturate(0) hue-rotate(0deg);
 }
 
-.export-range .date-range::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
+#modalEditarLancamento input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.5;
+  filter: brightness(0.6);
+}
+
+#modalEditarLancamento input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.7;
 }
 
 /* Select */
@@ -555,6 +560,15 @@
 
 #modalEditarLancamento .modal-title::before {
   font-size: 1.2em;
+}
+
+#modalEditarLancamento .btn-close-custom {
+  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%) hue-rotate(351deg) brightness(99%) contrast(89%);
+  opacity: 1;
+}
+
+#modalEditarLancamento .btn-close-custom:hover {
+  opacity: 0.8;
 }
 
 #modalEditarLancamento .modal-body {
@@ -1799,7 +1813,7 @@
 }
 
 .filter-label i {
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-size: 14px;
 }
 

@@ -90,11 +90,13 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
         }
 
         async function saveThemeToDatabase(theme) {
+            // Temporariamente desabilitado - rota não implementada
+            return;
+
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
                 if (!csrfToken) {
-                    console.warn('[TEMA] CSRF token não encontrado, tema não será salvo no banco');
                     return;
                 }
 
@@ -114,16 +116,11 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
                     credentials: 'same-origin'
                 });
 
-                if (!response.ok) {
-                    // Silenciosamente falha - não é crítico
-                    console.warn('[TEMA] Não foi possível salvar tema no banco:', response.status);
-                } else {
+                if (response.ok) {
                     const data = await response.json();
-                    console.log('[TEMA] Tema salvo com sucesso');
                 }
             } catch (error) {
                 // Silenciosamente falha - não é crítico
-                console.warn('[TEMA] Erro ao salvar tema:', error.message);
             }
         }
 

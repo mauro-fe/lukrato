@@ -845,6 +845,13 @@ class ContasManager {
      * Anexar event listeners
      */
     attachEventListeners() {
+        // Botões de fechar modal
+        document.querySelectorAll('.modal-close-btn, .modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.closeModal();
+            });
+        });
+
         // Botão nova conta
         document.getElementById('btnNovaConta')?.addEventListener('click', () => {
             this.openModal('create');

@@ -92,8 +92,16 @@
 }
 
 .icon-wrapper.filter {
-  background: var(--parc-primary);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
+  );
+  color: var(--color-primary);
+}
+
+.icon-wrapper.filter i {
+  color: var(--color-primary);
 }
 
 .card-title-group {
@@ -137,7 +145,7 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: var(--parc-dark);
+  color: var(--color-text);
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
 }
@@ -443,12 +451,6 @@
 .parc-btn-view {
   background: var(--parc-primary);
   color: white;
-}
-
-.parc-btn-view:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-  background: #e5e7eb;
 }
 
 .parc-btn-cancel {

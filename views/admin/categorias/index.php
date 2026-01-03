@@ -22,10 +22,8 @@
                         <i class="fas fa-tag"></i>
                         <span>Nome da Categoria</span>
                     </label>
-                    <input id="catNome" class="modern-input" name="nome" 
-                           placeholder="Ex: Alimentação, Salário..." 
-                           required minlength="2" maxlength="100" 
-                           aria-label="Nome da categoria" />
+                    <input id="catNome" class="modern-input" name="nome" placeholder="Ex: Alimentação, Salário..."
+                        required minlength="2" maxlength="100" aria-label="Nome da categoria" />
                 </div>
 
                 <div class="input-group">
@@ -33,8 +31,7 @@
                         <i class="fas fa-exchange-alt"></i>
                         <span>Tipo</span>
                     </label>
-                    <select id="catTipo" class="modern-select" name="tipo" 
-                            required aria-label="Tipo de categoria">
+                    <select id="catTipo" class="modern-select" name="tipo" required aria-label="Tipo de categoria">
                         <option value="receita">💰 Receita</option>
                         <option value="despesa">💸 Despesa</option>
                     </select>
@@ -42,7 +39,7 @@
             </div>
 
             <button class="modern-btn primary submit-btn" type="submit">
-                <i class="fas fa-plus-circle"></i>
+                <i class="fas fa-plus"></i>
                 <span>Adicionar Categoria</span>
             </button>
         </form>
@@ -64,11 +61,12 @@
                         </p>
                     </div>
                 </div>
-                <button type="button" class="icon-btn refresh-btn" title="Atualizar receitas" onclick="location.reload()">
+                <button type="button" class="icon-btn refresh-btn" title="Atualizar receitas"
+                    onclick="location.reload()">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
-            
+
             <div class="category-list" id="receitasList">
                 <div class="empty-state">
                     <i class="fas fa-inbox"></i>
@@ -91,11 +89,12 @@
                         </p>
                     </div>
                 </div>
-                <button type="button" class="icon-btn refresh-btn" title="Atualizar despesas" onclick="location.reload()">
+                <button type="button" class="icon-btn refresh-btn" title="Atualizar despesas"
+                    onclick="location.reload()">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
-            
+
             <div class="category-list" id="despesasList">
                 <div class="empty-state">
                     <i class="fas fa-inbox"></i>
@@ -108,7 +107,8 @@
 
 <?php include __DIR__ . '/../partials/modals/editar-categorias.php'; ?>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
+</script>
 <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="<?= BASE_URL ?>assets/js/categorias-manager.js"></script>

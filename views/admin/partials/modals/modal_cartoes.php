@@ -190,7 +190,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
+        background: var(--color-primary);
         color: white;
     }
 

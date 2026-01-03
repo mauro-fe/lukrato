@@ -31,6 +31,15 @@
 }
 
 /* ============================================================================
+   ÍCONES
+   ============================================================================ */
+
+.fa-plus-circle,
+.fa-circle-plus {
+  color: var(--color-primary);
+}
+
+/* ============================================================================
    CARDS MODERNOS
    ============================================================================ */
 
@@ -82,11 +91,7 @@
   inset: -2px;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
+  background: var(--color-primary);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -101,10 +106,14 @@
 .icon-wrapper.create {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--color-success) 15%, var(--color-surface)),
-    color-mix(in srgb, var(--color-success) 10%, var(--color-surface))
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
   );
-  color: var(--color-success);
+  color: var(--color-primary);
+}
+
+.icon-wrapper.create i {
+  color: var(--color-primary);
 }
 
 .card-title-group {
@@ -279,12 +288,6 @@
   font-size: 16px;
 }
 
-.modern-btn.primary {
-  background: linear-gradient(135deg, var(--color-success), #27ae60);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
-}
-
 .modern-btn.primary:hover {
   box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
   transform: translateY(-2px);
@@ -339,7 +342,9 @@
   position: relative;
   overflow: hidden;
 }
-
+.category-title {
+  color: var(--color-text);
+}
 .category-header::before {
   content: "";
   position: absolute;
@@ -353,7 +358,7 @@
 }
 
 .category-header.receitas::before {
-  background: var(--color-primary);
+  background: var(--color-text) !important;
 }
 
 .category-header.despesas {
@@ -362,7 +367,7 @@
 }
 
 .category-header.despesas::before {
-  background: var(--color-primary);
+  background: var(--color-text) !important;
 }
 
 .header-content {
@@ -540,11 +545,7 @@
 }
 
 .category-actions .action-btn.edit:hover {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
+  background: var(--color-primary);
   color: #ffffff;
   border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
@@ -763,8 +764,8 @@
 [data-theme="dark"] .icon-wrapper.create {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--color-success) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-success) 15%, var(--color-surface))
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface))
   );
 }
 

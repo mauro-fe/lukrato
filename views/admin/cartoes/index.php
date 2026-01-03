@@ -67,15 +67,15 @@
                     Todos
                 </button>
                 <button class="filter-btn" data-filter="visa">
-                    <i class="fab fa-cc-visa"></i>
+                    <img src="<?= BASE_URL ?>assets/img/bandeiras/visa.png" alt="Visa" class="brand-logo-filter">
                     Visa
                 </button>
                 <button class="filter-btn" data-filter="mastercard">
-                    <i class="fab fa-cc-mastercard"></i>
+                    <img src="<?= BASE_URL ?>assets/img/bandeiras/mastercard.png" alt="Mastercard" class="brand-logo-filter">
                     Master
                 </button>
                 <button class="filter-btn" data-filter="elo">
-                    <i class="fas fa-credit-card"></i>
+                    <img src="<?= BASE_URL ?>assets/img/bandeiras/elo.png" alt="Elo" class="brand-logo-filter">
                     Elo
                 </button>
             </div>
@@ -129,6 +129,8 @@
 
 <!-- ==================== SCRIPTS E ESTILOS ==================== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/cartoes-modern.css?v=<?= time() ?>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/cartoes-manager.js?v=<?= time() ?>"></script>
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';

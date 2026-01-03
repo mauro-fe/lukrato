@@ -409,64 +409,20 @@
         padding: 1.5rem 1rem;
         text-align: center;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
-    }
-
-    .lk-tipo-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--color-primary);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .lk-tipo-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    }
-
-    .lk-tipo-card:hover::before {
-        opacity: 1;
-    }
-
-    .lk-tipo-card:active {
-        transform: translateY(-2px);
     }
 
     .lk-tipo-receita {
         border-color: #28a745;
     }
 
-    .lk-tipo-receita:hover {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        border-color: #28a745;
-        color: white;
-    }
-
     .lk-tipo-despesa {
         border-color: #dc3545;
     }
 
-    .lk-tipo-despesa:hover {
-        background: linear-gradient(135deg, #dc3545, #e74c3c);
-        border-color: #dc3545;
-        color: white;
-    }
-
     .lk-tipo-transferencia {
         border-color: #17a2b8;
-    }
-
-    .lk-tipo-transferencia:hover {
-        background: linear-gradient(135deg, #17a2b8, #3498db);
-        border-color: #17a2b8;
-        color: white;
     }
 
     .lk-tipo-icon {
@@ -478,7 +434,6 @@
         align-items: center;
         justify-content: center;
         font-size: 1.75rem;
-        transition: all 0.3s ease;
     }
 
     .lk-tipo-receita .lk-tipo-icon {
@@ -486,29 +441,14 @@
         color: #28a745;
     }
 
-    .lk-tipo-receita:hover .lk-tipo-icon {
-        background: white;
-        transform: rotate(180deg);
-    }
-
     .lk-tipo-despesa .lk-tipo-icon {
         background: linear-gradient(135deg, #f8d7da, #f5c6cb);
         color: #dc3545;
     }
 
-    .lk-tipo-despesa:hover .lk-tipo-icon {
-        background: white;
-        transform: rotate(180deg);
-    }
-
     .lk-tipo-transferencia .lk-tipo-icon {
         background: linear-gradient(135deg, #d1ecf1, #bee5eb);
         color: #17a2b8;
-    }
-
-    .lk-tipo-transferencia:hover .lk-tipo-icon {
-        background: white;
-        transform: rotate(360deg);
     }
 
     .lk-tipo-card h4 {
@@ -532,7 +472,6 @@
         border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 700;
-        transition: all 0.3s ease;
     }
 
     .lk-tipo-receita .lk-tipo-badge {
@@ -540,29 +479,14 @@
         color: #155724;
     }
 
-    .lk-tipo-receita:hover .lk-tipo-badge {
-        background: rgba(255, 255, 255, 0.3);
-        color: white;
-    }
-
     .lk-tipo-despesa .lk-tipo-badge {
         background: #f8d7da;
         color: #721c24;
     }
 
-    .lk-tipo-despesa:hover .lk-tipo-badge {
-        background: rgba(255, 255, 255, 0.3);
-        color: white;
-    }
-
     .lk-tipo-transferencia .lk-tipo-badge {
         background: #d1ecf1;
         color: #0c5460;
-    }
-
-    .lk-tipo-transferencia:hover .lk-tipo-badge {
-        background: rgba(255, 255, 255, 0.3);
-        color: white;
     }
 
     /* Scrollbar customizada para histórico */

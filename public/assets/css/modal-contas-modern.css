@@ -59,10 +59,13 @@
 
 /* Header com Gradiente Lukrato */
 .lk-modal-header-gradient {
-  background: linear-gradient(135deg, #e67e22 0%, #d35400 50%, #c0392b 100%);
-  padding: 2rem 2rem 1.5rem;
+  background: var(--color-primary);
+  padding: 1rem 30px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .lk-modal-header-gradient::before {
@@ -87,46 +90,48 @@
 
 /* Ícone do Header */
 .lk-modal-icon-wrapper {
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0;
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
 .lk-modal-icon-wrapper i {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   color: #fff;
 }
 
 /* Título do Modal */
 .lk-modal-title {
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  text-align: center;
+  text-align: left;
   margin: 0;
   position: relative;
   z-index: 1;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex: 1;
 }
 
 /* Botão Fechar */
 .lk-modal-close-btn {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #fff;
   display: flex;
   align-items: center;
@@ -763,57 +768,21 @@
   padding: 1.5rem 1rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-}
-
-.lk-tipo-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.lk-tipo-card:hover::before {
-  opacity: 0.1;
-}
-
-.lk-tipo-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
 }
 
 .lk-tipo-receita {
   border-color: rgba(46, 204, 113, 0.3);
 }
 
-.lk-tipo-receita:hover {
-  border-color: #2ecc71;
-  background: rgba(46, 204, 113, 0.05);
-}
-
 .lk-tipo-despesa {
   border-color: rgba(231, 76, 60, 0.3);
 }
 
-.lk-tipo-despesa:hover {
-  border-color: #e74c3c;
-  background: rgba(231, 76, 60, 0.05);
-}
-
 .lk-tipo-transferencia {
   border-color: rgba(52, 152, 219, 0.3);
-}
-
-.lk-tipo-transferencia:hover {
-  border-color: #3498db;
-  background: rgba(52, 152, 219, 0.05);
 }
 
 .lk-tipo-icon {

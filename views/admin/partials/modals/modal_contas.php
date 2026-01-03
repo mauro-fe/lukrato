@@ -12,7 +12,7 @@
                     <p class="modal-subtitle">Adicione uma nova conta bancária</p>
                 </div>
             </div>
-            <button class="modal-close" type="button" aria-label="Fechar modal">
+            <button class="modal-close modal-close-btn" type="button" aria-label="Fechar modal">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -90,7 +90,7 @@
                 </div>
 
                 <!-- Cor da Conta -->
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label for="corConta" class="form-label">
                         <i class="fas fa-palette"></i>
                         Cor de Identificação
@@ -104,7 +104,6 @@
                     <label class="form-checkbox">
                         <input type="checkbox" id="incluirSaldoTotal" name="incluir_saldo_total" checked>
                         <span class="form-checkbox-label">
-                            <i class="fas fa-chart-line"></i>
                             Incluir no saldo total
                         </span>
                     </label>
@@ -182,64 +181,73 @@
     }
 
     /* Header */
-    .modal-header {
-        padding: var(--spacing-6);
+    #modalConta .modal-header {
+        padding: 1rem 1.5rem;
         border-bottom: 1px solid var(--glass-border);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
+        gap: 0.75rem;
+        background: var(--color-primary) !important;
         color: white;
+        position: relative;
     }
 
     .modal-header-content {
         display: flex;
         align-items: center;
-        gap: var(--spacing-4);
+        gap: var(--spacing-3);
     }
 
     .modal-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: var(--radius-md);
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
         background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+        flex-shrink: 0;
     }
 
     .modal-title {
-        font-size: var(--font-size-xl);
+        font-size: 1.125rem;
         font-weight: 700;
         margin: 0;
         color: white;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .modal-subtitle {
-        font-size: var(--font-size-sm);
+        font-size: 0.75rem;
         opacity: 0.9;
-        margin: var(--spacing-1) 0 0;
+        margin: 2px 0 0;
         color: white;
     }
 
     .modal-close {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.15);
-        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         color: white;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all var(--transition-normal);
+        transition: all 0.2s ease;
+        font-size: 14px;
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
     }
 
     .modal-close:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: rotate(90deg);
     }
 
     /* Body */
@@ -324,22 +332,47 @@
     .form-checkbox {
         display: flex;
         align-items: center;
-        gap: var(--spacing-3);
+        gap: 1rem;
         cursor: pointer;
+        padding: var(--spacing-4);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
+        border: 2px solid var(--glass-border);
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .form-checkbox:hover {
+        border-color: var(--color-primary);
+        background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-muted));
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15);
     }
 
     .form-checkbox input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         cursor: pointer;
+        accent-color: var(--color-primary);
+        flex-shrink: 0;
+        border-radius: 4px;
     }
 
     .form-checkbox-label {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-2);
         font-size: var(--font-size-base);
+        font-weight: 600;
         color: var(--color-text);
+        user-select: none;
+        padding: 10px;
+    }
+
+    .form-checkbox:has(input:checked) {
+        border-color: var(--color-primary);
+        background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+    }
+
+    .form-checkbox:has(input:checked) .form-checkbox-label {
+        color: var(--color-primary);
     }
 
     /* Footer */

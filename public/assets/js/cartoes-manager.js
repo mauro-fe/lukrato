@@ -386,7 +386,8 @@ class CartoesManager {
                 ` : ''}
                 <div class="card-header">
                     <div class="card-brand">
-                        <i class="brand-icon ${brandIcon}"></i>
+                        <img src="${brandIcon}" alt="${cartao.bandeira}" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                        <i class="brand-icon-fallback fas fa-credit-card" style="display: none;"></i>
                         <span class="card-name">${this.escapeHtml(cartao.nome_cartao)}</span>
                     </div>
                     <div class="card-actions">
@@ -799,39 +800,172 @@ class CartoesManager {
     }
 
     /**
-     * Exportar relatório
+     * Exportar relatório em PDF
      */
     async exportarRelatorio() {
         try {
-            const data = this.filteredCartoes.map(cartao => ({
-                'Nome': cartao.nome_cartao,
-                'Bandeira': cartao.bandeira,
-                'Final': cartao.ultimos_digitos,
-                'Limite Total': this.formatMoney(cartao.limite_total),
-                'Limite Disponível': this.formatMoney(cartao.limite_disponivel),
-                'Vencimento': `Dia ${cartao.dia_vencimento}`,
-                'Fechamento': `Dia ${cartao.dia_fechamento}`
-            }));
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const dataAtual = new Date();
+            const mesAno = dataAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            
+            // Calcular resumo financeiro
+            const limiteTotal = this.filteredCartoes.reduce((sum, c) => sum + parseFloat(c.limite_total || 0), 0);
+            const limiteDisponivel = this.filteredCartoes.reduce((sum, c) => sum + parseFloat(c.limite_disponivel || 0), 0);
+            const limiteUtilizado = limiteTotal - limiteDisponivel;
+            const percentualGeral = limiteTotal > 0 ? (limiteUtilizado / limiteTotal * 100).toFixed(1) : 0;
 
-            // Criar CSV
-            const csv = this.convertToCSV(data);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            // Configurar cores
+            const primaryColor = [230, 126, 34]; // Laranja
+            const darkColor = [26, 31, 46];
+            const lightGray = [248, 249, 250];
 
-            link.setAttribute('href', url);
-            link.setAttribute('download', `cartoes_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Cabeçalho do documento
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, 210, 35, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.text('RELATÓRIO DE CARTÕES DE CRÉDITO', 105, 15, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Período: ${mesAno}`, 105, 22, { align: 'center' });
+            doc.text(`Gerado em: ${dataAtual.toLocaleDateString('pt-BR')} às ${dataAtual.toLocaleTimeString('pt-BR')}`, 105, 28, { align: 'center' });
 
-            this.showToast('Relatório exportado com sucesso', 'success');
+            // Resumo Financeiro
+            let yPos = 45;
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('RESUMO FINANCEIRO', 14, yPos);
+            
+            yPos += 8;
+            doc.autoTable({
+                startY: yPos,
+                head: [['Indicador', 'Valor']],
+                body: [
+                    ['Total de Cartões', this.filteredCartoes.length.toString()],
+                    ['Limite Total Combinado', this.formatMoney(limiteTotal)],
+                    ['Limite Utilizado', this.formatMoney(limiteUtilizado)],
+                    ['Limite Disponível', this.formatMoney(limiteDisponivel)],
+                    ['Percentual de Utilização', `${percentualGeral}%`]
+                ],
+                theme: 'grid',
+                headStyles: {
+                    fillColor: primaryColor,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'left'
+                },
+                columnStyles: {
+                    0: { cellWidth: 100, fontStyle: 'bold' },
+                    1: { cellWidth: 86, halign: 'right' }
+                },
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 5
+                },
+                alternateRowStyles: {
+                    fillColor: lightGray
+                }
+            });
+
+            // Detalhamento por Cartão
+            yPos = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('DETALHAMENTO POR CARTÃO', 14, yPos);
+            
+            yPos += 5;
+            const tableData = this.filteredCartoes.map(cartao => {
+                const percentualUso = cartao.limite_total > 0 
+                    ? ((cartao.limite_total - cartao.limite_disponivel) / cartao.limite_total * 100).toFixed(1) 
+                    : 0;
+                
+                return [
+                    cartao.nome_cartao,
+                    this.formatBandeira(cartao.bandeira),
+                    `**** ${cartao.ultimos_digitos}`,
+                    this.formatMoney(cartao.limite_total),
+                    this.formatMoney(cartao.limite_disponivel),
+                    `${percentualUso}%`,
+                    cartao.ativo ? 'Ativo' : 'Inativo'
+                ];
+            });
+
+            doc.autoTable({
+                startY: yPos,
+                head: [['Cartão', 'Bandeira', 'Final', 'Limite Total', 'Disponível', 'Uso', 'Status']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: primaryColor,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                columnStyles: {
+                    0: { cellWidth: 40 },
+                    1: { cellWidth: 25, halign: 'center' },
+                    2: { cellWidth: 25, halign: 'center' },
+                    3: { cellWidth: 28, halign: 'right' },
+                    4: { cellWidth: 28, halign: 'right' },
+                    5: { cellWidth: 18, halign: 'center' },
+                    6: { cellWidth: 22, halign: 'center' }
+                },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 4
+                },
+                alternateRowStyles: {
+                    fillColor: lightGray
+                }
+            });
+
+            // Rodapé
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(128, 128, 128);
+                doc.text(
+                    `Página ${i} de ${pageCount} | Lukrato - Sistema de Gestão Financeira`,
+                    105,
+                    287,
+                    { align: 'center' }
+                );
+            }
+
+            // Salvar PDF
+            doc.save(`relatorio_cartoes_${dataAtual.toISOString().split('T')[0]}.pdf`);
+            
+            this.showToast('success', 'Relatório exportado com sucesso');
 
         } catch (error) {
             console.error('Erro ao exportar:', error);
-            this.showToast('Erro ao exportar relatório', 'error');
+            this.showToast('error', 'Erro ao exportar relatório');
         }
+    }
+
+    /**
+     * Formatar bandeira com capitalização
+     */
+    formatBandeira(bandeira) {
+        if (!bandeira) return 'Não informado';
+        return bandeira.charAt(0).toUpperCase() + bandeira.slice(1).toLowerCase();
+    }
+
+    /**
+     * Formatar dinheiro para CSV (sem símbolo)
+     */
+    formatMoneyForCSV(value) {
+        return new Intl.NumberFormat('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value || 0);
     }
 
     /**
@@ -882,18 +1016,19 @@ class CartoesManager {
     }
 
     /**
-     * Obter ícone da bandeira
+     * Obter ícone/logo da bandeira
      */
     getBrandIcon(bandeira) {
-        const icons = {
-            'visa': 'fab fa-cc-visa',
-            'mastercard': 'fab fa-cc-mastercard',
-            'elo': 'fas fa-credit-card',
-            'amex': 'fab fa-cc-amex',
-            'diners': 'fab fa-cc-diners-club',
-            'discover': 'fab fa-cc-discover'
+        const baseUrl = this.baseUrl.replace('/public/', '/public/assets/img/bandeiras/');
+        const logos = {
+            'visa': `${baseUrl}visa.png`,
+            'mastercard': `${baseUrl}mastercard.png`,
+            'elo': `${baseUrl}elo.png`,
+            'amex': `${baseUrl}amex.png`,
+            'diners': `${baseUrl}diners.png`,
+            'discover': `${baseUrl}discover.png`
         };
-        return icons[bandeira?.toLowerCase()] || 'fas fa-credit-card';
+        return logos[bandeira?.toLowerCase()] || `${baseUrl}default.png`;
     }
 
     /**

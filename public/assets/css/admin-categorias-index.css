@@ -322,9 +322,9 @@
 
 /* Hover dos bot�es */
 .actions-cell .btn-edit:hover {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: white !important;
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary) !important;
 }
 
 .actions-cell .btn-del:hover {
@@ -362,9 +362,14 @@
   gap: var(--spacing-2);
 }
 
-#modalEditCategoria .modal-title::before {
-  content: "??";
-  font-size: 1.2em;
+#modalEditCategoria .btn-close-custom {
+  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%)
+    hue-rotate(351deg) brightness(99%) contrast(89%);
+  opacity: 1;
+}
+
+#modalEditCategoria .btn-close-custom:hover {
+  opacity: 0.8;
 }
 
 #modalEditCategoria .modal-body {
@@ -437,11 +442,12 @@
   color: var(--color-text);
 }
 
-#modalEditCategoria .btn-primary:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
+#modalEditCategoria .btn-primary:hover,
+#modalEditCategoria .btn.btn-primary:hover {
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background: var(--color-primary) !important;
 }
 
 #modalEditCategoria .alert {
@@ -715,7 +721,11 @@ button:disabled {
     color-mix(in srgb, var(--color-success) 15%, var(--color-surface)),
     color-mix(in srgb, var(--color-success) 10%, var(--color-surface))
   );
-  color: var(--color-success);
+  color: var(--color-primary);
+}
+
+.icon-wrapper.create i {
+  color: var(--color-primary);
 }
 
 .card-title-group {
@@ -886,9 +896,12 @@ button:disabled {
 }
 
 .modern-btn.primary {
-  background: linear-gradient(135deg, var(--color-success), #27ae60);
+  background: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.modern-btn.primary i {
+  color: #ffffff;
 }
 
 .modern-btn.primary:hover {
@@ -1137,11 +1150,7 @@ button:disabled {
 }
 
 .category-actions .action-btn.edit:hover {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
+  background: var(--color-primary);
   color: #ffffff;
   border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
@@ -1214,8 +1223,8 @@ button:disabled {
 [data-theme="dark"] .icon-wrapper.create {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--color-success) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-success) 15%, var(--color-surface))
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface))
   );
 }
 
