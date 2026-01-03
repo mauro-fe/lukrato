@@ -101,7 +101,17 @@ class CacheService
     {
         if (!$this->isEnabled()) return false;
         try {
-            $payload = serialize($value);
+            // Prefer JSON for safety. If value is not JSON-serializable, fall back
+            // to a restricted unserialize-safe format.
+            try {
+                $json = json_encode($value, JSON_THROW_ON_ERROR);
+                $payload = json_encode(['fmt' => 'json', 'v' => $json], JSON_THROW_ON_ERROR);
+            } catch (\JsonException $je) {
+                // Fallback: use serialize but mark as 'ser'. When reading we will
+                // use unserialize with allowed_classes=false to avoid object injection.
+                $payload = json_encode(['fmt' => 'ser', 'v' => serialize($value)]);
+            }
+
             return (bool) $this->redis->setex($key, $ttl, $payload);
         } catch (\Throwable $e) {
             error_log("[CacheService] SET falhou ({$key}): " . $e->getMessage());
@@ -115,7 +125,31 @@ class CacheService
         try {
             $raw = $this->redis->get($key);
             if ($raw === null) return $default;
-            return @unserialize($raw) ?: $default;
+
+            $decoded = json_decode((string)$raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['fmt'], $decoded['v'])) {
+                if ($decoded['fmt'] === 'json') {
+                    // stored as JSON string inside the wrapper
+                    try {
+                        $value = json_decode($decoded['v'], true, 512, JSON_THROW_ON_ERROR);
+                        return $value;
+                    } catch (\JsonException $je) {
+                        return $default;
+                    }
+                }
+
+                if ($decoded['fmt'] === 'ser') {
+                    // Restricted unserialize to avoid object instantiation
+                    try {
+                        $un = unserialize($decoded['v'], ['allowed_classes' => false]);
+                        return $un === false && $decoded['v'] !== serialize(false) ? $default : $un;
+                    } catch (\Throwable $ue) {
+                        return $default;
+                    }
+                }
+            }
+
+            return $default;
         } catch (\Throwable $e) {
             error_log("[CacheService] GET falhou ({$key}): " . $e->getMessage());
             return $default;

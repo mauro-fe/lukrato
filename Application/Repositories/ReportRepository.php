@@ -6,7 +6,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
-use Application\DTOs\ReportParameters;
+use Application\DTO\ReportParameters;
 use Application\Enums\LancamentoTipo;
 
 /**

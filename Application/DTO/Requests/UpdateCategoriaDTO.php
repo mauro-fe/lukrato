@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Application\DTOs\Requests;
+namespace Application\DTO\Requests;
 
-/**
- * DTO para atualização de categoria.
- */
 readonly class UpdateCategoriaDTO
 {
     public function __construct(
@@ -15,9 +12,6 @@ readonly class UpdateCategoriaDTO
         public ?string $icone = null,
     ) {}
 
-    /**
-     * Converte para array para uso com repository.
-     */
     public function toArray(): array
     {
         return [
@@ -27,9 +21,6 @@ readonly class UpdateCategoriaDTO
         ];
     }
 
-    /**
-     * Cria DTO a partir de array de request.
-     */
     public static function fromRequest(array $data): self
     {
         return new self(

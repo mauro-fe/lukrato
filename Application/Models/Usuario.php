@@ -7,6 +7,27 @@ use Application\Services\LogService;
 use Application\Services\FeatureGate;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string|null $nome
+ * @property string|null $email
+ * @property string|null $senha
+ * @property string|null $username
+ * @property \Carbon\Carbon|string|null $data_nascimento
+ * @property int|null $id_sexo
+ * @property string|null $theme_preference
+ * @property string|null $external_customer_id
+ * @property string|null $gateway
+ * @property string|null $google_id
+ *
+ * @property-read mixed $plano
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Model|static find(int|string $id)
+ * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class Usuario extends Model
 {
     protected $table = 'usuarios';

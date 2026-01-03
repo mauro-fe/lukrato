@@ -4,7 +4,7 @@ namespace Application\Services;
 
 use Application\Enums\ReportType;
 use Application\Enums\LancamentoTipo;
-use Application\DTOs\ReportParameters;
+use Application\DTO\ReportParameters;
 use Application\Repositories\ReportRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;

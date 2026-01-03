@@ -43,7 +43,7 @@ class GamificationService
      * @param int|null $relatedId ID do registro relacionado (opcional)
      * @param string|null $relatedType Tipo do registro (opcional)
      * @param array $metadata Metadados adicionais (opcional)
-     * @return array Resultado com pontos ganhos e novos dados
+     * @return array<string,mixed> Resultado com pontos ganhos e novos dados
      */
     public function addPoints(
         int $userId,
@@ -129,7 +129,7 @@ class GamificationService
      * Atualizar streak do usuário
      * 
      * @param int $userId
-     * @return array Dados da streak atualizada
+     * @return array<string,mixed> Dados da streak atualizada
      */
     public function updateStreak(int $userId): array
     {
@@ -192,7 +192,7 @@ class GamificationService
      * Recalcular nível do usuário baseado nos pontos totais
      * 
      * @param int $userId
-     * @return array Dados do nível
+     * @return array<string,mixed> Dados do nível
      */
     public function recalculateLevel(int $userId): array
     {
@@ -254,7 +254,7 @@ class GamificationService
      * Verificar e desbloquear conquistas
      * 
      * @param int $userId
-     * @return array Lista de novas conquistas desbloqueadas
+     * @return array<int,array<string,mixed>> Lista de novas conquistas desbloqueadas
      */
     public function checkAchievements(int $userId): array
     {
@@ -363,7 +363,8 @@ class GamificationService
      */
     private function getOrCreateProgress(int $userId): UserProgress
     {
-        return UserProgress::firstOrCreate(
+        /** @var UserProgress $model */
+        $model = UserProgress::firstOrCreate(
             ['user_id' => $userId],
             [
                 'total_points' => 0,
@@ -374,6 +375,8 @@ class GamificationService
                 'last_activity_date' => null,
             ]
         );
+
+        return $model;
     }
 
     /**

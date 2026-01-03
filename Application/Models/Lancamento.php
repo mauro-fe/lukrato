@@ -17,6 +17,34 @@ use Illuminate\Database\Eloquent\Model;
  * - cartaoCredito: opcional, para lançamentos de cartão
  * - agendamento: opcional, para rastreio de origem
  */
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $tipo
+ * @property \Carbon\Carbon|string $data
+ * @property int|null $categoria_id
+ * @property int|null $conta_id
+ * @property int|null $conta_id_destino
+ * @property string|null $descricao
+ * @property string|null $observacao
+ * @property float $valor
+ * @property bool $eh_transferencia
+ * @property bool $eh_saldo_inicial
+ * @property int|null $cartao_credito_id
+ * @property bool $eh_parcelado
+ * @property int|null $parcela_atual
+ * @property int|null $total_parcelas
+ * @property bool $pago
+ * @property \Carbon\Carbon|string|null $data_pagamento
+ * @property int|null $parcelamento_id
+ * @property int|null $numero_parcela
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
+ * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class Lancamento extends Model
 {
     protected $table = 'lancamentos';

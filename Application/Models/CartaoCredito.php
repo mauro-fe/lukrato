@@ -4,6 +4,30 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class CartaoCredito
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $conta_id
+ * @property string $nome_cartao
+ * @property string|null $bandeira
+ * @property string|null $ultimos_digitos
+ * @property float|null $limite_total
+ * @property float|null $limite_disponivel
+ * @property int|null $dia_vencimento
+ * @property int|null $dia_fechamento
+ * @property string|null $cor_cartao
+ * @property bool $ativo
+ *
+ * @property-read string $numero_mascarado
+ * @property-read float $limite_utilizado
+ * @property-read float $percentual_uso
+ * @property-read string|null $proximo_vencimento
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|CartaoCredito where(string $column, $value = null)
+ * @mixin \Eloquent
+ */
 class CartaoCredito extends Model
 {
     protected $table = 'cartoes_credito';
@@ -106,7 +130,7 @@ class CartaoCredito extends Model
         if ($this->limite_total <= 0) {
             return 0;
         }
-        
+
         return round(($this->limite_utilizado / $this->limite_total) * 100, 2);
     }
 
@@ -167,7 +191,7 @@ class CartaoCredito extends Model
         if ($diaAtual > $this->dia_vencimento) {
             $mesProximo = $mesAtual + 1;
             $anoProximo = $anoAtual;
-            
+
             if ($mesProximo > 12) {
                 $mesProximo = 1;
                 $anoProximo++;

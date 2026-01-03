@@ -3,7 +3,7 @@
 namespace Application\Services\Auth;
 
 use Application\Contracts\Auth\ValidationStrategyInterface;
-use Application\DTOs\Auth\CredentialsDTO;
+use Application\DTO\Auth\CredentialsDTO;
 use Application\Core\Exceptions\ValidationException;
 
 abstract class AbstractValidationStrategy implements ValidationStrategyInterface

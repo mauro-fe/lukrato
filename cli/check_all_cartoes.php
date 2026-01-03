@@ -25,7 +25,7 @@ if ($cartoes->count() > 0) {
 
     echo "=== Testando relatório para user_id: {$userId} ===" . PHP_EOL . PHP_EOL;
 
-    $params = new \Application\DTOs\ReportParameters(
+    $params = new \Application\DTO\ReportParameters(
         \Carbon\Carbon::now()->startOfMonth(),
         \Carbon\Carbon::now()->endOfMonth(),
         null,

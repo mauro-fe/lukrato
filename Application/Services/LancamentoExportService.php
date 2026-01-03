@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Services;
 
 use Application\Enums\LancamentoTipo;
-use Application\DTOs\ReportData;
+use Application\DTO\ReportData;
 use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Support\Collection;

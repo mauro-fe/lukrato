@@ -10,7 +10,7 @@ use Application\Services\ExcelExportService;
 use Application\Services\LogService;
 use Application\Services\PdfExportService;
 use Application\Services\ReportService;
-use Application\DTOs\ReportParameters;
+use Application\DTO\ReportParameters;
 use Application\Enums\ReportType;
 use Carbon\Carbon;
 use InvalidArgumentException;

@@ -7,8 +7,23 @@ use Carbon\Carbon;
 
 /**
  * Model: PointsLog
- * 
+ *
  * Registro histórico de pontos ganhos/perdidos
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $action
+ * @property int $points
+ * @property string|null $description
+ * @property array|null $metadata
+ * @property int|null $related_id
+ * @property string|null $related_type
+ * @property \Carbon\Carbon|string|null $created_at
+ *
+ * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class PointsLog extends Model
 {

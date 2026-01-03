@@ -4,6 +4,22 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class AssinaturaUsuario
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int $plano_id
+ * @property string|null $gateway
+ * @property string|null $external_customer_id
+ * @property string|null $external_subscription_id
+ * @property string $status
+ * @property \Carbon\Carbon|null $renova_em
+ * @property \Carbon\Carbon|null $cancelada_em
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|AssinaturaUsuario where(string $column, $value = null)
+ * @mixin \Eloquent
+ */
 class AssinaturaUsuario extends Model
 {
     public const ST_PENDING  = 'pending';

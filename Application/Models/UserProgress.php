@@ -6,8 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model: UserProgress
- * 
+ *
  * Representa o progresso de gamificação de um usuário
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int $total_points
+ * @property int $current_level
+ * @property int $points_to_next_level
+ * @property int $current_streak
+ * @property int $best_streak
+ * @property \Carbon\Carbon|string|null $last_activity_date
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Model|null find(int|string $id)
+ * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
+ * @method static \Illuminate\Database\Eloquent\Model firstOrCreate(array $attributes = [], array $values = [])
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class UserProgress extends Model
 {

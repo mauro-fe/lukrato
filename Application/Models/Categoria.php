@@ -4,6 +4,19 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string $nome
+ * @property string $tipo
+ * @property int|null $user_id
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Builder receitas()
+ * @method static \Illuminate\Database\Eloquent\Builder despesas()
+ * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class Categoria extends Model
 {
     protected $table = 'categorias';

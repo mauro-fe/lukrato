@@ -1,6 +1,6 @@
 <?php
-// Application/DTOs/Auth/CredentialsDTO.php
-namespace Application\DTOs\Auth;
+
+namespace Application\DTO\Auth;
 
 class CredentialsDTO
 {

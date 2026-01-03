@@ -6,8 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model: UserAchievement
- * 
+ *
  * Relacionamento entre usuário e conquista desbloqueada
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int $achievement_id
+ * @property \Carbon\Carbon|string|null $unlocked_at
+ * @property bool $notification_seen
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class UserAchievement extends Model
 {

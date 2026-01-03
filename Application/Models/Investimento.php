@@ -4,6 +4,30 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Investimento
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $categoria_id
+ * @property int|null $conta_id
+ * @property string $nome
+ * @property string|null $ticker
+ * @property float|null $quantidade
+ * @property float|null $preco_medio
+ * @property float|null $preco_atual
+ * @property \Carbon\Carbon|null $data_compra
+ * @property string|null $observacoes
+ *
+ * @property-read float $valor_investido
+ * @property-read float $valor_atual
+ * @property-read float $lucro
+ * @property-read float $rentabilidade
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|Investimento where(string $column, $value = null)
+ * @mixin \Eloquent
+ */
+
 class Investimento extends Model
 {
     protected $table = 'investimentos';

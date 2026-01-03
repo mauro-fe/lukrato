@@ -4,6 +4,19 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Provento
+ *
+ * @property int $id
+ * @property int $investimento_id
+ * @property float $valor
+ * @property string|null $tipo
+ * @property \Carbon\Carbon|string|null $data_pagamento
+ * @property string|null $observacoes
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|Provento where(string $column, $value = null)
+ * @mixin \Eloquent
+ */
 class Provento extends Model
 {
     protected $table = 'proventos';

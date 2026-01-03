@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Services;
 
 use Application\Contracts\ReportExporterInterface;
-use Application\DTOs\ReportData;
+use Application\DTO\ReportData;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -25,7 +25,7 @@ class PdfExportService implements ReportExporterInterface
         $options->setDefaultFont('DejaVu Sans');
         $options->setIsHtml5ParserEnabled(true);
         $options->setChroot(realpath(__DIR__ . '/../../'));
-        
+
         $this->dompdf = new Dompdf($options);
     }
 
@@ -46,11 +46,11 @@ class PdfExportService implements ReportExporterInterface
     {
         $canvas = $this->dompdf->getCanvas();
         $canvas->page_text(
-            520, 
-            800, 
-            "Página {PAGE_NUM} de {PAGE_COUNT}", 
-            null, 
-            9, 
+            520,
+            800,
+            "Página {PAGE_NUM} de {PAGE_COUNT}",
+            null,
+            9,
             [0.29, 0.33, 0.42]
         );
     }
@@ -312,9 +312,9 @@ CSS;
         $title = $this->escape($data->title);
         $subtitle = $this->escape($data->subtitle ?? '');
         $date = date('d/m/Y H:i');
-        
+
         $subtitleHtml = $subtitle ? "<h2>{$subtitle}</h2>" : '';
-        
+
         return <<<HTML
 <div class="page-header">
     <h1>{$title}</h1>
@@ -409,7 +409,7 @@ HTML;
     private function renderFooter(): string
     {
         $year = date('Y');
-        
+
         return <<<HTML
 <div class="page-footer">
     <div class="footer-content">

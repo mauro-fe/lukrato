@@ -181,7 +181,9 @@ class LancamentoRepository extends BaseRepository
             ->whereMonth('data', (int)$monthNum);
 
         if ($excludeTransfers) {
-            $query->where('eh_transferencia', 0);
+            // Excluir transferências e lançamentos de saldo inicial (não contam como lançamentos do mês)
+            $query->where('eh_transferencia', 0)
+                ->where('eh_saldo_inicial', 0);
         }
 
         return $query->count();

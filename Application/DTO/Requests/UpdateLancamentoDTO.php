@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Application\DTOs\Requests;
+namespace Application\DTO\Requests;
 
-/**
- * DTO para atualização de lançamento.
- */
 readonly class UpdateLancamentoDTO
 {
     public function __construct(
@@ -19,9 +16,6 @@ readonly class UpdateLancamentoDTO
         public ?int $contaId = null,
     ) {}
 
-    /**
-     * Converte para array para uso com repository.
-     */
     public function toArray(): array
     {
         return [
@@ -35,9 +29,6 @@ readonly class UpdateLancamentoDTO
         ];
     }
 
-    /**
-     * Cria DTO a partir de array de request.
-     */
     public static function fromRequest(array $data): self
     {
         return new self(

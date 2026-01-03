@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\DTOs;
+namespace Application\DTO;
 
 /**
  * Data Transfer Object para dados de endereço.
@@ -17,9 +17,6 @@ class EnderecoDTO
         public readonly string $estado
     ) {}
 
-    /**
-     * Cria uma instância do DTO a partir de um array.
-     */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -33,9 +30,6 @@ class EnderecoDTO
         );
     }
 
-    /**
-     * Verifica se o endereço está vazio (todos os campos principais vazios).
-     */
     public function isEmpty(): bool
     {
         $camposObrigatorios = [
@@ -50,9 +44,6 @@ class EnderecoDTO
         return empty(implode('', $camposObrigatorios));
     }
 
-    /**
-     * Converte o DTO para array.
-     */
     public function toArray(): array
     {
         return [
