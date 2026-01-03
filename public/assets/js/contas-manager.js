@@ -200,7 +200,7 @@ class ContasManager {
             }
 
             const data = await response.json();
-            
+
             // A resposta pode ser um array direto ou um objeto com data
             this.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
 
@@ -231,13 +231,25 @@ class ContasManager {
         if (this.contas.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-wallet fa-3x mb-3 text-muted"></i>
-                    <p class="text-muted">Nenhuma conta cadastrada</p>
-                    <button class="btn btn-primary" id="btnNovaConta">
+                    <div class="empty-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h3>Nenhuma conta cadastrada</h3>
+                    <p>Comece criando sua primeira conta bancária para gerenciar suas finanças</p>
+                    <button class="btn btn-primary btn-lg" id="btnCriarPrimeiraConta">
                         <i class="fas fa-plus"></i> Criar primeira conta
                     </button>
                 </div>
             `;
+            // Anexar listener para o botão de criar primeira conta
+            setTimeout(() => {
+                const btnCriarPrimeira = document.getElementById('btnCriarPrimeiraConta');
+                if (btnCriarPrimeira) {
+                    btnCriarPrimeira.addEventListener('click', () => {
+                        this.openModal('create');
+                    });
+                }
+            }, 100);
             return;
         }
 
@@ -526,7 +538,29 @@ class ContasManager {
      * Arquivar conta
      */
     async archiveConta(contaId) {
-        if (!confirm('Deseja realmente arquivar esta conta?')) return;
+        const conta = this.contas.find(c => c.id === contaId);
+        const nomeConta = conta ? conta.nome : 'esta conta';
+
+        const result = await Swal.fire({
+            title: 'Arquivar conta?',
+            html: `Deseja realmente arquivar <strong>${nomeConta}</strong>?<br><small class="text-muted">A conta ficará oculta mas pode ser restaurada depois.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e67e22',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-archive"></i> Sim, arquivar',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            reverseButtons: true,
+            focusCancel: true,
+            buttonsStyling: true,
+            customClass: {
+                popup: 'swal-custom-popup',
+                confirmButton: 'swal-confirm-btn',
+                cancelButton: 'swal-cancel-btn'
+            }
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             const csrfToken = await this.getCSRFToken();
@@ -546,11 +580,23 @@ class ContasManager {
                 throw new Error(result.message || 'Erro ao arquivar conta');
             }
 
-            this.showToast('Conta arquivada com sucesso!', 'success');
+            Swal.fire({
+                title: 'Arquivada!',
+                text: 'A conta foi arquivada com sucesso.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
             await this.loadContas();
         } catch (error) {
             console.error('Erro ao arquivar conta:', error);
-            this.showToast(error.message, 'error');
+            Swal.fire({
+                title: 'Erro!',
+                text: error.message,
+                icon: 'error',
+                confirmButtonColor: '#e67e22'
+            });
         }
     }
 
@@ -707,11 +753,6 @@ class ContasManager {
                 <i class="fas fa-archive"></i>
                 <span>Arquivar</span>
             </div>
-            <div class="menu-separator"></div>
-            <div class="menu-option danger" data-action="delete">
-                <i class="fas fa-trash"></i>
-                <span>Excluir</span>
-            </div>
         `;
 
         document.body.appendChild(menuEl);
@@ -721,9 +762,9 @@ class ContasManager {
             const button = event.target.closest('.btn-icon');
             if (button) {
                 const rect = button.getBoundingClientRect();
-                menuEl.style.position = 'fixed';
-                menuEl.style.top = (rect.bottom + 5) + 'px';
-                menuEl.style.left = (rect.left - 150) + 'px'; // 150px é a largura aproximada do menu
+                menuEl.style.position = 'absolute';
+                menuEl.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+                menuEl.style.left = (rect.left + window.scrollX - 150) + 'px'; // 150px é a largura aproximada do menu
             }
         }
 
@@ -812,6 +853,9 @@ class ContasManager {
         // Mostrar modal
         modalOverlay.classList.add('active');
 
+        // Anexar listeners de fechar
+        this.attachCloseModalListeners();
+
         // Focar no primeiro campo após animação
         setTimeout(() => {
             document.getElementById('nomeConta')?.focus();
@@ -842,30 +886,67 @@ class ContasManager {
     }
 
     /**
-     * Anexar event listeners
+     * Anexar listeners para fechar modal
      */
-    attachEventListeners() {
-        // Botões de fechar modal
+    attachCloseModalListeners() {
+        // Remover listeners antigos e adicionar novos
         document.querySelectorAll('.modal-close-btn, .modal-close').forEach(btn => {
-            btn.addEventListener('click', () => {
+            // Clonar o botão para remover todos os listeners antigos
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            // Adicionar novo listener
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 this.closeModal();
             });
         });
 
+        // Fechar ao clicar fora (no overlay)
+        const modalOverlay = document.getElementById('modalContaOverlay');
+        if (modalOverlay) {
+            modalOverlay.onclick = (e) => {
+                if (e.target === modalOverlay) {
+                    this.closeModal();
+                }
+            };
+        }
+    }
+
+    /**
+     * Anexar event listeners
+     */
+    attachEventListeners() {
+        // Botões de fechar modal - Re-anexar sempre
+        this.attachCloseModalListeners();
+
         // Botão nova conta
-        document.getElementById('btnNovaConta')?.addEventListener('click', () => {
-            this.openModal('create');
-        });
+        const btnNovaConta = document.getElementById('btnNovaConta');
+        if (btnNovaConta && !btnNovaConta.dataset.listenerAdded) {
+            btnNovaConta.addEventListener('click', () => {
+                this.openModal('create');
+            });
+            btnNovaConta.dataset.listenerAdded = 'true';
+        }
 
         // Botão reload
-        document.getElementById('btnReload')?.addEventListener('click', () => {
-            this.loadContas();
-        });
+        const btnReload = document.getElementById('btnReload');
+        if (btnReload && !btnReload.dataset.listenerAdded) {
+            btnReload.addEventListener('click', () => {
+                this.loadContas();
+            });
+            btnReload.dataset.listenerAdded = 'true';
+        }
 
         // Botão novo cartão
-        document.getElementById('btnNovoCartao')?.addEventListener('click', () => {
-            this.openCartaoModal('create');
-        });
+        const btnNovoCartao = document.getElementById('btnNovoCartao');
+        if (btnNovoCartao && !btnNovoCartao.dataset.listenerAdded) {
+            btnNovoCartao.addEventListener('click', () => {
+                this.openCartaoModal('create');
+            });
+            btnNovoCartao.dataset.listenerAdded = 'true';
+        }
 
         // Formulário de cartão
         const formCartao = document.getElementById('formCartao');
@@ -1257,14 +1338,24 @@ class ContasManager {
             const inputValor = document.getElementById('lancamentoValor');
             const inputParcelas = document.getElementById('lancamentoTotalParcelas');
 
-            inputValor.addEventListener('input', () => this.calcularPreviewParcelas());
-            inputParcelas.addEventListener('input', () => this.calcularPreviewParcelas());
+            if (inputValor && !inputValor.dataset.parcelaListenerAdded) {
+                inputValor.addEventListener('input', () => this.calcularPreviewParcelas());
+                inputValor.dataset.parcelaListenerAdded = 'true';
+            }
+
+            if (inputParcelas && !inputParcelas.dataset.listenerAdded) {
+                inputParcelas.addEventListener('input', () => this.calcularPreviewParcelas());
+                inputParcelas.dataset.listenerAdded = 'true';
+            }
 
             // Calcular imediatamente
             this.calcularPreviewParcelas();
         } else {
             numeroParcelasGroup.style.display = 'none';
-            document.getElementById('parcelamentoPreview').style.display = 'none';
+            const preview = document.getElementById('parcelamentoPreview');
+            if (preview) {
+                preview.style.display = 'none';
+            }
         }
     }
 
@@ -1443,6 +1534,20 @@ class ContasManager {
 
         // Restaurar título
         document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
+
+        // Restaurar cor laranja do header
+        const headerGradient = document.querySelector('#modalLancamentoOverlay .lk-modal-header-gradient');
+        if (headerGradient) {
+            headerGradient.style.removeProperty('background');
+        }
+
+        // Restaurar botão salvar original
+        const btnSalvar = document.getElementById('btnSalvarLancamento');
+        if (btnSalvar) {
+            btnSalvar.className = 'lk-btn lk-btn-primary';
+            btnSalvar.style.removeProperty('background');
+            btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Lançamento';
+        }
     }
 
     /**

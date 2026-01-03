@@ -246,6 +246,16 @@ class ContasController
     }
 
     /**
+     * POST /api/accounts/{id}/delete
+     * Exclusão permanente de conta (hard delete)
+     * Alias para destroy com suporte a POST
+     */
+    public function hardDelete(int $id): void
+    {
+        $this->destroy($id);
+    }
+
+    /**
      * GET /api/contas/instituicoes
      * Listar instituições financeiras disponíveis
      */

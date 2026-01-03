@@ -21,15 +21,6 @@
             </div>
         </div>
 
-        <div class="stat-card" data-aos="flip-left">
-            <div class="stat-icon">
-                <i class="fas fa-credit-card"></i>
-            </div>
-            <div>
-                <div class="stat-value" id="totalCartoes" aria-live="polite">0</div>
-                <div class="stat-label">Cartões de Crédito</div>
-            </div>
-        </div>
     </div>
 
     <!-- ==================== LISTA DE CONTAS ==================== -->
@@ -40,9 +31,7 @@
                 <button class="btn btn-primary" id="btnNovaConta" aria-label="Criar nova conta">
                     <i class="fas fa-plus"></i> Nova Conta
                 </button>
-                <button class="btn btn-ghost" id="btnNovoCartao" aria-label="Adicionar cartão de crédito">
-                    <i class="fas fa-credit-card"></i> Novo Cartão
-                </button>
+
                 <button class="btn btn-ghost" id="btnReload" aria-label="Recarregar contas" title="Atualizar lista">
                     <i class="fas fa-sync-alt"></i>
                 </button>
@@ -67,11 +56,66 @@
 
 <!-- ==================== MODAIS ==================== -->
 <?php include __DIR__ . '/../partials/modals/modal_contas.php'; ?>
-<?php include __DIR__ . '/../partials/modals/modal_cartoes.php'; ?>
 <?php include __DIR__ . '/../partials/modals/modal_lancamento_v2.php'; ?>
 
 <!-- ==================== SCRIPTS ==================== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
+<style>
+    /* Estilos customizados para SweetAlert2 */
+    .swal2-popup .swal2-actions {
+        gap: 1rem;
+    }
+
+    .swal2-popup .swal-confirm-btn,
+    .swal2-popup .swal2-confirm {
+        background-color: #e67e22 !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.75rem 2rem !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3) !important;
+    }
+
+    .swal2-popup .swal-confirm-btn:hover,
+    .swal2-popup .swal2-confirm:hover {
+        background-color: #d35400 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4) !important;
+    }
+
+    .swal2-popup .swal-cancel-btn,
+    .swal2-popup .swal2-cancel {
+        background-color: #6c757d !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.75rem 2rem !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+    }
+
+    .swal2-popup .swal-cancel-btn:hover,
+    .swal2-popup .swal2-cancel:hover {
+        background-color: #5a6268 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+    }
+
+    .swal2-popup .swal2-styled:focus {
+        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.25) !important;
+    }
+
+    /* Garantir que ícones nos botões fiquem visíveis */
+    .swal2-popup .swal2-styled i {
+        color: white !important;
+        margin-right: 0.5rem;
+    }
+</style>
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
 

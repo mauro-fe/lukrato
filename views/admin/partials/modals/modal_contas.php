@@ -100,7 +100,7 @@
                 </div>
 
                 <!-- Checkbox Incluir no Saldo Total -->
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label class="form-checkbox">
                         <input type="checkbox" id="incluirSaldoTotal" name="incluir_saldo_total" checked>
                         <span class="form-checkbox-label">
@@ -108,7 +108,7 @@
                         </span>
                     </label>
                     <small class="form-help">Marque para considerar esta conta no saldo geral</small>
-                </div>
+                </div> -->
 
                 <!-- Footer -->
                 <div class="modal-footer">

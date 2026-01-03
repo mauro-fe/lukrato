@@ -228,6 +228,23 @@
     /* Modal de Lançamento */
     .lk-modal-lancamento {
         max-width: 720px !important;
+        max-height: 90vh !important;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        align-self: flex-start;
+        margin-top: 5vh;
+    }
+
+    .lk-modal-lancamento .lk-modal-body-modern {
+        overflow-y: auto;
+        max-height: calc(90vh - 100px);
+        min-height: 400px;
+        flex: 1;
+        padding: 2rem;
+        padding-bottom: 3rem;
+        scroll-behavior: smooth;
+        position: relative;
     }
 
     /* Conta Info */
@@ -779,6 +796,31 @@
     /* Formulário de Lançamento */
     .lk-form-section {
         animation: lk-slide-in 0.3s ease-out;
+    }
+
+    .lk-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Campos dinâmicos com animação suave */
+    #parcelamentoGroup,
+    #numeroParcelasGroup,
+    #cartaoCreditoGroup,
+    #contaDestinoGroup {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
+        margin-bottom: 0;
+    }
+
+    #parcelamentoGroup[style*="display: block"],
+    #numeroParcelasGroup[style*="display: block"],
+    #cartaoCreditoGroup[style*="display: block"],
+    #contaDestinoGroup[style*="display: block"] {
+        opacity: 1;
+        max-height: 500px;
+        margin-bottom: 1.5rem;
     }
 
     .lk-btn-voltar {
