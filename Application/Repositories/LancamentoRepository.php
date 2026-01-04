@@ -291,8 +291,91 @@ class LancamentoRepository extends BaseRepository
             ->delete();
     }
 
+    /**     * Atualiza um lançamento com lógica especial para cartões de crédito.
+     * 
+     * @param int $id
+     * @param array $data
+     * @return bool
+     */
+    public function update(int $id, array $data): bool
+    {
+        $lancamento = $this->findOrFail($id);
+
+        // Verificar se é um lançamento de pagamento de fatura de cartão
+        // e se está alterando o status de pago
+        if (
+            isset($data['pago']) &&
+            $lancamento->cartao_credito_id !== null &&
+            $lancamento->tipo === 'despesa' &&
+            strpos($lancamento->descricao, 'Pagamento Fatura') !== false
+        ) {
+
+            $pagoAntigo = (bool) $lancamento->pago;
+            $pagoNovo = (bool) $data['pago'];
+
+            // Se está desmarcando como pago (estava pago e agora não está)
+            if ($pagoAntigo && !$pagoNovo) {
+                // Reverter o débito da conta - reduzir o limite disponível do cartão
+                $cartao = $lancamento->cartaoCredito;
+                if ($cartao) {
+                    // Reduz o limite disponível (pois a fatura não foi paga)
+                    $cartao->limite_disponivel -= $lancamento->valor;
+                    $cartao->save();
+                }
+
+                // Desmarcar as parcelas da fatura como não pagas
+                $this->desmarcarParcelasFatura($lancamento);
+
+                // DELETAR o lançamento de pagamento para reverter o débito da conta
+                // Isso faz o saldo voltar ao valor anterior
+                $lancamento->delete();
+
+                // Retornar true pois a operação foi bem-sucedida (deletou)
+                return true;
+            }
+            // Se está marcando como pago (não estava pago e agora está)
+            elseif (!$pagoAntigo && $pagoNovo) {
+                // Devolver o limite ao cartão
+                $cartao = $lancamento->cartaoCredito;
+                if ($cartao) {
+                    $cartao->limite_disponivel += $lancamento->valor;
+                    $cartao->save();
+                }
+            }
+        }
+
+        return $lancamento->update($data);
+    }
+
     /**
-     * Atualiza categoria de múltiplos lançamentos.
+     * Desmarca as parcelas de uma fatura como não pagas
+     * quando o pagamento da fatura é desmarcado
+     */
+    private function desmarcarParcelasFatura(Lancamento $pagamentoFatura): void
+    {
+        // Extrair mês/ano da descrição do pagamento
+        // Formato: "Pagamento Fatura NOME •••• DIGITOS - MM/YYYY"
+        if (preg_match('/- (\d{2})\/(\d{4})/', $pagamentoFatura->descricao, $matches)) {
+            $mes = (int) $matches[1];
+            $ano = (int) $matches[2];
+
+            // Buscar lançamentos do cartão naquele mês que foram marcados como pagos
+            $dataInicio = sprintf('%04d-%02d-01', $ano, $mes);
+            $dataFim = date('Y-m-t', strtotime($dataInicio));
+
+            $this->query()
+                ->where('user_id', $pagamentoFatura->user_id)
+                ->where('cartao_credito_id', $pagamentoFatura->cartao_credito_id)
+                ->whereBetween('data', [$dataInicio, $dataFim])
+                ->where('pago', true)
+                ->update([
+                    'pago' => false,
+                    'data_pagamento' => null
+                ]);
+        }
+    }
+
+    /**     * Atualiza categoria de múltiplos lançamentos.
      * 
      * @param int $userId
      * @param int $oldCategoryId

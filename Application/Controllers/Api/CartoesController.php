@@ -259,6 +259,38 @@ class CartoesController
     }
 
     /**
+     * POST /api/cartoes/{id}/parcelas/pagar
+     * Pagar parcelas individuais selecionadas
+     */
+    public function pagarParcelas(int $id): void
+    {
+        $userId = Auth::id();
+        $data = $this->getRequestPayload();
+
+        $parcelaIds = $data['parcela_ids'] ?? [];
+        $mes = $data['mes'] ?? (int) date('n');
+        $ano = $data['ano'] ?? (int) date('Y');
+
+        if (empty($parcelaIds)) {
+            Response::json([
+                'status' => 'error',
+                'message' => 'Nenhuma parcela selecionada'
+            ], 400);
+            return;
+        }
+
+        try {
+            $resultado = $this->faturaService->pagarParcelas($id, $parcelaIds, (int)$mes, (int)$ano, $userId);
+            Response::json($resultado);
+        } catch (\Exception $e) {
+            Response::json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
      * GET /api/cartoes/{id}/faturas-pendentes
      * Listar meses que têm faturas pendentes de pagamento
      */
@@ -400,6 +432,65 @@ class CartoesController
             Response::json($relatorio);
         } catch (\Exception $e) {
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/cartoes/{id}/fatura/status?mes=X&ano=Y
+     * Verificar se a fatura de um mês está paga
+     */
+    public function statusFatura(int $id): void
+    {
+        $userId = Auth::id();
+        $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : null;
+        $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : null;
+
+        if (!$mes || !$ano) {
+            Response::json(['status' => 'error', 'message' => 'Mês e ano são obrigatórios'], 400);
+            return;
+        }
+
+        try {
+            $status = $this->faturaService->faturaEstaPaga($id, $mes, $ano, $userId);
+
+            if ($status === null) {
+                Response::json(['pago' => false]);
+            } else {
+                Response::json($status);
+            }
+        } catch (\Exception $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/cartoes/{id}/fatura/desfazer-pagamento
+     * Desfazer pagamento de uma fatura
+     */
+    public function desfazerPagamentoFatura(int $id): void
+    {
+        $userId = Auth::id();
+        $data = $this->getRequestPayload();
+
+        error_log("🔍 [Controller] desfazerPagamentoFatura - ID={$id}, User={$userId}, Data=" . json_encode($data));
+
+        $mes = isset($data['mes']) ? (int) $data['mes'] : null;
+        $ano = isset($data['ano']) ? (int) $data['ano'] : null;
+
+        error_log("📅 [Controller] Mês={$mes}, Ano={$ano}");
+
+        if (!$mes || !$ano) {
+            error_log("❌ [Controller] Mês ou ano faltando");
+            Response::json(['status' => 'error', 'message' => 'Mês e ano são obrigatórios'], 400);
+            return;
+        }
+
+        try {
+            $resultado = $this->faturaService->desfazerPagamentoFatura($id, $mes, $ano, $userId);
+            Response::json($resultado);
+        } catch (\Exception $e) {
+            error_log("❌ [Controller] Erro: " . $e->getMessage());
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
 }

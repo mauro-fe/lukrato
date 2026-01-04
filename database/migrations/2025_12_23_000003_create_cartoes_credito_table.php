@@ -21,10 +21,10 @@ return new class
             $table->boolean('ativo')->default(true);
             $table->timestamps();
 
-            // Sem foreign key para users (pode não existir a tabela)
-            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Foreign keys
+            $table->foreign('user_id')->references('id')->on('usuarios')->onDelete('cascade');
             $table->foreign('conta_id')->references('id')->on('contas')->onDelete('cascade');
-            
+
             $table->index(['user_id', 'ativo']);
             $table->index('conta_id');
         });

@@ -539,7 +539,7 @@ class CartoesManager {
             const limiteTotal = parseFloat(cartao.limite_total) || 0;
             const limiteDisponivel = parseFloat(cartao.limite_disponivel) || 0;
             const limiteUtilizado = Math.max(0, limiteTotal - limiteDisponivel);
-            
+
             acc.total++;
             acc.limiteTotal += limiteTotal;
             acc.limiteDisponivel += limiteDisponivel;
@@ -916,10 +916,10 @@ class CartoesManager {
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             const dataAtual = new Date();
             const mesAno = dataAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-            
+
             // Calcular resumo financeiro
             const limiteTotal = this.filteredCartoes.reduce((sum, c) => sum + parseFloat(c.limite_total || 0), 0);
             const limiteDisponivel = this.filteredCartoes.reduce((sum, c) => sum + parseFloat(c.limite_disponivel || 0), 0);
@@ -934,12 +934,12 @@ class CartoesManager {
             // Cabeçalho do documento
             doc.setFillColor(...primaryColor);
             doc.rect(0, 0, 210, 35, 'F');
-            
+
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(22);
             doc.setFont(undefined, 'bold');
             doc.text('RELATÓRIO DE CARTÕES DE CRÉDITO', 105, 15, { align: 'center' });
-            
+
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
             doc.text(`Período: ${mesAno}`, 105, 22, { align: 'center' });
@@ -951,7 +951,7 @@ class CartoesManager {
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
             doc.text('RESUMO FINANCEIRO', 14, yPos);
-            
+
             yPos += 8;
             doc.autoTable({
                 startY: yPos,
@@ -988,13 +988,13 @@ class CartoesManager {
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
             doc.text('DETALHAMENTO POR CARTÃO', 14, yPos);
-            
+
             yPos += 5;
             const tableData = this.filteredCartoes.map(cartao => {
-                const percentualUso = cartao.limite_total > 0 
-                    ? ((cartao.limite_total - cartao.limite_disponivel) / cartao.limite_total * 100).toFixed(1) 
+                const percentualUso = cartao.limite_total > 0
+                    ? ((cartao.limite_total - cartao.limite_disponivel) / cartao.limite_total * 100).toFixed(1)
                     : 0;
-                
+
                 return [
                     cartao.nome_cartao,
                     this.formatBandeira(cartao.bandeira),
@@ -1051,7 +1051,7 @@ class CartoesManager {
 
             // Salvar PDF
             doc.save(`relatorio_cartoes_${dataAtual.toISOString().split('T')[0]}.pdf`);
-            
+
             this.showToast('success', 'Relatório exportado com sucesso');
 
         } catch (error) {
@@ -1334,8 +1334,8 @@ class CartoesManager {
 
             console.log(`📄 Carregando fatura - Cartão ID: ${cartaoId}, Mês: ${mes}/${ano}`);
 
-            // Buscar fatura e parcelamentos em paralelo
-            const [faturaResponse, parcelamentosResponse] = await Promise.all([
+            // Buscar fatura, parcelamentos e status de pagamento em paralelo
+            const [faturaResponse, parcelamentosResponse, statusResponse] = await Promise.all([
                 fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
                     method: 'GET',
                     headers: {
@@ -1345,6 +1345,14 @@ class CartoesManager {
                     credentials: 'same-origin'
                 }),
                 fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                }),
+                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura/status?mes=${mes}&ano=${ano}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1361,7 +1369,8 @@ class CartoesManager {
 
             const fatura = await faturaResponse.json();
             let parcelamentos = null;
-            
+            let statusPagamento = null;
+
             if (parcelamentosResponse.ok) {
                 try {
                     parcelamentos = await parcelamentosResponse.json();
@@ -1372,10 +1381,23 @@ class CartoesManager {
             } else {
                 console.warn('⚠️ Erro ao carregar parcelamentos:', parcelamentosResponse.status);
             }
-            
-            console.log('✅ Fatura carregada:', fatura);
 
-            this.mostrarModalFatura(fatura, parcelamentos, cartaoId, mes, ano);
+            if (statusResponse.ok) {
+                try {
+                    statusPagamento = await statusResponse.json();
+                    console.log('✅ Status de pagamento recebido:', statusPagamento);
+                    console.log('🔍 Status.pago =', statusPagamento?.pago);
+                } catch (e) {
+                    console.warn('⚠️ Erro ao parsear status:', e);
+                }
+            } else {
+                console.warn('⚠️ Erro ao carregar status:', statusResponse.status);
+            }
+
+            console.log('✅ Fatura carregada:', fatura);
+            console.log('🎯 Vai mostrar modal com status:', statusPagamento);
+
+            this.mostrarModalFatura(fatura, parcelamentos, statusPagamento, cartaoId, mes, ano);
         } catch (error) {
             console.error('❌ Erro ao carregar fatura:', error);
             this.showToast('error', error.message || 'Erro ao carregar fatura');
@@ -1385,8 +1407,15 @@ class CartoesManager {
     /**
      * Mostrar modal da fatura
      */
-    mostrarModalFatura(fatura, parcelamentos = null, cartaoId = null, mes = null, ano = null) {
-        const modal = this.criarModalFatura(fatura, parcelamentos, cartaoId, mes, ano);
+    mostrarModalFatura(fatura, parcelamentos = null, statusPagamento = null, cartaoId = null, mes = null, ano = null) {
+        // IMPORTANTE: Remover qualquer modal existente antes de criar um novo
+        const modalExistente = document.querySelector('.modal-fatura-overlay');
+        if (modalExistente) {
+            console.log('⚠️ Modal já existe, removendo...');
+            modalExistente.remove();
+        }
+
+        const modal = this.criarModalFatura(fatura, parcelamentos, statusPagamento, cartaoId, mes, ano);
         document.body.appendChild(modal);
 
         // Animar entrada
@@ -1406,26 +1435,228 @@ class CartoesManager {
             this.fecharModalFatura(modal);
         });
 
-        // Botão pagar
-        modal.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
-            this.pagarFatura(fatura);
+        // Gerenciar seleção de parcelas (aguardar renderização completa)
+        requestAnimationFrame(() => {
+            this.setupParcelaSelection(modal, fatura);
         });
+
+        // Botão pagar parcelas selecionadas
+        modal.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
+            this.pagarParcelasSelecionadas(fatura);
+        });
+    }
+
+    /**
+     * Configurar seleção de parcelas
+     */
+    setupParcelaSelection(modal, fatura) {
+        const selectAll = modal.querySelector('#selectAllParcelas');
+        const checkboxes = modal.querySelectorAll('.parcela-checkbox');
+        const totalElement = modal.querySelector('#totalSelecionado');
+
+        // Guard: se já foi configurado, não configurar novamente
+        if (modal.dataset.parcelasConfigured === 'true') {
+            console.log('⚠️ setupParcelaSelection já foi executado para este modal, pulando...');
+            return;
+        }
+        modal.dataset.parcelasConfigured = 'true';
+
+        console.log('🔍 setupParcelaSelection:', {
+            modal: !!modal,
+            selectAll: selectAll ? selectAll.checked : 'not found',
+            checkboxesCount: checkboxes.length,
+            totalElement: !!totalElement
+        });
+
+        // Log de TODOS os checkboxes
+        console.log('📋 TODOS os checkboxes no modal:');
+        checkboxes.forEach((cb, idx) => {
+            console.log(`  [${idx}] ID: ${cb.dataset.id}, Valor: ${cb.dataset.valor}, Checked: ${cb.checked}`);
+        });
+
+        // Atualizar total quando mudar seleção
+        const atualizarTotal = () => {
+            let total = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    total += parseFloat(cb.dataset.valor);
+                }
+            });
+            if (totalElement) {
+                totalElement.textContent = this.formatMoney(total);
+            }
+        };
+
+        // Selecionar/desselecionar todos
+        if (selectAll) {
+            selectAll.addEventListener('change', (e) => {
+                console.log('✅ Select All clicked:', e.target.checked);
+                checkboxes.forEach(cb => {
+                    cb.checked = e.target.checked;
+                });
+                atualizarTotal();
+            });
+        }
+
+        // Atualizar ao mudar checkbox individual
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                atualizarTotal();
+                // Atualizar estado do "selecionar todos"
+                if (selectAll) {
+                    const todasMarcadas = Array.from(checkboxes).every(c => c.checked);
+                    selectAll.checked = todasMarcadas;
+                }
+            });
+        });
+
+        // Inicializar total
+        atualizarTotal();
+    }
+
+    /**
+     * Pagar parcelas selecionadas
+     */
+    async pagarParcelasSelecionadas(fatura) {
+        const checkboxes = document.querySelectorAll('.parcela-checkbox:checked');
+
+        console.log('💰 pagarParcelasSelecionadas chamado');
+        console.log('✅ Checkboxes marcados:', checkboxes.length);
+        console.log('📋 Total de parcelas na fatura:', fatura.parcelas.length);
+
+        // Log detalhado de cada checkbox
+        console.log('📌 Detalhes dos checkboxes marcados:');
+        checkboxes.forEach((cb, index) => {
+            console.log(`  [${index}] ID: ${cb.dataset.id}, Valor: ${cb.dataset.valor}, Checked: ${cb.checked}`);
+        });
+
+        if (checkboxes.length === 0) {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Selecione pelo menos uma parcela para pagar.'
+            });
+            return;
+        }
+
+        let totalSelecionado = 0;
+        checkboxes.forEach(cb => {
+            const valor = parseFloat(cb.dataset.valor);
+            console.log(`📌 Somando parcela ID ${cb.dataset.id}: R$ ${valor}`);
+            totalSelecionado += valor;
+        });
+
+        console.log(`💵 Total selecionado: R$ ${totalSelecionado}`);
+
+        const confirmado = await this.showConfirmDialog(
+            'Confirmar Pagamento',
+            `Deseja pagar ${checkboxes.length} parcela(s) no valor total de ${this.formatMoney(totalSelecionado)}?`
+        );
+
+        if (!confirmado) return;
+
+        console.log('🚀 Chamando pagarParcelasIndividuais...');
+        await this.pagarParcelasIndividuais(checkboxes, fatura);
+    }
+
+    /**
+     * Pagar parcelas individuais
+     */
+    async pagarParcelasIndividuais(checkboxes, fatura) {
+        try {
+            const parcelaIds = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+
+            // Obter cartao_id correto (pode estar em fatura.cartao_id ou fatura.cartao.id)
+            const cartaoId = fatura.cartao_id || fatura.cartao?.id;
+
+            console.log('🎯 pagarParcelasIndividuais - Dados:', {
+                cartaoId: cartaoId,
+                faturaCompleta: fatura,
+                parcelaIds: parcelaIds,
+                mes: fatura.mes,
+                ano: fatura.ano
+            });
+
+            if (!cartaoId) {
+                throw new Error('ID do cartão não encontrado na fatura');
+            }
+
+            const csrfToken = await this.getCSRFToken();
+
+            const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelas/pagar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    parcela_ids: parcelaIds,
+                    mes: fatura.mes,
+                    ano: fatura.ano
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: data.message || 'Parcelas pagas com sucesso!'
+                });
+
+                // Fechar modal e recarregar
+                const modal = document.querySelector('.modal-fatura-overlay');
+                if (modal) {
+                    this.fecharModalFatura(modal);
+                }
+
+                await this.carregarCartoes();
+            } else {
+                throw new Error(data.message || 'Erro ao pagar parcelas');
+            }
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: error.message
+            });
+        }
     }
 
     /**
      * Criar HTML do modal da fatura
      */
-    criarModalFatura(fatura, parcelamentos = null, cartaoId = null, mes = null, ano = null) {
+    criarModalFatura(fatura, parcelamentos = null, statusPagamento = null, cartaoId = null, mes = null, ano = null) {
         const modal = document.createElement('div');
         modal.className = 'modal-fatura-overlay';
-        modal.innerHTML = `<div class="modal-fatura-container">${this.criarConteudoModal(fatura, parcelamentos, cartaoId, mes, ano)}</div>`;
+        modal.innerHTML = `<div class="modal-fatura-container">${this.criarConteudoModal(fatura, parcelamentos, statusPagamento, cartaoId, mes, ano)}</div>`;
         return modal;
     }
 
     /**
      * Criar conteúdo interno do modal
      */
-    criarConteudoModal(fatura, parcelamentos = null, cartaoId = null, mes = null, ano = null) {
+    criarConteudoModal(fatura, parcelamentos = null, statusPagamento = null, cartaoId = null, mes = null, ano = null) {
+        console.log('🎨 criarConteudoModal chamado com:', {
+            statusPagamento,
+            statusPago: statusPagamento?.pago,
+            temStatus: !!statusPagamento,
+            cartaoId,
+            mes,
+            ano
+        });
+
+        // Se a fatura está paga, mostrar modal diferente
+        if (statusPagamento && statusPagamento.pago) {
+            console.log('✅ Renderizando modal de fatura PAGA');
+            return this.criarConteudoModalFaturaPaga(fatura, statusPagamento, parcelamentos, cartaoId, mes, ano);
+        }
+
+        console.log('📋 Renderizando modal de fatura PENDENTE');
+
         return `
                 <div class="modal-fatura-header">
                     <div class="header-info">
@@ -1454,7 +1685,7 @@ class CartoesManager {
                 </div>
 
                 <div class="modal-fatura-body">
-                    ${fatura.parcelas.length === 0 ? `
+                    ${fatura.parcelas.filter(p => !p.pago).length === 0 ? `
                         <div class="fatura-empty">
                             <i class="fas fa-check-circle"></i>
                             <h3>Nenhuma fatura pendente</h3>
@@ -1473,13 +1704,22 @@ class CartoesManager {
                         </div>
 
                         <div class="fatura-parcelas">
-                            <h3 class="secao-titulo">Lançamentos</h3>
+                            <h3 class="secao-titulo">
+                                <label class="checkbox-custom">
+                                    <input type="checkbox" id="selectAllParcelas">
+                                    <span class="checkmark"></span>
+                                </label>
+                                Lançamentos Pendentes
+                            </h3>
                             <div class="lancamentos-lista">
-                                ${fatura.parcelas.map(parcela => `
+                                ${fatura.parcelas.filter(p => !p.pago).map(parcela => `
                                     <div class="lancamento-item">
+                                        <label class="checkbox-custom">
+                                            <input type="checkbox" class="parcela-checkbox" data-id="${parcela.id}" data-valor="${parcela.valor}">
+                                            <span class="checkmark"></span>
+                                        </label>
                                         <div class="lanc-info">
                                             <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
-                                           
                                         </div>
                                         <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
                                     </div>
@@ -1487,75 +1727,17 @@ class CartoesManager {
                             </div>
                         </div>
                     `}
-
-                    ${(() => {
-                        if (!parcelamentos || parcelamentos.total_parcelamentos === 0) {
-                            return '';
-                        }
-                        
-                        return `
-                        <div class="fatura-parcelamentos-resumo">
-                            <div class="parc-header">
-                                <span class="parc-icon">📦</span>
-                                <h4>Parcelamentos ativos neste cartão</h4>
-                                <span class="parc-badge">${parcelamentos.total_parcelamentos}</span>
-                            </div>
-                            
-                            <div class="parc-lista">
-                                ${parcelamentos.parcelamentos.map(p => `
-                                    <div class="parc-item" onclick="window.location.href='${this.baseUrl}parcelamentos?parcelamento=${p.id}'" style="cursor: pointer;">
-                                        <div class="parc-info-wrapper">
-                                            <div class="parc-desc">${this.escapeHtml(p.descricao)}</div>
-                                            <div class="parc-meta">
-                                                <span class="parc-progress">${p.parcela_atual} de ${p.total_parcelas} parcelas</span>
-                                                <span class="parc-separator">•</span>
-                                                <span class="parc-valor-inline">${this.formatMoney(p.valor_parcela)}</span>
-                                            </div>
-                                        </div>
-                                        <span class="parc-badge-continua">🔁</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            ${parcelamentos.projecao.tres_meses > 0 ? `
-                                <div class="parc-projecao">
-                                    <div class="projecao-titulo">
-                                        <span class="projecao-icon">📅</span>
-                                        <span>Próximos meses</span>
-                                    </div>
-                                    <div class="projecao-valores">
-                                        <div class="projecao-item">
-                                            <div class="projecao-info">
-                                                <span class="projecao-label">Próximos 3 meses</span>
-                                                <strong class="projecao-valor">${this.formatMoney(parcelamentos.projecao.tres_meses)}</strong>
-                                            </div>
-                                            <span class="projecao-help">↳ parcelas que ainda virão após esta fatura</span>
-                                        </div>
-                                        ${parcelamentos.projecao.seis_meses > parcelamentos.projecao.tres_meses ? `
-                                            <div class="projecao-item">
-                                                <div class="projecao-info">
-                                                    <span class="projecao-label">Próximos 6 meses</span>
-                                                    <strong class="projecao-valor">${this.formatMoney(parcelamentos.projecao.seis_meses)}</strong>
-                                                </div>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            ` : ''}
-
-                            <a href="${this.baseUrl}parcelamentos?cartao=${cartaoId}" class="parc-link">
-                                Ver parcelamentos futuros deste cartão →
-                            </a>
-                        </div>
-                        `;
-                    })()}
                 </div>
 
                 ${fatura.parcelas.length > 0 ? `
                     <div class="modal-fatura-footer">
-                        <button class="btn btn-primary btn-pagar-fatura">
+                        <div class="footer-info">
+                            <span class="footer-label">Total selecionado:</span>
+                            <strong class="footer-valor" id="totalSelecionado">${this.formatMoney(fatura.total)}</strong>
+                        </div>
+                        <button class="btn btn-primary btn-pagar-fatura" id="btnPagarSelecionadas">
                             <i class="fas fa-check"></i>
-                            Pagar Fatura (${this.formatMoney(fatura.total)})
+                            Pagar Parcelas Selecionadas
                         </button>
                     </div>
                 ` : ''}
@@ -1633,7 +1815,7 @@ class CartoesManager {
             this.loadCartoes();
         } catch (error) {
             console.error('❌ Erro ao pagar fatura:', error);
-            
+
             // Restaurar botão em caso de erro
             if (btnPagar) {
                 btnPagar.disabled = false;
@@ -1655,6 +1837,183 @@ class CartoesManager {
     }
 
     /**
+     * Criar conteúdo do modal para fatura já paga
+     */
+    criarConteudoModalFaturaPaga(fatura, statusPagamento, parcelamentos, cartaoId, mes, ano) {
+        return `
+            <div class="modal-fatura-header">
+                <div class="header-info">
+                    <div class="cartao-info">
+                        <span class="cartao-nome">${fatura.cartao.nome}</span>
+                        <span class="cartao-numero">•••• ${fatura.cartao.ultimos_digitos}</span>
+                    </div>
+                    <div class="fatura-navegacao">
+                        <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${cartaoId}, ${mes}, ${ano}, -1)" title="Mês anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</span>
+                        <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${cartaoId}, ${mes}, ${ano}, 1)" title="Próximo mês">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-fechar-fatura" title="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-fatura-body">
+                <div class="fatura-paga-info">
+                    <div class="status-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>✅ Fatura Paga</h3>
+                    <p class="data-pagamento">Pago em ${this.formatDate(statusPagamento.data_pagamento)}</p>
+                    
+                    <div class="pagamento-detalhes">
+                        <div class="detalhe-item">
+                            <span class="label">Valor Pago:</span>
+                            <strong class="valor">${this.formatMoney(statusPagamento.valor)}</strong>
+                        </div>
+                        <div class="detalhe-item">
+                            <span class="label">Parcelas:</span>
+                            <strong>${fatura.parcelas.length}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="fatura-actions">
+                        <button class="btn-desfazer-pagamento" onclick="cartoesManager.desfazerPagamento(${cartaoId}, ${mes}, ${ano})">
+                            <i class="fas fa-undo"></i>
+                            Desfazer Pagamento
+                        </button>
+                    </div>
+                    
+                    <div class="aviso-reversao">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Ao desfazer, o saldo será devolvido à conta e as parcelas voltarão a ficar pendentes.</span>
+                    </div>
+                </div>
+                
+                <div class="fatura-parcelas-pagas">
+                    <h4>✅ Parcelas Pagas</h4>
+                    <div class="lancamentos-lista">
+                        ${fatura.parcelas.filter(p => p.pago).map(parcela => `
+                            <div class="lancamento-item paga">
+                                <div class="lanc-info">
+                                    <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                    <span class="lanc-parcela">${parcela.parcela_atual}/${parcela.total_parcelas}</span>
+                                </div>
+                                <div class="lanc-right">
+                                    <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
+                                    <span class="status-badge pago">✅ Paga</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                ${fatura.parcelas.filter(p => !p.pago).length > 0 ? `
+                    <div class="fatura-parcelas-pendentes" style="margin-top: 1.5rem;">
+                        <h4>⏳ Parcelas Pendentes</h4>
+                        <div class="lancamentos-lista">
+                            ${fatura.parcelas.filter(p => !p.pago).map(parcela => `
+                                <div class="lancamento-item">
+                                    <div class="lanc-info">
+                                        <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                        <span class="lanc-parcela">${parcela.parcela_atual}/${parcela.total_parcelas}</span>
+                                    </div>
+                                    <div class="lanc-right">
+                                        <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
+                                        <span class="status-badge pendente">⏳ Pendente</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+
+            <div class="modal-fatura-footer">
+                <button class="btn-fechar-fatura">Fechar</button>
+            </div>
+        `;
+    }
+
+    /**
+     * Desfazer pagamento de fatura
+     */
+    async desfazerPagamento(cartaoId, mes, ano) {
+        const confirmado = await Swal.fire({
+            title: 'Desfazer pagamento?',
+            html: `
+                <p>Esta ação irá:</p>
+                <ul style="text-align: left; margin: 1rem auto; max-width: 300px;">
+                    <li>✅ Devolver o valor à conta</li>
+                    <li>✅ Marcar as parcelas como não pagas</li>
+                    <li>✅ Reduzir o limite disponível do cartão</li>
+                </ul>
+                <p><strong>Tem certeza?</strong></p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, desfazer',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33',
+            reverseButtons: true
+        });
+
+        if (!confirmado.isConfirmed) return;
+
+        try {
+            const csrfToken = await this.getCSRFToken();
+
+            const response = await fetch(
+                `${this.baseUrl}api/cartoes/${cartaoId}/fatura/desfazer-pagamento`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ mes, ano })
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Pagamento desfeito!',
+                    text: data.message,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+
+                // Fechar modal e recarregar
+                const modal = document.querySelector('.modal-fatura-overlay');
+                if (modal) {
+                    this.fecharModalFatura(modal);
+                }
+
+                await this.carregarCartoes();
+            } else {
+                throw new Error(data.message || 'Erro ao desfazer pagamento');
+            }
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: error.message
+            });
+        }
+    }
+
+    /**
      * Navegar entre meses na fatura
      */
     async navegarMes(cartaoId, mesAtual, anoAtual, direcao) {
@@ -1671,8 +2030,8 @@ class CartoesManager {
         }
 
         try {
-            // Buscar fatura e parcelamentos do novo mês
-            const [faturaResponse, parcelamentosResponse] = await Promise.all([
+            // Buscar fatura, parcelamentos e status do novo mês
+            const [faturaResponse, parcelamentosResponse, statusResponse] = await Promise.all([
                 fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${novoMes}&ano=${novoAno}`, {
                     method: 'GET',
                     headers: {
@@ -1688,6 +2047,14 @@ class CartoesManager {
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'same-origin'
+                }),
+                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura/status?mes=${novoMes}&ano=${novoAno}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
                 })
             ]);
 
@@ -1697,25 +2064,37 @@ class CartoesManager {
 
             const fatura = await faturaResponse.json();
             let parcelamentos = null;
-            
+            let statusPagamento = null;
+
             if (parcelamentosResponse.ok) {
                 parcelamentos = await parcelamentosResponse.json();
+            }
+
+            if (statusResponse.ok) {
+                statusPagamento = await statusResponse.json();
             }
 
             // Atualizar conteúdo do modal sem fechá-lo
             const modalContainer = document.querySelector('.modal-fatura-container');
             if (modalContainer) {
-                const novoConteudo = this.criarConteudoModal(fatura, parcelamentos, cartaoId, novoMes, novoAno);
+                const novoConteudo = this.criarConteudoModal(fatura, parcelamentos, statusPagamento, cartaoId, novoMes, novoAno);
                 modalContainer.innerHTML = novoConteudo;
-                
+
                 // Re-adicionar event listeners
                 modalContainer.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
                     const modal = document.querySelector('.modal-fatura-overlay');
                     this.fecharModalFatura(modal);
                 });
 
+                // Botão pagar parcelas selecionadas (CORRETO)
                 modalContainer.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
-                    this.pagarFatura(fatura);
+                    this.pagarParcelasSelecionadas(fatura);
+                });
+
+                // Re-aplicar seleção de parcelas
+                const modal = document.querySelector('.modal-fatura-overlay');
+                requestAnimationFrame(() => {
+                    this.setupParcelaSelection(modal, fatura);
                 });
             }
         } catch (error) {
@@ -1774,13 +2153,13 @@ class CartoesManager {
 
             // Verifica se já está mostrando histórico
             const mostandoHistorico = modalContainer.querySelector('.historico-faturas');
-            
+
             if (mostandoHistorico) {
                 // Volta para a fatura atual
                 const hoje = new Date();
                 const mes = hoje.getMonth() + 1;
                 const ano = hoje.getFullYear();
-                
+
                 const [fatura, parcelamentos] = await Promise.all([
                     this.carregarFatura(cartaoId, mes, ano),
                     this.carregarParcelamentosResumo(cartaoId, mes, ano).catch(() => null)
@@ -1788,14 +2167,14 @@ class CartoesManager {
 
                 const conteudo = this.criarConteudoModal(fatura, parcelamentos, cartaoId, mes, ano);
                 modalContainer.innerHTML = conteudo;
-                
+
                 this.adicionarEventListenersModal(fatura);
             } else {
                 // Mostra histórico
                 const historico = await this.carregarHistoricoFaturas(cartaoId);
                 const conteudo = this.criarConteudoHistorico(historico, cartaoId);
                 modalContainer.innerHTML = conteudo;
-                
+
                 this.adicionarEventListenersModal(null);
             }
         } catch (error) {
@@ -1809,7 +2188,7 @@ class CartoesManager {
      */
     async carregarHistoricoFaturas(cartaoId, limite = 12) {
         const csrfToken = await this.getCSRFToken();
-        
+
         const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/faturas-historico?limite=${limite}`, {
             headers: {
                 'X-CSRF-Token': csrfToken,
@@ -1905,10 +2284,10 @@ class CartoesManager {
      */
     formatDate(dateString) {
         if (!dateString) return '-';
-        
+
         // Tenta diferentes formatos
         let date;
-        
+
         // Se já é um objeto Date
         if (dateString instanceof Date) {
             date = dateString;
@@ -1920,12 +2299,12 @@ class CartoesManager {
             const [year, month, day] = datePart.split('-');
             date = new Date(year, month - 1, day);
         }
-        
+
         // Verifica se é uma data válida
         if (isNaN(date.getTime())) {
             return '-';
         }
-        
+
         return date.toLocaleDateString('pt-BR');
     }
 }

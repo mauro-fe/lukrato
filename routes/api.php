@@ -185,7 +185,6 @@ Router::add('GET',    '/api/parcelamentos',              'Api\\ParcelamentosCont
 Router::add('POST',   '/api/parcelamentos',              'Api\\ParcelamentosController@store',       ['auth', 'csrf']);
 Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@show',        ['auth']);
 Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@destroy',     ['auth', 'csrf']);
-Router::add('PUT',    '/api/parcelamentos/parcelas/{id}/pagar', 'Api\\ParcelamentosController@marcarParcelaPaga', ['auth', 'csrf']);
 
 // Rota alternativa para lançamentos parcelados (compatibilidade)
 Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\ParcelamentosController@store',       ['auth', 'csrf']);

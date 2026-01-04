@@ -139,17 +139,17 @@
         async listarParcelamentos(status = '', mes = null, ano = null) {
             let url = CONFIG.ENDPOINTS.parcelamentos;
             const params = [];
-            
+
             if (status) params.push(`status=${status}`);
             if (mes && ano) {
                 params.push(`mes=${mes}`);
                 params.push(`ano=${ano}`);
             }
-            
+
             if (params.length > 0) {
                 url += '?' + params.join('&');
             }
-            
+
             return await Utils.apiRequest(url);
         },
 
@@ -170,18 +170,7 @@
             });
         },
 
-        async marcarParcelaPaga(lancamentoId, pago) {
-            return await Utils.apiRequest(
-                `${CONFIG.ENDPOINTS.parcelamentos}/parcelas/${lancamentoId}/pagar`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'X-HTTP-Method-Override': 'PUT'
-                    },
-                    body: JSON.stringify({ pago })
-                }
-            );
-        }
+
     };
 
     // ============================================================================
@@ -223,7 +212,7 @@
         createParcelamentoCard(parc) {
             const percentualPago = parc.percentual_pago || 0;
             const proximaParcela = this.getProximaParcela(parc.parcelas);
-            
+
             const div = document.createElement('div');
             div.className = `parcelamento-card status-${parc.status}`;
             div.dataset.id = parc.id;
@@ -325,14 +314,14 @@
 
         getProximaParcela(parcelas) {
             if (!parcelas || parcelas.length === 0) return null;
-            
+
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
-            
+
             // Buscar primeira parcela não paga com data futura ou mais próxima
             const naoPagas = parcelas.filter(p => !p.pago)
                 .sort((a, b) => new Date(a.data) - new Date(b.data));
-            
+
             return naoPagas.length > 0 ? naoPagas[0] : null;
         },
 
@@ -343,7 +332,7 @@
                 if (isNaN(parcelamentoId)) {
                     throw new Error('ID inválido');
                 }
-                
+
                 console.log('showDetalhes chamado com ID:', parcelamentoId);
                 const response = await API.buscarParcelamento(parcelamentoId);
                 const parc = response.data.parcelamento;
@@ -442,7 +431,6 @@
                                 <th style="width: 120px;">Vencimento</th>
                                 <th style="width: 120px;">Valor</th>
                                 <th style="width: 120px;">Status</th>
-                                ${parc.status === 'ativo' ? '<th style="width: 80px; text-align: center;">Ação</th>' : ''}
                             </tr>
                         </thead>
                         <tbody>
@@ -454,14 +442,14 @@
                     const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
                     const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
                     const rowClass = isPaga ? 'tr-paga' : '';
-                    
+
                     // Data de pagamento (se existir)
                     let dataPagamentoHtml = '';
                     if (isPaga && parcela.data_pagamento) {
                         const dataVenc = new Date(parcela.data + 'T00:00:00');
                         const dataPag = new Date(parcela.data_pagamento + 'T00:00:00');
                         const diasDiff = Math.floor((dataVenc - dataPag) / (1000 * 60 * 60 * 24));
-                        
+
                         if (diasDiff > 0) {
                             dataPagamentoHtml = `<small style="color: #10b981; display: block; margin-top: 3px;">💚 Pago ${diasDiff} dia(s) antes</small>`;
                         } else if (diasDiff < 0) {
@@ -489,23 +477,13 @@
                             <td data-label="Status">
                                 <span class="${statusClass}">${statusText}</span>
                             </td>
-                            ${parc.status === 'ativo' ? `
-                                <td data-label="Ação" style="text-align: center;">
-                                    <button class="btn-toggle-parcela ${isPaga ? 'btn-pago' : 'btn-pendente'}" 
-                                            data-lancamento-id="${parcela.id}"
-                                            data-pago="${isPaga}"
-                                            title="${isPaga ? 'Clique para desmarcar' : 'Clique para marcar como paga'}">
-                                        ${isPaga ? '✓ Pago' : '○ Marcar'}
-                                    </button>
-                                </td>
-                            ` : ''}
                         </tr>
                     `;
                 });
             } else {
                 html += `
                     <tr>
-                        <td colspan="${parc.status === 'ativo' ? 6 : 5}" style="text-align: center; padding: 2rem;">
+                        <td colspan="5" style="text-align: center; padding: 2rem;">
                             <p style="color: #6b7280;">Nenhuma parcela encontrada</p>
                         </td>
                     </tr>
@@ -519,63 +497,6 @@
             `;
 
             return html;
-        },
-
-        async toggleParcelaPaga(lancamentoId, pago) {
-            try {
-                // Mostrar loading
-                const btn = document.querySelector(`[data-lancamento-id="${lancamentoId}"]`);
-                const originalText = btn ? btn.innerHTML : '';
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = '⏳ Processando...';
-                }
-
-                await API.marcarParcelaPaga(lancamentoId, pago);
-                
-                // Recarregar lista principal
-                await App.carregarParcelamentos();
-                
-                // Buscar qual parcelamento está aberto para recarregar detalhes
-                const modal = STATE.modalDetalhesInstance?._element;
-                if (modal && modal.classList.contains('show')) {
-                    // Encontrar o ID do parcelamento através do lancamentoId
-                    const parcelamentoAtual = STATE.parcelamentos.find(p => 
-                        p.parcelas && p.parcelas.some(parc => parc.id === lancamentoId)
-                    );
-                    
-                    if (parcelamentoAtual) {
-                        // Recarregar detalhes do modal
-                        const response = await API.buscarParcelamento(parcelamentoAtual.id);
-                        const parc = response.data.parcelamento;
-                        DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
-                        
-                        // Reaplicar event listeners
-                        const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-toggle-parcela');
-                        btnToggles.forEach(btn => {
-                            btn.addEventListener('click', async (e) => {
-                                const id = parseInt(e.target.dataset.lancamentoId);
-                                const isPago = e.target.dataset.pago === 'true';
-                                await this.toggleParcelaPaga(id, !isPago);
-                            });
-                        });
-                    }
-                }
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    text: pago ? 'Parcela marcada como paga' : 'Parcela desmarcada',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro',
-                    text: error.message
-                });
-            }
         },
 
         async confirmarCancelamento(id, descricao) {
@@ -644,13 +565,13 @@
 
         async carregarParcelamentos() {
             UI.showLoading();
-            
+
             try {
                 // Pegar mês e ano do sessionStorage (month-picker)
                 const monthKey = sessionStorage.getItem('lukrato.month.dashboard');
                 let mes = null;
                 let ano = null;
-                
+
                 if (monthKey) {
                     const [anoStr, mesStr] = monthKey.split('-');
                     mes = parseInt(mesStr, 10);
@@ -668,7 +589,7 @@
                     STATE.filtros.mes,
                     STATE.filtros.ano
                 );
-                
+
                 let parcelamentos = response.data?.parcelamentos || [];
                 console.log('📊 Parcelamentos recebidos:', parcelamentos.length);
 
@@ -696,7 +617,7 @@
         async cancelarParcelamento(id) {
             try {
                 await API.cancelarParcelamento(id);
-                
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Cancelado!',

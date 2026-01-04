@@ -89,7 +89,7 @@ class CartaoCreditoLancamentoService
     private function criarLancamentoVista(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): Lancamento
     {
         $dataCompra = $data['data'] ?? date('Y-m-d');
-        $dataVencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento);
+        $dataVencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
 
         $lancamento = Lancamento::create([
             'user_id' => $userId,
@@ -145,7 +145,7 @@ class CartaoCreditoLancamentoService
 
         // Criar cada parcela
         for ($i = 1; $i <= $totalParcelas; $i++) {
-            $dataVencimentoParcela = $this->calcularDataParcelaMes($dataCompra, $cartao->dia_vencimento, $i - 1);
+            $dataVencimentoParcela = $this->calcularDataParcelaMes($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento, $i - 1);
             $valorDessaParcela = ($i === $totalParcelas) ? $valorUltimaParcela : $valorParcela;
 
             LogService::info("[CARTAO] Criando parcela {$i}/{$totalParcelas}", [
@@ -194,15 +194,17 @@ class CartaoCreditoLancamentoService
      * Se a compra foi antes do dia de fechamento, vence na próxima fatura
      * Se foi depois, vence na fatura seguinte
      */
-    private function calcularDataVencimento(string $dataCompra, int $diaVencimento): string
+    private function calcularDataVencimento(string $dataCompra, int $diaVencimento, ?int $diaFechamento = null): string
     {
         $dataObj = new \DateTime($dataCompra);
         $mesAtual = (int)$dataObj->format('n');
         $anoAtual = (int)$dataObj->format('Y');
         $diaCompra = (int)$dataObj->format('j');
 
-        // Considerar dia de fechamento = dia vencimento - 5 dias
-        $diaFechamento = max(1, $diaVencimento - 5);
+        // Se não informou dia de fechamento, considerar 5 dias antes do vencimento
+        if ($diaFechamento === null) {
+            $diaFechamento = max(1, $diaVencimento - 5);
+        }
 
         // Se comprou após o fechamento, vai para próximo mês
         if ($diaCompra > $diaFechamento) {
@@ -229,9 +231,9 @@ class CartaoCreditoLancamentoService
     /**
      * Calcular data de vencimento de uma parcela específica
      */
-    private function calcularDataParcelaMes(string $dataCompra, int $diaVencimento, int $mesesAFrente): string
+    private function calcularDataParcelaMes(string $dataCompra, int $diaVencimento, ?int $diaFechamento, int $mesesAFrente): string
     {
-        $dataVencimentoPrimeira = $this->calcularDataVencimento($dataCompra, $diaVencimento);
+        $dataVencimentoPrimeira = $this->calcularDataVencimento($dataCompra, $diaVencimento, $diaFechamento);
 
         $dataObj = new \DateTime($dataVencimentoPrimeira);
         $dataObj->modify("+{$mesesAFrente} months");

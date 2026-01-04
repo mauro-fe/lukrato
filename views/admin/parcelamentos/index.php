@@ -93,11 +93,6 @@
             <div class="modal-body" id="detalhesParcelamentoContent">
                 <!-- Conteúdo carregado dinamicamente -->
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">
-                    <i class="fas fa-check"></i> Salvar
-                </button>
-            </div>
         </div>
     </div>
 </div>

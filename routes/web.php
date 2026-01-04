@@ -220,6 +220,9 @@ function registerApiRoutes(): void
     // Faturas de Cartão
     Router::add('GET',    '/api/cartoes/{id}/fatura',         'Api\\CartoesController@fatura',          ['auth']);
     Router::add('POST',   '/api/cartoes/{id}/fatura/pagar',   'Api\\CartoesController@pagarFatura',     ['auth', 'csrf']);
+    Router::add('GET',    '/api/cartoes/{id}/fatura/status',  'Api\\CartoesController@statusFatura',    ['auth']);
+    Router::add('POST',   '/api/cartoes/{id}/fatura/desfazer-pagamento', 'Api\\CartoesController@desfazerPagamentoFatura', ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/parcelas/pagar', 'Api\\CartoesController@pagarParcelas',   ['auth', 'csrf']);
     Router::add('GET',    '/api/cartoes/{id}/faturas-pendentes', 'Api\\CartoesController@faturasPendentes', ['auth']);
     Router::add('GET',    '/api/cartoes/{id}/faturas-historico', 'Api\\CartoesController@faturasHistorico', ['auth']);
     Router::add('GET',    '/api/cartoes/{id}/parcelamentos-resumo', 'Api\\CartoesController@parcelamentosResumo', ['auth']);
@@ -314,7 +317,6 @@ function registerApiRoutes(): void
     Router::add('GET',    '/api/parcelamentos/{id}',                   'Api\\ParcelamentosController@show',            ['auth']);
     Router::add('POST',   '/api/parcelamentos',                        'Api\\ParcelamentosController@store',           ['auth', 'csrf']);
     Router::add('DELETE', '/api/parcelamentos/{id}',                   'Api\\ParcelamentosController@destroy',         ['auth', 'csrf']);
-    Router::add('POST',   '/api/parcelamentos/parcelas/{id}/pagar',    'Api\\ParcelamentosController@marcarParcelaPaga', ['auth', 'csrf']);
 
     Router::add('GET',  '/api/notificacoes',           'Api\\NotificacaoController@index',         ['auth']);
 

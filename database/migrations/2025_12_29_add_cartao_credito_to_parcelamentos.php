@@ -14,7 +14,7 @@ return new class
 
         // Adiciona a coluna cartao_credito_id
         Capsule::schema()->table('parcelamentos', function ($table) {
-            $table->unsignedBigInteger('cartao_credito_id')->nullable()->after('conta_id');
+            $table->unsignedBigInteger('cartao_credito_id')->nullable()->after('conta_id')->comment('ID do cartão de crédito vinculado ao parcelamento');
             $table->index('cartao_credito_id', 'idx_parcelamentos_cartao_credito');
         });
 

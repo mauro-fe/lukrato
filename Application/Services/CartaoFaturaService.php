@@ -74,10 +74,8 @@ class CartaoFaturaService
     {
         $cartao = CartaoCredito::findOrFail($cartaoId);
 
-        // Busca lançamentos do cartão no mês que não foram pagos ainda
-        // Inclui tanto lançamentos simples quanto parcelas de parcelamentos
+        // Busca TODAS as parcelas do cartão no mês (pagas e não pagas)
         $parcelas = Lancamento::where('cartao_credito_id', $cartaoId)
-            ->where('pago', false)
             ->where(function ($query) {
                 // Lançamentos não parcelados OU parcelas de parcelamentos (ignora o pai)
                 $query->where('eh_parcelado', false)
@@ -91,7 +89,9 @@ class CartaoFaturaService
             ->orderBy('data')
             ->get();
 
-        $total = $parcelas->sum('valor');
+        // Separar pagas e não pagas
+        $parcelasPendentes = $parcelas->where('pago', false);
+        $total = $parcelasPendentes->sum('valor');
 
         // Data de vencimento da fatura (dia do vencimento do cartão)
         $dataVencimento = sprintf('%04d-%02d-%02d', $ano, $mes, $cartao->dia_vencimento);
@@ -159,20 +159,40 @@ class CartaoFaturaService
             // Valida se a conta existe e tem saldo suficiente
             $conta = Conta::where('id', $contaId)
                 ->where('user_id', $userId)
-                ->firstOrFail();
+                ->first();
 
+            if (!$conta) {
+                throw new \Exception(sprintf(
+                    'Conta ID %d não encontrada ou não pertence ao usuário. Verifique o vínculo do cartão.',
+                    $contaId
+                ));
+            }
+
+            // Calcular saldo real da conta
+            // Exclui TODOS os lançamentos de cartão de crédito pois:
+            // - Não pagos: são compras futuras (virtual)
+            // - Pagos: já foram contabilizados via lançamento "Pagamento Fatura"
             $saldoAtual = $conta->saldo_inicial +
                 Lancamento::where('conta_id', $contaId)
                 ->where('user_id', $userId)
+                ->whereNull('cartao_credito_id')  // Apenas lançamentos normais (sem cartão)
                 ->sum(DB::raw("CASE WHEN tipo = 'receita' THEN valor ELSE -valor END"));
 
             if ($saldoAtual < $totalPagar) {
-                throw new \Exception('Saldo insuficiente na conta para pagar a fatura.');
+                throw new \Exception(sprintf(
+                    'Saldo insuficiente na conta para pagar a fatura. Disponível: R$ %.2f, Necessário: R$ %.2f',
+                    $saldoAtual,
+                    $totalPagar
+                ));
             }
 
             // Marca todas as parcelas como pagas
             $parcelasIds = array_column($fatura['parcelas'], 'id');
-            Lancamento::whereIn('id', $parcelasIds)->update(['pago' => true]);
+            $dataPagamento = now()->format('Y-m-d');
+            Lancamento::whereIn('id', $parcelasIds)->update([
+                'pago' => true,
+                'data_pagamento' => $dataPagamento
+            ]);
 
             // Devolve o limite ao cartão
             $cartao->limite_disponivel += $totalPagar;
@@ -182,6 +202,131 @@ class CartaoFaturaService
             $categoriaId = $this->obterCategoriaPagamentoCartao($userId);
 
             // Cria lançamento de DESPESA na conta (pagamento da fatura)
+            $descricaoPagamento = sprintf(
+                'Pagamento Fatura %s •••• %s - %02d/%04d',
+                $cartao->nome_cartao,
+                $cartao->ultimos_digitos,
+                $mes,
+                $ano
+            );
+
+            error_log("💳 [pagarFatura] Criando lançamento: '{$descricaoPagamento}'");
+
+            $lancamentoPagamento = Lancamento::create([
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'categoria_id' => $categoriaId,
+                'tipo' => 'despesa',
+                'valor' => $totalPagar,
+                'descricao' => $descricaoPagamento,
+                'data' => now()->format('Y-m-d'),
+                'observacao' => sprintf(
+                    'Pagamento automático de %d parcela(s) do cartão',
+                    count($parcelasIds)
+                ),
+                'pago' => true, // Já marca como pago pois é o pagamento em si
+                'data_pagamento' => $dataPagamento,
+            ]);
+
+            error_log("✅ [pagarFatura] Lançamento criado: ID={$lancamentoPagamento->id}");
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Fatura paga com sucesso!',
+                'valor_pago' => $totalPagar,
+                'parcelas_pagas' => count($parcelasIds),
+                'novo_limite_disponivel' => $cartao->limite_disponivel,
+                'lancamento_id' => $lancamentoPagamento->id,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Pagar parcelas individuais selecionadas
+     */
+    public function pagarParcelas(int $cartaoId, array $parcelaIds, int $mes, int $ano, int $userId): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $cartao = CartaoCredito::where('id', $cartaoId)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+
+            // Validar e buscar as parcelas selecionadas
+            $parcelas = Lancamento::whereIn('id', $parcelaIds)
+                ->where('user_id', $userId)
+                ->where('cartao_credito_id', $cartaoId)
+                ->where('pago', false)
+                ->get();
+
+            if ($parcelas->isEmpty()) {
+                throw new \Exception('Nenhuma parcela válida encontrada para pagamento.');
+            }
+
+            $totalPagar = $parcelas->sum('valor');
+
+            // Usa a conta vinculada ao cartão
+            $contaId = $cartao->conta_id;
+
+            if (!$contaId) {
+                throw new \Exception('Cartão não está vinculado a nenhuma conta.');
+            }
+
+            // Valida se a conta existe e tem saldo suficiente
+            $conta = Conta::where('id', $contaId)
+                ->where('user_id', $userId)
+                ->first();
+
+            if (!$conta) {
+                throw new \Exception(sprintf(
+                    'Conta ID %d não encontrada ou não pertence ao usuário. Verifique o vínculo do cartão.',
+                    $contaId
+                ));
+            }
+
+            // Calcular saldo real da conta
+            // Exclui TODOS os lançamentos de cartão de crédito pois:
+            // - Não pagos: são compras futuras (virtual)
+            // - Pagos: já foram contabilizados via lançamento "Pagamento Fatura"
+            $saldoAtual = $conta->saldo_inicial +
+                Lancamento::where('conta_id', $contaId)
+                ->where('user_id', $userId)
+                ->whereNull('cartao_credito_id')  // Apenas lançamentos normais (sem cartão)
+                ->sum(DB::raw("CASE WHEN tipo = 'receita' THEN valor ELSE -valor END"));
+
+            if ($saldoAtual < $totalPagar) {
+                throw new \Exception(sprintf(
+                    'Saldo insuficiente na conta para pagar as parcelas. Disponível: R$ %.2f, Necessário: R$ %.2f',
+                    $saldoAtual,
+                    $totalPagar
+                ));
+            }
+
+            // Marca as parcelas selecionadas como pagas
+            $dataPagamento = now()->format('Y-m-d');
+            Lancamento::whereIn('id', $parcelaIds)->update([
+                'pago' => true,
+                'data_pagamento' => $dataPagamento
+            ]);
+
+            // Devolve o limite ao cartão
+            $cartao->limite_disponivel += $totalPagar;
+            $cartao->save();
+
+            // Obter categoria de Pagamento de Cartão
+            $categoriaId = $this->obterCategoriaPagamentoCartao($userId);
+
+            // Cria lançamento de DESPESA na conta (pagamento das parcelas)
+            $descricaoParcelas = count($parcelaIds) === 1
+                ? '1 parcela'
+                : count($parcelaIds) . ' parcelas';
+
             $lancamentoPagamento = Lancamento::create([
                 'user_id' => $userId,
                 'conta_id' => $contaId,
@@ -197,19 +342,20 @@ class CartaoFaturaService
                 ),
                 'data' => now()->format('Y-m-d'),
                 'observacao' => sprintf(
-                    'Pagamento automático de %d parcela(s) do cartão',
-                    count($parcelasIds)
+                    'Pagamento parcial: %s selecionada(s)',
+                    $descricaoParcelas
                 ),
-                'pago' => true, // Já marca como pago pois é o pagamento em si
+                'pago' => true,
+                'data_pagamento' => $dataPagamento,
             ]);
 
             DB::commit();
 
             return [
                 'success' => true,
-                'message' => 'Fatura paga com sucesso!',
+                'message' => sprintf('Pagamento realizado! %s paga(s) com sucesso.', ucfirst($descricaoParcelas)),
                 'valor_pago' => $totalPagar,
-                'parcelas_pagas' => count($parcelasIds),
+                'parcelas_pagas' => count($parcelaIds),
                 'novo_limite_disponivel' => $cartao->limite_disponivel,
                 'lancamento_id' => $lancamentoPagamento->id,
             ];
@@ -265,7 +411,7 @@ class CartaoFaturaService
             error_log("📊 [obterResumoParcelamentos] Início - Cartão: {$cartaoId}, Mês: {$mesAtual}, Ano: {$anoAtual}");
 
             // Busca parcelamentos ativos de forma simples usando SQL direto
-            $db = \Illuminate\Database\Capsule\Manager::connection()->getPdo();
+            $db = DB::connection()->getPdo();
 
             // Query simples para pegar parcelamentos únicos
             $sql = "SELECT 
@@ -362,6 +508,168 @@ class CartaoFaturaService
         }
 
         return $categoria->id;
+    }
+
+    /**
+     * Verificar se a fatura de um mês está paga
+     * Considera paga APENAS se TODAS as parcelas do mês estão pagas
+     * 
+     * @param int $cartaoId
+     * @param int $mes
+     * @param int $ano
+     * @param int $userId
+     * @return array|null
+     */
+    public function faturaEstaPaga(int $cartaoId, int $mes, int $ano, int $userId): ?array
+    {
+        $cartao = CartaoCredito::where('id', $cartaoId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$cartao) {
+            error_log("❌ [faturaEstaPaga] Cartão não encontrado: ID={$cartaoId}, User={$userId}");
+            return null;
+        }
+
+        // Buscar TODAS as parcelas do mês
+        $dataInicio = sprintf('%04d-%02d-01', $ano, $mes);
+        $dataFim = date('Y-m-t', strtotime($dataInicio));
+
+        $totalParcelas = Lancamento::where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->whereBetween('data', [$dataInicio, $dataFim])
+            ->count();
+
+        if ($totalParcelas === 0) {
+            error_log("❌ [faturaEstaPaga] Nenhuma parcela encontrada no mês {$mes}/{$ano}");
+            return null;
+        }
+
+        // Contar quantas estão pagas
+        $parcelasPagas = Lancamento::where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->whereBetween('data', [$dataInicio, $dataFim])
+            ->where('pago', true)
+            ->count();
+
+        error_log("🔍 [faturaEstaPaga] Total: {$totalParcelas}, Pagas: {$parcelasPagas}");
+
+        // Só considera paga se TODAS as parcelas foram pagas
+        if ($parcelasPagas < $totalParcelas) {
+            error_log("⚠️ [faturaEstaPaga] Fatura parcialmente paga ({$parcelasPagas}/{$totalParcelas})");
+            return null;
+        }
+
+        // Buscar o lançamento de pagamento mais recente para pegar a data
+        $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+        $lancamentoPagamento = Lancamento::where('user_id', $userId)
+            ->whereNull('cartao_credito_id')
+            ->where('tipo', 'despesa')
+            ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        error_log("✅ [faturaEstaPaga] Fatura TOTALMENTE paga ({$parcelasPagas}/{$totalParcelas})");
+
+        return [
+            'pago' => true,
+            'data_pagamento' => $lancamentoPagamento ? $lancamentoPagamento->data_pagamento : null,
+            'valor' => $lancamentoPagamento ? (float) $lancamentoPagamento->valor : 0,
+            'lancamento_id' => $lancamentoPagamento ? $lancamentoPagamento->id : null,
+        ];
+    }
+
+    /**
+     * Desfazer pagamento de uma fatura
+     * Deleta TODOS os lançamentos de pagamento do mês e desmarca TODAS as parcelas
+     * 
+     * @param int $cartaoId
+     * @param int $mes
+     * @param int $ano
+     * @param int $userId
+     * @return array
+     */
+    public function desfazerPagamentoFatura(int $cartaoId, int $mes, int $ano, int $userId): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $cartao = CartaoCredito::where('id', $cartaoId)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+
+            error_log("🔄 [desfazerPagamento] Iniciando para cartão={$cartaoId}, mês={$mes}, ano={$ano}");
+
+            // Buscar TODOS os lançamentos de pagamento da fatura deste mês
+            // IMPORTANTE: O lançamento de pagamento NÃO tem cartao_credito_id porque é um lançamento da conta
+            $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+
+            $lancamentosPagamento = Lancamento::where('user_id', $userId)
+                ->whereNull('cartao_credito_id')  // Lançamento normal da conta
+                ->where('tipo', 'despesa')
+                ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+                ->get();
+
+            if ($lancamentosPagamento->isEmpty()) {
+                error_log("❌ [desfazerPagamento] Nenhum pagamento encontrado");
+                throw new \Exception('Nenhum pagamento encontrado para esta fatura.');
+            }
+
+            $totalPagamentos = $lancamentosPagamento->sum('valor');
+            error_log("✅ [desfazerPagamento] Encontrados {$lancamentosPagamento->count()} pagamentos, total: R$ {$totalPagamentos}");
+
+            // Desmarcar TODAS as parcelas do cartão como não pagas
+            $this->desmarcarParcelasPagasFatura($cartao->id, $mes, $ano, $userId);
+
+            // Reduzir limite disponível do cartão pelo total (a fatura volta a estar pendente)
+            $cartao->limite_disponivel -= $totalPagamentos;
+            $cartao->save();
+
+            // Deletar TODOS os lançamentos de pagamento (isso restaura o saldo da conta)
+            foreach ($lancamentosPagamento as $pagamento) {
+                error_log("🗑️ Deletando lançamento ID={$pagamento->id}, Valor=R$ {$pagamento->valor}");
+                $pagamento->delete();
+            }
+
+            DB::commit();
+
+            error_log("🎉 [desfazerPagamento] Concluído com sucesso");
+
+            return [
+                'success' => true,
+                'message' => 'Pagamento desfeito com sucesso! O saldo foi restaurado e as parcelas voltaram a ficar pendentes.',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            error_log("❌ [desfazerPagamento] Erro: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Desmarcar parcelas de uma fatura como não pagas
+     * 
+     * @param int $cartaoId
+     * @param int $mes
+     * @param int $ano
+     * @param int $userId
+     */
+    private function desmarcarParcelasPagasFatura(int $cartaoId, int $mes, int $ano, int $userId): void
+    {
+        // Buscar lançamentos do cartão naquele mês que foram marcados como pagos
+        $dataInicio = sprintf('%04d-%02d-01', $ano, $mes);
+        $dataFim = date('Y-m-t', strtotime($dataInicio));
+
+        Lancamento::where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->whereBetween('data', [$dataInicio, $dataFim])
+            ->where('pago', true)
+            ->update([
+                'pago' => false,
+                'data_pagamento' => null
+            ]);
+
+        error_log("🔄 [desmarcarParcelas] Parcelas desmarcadas para o cartão {$cartaoId} em {$mes}/{$ano}");
     }
 
     /**

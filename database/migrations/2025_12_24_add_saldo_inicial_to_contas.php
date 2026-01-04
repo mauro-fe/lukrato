@@ -8,7 +8,8 @@ return new class
     {
         // 1. Adicionar campo saldo_inicial na tabela contas
         Capsule::schema()->table('contas', function ($table) {
-            $table->decimal('saldo_inicial', 15, 2)->default(0)->after('tipo_conta');
+            $table->decimal('saldo_inicial', 15, 2)->default(0)->after('tipo_conta')->comment('Saldo inicial da conta (migrado de lançamentos)');
+            $table->index('saldo_inicial', 'idx_contas_saldo_inicial');
         });
 
         // 2. Migrar dados dos lançamentos de saldo inicial para o campo
@@ -61,8 +62,9 @@ return new class
             ]);
         }
 
-        // Remover campo
+        // Remover campo e índice
         Capsule::schema()->table('contas', function ($table) {
+            $table->dropIndex('idx_contas_saldo_inicial');
             $table->dropColumn('saldo_inicial');
         });
     }
