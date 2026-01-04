@@ -15,6 +15,3 @@ use Application\Core\Router;
 // Asaas (Gateway de pagamento)
 Router::add('POST', '/api/webhook/asaas', 'Api\\AsaasWebhookController@receive');
 Router::add('GET',  '/api/webhook/asaas', 'Api\\AsaasWebhookController@test');
-
-// MercadoPago
-Router::add('POST', '/api/webhooks/mercadopago', 'Api\\WebhookMercadoPagoController@handle');

@@ -27,7 +27,6 @@ Router::add('GET', '/termos', 'Site\\LegalController@terms');
 Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');
 Router::add('GET', '/lgpd', 'Site\\LegalController@lgpd');
 
-Router::add('GET', '/api/lancamentos/usage', 'Api\\LancamentosController@usage');
 
 
 /* =========================
@@ -97,9 +96,6 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth']);
 
-    Router::add('GET', '/config',            'Admin\\ConfigController@index',        ['auth']);
-
-    Router::add('POST', '/api/config',        'Api\\ConfigController@update',         ['auth', 'csrf']);
 
     Router::add('GET', '/perfil',            'Admin\\PerfilController@index',        ['auth']);
 
@@ -345,11 +341,6 @@ function registerBillingRoutes(): void
     // Página do plano
 
     Router::add('GET',  '/billing',                      'Admin\\BillingController@index',        ['auth']);
-
-    Router::add('POST', '/api/mercadopago/checkout', 'Api\\MercadoPagoController@createCheckout');
-
-    Router::add('POST', '/api/webhooks/mercadopago', 'Api\\WebhookMercadoPagoController@handle');
-    Router::add('POST', '/api/mercadopago/pay', 'Api\\MercadoPagoController@pay');
 }
 
 

@@ -171,13 +171,6 @@ Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth', 
 Router::add('POST', '/premium/cancel',   'PremiumController@cancel',   ['auth', 'csrf']);
 
 // ============================================
-// PAGAMENTOS (MercadoPago)
-// ============================================
-
-Router::add('POST', '/api/mercadopago/checkout', 'Api\\MercadoPagoController@createCheckout', ['auth', 'csrf']);
-Router::add('POST', '/api/mercadopago/pay',      'Api\\MercadoPagoController@pay',            ['auth', 'csrf']);
-
-// ============================================
 // PARCELAMENTOS (REST)
 // ============================================
 
