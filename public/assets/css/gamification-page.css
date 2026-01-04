@@ -1,6 +1,5 @@
 /* Gamification Page Styles */
 .gamification-page {
-  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
   background: var(--color-bg);
@@ -14,9 +13,9 @@
   align-items: center;
   margin-bottom: 30px;
   padding: 30px;
-  background: var(--color-primary);
+  background: var(--glass-bg);
   border-radius: var(--radius-lg);
-  color: white;
+  color: var(--color-text);
   box-shadow: var(--shadow-lg);
 }
 
