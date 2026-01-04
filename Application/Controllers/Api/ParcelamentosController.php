@@ -157,7 +157,9 @@ class ParcelamentosController extends BaseController
             $valorParcela = $valorTotal / $numeroParcelas;
 
             // 1. CRIAR CABEÇALHO em `parcelamentos`
-            $parcelamento = DB::table('parcelamentos')->insertGetId([
+            /** @var int|null $parcelamentoId */
+            // @phpstan-ignore-next-line
+            $parcelamentoId = DB::table('parcelamentos')->insertGetId([
                 'user_id' => $userId,
                 'descricao' => $descricao,
                 'valor_total' => $valorTotal,
@@ -173,31 +175,65 @@ class ParcelamentosController extends BaseController
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
 
+            if (!$parcelamentoId) {
+                DB::rollBack();
+                Response::error('Erro ao criar parcelamento', 500);
+                return;
+            }
+
             // 2. CRIAR LANÇAMENTOS INDIVIDUAIS em `lancamentos`
             // CADA PARCELA = UM LANÇAMENTO (fonte da verdade)
             $dataAtual = new \DateTime($dataCriacao);
+
+            // Se for cartão, ajustar data para vencimento da fatura
+            if ($cartaoCreditoId) {
+                /** @var \stdClass|null $cartao */
+                // @phpstan-ignore-next-line
+                $cartao = DB::table('cartoes_credito')
+                    ->where('id', $cartaoCreditoId)
+                    ->where('user_id', $userId)
+                    ->first();
+
+                if ($cartao !== null && isset($cartao->dia_vencimento) && $cartao->dia_vencimento > 0) {
+                    $dataAtual->setDate(
+                        (int)$dataAtual->format('Y'),
+                        (int)$dataAtual->format('m'),
+                        min((int)$cartao->dia_vencimento, (int)$dataAtual->format('t'))
+                    );
+                }
+            }
+
             $lancamentosCriados = [];
+            $lancamentoPaiId = null;
 
             for ($i = 1; $i <= $numeroParcelas; $i++) {
-                $lancamentoId = DB::table('lancamentos')->insertGetId([
+                $lancamento = Lancamento::create([
                     'user_id' => $userId,
                     'descricao' => $descricao . " ({$i}/{$numeroParcelas})",
                     'valor' => round($valorParcela, 2),
                     'data' => $dataAtual->format('Y-m-d'),
-                    'tipo' => $tipo,
+                    'tipo' => $tipo === 'saida' ? 'despesa' : 'receita',
                     'categoria_id' => $categoriaId,
                     'conta_id' => $contaId,
                     'cartao_credito_id' => $cartaoCreditoId,
-                    'parcelamento_id' => $parcelamento, // LINK COM CABEÇALHO
-                    'numero_parcela' => $i,
+                    'parcelamento_id' => $parcelamentoId,
+                    'eh_parcelado' => true,
+                    'parcela_atual' => $i,
+                    'total_parcelas' => $numeroParcelas,
+                    'lancamento_pai_id' => $lancamentoPaiId,
                     'pago' => false,
                     'recorrente' => false,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s')
                 ]);
 
+                // Primeira parcela é o "pai"
+                if ($i === 1) {
+                    $lancamentoPaiId = $lancamento->id;
+                    $lancamento->lancamento_pai_id = $lancamento->id;
+                    $lancamento->save();
+                }
+
                 $lancamentosCriados[] = [
-                    'id' => $lancamentoId,
+                    'id' => $lancamento->id,
                     'parcela' => $i,
                     'valor' => round($valorParcela, 2),
                     'data' => $dataAtual->format('Y-m-d')
@@ -212,7 +248,7 @@ class ParcelamentosController extends BaseController
             $totalParcelas = count($lancamentosCriados);
             Response::success([
                 'parcelamento' => [
-                    'id' => $parcelamento,
+                    'id' => $parcelamentoId,
                     'descricao' => $descricao,
                     'valor_total' => $valorTotal,
                     'numero_parcelas' => $numeroParcelas,

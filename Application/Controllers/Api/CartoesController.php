@@ -493,4 +493,23 @@ class CartoesController
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
+
+    /**
+     * POST /api/cartoes/parcelas/{id}/desfazer-pagamento
+     * Desfazer pagamento de uma parcela específica
+     */
+    public function desfazerPagamentoParcela(int $id): void
+    {
+        $userId = Auth::id();
+
+        error_log("🔍 [Controller] desfazerPagamentoParcela - Parcela ID={$id}, User={$userId}");
+
+        try {
+            $resultado = $this->faturaService->desfazerPagamentoParcela($id, $userId);
+            Response::json($resultado);
+        } catch (\Exception $e) {
+            error_log("❌ [Controller] Erro ao desfazer parcela: " . $e->getMessage());
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        }
+    }
 }

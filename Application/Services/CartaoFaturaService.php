@@ -366,6 +366,111 @@ class CartaoFaturaService
     }
 
     /**
+     * Desfazer pagamento de uma parcela específica
+     * 
+     * @param int $parcelaId ID da parcela (lançamento do cartão)
+     * @param int $userId
+     * @return array
+     */
+    public function desfazerPagamentoParcela(int $parcelaId, int $userId): array
+    {
+        DB::beginTransaction();
+
+        try {
+            // Buscar a parcela
+            $parcela = Lancamento::where('id', $parcelaId)
+                ->where('user_id', $userId)
+                ->whereNotNull('cartao_credito_id')
+                ->where('pago', true)
+                ->firstOrFail();
+
+            $cartao = CartaoCredito::where('id', $parcela->cartao_credito_id)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+
+            error_log("🔄 [desfazerPagamentoParcela] Parcela ID={$parcelaId}, Cartão={$cartao->nome_cartao}, Valor=R$ {$parcela->valor}");
+
+            // Buscar o lançamento de pagamento correspondente
+            // O pagamento parcial tem descrição do tipo "Pagamento Fatura NOME •••• XXXX - MM/YYYY (X parcelas)"
+            $mes = date('n', strtotime($parcela->data));
+            $ano = date('Y', strtotime($parcela->data));
+            $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+
+            // Buscar TODOS os lançamentos de pagamento desse mês para verificar quantas parcelas foram pagas
+            $lancamentosPagamento = Lancamento::where('user_id', $userId)
+                ->whereNull('cartao_credito_id')
+                ->where('tipo', 'despesa')
+                ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+                ->get();
+
+            if ($lancamentosPagamento->isEmpty()) {
+                throw new \Exception('Pagamento não encontrado para esta parcela.');
+            }
+
+            // Se há mais de uma parcela paga no mesmo mês, precisamos ajustar
+            $parcelasPagasNoMes = Lancamento::where('user_id', $userId)
+                ->where('cartao_credito_id', $cartao->id)
+                ->whereYear('data', $ano)
+                ->whereMonth('data', $mes)
+                ->where('pago', true)
+                ->count();
+
+            error_log("📊 [desfazerPagamentoParcela] Parcelas pagas no mês: {$parcelasPagasNoMes}");
+
+            // Se é a última parcela paga do mês, deletar o lançamento de pagamento completamente
+            if ($parcelasPagasNoMes === 1) {
+                foreach ($lancamentosPagamento as $pagamento) {
+                    error_log("🗑️ [desfazerPagamentoParcela] Deletando lançamento de pagamento ID={$pagamento->id}");
+                    $pagamento->delete();
+                }
+            } else {
+                // Se há mais parcelas pagas, reduzir o valor do lançamento de pagamento
+                $lancamentoPagamento = $lancamentosPagamento->first();
+                $novoValor = $lancamentoPagamento->valor - $parcela->valor;
+
+                error_log("💰 [desfazerPagamentoParcela] Reduzindo pagamento de R$ {$lancamentoPagamento->valor} para R$ {$novoValor}");
+
+                $lancamentoPagamento->valor = $novoValor;
+
+                // Atualizar descrição para refletir nova quantidade de parcelas
+                $novaQuantidade = $parcelasPagasNoMes - 1;
+                $textoQuantidade = $novaQuantidade === 1 ? '1 parcela' : "{$novaQuantidade} parcelas";
+                $lancamentoPagamento->descricao = preg_replace(
+                    '/\(\d+ parcelas?\)/',
+                    "({$textoQuantidade})",
+                    $lancamentoPagamento->descricao
+                );
+
+                $lancamentoPagamento->save();
+            }
+
+            // Desmarcar a parcela como paga
+            $parcela->pago = false;
+            $parcela->data_pagamento = null;
+            $parcela->save();
+
+            // Reduzir limite disponível do cartão (a parcela volta a estar pendente)
+            $cartao->limite_disponivel -= $parcela->valor;
+            $cartao->save();
+
+            DB::commit();
+
+            error_log("✅ [desfazerPagamentoParcela] Concluído com sucesso");
+
+            return [
+                'success' => true,
+                'message' => 'Pagamento da parcela desfeito com sucesso!',
+                'valor_desfeito' => (float) $parcela->valor,
+                'novo_limite_disponivel' => (float) $cartao->limite_disponivel,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            error_log("❌ [desfazerPagamentoParcela] Erro: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
      * Retorna todos os meses que têm faturas pendentes para um cartão
      * 
      * @param int $cartaoId
@@ -573,7 +678,7 @@ class CartaoFaturaService
 
         return [
             'pago' => true,
-            'data_pagamento' => $lancamentoPagamento ? $lancamentoPagamento->data_pagamento : null,
+            'data_pagamento' => $lancamentoPagamento ? $lancamentoPagamento->data : null,
             'valor' => $lancamentoPagamento ? (float) $lancamentoPagamento->valor : 0,
             'lancamento_id' => $lancamentoPagamento ? $lancamentoPagamento->id : null,
         ];

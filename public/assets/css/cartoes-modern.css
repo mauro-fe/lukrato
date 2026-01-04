@@ -1379,6 +1379,219 @@
   flex-shrink: 0;
 }
 
+/* Seção de Lançamentos Pagos */
+.fatura-parcelas-pagas {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.fatura-parcelas-pagas .secao-titulo {
+  color: #10b981;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.lancamento-item.lancamento-pago {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lancamento-item.lancamento-pago .lanc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.lancamento-item.lancamento-pago .lanc-data-pagamento {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.lancamento-item.lancamento-pago .lanc-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lancamento-item.lancamento-pago .lanc-valor {
+  font-weight: 600;
+  color: #10b981;
+  min-width: 120px;
+  text-align: right;
+}
+
+.btn-desfazer-parcela {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-desfazer-parcela:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-desfazer-parcela:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.btn-desfazer-parcela i {
+  font-size: 0.9rem;
+}
+
+/* Layout de Fatura Totalmente Paga */
+.fatura-totalmente-paga {
+  padding: 1rem;
+}
+
+.status-paga-header {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.1) 0%,
+    rgba(16, 185, 129, 0.05) 100%
+  );
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  border: 2px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-paga-header i {
+  font-size: 4rem;
+  color: #10b981;
+  margin-bottom: 1rem;
+  display: block;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.status-paga-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 0.5rem;
+}
+
+.status-paga-header p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.fatura-parcelas-pagas-completa {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.fatura-parcelas-pagas-completa .secao-titulo {
+  color: #10b981;
+  margin-bottom: 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.secao-titulo-com-botao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.secao-titulo-com-botao .secao-titulo {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.btn-desfazer-todas {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-desfazer-todas:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-desfazer-todas:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.btn-desfazer-todas i {
+  font-size: 1rem;
+}
+
+.fatura-parcelas-pagas-completa .lancamentos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .fatura-parcelas-pagas {
   margin-top: 2rem;
   padding-top: 2rem;

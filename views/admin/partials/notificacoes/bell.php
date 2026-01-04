@@ -24,6 +24,7 @@
         align-items: center;
         justify-content: center;
         padding: 0;
+        overflow: visible !important;
     }
 
     #lk-bell:hover {
@@ -43,21 +44,27 @@
     /* Badge de Contagem Modernizado */
     #lk-bell-badge {
         position: absolute;
-        top: -6px;
-        right: -6px;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 6px;
+        top: -10px;
+        right: -10px;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 7px;
         background: linear-gradient(135deg, #e74c3c, #c0392b);
         color: white;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
-        border-radius: 10px;
-        display: none;
+        border-radius: 12px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
-        border: 2px solid var(--color-surface);
+        box-shadow: 0 3px 12px rgba(231, 76, 60, 0.6);
+        border: 3px solid var(--color-surface);
+        z-index: 10;
+        line-height: 1;
+    }
+
+    #lk-bell-badge.hidden {
+        display: none !important;
     }
 
     /* Animação do sino quando há não lidas */
@@ -316,7 +323,7 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 ?>
 <button id="lk-bell" class="btn btn-ghost relative" aria-label="Notificacoes" aria-expanded="false">
     <i class="fas fa-bell"></i>
-    <span id="lk-bell-badge" class="absolute -top-1 -right-1" style="display: <?= $badgeStyle ?>;">
+    <span id="lk-bell-badge" <?= $initialUnread > 0 ? '' : 'class="hidden"' ?>>
         <?= $initialBadgeLabel ?>
     </span>
 </button>
@@ -587,8 +594,15 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
                 const v = Number(n || 0);
                 this.unreadCount = v;
                 const label = v > 99 ? '99+' : String(v);
-                this.badge.style.display = v > 0 ? 'inline-flex' : 'none';
-                this.badge.textContent = label;
+
+                // Usar classe hidden ao invés de style.display
+                if (v > 0) {
+                    this.badge.classList.remove('hidden');
+                    this.badge.textContent = label;
+                } else {
+                    this.badge.classList.add('hidden');
+                }
+
                 if (this.bellBtn) {
                     this.bellBtn.classList.toggle('lk-bell-alert', v > 0);
                 }

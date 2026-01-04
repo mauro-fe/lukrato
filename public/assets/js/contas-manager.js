@@ -1687,6 +1687,21 @@ class ContasManager {
             const result = await response.json();
             console.log('✅ Lançamento criado:', result);
 
+            // Fechar modal primeiro
+            this.closeLancamentoModal();
+
+            // Exibir Sweet Alert de sucesso
+            const tipoTexto = tipo === 'receita' ? 'Receita' : tipo === 'despesa' ? 'Despesa' : 'Transferência';
+            await Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                html: `<strong>${tipoTexto}</strong> criada com sucesso!`,
+                timer: 2000,
+                showConfirmButton: false,
+                toast: false,
+                position: 'center'
+            });
+
             // Exibir dados de gamificação se disponíveis
             if (result.data?.gamification?.points) {
                 const gamif = result.data.gamification.points;
@@ -1703,11 +1718,6 @@ class ContasManager {
                     this.showNotification(`🎉 Subiu para o Nível ${gamif.level}!`, 'success');
                 }
             }
-
-            this.showNotification('Lançamento criado com sucesso!', 'success');
-
-            // Fechar modal
-            this.closeLancamentoModal();
 
             // Recarregar contas para atualizar saldo
             await this.loadContas();

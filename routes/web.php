@@ -223,6 +223,7 @@ function registerApiRoutes(): void
     Router::add('GET',    '/api/cartoes/{id}/fatura/status',  'Api\\CartoesController@statusFatura',    ['auth']);
     Router::add('POST',   '/api/cartoes/{id}/fatura/desfazer-pagamento', 'Api\\CartoesController@desfazerPagamentoFatura', ['auth', 'csrf']);
     Router::add('POST',   '/api/cartoes/{id}/parcelas/pagar', 'Api\\CartoesController@pagarParcelas',   ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/parcelas/{id}/desfazer-pagamento', 'Api\\CartoesController@desfazerPagamentoParcela', ['auth', 'csrf']);
     Router::add('GET',    '/api/cartoes/{id}/faturas-pendentes', 'Api\\CartoesController@faturasPendentes', ['auth']);
     Router::add('GET',    '/api/cartoes/{id}/faturas-historico', 'Api\\CartoesController@faturasHistorico', ['auth']);
     Router::add('GET',    '/api/cartoes/{id}/parcelamentos-resumo', 'Api\\CartoesController@parcelamentosResumo', ['auth']);
