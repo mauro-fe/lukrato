@@ -363,61 +363,151 @@ class ParcelamentosController extends BaseController
     }
 
     /**
-     * Formata um parcelamento para resposta
+     * Formata um parcelamento para resposta (suporta Parcelamento model e stdClass de cartão)
      */
-    private function formatParcelamento(Parcelamento $parcelamento, bool $incluirParcelas = false): array
+    private function formatParcelamento($parcelamento, bool $incluirParcelas = false): array
     {
-        // Se os lançamentos foram carregados, calcular dinamicamente
-        $parcelasPagas = $parcelamento->parcelas_pagas;
-        $percentualPago = 0;
-        $valorRestante = $parcelamento->valor_total;
+        // Determina se é parcelamento de cartão (stdClass) ou normal (Model)
+        $isCartao = is_object($parcelamento) && isset($parcelamento->is_cartao) && $parcelamento->is_cartao;
 
-        if ($parcelamento->relationLoaded('lancamentos')) {
-            $parcelasPagas = $parcelamento->lancamentos->where('pago', true)->count();
-            $totalParcelas = $parcelamento->lancamentos->count();
-            $percentualPago = $totalParcelas > 0 ? ($parcelasPagas / $totalParcelas) * 100 : 0;
-            $valorPago = $parcelamento->lancamentos->where('pago', true)->sum('valor');
-            $valorRestante = $parcelamento->valor_total - $valorPago;
+        // Se os lançamentos foram carregados, calcular dinamicamente
+        $parcelasPagas = $parcelamento->parcelas_pagas ?? 0;
+        $percentualPago = 0;
+        $valorRestante = $parcelamento->valor_total ?? 0;
+        $totalParcelas = $parcelamento->numero_parcelas ?? 0;
+
+        // Para parcelamentos normais (Model)
+        if (!$isCartao && is_object($parcelamento) && method_exists($parcelamento, 'relationLoaded')) {
+            if ($parcelamento->relationLoaded('lancamentos')) {
+                $parcelasPagas = $parcelamento->lancamentos->where('pago', true)->count();
+                $totalParcelas = $parcelamento->lancamentos->count();
+                $percentualPago = $totalParcelas > 0 ? ($parcelasPagas / $totalParcelas) * 100 : 0;
+                $valorPago = $parcelamento->lancamentos->where('pago', true)->sum('valor');
+                $valorRestante = $parcelamento->valor_total - $valorPago;
+            } else {
+                $percentualPago = $parcelamento->percentualPago ?? 0;
+                $valorRestante = $parcelamento->valorRestante ?? 0;
+            }
         } else {
-            $percentualPago = $parcelamento->percentualPago;
-            $valorRestante = $parcelamento->valorRestante;
+            // Para parcelamentos de cartão (stdClass)
+            $percentualPago = $totalParcelas > 0 ? ($parcelasPagas / $totalParcelas) * 100 : 0;
+            $valorPago = isset($parcelamento->lancamentos) ?
+                collect($parcelamento->lancamentos)->where('pago', true)->sum('valor') : 0;
+            $valorRestante = $parcelamento->valor_total - $valorPago;
+        }
+
+        // Valor da parcela
+        $valorParcela = $totalParcelas > 0 ? ($parcelamento->valor_total / $totalParcelas) : 0;
+
+        // Data de criação - usar created_at se data_criacao for inválida
+        $dataCriacao = $parcelamento->data_criacao;
+
+        // Se for objeto Carbon, tentar formatar
+        if (is_object($dataCriacao) && method_exists($dataCriacao, 'format')) {
+            try {
+                $dataCriacao = $dataCriacao->format('Y-m-d');
+            } catch (\Exception $e) {
+                // Se falhar, usar created_at
+                $dataCriacao = null;
+            }
+        }
+
+        // Verificar se é uma data inválida (0000-00-00 ou similar) ou nula
+        if (!$dataCriacao || $dataCriacao === '0000-00-00' || strpos($dataCriacao, '0000') === 0 || strpos($dataCriacao, '-0001') !== false) {
+            // Usar created_at como fallback
+            $createdAt = $parcelamento->created_at ?? date('Y-m-d');
+            if (is_object($createdAt) && method_exists($createdAt, 'format')) {
+                $dataCriacao = $createdAt->format('Y-m-d');
+            } elseif (is_string($createdAt) && strlen($createdAt) > 10) {
+                $dataCriacao = substr($createdAt, 0, 10);
+            } else {
+                $dataCriacao = date('Y-m-d');
+            }
         }
 
         $data = [
             'id' => $parcelamento->id,
             'descricao' => $parcelamento->descricao,
-            'valor_total' => $parcelamento->valor_total,
-            'valor_parcela' => $parcelamento->valorParcela,
-            'numero_parcelas' => $parcelamento->numero_parcelas,
-            'parcelas_pagas' => $parcelasPagas,
-            'percentual_pago' => $percentualPago,
-            'valor_restante' => $valorRestante,
-            'tipo' => $parcelamento->tipo,
-            'status' => $parcelamento->status,
-            'data_criacao' => $parcelamento->data_criacao->format('Y-m-d'),
-            'categoria' => $parcelamento->categoria ? [
-                'id' => $parcelamento->categoria->id,
-                'nome' => $parcelamento->categoria->nome,
-                'icone' => $parcelamento->categoria->icone,
-                'cor' => $parcelamento->categoria->cor,
-            ] : null,
-            'conta' => $parcelamento->conta ? [
-                'id' => $parcelamento->conta->id,
-                'nome' => $parcelamento->conta->nome,
-                'tipo' => $parcelamento->conta->tipo,
-            ] : null,
+            'valor_total' => (float)$parcelamento->valor_total,
+            'valor_parcela' => (float)$valorParcela,
+            'numero_parcelas' => (int)$totalParcelas,
+            'parcelas_pagas' => (int)$parcelasPagas,
+            'percentual_pago' => round($percentualPago, 2),
+            'valor_restante' => (float)$valorRestante,
+            'tipo' => $parcelamento->tipo ?? 'saida',
+            'status' => $parcelamento->status ?? 'ativo',
+            'data_criacao' => $dataCriacao,
+            'is_cartao' => $isCartao,
         ];
 
-        if ($incluirParcelas && $parcelamento->relationLoaded('lancamentos')) {
-            $data['parcelas'] = $parcelamento->lancamentos->map(function ($lancamento) {
+        // Adicionar categoria
+        $categoria = $parcelamento->categoria ?? null;
+        if ($categoria) {
+            $data['categoria'] = [
+                'id' => $categoria->id,
+                'nome' => $categoria->nome,
+                'icone' => $categoria->icone ?? null,
+                'cor' => $categoria->cor ?? null,
+            ];
+        } else {
+            $data['categoria'] = null;
+        }
+
+        // Adicionar conta ou cartão
+        if ($isCartao && isset($parcelamento->cartaoCredito)) {
+            $data['cartao'] = [
+                'id' => $parcelamento->cartaoCredito->id,
+                'nome' => $parcelamento->cartaoCredito->nome_cartao,
+                'bandeira' => $parcelamento->cartaoCredito->bandeira ?? null,
+            ];
+            $data['conta'] = null;
+        } else {
+            $conta = $parcelamento->conta ?? null;
+            if ($conta) {
+                $data['conta'] = [
+                    'id' => $conta->id,
+                    'nome' => $conta->nome,
+                    'tipo' => $conta->tipo ?? null,
+                ];
+            } else {
+                $data['conta'] = null;
+            }
+            $data['cartao'] = null;
+        }
+
+        // Incluir parcelas se solicitado
+        if ($incluirParcelas && isset($parcelamento->lancamentos)) {
+            $lancamentos = is_array($parcelamento->lancamentos) || $parcelamento->lancamentos instanceof \Traversable
+                ? $parcelamento->lancamentos
+                : [];
+
+            $data['parcelas'] = collect($lancamentos)->map(function ($lancamento) {
+                $dataLanc = $lancamento->data ?? null;
+                if (is_object($dataLanc) && method_exists($dataLanc, 'format')) {
+                    $dataLanc = $dataLanc->format('Y-m-d');
+                }
+
+                $dataPag = $lancamento->data_pagamento ?? null;
+                if (is_object($dataPag) && method_exists($dataPag, 'format')) {
+                    $dataPag = $dataPag->format('Y-m-d');
+                }
+
+                // Extrair número da parcela da descrição se não existir
+                $numeroParcela = $lancamento->numero_parcela ?? $lancamento->parcela_atual ?? null;
+                if (!$numeroParcela && isset($lancamento->descricao)) {
+                    if (preg_match('/\((\d+)\/\d+\)/', $lancamento->descricao, $matches)) {
+                        $numeroParcela = (int)$matches[1];
+                    }
+                }
+
                 return [
                     'id' => $lancamento->id,
-                    'numero_parcela' => $lancamento->numero_parcela,
+                    'numero_parcela' => $numeroParcela,
                     'descricao' => $lancamento->descricao,
-                    'valor' => $lancamento->valor,
-                    'data' => $lancamento->data->format('Y-m-d'),
-                    'pago' => (bool)$lancamento->pago,
-                    'data_pagamento' => $lancamento->data_pagamento ? $lancamento->data_pagamento->format('Y-m-d') : null,
+                    'valor' => (float)$lancamento->valor,
+                    'data' => $dataLanc,
+                    'pago' => (bool)($lancamento->pago ?? false),
+                    'data_pagamento' => $dataPag,
                 ];
             })->toArray();
         }

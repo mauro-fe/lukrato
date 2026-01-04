@@ -176,40 +176,132 @@ class ParcelamentoService
     }
 
     /**
-     * Lista parcelamentos de um usuário
+     * Lista parcelamentos de um usuário (incluindo cartão de crédito)
      */
     public function listar(int $usuarioId, ?string $status = null, ?int $mes = null, ?int $ano = null): array
     {
         try {
+            // 1. Buscar parcelamentos normais da tabela parcelamentos
             $query = Parcelamento::where('user_id', $usuarioId);
 
-            // Filtro por status
-            if ($status) {
-                $query->where('status', $status);
-            }
-
-            // Filtro por mês e ano baseado na data_criacao
+            // Filtro por mês e ano baseado na data_criacao ou created_at
             if ($mes && $ano) {
-                $query->whereYear('data_criacao', $ano)
-                    ->whereMonth('data_criacao', $mes);
+                $query->where(function ($q) use ($mes, $ano) {
+                    $q->where(function ($subQ) use ($mes, $ano) {
+                        // Usar data_criacao se for válida
+                        $subQ->whereYear('data_criacao', $ano)
+                            ->whereMonth('data_criacao', $mes)
+                            ->where('data_criacao', '!=', '0000-00-00');
+                    })->orWhere(function ($subQ) use ($mes, $ano) {
+                        // Fallback para created_at
+                        $subQ->whereYear('created_at', $ano)
+                            ->whereMonth('created_at', $mes);
+                    });
+                });
             }
 
             $parcelamentos = $query->with(['lancamentos' => function ($query) {
                 $query->orderBy('data', 'asc');
             }])
-                ->orderBy('data_criacao', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->get();
+
+            // Calcular status dinamicamente baseado nas parcelas
+            $parcelamentos = $parcelamentos->map(function ($parcelamento) {
+                $totalParcelas = $parcelamento->lancamentos->count();
+                $parcelasPagas = $parcelamento->lancamentos->where('pago', true)->count();
+
+                if ($totalParcelas > 0 && $parcelasPagas === $totalParcelas) {
+                    $parcelamento->status = 'concluido';
+                } else if ($parcelasPagas > 0) {
+                    $parcelamento->status = 'ativo';
+                } else {
+                    $parcelamento->status = 'ativo';
+                }
+
+                return $parcelamento;
+            });
+
+            // 2. Buscar parcelamentos de cartão de crédito
+            // Esses são lançamentos com eh_parcelado = true mas sem parcelamento_id
+            $queryCartao = Lancamento::where('lancamentos.user_id', $usuarioId)
+                ->where('eh_parcelado', true)
+                ->whereNull('parcelamento_id')
+                ->whereNotNull('cartao_credito_id')
+                ->with(['categoria', 'cartaoCredito']);
+
+            if ($mes && $ano) {
+                $queryCartao->whereYear('data', $ano)
+                    ->whereMonth('data', $mes);
+            }
+
+            $lancamentosCartao = $queryCartao->get();
+
+            // Agrupar por descrição base (sem o " (1/3)" no final)
+            $parcelamentosCartao = $lancamentosCartao->groupBy(function ($lancamento) {
+                // Remove o sufixo " (N/X)" da descrição para agrupar
+                return preg_replace('/\s*\(\d+\/\d+\)$/', '', $lancamento->descricao);
+            })->map(function ($parcelas, $descricaoBase) {
+                $primeira = $parcelas->first();
+                $totalParcelas = $parcelas->count();
+                $parcelasPagas = $parcelas->where('pago', true)->count();
+
+                // Determinar status
+                $statusCartao = 'ativo';
+                if ($totalParcelas > 0 && $parcelasPagas === $totalParcelas) {
+                    $statusCartao = 'concluido';
+                }
+
+                // Criar objeto simulando um parcelamento
+                return (object)[
+                    'id' => 'cartao_' . $primeira->id, // ID único prefixado
+                    'user_id' => $primeira->user_id,
+                    'descricao' => $descricaoBase,
+                    'valor_total' => $parcelas->sum('valor'),
+                    'numero_parcelas' => $totalParcelas,
+                    'parcelas_pagas' => $parcelasPagas,
+                    'categoria_id' => $primeira->categoria_id,
+                    'conta_id' => null,
+                    'cartao_credito_id' => $primeira->cartao_credito_id,
+                    'tipo' => $primeira->tipo,
+                    'status' => $statusCartao,
+                    'data_criacao' => $parcelas->min('data'),
+                    'created_at' => $parcelas->min('created_at'),
+                    'updated_at' => $parcelas->max('updated_at'),
+                    'lancamentos' => $parcelas->sortBy('data'),
+                    'categoria' => $primeira->categoria,
+                    'cartaoCredito' => $primeira->cartaoCredito,
+                    'is_cartao' => true, // Flag para identificar origem
+                ];
+            })->values();
+
+            // 3. Combinar ambos os tipos
+            $todosParcelamentos = $parcelamentos->concat($parcelamentosCartao);
+
+            // 4. Ordenar por data de criação (mais recente primeiro)
+            $todosParcelamentos = $todosParcelamentos->sortByDesc(function ($p) {
+                return $p->created_at ?? $p->data_criacao;
+            })->values();
+
+            // 5. Filtro por status após calcular
+            if ($status) {
+                $todosParcelamentos = $todosParcelamentos->filter(function ($parcelamento) use ($status) {
+                    return $parcelamento->status === $status;
+                })->values();
+            }
 
             return [
                 'success' => true,
-                'parcelamentos' => $parcelamentos,
+                'parcelamentos' => $todosParcelamentos,
             ];
         } catch (Exception $e) {
             error_log("Erro ao listar parcelamentos: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
 
             return [
                 'success' => false,
                 'message' => 'Erro ao listar parcelamentos: ' . $e->getMessage(),
+                'parcelamentos' => collect([]),
             ];
         }
     }

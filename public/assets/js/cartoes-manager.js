@@ -7,6 +7,7 @@ class CartoesManager {
     constructor() {
         this.cartoes = [];
         this.filteredCartoes = [];
+        this.alertas = [];
         this.currentView = 'grid';
         this.currentFilter = 'all';
         this.searchTerm = '';
@@ -259,7 +260,7 @@ class CartoesManager {
             const data = await response.json();
             this.cartoes = Array.isArray(data) ? data : (data.data || []);
 
-            // Verificar faturas pendentes para cada cartão
+            // Verificar faturas pendentes
             await this.verificarFaturasPendentes();
 
             this.filteredCartoes = [...this.cartoes];
@@ -274,7 +275,7 @@ class CartoesManager {
 
         } catch (error) {
             console.error('Erro ao carregar cartões:', error);
-            this.showToast('Erro ao carregar cartões', 'error');
+            this.showToast('error', 'Erro ao carregar cartões');
             grid.innerHTML = '<p class="error-message">Erro ao carregar cartões. Tente novamente.</p>';
         }
     }
@@ -313,6 +314,112 @@ class CartoesManager {
         });
 
         await Promise.all(promises);
+    }
+
+    /**
+     * Carregar alertas de vencimentos e limites baixos
+     */
+    async carregarAlertas() {
+        try {
+            const response = await fetch(`${this.baseUrl}api/cartoes/alertas`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.alertas = data.alertas || [];
+                this.renderAlertas();
+            } else {
+                console.warn('Erro ao carregar alertas:', response.status);
+                this.alertas = [];
+            }
+        } catch (error) {
+            console.warn('Erro ao carregar alertas:', error);
+            this.alertas = [];
+            // Não mostra erro para o usuário, apenas oculta o container
+            const container = document.getElementById('alertasContainer');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Renderizar alertas na interface
+     */
+    renderAlertas() {
+        const container = document.getElementById('alertasContainer');
+        if (!container) return;
+
+        if (this.alertas.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div class="alertas-list">
+                ${this.alertas.map(alerta => this.criarAlertaHTML(alerta)).join('')}
+            </div>
+        `;
+    }
+
+    /**
+     * Criar HTML para um alerta específico
+     */
+    criarAlertaHTML(alerta) {
+        const icones = {
+            vencimento_proximo: 'fa-calendar-times',
+            limite_baixo: 'fa-exclamation-triangle'
+        };
+
+        const cores = {
+            critico: '#e74c3c',
+            atencao: '#f39c12'
+        };
+
+        let mensagem = '';
+        if (alerta.tipo === 'vencimento_proximo') {
+            mensagem = `Fatura de <strong>${alerta.nome_cartao}</strong> vence em <strong>${alerta.dias_faltando} dia(s)</strong> - ${this.formatMoney(alerta.valor_fatura)}`;
+        } else if (alerta.tipo === 'limite_baixo') {
+            mensagem = `Limite de <strong>${alerta.nome_cartao}</strong> em <strong>${alerta.percentual_disponivel.toFixed(1)}%</strong> - ${this.formatMoney(alerta.limite_disponivel)} disponível`;
+        }
+
+        return `
+            <div class="alerta-item alerta-${alerta.gravidade}" data-tipo="${alerta.tipo}">
+                <div class="alerta-icon" style="color: ${cores[alerta.gravidade]}">
+                    <i class="fas ${icones[alerta.tipo]}"></i>
+                </div>
+                <div class="alerta-content">
+                    <p>${mensagem}</p>
+                </div>
+                <button class="alerta-dismiss" onclick="cartoesManager.dismissAlerta(this)" title="Dispensar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Dispensar alerta (apenas oculta na UI)
+     */
+    dismissAlerta(button) {
+        const alertaItem = button.closest('.alerta-item');
+        if (alertaItem) {
+            alertaItem.style.animation = 'slideOut 0.3s ease-out forwards';
+            setTimeout(() => {
+                alertaItem.remove();
+                const container = document.getElementById('alertasContainer');
+                if (container && container.querySelectorAll('.alerta-item').length === 0) {
+                    container.style.display = 'none';
+                }
+            }, 300);
+        }
     }
 
     /**
@@ -388,7 +495,7 @@ class CartoesManager {
                     <div class="card-brand">
                         <img src="${brandIcon}" alt="${cartao.bandeira}" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                         <i class="brand-icon-fallback fas fa-credit-card" style="display: none;"></i>
-                        <span class="card-name">${this.escapeHtml(cartao.nome_cartao)}</span>
+                        <span class="card-name">${this.escapeHtml(cartao.nome_cartao || cartao.nome)}</span>
                     </div>
                     <div class="card-actions">
                         <button class="card-action-btn" onclick="cartoesManager.verFatura(${cartao.id})" title="Ver Fatura">
@@ -429,13 +536,16 @@ class CartoesManager {
      */
     updateStats() {
         const stats = this.cartoes.reduce((acc, cartao) => {
+            const limiteTotal = parseFloat(cartao.limite_total) || 0;
+            const limiteDisponivel = parseFloat(cartao.limite_disponivel) || 0;
+            const limiteUtilizado = Math.max(0, limiteTotal - limiteDisponivel);
+            
             acc.total++;
-            acc.limiteTotal += parseFloat(cartao.limite_total) || 0;
-            acc.limiteDisponivel += parseFloat(cartao.limite_disponivel) || 0;
+            acc.limiteTotal += limiteTotal;
+            acc.limiteDisponivel += limiteDisponivel;
+            acc.limiteUtilizado += limiteUtilizado;
             return acc;
-        }, { total: 0, limiteTotal: 0, limiteDisponivel: 0 });
-
-        stats.limiteUtilizado = stats.limiteTotal - stats.limiteDisponivel;
+        }, { total: 0, limiteTotal: 0, limiteDisponivel: 0, limiteUtilizado: 0 });
 
         document.getElementById('totalCartoes').textContent = stats.total;
         document.getElementById('statLimiteTotal').textContent = this.formatMoney(stats.limiteTotal);
@@ -1215,44 +1325,68 @@ class CartoesManager {
     /**
      * Ver fatura do cartão
      */
-    async verFatura(cartaoId) {
+    async verFatura(cartaoId, mes = null, ano = null) {
         try {
-            // Data atual para carregar fatura do mês
+            // Data atual para carregar fatura do mês (se não especificado)
             const hoje = new Date();
-            const mes = hoje.getMonth() + 1; // 1-12
-            const ano = hoje.getFullYear();
+            mes = mes || hoje.getMonth() + 1; // 1-12
+            ano = ano || hoje.getFullYear();
 
             console.log(`📄 Carregando fatura - Cartão ID: ${cartaoId}, Mês: ${mes}/${ano}`);
 
-            const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            });
+            // Buscar fatura e parcelamentos em paralelo
+            const [faturaResponse, parcelamentosResponse] = await Promise.all([
+                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                }),
+                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+            ]);
 
-            if (!response.ok) {
-                const errorData = await response.json();
+            if (!faturaResponse.ok) {
+                const errorData = await faturaResponse.json();
                 throw new Error(errorData.message || 'Erro ao carregar fatura');
             }
 
-            const fatura = await response.json();
+            const fatura = await faturaResponse.json();
+            let parcelamentos = null;
+            
+            if (parcelamentosResponse.ok) {
+                try {
+                    parcelamentos = await parcelamentosResponse.json();
+                    console.log('✅ Parcelamentos recebidos:', parcelamentos);
+                } catch (e) {
+                    console.warn('⚠️ Erro ao parsear parcelamentos:', e);
+                }
+            } else {
+                console.warn('⚠️ Erro ao carregar parcelamentos:', parcelamentosResponse.status);
+            }
+            
             console.log('✅ Fatura carregada:', fatura);
 
-            this.mostrarModalFatura(fatura);
+            this.mostrarModalFatura(fatura, parcelamentos, cartaoId, mes, ano);
         } catch (error) {
             console.error('❌ Erro ao carregar fatura:', error);
-            this.showToast(error.message || 'Erro ao carregar fatura', 'error');
+            this.showToast('error', error.message || 'Erro ao carregar fatura');
         }
     }
 
     /**
      * Mostrar modal da fatura
      */
-    mostrarModalFatura(fatura) {
-        const modal = this.criarModalFatura(fatura);
+    mostrarModalFatura(fatura, parcelamentos = null, cartaoId = null, mes = null, ano = null) {
+        const modal = this.criarModalFatura(fatura, parcelamentos, cartaoId, mes, ano);
         document.body.appendChild(modal);
 
         // Animar entrada
@@ -1281,22 +1415,42 @@ class CartoesManager {
     /**
      * Criar HTML do modal da fatura
      */
-    criarModalFatura(fatura) {
+    criarModalFatura(fatura, parcelamentos = null, cartaoId = null, mes = null, ano = null) {
         const modal = document.createElement('div');
         modal.className = 'modal-fatura-overlay';
-        modal.innerHTML = `
-            <div class="modal-fatura-container">
+        modal.innerHTML = `<div class="modal-fatura-container">${this.criarConteudoModal(fatura, parcelamentos, cartaoId, mes, ano)}</div>`;
+        return modal;
+    }
+
+    /**
+     * Criar conteúdo interno do modal
+     */
+    criarConteudoModal(fatura, parcelamentos = null, cartaoId = null, mes = null, ano = null) {
+        return `
                 <div class="modal-fatura-header">
-                    <div>
-                        <h2>
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            Fatura ${fatura.cartao.nome} •••• ${fatura.cartao.ultimos_digitos}
-                        </h2>
-                        <p class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</p>
+                    <div class="header-info">
+                        <div class="cartao-info">
+                            <span class="cartao-nome">${fatura.cartao.nome}</span>
+                            <span class="cartao-numero">•••• ${fatura.cartao.ultimos_digitos}</span>
+                        </div>
+                        <div class="fatura-navegacao">
+                            <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${cartaoId}, ${mes}, ${ano}, -1)" title="Mês anterior">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</span>
+                            <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${cartaoId}, ${mes}, ${ano}, 1)" title="Próximo mês">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
-                    <button class="btn-fechar-fatura" title="Fechar">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="header-actions">
+                        <button class="btn-historico-toggle" onclick="cartoesManager.toggleHistoricoFatura(${cartaoId})" title="Ver histórico">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        <button class="btn-fechar-fatura" title="Fechar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="modal-fatura-body">
@@ -1307,56 +1461,105 @@ class CartoesManager {
                             <p>Você não tem compras para pagar neste mês!</p>
                         </div>
                     ` : `
-                        <div class="fatura-resumo">
-                            <div class="fatura-total">
-                                <span>Total a Pagar:</span>
-                                <strong>${this.formatMoney(fatura.total)}</strong>
+                        <div class="fatura-resumo-principal">
+                            <div class="resumo-item">
+                                <span class="resumo-label">Total a Pagar</span>
+                                <strong class="resumo-valor">${this.formatMoney(fatura.total)}</strong>
                             </div>
-                            <div class="fatura-vencimento">
-                                <i class="fas fa-calendar-alt"></i>
-                                Vencimento: ${this.formatDate(fatura.vencimento)}
+                            <div class="resumo-item">
+                                <span class="resumo-label">Vencimento</span>
+                                <strong class="resumo-data">${this.formatDate(fatura.vencimento)}</strong>
                             </div>
                         </div>
 
                         <div class="fatura-parcelas">
-                            <h3>Parcelas desta Fatura</h3>
-                            <table class="table-parcelas">
-                                <thead>
-                                    <tr>
-                                        <th>Descrição</th>
-                                        <th>Parcela</th>
-                                        <th>Vencimento</th>
-                                        <th>Valor</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${fatura.parcelas.map(parcela => `
-                                        <tr>
-                                            <td>${this.escapeHtml(parcela.descricao)}</td>
-                                            <td>${parcela.parcela_atual}/${parcela.total_parcelas}</td>
-                                            <td>${this.formatDate(parcela.data_vencimento)}</td>
-                                            <td class="valor">${this.formatMoney(parcela.valor)}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                            <h3 class="secao-titulo">Lançamentos</h3>
+                            <div class="lancamentos-lista">
+                                ${fatura.parcelas.map(parcela => `
+                                    <div class="lancamento-item">
+                                        <div class="lanc-info">
+                                            <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                           
+                                        </div>
+                                        <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     `}
+
+                    ${(() => {
+                        if (!parcelamentos || parcelamentos.total_parcelamentos === 0) {
+                            return '';
+                        }
+                        
+                        return `
+                        <div class="fatura-parcelamentos-resumo">
+                            <div class="parc-header">
+                                <span class="parc-icon">📦</span>
+                                <h4>Parcelamentos ativos neste cartão</h4>
+                                <span class="parc-badge">${parcelamentos.total_parcelamentos}</span>
+                            </div>
+                            
+                            <div class="parc-lista">
+                                ${parcelamentos.parcelamentos.map(p => `
+                                    <div class="parc-item" onclick="window.location.href='${this.baseUrl}parcelamentos?parcelamento=${p.id}'" style="cursor: pointer;">
+                                        <div class="parc-info-wrapper">
+                                            <div class="parc-desc">${this.escapeHtml(p.descricao)}</div>
+                                            <div class="parc-meta">
+                                                <span class="parc-progress">${p.parcela_atual} de ${p.total_parcelas} parcelas</span>
+                                                <span class="parc-separator">•</span>
+                                                <span class="parc-valor-inline">${this.formatMoney(p.valor_parcela)}</span>
+                                            </div>
+                                        </div>
+                                        <span class="parc-badge-continua">🔁</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            ${parcelamentos.projecao.tres_meses > 0 ? `
+                                <div class="parc-projecao">
+                                    <div class="projecao-titulo">
+                                        <span class="projecao-icon">📅</span>
+                                        <span>Próximos meses</span>
+                                    </div>
+                                    <div class="projecao-valores">
+                                        <div class="projecao-item">
+                                            <div class="projecao-info">
+                                                <span class="projecao-label">Próximos 3 meses</span>
+                                                <strong class="projecao-valor">${this.formatMoney(parcelamentos.projecao.tres_meses)}</strong>
+                                            </div>
+                                            <span class="projecao-help">↳ parcelas que ainda virão após esta fatura</span>
+                                        </div>
+                                        ${parcelamentos.projecao.seis_meses > parcelamentos.projecao.tres_meses ? `
+                                            <div class="projecao-item">
+                                                <div class="projecao-info">
+                                                    <span class="projecao-label">Próximos 6 meses</span>
+                                                    <strong class="projecao-valor">${this.formatMoney(parcelamentos.projecao.seis_meses)}</strong>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <a href="${this.baseUrl}parcelamentos?cartao=${cartaoId}" class="parc-link">
+                                Ver parcelamentos futuros deste cartão →
+                            </a>
+                        </div>
+                        `;
+                    })()}
                 </div>
 
                 ${fatura.parcelas.length > 0 ? `
                     <div class="modal-fatura-footer">
-                        <button class="btn btn-ghost btn-fechar-fatura">Fechar</button>
                         <button class="btn btn-primary btn-pagar-fatura">
                             <i class="fas fa-check"></i>
                             Pagar Fatura (${this.formatMoney(fatura.total)})
                         </button>
                     </div>
                 ` : ''}
-            </div>
         `;
-
-        return modal;
     }
 
     /**
@@ -1381,7 +1584,19 @@ class CartoesManager {
 
         if (!confirmado) return;
 
+        // Referência ao botão
+        const btnPagar = document.querySelector('.btn-pagar-fatura');
+        const originalText = btnPagar ? btnPagar.innerHTML : '';
+
         try {
+            // Ativar loading state
+            if (btnPagar) {
+                btnPagar.disabled = true;
+                btnPagar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+                btnPagar.style.opacity = '0.6';
+                btnPagar.style.cursor = 'not-allowed';
+            }
+
             const csrfToken = await this.getCSRFToken();
 
             const response = await fetch(`${this.baseUrl}api/cartoes/${fatura.cartao.id}/fatura/pagar`, {
@@ -1406,7 +1621,7 @@ class CartoesManager {
             const resultado = await response.json();
             console.log('✅ Fatura paga:', resultado);
 
-            this.showToast(`Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`, 'success');
+            this.showToast('success', `Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`);
 
             // Fechar modal
             const modal = document.querySelector('.modal-fatura-overlay');
@@ -1418,7 +1633,15 @@ class CartoesManager {
             this.loadCartoes();
         } catch (error) {
             console.error('❌ Erro ao pagar fatura:', error);
-            this.showToast(error.message || 'Erro ao pagar fatura', 'error');
+            
+            // Restaurar botão em caso de erro
+            if (btnPagar) {
+                btnPagar.disabled = false;
+                btnPagar.innerHTML = originalText;
+                btnPagar.style.opacity = '1';
+                btnPagar.style.cursor = 'pointer';
+            }
+            this.showToast('error', error.message || 'Erro ao pagar fatura');
         }
     }
 
@@ -1432,11 +1655,277 @@ class CartoesManager {
     }
 
     /**
+     * Navegar entre meses na fatura
+     */
+    async navegarMes(cartaoId, mesAtual, anoAtual, direcao) {
+        // Calcular novo mês/ano
+        let novoMes = mesAtual + direcao;
+        let novoAno = anoAtual;
+
+        if (novoMes > 12) {
+            novoMes = 1;
+            novoAno++;
+        } else if (novoMes < 1) {
+            novoMes = 12;
+            novoAno--;
+        }
+
+        try {
+            // Buscar fatura e parcelamentos do novo mês
+            const [faturaResponse, parcelamentosResponse] = await Promise.all([
+                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${novoMes}&ano=${novoAno}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                }),
+                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelamentos-resumo?mes=${novoMes}&ano=${novoAno}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+            ]);
+
+            if (!faturaResponse.ok) {
+                throw new Error('Erro ao carregar fatura');
+            }
+
+            const fatura = await faturaResponse.json();
+            let parcelamentos = null;
+            
+            if (parcelamentosResponse.ok) {
+                parcelamentos = await parcelamentosResponse.json();
+            }
+
+            // Atualizar conteúdo do modal sem fechá-lo
+            const modalContainer = document.querySelector('.modal-fatura-container');
+            if (modalContainer) {
+                const novoConteudo = this.criarConteudoModal(fatura, parcelamentos, cartaoId, novoMes, novoAno);
+                modalContainer.innerHTML = novoConteudo;
+                
+                // Re-adicionar event listeners
+                modalContainer.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
+                    const modal = document.querySelector('.modal-fatura-overlay');
+                    this.fecharModalFatura(modal);
+                });
+
+                modalContainer.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
+                    this.pagarFatura(fatura);
+                });
+            }
+        } catch (error) {
+            console.error('❌ Erro ao navegar entre meses:', error);
+            this.showToast('error', 'Erro ao carregar fatura');
+        }
+    }
+
+    /**
+     * Carregar dados da fatura
+     */
+    async carregarFatura(cartaoId, mes, ano) {
+        const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao carregar fatura');
+        }
+
+        return await response.json();
+    }
+
+    /**
+     * Carregar resumo de parcelamentos
+     */
+    async carregarParcelamentosResumo(cartaoId, mes, ano) {
+        const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao carregar parcelamentos');
+        }
+
+        return await response.json();
+    }
+
+    /**
+     * Toggle entre fatura atual e histórico
+     */
+    async toggleHistoricoFatura(cartaoId) {
+        try {
+            const modalContainer = document.querySelector('.modal-fatura-container');
+            if (!modalContainer) return;
+
+            // Verifica se já está mostrando histórico
+            const mostandoHistorico = modalContainer.querySelector('.historico-faturas');
+            
+            if (mostandoHistorico) {
+                // Volta para a fatura atual
+                const hoje = new Date();
+                const mes = hoje.getMonth() + 1;
+                const ano = hoje.getFullYear();
+                
+                const [fatura, parcelamentos] = await Promise.all([
+                    this.carregarFatura(cartaoId, mes, ano),
+                    this.carregarParcelamentosResumo(cartaoId, mes, ano).catch(() => null)
+                ]);
+
+                const conteudo = this.criarConteudoModal(fatura, parcelamentos, cartaoId, mes, ano);
+                modalContainer.innerHTML = conteudo;
+                
+                this.adicionarEventListenersModal(fatura);
+            } else {
+                // Mostra histórico
+                const historico = await this.carregarHistoricoFaturas(cartaoId);
+                const conteudo = this.criarConteudoHistorico(historico, cartaoId);
+                modalContainer.innerHTML = conteudo;
+                
+                this.adicionarEventListenersModal(null);
+            }
+        } catch (error) {
+            console.error('❌ Erro ao alternar histórico:', error);
+            this.showToast('error', 'Erro ao carregar histórico');
+        }
+    }
+
+    /**
+     * Carregar histórico de faturas pagas
+     */
+    async carregarHistoricoFaturas(cartaoId, limite = 12) {
+        const csrfToken = await this.getCSRFToken();
+        
+        const response = await fetch(`${this.baseUrl}api/cartoes/${cartaoId}/faturas-historico?limite=${limite}`, {
+            headers: {
+                'X-CSRF-Token': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao carregar histórico');
+        }
+
+        return await response.json();
+    }
+
+    /**
+     * Criar conteúdo do histórico de faturas
+     */
+    criarConteudoHistorico(historico, cartaoId) {
+        return `
+            <div class="modal-fatura-header">
+                <div class="header-info">
+                    <div class="cartao-info">
+                        <span class="cartao-nome">${historico.cartao.nome}</span>
+                        <span class="cartao-subtitulo">Histórico de Faturas Pagas</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-historico-toggle" onclick="cartoesManager.toggleHistoricoFatura(${cartaoId})" title="Voltar para fatura atual">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button class="btn-fechar-fatura" title="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-fatura-body historico-faturas">
+                ${historico.historico.length === 0 ? `
+                    <div class="fatura-empty">
+                        <i class="fas fa-receipt"></i>
+                        <h3>Nenhuma fatura paga</h3>
+                        <p>Você ainda não pagou nenhuma fatura neste cartão.</p>
+                    </div>
+                ` : `
+                    <div class="historico-lista">
+                        ${historico.historico.map(item => `
+                            <div class="historico-item">
+                                <div class="historico-periodo">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <div class="periodo-info">
+                                        <strong>${item.mes_nome} ${item.ano}</strong>
+                                        <span class="historico-data-pag">Pago em ${this.formatDate(item.data_pagamento)}</span>
+                                    </div>
+                                </div>
+                                <div class="historico-detalhes">
+                                    <div class="historico-valor">
+                                        ${this.formatMoney(item.total)}
+                                    </div>
+                                    <div class="historico-qtd">
+                                        ${item.quantidade_lancamentos} lançamento${item.quantidade_lancamentos !== 1 ? 's' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    /**
+     * Adicionar event listeners aos elementos do modal
+     */
+    adicionarEventListenersModal(fatura) {
+        const modalContainer = document.querySelector('.modal-fatura-container');
+        if (!modalContainer) return;
+
+        modalContainer.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
+            const modal = document.querySelector('.modal-fatura-overlay');
+            this.fecharModalFatura(modal);
+        });
+
+        if (fatura) {
+            modalContainer.querySelector('.btn-pagar-fatura')?.addEventListener('click', () => {
+                this.pagarFatura(fatura);
+            });
+        }
+    }
+
+    /**
      * Formatar data para exibição
      */
     formatDate(dateString) {
         if (!dateString) return '-';
-        const date = new Date(dateString + 'T00:00:00');
+        
+        // Tenta diferentes formatos
+        let date;
+        
+        // Se já é um objeto Date
+        if (dateString instanceof Date) {
+            date = dateString;
+        }
+        // Se tem o formato YYYY-MM-DD
+        else if (typeof dateString === 'string') {
+            // Remove qualquer parte de hora se houver
+            const datePart = dateString.split(' ')[0];
+            const [year, month, day] = datePart.split('-');
+            date = new Date(year, month - 1, day);
+        }
+        
+        // Verifica se é uma data válida
+        if (isNaN(date.getTime())) {
+            return '-';
+        }
+        
         return date.toLocaleDateString('pt-BR');
     }
 }

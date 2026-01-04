@@ -335,6 +335,13 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 
 <script>
     (() => {
+        // Evita múltiplas instâncias
+        if (window.__lkNotificationManagerInitialized) {
+            console.log('NotificationManager já inicializado, ignorando duplicação');
+            return;
+        }
+        window.__lkNotificationManagerInitialized = true;
+
         /* ============ Utility/Helper Functions ============ */
 
         /**
@@ -471,6 +478,13 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
                     credentials: 'include'
                 });
                 if (await handleFetch403(r)) return false;
+
+                // Se retornar 422, pode ser porque só há alertas dinâmicos (não salvos no banco)
+                // Nesses casos, consideramos sucesso pois não há nada para marcar
+                if (r.status === 422) {
+                    return true;
+                }
+
                 if (!r.ok) throw new Error(`Falha ao marcar como lidas: HTTP ${r.status}`);
                 return r.ok;
             }
@@ -489,6 +503,8 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 
                 this.isMenuOpen = false;
                 this.loadedOnce = false;
+                this.isRefreshing = false;
+                this.refreshTimeout = null;
 
                 if (!this.bellBtn || !this.menu || !this.listEl) return;
 
@@ -501,7 +517,8 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 
                 this.initEvents();
                 this.startPolling();
-                this.refreshUnread();
+                // Primeira atualização após 1 segundo
+                setTimeout(() => this.refreshUnread(), 1000);
             }
 
             initEvents() {
@@ -641,22 +658,38 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
             }
 
             async refreshUnread() {
-                const previous = Number(this.unreadCount || 0);
-                try {
-                    const count = await NotificationApi.fetchUnreadCount();
-                    this.setBadge(count);
-                    if (this.isMenuOpen && count > previous) {
-                        this.loadList();
-                    }
-                } catch (e) {
-                    // Silently fail on network/API errors for polling
-                    console.warn('Falha ao atualizar contagem de nao lidos.', e.message);
+                // Evita chamadas simultâneas
+                if (this.isRefreshing) return;
+
+                // Debounce: cancela chamadas rápidas consecutivas
+                if (this.refreshTimeout) {
+                    clearTimeout(this.refreshTimeout);
                 }
+
+                this.refreshTimeout = setTimeout(async () => {
+                    this.isRefreshing = true;
+                    const previous = Number(this.unreadCount || 0);
+
+                    try {
+                        const count = await NotificationApi.fetchUnreadCount();
+                        this.setBadge(count);
+                        if (this.isMenuOpen && count > previous) {
+                            this.loadList();
+                        }
+                    } catch (e) {
+                        // Silently fail on network/API errors for polling
+                        if (e.message && !e.message.includes('500')) {
+                            console.warn('Falha ao atualizar contagem:', e.message);
+                        }
+                    } finally {
+                        this.isRefreshing = false;
+                    }
+                }, 200);
             }
 
             startPolling() {
-                // Atualiza a contagem com intervalo mais curto para parecer instantaneo
-                setInterval(this.refreshUnread.bind(this), 15000);
+                // Atualiza a contagem a cada 30 segundos (reduzido para diminuir carga)
+                setInterval(() => this.refreshUnread(), 30000);
             }
 
             /* ============ Actions ============ */

@@ -64,6 +64,17 @@ class CartaoCreditoService
             ];
         }
 
+        // Validar que limite_disponivel não seja maior que limite_total
+        $limiteTotal = (float) $data['limite_total'];
+        $limiteDisponivel = (float) ($data['limite_disponivel'] ?? $limiteTotal);
+
+        if ($limiteDisponivel > $limiteTotal) {
+            return [
+                'success' => false,
+                'message' => 'Limite disponível não pode ser maior que o limite total.',
+            ];
+        }
+
         // Verificar se a conta pertence ao usuário
         $conta = Conta::forUser($dto->userId)->find($dto->contaId);
         if (!$conta) {
@@ -120,6 +131,19 @@ class CartaoCreditoService
                 'errors' => $this->validator->getErrors(),
                 'message' => $this->validator->getFirstError(),
             ];
+        }
+
+        // Validar limites se foram alterados
+        if (isset($data['limite_total']) || isset($data['limite_disponivel'])) {
+            $limiteTotal = (float) ($data['limite_total'] ?? $cartao->limite_total);
+            $limiteDisponivel = (float) ($data['limite_disponivel'] ?? $cartao->limite_disponivel);
+
+            if ($limiteDisponivel > $limiteTotal) {
+                return [
+                    'success' => false,
+                    'message' => 'Limite disponível não pode ser maior que o limite total.',
+                ];
+            }
         }
 
         DB::beginTransaction();
@@ -275,5 +299,113 @@ class CartaoCreditoService
             'percentual_uso' => $percentualUsoGeral,
             'cartoes' => $cartoes->toArray(),
         ];
+    }
+
+    /**
+     * Verificar cartões com limite baixo (< 20%)
+     */
+    public function verificarLimitesBaixos(int $userId): array
+    {
+        try {
+            $cartoes = CartaoCredito::forUser($userId)->ativos()->get();
+            $alertas = [];
+
+            foreach ($cartoes as $cartao) {
+                try {
+                    $percentualDisponivel = $cartao->limite_total > 0
+                        ? ($cartao->limite_disponivel / $cartao->limite_total) * 100
+                        : 0;
+
+                    if ($percentualDisponivel < 20) {
+                        $alertas[] = [
+                            'cartao_id' => $cartao->id,
+                            'nome_cartao' => $cartao->nome_cartao,
+                            'limite_total' => (float) $cartao->limite_total,
+                            'limite_disponivel' => (float) $cartao->limite_disponivel,
+                            'percentual_disponivel' => round($percentualDisponivel, 2),
+                            'tipo' => 'limite_baixo',
+                            'gravidade' => $percentualDisponivel < 10 ? 'critico' : 'atencao',
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    error_log("Erro ao verificar limite do cartão {$cartao->id}: " . $e->getMessage());
+                    continue;
+                }
+            }
+
+            return $alertas;
+        } catch (\Exception $e) {
+            error_log("Erro geral em verificarLimitesBaixos: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Validar integridade dos limites dos cartões
+     * Verifica se limite_utilizado corresponde à soma de lançamentos não pagos
+     */
+    public function validarIntegridadeLimites(int $userId, bool $corrigirAutomaticamente = false): array
+    {
+        $cartoes = CartaoCredito::forUser($userId)->get();
+        $relatorio = [
+            'total_cartoes' => $cartoes->count(),
+            'cartoes_ok' => 0,
+            'cartoes_com_divergencia' => 0,
+            'divergencias' => [],
+            'corrigidos' => 0,
+        ];
+
+        foreach ($cartoes as $cartao) {
+            // Calcula o limite utilizado real (soma de lançamentos não pagos)
+            $limiteUtilizadoReal = \Application\Models\Lancamento::where('cartao_credito_id', $cartao->id)
+                ->where('pago', false)
+                ->where(function ($query) {
+                    $query->where('eh_parcelado', false)
+                        ->orWhere(function ($subQuery) {
+                            $subQuery->where('eh_parcelado', true)
+                                ->whereNotNull('parcela_atual');
+                        });
+                })
+                ->sum('valor');
+
+            $limiteUtilizadoAtual = $cartao->limite_total - $cartao->limite_disponivel;
+            $diferenca = abs($limiteUtilizadoReal - $limiteUtilizadoAtual);
+
+            // Considera divergente se a diferença for maior que 0.01 (1 centavo)
+            if ($diferenca > 0.01) {
+                $divergencia = [
+                    'cartao_id' => $cartao->id,
+                    'nome_cartao' => $cartao->nome_cartao,
+                    'limite_total' => $cartao->limite_total,
+                    'limite_disponivel_atual' => $cartao->limite_disponivel,
+                    'limite_utilizado_registrado' => $limiteUtilizadoAtual,
+                    'limite_utilizado_real' => $limiteUtilizadoReal,
+                    'diferenca' => $diferenca,
+                    'limite_disponivel_correto' => $cartao->limite_total - $limiteUtilizadoReal,
+                ];
+
+                $relatorio['divergencias'][] = $divergencia;
+                $relatorio['cartoes_com_divergencia']++;
+
+                // Corrigir automaticamente se solicitado
+                if ($corrigirAutomaticamente) {
+                    try {
+                        $novoLimiteDisponivel = max(0, min($cartao->limite_total, $cartao->limite_total - $limiteUtilizadoReal));
+
+                        $cartao->limite_disponivel = $novoLimiteDisponivel;
+                        $cartao->save();
+
+                        $relatorio['corrigidos']++;
+                        $divergencia['corrigido'] = true;
+                    } catch (\Exception $e) {
+                        $divergencia['erro_correcao'] = $e->getMessage();
+                    }
+                }
+            } else {
+                $relatorio['cartoes_ok']++;
+            }
+        }
+
+        return $relatorio;
     }
 }

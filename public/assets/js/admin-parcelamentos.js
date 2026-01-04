@@ -648,28 +648,40 @@
             try {
                 // Pegar mês e ano do sessionStorage (month-picker)
                 const monthKey = sessionStorage.getItem('lukrato.month.dashboard');
+                let mes = null;
+                let ano = null;
+                
                 if (monthKey) {
-                    const [ano, mes] = monthKey.split('-').map(Number);
-                    STATE.filtros.mes = mes;
-                    STATE.filtros.ano = ano;
+                    const [anoStr, mesStr] = monthKey.split('-');
+                    mes = parseInt(mesStr, 10);
+                    ano = parseInt(anoStr, 10);
+                    console.log('📅 Filtro de mês/ano ativo:', { mes, ano, monthKey });
+                } else {
+                    console.log('📅 Sem filtro de mês/ano - mostrando todos');
                 }
+
+                STATE.filtros.mes = mes;
+                STATE.filtros.ano = ano;
 
                 const response = await API.listarParcelamentos(
                     STATE.filtros.status,
                     STATE.filtros.mes,
                     STATE.filtros.ano
                 );
+                
                 let parcelamentos = response.data?.parcelamentos || [];
+                console.log('📊 Parcelamentos recebidos:', parcelamentos.length);
 
                 // Filtrar por tipo se necessário
                 if (STATE.filtros.tipo) {
                     parcelamentos = parcelamentos.filter(p => p.tipo === STATE.filtros.tipo);
+                    console.log('🔎 Após filtro de tipo:', parcelamentos.length);
                 }
 
                 STATE.parcelamentos = parcelamentos;
                 UI.renderParcelamentos(parcelamentos);
             } catch (error) {
-                console.error('Erro ao carregar parcelamentos:', error);
+                console.error('❌ Erro ao carregar parcelamentos:', error);
                 UI.showEmpty();
                 Swal.fire({
                     icon: 'error',

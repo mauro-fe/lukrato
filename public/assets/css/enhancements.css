@@ -368,10 +368,10 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
 
 .btn-primary:hover:not(#btnNovoCartao):not(#btnNovaConta):not(
     #btnNovoCartaoEmpty
-  ),
+  ):not(.btn-pagar-fatura),
 .btn.btn-primary:hover:not(#btnNovoCartao):not(#btnNovaConta):not(
     #btnNovoCartaoEmpty
-  ) {
+  ):not(.btn-pagar-fatura) {
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--color-primary) 110%, white),

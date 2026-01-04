@@ -206,6 +206,9 @@ function registerApiRoutes(): void
 
     // Cartões de Crédito
     Router::add('GET',    '/api/cartoes',                     'Api\\CartoesController@index',           ['auth']);
+    Router::add('GET',    '/api/cartoes/resumo',              'Api\\CartoesController@summary',         ['auth']);
+    Router::add('GET',    '/api/cartoes/alertas',             'Api\\CartoesController@alertas',         ['auth']);
+    Router::add('GET',    '/api/cartoes/validar-integridade', 'Api\\CartoesController@validarIntegridade', ['auth']);
     Router::add('GET',    '/api/cartoes/{id}',                'Api\\CartoesController@show',            ['auth']);
     Router::add('POST',   '/api/cartoes',                     'Api\\CartoesController@store',           ['auth', 'csrf']);
     Router::add('PUT',    '/api/cartoes/{id}',                'Api\\CartoesController@update',          ['auth', 'csrf']);
@@ -213,12 +216,13 @@ function registerApiRoutes(): void
     Router::add('POST',   '/api/cartoes/{id}/reactivate',     'Api\\CartoesController@reactivate',      ['auth', 'csrf']);
     Router::add('DELETE', '/api/cartoes/{id}',                'Api\\CartoesController@destroy',         ['auth', 'csrf']);
     Router::add('PUT',    '/api/cartoes/{id}/limite',         'Api\\CartoesController@updateLimit',     ['auth', 'csrf']);
-    Router::add('GET',    '/api/cartoes/resumo',              'Api\\CartoesController@summary',         ['auth']);
 
     // Faturas de Cartão
     Router::add('GET',    '/api/cartoes/{id}/fatura',         'Api\\CartoesController@fatura',          ['auth']);
     Router::add('POST',   '/api/cartoes/{id}/fatura/pagar',   'Api\\CartoesController@pagarFatura',     ['auth', 'csrf']);
     Router::add('GET',    '/api/cartoes/{id}/faturas-pendentes', 'Api\\CartoesController@faturasPendentes', ['auth']);
+    Router::add('GET',    '/api/cartoes/{id}/faturas-historico', 'Api\\CartoesController@faturasHistorico', ['auth']);
+    Router::add('GET',    '/api/cartoes/{id}/parcelamentos-resumo', 'Api\\CartoesController@parcelamentosResumo', ['auth']);
 
 
     // Categorias
@@ -305,15 +309,20 @@ function registerApiRoutes(): void
 
     Router::add('POST', '/api/agendamentos/{id}/reativar',   'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
 
+    // Parcelamentos
+    Router::add('GET',    '/api/parcelamentos',                        'Api\\ParcelamentosController@index',           ['auth']);
+    Router::add('GET',    '/api/parcelamentos/{id}',                   'Api\\ParcelamentosController@show',            ['auth']);
+    Router::add('POST',   '/api/parcelamentos',                        'Api\\ParcelamentosController@store',           ['auth', 'csrf']);
+    Router::add('DELETE', '/api/parcelamentos/{id}',                   'Api\\ParcelamentosController@destroy',         ['auth', 'csrf']);
+    Router::add('POST',   '/api/parcelamentos/parcelas/{id}/pagar',    'Api\\ParcelamentosController@marcarParcelaPaga', ['auth', 'csrf']);
 
+    Router::add('GET',  '/api/notificacoes',           'Api\\NotificacaoController@index',         ['auth']);
 
-    Router::add('GET',  '/api/notificacoes',           'Api\\NotificacaoController@index');
+    Router::add('GET',  '/api/notificacoes/unread',    'Api\\NotificacaoController@unreadCount',   ['auth']);
 
-    Router::add('GET',  '/api/notificacoes/unread',    'Api\\NotificacaoController@unreadCount');
+    Router::add('POST', '/api/notificacoes/marcar',    'Api\\NotificacaoController@marcarLida',    ['auth']);
 
-    Router::add('POST', '/api/notificacoes/marcar',    'Api\\NotificacaoController@marcarLida');
-
-    Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoController@marcarTodasLidas');
+    Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoController@marcarTodasLidas', ['auth']);
 }
 
 

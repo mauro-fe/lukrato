@@ -47,7 +47,7 @@ abstract class BaseController
     {
         if (!Auth::isLoggedIn()) {
             Response::unauthorized('Não autenticado');
-            return;
+            exit;
         }
 
         $this->userId = Auth::id();
@@ -57,7 +57,7 @@ abstract class BaseController
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
             Response::unauthorized('Sessão inválida');
-            return;
+            exit;
         }
     }
 

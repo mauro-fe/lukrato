@@ -273,4 +273,133 @@ class CartoesController
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
         }
     }
+
+    /**
+     * GET /api/cartoes/{id}/faturas-historico?limite=12
+     * Obter histórico de faturas pagas
+     */
+    public function faturasHistorico(int $id): void
+    {
+        $userId = Auth::id();
+        $limite = (int) ($_GET['limite'] ?? 12);
+
+        try {
+            $historico = $this->faturaService->obterHistoricoFaturasPagas($id, $limite);
+            Response::json($historico);
+        } catch (\Exception $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
+        }
+    }
+
+    /**
+     * GET /api/cartoes/{id}/parcelamentos-resumo?mes=1&ano=2026
+     * Obter resumo dos parcelamentos ativos do cartão
+     */
+    public function parcelamentosResumo(int $id): void
+    {
+        $userId = Auth::id();
+
+        // Verifica se o cartão pertence ao usuário
+        $cartao = $this->service->buscarCartao($id, $userId);
+        if (!$cartao) {
+            Response::json(['status' => 'error', 'message' => 'Cartão não encontrado'], 404);
+            return;
+        }
+
+        $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : (int) date('n');
+        $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
+
+        error_log("📊 [ParcelamentosResumo] Cartão: {$id}, Mês: {$mes}, Ano: {$ano}");
+
+        try {
+            $resumo = $this->faturaService->obterResumoParcelamentos($id, $mes, $ano);
+            Response::json($resumo);
+        } catch (\Exception $e) {
+            error_log("❌ [ParcelamentosResumo] Erro: " . $e->getMessage());
+            error_log($e->getTraceAsString());
+
+            // Retorna dados vazios ao invés de erro 500
+            Response::json([
+                'total_parcelamentos' => 0,
+                'parcelamentos' => [],
+                'projecao' => [
+                    'tres_meses' => 0.0,
+                    'seis_meses' => 0.0,
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * GET /api/cartoes/alertas
+     * Obter alertas de vencimentos próximos e limites baixos
+     */
+    public function alertas(): void
+    {
+        $userId = Auth::id();
+
+        try {
+            $vencimentos = [];
+            $limitesBaixos = [];
+
+            // Buscar vencimentos com tratamento de erro
+            try {
+                $vencimentos = $this->faturaService->verificarVencimentosProximos($userId, 7);
+            } catch (\Exception $e) {
+                error_log("Erro ao verificar vencimentos: " . $e->getMessage());
+            }
+
+            // Buscar limites baixos com tratamento de erro
+            try {
+                $limitesBaixos = $this->service->verificarLimitesBaixos($userId);
+            } catch (\Exception $e) {
+                error_log("Erro ao verificar limites baixos: " . $e->getMessage());
+            }
+
+            $alertas = array_merge($vencimentos, $limitesBaixos);
+
+            // Ordenar por gravidade (crítico primeiro)
+            usort($alertas, function ($a, $b) {
+                $ordem = ['critico' => 0, 'atencao' => 1];
+                return ($ordem[$a['gravidade']] ?? 2) <=> ($ordem[$b['gravidade']] ?? 2);
+            });
+
+            Response::json([
+                'total' => count($alertas),
+                'alertas' => $alertas,
+                'por_tipo' => [
+                    'vencimentos' => count($vencimentos),
+                    'limites_baixos' => count($limitesBaixos),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Erro geral em alertas: " . $e->getMessage());
+            Response::json([
+                'total' => 0,
+                'alertas' => [],
+                'por_tipo' => [
+                    'vencimentos' => 0,
+                    'limites_baixos' => 0,
+                ],
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * GET /api/cartoes/validar-integridade?corrigir=false
+     * Validar integridade dos limites dos cartões
+     */
+    public function validarIntegridade(): void
+    {
+        $userId = Auth::id();
+        $corrigir = isset($_GET['corrigir']) && $_GET['corrigir'] === 'true';
+
+        try {
+            $relatorio = $this->service->validarIntegridadeLimites($userId, $corrigir);
+            Response::json($relatorio);
+        } catch (\Exception $e) {
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }
