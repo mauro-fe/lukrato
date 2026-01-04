@@ -468,6 +468,7 @@
   font-size: 17px;
   color: var(--color-text);
   white-space: nowrap;
+  text-align: center;
 }
 
 .rank-1 .rank-cell {
@@ -485,12 +486,15 @@
 .user-cell {
   font-weight: 500;
   min-width: 200px;
+  text-align: center;
 }
 
 .user-cell .user-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-cell strong {
@@ -523,7 +527,7 @@
   font-weight: 700;
   font-size: 16px;
   white-space: nowrap;
-  text-align: right;
+  text-align: center;
 }
 
 .achievements-cell {

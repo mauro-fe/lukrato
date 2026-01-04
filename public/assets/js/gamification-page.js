@@ -226,7 +226,6 @@
                         <th>Usuário</th>
                         <th>Nível</th>
                         <th>Pontos</th>
-                        <th>Conquistas</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -251,7 +250,6 @@
                                     <span class="level-badge">Nível ${user.current_level}</span>
                                 </td>
                                 <td class="points-cell"><strong>${user.total_points}</strong> pts</td>
-                                <td class="achievements-cell">-</td>
                             </tr>
                         `;
         }).join('')}
