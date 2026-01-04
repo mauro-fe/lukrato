@@ -26,13 +26,17 @@ class GamificationService
 {
     /**
      * Thresholds de pontos para cada nível
+     * Níveis: 1→0, 2→300, 3→500, 4→700, 5→1000, 6→1500, 7→2200, 8→3000
      */
     private const LEVEL_THRESHOLDS = [
         1 => 0,
-        2 => 100,
-        3 => 250,
-        4 => 500,
+        2 => 300,
+        3 => 500,
+        4 => 700,
         5 => 1000,
+        6 => 1500,
+        7 => 2200,
+        8 => 3000,
     ];
 
     /**
@@ -62,7 +66,15 @@ class GamificationService
                 ];
             }
 
-            $points = $action->points();
+            // Obter plano do usuário
+            $user = \Application\Models\Usuario::find($userId);
+            $isPro = $user ? $user->isPro() : false;
+
+            // Calcular pontos com base no plano
+            $basePoints = $action->points($isPro);
+
+            // Aplicar multiplicador Pro (1.5x)
+            $points = $isPro ? (int)round($basePoints * 1.5) : $basePoints;
 
             // Se é ação diária, verificar se já foi feita hoje
             if ($action->isOncePerDay()) {
@@ -88,7 +100,11 @@ class GamificationService
                 'action' => $action->value,
                 'points' => $points,
                 'description' => $action->description(),
-                'metadata' => $metadata,
+                'metadata' => array_merge($metadata, [
+                    'is_pro' => $isPro,
+                    'base_points' => $basePoints,
+                    'multiplier' => $isPro ? 1.5 : 1.0,
+                ]),
                 'related_id' => $relatedId,
                 'related_type' => $relatedType,
             ]);
@@ -101,13 +117,16 @@ class GamificationService
             $levelData = $this->recalculateLevel($userId);
 
             // Verificar conquistas
-            $newAchievements = $this->checkAchievements($userId);
+            $achievementService = new AchievementService();
+            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, $action->value);
 
-            error_log("🎮 [GAMIFICATION] +{$points} pontos para user {$userId} - Ação: {$action->value}");
+            error_log("🎮 [GAMIFICATION] +{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO x1.5]' : ''));
 
             return [
                 'success' => true,
                 'points_gained' => $points,
+                'base_points' => $basePoints,
+                'is_pro' => $isPro,
                 'total_points' => $progress->total_points,
                 'level' => $levelData['current_level'],
                 'level_up' => $levelData['level_up'],
@@ -127,65 +146,15 @@ class GamificationService
 
     /**
      * Atualizar streak do usuário
+     * Delega para o StreakService
      * 
      * @param int $userId
      * @return array<string,mixed> Dados da streak atualizada
      */
     public function updateStreak(int $userId): array
     {
-        try {
-            $progress = $this->getOrCreateProgress($userId);
-            $today = Carbon::today();
-            $lastActivity = $progress->last_activity_date
-                ? Carbon::parse($progress->last_activity_date)
-                : null;
-
-            // Se já registrou hoje, não faz nada
-            if ($lastActivity && $lastActivity->isSameDay($today)) {
-                return [
-                    'streak' => $progress->current_streak,
-                    'already_counted' => true,
-                ];
-            }
-
-            // Se foi ontem, incrementa streak
-            if ($lastActivity && $lastActivity->isSameDay($today->copy()->subDay())) {
-                $progress->current_streak += 1;
-
-                // Atualizar melhor streak
-                if ($progress->current_streak > $progress->best_streak) {
-                    $progress->best_streak = $progress->current_streak;
-                }
-
-                // Verificar marcos de streak (7 e 30 dias)
-                if ($progress->current_streak === 7) {
-                    $this->addPoints($userId, GamificationAction::STREAK_7_DAYS);
-                } elseif ($progress->current_streak === 30) {
-                    $this->addPoints($userId, GamificationAction::STREAK_30_DAYS);
-                }
-            } else {
-                // Se pulou dias, zera streak
-                if ($progress->current_streak > 0) {
-                    error_log("🎮 [GAMIFICATION] Streak zerada para user {$userId} - dias sem atividade");
-                }
-                $progress->current_streak = 1;
-            }
-
-            $progress->last_activity_date = $today;
-            $progress->save();
-
-            // Dar pontos por atividade diária
-            $dailyPoints = $this->addPoints($userId, GamificationAction::DAILY_ACTIVITY);
-
-            return [
-                'streak' => $progress->current_streak,
-                'best_streak' => $progress->best_streak,
-                'daily_points_gained' => $dailyPoints['success'] ?? false,
-            ];
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] ERRO ao atualizar streak: " . $e->getMessage());
-            return ['streak' => 0, 'error' => $e->getMessage()];
-        }
+        $streakService = new StreakService();
+        return $streakService->updateStreak($userId);
     }
 
     /**
@@ -252,44 +221,27 @@ class GamificationService
 
     /**
      * Verificar e desbloquear conquistas
+     * @deprecated Use AchievementService->checkAndUnlockAchievements()
      * 
      * @param int $userId
      * @return array<int,array<string,mixed>> Lista de novas conquistas desbloqueadas
      */
     public function checkAchievements(int $userId): array
     {
-        $newAchievements = [];
+        $achievementService = new AchievementService();
+        $achievements = $achievementService->checkAndUnlockAchievements($userId);
 
-        try {
-            // Buscar conquistas ativas que o usuário ainda não tem
-            $unlockedIds = UserAchievement::where('user_id', $userId)
-                ->pluck('achievement_id')
-                ->toArray();
-
-            $availableAchievements = Achievement::active()
-                ->whereNotIn('id', $unlockedIds)
-                ->get();
-
-            foreach ($availableAchievements as $achievement) {
-                if ($this->checkAchievementCondition($userId, $achievement->code)) {
-                    $unlocked = $this->unlockAchievement($userId, $achievement->id);
-                    if ($unlocked) {
-                        $newAchievements[] = [
-                            'id' => $achievement->id,
-                            'code' => $achievement->code,
-                            'name' => $achievement->name,
-                            'description' => $achievement->description,
-                            'icon' => $achievement->icon,
-                            'points_reward' => $achievement->points_reward,
-                        ];
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] ERRO ao verificar conquistas: " . $e->getMessage());
-        }
-
-        return $newAchievements;
+        // Formatar para compatibilidade
+        return array_map(function ($ach) {
+            return [
+                'id' => $ach['id'],
+                'code' => $ach['code'],
+                'name' => $ach['name'],
+                'description' => $ach['description'],
+                'icon' => $ach['icon'],
+                'points_reward' => $ach['points_reward'],
+            ];
+        }, $achievements);
     }
 
     /**
@@ -429,13 +381,16 @@ class GamificationService
 
         return match ($achievementType) {
             AchievementType::FIRST_LAUNCH => $this->hasLaunches($userId, 1),
+            AchievementType::STREAK_3 => $progress->current_streak >= 3,
             AchievementType::STREAK_7 => $progress->current_streak >= 7,
-            AchievementType::STREAK_30 => $progress->current_streak >= 30,
+            AchievementType::CONSISTENCY_TOTAL => $progress->current_streak >= 30,
             AchievementType::LEVEL_5 => $progress->current_level >= 5,
+            AchievementType::LEVEL_8 => $progress->current_level >= 8,
+            AchievementType::TOTAL_10_LAUNCHES => $this->hasLaunches($userId, 10),
             AchievementType::TOTAL_100_LAUNCHES => $this->hasLaunches($userId, 100),
-            AchievementType::TOTAL_10_CATEGORIES => $this->hasCategories($userId, 10),
+            AchievementType::TOTAL_5_CATEGORIES => $this->hasCategories($userId, 5),
             AchievementType::POSITIVE_MONTH => $this->hasPositiveMonth($userId),
-            AchievementType::BALANCE_POSITIVE => $this->hasPositiveBalance($userId),
+            default => false,
         };
     }
 

@@ -37,6 +37,9 @@ class UserProgress extends Model
         'current_streak',
         'best_streak',
         'last_activity_date',
+        'streak_freeze_used_this_month',
+        'streak_freeze_date',
+        'streak_freeze_month',
     ];
 
     protected $casts = [
@@ -46,6 +49,8 @@ class UserProgress extends Model
         'current_streak' => 'integer',
         'best_streak' => 'integer',
         'last_activity_date' => 'date',
+        'streak_freeze_used_this_month' => 'boolean',
+        'streak_freeze_date' => 'date',
     ];
 
     /**
@@ -101,7 +106,8 @@ class UserProgress extends Model
      */
     private function getPreviousLevelThreshold(): int
     {
-        $thresholds = [0, 100, 250, 500, 1000];
+        // Níveis: 1→0, 2→300, 3→500, 4→700, 5→1000, 6→1500, 7→2200, 8→3000
+        $thresholds = [0, 300, 500, 700, 1000, 1500, 2200, 3000];
         $index = max(0, $this->current_level - 2);
         return $thresholds[$index] ?? 0;
     }
@@ -111,8 +117,9 @@ class UserProgress extends Model
      */
     private function getCurrentLevelThreshold(): int
     {
-        $thresholds = [0, 100, 250, 500, 1000];
+        // Níveis: 1→0, 2→300, 3→500, 4→700, 5→1000, 6→1500, 7→2200, 8→3000
+        $thresholds = [0, 300, 500, 700, 1000, 1500, 2200, 3000];
         $index = max(0, $this->current_level - 1);
-        return $thresholds[$index] ?? 1000;
+        return $thresholds[$index] ?? 3000;
     }
 }

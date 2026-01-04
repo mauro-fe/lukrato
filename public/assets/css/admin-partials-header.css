@@ -132,12 +132,59 @@ h3 {
 
 /* 5.2 Sidebar Header + Logo */
 .sidebar-header {
-  height: 100px;
+  height: 50px;
   padding: var(--spacing-6) 12px 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid var(--glass-border);
+  background: linear-gradient(
+    135deg,
+    rgba(230, 126, 34, 0.05) 0%,
+    rgba(52, 152, 219, 0.03) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(230, 126, 34, 0.1),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  50%,
+  100% {
+    left: 100%;
+  }
+}
+
+.sidebar .logo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+
+.sidebar .logo:hover {
+  transform: scale(1.02);
 }
 
 .sidebar .logo img {
@@ -145,7 +192,13 @@ h3 {
   max-width: 150px;
   max-height: 48px;
   object-fit: contain;
-  transition: max-height var(--transition-fast);
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.sidebar .logo:hover img {
+  filter: drop-shadow(0 4px 8px rgba(230, 126, 34, 0.3));
+  transform: scale(1.05);
 }
 
 /* 5.3 Sidebar Navigation */
@@ -174,7 +227,7 @@ h3 {
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6);
-  color: var(--color-text);
+  color: #fff;
   text-decoration: none;
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -200,7 +253,7 @@ h3 {
 /* 5.4 Nav Item States */
 .sidebar .nav-item:hover {
   background: var(--glass-bg);
-  color: var(--color-text);
+  color: #fff;
   transform: translateX(4px);
 }
 
@@ -210,7 +263,7 @@ h3 {
 
 .sidebar-nav .nav-item.active,
 .sidebar-nav .nav-item[aria-current="page"] {
-  color: var(--laranja);
+  color: #fff;
   background: color-mix(in srgb, var(--laranja) 10%, transparent);
   font-weight: 700;
   border-left: 3px solid var(--laranja);
@@ -266,48 +319,105 @@ body.sidebar-collapsed .sidebar .nav-item {
 }
 
 /* 5.6 Sidebar Toggle Button (Edge Button) */
+@keyframes btnPulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(230, 126, 34, 0.35),
+      0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(230, 126, 34, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+}
+
+@keyframes btnFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
 .edge-menu-btn {
-  position: fixed;
-  top: 55px;
-  left: calc(var(--sidebar-width) - 53px);
-  width: 40px;
-  height: 40px;
+  position: fixed !important;
+  top: 55px !important;
+  left: calc(var(--sidebar-width) - 30px);
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  color: var(--color-text);
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+  color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
-  transition: left 0.25s ease, transform 0.15s ease,
-    background var(--transition-fast), box-shadow var(--transition-fast);
-  z-index: 5;
+  font-size: 20px;
+  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.5s ease-out, left 0.3s ease;
+  z-index: 999999 !important;
   cursor: pointer;
+  overflow: hidden;
+  animation: btnPulse 4s ease-in-out infinite, btnFloat 5s ease-in-out infinite;
+}
+
+.edge-menu-btn::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg) translateX(-100%);
+  transition: transform 0.6s;
 }
 
 .edge-menu-btn:hover {
-  background: var(--glass-border);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(135deg, #d35400 0%, var(--color-primary) 100%);
+  box-shadow: 0 10px 28px rgba(230, 126, 34, 0.5),
+    0 5px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-3px) scale(1.05);
+  animation: none;
+}
+
+.edge-menu-btn:hover::before {
+  transform: rotate(45deg) translateX(100%);
 }
 
 .edge-menu-btn:focus-visible {
-  outline: 2px solid var(--laranja);
-  outline-offset: 3px;
+  outline: 3px solid var(--color-primary);
+  outline-offset: 4px;
+  animation: none;
 }
 
 .edge-menu-btn:active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(1);
+  transition: all 0.2s ease-out;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.35);
 }
 
 .sidebar-collapsed .edge-menu-btn {
-  left: calc(var(--sidebar-collapsed-width) - 64px);
+  left: calc(var(--sidebar-collapsed-width) - 30px);
 }
 
 .edge-menu-btn i {
-  transition: transform var(--transition-fast);
+  position: relative;
+  z-index: 1;
+  transition: transform 0.4s ease-out;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.edge-menu-btn:hover i {
+  transform: scale(1.08);
 }
 
 /* 5.7 Sidebar Pro CTA */

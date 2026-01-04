@@ -34,11 +34,14 @@ class Achievement extends Model
         'icon',
         'points_reward',
         'category',
+        'plan_type',
+        'sort_order',
         'active',
     ];
 
     protected $casts = [
         'points_reward' => 'integer',
+        'sort_order' => 'integer',
         'active' => 'boolean',
     ];
 
@@ -78,5 +81,30 @@ class Achievement extends Model
     public function scopeCategory($query, string $category)
     {
         return $query->where('category', $category);
+    }
+
+    /**
+     * Filtrar por tipo de plano
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $planType 'free', 'pro', 'all'
+     */
+    public function scopePlanType($query, string $planType)
+    {
+        if ($planType === 'all') {
+            return $query;
+        }
+        return $query->where(function ($q) use ($planType) {
+            $q->where('plan_type', $planType)
+                ->orWhere('plan_type', 'all');
+        });
+    }
+
+    /**
+     * Verificar se conquista é exclusiva Pro
+     */
+    public function isProOnly(): bool
+    {
+        return $this->plan_type === 'pro';
     }
 }

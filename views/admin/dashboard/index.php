@@ -9,6 +9,9 @@
             <div class="gamification-title">
                 <i class="fas fa-trophy"></i>
                 <span>Seu Progresso</span>
+                <span class="pro-badge" id="proBadge" style="display: none;">
+                    <i class="fas fa-gem"></i> PRO
+                </span>
             </div>
             <div class="level-badge" id="userLevel">
                 <i class="fas fa-star"></i>
@@ -22,21 +25,22 @@
                 <div class="streak-icon">🔥</div>
                 <div class="streak-number" id="streakDays">0</div>
                 <div class="streak-label">Dias Consecutivos</div>
+                <div class="streak-protection" id="streakProtection" style="display: none;">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Proteção disponível</span>
+                </div>
             </div>
 
             <!-- Progresso -->
-            <div class="progress-card">
-                <div class="progress-header">
-                    <div class="progress-title">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Organização</span>
-                    </div>
-                    <div class="progress-percentage" id="organizationPercentage">0%</div>
+            <div class="level-progress-card">
+                <div class="level-progress-header">
+                    <span class="level-progress-label">Progresso para próximo nível</span>
+                    <span class="level-progress-points" id="levelProgressPoints">0 / 300 pontos</span>
                 </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="organizationBar" style="width: 0%"></div>
+                <div class="level-progress-bar-container">
+                    <div class="level-progress-bar" id="levelProgressBar" style="width: 0%"></div>
                 </div>
-                <div class="progress-text" id="organizationText">Continue registrando seus lançamentos!</div>
+                <div class="level-progress-text" id="levelProgressText">Ganhe mais pontos para avançar!</div>
             </div>
 
             <!-- Badges -->
@@ -44,32 +48,16 @@
                 <div class="badges-title">
                     <i class="fas fa-medal"></i>
                     <span>Conquistas</span>
+                    <a href="<?= BASE_URL ?>gamification" class="btn-view-all">Ver todas</a>
                 </div>
                 <div class="badges-grid" id="badgesGrid">
-                    <div class="badge-item locked" title="Primeiro Passo: Adicione seu primeiro lançamento">
-                        <div class="badge-icon">🎯</div>
-                        <div class="badge-name">Início</div>
-                    </div>
-                    <div class="badge-item locked" title="Organizador: Complete 7 dias consecutivos">
-                        <div class="badge-icon">📊</div>
-                        <div class="badge-name">7 Dias</div>
-                    </div>
-                    <div class="badge-item locked" title="Disciplinado: Complete 30 dias consecutivos">
-                        <div class="badge-icon">💎</div>
-                        <div class="badge-name">30 Dias</div>
-                    </div>
-                    <div class="badge-item locked" title="Economista: Economize 10% em um mês">
-                        <div class="badge-icon">💰</div>
-                        <div class="badge-name">Economia</div>
-                    </div>
-                    <div class="badge-item locked" title="Planejador: Use 5 categorias diferentes">
-                        <div class="badge-icon">🎨</div>
-                        <div class="badge-name">Diverso</div>
-                    </div>
-                    <div class="badge-item locked" title="Mestre: Alcance 100 lançamentos">
-                        <div class="badge-icon">👑</div>
-                        <div class="badge-name">Mestre</div>
-                    </div>
+                    <!-- Preenchido via JS -->
+                    <div class="badge-skeleton"></div>
+                    <div class="badge-skeleton"></div>
+                    <div class="badge-skeleton"></div>
+                    <div class="badge-skeleton"></div>
+                    <div class="badge-skeleton"></div>
+                    <div class="badge-skeleton"></div>
                 </div>
             </div>
         </div>
@@ -91,6 +79,23 @@
             <div class="stat-mini">
                 <div class="stat-mini-value" id="pontosTotal">0</div>
                 <div class="stat-mini-label">Pontos</div>
+            </div>
+        </div>
+
+        <!-- Call to Action Pro (apenas para usuários Free) -->
+        <div class="pro-cta-card" id="proCTA" style="display: none;">
+            <div class="pro-cta-content">
+                <div class="pro-cta-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="pro-cta-text">
+                    <h3>Acelere seu progresso com o Plano Pro</h3>
+                    <p>Ganhe 1.5x mais pontos, proteção de streak e conquistas exclusivas!</p>
+                </div>
+                <button class="btn-pro-upgrade">
+                    <i class="fas fa-gem"></i>
+                    Conhecer o Pro
+                </button>
             </div>
         </div>
     </section>
@@ -189,3 +194,10 @@
         </div>
     </section>
 </section>
+
+<!-- Gamification JS -->
+<script>
+    // Define BASE_URL global para gamification script
+    window.BASE_URL = '<?= BASE_URL ?>';
+</script>
+<script src="<?= BASE_URL ?>assets/js/gamification-dashboard.js?v=<?= time() ?>"></script>

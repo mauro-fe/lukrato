@@ -60,11 +60,12 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          ============================================================================ -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/main-styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-header.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">
 
     <?php loadPageCss(); ?>
-    <?php loadPageCss('admin-partials-header'); ?>
 
     <!-- Enhancements por último para sobrescrever tudo -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css">
@@ -87,100 +88,100 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
          ============================================================================ -->
     <script>
-    // Namespace global do Lukrato
-    window.LK = window.LK || {};
-    window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
+        // Namespace global do Lukrato
+        window.LK = window.LK || {};
+        window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
 
-    // ========================================================================
-    // HELPERS GLOBAIS
-    // ========================================================================
-    LK.getBase = () => {
-        const meta = document.querySelector('meta[name="base-url"]');
-        return (meta?.content || '/').replace(/\/?$/, '/');
-    };
-
-    LK.getCSRF = () => {
-        return document.querySelector('meta[name="csrf-token"]')?.content ||
-            document.querySelector('input[name="_token"]')?.value || '';
-    };
-
-    LK.apiBase = () => LK.getBase() + 'api/';
-
-    LK.initPageTransitions = () => {
-        const overlay = document.getElementById('lkPageTransitionOverlay');
-        if (!overlay) return;
-
-        let isTransitioning = false;
-
-        const cleanup = () => {
-            isTransitioning = false;
-            overlay.classList.remove('active');
-            overlay.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('page-transitioning');
+        // ========================================================================
+        // HELPERS GLOBAIS
+        // ========================================================================
+        LK.getBase = () => {
+            const meta = document.querySelector('meta[name="base-url"]');
+            return (meta?.content || '/').replace(/\/?$/, '/');
         };
 
-        const startTransition = (target) => {
-            if (isTransitioning) return;
-            isTransitioning = true;
-            document.body.classList.add('page-transitioning');
-            overlay.classList.add('active');
-            overlay.setAttribute('aria-hidden', 'false');
-
-            setTimeout(() => {
-                window.location.href = target;
-            }, 220);
+        LK.getCSRF = () => {
+            return document.querySelector('meta[name="csrf-token"]')?.content ||
+                document.querySelector('input[name="_token"]')?.value || '';
         };
 
-        const isSamePageAnchor = (href) => href?.startsWith('#');
+        LK.apiBase = () => LK.getBase() + 'api/';
 
-        document.addEventListener('click', (event) => {
-            if (event.defaultPrevented || event.button !== 0) return;
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        LK.initPageTransitions = () => {
+            const overlay = document.getElementById('lkPageTransitionOverlay');
+            if (!overlay) return;
 
-            const link = event.target.closest('a[href]');
-            if (!link) return;
-            if (link.target && link.target !== '_self') return;
-            if (link.hasAttribute('download')) return;
-            if (link.dataset.noTransition === 'true') return;
+            let isTransitioning = false;
 
-            const href = link.getAttribute('href');
-            if (!href || isSamePageAnchor(href)) return;
+            const cleanup = () => {
+                isTransitioning = false;
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('page-transitioning');
+            };
 
-            const url = new URL(link.href, window.location.href);
-            if (url.origin !== window.location.origin) return;
-            if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+            const startTransition = (target) => {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                document.body.classList.add('page-transitioning');
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
 
-            event.preventDefault();
-            startTransition(url.href);
+                setTimeout(() => {
+                    window.location.href = target;
+                }, 220);
+            };
+
+            const isSamePageAnchor = (href) => href?.startsWith('#');
+
+            document.addEventListener('click', (event) => {
+                if (event.defaultPrevented || event.button !== 0) return;
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+                const link = event.target.closest('a[href]');
+                if (!link) return;
+                if (link.target && link.target !== '_self') return;
+                if (link.hasAttribute('download')) return;
+                if (link.dataset.noTransition === 'true') return;
+
+                const href = link.getAttribute('href');
+                if (!href || isSamePageAnchor(href)) return;
+
+                const url = new URL(link.href, window.location.href);
+                if (url.origin !== window.location.origin) return;
+                if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+
+                event.preventDefault();
+                startTransition(url.href);
+            });
+
+            window.addEventListener('pageshow', cleanup);
+            cleanup();
+        };
+
+        // ========================================================================
+        // INICIALIZAÇÃO DOM
+        // ========================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Header (sidebar active, logout confirm, seletor de contas)
+            if (window.LK?.initHeader) {
+                window.LK.initHeader();
+            }
+
+            // Sininho de notificações
+            if (window.initNotificationsBell) {
+                window.initNotificationsBell();
+            }
+
+            // Modais (abre/fecha via data-open-modal / data-close-modal)
+            if (window.LK?.initModals) {
+                window.LK.initModals();
+            }
+
+            if (window.LK?.initPageTransitions) {
+                window.LK.initPageTransitions();
+            }
         });
-
-        window.addEventListener('pageshow', cleanup);
-        cleanup();
-    };
-
-    // ========================================================================
-    // INICIALIZAÇÃO DOM
-    // ========================================================================
-    document.addEventListener('DOMContentLoaded', () => {
-        // Header (sidebar active, logout confirm, seletor de contas)
-        if (window.LK?.initHeader) {
-            window.LK.initHeader();
-        }
-
-        // Sininho de notificações
-        if (window.initNotificationsBell) {
-            window.initNotificationsBell();
-        }
-
-        // Modais (abre/fecha via data-open-modal / data-close-modal)
-        if (window.LK?.initModals) {
-            window.LK.initModals();
-        }
-
-        if (window.LK?.initPageTransitions) {
-            window.LK.initPageTransitions();
-        }
-    });
     </script>
 
     <!-- ============================================================================
@@ -203,19 +204,19 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          SIDEBAR COLLAPSE STATE (Pre-render)
          ============================================================================ -->
     <script>
-    (function() {
-        try {
-            const STORAGE_KEY = 'lk.sidebar';
-            const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
-            const isDesktop = window.matchMedia('(min-width: 993px)').matches;
+        (function() {
+            try {
+                const STORAGE_KEY = 'lk.sidebar';
+                const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
+                const isDesktop = window.matchMedia('(min-width: 993px)').matches;
 
-            if (prefersCollapsed && isDesktop) {
-                document.body.classList.add('sidebar-collapsed');
+                if (prefersCollapsed && isDesktop) {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            } catch (err) {
+                console.error('Erro ao restaurar estado da sidebar:', err);
             }
-        } catch (err) {
-            console.error('Erro ao restaurar estado da sidebar:', err);
-        }
-    })();
+        })();
     </script>
 
     <!-- ============================================================================
@@ -294,6 +295,13 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <span>Agendados</span>
             </a>
 
+            <!-- Gamificação -->
+            <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
+                <?= $aria('gamification') ?> title="Gamificação">
+                <i class="fas fa-trophy"></i>
+                <span>Conquistas</span>
+            </a>
+
             <!-- Investimentos -->
             <!-- <a href="<?= BASE_URL ?>investimentos" class="nav-item <?= $active('investimentos') ?>"
                 <?= $aria('investimentos') ?> title="Investimentos">
@@ -308,11 +316,11 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <span>Perfil</span>
             </a>
             <?php if ($isSysAdmin): ?>
-            <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
-                <?= $aria('super_admin') ?> title="SysAdmin">
-                <i class="fa-solid fa-user-shield"></i>
-                <span>SysAdmin</span>
-            </a>
+                <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
+                    <?= $aria('super_admin') ?> title="SysAdmin">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>SysAdmin</span>
+                </a>
             <?php endif; ?>
 
             <!-- Sair -->
@@ -323,12 +331,12 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
             <!-- CTA Upgrade Pro -->
             <?php if ($showUpgradeCTA): ?>
-            <div class="sidebar-pro-cta">
-                <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                    <i class="fa-solid fa-star"></i>
-                    <span>Pro</span>
-                </a>
-            </div>
+                <div class="sidebar-pro-cta">
+                    <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Pro</span>
+                    </a>
+                </div>
             <?php endif; ?>
         </nav>
     </aside>

@@ -662,14 +662,18 @@ textarea:focus {
    15. LINKS MELHORADOS
    ============================================================================ */
 
-a:not(.btn):not(.lk-upgrade-btn) {
+a:not(.btn):not(.lk-upgrade-btn):not(.top-nav-btn):not(.logout-btn):not(
+    .nav-item
+  ):not(.logo) {
   position: relative;
   color: var(--color-primary);
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
-a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button)::after {
+a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.top-nav-btn):not(
+    .logout-btn
+  ):not(.nav-item):not(.logo)::after {
   content: "";
   position: absolute;
   bottom: -2px;
@@ -680,7 +684,9 @@ a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button)::after {
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):hover::after {
+a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.top-nav-btn):not(
+    .logout-btn
+  ):not(.nav-item):not(.logo):hover::after {
   width: 100%;
 }
 

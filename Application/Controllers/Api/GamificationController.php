@@ -5,19 +5,28 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Services\GamificationService;
+use Application\Services\AchievementService;
+use Application\Services\StreakService;
 use Application\Models\UserProgress;
 use Application\Models\Achievement;
 use Application\Models\UserAchievement;
+use Application\Models\Lancamento;
+use Application\Models\Categoria;
+use Carbon\Carbon;
 use Exception;
 
 class GamificationController extends BaseController
 {
     private GamificationService $gamificationService;
+    private AchievementService $achievementService;
+    private StreakService $streakService;
 
     public function __construct()
     {
         parent::__construct();
         $this->gamificationService = new GamificationService();
+        $this->achievementService = new AchievementService();
+        $this->streakService = new StreakService();
     }
 
     /**
@@ -30,18 +39,24 @@ class GamificationController extends BaseController
 
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
+            $user = \Application\Lib\Auth::user();
 
             if (!$progress) {
                 Response::success([
                     'total_points' => 0,
                     'current_level' => 1,
-                    'points_to_next_level' => 100,
+                    'points_to_next_level' => 300,
                     'progress_percentage' => 0,
                     'current_streak' => 0,
                     'best_streak' => 0,
+                    'is_pro' => $user->isPro(),
+                    'streak_protection_available' => false,
+                    'streak_protection_used' => false,
                 ], 'Progresso do usuário');
                 return;
             }
+
+            $streakInfo = $this->streakService->getStreakInfo($this->userId);
 
             Response::success([
                 'total_points' => $progress->total_points,
@@ -51,6 +66,9 @@ class GamificationController extends BaseController
                 'current_streak' => $progress->current_streak,
                 'best_streak' => $progress->best_streak,
                 'last_activity_date' => $progress->last_activity_date?->format('Y-m-d'),
+                'is_pro' => $user->isPro(),
+                'streak_protection_available' => $streakInfo['protection_available'],
+                'streak_protection_used' => $streakInfo['protection_used_this_month'],
             ], 'Progresso do usuário');
         } catch (Exception $e) {
             error_log("🎮 [GAMIFICATION] Erro ao buscar progresso: " . $e->getMessage());
@@ -67,41 +85,20 @@ class GamificationController extends BaseController
         $this->requireAuth();
 
         try {
-            // Buscar todas as conquistas ativas
-            $allAchievements = Achievement::active()->orderBy('category')->orderBy('points_reward')->get();
-
-            // Buscar conquistas desbloqueadas pelo usuário
-            $unlockedIds = UserAchievement::where('user_id', $this->userId)
-                ->pluck('achievement_id')
-                ->toArray();
-
-            // Montar resposta com status de cada conquista
-            $achievements = $allAchievements->map(function ($achievement) use ($unlockedIds) {
-                $userAchievement = UserAchievement::where('user_id', $this->userId)
-                    ->where('achievement_id', $achievement->id)
-                    ->first();
-
-                return [
-                    'id' => $achievement->id,
-                    'code' => $achievement->code,
-                    'name' => $achievement->name,
-                    'description' => $achievement->description,
-                    'icon' => $achievement->icon,
-                    'points_reward' => $achievement->points_reward,
-                    'category' => $achievement->category,
-                    'unlocked' => in_array($achievement->id, $unlockedIds),
-                    'unlocked_at' => $userAchievement?->unlocked_at?->format('Y-m-d H:i:s'),
-                    'notification_seen' => $userAchievement?->notification_seen ?? false,
-                ];
-            });
+            $user = \Application\Lib\Auth::user();
+            $achievements = $this->achievementService->getUserAchievements($this->userId);
 
             // Estatísticas gerais
+            $totalCount = count($achievements);
+            $unlockedCount = count(array_filter($achievements, fn($a) => $a['unlocked']));
+
             $stats = [
-                'total_achievements' => $allAchievements->count(),
-                'unlocked_count' => count($unlockedIds),
-                'completion_percentage' => $allAchievements->count() > 0
-                    ? round((count($unlockedIds) / $allAchievements->count()) * 100, 1)
+                'total_achievements' => $totalCount,
+                'unlocked_count' => $unlockedCount,
+                'completion_percentage' => $totalCount > 0
+                    ? round(($unlockedCount / $totalCount) * 100, 1)
                     : 0,
+                'is_pro' => $user->isPro(),
             ];
 
             Response::success([
@@ -189,6 +186,47 @@ class GamificationController extends BaseController
         } catch (Exception $e) {
             error_log("🎮 [GAMIFICATION] Erro ao buscar leaderboard: " . $e->getMessage());
             Response::error('Erro ao buscar ranking', 500);
+        }
+    }
+
+    /**
+     * GET /api/gamification/stats
+     * Retorna estatísticas gerais para o dashboard
+     */
+    public function getStats(): void
+    {
+        $this->requireAuth();
+
+        try {
+            $user = \Application\Lib\Auth::user();
+
+            // Total de lançamentos
+            $totalLancamentos = Lancamento::where('user_id', $this->userId)->count();
+
+            // Total de categorias
+            $totalCategorias = Categoria::where('user_id', $this->userId)->count();
+
+            // Meses ativos (meses com lançamentos)
+            $mesesAtivos = Lancamento::where('user_id', $this->userId)
+                ->selectRaw('COUNT(DISTINCT DATE_FORMAT(data, "%Y-%m")) as total')
+                ->first()
+                ->total ?? 0;
+
+            // Progresso
+            $progress = UserProgress::where('user_id', $this->userId)->first();
+
+            Response::success([
+                'total_lancamentos' => $totalLancamentos,
+                'total_categorias' => $totalCategorias,
+                'meses_ativos' => $mesesAtivos,
+                'pontos_total' => $progress?->total_points ?? 0,
+                'nivel_atual' => $progress?->current_level ?? 1,
+                'streak_atual' => $progress?->current_streak ?? 0,
+                'is_pro' => $user->isPro(),
+            ], 'Estatísticas do usuário');
+        } catch (Exception $e) {
+            error_log("🎮 [GAMIFICATION] Erro ao buscar estatísticas: " . $e->getMessage());
+            Response::error('Erro ao buscar estatísticas', 500);
         }
     }
 }
