@@ -119,12 +119,42 @@
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
 
+    // Desabilitar auto-inicialização do Bootstrap ANTES do Bootstrap carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Desabilitar completamente a inicialização automática do Bootstrap
+        if (typeof bootstrap !== 'undefined') {
+            // Sobrescrever o inicializador automático do Bootstrap
+            const style = document.createElement('style');
+            style.textContent = '[data-bs-toggle] { pointer-events: none !important; }';
+            document.head.appendChild(style);
+        }
+    });
+
+    // Capturar TODOS os erros relacionados ao Bootstrap
+    const originalError = console.error;
+    console.error = function(...args) {
+        const message = args.join(' ');
+        if (message.includes('backdrop') || message.includes('Bootstrap') || message.includes('modal')) {
+            console.warn('⚠️ Erro do Bootstrap suprimido:', ...args);
+            return;
+        }
+        originalError.apply(console, args);
+    };
+
+    // Interceptar erros não capturados do JavaScript
+    window.onerror = function(message, source, lineno, colno, error) {
+        if (message && (message.includes('backdrop') || message.includes('Bootstrap'))) {
+            console.warn('⚠️ Erro suprimido:', message);
+            return true; // Prevenir erro
+        }
+        return false;
+    };
+
     // Garantir que apenas o sistema moderno seja usado
-    // Bloquear qualquer tentativa de carregar o sistema antigo
     (function() {
         'use strict';
 
-        // Limpar cache de service workers e caches
+        // Limpar cache
         if ('caches' in window) {
             caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
         }

@@ -155,6 +155,8 @@ function registerApiRoutes(): void
 
     // Relatórios
 
+    Router::add('GET', '/api/reports/card-details/{id}', 'Api\\RelatoriosController@cardDetails', ['auth']);
+
     Router::add('GET', '/api/reports/overview',   'Api\\RelatoriosController@overview',  ['auth']);
 
     Router::add('GET', '/api/reports/table',      'Api\\RelatoriosController@table',     ['auth']);

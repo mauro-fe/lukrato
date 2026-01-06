@@ -1125,11 +1125,104 @@
         const reportArea = document.getElementById('reportArea');
         if (!reportArea) return;
 
+        // Renderizar resumo consolidado apenas se houver cartões
+        const resumoHTML = (data.resumo_consolidado && data.cards && data.cards.length > 0) ? `
+            <div class="consolidated-summary">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="summary-title">
+                        <h3>Visão Geral dos Cartões</h3>
+                        <p>Resumo consolidado de todos os seus cartões de crédito</p>
+                    </div>
+                </div>
+                
+                <div class="summary-grid">
+                    <div class="summary-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total em Faturas</span>
+                            <span class="stat-value">${formatCurrency(data.resumo_consolidado.total_faturas)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Limite Total</span>
+                            <span class="stat-value">${formatCurrency(data.resumo_consolidado.total_limites)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, ${
+                            data.resumo_consolidado.utilizacao_geral > 70 ? '#e74c3c, #c0392b' :
+                            data.resumo_consolidado.utilizacao_geral > 50 ? '#f39c12, #e67e22' :
+                            '#2ecc71, #27ae60'
+                        });">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Utilização Geral</span>
+                            <span class="stat-value">${data.resumo_consolidado.utilizacao_geral.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #2ecc71, #27ae60);">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Disponível</span>
+                            <span class="stat-value">${formatCurrency(data.resumo_consolidado.total_disponivel)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${data.resumo_consolidado.melhor_cartao || data.resumo_consolidado.requer_atencao ? `
+                    <div class="summary-insights">
+                        ${data.resumo_consolidado.melhor_cartao ? `
+                            <div class="insight-item success">
+                                <i class="fas fa-star"></i>
+                                <span><strong>Melhor cartão:</strong> ${escapeHtml(data.resumo_consolidado.melhor_cartao.nome)} (${data.resumo_consolidado.melhor_cartao.percentual.toFixed(1)}% de uso)</span>
+                            </div>
+                        ` : ''}
+                        ${data.resumo_consolidado.requer_atencao ? `
+                            <div class="insight-item warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span><strong>Requer atenção:</strong> ${escapeHtml(data.resumo_consolidado.requer_atencao.nome)} (${data.resumo_consolidado.requer_atencao.percentual.toFixed(1)}% de uso)</span>
+                            </div>
+                        ` : ''}
+                        ${data.resumo_consolidado.total_parcelamentos > 0 ? `
+                            <div class="insight-item info">
+                                <i class="fas fa-calendar-check"></i>
+                                <span><strong>${data.resumo_consolidado.total_parcelamentos} parcelamento${data.resumo_consolidado.total_parcelamentos > 1 ? 's' : ''}</strong> comprometendo ${formatCurrency(data.resumo_consolidado.valor_parcelamentos)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        ` : '';
+
         reportArea.innerHTML = `
             <div class="cards-report-container">
+                ${resumoHTML}
+                
                 <div class="cards-grid">
                     ${data.cards && data.cards.length > 0 ? data.cards.map(card => `
-                        <div class="card-item ${card.percentual > 80 ? 'card-warning' : ''}" style="--card-color: ${card.cor || '#E67E22'}">
+                        <div class="card-item ${card.status_saude.status}" 
+                             style="--card-color: ${card.cor || '#E67E22'}; cursor: pointer;"
+                             data-card-id="${card.id || ''}"
+                             data-card-nome="${escapeHtml(card.nome)}"
+                             data-card-cor="${card.cor || '#E67E22'}"
+                             onclick="if(window.LK_CardDetail?.open) window.LK_CardDetail.open(${card.id || 0}, '${escapeHtml(card.nome)}', '${card.cor || '#E67E22'}', '${state.currentMonth}')"
+                             role="button"
+                             tabindex="0">
                             <!-- Header -->
                             <div class="card-header-gradient">
                                 <div class="card-brand">
@@ -1138,11 +1231,28 @@
                                     </div>
                                     <div class="card-info">
                                         <h3 class="card-name">${escapeHtml(card.nome)}</h3>
-                                        ${card.conta ? `<p class="card-account"><i class="fas fa-building-columns" style="color: ${card.cor || '#E67E22'}"></i> ${escapeHtml(card.conta)}</p>` : ''}
+                                        <div class="card-meta">
+                                            ${card.conta ? `<span class="card-account"><i class="fas fa-building-columns"></i> ${escapeHtml(card.conta)}</span>` : ''}
+                                            ${card.dia_vencimento ? `<span class="card-due"><i class="fas fa-calendar"></i> Vence dia ${card.dia_vencimento}</span>` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                                ${card.dia_vencimento ? `<div class="card-due"><i class="fas fa-calendar"></i> Vence dia ${card.dia_vencimento}</div>` : ''}
+                                ${card.status_saude && (card.status_saude.status === 'critico' || card.status_saude.status === 'alto_uso') ? `
+                                    <div class="health-indicator ${card.status_saude.status}">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                ` : ''}
                             </div>
+
+                            <!-- Tendência compacta -->
+                            ${card.historico_6_meses && card.historico_6_meses.length > 0 ? `
+                                <div class="card-trend-compact">
+                                    <span class="trend-label">ÚLTIMOS 6 MESES</span>
+                                    <span class="trend-indicator ${card.tendencia}">
+                                        ${card.tendencia === 'subindo' ? '↗' : card.tendencia === 'caindo' ? '↘' : '→'} ${card.tendencia === 'subindo' ? 'Em alta' : card.tendencia === 'caindo' ? 'Em queda' : 'Estável'}
+                                    </span>
+                                </div>
+                            ` : ''}
 
                             <!-- Alertas -->
                             ${card.alertas && card.alertas.length > 0 ? `
@@ -1160,8 +1270,13 @@
                             <!-- Stats principais -->
                             <div class="card-balance">
                                 <div class="balance-main">
-                                    <span class="balance-label">Fatura do Mês</span>
+                                    <span class="balance-label">FATURA DO MÊS</span>
                                     <span class="balance-value">${formatCurrency(card.fatura_atual || 0)}</span>
+                                    ${card.media_historica > 0 && Math.abs(card.fatura_atual - card.media_historica) > 1 ? `
+                                        <span class="balance-comparison">
+                                            ${card.fatura_atual > card.media_historica ? '↑' : '↓'} ${((Math.abs(card.fatura_atual - card.media_historica) / card.media_historica) * 100).toFixed(0)}% vs média
+                                        </span>
+                                    ` : ''}
                                 </div>
                                 <div class="balance-grid">
                                     <div class="balance-item">
@@ -1170,7 +1285,7 @@
                                     </div>
                                     <div class="balance-item">
                                         <span class="balance-small-label">Disponível</span>
-                                        <span class="balance-small-value success">${formatCurrency(card.disponivel || 0)}</span>
+                                        <span class="balance-small-value">${formatCurrency(card.disponivel || 0)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1179,39 +1294,39 @@
                             <!-- Barra de utilização -->
                             <div class="card-usage-new">
                                 <div class="usage-header">
-                                    <span class="usage-label">Utilização do Limite</span>
+                                    <span class="usage-label">UTILIZAÇÃO DO LIMITE</span>
                                     <span class="usage-percentage">${(card.percentual || 0).toFixed(1)}%</span>
                                 </div>
                                 <div class="usage-bar-new">
-                                    <div class="usage-fill-new ${card.percentual > 80 ? 'danger' : card.percentual > 50 ? 'warning' : ''}" 
-                                         style="width: ${Math.min(card.percentual || 0, 100)}%; background: ${card.percentual > 80 ? 'linear-gradient(90deg, #e74c3c, #c0392b)' : card.percentual > 50 ? 'linear-gradient(90deg, #f39c12, #e67e22)' : `linear-gradient(90deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}CC)`}"></div>
+                                    <div class="usage-fill-new" 
+                                         style="width: ${Math.min(card.percentual || 0, 100)}%"></div>
                                 </div>
                             </div>
 
-                            ${card.parcelamentos && card.parcelamentos.ativos > 0 ? `
-                                <div class="card-installments">
-                                    <div class="installments-badge">
-                                        <i class="fas fa-calendar-check"></i>
-                                        <span class="installments-text">${card.parcelamentos.ativos} parcelamento${card.parcelamentos.ativos > 1 ? 's' : ''} ativo${card.parcelamentos.ativos > 1 ? 's' : ''}</span>
-                                        <span class="installments-value">${formatCurrency(card.parcelamentos.valor_total)}</span>
-                                    </div>
+                            <!-- Resumo rápido de informações adicionais -->
+                            ${card.parcelamentos && card.parcelamentos.ativos > 0 || (card.proximos_meses && card.proximos_meses.length > 0 && card.proximos_meses.some(m => m.valor > 0)) ? `
+                                <div class="card-quick-info">
+                                    ${card.parcelamentos && card.parcelamentos.ativos > 0 ? `
+                                        <div class="quick-info-item">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <span>${card.parcelamentos.ativos} parcelamento${card.parcelamentos.ativos > 1 ? 's' : ''}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${card.proximos_meses && card.proximos_meses.length > 0 && card.proximos_meses.some(m => m.valor > 0) ? `
+                                        <div class="quick-info-item">
+                                            <i class="fas fa-chart-line"></i>
+                                            <span>Próximo: ${formatCurrency(card.proximos_meses.find(m => m.valor > 0)?.valor || 0)}</span>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             ` : ''}
-
-
-                            ${card.proximos_meses && card.proximos_meses.length > 0 && card.proximos_meses.some(m => m.valor > 0) ? `
-                                <div class="card-forecast">
-                                    <h4 class="forecast-title"><i class="fas fa-chart-line"></i> Próximos Meses</h4>
-                                    <div class="forecast-grid">
-                                        ${card.proximos_meses.filter(m => m.valor > 0).map(mes => `
-                                            <div class="forecast-month">
-                                                <span class="forecast-month-name">${escapeHtml(mes.mes)}</span>
-                                                <span class="forecast-month-value">${formatCurrency(mes.valor)}</span>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
+                            
+                            <div class="card-footer">
+                                <button class="card-action-btn primary full-width" onclick="event.stopPropagation(); if(window.LK_CardDetail?.open) window.LK_CardDetail.open(${card.id || 0}, '${escapeHtml(card.nome)}', '${card.cor || '#E67E22'}', '${state.currentMonth}')" title="Ver relatório detalhado">
+                                    <i class="fas fa-eye"></i>
+                                    <span>Ver Detalhes</span>
+                                </button>
+                            </div>
                         </div>
                     `).join('') : `
                         <div class="empty-state">

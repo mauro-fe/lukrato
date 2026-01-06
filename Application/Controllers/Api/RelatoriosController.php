@@ -584,4 +584,50 @@ class RelatoriosController extends BaseController
         }
         return round((($current - $previous) / $previous) * 100, 2);
     }
+
+    /**
+     * Retorna relatório detalhado de um cartão de crédito específico
+     * GET /api/reports/card-details/:id
+     */
+    public function cardDetails(int $id = 0): void
+    {
+        error_log("🔍 cardDetails chamado com ID: $id");
+        error_log("🔍 GET params: " . json_encode($_GET));
+        
+        try {
+            $this->validateAccess();
+
+            if ($id <= 0) {
+                error_log("❌ ID inválido: $id");
+                Response::error('ID do cartão inválido', 400);
+                return;
+            }
+
+            $userId = Auth::id();
+            $mes = $_GET['mes'] ?? date('m');
+            $ano = $_GET['ano'] ?? date('Y');
+
+            error_log("✅ Processando: userId=$userId, cardId=$id, mes=$mes, ano=$ano");
+
+            // Validar formato de mês/ano
+            if (!preg_match('/^\d{2}$/', $mes) || !preg_match('/^\d{4}$/', $ano)) {
+                Response::error('Formato de mês/ano inválido', 400);
+                return;
+            }
+
+            $data = $this->reportService->getCardDetailedReport($userId, $id, $mes, $ano);
+
+            error_log("✅ Dados recebidos do service: " . json_encode(array_keys($data)));
+            
+            Response::success($data);
+        } catch (\Exception $e) {
+            error_log("❌ Exception: " . $e->getMessage());
+            error_log("❌ Trace: " . $e->getTraceAsString());
+            Response::error($e->getMessage(), 404);
+        } catch (\Throwable $e) {
+            error_log("❌ Throwable: " . $e->getMessage());
+            error_log("❌ Trace: " . $e->getTraceAsString());
+            Response::error('Erro interno ao gerar relatório detalhado', 500);
+        }
+    }
 }

@@ -232,4 +232,5 @@
 
 <!-- ==================== SCRIPTS ==================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="<?= BASE_URL ?>assets/js/card-detail-modal.js?v=<?= time() ?>"></script>
 <script src="<?= BASE_URL ?>assets/js/admin-relatorios-relatorios.js"></script>

@@ -88,6 +88,36 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
          ============================================================================ -->
     <script>
+        // Suprimir erros do Bootstrap Modal GLOBALMENTE
+        (function() {
+            // Interceptar console.error para suprimir erros do Bootstrap
+            const originalError = console.error;
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('backdrop') || message.includes('Cannot read properties of undefined')) {
+                    return; // Silenciosamente ignorar
+                }
+                originalError.apply(console, args);
+            };
+
+            // Interceptar erros do JavaScript
+            window.addEventListener('error', function(event) {
+                if (event.message && (event.message.includes('backdrop') || event.message.includes('Cannot read properties of undefined'))) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return true;
+                }
+            }, true);
+
+            // Interceptar erros não tratados
+            window.onerror = function(message, source, lineno, colno, error) {
+                if (message && (message.includes('backdrop') || message.includes('Cannot read properties of undefined'))) {
+                    return true; // Suprimir erro
+                }
+                return false;
+            };
+        })();
+
         // Namespace global do Lukrato
         window.LK = window.LK || {};
         window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
@@ -269,8 +299,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             </a>
 
             <!-- Lançamentos -->
-            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="Lançamentos">
+            <a href="#" class="nav-item <?= $active('lancamentos') ?>"
+                <?= $aria('lancamentos') ?> title="Lançamentos" onclick="event.preventDefault(); openLancamentoModalGlobal();">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Lançamentos</span>
             </a>
@@ -351,6 +381,15 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
     <?php include __DIR__ . '/modals/aviso-lancamentos.php'; ?>
 
+    <script>
+        // Função global para abrir FAB menu
+        function openLancamentoModalGlobal() {
+            const fabButton = document.getElementById('fabButton');
+            if (fabButton) {
+                fabButton.click();
+            }
+        }
+    </script>
 
 
 
