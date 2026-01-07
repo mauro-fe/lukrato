@@ -57,8 +57,10 @@
 <!-- ==================== MODAIS ==================== -->
 <?php include __DIR__ . '/../partials/modals/modal_contas.php'; ?>
 <?php include __DIR__ . '/../partials/modals/modal_lancamento_v2.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal_lancamento_global.php'; ?>
 
 <!-- ==================== SCRIPTS ==================== -->
+<script src="<?= BASE_URL ?>assets/js/lancamento-global.js?v=<?= time() ?>"></script>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
 <style>
     /* Estilos customizados para SweetAlert2 */

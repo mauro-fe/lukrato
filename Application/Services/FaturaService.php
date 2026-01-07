@@ -56,6 +56,13 @@ class FaturaService
                 $totalItens = $fatura->itens->count();
                 $progresso = $fatura->progresso;
 
+                // Calcular valor pendente (apenas itens não pagos)
+                $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+
+                // Pegar data de vencimento do primeiro item
+                $primeiroItem = $fatura->itens->first();
+                $dataVencimento = $primeiroItem ? $primeiroItem->data_vencimento : null;
+
                 // Determinar status baseado no progresso
                 if ($progresso === 0) {
                     $status = 'pendente';
@@ -68,14 +75,16 @@ class FaturaService
                 return [
                     'id' => $fatura->id,
                     'descricao' => $fatura->descricao,
-                    'valor_total' => $fatura->valor_total,
+                    'valor_total' => $valorPendente, // Usar valor pendente ao invés do total
                     'numero_parcelas' => $fatura->numero_parcelas,
                     'valor_parcela' => $fatura->valor_parcela,
                     'data_compra' => $fatura->data_compra->format('Y-m-d'),
+                    'data_vencimento' => $dataVencimento ? $dataVencimento->format('Y-m-d') : null,
                     'cartao' => [
                         'id' => $fatura->cartaoCredito->id,
-                        'nome' => $fatura->cartaoCredito->nome,
+                        'nome' => $fatura->cartaoCredito->nome_cartao ?? $fatura->cartaoCredito->bandeira,
                         'bandeira' => $fatura->cartaoCredito->bandeira,
+                        'ultimos_digitos' => $fatura->cartaoCredito->ultimos_digitos ?? '',
                     ],
                     'parcelas_pagas' => $itensPagos,
                     'parcelas_pendentes' => $totalItens - $itensPagos,
@@ -122,6 +131,9 @@ class FaturaService
             $itensPagos = $fatura->itens->where('pago', 1)->count();
             $totalItens = $fatura->itens->count();
 
+            // Calcular valor pendente
+            $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+
             $progresso = $fatura->progresso;
             if ($progresso === 0) {
                 $status = 'pendente';
@@ -135,12 +147,14 @@ class FaturaService
                 'id' => $fatura->id,
                 'descricao' => $fatura->descricao,
                 'valor_total' => $fatura->valor_total,
+                'valor_pendente' => $valorPendente,
                 'numero_parcelas' => $fatura->numero_parcelas,
                 'data_compra' => $fatura->data_compra->format('Y-m-d'),
                 'cartao' => [
                     'id' => $fatura->cartaoCredito->id,
-                    'nome' => $fatura->cartaoCredito->nome,
+                    'nome' => $fatura->cartaoCredito->nome_cartao ?? $fatura->cartaoCredito->bandeira,
                     'bandeira' => $fatura->cartaoCredito->bandeira,
+                    'ultimos_digitos' => $fatura->cartaoCredito->ultimos_digitos ?? '',
                 ],
                 'parcelas' => $parcelas,
                 'parcelas_pagas' => $itensPagos,

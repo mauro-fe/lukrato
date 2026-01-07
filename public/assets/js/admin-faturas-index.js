@@ -413,18 +413,55 @@
             const tipoText = 'Despesas';
             const tipoIcon = '💸';
             const progresso = parc.progresso || 0;
-            const valorPago = parc.valor_total * progresso / 100;
-            const valorRestante = parc.valor_total - valorPago;
+
+            // Calcular valores baseado nas parcelas reais
+            let valorPago = 0;
+            let valorRestante = parc.valor_total; // valor_total já é o valor pendente da API
+
+            // Se tem parcelas detalhadas, calcular valores precisos
+            if (parc.parcelas && parc.parcelas.length > 0) {
+                valorPago = parc.parcelas
+                    .filter(p => p.pago)
+                    .reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                valorRestante = parc.parcelas
+                    .filter(p => !p.pago)
+                    .reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+            }
+
+            // Verificar se tem itens pendentes para mostrar o botão de pagar tudo
+            const temItensPendentes = parc.parcelas_pendentes > 0 && valorRestante > 0;
 
             let html = `
                 <div class="detalhes-header">
-                    <h3 class="detalhes-title">${Utils.escapeHtml(parc.descricao)}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 class="detalhes-title" style="margin: 0;">${Utils.escapeHtml(parc.descricao)}</h3>
+                        ${temItensPendentes ? `
+                            <button class="btn-pagar-fatura-completa" onclick="pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})" style="
+                                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                color: white;
+                                border: none;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                                transition: all 0.2s;
+                                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'" 
+                               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(16, 185, 129, 0.3)'">
+                                <i class="fas fa-check-double"></i>
+                                Pagar Fatura Completa
+                            </button>
+                        ` : ''}
+                    </div>
                     
                     <!-- Informações Principais -->
                     <div class="detalhes-grid">
                         <div class="detalhes-item">
-                            <span class="detalhes-label">💵 Valor Total</span>
-                            <span class="detalhes-value detalhes-value-highlight">${Utils.formatMoney(parc.valor_total)}</span>
+                            <span class="detalhes-label">💵 Valor Total a Pagar</span>
+                            <span class="detalhes-value detalhes-value-highlight">${Utils.formatMoney(valorRestante)}</span>
                         </div>
                         <div class="detalhes-item">
                             <span class="detalhes-label">📦 Itens</span>
@@ -610,6 +647,82 @@
                     icon: 'error',
                     title: 'Erro',
                     text: error.message || 'Erro ao processar operação'
+                });
+            }
+        },
+
+        async pagarFaturaCompleta(faturaId, valorTotal) {
+            try {
+                const result = await Swal.fire({
+                    title: 'Pagar Fatura Completa?',
+                    html: `
+                        <p>Deseja realmente pagar todos os itens pendentes desta fatura?</p>
+                        <div style="margin: 1.5rem 0; padding: 1rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                            <div style="font-size: 0.875rem; color: #047857; margin-bottom: 0.5rem;">Valor Total:</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #059669;">${Utils.formatMoney(valorTotal)}</div>
+                        </div>
+                        <p style="color: #6b7280; font-size: 0.875rem;">Todos os itens pendentes serão marcados como pagos.</p>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: '<i class="fas fa-check"></i> Sim, pagar tudo',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        confirmButton: 'btn-confirm-pagar',
+                        cancelButton: 'btn-cancel'
+                    }
+                });
+
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Processando pagamento...',
+                    html: 'Aguarde enquanto processamos o pagamento de todos os itens.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Buscar detalhes da fatura para pegar todos os IDs dos itens pendentes
+                const fatura = await API.buscarParcelamento(faturaId);
+                const itensPendentes = fatura.data.parcelas.filter(p => !p.pago);
+
+                // Marcar todos os itens pendentes como pagos
+                for (const item of itensPendentes) {
+                    await API.toggleItemFatura(faturaId, item.id, true);
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Fatura Paga!',
+                    html: `
+                        <p>Todos os itens foram pagos com sucesso!</p>
+                        <div style="margin-top: 1rem; color: #059669;">
+                            <i class="fas fa-check-circle" style="font-size: 3rem;"></i>
+                        </div>
+                    `,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                // Recarregar a página de listagem
+                await App.carregarParcelamentos();
+
+                // Fechar o modal de detalhes
+                STATE.modalDetalhesInstance.hide();
+
+            } catch (error) {
+                console.error('Erro ao pagar fatura completa:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro ao pagar fatura',
+                    text: error.message || 'Não foi possível processar o pagamento. Tente novamente.'
                 });
             }
         },
@@ -845,5 +958,13 @@
     } else {
         App.init();
     }
+
+    // ============================================================================
+    // EXPOR FUNÇÕES GLOBAIS PARA ONCLICK
+    // ============================================================================
+
+    window.pagarFaturaCompletaGlobal = async function (faturaId, valorTotal) {
+        await UI.pagarFaturaCompleta(faturaId, valorTotal);
+    };
 
 })();
