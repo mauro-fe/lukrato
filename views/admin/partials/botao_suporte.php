@@ -347,6 +347,103 @@
         animation: none;
     }
 
+    /* Responsivo - Botão menor em mobile */
+    @media (max-width: 768px) {
+        .lk-support-button {
+            width: 48px !important;
+            height: 48px !important;
+            font-size: 20px !important;
+            bottom: 20px !important;
+            right: 16px !important;
+        }
+
+        .lk-support-button::after {
+            display: none !important;
+        }
+
+        /* Modal responsivo */
+        .swal2-popup.lk-support-modal {
+            width: calc(100vw - 32px) !important;
+            max-width: 500px !important;
+            padding: 1.5rem !important;
+            margin: 16px !important;
+        }
+
+        .swal2-popup.lk-support-modal .swal2-title {
+            font-size: 1.5rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .lk-support-info {
+            padding: 0.75rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .lk-support-info-label {
+            font-size: 0.7rem !important;
+        }
+
+        .lk-support-info-name {
+            font-size: 0.9rem !important;
+        }
+
+        .lk-support-info-email,
+        .lk-support-info-tel {
+            font-size: 0.85rem !important;
+        }
+
+        .lk-contact-preference {
+            flex-direction: column !important;
+            gap: 0.75rem !important;
+        }
+
+        .lk-radio {
+            padding: 0.75rem !important;
+            min-height: 48px !important;
+        }
+
+        .swal2-popup.lk-support-modal .swal2-textarea {
+            min-height: 120px !important;
+            font-size: 0.9rem !important;
+            padding: 0.75rem !important;
+        }
+
+        .swal2-popup.lk-support-modal .swal2-actions {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+
+        .swal2-popup.lk-support-modal .swal2-confirm,
+        .swal2-popup.lk-support-modal .swal2-cancel {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .lk-support-button {
+            width: 44px !important;
+            height: 44px !important;
+            font-size: 18px !important;
+            bottom: 18px !important;
+            right: 12px !important;
+        }
+
+        .swal2-popup.lk-support-modal {
+            width: calc(100vw - 24px) !important;
+            padding: 1.25rem !important;
+        }
+
+        .swal2-popup.lk-support-modal .swal2-title {
+            font-size: 1.25rem !important;
+        }
+
+        .lk-support-info {
+            padding: 0.625rem !important;
+        }
+    }
+
     /* Animação de entrada do modal */
     .swal2-popup.lk-support-modal.swal2-show {
         animation: scaleIn 0.3s ease-out;

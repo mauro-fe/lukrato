@@ -17,12 +17,15 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 
 <div class="top-navbar">
     <div class="top-navbar-container">
+        <!-- Menu Button (Mobile Only) -->
+        <button id="mobileMenuBtn" class="top-navbar-menu-btn" aria-label="Abrir/fechar menu"
+            aria-expanded="false" title="Menu">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </button>
+
         <!-- Page Title / Breadcrumb -->
         <div class="top-navbar-title">
             <h1><?= $pageTitle ?? 'Dashboard' ?></h1>
-            <?php if (!empty($subTitle)): ?>
-                <span class="subtitle"><?= $subTitle ?></span>
-            <?php endif; ?>
         </div>
 
         <!-- Actions -->

@@ -729,16 +729,6 @@
                   </div>
                   ` : ''}
                 </div>
-                <div class="transaction-actions">
-                  <button class="transaction-btn transaction-btn-edit" data-id="${transaction.id}">
-                    <i class="fas fa-edit"></i>
-                    Editar
-                  </button>
-                  <button class="transaction-btn transaction-btn-delete btn-del" data-id="${transaction.id}">
-                    <i class="fas fa-trash"></i>
-                    Excluir
-                  </button>
-                </div>
               `;
 
                             DOM.cardsContainer.appendChild(card);
@@ -1000,6 +990,7 @@
 
     const EventListeners = {
         init: () => {
+            // Event listener para tabela desktop
             DOM.tableBody?.addEventListener('click', async (e) => {
                 const btn = e.target.closest('.btn-del');
                 if (!btn) return;
@@ -1026,7 +1017,7 @@
                 DashboardManager.refresh();
             });
 
-            // Fallback para quando o evento n‹o vier: observa o atributo data-theme
+            // Fallback para quando o evento não vier: observa o atributo data-theme
             const observer = new MutationObserver(() => {
                 DashboardManager.refresh();
             });

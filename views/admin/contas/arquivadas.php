@@ -686,4 +686,143 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+
+    /* ==================== RESPONSIVO ==================== */
+    @media (max-width: 768px) {
+        .cont-page {
+            padding: 0 var(--spacing-3);
+            margin-top: var(--spacing-3);
+        }
+
+        .lk-accounts-wrap {
+            padding: var(--spacing-4);
+            margin-bottom: 1.5rem !important;
+        }
+
+        .lk-acc-header {
+            flex-direction: column !important;
+            gap: var(--spacing-3);
+            align-items: flex-start !important;
+        }
+
+        .lk-acc-header h1 {
+            font-size: 1.375rem !important;
+        }
+
+        .lk-acc-header .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr !important;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .acc-grid {
+            grid-template-columns: 1fr !important;
+            gap: 1rem;
+        }
+
+        .account-header {
+            height: 100px;
+            padding: 1rem;
+        }
+
+        .account-body {
+            padding: 1rem;
+        }
+
+        .account-name {
+            font-size: 1.125rem;
+            padding-right: 0;
+        }
+
+        .account-institution {
+            font-size: 0.8125rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .account-balance {
+            font-size: 1.5rem;
+        }
+
+        .acc-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 0.625rem 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .lk-acc-header h1 {
+            font-size: 1.25rem !important;
+        }
+
+        .account-header {
+            height: 80px;
+            padding: 0.75rem;
+        }
+
+        .account-body {
+            padding: 0.875rem;
+        }
+
+        .account-name {
+            font-size: 1rem;
+        }
+
+        .account-institution {
+            font-size: 0.75rem;
+        }
+
+        .account-balance {
+            font-size: 1.375rem;
+        }
+
+        .btn-action {
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8125rem;
+        }
+
+        .stat-card {
+            padding: 0.875rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.375rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+        }
+    }
 </style>

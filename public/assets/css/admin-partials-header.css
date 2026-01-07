@@ -133,10 +133,10 @@ h3 {
 /* 5.2 Sidebar Header + Logo */
 .sidebar-header {
   height: 50px;
-  padding: var(--spacing-6) 12px 60px;
+  padding: 16px 12px 60px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   border-bottom: 1px solid var(--glass-border);
   background: linear-gradient(
     135deg,
@@ -145,6 +145,33 @@ h3 {
   );
   position: relative;
   overflow: hidden;
+}
+
+/* Botão fechar sidebar (mobile) */
+.close-sidebar-btn {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  z-index: 10;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-sidebar-btn:hover {
+  background: var(--_primary-weak);
+  transform: scale(1.1);
+}
+
+.close-sidebar-btn:active {
+  transform: scale(0.95);
 }
 
 .sidebar-header::before {
@@ -177,10 +204,12 @@ h3 {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--spacing-3);
+  justify-content: flex-start;
+  padding: 8px 0;
   border-radius: var(--radius-lg);
   transition: all 0.3s ease;
+  flex: 1;
+  min-width: 0;
 }
 
 .sidebar .logo:hover {
@@ -1336,7 +1365,6 @@ body.sidebar-collapsed .content-wrapper {
    14. SIDEBAR BACKDROP (Mobile)
    ============================================================================ */
 .sidebar-backdrop {
-  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(2px);
