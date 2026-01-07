@@ -11,7 +11,7 @@ use Application\Lib\Auth;
 /**
  * Controller para a página de faturas de cartão (view)
  */
-class ParcelamentoController extends BaseController
+class FaturaController extends BaseController
 {
     /**
      * Exibe a página de gerenciamento de faturas de cartão
@@ -27,7 +27,7 @@ class ParcelamentoController extends BaseController
 
 
         $this->render(
-            'admin/parcelamentos/index',
+            'admin/faturas/index',
             ['pageTitle' => 'Faturas de Cartão', 'subTitle' => 'Gerencie suas Faturas'],
             'admin/partials/header',
             'admin/partials/footer'

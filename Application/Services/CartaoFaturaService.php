@@ -63,35 +63,29 @@ class CartaoFaturaService
     }
 
     /**
-     * Retorna as parcelas não pagas de um cartão em um mês específico
+     * Retorna as parcelas/itens não pagos de um cartão em um mês específico
+     * 
+     * ATUALIZADO: Agora busca de faturas_cartao_itens ao invés de lancamentos
      * 
      * @param int $cartaoId
      * @param int $mes (1-12)
      * @param int $ano
-     * @return array ['parcelas' => [...], 'total' => float, 'vencimento' => string]
+     * @return array ['itens' => [...], 'total' => float, 'vencimento' => string]
      */
     public function obterFaturaMes(int $cartaoId, int $mes, int $ano): array
     {
         $cartao = CartaoCredito::findOrFail($cartaoId);
 
-        // Busca TODAS as parcelas do cartão no mês (pagas e não pagas)
-        $parcelas = Lancamento::where('cartao_credito_id', $cartaoId)
-            ->where(function ($query) {
-                // Lançamentos não parcelados OU parcelas de parcelamentos (ignora o pai)
-                $query->where('eh_parcelado', false)
-                    ->orWhere(function ($subQuery) {
-                        $subQuery->where('eh_parcelado', true)
-                            ->whereNotNull('parcela_atual');
-                    });
-            })
-            ->whereYear('data', $ano)
-            ->whereMonth('data', $mes)
-            ->orderBy('data')
+        // Busca itens de fatura do mês (pagos e não pagos)
+        $itens = \Application\Models\FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
+            ->whereYear('data_vencimento', $ano)
+            ->whereMonth('data_vencimento', $mes)
+            ->orderBy('data_compra')
             ->get();
 
-        // Separar pagas e não pagas
-        $parcelasPendentes = $parcelas->where('pago', false);
-        $total = $parcelasPendentes->sum('valor');
+        // Separar pendentes
+        $itensPendentes = $itens->where('pago', false);
+        $total = $itensPendentes->sum('valor');
 
         // Data de vencimento da fatura (dia do vencimento do cartão)
         $dataVencimento = sprintf('%04d-%02d-%02d', $ano, $mes, $cartao->dia_vencimento);
@@ -103,15 +97,17 @@ class CartaoFaturaService
                 'ultimos_digitos' => $cartao->ultimos_digitos,
                 'dia_vencimento' => $cartao->dia_vencimento,
             ],
-            'parcelas' => $parcelas->map(function ($lancamento) {
+            'itens' => $itens->map(function ($item) {
                 return [
-                    'id' => $lancamento->id,
-                    'descricao' => $lancamento->descricao,
-                    'valor' => $lancamento->valor,
-                    'data_vencimento' => $lancamento->data,
-                    'parcela_atual' => $lancamento->parcela_atual ?? 1,
-                    'total_parcelas' => $lancamento->total_parcelas ?? 1,
-                    'pago' => $lancamento->pago,
+                    'id' => $item->id,
+                    'descricao' => $item->descricao,
+                    'valor' => $item->valor,
+                    'data_compra' => $item->data_compra,
+                    'data_vencimento' => $item->data_vencimento,
+                    'parcela_atual' => $item->parcela_atual ?? 1,
+                    'total_parcelas' => $item->total_parcelas ?? 1,
+                    'pago' => $item->pago,
+                    'categoria_id' => $item->categoria_id,
                 ];
             })->toArray(),
             'total' => $total,
@@ -123,7 +119,8 @@ class CartaoFaturaService
 
     /**
      * Paga a fatura completa do mês
-     * Marca todas as parcelas como pagas e devolve o limite ao cartão
+     * 
+     * ATUALIZADO: Converte itens de fatura em lançamentos reais e marca como pago
      * 
      * @param int $cartaoId
      * @param int $mes
@@ -143,11 +140,18 @@ class CartaoFaturaService
             // Busca fatura do mês
             $fatura = $this->obterFaturaMes($cartaoId, $mes, $ano);
 
-            if (empty($fatura['parcelas'])) {
-                throw new \Exception('Não há parcelas para pagar neste mês.');
+            if (empty($fatura['itens'])) {
+                throw new \Exception('Não há itens para pagar neste mês.');
             }
 
-            $totalPagar = $fatura['total'];
+            // Filtrar apenas itens não pagos
+            $itensNaoPagos = array_filter($fatura['itens'], fn($item) => !$item['pago']);
+
+            if (empty($itensNaoPagos)) {
+                throw new \Exception('Todos os itens desta fatura já foram pagos.');
+            }
+
+            $totalPagar = array_sum(array_column($itensNaoPagos, 'valor'));
 
             // Usa a conta vinculada ao cartão
             $contaId = $cartao->conta_id;
@@ -168,14 +172,11 @@ class CartaoFaturaService
                 ));
             }
 
-            // Calcular saldo real da conta
-            // Exclui TODOS os lançamentos de cartão de crédito pois:
-            // - Não pagos: são compras futuras (virtual)
-            // - Pagos: já foram contabilizados via lançamento "Pagamento Fatura"
+            // Calcular saldo real da conta (exclui lançamentos de cartão)
             $saldoAtual = $conta->saldo_inicial +
                 Lancamento::where('conta_id', $contaId)
                 ->where('user_id', $userId)
-                ->whereNull('cartao_credito_id')  // Apenas lançamentos normais (sem cartão)
+                ->whereNull('cartao_credito_id')
                 ->sum(DB::raw("CASE WHEN tipo = 'receita' THEN valor ELSE -valor END"));
 
             if ($saldoAtual < $totalPagar) {
@@ -186,13 +187,20 @@ class CartaoFaturaService
                 ));
             }
 
-            // Marca todas as parcelas como pagas
-            $parcelasIds = array_column($fatura['parcelas'], 'id');
             $dataPagamento = now()->format('Y-m-d');
-            Lancamento::whereIn('id', $parcelasIds)->update([
-                'pago' => true,
-                'data_pagamento' => $dataPagamento
-            ]);
+            $itensIds = array_column($itensNaoPagos, 'id');
+
+            // Converter itens de fatura em lançamentos (compras de cartão já viram lançamentos na hora da compra)
+            // MAS para parcelamentos, precisamos manter registro
+            foreach ($itensNaoPagos as $itemData) {
+                $item = \Application\Models\FaturaCartaoItem::find($itemData['id']);
+                if (!$item) continue;
+
+                // Marca item como pago
+                $item->pago = true;
+                $item->data_pagamento = $dataPagamento;
+                $item->save();
+            }
 
             // Devolve o limite ao cartão
             $cartao->limite_disponivel += $totalPagar;
@@ -219,12 +227,12 @@ class CartaoFaturaService
                 'tipo' => 'despesa',
                 'valor' => $totalPagar,
                 'descricao' => $descricaoPagamento,
-                'data' => now()->format('Y-m-d'),
+                'data' => $dataPagamento,
                 'observacao' => sprintf(
-                    'Pagamento automático de %d parcela(s) do cartão',
-                    count($parcelasIds)
+                    'Pagamento automático de %d item(s) do cartão',
+                    count($itensIds)
                 ),
-                'pago' => true, // Já marca como pago pois é o pagamento em si
+                'pago' => true,
                 'data_pagamento' => $dataPagamento,
             ]);
 
@@ -236,7 +244,7 @@ class CartaoFaturaService
                 'success' => true,
                 'message' => 'Fatura paga com sucesso!',
                 'valor_pago' => $totalPagar,
-                'parcelas_pagas' => count($parcelasIds),
+                'itens_pagos' => count($itensIds),
                 'novo_limite_disponivel' => $cartao->limite_disponivel,
                 'lancamento_id' => $lancamentoPagamento->id,
             ];
@@ -248,6 +256,8 @@ class CartaoFaturaService
 
     /**
      * Pagar parcelas individuais selecionadas
+     * 
+     * ATUALIZADO: Busca itens de fatura ao invés de lançamentos
      */
     public function pagarParcelas(int $cartaoId, array $parcelaIds, int $mes, int $ano, int $userId): array
     {
@@ -258,18 +268,18 @@ class CartaoFaturaService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            // Validar e buscar as parcelas selecionadas
-            $parcelas = Lancamento::whereIn('id', $parcelaIds)
+            // Validar e buscar os ITENS DE FATURA selecionados
+            $itens = \Application\Models\FaturaCartaoItem::whereIn('id', $parcelaIds)
                 ->where('user_id', $userId)
                 ->where('cartao_credito_id', $cartaoId)
                 ->where('pago', false)
                 ->get();
 
-            if ($parcelas->isEmpty()) {
+            if ($itens->isEmpty()) {
                 throw new \Exception('Nenhuma parcela válida encontrada para pagamento.');
             }
 
-            $totalPagar = $parcelas->sum('valor');
+            $totalPagar = $itens->sum('valor');
 
             // Usa a conta vinculada ao cartão
             $contaId = $cartao->conta_id;
@@ -308,9 +318,9 @@ class CartaoFaturaService
                 ));
             }
 
-            // Marca as parcelas selecionadas como pagas
+            // Marca os ITENS DE FATURA selecionados como pagos
             $dataPagamento = now()->format('Y-m-d');
-            Lancamento::whereIn('id', $parcelaIds)->update([
+            \Application\Models\FaturaCartaoItem::whereIn('id', $parcelaIds)->update([
                 'pago' => true,
                 'data_pagamento' => $dataPagamento
             ]);
@@ -372,31 +382,35 @@ class CartaoFaturaService
      * @param int $userId
      * @return array
      */
+    /**
+     * Desfazer pagamento de uma parcela individual
+     * 
+     * ATUALIZADO: Usa FaturaCartaoItem ao invés de Lancamento
+     */
     public function desfazerPagamentoParcela(int $parcelaId, int $userId): array
     {
         DB::beginTransaction();
 
         try {
-            // Buscar a parcela
-            $parcela = Lancamento::where('id', $parcelaId)
+            // Buscar o ITEM DE FATURA
+            $item = \Application\Models\FaturaCartaoItem::where('id', $parcelaId)
                 ->where('user_id', $userId)
                 ->whereNotNull('cartao_credito_id')
                 ->where('pago', true)
                 ->firstOrFail();
 
-            $cartao = CartaoCredito::where('id', $parcela->cartao_credito_id)
+            $cartao = CartaoCredito::where('id', $item->cartao_credito_id)
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            error_log("🔄 [desfazerPagamentoParcela] Parcela ID={$parcelaId}, Cartão={$cartao->nome_cartao}, Valor=R$ {$parcela->valor}");
+            error_log("🔄 [desfazerPagamentoParcela] Item ID={$parcelaId}, Cartão={$cartao->nome_cartao}, Valor=R$ {$item->valor}");
 
             // Buscar o lançamento de pagamento correspondente
-            // O pagamento parcial tem descrição do tipo "Pagamento Fatura NOME •••• XXXX - MM/YYYY (X parcelas)"
-            $mes = date('n', strtotime($parcela->data));
-            $ano = date('Y', strtotime($parcela->data));
+            $mes = date('n', strtotime($item->data_vencimento));
+            $ano = date('Y', strtotime($item->data_vencimento));
             $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
 
-            // Buscar TODOS os lançamentos de pagamento desse mês para verificar quantas parcelas foram pagas
+            // Buscar TODOS os lançamentos de pagamento desse mês
             $lancamentosPagamento = Lancamento::where('user_id', $userId)
                 ->whereNull('cartao_credito_id')
                 ->where('tipo', 'despesa')
@@ -407,33 +421,33 @@ class CartaoFaturaService
                 throw new \Exception('Pagamento não encontrado para esta parcela.');
             }
 
-            // Se há mais de uma parcela paga no mesmo mês, precisamos ajustar
-            $parcelasPagasNoMes = Lancamento::where('user_id', $userId)
+            // Contar quantos itens estão pagos no mesmo mês
+            $itensPagosNoMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cartao->id)
-                ->whereYear('data', $ano)
-                ->whereMonth('data', $mes)
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
                 ->where('pago', true)
                 ->count();
 
-            error_log("📊 [desfazerPagamentoParcela] Parcelas pagas no mês: {$parcelasPagasNoMes}");
+            error_log("📊 [desfazerPagamentoParcela] Itens pagos no mês: {$itensPagosNoMes}");
 
-            // Se é a última parcela paga do mês, deletar o lançamento de pagamento completamente
-            if ($parcelasPagasNoMes === 1) {
+            // Se é o último item pago do mês, deletar o lançamento de pagamento completamente
+            if ($itensPagosNoMes === 1) {
                 foreach ($lancamentosPagamento as $pagamento) {
                     error_log("🗑️ [desfazerPagamentoParcela] Deletando lançamento de pagamento ID={$pagamento->id}");
                     $pagamento->delete();
                 }
             } else {
-                // Se há mais parcelas pagas, reduzir o valor do lançamento de pagamento
+                // Se há mais itens pagos, reduzir o valor do lançamento de pagamento
                 $lancamentoPagamento = $lancamentosPagamento->first();
-                $novoValor = $lancamentoPagamento->valor - $parcela->valor;
+                $novoValor = $lancamentoPagamento->valor - $item->valor;
 
                 error_log("💰 [desfazerPagamentoParcela] Reduzindo pagamento de R$ {$lancamentoPagamento->valor} para R$ {$novoValor}");
 
                 $lancamentoPagamento->valor = $novoValor;
 
-                // Atualizar descrição para refletir nova quantidade de parcelas
-                $novaQuantidade = $parcelasPagasNoMes - 1;
+                // Atualizar descrição para refletir nova quantidade de itens
+                $novaQuantidade = $itensPagosNoMes - 1;
                 $textoQuantidade = $novaQuantidade === 1 ? '1 parcela' : "{$novaQuantidade} parcelas";
                 $lancamentoPagamento->descricao = preg_replace(
                     '/\(\d+ parcelas?\)/',
@@ -444,13 +458,13 @@ class CartaoFaturaService
                 $lancamentoPagamento->save();
             }
 
-            // Desmarcar a parcela como paga
-            $parcela->pago = false;
-            $parcela->data_pagamento = null;
-            $parcela->save();
+            // Desmarcar o item como pago
+            $item->pago = false;
+            $item->data_pagamento = null;
+            $item->save();
 
-            // Reduzir limite disponível do cartão (a parcela volta a estar pendente)
-            $cartao->limite_disponivel -= $parcela->valor;
+            // Reduzir limite disponível do cartão (o item volta a estar pendente)
+            $cartao->limite_disponivel -= $item->valor;
             $cartao->save();
 
             DB::commit();
@@ -460,7 +474,7 @@ class CartaoFaturaService
             return [
                 'success' => true,
                 'message' => 'Pagamento da parcela desfeito com sucesso!',
-                'valor_desfeito' => (float) $parcela->valor,
+                'valor_desfeito' => (float) $item->valor,
                 'novo_limite_disponivel' => (float) $cartao->limite_disponivel,
             ];
         } catch (\Exception $e) {
@@ -754,6 +768,8 @@ class CartaoFaturaService
     /**
      * Desmarcar parcelas de uma fatura como não pagas
      * 
+     * ATUALIZADO: Usa FaturaCartaoItem ao invés de Lancamento
+     * 
      * @param int $cartaoId
      * @param int $mes
      * @param int $ano
@@ -761,20 +777,18 @@ class CartaoFaturaService
      */
     private function desmarcarParcelasPagasFatura(int $cartaoId, int $mes, int $ano, int $userId): void
     {
-        // Buscar lançamentos do cartão naquele mês que foram marcados como pagos
-        $dataInicio = sprintf('%04d-%02d-01', $ano, $mes);
-        $dataFim = date('Y-m-t', strtotime($dataInicio));
-
-        Lancamento::where('user_id', $userId)
+        // Buscar itens de fatura do cartão naquele mês que foram marcados como pagos
+        \Application\Models\FaturaCartaoItem::where('user_id', $userId)
             ->where('cartao_credito_id', $cartaoId)
-            ->whereBetween('data', [$dataInicio, $dataFim])
+            ->whereYear('data_vencimento', $ano)
+            ->whereMonth('data_vencimento', $mes)
             ->where('pago', true)
             ->update([
                 'pago' => false,
                 'data_pagamento' => null
             ]);
 
-        error_log("🔄 [desmarcarParcelas] Parcelas desmarcadas para o cartão {$cartaoId} em {$mes}/{$ano}");
+        error_log("🔄 [desmarcarParcelas] Itens desmarcados para o cartão {$cartaoId} em {$mes}/{$ano}");
     }
 
     /**

@@ -18,7 +18,7 @@
     const CONFIG = {
         BASE_URL: (window.BASE_URL || '/').replace(/\/?$/, '/'),
         ENDPOINTS: {
-            parcelamentos: 'api/parcelamentos',
+            parcelamentos: 'api/faturas',
             categorias: 'api/categorias',
             contas: 'api/contas'
         }
@@ -36,7 +36,8 @@
 
         // Filtros
         filtroStatus: document.getElementById('filtroStatus'),
-        filtroTipo: document.getElementById('filtroTipo'),
+        filtroCartao: document.getElementById('filtroCartao'),
+        filtroAno: document.getElementById('filtroAno'),
         btnFiltrar: document.getElementById('btnFiltrar'),
 
         // Modal Detalhes
@@ -50,11 +51,14 @@
 
     const STATE = {
         parcelamentos: [],
+        cartoes: [],
+        faturaAtual: null, // Armazena a fatura que está sendo visualizada
         filtros: {
-            status: 'ativo',
-            tipo: '',
+            status: '',
+            cartao_id: '',
+            ano: '',
             mes: null,  // Será definido pelo month-picker
-            ano: null   // Será definido pelo month-picker
+            anoMes: null   // Será definido pelo month-picker
         },
         modalDetalhesInstance: null
     };
@@ -136,12 +140,18 @@
     // ============================================================================
 
     const API = {
-        async listarParcelamentos(status = '', mes = null, ano = null) {
+        async listarParcelamentos(status = '', cartaoId = '', mes = null, ano = null, anoFiltro = '') {
             let url = CONFIG.ENDPOINTS.parcelamentos;
             const params = [];
 
             if (status) params.push(`status=${status}`);
-            if (mes && ano) {
+            if (cartaoId) params.push(`cartao_id=${cartaoId}`);
+
+            // Se tem filtro de ano específico, usar ele
+            if (anoFiltro) {
+                params.push(`ano=${anoFiltro}`);
+            } else if (mes && ano) {
+                // Senão, usar mês e ano do seletor de mês
                 params.push(`mes=${mes}`);
                 params.push(`ano=${ano}`);
             }
@@ -151,6 +161,10 @@
             }
 
             return await Utils.apiRequest(url);
+        },
+
+        async listarCartoes() {
+            return await Utils.apiRequest(CONFIG.BASE_URL + 'api/cartoes');
         },
 
         async buscarParcelamento(id) {
@@ -170,7 +184,12 @@
             });
         },
 
-
+        async toggleItemFatura(faturaId, itemId, pago) {
+            return await Utils.apiRequest(`${CONFIG.BASE_URL}api/faturas/${faturaId}/itens/${itemId}/toggle`, {
+                method: 'POST',
+                body: JSON.stringify({ pago: pago })
+            });
+        }
     };
 
     // ============================================================================
@@ -210,84 +229,89 @@
         },
 
         createParcelamentoCard(parc) {
-            const percentualPago = parc.percentual_pago || 0;
-            const proximaParcela = this.getProximaParcela(parc.parcelas);
+            const progresso = parc.progresso || 0;
+            const totalItens = (parc.parcelas_pagas || 0) + (parc.parcelas_pendentes || 0);
+            const itensPendentes = parc.parcelas_pendentes || 0;
+            const itensPagos = parc.parcelas_pagas || 0;
 
             const div = document.createElement('div');
             div.className = `parcelamento-card status-${parc.status}`;
             div.dataset.id = parc.id;
 
-            const statusBadge = this.getStatusBadge(parc.status);
-            const tipoIcon = parc.tipo === 'entrada' ? '💰' : '💸';
+            const statusBadge = this.getStatusBadge(parc.status, progresso);
+
+            // Extrair mês/ano da descrição "Fatura 1/2026"
+            const mesAnoMatch = parc.descricao.match(/(\d+)\/(\d+)/);
+            const mes = mesAnoMatch ? mesAnoMatch[1] : '';
+            const ano = mesAnoMatch ? mesAnoMatch[2] : '';
 
             div.innerHTML = `
                 <div class="parc-card-header">
-                    <h3 class="parc-card-title">${parc.descricao}</h3>
+                    <div class="header-info">
+                        <div class="cartao-info">
+                            ${parc.cartao ? `
+                                <span class="cartao-nome">${Utils.escapeHtml(parc.cartao.nome || parc.cartao.bandeira)}</span>
+                                <span class="cartao-numero">•••• ${parc.cartao.ultimos_digitos || ''}</span>
+                            ` : `
+                                <span class="cartao-nome">${Utils.escapeHtml(parc.descricao)}</span>
+                            `}
+                        </div>
+                        <div class="fatura-periodo">
+                            <i class="fas fa-calendar-alt"></i>
+                            ${mes}/${ano}
+                        </div>
+                    </div>
                     ${statusBadge}
                 </div>
 
-                <div class="parc-card-values">
-                    <div class="parc-value-row">
-                        <span class="parc-value-label">Valor Total</span>
-                        <span class="parc-value-amount primary">${Utils.formatMoney(parc.valor_total)}</span>
+                <div class="fatura-resumo-principal">
+                    <div class="resumo-item">
+                        <span class="resumo-label">Total a Pagar</span>
+                        <strong class="resumo-valor">${Utils.formatMoney(parc.valor_total)}</strong>
                     </div>
-                    <div class="parc-value-row">
-                        <span class="parc-value-label">Valor da Parcela</span>
-                        <span class="parc-value-amount">${Utils.formatMoney(parc.valor_parcela)}</span>
-                    </div>
-                    <div class="parc-value-row">
-                        <span class="parc-value-label">Valor Restante</span>
-                        <span class="parc-value-amount">${Utils.formatMoney(parc.valor_restante)}</span>
-                    </div>
-                </div>
-
-                <div class="parc-progress-section">
-                    <div class="parc-progress-header">
-                        <span class="parc-progress-text">${parc.parcelas_pagas} de ${parc.numero_parcelas} pagas</span>
-                        <span class="parc-progress-percent">${Math.round(parc.percentual_pago)}%</span>
-                    </div>
-                    <div class="parc-progress-bar">
-                        <div class="parc-progress-fill" style="width: ${parc.percentual_pago}%"></div>
-                    </div>
-                </div>
-
-                <div class="parc-card-info">
-                    <div class="parc-info-item">
-                        <i class="fas fa-calendar"></i>
-                        <span>${Utils.formatDate(parc.data_criacao)}</span>
-                    </div>
-                    <div class="parc-info-item">
-                        ${tipoIcon}
-                        <span>${parc.tipo === 'entrada' ? 'Receita' : 'Despesa'}</span>
-                    </div>
-                    ${parc.categoria ? `
-                        <div class="parc-info-item">
-                            <i class="fas fa-folder"></i>
-                            <span>${parc.categoria.nome}</span>
+                    ${parc.data_vencimento ? `
+                        <div class="resumo-item">
+                            <span class="resumo-label">Vencimento</span>
+                            <strong class="resumo-data">${Utils.formatDate(parc.data_vencimento)}</strong>
                         </div>
                     ` : ''}
                 </div>
 
-                ${proximaParcela ? `
-                    <div class="parc-proxima-parcela">
-                        <i class="fas fa-clock"></i>
-                        <span>Próxima: ${Utils.formatDate(proximaParcela.data)} - ${Utils.formatMoney(proximaParcela.valor)}</span>
+                ${itensPendentes > 0 ? `
+                    <div class="fatura-itens-info">
+                        <div class="itens-badge itens-pendentes">
+                            <i class="fas fa-clock"></i>
+                            <span>${itensPendentes} ${itensPendentes === 1 ? 'item pendente' : 'itens pendentes'}</span>
+                        </div>
                     </div>
                 ` : ''}
 
-                </div>
+                ${itensPagos > 0 ? `
+                    <div class="fatura-itens-info">
+                        <div class="itens-badge itens-pagos">
+                            <i class="fas fa-check-circle"></i>
+                            <span>${itensPagos} ${itensPagos === 1 ? 'item pago' : 'itens pagos'}</span>
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${totalItens > 0 ? `
+                    <div class="parc-progress-section">
+                        <div class="parc-progress-header">
+                            <span class="parc-progress-text">${itensPagos} de ${totalItens} pagos</span>
+                            <span class="parc-progress-percent">${Math.round(progresso)}%</span>
+                        </div>
+                        <div class="parc-progress-bar">
+                            <div class="parc-progress-fill" style="width: ${progresso}%"></div>
+                        </div>
+                    </div>
+                ` : ''}
 
                 <div class="parc-card-actions">
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
                         <i class="fas fa-eye"></i>
                         <span>Ver Detalhes</span>
                     </button>
-                    ${parc.status === 'ativo' ? `
-                        <button class="parc-btn parc-btn-cancel" data-action="cancel" data-id="${parc.id}">
-                            <i class="fas fa-times"></i>
-                            <span>Cancelar</span>
-                        </button>
-                    ` : ''}
                 </div>
             `;
 
@@ -296,20 +320,29 @@
                 this.showDetalhes(parc.id);
             });
 
-            div.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
-                this.confirmarCancelamento(parc.id, parc.descricao);
-            });
-
             return div;
         },
 
-        getStatusBadge(status) {
+        getStatusBadge(status, progresso = null) {
+            // Se temos progresso, usar status mais descritivo
+            if (progresso !== null) {
+                if (progresso === 0) {
+                    return '<span class="parc-card-badge badge-pendente">⏳ Pendente</span>';
+                } else if (progresso === 100) {
+                    return '<span class="parc-card-badge badge-paga">✅ Paga</span>';
+                } else {
+                    return '<span class="parc-card-badge badge-parcial">🔄 Parcialmente Paga</span>';
+                }
+            }
+
+            // Fallback para status antigos
             const badges = {
-                'ativo': '<span class="parc-card-badge badge-ativo">✅ Ativo</span>',
-                'concluido': '<span class="parc-card-badge badge-concluido">✔️ Concluído</span>',
-                'cancelado': '<span class="parc-card-badge badge-cancelado">❌ Cancelado</span>'
+                'ativo': '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>',
+                'paga': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
+                'concluido': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
+                'cancelado': '<span class="parc-card-badge badge-cancelado">❌ Cancelada</span>'
             };
-            return badges[status] || '';
+            return badges[status] || '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>';
         },
 
         getProximaParcela(parcelas) {
@@ -335,7 +368,17 @@
 
                 console.log('showDetalhes chamado com ID:', parcelamentoId);
                 const response = await API.buscarParcelamento(parcelamentoId);
-                const parc = response.data.parcelamento;
+                console.log('Resposta da API:', response);
+
+                // A API retorna { success: true, data: { fatura_object } }
+                const parc = response.data;
+
+                if (!parc) {
+                    throw new Error('Fatura não encontrada');
+                }
+
+                // Armazenar fatura atual no estado
+                STATE.faturaAtual = parc;
 
                 DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
 
@@ -343,9 +386,10 @@
                 const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-toggle-parcela');
                 btnToggles.forEach(btn => {
                     btn.addEventListener('click', async (e) => {
-                        const lancamentoId = parseInt(e.target.dataset.lancamentoId);
+                        const itemId = parseInt(e.target.dataset.lancamentoId);
                         const isPago = e.target.dataset.pago === 'true';
-                        await this.toggleParcelaPaga(lancamentoId, !isPago);
+
+                        await this.toggleParcelaPaga(parcelamentoId, itemId, !isPago);
                     });
                 });
 
@@ -356,6 +400,7 @@
 
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
+                console.error('Erro ao abrir detalhes:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
@@ -365,9 +410,11 @@
         },
 
         renderDetalhes(parc) {
-            const tipoText = parc.tipo === 'entrada' ? 'Receita' : 'Despesa';
-            const tipoIcon = parc.tipo === 'entrada' ? '💰' : '💸';
-            const percentualPago = parc.percentual_pago || 0;
+            const tipoText = 'Despesas';
+            const tipoIcon = '💸';
+            const progresso = parc.progresso || 0;
+            const valorPago = parc.valor_total * progresso / 100;
+            const valorRestante = parc.valor_total - valorPago;
 
             let html = `
                 <div class="detalhes-header">
@@ -380,8 +427,8 @@
                             <span class="detalhes-value detalhes-value-highlight">${Utils.formatMoney(parc.valor_total)}</span>
                         </div>
                         <div class="detalhes-item">
-                            <span class="detalhes-label">📦 Parcelas</span>
-                            <span class="detalhes-value">${parc.numero_parcelas}x de ${Utils.formatMoney(parc.valor_parcela)}</span>
+                            <span class="detalhes-label">📦 Itens</span>
+                            <span class="detalhes-value">${parc.parcelas_pagas + parc.parcelas_pendentes} itens</span>
                         </div>
                         <div class="detalhes-item">
                             <span class="detalhes-label">📊 Tipo</span>
@@ -389,18 +436,12 @@
                         </div>
                         <div class="detalhes-item">
                             <span class="detalhes-label">🎯 Status</span>
-                            <span class="detalhes-value">${this.getStatusBadge(parc.status)}</span>
+                            <span class="detalhes-value">${this.getStatusBadge(parc.status, progresso)}</span>
                         </div>
-                        ${parc.categoria ? `
+                        ${parc.cartao ? `
                             <div class="detalhes-item">
-                                <span class="detalhes-label">🏷️ Categoria</span>
-                                <span class="detalhes-value">${Utils.escapeHtml(parc.categoria.nome)}</span>
-                            </div>
-                        ` : ''}
-                        ${parc.conta ? `
-                            <div class="detalhes-item">
-                                <span class="detalhes-label">🏦 Conta</span>
-                                <span class="detalhes-value">${Utils.escapeHtml(parc.conta.nome)}</span>
+                                <span class="detalhes-label">💳 Cartão</span>
+                                <span class="detalhes-value">${parc.cartao.bandeira} ${parc.cartao.nome ? '- ' + Utils.escapeHtml(parc.cartao.nome) : ''}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -408,20 +449,20 @@
                     <!-- Barra de Progresso -->
                     <div class="detalhes-progresso">
                         <div class="progresso-info">
-                            <span><strong>${parc.parcelas_pagas}</strong> de <strong>${parc.numero_parcelas}</strong> parcelas pagas</span>
-                            <span class="progresso-percent"><strong>${Math.round(percentualPago)}%</strong></span>
+                            <span><strong>${parc.parcelas_pagas}</strong> de <strong>${parc.parcelas_pagas + parc.parcelas_pendentes}</strong> itens pagos</span>
+                            <span class="progresso-percent"><strong>${Math.round(progresso)}%</strong></span>
                         </div>
                         <div class="progresso-barra">
-                            <div class="progresso-fill" style="width: ${percentualPago}%"></div>
+                            <div class="progresso-fill" style="width: ${progresso}%"></div>
                         </div>
                         <div class="progresso-valores">
-                            <span class="valor-pago">✅ Pago: ${Utils.formatMoney(parc.valor_total - parc.valor_restante)}</span>
-                            <span class="valor-restante">⏳ Restante: ${Utils.formatMoney(parc.valor_restante)}</span>
+                            <span class="valor-pago">✅ Pago: ${Utils.formatMoney(valorPago)}</span>
+                            <span class="valor-restante">⏳ Restante: ${Utils.formatMoney(valorRestante)}</span>
                         </div>
                     </div>
                 </div>
 
-                <h4 class="parcelas-titulo">📋 Lista de Parcelas</h4>
+                <h4 class="parcelas-titulo">📋 Lista de Itens</h4>
                 <div class="parcelas-container">
                     <table class="parcelas-table">
                         <thead>
@@ -431,13 +472,14 @@
                                 <th style="width: 120px;">Vencimento</th>
                                 <th style="width: 120px;">Valor</th>
                                 <th style="width: 120px;">Status</th>
+                                <th style="width: 140px;">Ação</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
             if (parc.parcelas && parc.parcelas.length > 0) {
-                parc.parcelas.forEach(parcela => {
+                parc.parcelas.forEach((parcela, index) => {
                     const isPaga = parcela.pago;
                     const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
                     const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
@@ -446,7 +488,7 @@
                     // Data de pagamento (se existir)
                     let dataPagamentoHtml = '';
                     if (isPaga && parcela.data_pagamento) {
-                        const dataVenc = new Date(parcela.data + 'T00:00:00');
+                        const dataVenc = new Date(parcela.data_vencimento + 'T00:00:00');
                         const dataPag = new Date(parcela.data_pagamento + 'T00:00:00');
                         const diasDiff = Math.floor((dataVenc - dataPag) / (1000 * 60 * 60 * 24));
 
@@ -462,13 +504,13 @@
                     html += `
                         <tr class="${rowClass}">
                             <td data-label="#">
-                                <span class="parcela-numero">${parcela.numero_parcela}/${parc.numero_parcelas}</span>
+                                <span class="parcela-numero">${index + 1}</span>
                             </td>
                             <td data-label="Descrição">
                                 <div class="parcela-desc">${Utils.escapeHtml(parcela.descricao || parc.descricao)}</div>
                             </td>
                             <td data-label="Vencimento">
-                                <span class="parcela-data">${Utils.formatDate(parcela.data)}</span>
+                                <span class="parcela-data">${Utils.formatDate(parcela.data_vencimento)}</span>
                                 ${dataPagamentoHtml}
                             </td>
                             <td data-label="Valor">
@@ -477,13 +519,32 @@
                             <td data-label="Status">
                                 <span class="${statusClass}">${statusText}</span>
                             </td>
+                            <td data-label="Ação">
+                                ${isPaga ? `
+                                    <button class="btn-toggle-parcela btn-desfazer" 
+                                        data-lancamento-id="${parcela.id}" 
+                                        data-pago="true"
+                                        title="Desfazer pagamento">
+                                        <i class="fas fa-undo"></i>
+                                        Desfazer
+                                    </button>
+                                ` : `
+                                    <button class="btn-toggle-parcela btn-pagar" 
+                                        data-lancamento-id="${parcela.id}" 
+                                        data-pago="false"
+                                        title="Marcar como pago">
+                                        <i class="fas fa-check"></i>
+                                        Pagar
+                                    </button>
+                                `}
+                            </td>
                         </tr>
                     `;
                 });
             } else {
                 html += `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem;">
+                        <td colspan="6" style="text-align: center; padding: 2rem;">
                             <p style="color: #6b7280;">Nenhuma parcela encontrada</p>
                         </td>
                     </tr>
@@ -494,19 +555,73 @@
                         </tbody>
                     </table>
                 </div>
-            `;
+    `;
 
             return html;
+        },
+
+        async toggleParcelaPaga(faturaId, itemId, marcarComoPago) {
+            try {
+                const acao = marcarComoPago ? 'pagar' : 'desfazer pagamento';
+
+                const result = await Swal.fire({
+                    title: marcarComoPago ? 'Marcar como pago?' : 'Desfazer pagamento?',
+                    text: `Deseja realmente ${acao} este item?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: marcarComoPago ? '#10b981' : '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: marcarComoPago ? 'Sim, marcar como pago' : 'Sim, desfazer',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Processando...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                await API.toggleItemFatura(faturaId, itemId, marcarComoPago);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: marcarComoPago ? 'Item marcado como pago' : 'Pagamento desfeito',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Recarregar a página de listagem
+                await App.carregarParcelamentos();
+
+                // Fechar o modal de detalhes
+                STATE.modalDetalhesInstance.hide();
+
+            } catch (error) {
+                console.error('Erro ao alternar status:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message || 'Erro ao processar operação'
+                });
+            }
         },
 
         async confirmarCancelamento(id, descricao) {
             const result = await Swal.fire({
                 title: 'Cancelar Parcelamento?',
                 html: `
-                    <p>Deseja realmente cancelar o parcelamento:</p>
+        < p > Deseja realmente cancelar o parcelamento:</p >
                     <strong>${descricao}</strong>
                     <p class="text-muted mt-2">As parcelas não pagas serão removidas.</p>
-                `,
+    `,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
@@ -546,6 +661,12 @@
                     document.activeElement?.blur();
                 });
 
+                // Carregar filtros da URL
+                this.aplicarFiltrosURL();
+
+                // Carregar cartões
+                await this.carregarCartoes();
+
                 // Carregar dados
                 await this.carregarParcelamentos();
 
@@ -560,6 +681,72 @@
                     title: 'Erro',
                     text: 'Erro ao carregar página'
                 });
+            }
+        },
+
+        aplicarFiltrosURL() {
+            const params = new URLSearchParams(window.location.search);
+
+            // Aplicar filtro de cartão
+            if (params.has('cartao_id')) {
+                const cartaoId = params.get('cartao_id');
+                STATE.filtros.cartao_id = cartaoId;
+                if (DOM.filtroCartao) {
+                    DOM.filtroCartao.value = cartaoId;
+                }
+            }
+
+            // Aplicar filtro de mês/ano
+            if (params.has('mes') && params.has('ano')) {
+                STATE.filtros.mes = parseInt(params.get('mes'));
+                STATE.filtros.ano = parseInt(params.get('ano'));
+
+                // Atualizar o month-picker se existir
+                if (window.monthPicker) {
+                    const monthPickerDate = new Date(STATE.filtros.ano, STATE.filtros.mes - 1);
+                    window.monthPicker.setDate(monthPickerDate);
+                }
+            }
+
+            // Aplicar filtro de status
+            if (params.has('status')) {
+                STATE.filtros.status = params.get('status');
+                if (DOM.filtroStatus) {
+                    DOM.filtroStatus.value = params.get('status');
+                }
+            }
+        },
+
+        async carregarCartoes() {
+            try {
+                const response = await API.listarCartoes();
+                STATE.cartoes = response.data || [];
+
+                // Preencher select de cartões
+                if (DOM.filtroCartao) {
+                    DOM.filtroCartao.innerHTML = '<option value="">Todos os cartões</option>';
+                    STATE.cartoes.forEach(cartao => {
+                        const option = document.createElement('option');
+                        option.value = cartao.id;
+                        option.textContent = cartao.nome || `${cartao.bandeira} **** ${cartao.ultimos_digitos || ''} `;
+                        DOM.filtroCartao.appendChild(option);
+                    });
+                }
+
+                // Preencher select de anos (últimos 5 anos)
+                if (DOM.filtroAno) {
+                    const anoAtual = new Date().getFullYear();
+                    DOM.filtroAno.innerHTML = '<option value="">Todos os anos</option>';
+                    for (let i = 0; i < 5; i++) {
+                        const ano = anoAtual - i;
+                        const option = document.createElement('option');
+                        option.value = ano;
+                        option.textContent = ano;
+                        DOM.filtroAno.appendChild(option);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Erro ao carregar cartões:', error);
             }
         },
 
@@ -582,22 +769,18 @@
                 }
 
                 STATE.filtros.mes = mes;
-                STATE.filtros.ano = ano;
+                STATE.filtros.anoMes = ano;
 
                 const response = await API.listarParcelamentos(
                     STATE.filtros.status,
+                    STATE.filtros.cartao_id,
                     STATE.filtros.mes,
-                    STATE.filtros.ano
+                    STATE.filtros.anoMes,
+                    STATE.filtros.ano  // Filtro de ano separado
                 );
 
-                let parcelamentos = response.data?.parcelamentos || [];
-                console.log('📊 Parcelamentos recebidos:', parcelamentos.length);
-
-                // Filtrar por tipo se necessário
-                if (STATE.filtros.tipo) {
-                    parcelamentos = parcelamentos.filter(p => p.tipo === STATE.filtros.tipo);
-                    console.log('🔎 Após filtro de tipo:', parcelamentos.length);
-                }
+                let parcelamentos = response.data?.faturas || [];
+                console.log('📊 Faturas recebidas:', parcelamentos.length);
 
                 STATE.parcelamentos = parcelamentos;
                 UI.renderParcelamentos(parcelamentos);
@@ -640,7 +823,8 @@
             // Filtros
             DOM.btnFiltrar?.addEventListener('click', () => {
                 STATE.filtros.status = DOM.filtroStatus.value;
-                STATE.filtros.tipo = DOM.filtroTipo.value;
+                STATE.filtros.cartao_id = DOM.filtroCartao?.value || '';
+                STATE.filtros.ano = DOM.filtroAno?.value || '';
                 this.carregarParcelamentos();
             });
 

@@ -5,6 +5,8 @@ namespace Application\Services;
 use Application\Models\Lancamento;
 use Application\Models\CartaoCredito;
 use Application\Models\Parcelamento;
+use Application\Models\FaturaCartaoItem;
+use Application\Models\Fatura;
 use Illuminate\Database\Capsule\Manager as DB;
 use Exception;
 
@@ -12,10 +14,11 @@ class CartaoCreditoLancamentoService
 {
     /**
      * Criar lançamento com cartão de crédito (parcelado ou à vista)
+     * ATUALIZADO: Agora cria FaturaCartaoItem em vez de Lancamento direto
      * 
      * @param int $userId
      * @param array $data Dados do lançamento incluindo cartao_credito_id, eh_parcelado, total_parcelas
-     * @return array ['success' => bool, 'lancamentos' => array, 'message' => string]
+     * @return array ['success' => bool, 'itens' => array, 'message' => string]
      */
     public function criarLancamentoCartao(int $userId, array $data): array
     {
@@ -49,75 +52,91 @@ class CartaoCreditoLancamentoService
                 'user_id' => $userId
             ]);
 
-            $lancamentos = [];
+            $itens = [];
 
             if ($ehParcelado && $totalParcelas >= 2) {
-                // Criar lançamento parcelado
-                $lancamentos = $this->criarLancamentoParcelado($userId, $data, $cartao, $contaId);
+                // Criar itens de fatura parcelados
+                $itens = $this->criarLancamentoParcelado($userId, $data, $cartao, $contaId);
             } else {
-                // Criar lançamento à vista no cartão
-                $lancamentos[] = $this->criarLancamentoVista($userId, $data, $cartao, $contaId);
+                // Criar item de fatura à vista
+                $itens[] = $this->criarLancamentoVista($userId, $data, $cartao, $contaId);
             }
 
             DB::commit();
 
             return [
                 'success' => true,
-                'lancamentos' => $lancamentos,
-                'total_criados' => count($lancamentos),
+                'itens' => $itens,
+                'total_criados' => count($itens),
                 'message' => $ehParcelado
-                    ? "Compra parcelada em {$totalParcelas}x criada com sucesso"
-                    : 'Compra no cartão criada com sucesso',
+                    ? "Compra parcelada em {$totalParcelas}x adicionada à fatura do cartão"
+                    : 'Compra adicionada à fatura do cartão',
             ];
         } catch (Exception $e) {
             DB::rollBack();
-            LogService::error("Erro ao criar lançamento com cartão", [
+            LogService::error("Erro ao criar item de fatura", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Erro ao criar lançamento: ' . $e->getMessage(),
+                'message' => 'Erro ao criar item de fatura: ' . $e->getMessage(),
             ];
         }
     }
 
     /**
      * Criar lançamento à vista no cartão
+     * ATUALIZADO: Busca ou cria fatura mensal (1 fatura por mês por cartão)
      */
-    private function criarLancamentoVista(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): Lancamento
+    private function criarLancamentoVista(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): FaturaCartaoItem
     {
         $dataCompra = $data['data'] ?? date('Y-m-d');
-        $dataVencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
+        $vencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
 
-        $lancamento = Lancamento::create([
+        // Buscar ou criar fatura do mês
+        $fatura = $this->buscarOuCriarFatura(
+            $userId,
+            $cartao->id,
+            $vencimento['mes'],
+            $vencimento['ano']
+        );
+
+        // Criar item de fatura vinculado à fatura mensal
+        $item = FaturaCartaoItem::create([
             'user_id' => $userId,
-            'tipo' => 'despesa',
-            'conta_id' => $contaId, // Conta vinculada ao cartão
             'cartao_credito_id' => $cartao->id,
-            'categoria_id' => $data['categoria_id'],
-            'valor' => $data['valor'],
-            'data' => $dataVencimento, // Data de vencimento da fatura
+            'fatura_id' => $fatura->id,
             'descricao' => $data['descricao'],
-            'observacao' => ($data['observacao'] ?? '') . "\nCompra no cartão {$cartao->nome_cartao}",
-            'eh_parcelado' => false,
-            'parcela_atual' => null,
-            'total_parcelas' => null,
+            'valor' => $data['valor'],
+            'data_compra' => $dataCompra,
+            'data_vencimento' => $vencimento['data'],
+            'categoria_id' => $data['categoria_id'],
+            'parcela_atual' => 1,
+            'total_parcelas' => 1,
+            'mes_referencia' => $vencimento['mes'],
+            'ano_referencia' => $vencimento['ano'],
+            'pago' => false,
         ]);
 
-        // Atualizar limite disponível do cartão
+        // Atualizar valor total da fatura
+        $fatura->valor_total += $data['valor'];
+        $fatura->save();
+
+        // Atualizar limite disponível do cartão (reduz limite)
         $this->atualizarLimiteCartao($cartao->id, $data['valor'], 'debito');
 
-        return $lancamento;
+        return $item;
     }
 
     /**
      * Criar lançamento parcelado
+     * ATUALIZADO: Cada parcela vai para a fatura mensal correspondente
      */
     private function criarLancamentoParcelado(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): array
     {
-        $lancamentos = [];
+        $itens = [];
         $valorTotal = $data['valor'];
         $totalParcelas = (int)$data['total_parcelas'];
         $valorParcela = round($valorTotal / $totalParcelas, 2);
@@ -128,73 +147,73 @@ class CartaoCreditoLancamentoService
 
         $dataCompra = $data['data'] ?? date('Y-m-d');
 
-        // Criar PARCELAMENTO (cabeçalho auxiliar)
-        $parcelamento = Parcelamento::create([
-            'user_id' => $userId,
-            'descricao' => $data['descricao'],
-            'valor_total' => $valorTotal,
-            'numero_parcelas' => $totalParcelas,
-            'parcelas_pagas' => 0,
-            'categoria_id' => $data['categoria_id'] ?? null,
-            'conta_id' => $contaId, // Conta vinculada ao cartão
-            'cartao_credito_id' => $cartao->id,
-            'tipo' => 'saida',
-            'status' => 'ativo',
-            'data_criacao' => $dataCompra,
-        ]);
-
-        // Criar cada parcela
+        // Criar cada parcela na fatura mensal correspondente
         for ($i = 1; $i <= $totalParcelas; $i++) {
-            $dataVencimentoParcela = $this->calcularDataParcelaMes($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento, $i - 1);
+            $vencimento = $this->calcularDataParcelaMes($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento, $i - 1);
             $valorDessaParcela = ($i === $totalParcelas) ? $valorUltimaParcela : $valorParcela;
 
-            LogService::info("[CARTAO] Criando parcela {$i}/{$totalParcelas}", [
-                'conta_id' => $contaId,
+            // Buscar ou criar fatura do mês da parcela
+            $fatura = $this->buscarOuCriarFatura(
+                $userId,
+                $cartao->id,
+                $vencimento['mes'],
+                $vencimento['ano']
+            );
+
+            LogService::info("[CARTAO] Criando item de fatura {$i}/{$totalParcelas}", [
+                'fatura_id' => $fatura->id,
+                'mes_ano' => "{$vencimento['mes']}/{$vencimento['ano']}",
                 'cartao_id' => $cartao->id,
-                'valor' => $valorDessaParcela
+                'valor' => $valorDessaParcela,
+                'data_vencimento' => $vencimento['data'],
             ]);
 
-            $parcela = Lancamento::create([
+            // Criar item de fatura vinculado à fatura mensal
+            $item = FaturaCartaoItem::create([
                 'user_id' => $userId,
-                'tipo' => 'despesa',
-                'conta_id' => $contaId, // Conta vinculada ao cartão
                 'cartao_credito_id' => $cartao->id,
-                'categoria_id' => $data['categoria_id'] ?? null,
-                'valor' => $valorDessaParcela,
-                'data' => $dataVencimentoParcela,
+                'fatura_id' => $fatura->id,
                 'descricao' => $data['descricao'] . " ({$i}/{$totalParcelas})",
-                'observacao' => "Parcela {$i} de {$totalParcelas}\n" .
-                    "Compra parcelada no cartão {$cartao->nome_cartao}",
-                'eh_parcelado' => true,
+                'valor' => $valorDessaParcela,
+                'data_compra' => $dataCompra,
+                'data_vencimento' => $vencimento['data'],
+                'categoria_id' => $data['categoria_id'] ?? null,
                 'parcela_atual' => $i,
                 'total_parcelas' => $totalParcelas,
-                'parcelamento_id' => $parcelamento->id, // Link com parcelamento
-                'numero_parcela' => $i,
+                'mes_referencia' => $vencimento['mes'],
+                'ano_referencia' => $vencimento['ano'],
+                'pago' => false,
             ]);
 
-            LogService::info("[CARTAO] Parcela criada no banco", [
-                'parcela_id' => $parcela->id,
-                'conta_id_salvo' => $parcela->conta_id,
-                'conta_id_esperado' => $contaId
+            // Atualizar valor total da fatura
+            $fatura->valor_total += $valorDessaParcela;
+            $fatura->save();
+
+            LogService::info("[CARTAO] Item de fatura criado", [
+                'item_id' => $item->id,
+                'fatura_id' => $fatura->id,
+                'fatura_valor_total' => $fatura->valor_total,
             ]);
 
-            $lancamentos[] = $parcela;
+            $itens[] = $item;
 
-            // Atualizar limite do cartão apenas na primeira parcela
+            // Atualizar limite do cartão apenas na primeira parcela (reduz limite total)
             if ($i === 1) {
                 $this->atualizarLimiteCartao($cartao->id, $valorTotal, 'debito');
             }
         }
 
-        return $lancamentos;
+        return $itens;
     }
 
     /**
      * Calcular data de vencimento da fatura
-     * Se a compra foi antes do dia de fechamento, vence na próxima fatura
-     * Se foi depois, vence na fatura seguinte
+     * Se a compra foi ANTES do dia de fechamento, vence na fatura do mês atual
+     * Se foi NO DIA de fechamento ou DEPOIS, vence na fatura do próximo mês
+     * 
+     * @return array ['data' => string, 'mes' => int, 'ano' => int]
      */
-    private function calcularDataVencimento(string $dataCompra, int $diaVencimento, ?int $diaFechamento = null): string
+    private function calcularDataVencimento(string $dataCompra, int $diaVencimento, ?int $diaFechamento = null): array
     {
         $dataObj = new \DateTime($dataCompra);
         $mesAtual = (int)$dataObj->format('n');
@@ -206,8 +225,8 @@ class CartaoCreditoLancamentoService
             $diaFechamento = max(1, $diaVencimento - 5);
         }
 
-        // Se comprou após o fechamento, vai para próximo mês
-        if ($diaCompra > $diaFechamento) {
+        // Se comprou NO DIA de fechamento ou DEPOIS, vai para o próximo mês
+        if ($diaCompra >= $diaFechamento) {
             $mesVencimento = $mesAtual + 1;
             $anoVencimento = $anoAtual;
 
@@ -216,7 +235,7 @@ class CartaoCreditoLancamentoService
                 $anoVencimento++;
             }
         } else {
-            // Vence no mês atual
+            // Comprou ANTES do fechamento - vence no mês atual
             $mesVencimento = $mesAtual;
             $anoVencimento = $anoAtual;
         }
@@ -225,17 +244,23 @@ class CartaoCreditoLancamentoService
         $ultimoDiaMes = (int)date('t', mktime(0, 0, 0, $mesVencimento, 1, $anoVencimento));
         $diaFinal = min($diaVencimento, $ultimoDiaMes);
 
-        return sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, $diaFinal);
+        return [
+            'data' => sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, $diaFinal),
+            'mes' => $mesVencimento,
+            'ano' => $anoVencimento,
+        ];
     }
 
     /**
      * Calcular data de vencimento de uma parcela específica
+     * 
+     * @return array ['data' => string, 'mes' => int, 'ano' => int]
      */
-    private function calcularDataParcelaMes(string $dataCompra, int $diaVencimento, ?int $diaFechamento, int $mesesAFrente): string
+    private function calcularDataParcelaMes(string $dataCompra, int $diaVencimento, ?int $diaFechamento, int $mesesAFrente): array
     {
-        $dataVencimentoPrimeira = $this->calcularDataVencimento($dataCompra, $diaVencimento, $diaFechamento);
+        $vencimentoPrimeira = $this->calcularDataVencimento($dataCompra, $diaVencimento, $diaFechamento);
 
-        $dataObj = new \DateTime($dataVencimentoPrimeira);
+        $dataObj = new \DateTime($vencimentoPrimeira['data']);
         $dataObj->modify("+{$mesesAFrente} months");
 
         // Ajustar para o último dia do mês se necessário
@@ -244,7 +269,11 @@ class CartaoCreditoLancamentoService
         $ultimoDiaMes = (int)date('t', mktime(0, 0, 0, $mesAlvo, 1, $anoAlvo));
         $diaFinal = min($diaVencimento, $ultimoDiaMes);
 
-        return sprintf('%04d-%02d-%02d', $anoAlvo, $mesAlvo, $diaFinal);
+        return [
+            'data' => sprintf('%04d-%02d-%02d', $anoAlvo, $mesAlvo, $diaFinal),
+            'mes' => $mesAlvo,
+            'ano' => $anoAlvo,
+        ];
     }
 
     /**
@@ -345,5 +374,39 @@ class CartaoCreditoLancamentoService
                 'message' => 'Erro ao cancelar parcelamento'
             ];
         }
+    }
+    /**
+     * Buscar ou criar fatura mensal (1 fatura por cartão por mês)
+     */
+    private function buscarOuCriarFatura(int $userId, int $cartaoId, int $mes, int $ano): Fatura
+    {
+        $descricao = "Fatura {$mes}/{$ano}";
+
+        // Buscar fatura existente pela descrição padronizada
+        $fatura = Fatura::where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->where('descricao', $descricao)
+            ->first();
+
+        // Se não existe, criar nova fatura mensal
+        if (!$fatura) {
+            $fatura = Fatura::create([
+                'user_id' => $userId,
+                'cartao_credito_id' => $cartaoId,
+                'descricao' => $descricao,
+                'valor_total' => 0,
+                'numero_parcelas' => 0,
+                'data_compra' => date('Y-m-d'),
+            ]);
+
+            LogService::info('[CARTAO] Nova fatura mensal criada', [
+                'fatura_id' => $fatura->id,
+                'cartao_id' => $cartaoId,
+                'mes' => $mes,
+                'ano' => $ano,
+            ]);
+        }
+
+        return $fatura;
     }
 }

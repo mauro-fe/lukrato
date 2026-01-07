@@ -1636,6 +1636,10 @@ class ContasManager {
                 throw new Error('Valor inválido');
             }
 
+            const cartaoCreditoId = formData.get('cartao_credito_id') || null;
+            const ehParcelado = formData.get('eh_parcelado') === 'on' || formData.get('eh_parcelado') === true;
+            const totalParcelas = formData.get('total_parcelas') ? parseInt(formData.get('total_parcelas')) : null;
+
             const data = {
                 conta_id: contaId,
                 tipo: tipo,
@@ -1645,9 +1649,9 @@ class ContasManager {
                 categoria_id: formData.get('categoria_id') || null,
                 observacao: formData.get('observacoes') || null,
                 // Campos de cartão de crédito
-                cartao_credito_id: formData.get('cartao_credito_id') || null,
-                eh_parcelado: formData.get('eh_parcelado') === 'on' || formData.get('eh_parcelado') === true,
-                total_parcelas: formData.get('total_parcelas') ? parseInt(formData.get('total_parcelas')) : null,
+                cartao_credito_id: cartaoCreditoId,
+                eh_parcelado: ehParcelado,
+                total_parcelas: totalParcelas,
             };
 
             let apiUrl = `${this.baseUrl}/lancamentos`;
@@ -1665,6 +1669,21 @@ class ContasManager {
                     observacao: formData.get('observacoes') || null,
                 };
             }
+            // Se for PARCELAMENTO SEM CARTÃO (conta bancária), usar endpoint de parcelamentos
+            else if (ehParcelado && totalParcelas && totalParcelas > 1 && !cartaoCreditoId) {
+                apiUrl = `${this.baseUrl}/parcelamentos`;
+                requestData = {
+                    descricao: formData.get('descricao'),
+                    valor_total: valor,
+                    numero_parcelas: totalParcelas,
+                    categoria_id: formData.get('categoria_id') || null,
+                    conta_id: contaId,
+                    tipo: tipo,
+                    data_criacao: formData.get('data'),
+                };
+            }
+            // Se tem CARTÃO, sempre usar endpoint de lancamentos (ele detecta o cartao_credito_id)
+            // Isso vale para cartão à vista ou parcelado
 
             console.log('Enviando lançamento:', requestData);
 
