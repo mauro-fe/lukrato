@@ -92,7 +92,8 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth']);
 
-    Router::add('GET', '/parcelamentos',     'Admin\\ParcelamentoController@index',  ['auth']);
+    Router::add('GET', '/parcelamentos',     'Admin\FaturaController@index',  ['auth']);
+    Router::add('GET', '/faturas',           'Admin\FaturaController@index',  ['auth']);
 
     Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth']);
 
@@ -313,11 +314,11 @@ function registerApiRoutes(): void
 
     Router::add('POST', '/api/agendamentos/{id}/reativar',   'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
 
-    // Parcelamentos
-    Router::add('GET',    '/api/parcelamentos',                        'Api\\ParcelamentosController@index',           ['auth']);
-    Router::add('GET',    '/api/parcelamentos/{id}',                   'Api\\ParcelamentosController@show',            ['auth']);
-    Router::add('POST',   '/api/parcelamentos',                        'Api\\ParcelamentosController@store',           ['auth', 'csrf']);
-    Router::add('DELETE', '/api/parcelamentos/{id}',                   'Api\\ParcelamentosController@destroy',         ['auth', 'csrf']);
+    // Faturas de Cartão (antigo: Parcelamentos)
+    Router::add('GET',    '/api/parcelamentos',                        'Api\\FaturasController@index',           ['auth']);
+    Router::add('GET',    '/api/parcelamentos/{id}',                   'Api\\FaturasController@show',            ['auth']);
+    Router::add('POST',   '/api/parcelamentos',                        'Api\\FaturasController@store',           ['auth', 'csrf']);
+    Router::add('DELETE', '/api/parcelamentos/{id}',                   'Api\\FaturasController@destroy',         ['auth', 'csrf']);
 
     Router::add('GET',  '/api/notificacoes',           'Api\\NotificacaoController@index',         ['auth']);
 

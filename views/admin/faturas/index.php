@@ -30,29 +30,19 @@
                     </label>
                     <select id="filtroStatus" class="modern-select">
                         <option value="">Todos</option>
-                        <option value="pendente">⏳ Pendentes</option>
-                        <option value="parcial">🔵 Parcialmente Pago</option>
-                        <option value="paga">✅ Pagas</option>
+                        <option value="ativo" selected>✅ Ativos</option>
+                        <option value="concluido">✔️ Concluídos</option>
+                        <option value="cancelado">❌ Cancelados</option>
                     </select>
                 </div>
 
                 <div class="filter-group">
-                    <label for="filtroCartao" class="filter-label">
+                    <label for="filtroTipo" class="filter-label">
                         <i class="fas fa-credit-card"></i>
                         <span>Cartão</span>
                     </label>
                     <select id="filtroCartao" class="modern-select">
                         <option value="">Todos os cartões</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="filtroAno" class="filter-label">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Ano</span>
-                    </label>
-                    <select id="filtroAno" class="modern-select">
-                        <option value="">Todos os anos</option>
                     </select>
                 </div>
 
@@ -111,4 +101,3 @@
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
 </script>
-<script src="<?= BASE_URL ?>assets/js/admin-faturas.js"></script>

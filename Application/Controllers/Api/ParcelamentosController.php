@@ -181,12 +181,16 @@ class ParcelamentosController extends BaseController
                 return;
             }
 
-            // 2. CRIAR LANÇAMENTOS INDIVIDUAIS em `lancamentos`
-            // CADA PARCELA = UM LANÇAMENTO (fonte da verdade)
+            // 2. CRIAR PARCELAS
+            // Se for CARTÃO: criar itens de fatura (não são lançamentos ainda)
+            // Se for CONTA: criar lançamentos diretos (comportamento original)
             $dataAtual = new \DateTime($dataCriacao);
 
-            // Se for cartão, ajustar data para vencimento da fatura
+            $itensCriados = [];
+            $itemPaiId = null;
+
             if ($cartaoCreditoId) {
+                // CARTÃO: Buscar informações do cartão
                 /** @var \stdClass|null $cartao */
                 // @phpstan-ignore-next-line
                 $cartao = DB::table('cartoes_credito')
@@ -194,69 +198,125 @@ class ParcelamentosController extends BaseController
                     ->where('user_id', $userId)
                     ->first();
 
-                if ($cartao !== null && isset($cartao->dia_vencimento) && $cartao->dia_vencimento > 0) {
-                    $dataAtual->setDate(
-                        (int)$dataAtual->format('Y'),
-                        (int)$dataAtual->format('m'),
-                        min((int)$cartao->dia_vencimento, (int)$dataAtual->format('t'))
+                if (!$cartao) {
+                    DB::rollBack();
+                    Response::error('Cartão de crédito não encontrado', 404);
+                    return;
+                }
+
+                $diaVencimento = (int)($cartao->dia_vencimento ?? 10);
+                $diaFechamento = (int)($cartao->dia_fechamento ?? max(1, $diaVencimento - 5));
+
+                // CARTÃO: Criar itens de fatura com lógica correta de fechamento
+                for ($i = 1; $i <= $numeroParcelas; $i++) {
+                    // Calcular data de vencimento considerando dia de fechamento
+                    $dataVencimento = $this->calcularDataVencimentoParcela(
+                        $dataCriacao,
+                        $diaVencimento,
+                        $diaFechamento,
+                        $i - 1
                     );
+
+                    $item = \Application\Models\FaturaCartaoItem::create([
+                        'user_id' => $userId,
+                        'cartao_credito_id' => $cartaoCreditoId,
+                        'parcelamento_id' => $parcelamentoId,
+                        'descricao' => $descricao . " ({$i}/{$numeroParcelas})",
+                        'valor' => round($valorParcela, 2),
+                        'data_compra' => $dataCriacao,
+                        'data_vencimento' => $dataVencimento,
+                        'categoria_id' => $categoriaId,
+                        'eh_parcelado' => true,
+                        'parcela_atual' => $i,
+                        'total_parcelas' => $numeroParcelas,
+                        'item_pai_id' => $itemPaiId,
+                        'pago' => false,
+                    ]);
+
+                    if ($i === 1) {
+                        $itemPaiId = $item->id;
+                        $item->item_pai_id = $item->id;
+                        $item->save();
+                    }
+
+                    $itensCriados[] = [
+                        'id' => $item->id,
+                        'parcela' => $i,
+                        'valor' => round($valorParcela, 2),
+                        'data_vencimento' => $dataVencimento
+                    ];
                 }
-            }
 
-            $lancamentosCriados = [];
-            $lancamentoPaiId = null;
+                DB::commit();
 
-            for ($i = 1; $i <= $numeroParcelas; $i++) {
-                $lancamento = Lancamento::create([
-                    'user_id' => $userId,
-                    'descricao' => $descricao . " ({$i}/{$numeroParcelas})",
-                    'valor' => round($valorParcela, 2),
-                    'data' => $dataAtual->format('Y-m-d'),
-                    'tipo' => $tipo === 'saida' ? 'despesa' : 'receita',
-                    'categoria_id' => $categoriaId,
-                    'conta_id' => $contaId,
-                    'cartao_credito_id' => $cartaoCreditoId,
-                    'parcelamento_id' => $parcelamentoId,
-                    'eh_parcelado' => true,
-                    'parcela_atual' => $i,
-                    'total_parcelas' => $numeroParcelas,
-                    'lancamento_pai_id' => $lancamentoPaiId,
-                    'pago' => false,
-                    'recorrente' => false,
-                ]);
+                $totalParcelas = count($itensCriados);
+                Response::success([
+                    'parcelamento' => [
+                        'id' => $parcelamentoId,
+                        'descricao' => $descricao,
+                        'valor_total' => $valorTotal,
+                        'numero_parcelas' => $numeroParcelas,
+                        'tipo' => $tipo
+                    ],
+                    'itens_criados' => $itensCriados,
+                    'total_parcelas' => $totalParcelas,
+                ], "✅ Parcelamento no cartão criado! {$totalParcelas} parcelas serão cobradas na fatura.", 201);
+            } else {
+                // CONTA: Criar lançamentos diretos (comportamento original)
+                $lancamentosCriados = [];
+                $lancamentoPaiId = null;
 
-                // Primeira parcela é o "pai"
-                if ($i === 1) {
-                    $lancamentoPaiId = $lancamento->id;
-                    $lancamento->lancamento_pai_id = $lancamento->id;
-                    $lancamento->save();
+                for ($i = 1; $i <= $numeroParcelas; $i++) {
+                    $lancamento = Lancamento::create([
+                        'user_id' => $userId,
+                        'descricao' => $descricao . " ({$i}/{$numeroParcelas})",
+                        'valor' => round($valorParcela, 2),
+                        'data' => $dataAtual->format('Y-m-d'),
+                        'tipo' => $tipo === 'saida' ? 'despesa' : 'receita',
+                        'categoria_id' => $categoriaId,
+                        'conta_id' => $contaId,
+                        'parcelamento_id' => $parcelamentoId,
+                        'eh_parcelado' => true,
+                        'parcela_atual' => $i,
+                        'total_parcelas' => $numeroParcelas,
+                        'lancamento_pai_id' => $lancamentoPaiId,
+                        'pago' => false,
+                        'recorrente' => false,
+                    ]);
+
+                    // Primeira parcela é o "pai"
+                    if ($i === 1) {
+                        $lancamentoPaiId = $lancamento->id;
+                        $lancamento->lancamento_pai_id = $lancamento->id;
+                        $lancamento->save();
+                    }
+
+                    $lancamentosCriados[] = [
+                        'id' => $lancamento->id,
+                        'parcela' => $i,
+                        'valor' => round($valorParcela, 2),
+                        'data' => $dataAtual->format('Y-m-d')
+                    ];
+
+                    // Avançar para o próximo mês
+                    $dataAtual->modify('+1 month');
                 }
 
-                $lancamentosCriados[] = [
-                    'id' => $lancamento->id,
-                    'parcela' => $i,
-                    'valor' => round($valorParcela, 2),
-                    'data' => $dataAtual->format('Y-m-d')
-                ];
+                DB::commit();
 
-                // Avançar para o próximo mês
-                $dataAtual->modify('+1 month');
+                $totalParcelas = count($lancamentosCriados);
+                Response::success([
+                    'parcelamento' => [
+                        'id' => $parcelamentoId,
+                        'descricao' => $descricao,
+                        'valor_total' => $valorTotal,
+                        'numero_parcelas' => $numeroParcelas,
+                        'tipo' => $tipo
+                    ],
+                    'lancamentos_criados' => $lancamentosCriados,
+                    'total_parcelas' => $totalParcelas,
+                ], "✅ Parcelamento criado! {$totalParcelas} lançamentos individuais foram gerados.", 201);
             }
-
-            DB::commit();
-
-            $totalParcelas = count($lancamentosCriados);
-            Response::success([
-                'parcelamento' => [
-                    'id' => $parcelamentoId,
-                    'descricao' => $descricao,
-                    'valor_total' => $valorTotal,
-                    'numero_parcelas' => $numeroParcelas,
-                    'tipo' => $tipo
-                ],
-                'lancamentos_criados' => $lancamentosCriados,
-                'total_parcelas' => $totalParcelas,
-            ], "✅ Parcelamento criado! {$totalParcelas} lançamentos individuais foram gerados.", 201);
         } catch (\Exception $e) {
             DB::rollBack();
             Response::error('Erro ao criar parcelamento: ' . $e->getMessage(), 500);
@@ -441,5 +501,44 @@ class ParcelamentosController extends BaseController
         }
 
         return $data;
+    }
+
+    /**
+     * Calcular data de vencimento de parcela considerando dia de fechamento
+     */
+    private function calcularDataVencimentoParcela(string $dataCompra, int $diaVencimento, int $diaFechamento, int $mesesAFrente): string
+    {
+        $dataObj = new \DateTime($dataCompra);
+        $diaCompra = (int)$dataObj->format('j');
+        $mesAtual = (int)$dataObj->format('n');
+        $anoAtual = (int)$dataObj->format('Y');
+
+        // Se comprou NO DIA de fechamento ou DEPOIS, vai para o próximo mês
+        if ($diaCompra >= $diaFechamento) {
+            $mesVencimento = $mesAtual + 1;
+            $anoVencimento = $anoAtual;
+
+            if ($mesVencimento > 12) {
+                $mesVencimento = 1;
+                $anoVencimento++;
+            }
+        } else {
+            // Comprou ANTES do fechamento - vence no mês atual
+            $mesVencimento = $mesAtual;
+            $anoVencimento = $anoAtual;
+        }
+
+        // Adicionar meses à frente (para parcelas 2, 3, 4...)
+        $mesVencimento += $mesesAFrente;
+        while ($mesVencimento > 12) {
+            $mesVencimento -= 12;
+            $anoVencimento++;
+        }
+
+        // Ajustar para o último dia do mês se necessário
+        $ultimoDiaMes = (int)date('t', mktime(0, 0, 0, $mesVencimento, 1, $anoVencimento));
+        $diaFinal = min($diaVencimento, $ultimoDiaMes);
+
+        return sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, $diaFinal);
     }
 }

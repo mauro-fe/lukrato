@@ -303,7 +303,7 @@ class CartoesManager {
                 if (response.ok) {
                     const fatura = await response.json();
                     // Se tem parcelas não pagas e total > 0, marca como pendente
-                    cartao.temFaturaPendente = fatura.parcelas && fatura.parcelas.length > 0 && fatura.total > 0;
+                    cartao.temFaturaPendente = fatura.itens && fatura.itens.length > 0 && fatura.total > 0;
                 } else {
                     cartao.temFaturaPendente = false;
                 }
@@ -1323,85 +1323,16 @@ class CartoesManager {
      */
 
     /**
-     * Ver fatura do cartão
+     * Ver fatura do cartão - redireciona para página de faturas
      */
-    async verFatura(cartaoId, mes = null, ano = null) {
-        try {
-            // Data atual para carregar fatura do mês (se não especificado)
-            const hoje = new Date();
-            mes = mes || hoje.getMonth() + 1; // 1-12
-            ano = ano || hoje.getFullYear();
+    verFatura(cartaoId, mes = null, ano = null) {
+        // Data atual para filtros (se não especificado)
+        const hoje = new Date();
+        mes = mes || hoje.getMonth() + 1; // 1-12
+        ano = ano || hoje.getFullYear();
 
-            console.log(`📄 Carregando fatura - Cartão ID: ${cartaoId}, Mês: ${mes}/${ano}`);
-
-            // Buscar fatura, parcelamentos e status de pagamento em paralelo
-            const [faturaResponse, parcelamentosResponse, statusResponse] = await Promise.all([
-                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                }),
-                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                }),
-                fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura/status?mes=${mes}&ano=${ano}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                })
-            ]);
-
-            if (!faturaResponse.ok) {
-                const errorData = await faturaResponse.json();
-                throw new Error(errorData.message || 'Erro ao carregar fatura');
-            }
-
-            const fatura = await faturaResponse.json();
-            let parcelamentos = null;
-            let statusPagamento = null;
-
-            if (parcelamentosResponse.ok) {
-                try {
-                    parcelamentos = await parcelamentosResponse.json();
-                    console.log('✅ Parcelamentos recebidos:', parcelamentos);
-                } catch (e) {
-                    console.warn('⚠️ Erro ao parsear parcelamentos:', e);
-                }
-            } else {
-                console.warn('⚠️ Erro ao carregar parcelamentos:', parcelamentosResponse.status);
-            }
-
-            if (statusResponse.ok) {
-                try {
-                    statusPagamento = await statusResponse.json();
-                    console.log('✅ Status de pagamento recebido:', statusPagamento);
-                    console.log('🔍 Status.pago =', statusPagamento?.pago);
-                } catch (e) {
-                    console.warn('⚠️ Erro ao parsear status:', e);
-                }
-            } else {
-                console.warn('⚠️ Erro ao carregar status:', statusResponse.status);
-            }
-
-            console.log('✅ Fatura carregada:', fatura);
-            console.log('🎯 Vai mostrar modal com status:', statusPagamento);
-
-            this.mostrarModalFatura(fatura, parcelamentos, statusPagamento, cartaoId);
-        } catch (error) {
-            console.error('❌ Erro ao carregar fatura:', error);
-            this.showToast('error', error.message || 'Erro ao carregar fatura');
-        }
+        // Redirecionar para página de faturas com filtro do cartão
+        window.location.href = `${this.baseUrl}faturas?cartao_id=${cartaoId}&mes=${mes}&ano=${ano}`;
     }
 
     /**
@@ -1522,7 +1453,7 @@ class CartoesManager {
 
         console.log('💰 pagarParcelasSelecionadas chamado');
         console.log('✅ Checkboxes marcados:', checkboxes.length);
-        console.log('📋 Total de parcelas na fatura:', fatura.parcelas.length);
+        console.log('📋 Total de itens na fatura:', fatura.itens?.length || 0);
 
         // Log detalhado de cada checkbox
         console.log('📌 Detalhes dos checkboxes marcados:');
@@ -1642,7 +1573,7 @@ class CartoesManager {
     criarConteudoModal(fatura, parcelamentos = null, statusPagamento = null, cartaoId = null) {
         // Garantir que temos o cartaoId correto
         const idCartao = cartaoId || fatura.cartao_id || fatura.cartao?.id;
-        
+
         console.log('🎨 criarConteudoModal chamado com:', {
             statusPagamento,
             statusPago: statusPagamento?.pago,
@@ -1688,13 +1619,13 @@ class CartoesManager {
                 </div>
 
                 <div class="modal-fatura-body">
-                    ${fatura.parcelas.filter(p => !p.pago).length === 0 && fatura.parcelas.filter(p => p.pago).length === 0 ? `
+                    ${(fatura.itens || []).filter(p => !p.pago).length === 0 && (fatura.itens || []).filter(p => p.pago).length === 0 ? `
                         <div class="fatura-empty">
                             <i class="fas fa-check-circle"></i>
                             <h3>Nenhuma fatura pendente</h3>
                             <p>Você não tem compras para pagar neste mês!</p>
                         </div>
-                    ` : fatura.parcelas.filter(p => !p.pago).length === 0 && fatura.parcelas.filter(p => p.pago).length > 0 ? `
+                    ` : (fatura.itens || []).filter(p => !p.pago).length === 0 && (fatura.itens || []).filter(p => p.pago).length > 0 ? `
                         <!-- Todas as parcelas já foram pagas -->
                         <div class="fatura-totalmente-paga">
                             <div class="status-paga-header">
@@ -1706,10 +1637,10 @@ class CartoesManager {
                             <div class="fatura-parcelas-pagas-completa">
                                 <h3 class="secao-titulo">
                                     <i class="fas fa-receipt" style="color: #10b981; margin-right: 8px;"></i>
-                                    Parcelas Pagas (${fatura.parcelas.filter(p => p.pago).length})
+                                    Itens Pagos (${(fatura.itens || []).filter(p => p.pago).length})
                                 </h3>
                                 <div class="lancamentos-lista">
-                                    ${fatura.parcelas.filter(p => p.pago).map(parcela => `
+                                    ${(fatura.itens || []).filter(p => p.pago).map(parcela => `
                                         <div class="lancamento-item lancamento-pago">
                                             <div class="lanc-info">
                                                 <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
@@ -1753,7 +1684,7 @@ class CartoesManager {
                                 Lançamentos Pendentes
                             </h3>
                             <div class="lancamentos-lista">
-                                ${fatura.parcelas.filter(p => !p.pago).map(parcela => `
+                                ${(fatura.itens || []).filter(p => !p.pago).map(parcela => `
                                     <div class="lancamento-item">
                                         <label class="checkbox-custom">
                                             <input type="checkbox" class="parcela-checkbox" data-id="${parcela.id}" data-valor="${parcela.valor}">
@@ -1768,14 +1699,14 @@ class CartoesManager {
                             </div>
                         </div>
 
-                        ${fatura.parcelas.filter(p => p.pago).length > 0 ? `
+                        ${(fatura.itens || []).filter(p => p.pago).length > 0 ? `
                             <div class="fatura-parcelas-pagas" style="margin-top: 1.5rem;">
                                 <h3 class="secao-titulo">
                                     <i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i>
                                     Lançamentos Pagos
                                 </h3>
                                 <div class="lancamentos-lista">
-                                    ${fatura.parcelas.filter(p => p.pago).map(parcela => `
+                                    ${(fatura.itens || []).filter(p => p.pago).map(parcela => `
                                         <div class="lancamento-item lancamento-pago">
                                             <div class="lanc-info">
                                                 <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
@@ -1801,7 +1732,7 @@ class CartoesManager {
                     `}
                 </div>
 
-                ${fatura.parcelas.filter(p => !p.pago).length > 0 ? `
+                ${(fatura.itens || []).filter(p => !p.pago).length > 0 ? `
                     <div class="modal-fatura-footer">
                         <div class="footer-info">
                             <span class="footer-label">Total selecionado:</span>
@@ -1914,18 +1845,18 @@ class CartoesManager {
     criarConteudoModalFaturaPaga(fatura, statusPagamento, parcelamentos, cartaoId) {
         // Garantir que temos o cartaoId correto
         const idCartao = cartaoId || fatura.cartao_id || fatura.cartao?.id;
-        
+
         console.log('📋 criarConteudoModalFaturaPaga - statusPagamento:', statusPagamento);
         console.log('📅 data_pagamento recebida:', statusPagamento?.data_pagamento);
         console.log('🆔 cartaoId:', idCartao);
-        
+
         // Usar data_pagamento do status, ou pegar da primeira parcela paga como fallback
-        const dataPagamento = statusPagamento?.data_pagamento || 
-                             fatura.parcelas.find(p => p.pago && p.data_pagamento)?.data_pagamento ||
-                             null;
-        
+        const dataPagamento = statusPagamento?.data_pagamento ||
+            (fatura.itens || []).find(p => p.pago && p.data_pagamento)?.data_pagamento ||
+            null;
+
         console.log('📅 dataPagamento final:', dataPagamento);
-        
+
         return `
             <div class="modal-fatura-header">
                 <div class="header-info">
@@ -1965,7 +1896,7 @@ class CartoesManager {
                         <div class="secao-titulo-com-botao">
                             <h3 class="secao-titulo">
                                 <i class="fas fa-receipt" style="color: #10b981; margin-right: 8px;"></i>
-                                Parcelas Pagas (${fatura.parcelas.filter(p => p.pago).length})
+                                Itens Pagos (${(fatura.itens || []).filter(p => p.pago).length})
                             </h3>
                             <button class="btn-desfazer-todas" 
                                 onclick="cartoesManager.desfazerPagamento(${idCartao}, ${fatura.mes}, ${fatura.ano})"
@@ -1975,7 +1906,7 @@ class CartoesManager {
                             </button>
                         </div>
                         <div class="lancamentos-lista">
-                            ${fatura.parcelas.filter(p => p.pago).map(parcela => `
+                            ${(fatura.itens || []).filter(p => p.pago).map(parcela => `
                                 <div class="lancamento-item lancamento-pago">
                                     <div class="lanc-info">
                                         <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
@@ -2150,7 +2081,7 @@ class CartoesManager {
      */
     async navegarMes(cartaoId, mesAtual, anoAtual, direcao) {
         console.log('🔄 navegarMes chamado:', { cartaoId, mesAtual, anoAtual, direcao });
-        
+
         // Calcular novo mês/ano
         let novoMes = mesAtual + direcao;
         let novoAno = anoAtual;

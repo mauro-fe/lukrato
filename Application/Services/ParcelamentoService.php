@@ -182,7 +182,9 @@ class ParcelamentoService
     {
         try {
             // 1. Buscar parcelamentos normais da tabela parcelamentos
-            $query = Parcelamento::where('user_id', $usuarioId);
+            // IMPORTANTE: Excluir parcelamentos de cartão (eles serão buscados via faturas_cartao_itens)
+            $query = Parcelamento::where('user_id', $usuarioId)
+                ->whereNull('cartao_credito_id'); // Apenas contas bancárias
 
             // Filtro por mês e ano baseado na data_criacao ou created_at
             if ($mes && $ano) {
@@ -222,55 +224,15 @@ class ParcelamentoService
                 return $parcelamento;
             });
 
-            // 2. Buscar parcelamentos de cartão de crédito
-            // Esses são lançamentos com eh_parcelado = true mas sem parcelamento_id
-            $queryCartao = Lancamento::where('lancamentos.user_id', $usuarioId)
-                ->where('eh_parcelado', true)
-                ->whereNull('parcelamento_id')
-                ->whereNotNull('cartao_credito_id')
-                ->with(['categoria', 'cartaoCredito']);
+            // 2. Parcelamentos de cartão agora são gerenciados pela FaturaService
+            // Esta listagem mostra apenas parcelamentos de contas bancárias
+            $parcelamentosCartao = collect([]);
 
-            if ($mes && $ano) {
-                $queryCartao->whereYear('data', $ano)
-                    ->whereMonth('data', $mes);
-            }
-
-            $lancamentosCartao = $queryCartao->get();
-
-            // Agrupar por descrição base (sem o " (1/3)" no final)
-            $parcelamentosCartao = $lancamentosCartao->groupBy(function ($lancamento) {
-                // Remove o sufixo " (N/X)" da descrição para agrupar
-                return preg_replace('/\s*\(\d+\/\d+\)$/', '', $lancamento->descricao);
-            })->map(function ($parcelas, $descricaoBase) {
-                $primeira = $parcelas->first();
-                $totalParcelas = $parcelas->count();
-                $parcelasPagas = $parcelas->where('pago', true)->count();
-
-                // Determinar status
-                $statusCartao = 'ativo';
-                if ($totalParcelas > 0 && $parcelasPagas === $totalParcelas) {
-                    $statusCartao = 'concluido';
-                }
-
-                // Criar objeto simulando um parcelamento
-                return (object)[
-                    'id' => 'cartao_' . $primeira->id, // ID único prefixado
-                    'user_id' => $primeira->user_id,
-                    'descricao' => $descricaoBase,
-                    'valor_total' => $parcelas->sum('valor'),
-                    'numero_parcelas' => $totalParcelas,
-                    'parcelas_pagas' => $parcelasPagas,
-                    'categoria_id' => $primeira->categoria_id,
-                    'conta_id' => null,
-                    'cartao_credito_id' => $primeira->cartao_credito_id,
-                    'tipo' => $primeira->tipo,
-                    'status' => $statusCartao,
-                    'data_criacao' => $parcelas->min('data'),
-                    'created_at' => $parcelas->min('created_at'),
-                    'updated_at' => $parcelas->max('updated_at'),
-                    'lancamentos' => $parcelas->sortBy('data'),
-                    'categoria' => $primeira->categoria,
-                    'cartaoCredito' => $primeira->cartaoCredito,
+            // 3. Combinar parcelamentos de conta
+                        ];
+                    }),
+                    'categoria' => $primeiro->categoria,
+                    'cartaoCredito' => $primeiro->cartaoCredito,
                     'is_cartao' => true, // Flag para identificar origem
                 ];
             })->values();
@@ -308,25 +270,32 @@ class ParcelamentoService
 
     /**
      * Busca um parcelamento com suas parcelas
+     * 
+     * ATUALIZADO: Busca tanto de parcelamentos normais quanto de cartão (faturas_cartao_itens)
      */
     public function buscar(int $parcelamentoId, int $usuarioId): array
     {
         try {
+            // Primeiro tentar buscar parcelamento normal
             $parcelamento = Parcelamento::where('id', $parcelamentoId)
                 ->where('user_id', $usuarioId)
-                ->with(['lancamentos', 'categoria', 'conta'])
                 ->first();
 
-            if (!$parcelamento) {
+            if ($parcelamento) {
+                // Carregar lancamentos, categoria e conta
+                $parcelamento->load(['lancamentos', 'categoria', 'conta']);
+
                 return [
-                    'success' => false,
-                    'message' => 'Parcelamento não encontrado',
+                    'success' => true,
+                    'parcelamento' => $parcelamento,
                 ];
             }
 
+            // Se não encontrou na tabela parcelamentos, retornar erro
+            // Parcelamentos de cartão devem ser acessados via FaturaService
             return [
-                'success' => true,
-                'parcelamento' => $parcelamento,
+                'success' => false,
+                'message' => 'Parcelamento não encontrado',
             ];
         } catch (Exception $e) {
             error_log("Erro ao buscar parcelamento: " . $e->getMessage());

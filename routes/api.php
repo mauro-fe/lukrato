@@ -171,13 +171,18 @@ Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth', 
 Router::add('POST', '/premium/cancel',   'PremiumController@cancel',   ['auth', 'csrf']);
 
 // ============================================
-// PARCELAMENTOS (REST)
+// FATURAS DE CARTÃO (REST)
 // ============================================
 
-Router::add('GET',    '/api/parcelamentos',              'Api\\ParcelamentosController@index',       ['auth']);
-Router::add('POST',   '/api/parcelamentos',              'Api\\ParcelamentosController@store',       ['auth', 'csrf']);
-Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@show',        ['auth']);
-Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@destroy',     ['auth', 'csrf']);
+Router::add('GET',    '/api/faturas',              'Api\\FaturasController@index',       ['auth']);
+Router::add('POST',   '/api/faturas',              'Api\\FaturasController@store',       ['auth', 'csrf']);
+Router::add('GET',    '/api/faturas/{id}',         'Api\\FaturasController@show',        ['auth']);
+Router::add('DELETE', '/api/faturas/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
+Router::add('POST',   '/api/faturas/{id}/itens/{itemId}/toggle', 'Api\\FaturasController@toggleItemPago', ['auth', 'csrf']);
 
-// Rota alternativa para lançamentos parcelados (compatibilidade)
-Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\ParcelamentosController@store',       ['auth', 'csrf']);
+// Rotas antigas para compatibilidade (DEPRECATED - usar /api/faturas)
+Router::add('GET',    '/api/parcelamentos',              'Api\\FaturasController@index',       ['auth']);
+Router::add('POST',   '/api/parcelamentos',              'Api\\FaturasController@store',       ['auth', 'csrf']);
+Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\FaturasController@show',        ['auth']);
+Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
+Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController@store',       ['auth', 'csrf']);

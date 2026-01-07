@@ -282,6 +282,7 @@ class LancamentosController extends BaseController
 
         if ($cartaoCreditoId && $cartaoCreditoId > 0 && $dto->tipo === 'despesa') {
             // Usar serviço especializado para cartão de crédito
+            // IMPORTANTE: Agora cria FaturaCartaoItem, não Lancamento direto
             $resultado = $this->cartaoService->criarLancamentoCartao($userId, [
                 'cartao_credito_id' => $cartaoCreditoId,
                 'categoria_id' => $categoriaId,
@@ -298,33 +299,46 @@ class LancamentosController extends BaseController
                 return;
             }
 
-            // Pegar primeiro lançamento (ou o pai) para gamificação
-            $lancamento = $resultado['lancamentos'][0] ?? null;
-            if ($lancamento) {
-                $lancamento->loadMissing(['categoria']);
+            // Para gamificação, criar um objeto compatível a partir do primeiro item
+            $primeiroItem = $resultado['itens'][0] ?? null;
+            $lancamentoFake = null;
+
+            if ($primeiroItem) {
+                // Criar objeto stdClass compatível com gamificação
+                $lancamentoFake = (object)[
+                    'id' => $primeiroItem->id,
+                    'categoria' => $primeiroItem->categoria,
+                ];
             }
 
             // Gamificação
             $gamificationResult = [];
-            try {
-                $pointsResult = $this->gamificationService->addPoints(
-                    $userId,
-                    \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
-                    $lancamento->id,
-                    'lancamento'
-                );
-                $streakResult = $this->gamificationService->updateStreak($userId);
-                $gamificationResult = [
-                    'points' => $pointsResult,
-                    'streak' => $streakResult,
-                ];
-            } catch (\Exception $e) {
-                error_log("🎮 [GAMIFICATION] Erro: " . $e->getMessage());
+            if ($lancamentoFake) {
+                try {
+                    $pointsResult = $this->gamificationService->addPoints(
+                        $userId,
+                        \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
+                        $lancamentoFake->id,
+                        'lancamento'
+                    );
+                    $streakResult = $this->gamificationService->updateStreak($userId);
+                    $gamificationResult = [
+                        'points' => $pointsResult,
+                        'streak' => $streakResult,
+                    ];
+                } catch (\Exception $e) {
+                    error_log("🎮 [GAMIFICATION] Erro: " . $e->getMessage());
+                }
             }
 
             Response::success([
-                'lancamento' => LancamentoResponseFormatter::format($lancamento),
-                'total_parcelas_criadas' => $resultado['total_criados'],
+                'item' => [
+                    'id' => $primeiroItem->id ?? null,
+                    'descricao' => $primeiroItem->descricao ?? '',
+                    'valor' => $primeiroItem->valor ?? 0,
+                    'data_vencimento' => $primeiroItem->data_vencimento ?? null,
+                ],
+                'total_itens_criados' => $resultado['total_criados'],
                 'eh_parcelado' => $resultado['total_criados'] > 1,
                 'usage' => $usage,
                 'ui_message' => $this->planService->getUsageMessage($usage),

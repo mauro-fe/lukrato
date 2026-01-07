@@ -221,13 +221,15 @@ abstract class BaseController
         }
 
         return match ($segments[1] ?? null) {
-            'dashboard'   => 'dashboard',
-            'contas'      => 'contas',
-            'lancamentos' => 'lancamentos',
-            'relatorios'  => 'relatorios',
-            'categorias'  => 'categorias',
-            'perfil'      => 'perfil',
-            default       => null,
+            'dashboard'     => 'dashboard',
+            'contas'        => 'contas',
+            'lancamentos'   => 'lancamentos',
+            'faturas'       => 'faturas',
+            'parcelamentos' => 'faturas', // Redirecionar para faturas
+            'relatorios'    => 'relatorios',
+            'categorias'    => 'categorias',
+            'perfil'        => 'perfil',
+            default         => null,
         };
     }
 }
