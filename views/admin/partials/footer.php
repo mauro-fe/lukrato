@@ -1,19 +1,28 @@
 </main>
 <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
+<!-- Botão Scroll to Top -->
+<button id="scrollToTopBtn" class="scroll-to-top" aria-label="Voltar ao topo" title="Voltar ao topo">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
 <?php loadPageCss('admin-partials-footer'); ?>
 
 <footer class="footer">
     <div class="container">
         <div class="row">
-            <div class="col-8 mx-auto text-center mt-1">
-                <span>&copy; 2025 Lukrato -</span>
-                <span>Desenvolvido por <a href="https://www.linkedin.com/in/mauro-felix-846a08268/" target="_blank"
-                        rel="noopener">Mauro
-                        Felix</a></span>
-                <span> & <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank" rel="noopener">
-                        José
-                        Victor</a></span>
+            <div class="col-12 mx-auto text-center">
+                <div class="footer-content">
+                    <div class="footer-copyright">&copy; 2025 Lukrato</div>
+                    <div class="footer-dev-label">Desenvolvido por</div>
+                    <div class="footer-developers">
+                        <a href="https://www.linkedin.com/in/mauro-felix-846a08268/" target="_blank"
+                            rel="noopener">Mauro Felix</a>
+                        <span class="footer-separator">&</span>
+                        <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank"
+                            rel="noopener">José Victor</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

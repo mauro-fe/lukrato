@@ -1065,6 +1065,25 @@
    7. RESPONSIVIDADE DOS COMPONENTES
    ============================================================================ */
 
+/* Tablets e Mobile Médio */
+@media (max-width: 992px) {
+  .lkh-modal-content,
+  .modal-dialog {
+    max-width: 90% !important;
+    width: 90% !important;
+  }
+
+  .btn-group {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   /* Modais */
@@ -1079,25 +1098,129 @@
     padding: var(--spacing-4);
   }
 
+  .modal-dialog {
+    max-width: 95% !important;
+    margin: 10px auto !important;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px !important;
+  }
+
+  /* Forms */
+  .form-row {
+    flex-direction: column !important;
+  }
+
+  .form-group {
+    width: 100% !important;
+  }
+
+  .form-control,
+  .form-select,
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+  }
+
   /* Tabelas */
+  .table {
+    font-size: 13px !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 6px !important;
+  }
+
+  /* Select */
+  .lk-select {
     height: 40px;
     padding: 0 var(--spacing-3);
     font-size: var(--font-size-xs);
+  }
+
+  /* Cards */
+  .card-body {
+    padding: 16px !important;
   }
 }
 
 /* Small Mobile */
 @media (max-width: 640px) {
+  /* Modais ainda mais compactos */
+  .lkh-modal-content,
+  .modal-dialog {
+    max-width: 98% !important;
+    margin: 5px auto !important;
+  }
+
+  .lkh-modal-header,
+  .lkh-modal-body,
+  .lkh-modal-footer,
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 12px !important;
+  }
+
+  /* Select menor */
   .lk-select {
     min-width: 140px;
     font-size: var(--font-size-xs);
     padding: var(--spacing-2) var(--spacing-5) var(--spacing-2) var(--spacing-3);
   }
 
-  /* Tabelas */
   .lk-select.btn-primary {
     background-size: 12px;
   }
+
+  /* Buttons compactos */
+  .btn {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+
+  /* Forms compactos */
+  .form-control,
+  .form-select {
+    padding: 10px !important;
+  }
+
+  /* Tabelas compactas */
+  .table {
+    font-size: 12px !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 6px 4px !important;
+  }
+
+  /* Cards compactos */
+  .card-body {
+    padding: 12px !important;
+  }
+}
 
   /* Tabelas - força scroll */
   .table-container {

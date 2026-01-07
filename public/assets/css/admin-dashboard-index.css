@@ -54,15 +54,22 @@
   margin-bottom: 24px;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 640px) and (max-width: 853px) {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 854px) and (max-width: 1259px) {
   .kpi-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1260px) {
+  .kpi-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
     gap: 24px;
     margin-bottom: 32px;
   }
@@ -373,7 +380,7 @@
   border-radius: 14px;
   padding: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+  cursor: default;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -384,7 +391,6 @@
     var(--color-primary) 30%,
     var(--glass-border)
   );
-  transform: translateX(-4px) translateY(-2px);
   box-shadow: 0 8px 20px rgba(230, 126, 34, 0.12);
 }
 
@@ -392,20 +398,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .transaction-date {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .transaction-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .transaction-value.receita {
@@ -425,13 +434,14 @@
 .transaction-card-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .transaction-info-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .transaction-label {
@@ -440,7 +450,7 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  min-width: 70px;
+  flex-shrink: 0;
 }
 
 .transaction-badge {
@@ -451,6 +461,7 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .transaction-badge.tipo-receita {
@@ -468,74 +479,17 @@
 .transaction-text {
   font-size: 13px;
   color: var(--color-text);
+  text-align: right;
   flex: 1;
+  font-weight: 500;
 }
 
 .transaction-description {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-muted);
   font-style: italic;
-}
-
-.transaction-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.transaction-btn {
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.transaction-btn-edit {
-  background: linear-gradient(
-    135deg,
-    rgba(52, 152, 219, 0.15),
-    rgba(52, 152, 219, 0.08)
-  );
-  color: #3498db;
-  border: 1px solid rgba(52, 152, 219, 0.25);
-}
-
-.transaction-btn-edit:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(52, 152, 219, 0.25),
-    rgba(52, 152, 219, 0.15)
-  );
-  transform: translateY(-2px);
-}
-
-.transaction-btn-delete {
-  background: linear-gradient(
-    135deg,
-    rgba(231, 76, 60, 0.15),
-    rgba(231, 76, 60, 0.08)
-  );
-  color: var(--color-danger);
-  border: 1px solid rgba(231, 76, 60, 0.25);
-}
-
-.transaction-btn-delete:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(231, 76, 60, 0.25),
-    rgba(231, 76, 60, 0.15)
-  );
-  transform: translateY(-2px);
+  text-align: right;
+  word-break: break-word;
 }
 
 /* DESKTOP: Tabela */
@@ -684,13 +638,6 @@
 }
 
 /* ==================== KPI CARDS ==================== */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: clamp(16px, 4vw, 32px);
-  margin-bottom: var(--spacing-8);
-}
-
 .kpi-card {
   position: relative;
   overflow: hidden;
@@ -1146,12 +1093,84 @@
 }
 
 @media (max-width: 768px) {
-  .lk-btn {
-    height: 30px !important;
-    border-radius: 50% !important;
+  .modern-dashboard {
+    padding: 0 !important;
   }
+
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .modern-kpi {
+    padding: 18px !important;
+  }
+
+  .kpi-value {
+    font-size: 28px !important;
+  }
+
+  .charts-container {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .chart-card {
+    padding: 16px !important;
+  }
+
+  .chart-canvas {
+    height: 250px !important;
+  }
+
+  .recentes-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .recente-card {
+    padding: 16px !important;
+  }
+
+  .recente-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .recente-info {
+    width: 100% !important;
+  }
+
+  .recente-valor {
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 18px !important;
+  }
+
   .month-dropdown-btn {
     font-size: 0.8rem !important;
+  }
+
+  /* Transaction cards mobile compacto */
+  .transaction-card {
+    padding: 14px !important;
+  }
+
+  .transaction-value {
+    font-size: 18px !important;
+  }
+
+  .transaction-date {
+    font-size: 10px !important;
+  }
+
+  .transaction-label {
+    font-size: 10px !important;
+  }
+
+  .transaction-text {
+    font-size: 12px !important;
   }
 }
 
@@ -1161,8 +1180,41 @@
     gap: var(--spacing-4);
   }
 
+  .modern-kpi {
+    padding: 14px !important;
+  }
+
+  .kpi-value {
+    font-size: 24px !important;
+  }
+
+  .kpi-label {
+    font-size: 12px !important;
+  }
+
   .card {
     padding: var(--spacing-4);
+  }
+
+  .chart-card {
+    padding: 12px !important;
+  }
+
+  .chart-canvas {
+    height: 220px !important;
+  }
+
+  .recente-card,
+  .meta-card {
+    padding: 12px !important;
+  }
+
+  .recente-item {
+    padding: 10px !important;
+  }
+
+  .recente-valor {
+    font-size: 16px !important;
   }
 
   .table-card .btn-del {
@@ -1170,9 +1222,57 @@
     width: 35px;
     border-radius: 10px;
   }
+
   .table-card .btn-del i {
     font-size: 0.8rem;
     padding: 0;
+  }
+
+  /* Transaction cards ainda mais compactos em telas pequenas */
+  .transaction-card {
+    padding: 12px !important;
+  }
+
+  .transaction-card-header {
+    margin-bottom: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .transaction-value {
+    font-size: 16px !important;
+  }
+
+  .transaction-date {
+    font-size: 9px !important;
+  }
+
+  .transaction-card-body {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .transaction-label {
+    font-size: 9px !important;
+  }
+
+  .transaction-text {
+    font-size: 11px !important;
+  }
+
+  .transaction-badge {
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+  }
+}
+
+/* Media query específica para dispositivos muito pequenos (300px - 360px) */
+@media (max-width: 360px) {
+  .transaction-card {
+    padding: 10px !important;
+  }
+
+  .transaction-value {
+    font-size: 15px !important;
   }
 }
 
@@ -1273,12 +1373,35 @@
   .gamification-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* Reordenar cards - Streak e Conquistas na primeira linha */
+  .streak-card {
+    order: 1;
+  }
+
+  .badges-card {
+    order: 2;
+  }
+
+  /* Progresso ocupa toda a segunda linha */
+  .level-progress-card {
+    order: 3;
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 1024px) {
   .gamification-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+  }
+
+  /* Resetar ordem para desktop */
+  .streak-card,
+  .level-progress-card,
+  .badges-card {
+    order: initial;
+    grid-column: initial;
   }
 }
 

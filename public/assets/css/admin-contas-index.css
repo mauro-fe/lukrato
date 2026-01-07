@@ -741,6 +741,53 @@
   .lk-modal-card {
     padding: var(--spacing-6);
   }
+
+  /* Account Cards Mobile */
+  .account-card {
+    border-radius: 12px;
+  }
+
+  .account-header {
+    padding: 1rem;
+    min-height: 70px;
+  }
+
+  .account-logo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .account-body {
+    padding: 1rem;
+  }
+
+  .account-name {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .account-institution {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .account-balance {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-new-transaction {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -754,6 +801,56 @@
 
   .acc-actions-btn .btn {
     flex: 1;
+  }
+
+  /* Account Cards Mobile Small */
+  .account-header {
+    padding: 0.875rem;
+    min-height: 60px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .account-logo {
+    width: 44px;
+    height: 44px;
+    order: 1;
+  }
+
+  .account-actions {
+    width: auto;
+    justify-content: flex-end;
+    order: 2;
+  }
+
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8125rem;
+  }
+
+  .account-body {
+    padding: 0.875rem;
+  }
+
+  .account-name {
+    font-size: 0.9375rem;
+  }
+
+  .account-institution {
+    font-size: 0.6875rem;
+  }
+
+  .account-balance {
+    font-size: 1.375rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .btn-new-transaction {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
   }
 }
 

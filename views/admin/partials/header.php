@@ -70,6 +70,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- Enhancements por último para sobrescrever tudo -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css">
 
+    <!-- CSS Responsivo - SEMPRE POR ÚLTIMO -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/responsive.css">
+
     <!-- ============================================================================
          SCRIPTS EXTERNOS
          ============================================================================ -->
@@ -78,6 +81,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
+    <script src="<?= BASE_URL ?>assets/js/mobile.js" defer></script>
     <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
 
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
@@ -250,7 +254,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     </script>
 
     <!-- ============================================================================
-         BOTÃO TOGGLE SIDEBAR (Edge Button)
+         BOTÃO TOGGLE SIDEBAR (Edge Button - Desktop Only)
          ============================================================================ -->
     <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
         title="Fechar/Abrir menu">
@@ -266,6 +270,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <a class="logo" href="<?= BASE_URL ?>dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
+            <button id="closeSidebarBtn" class="close-sidebar-btn" aria-label="Fechar menu">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
         <!-- Menu de Navegação -->

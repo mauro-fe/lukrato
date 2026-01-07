@@ -306,10 +306,12 @@
         const aside = document.getElementById('sidebar-main');
         const btn = document.getElementById('edgeMenuBtn') ||
             document.getElementById('btn-toggle-sidebar');
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const closeBtn = document.getElementById('closeSidebarBtn');
         const backdrop = document.getElementById('sidebarBackdrop');
         const icon = btn?.querySelector('i');
 
-        if (!aside || !btn || !body) return;
+        if (!aside || (!btn && !mobileBtn) || !body) return;
 
         const media = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
 
@@ -374,7 +376,9 @@
         // Event Listeners
         // ====================================================================
 
-        btn.addEventListener('click', handleToggle);
+        btn?.addEventListener('click', handleToggle);
+        mobileBtn?.addEventListener('click', handleToggle);
+        closeBtn?.addEventListener('click', closeMobile);
         backdrop?.addEventListener('click', closeMobile);
 
         document.addEventListener('keydown', (event) => {

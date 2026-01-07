@@ -41,14 +41,65 @@
 }
 
 /* Bloco central com texto e divisores automáticos */
-.footer .col-8 {
+.footer .col-12 {
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1.6;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: var(--spacing-3);
   flex-wrap: wrap;
-  line-height: 1.6;
-  font-size: var(--font-size-sm);
+  justify-content: center;
+}
+
+.footer-copyright {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.footer-copyright::after {
+  content: "-";
+  margin: 0 var(--spacing-2);
+  opacity: 0.5;
+}
+
+.footer-dev-label {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.footer-developers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  font-size: 14px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.footer-developers a {
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.footer-separator {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  font-weight: 300;
+  flex-shrink: 0;
+  padding: 0 var(--spacing-1);
+  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 /* Coloque um separador "•" entre os spans (não após o último) */
@@ -111,17 +162,67 @@
 }
 
 /* Responsividade: em telas menores, reduza gaps e fonte */
-@media (max-width: 576px) {
-  .footer .col-8 {
-    gap: var(--spacing-2);
-    font-size: var(--font-size-xs);
+@media (max-width: 768px) {
+  .footer {
+    min-height: auto;
+    padding: var(--spacing-4) var(--spacing-3);
   }
 
-  .footer {
-    min-height: clamp(72px, 18vw, 120px);
+  /* Layout vertical em mobile */
+  .footer-content {
+    flex-direction: column;
+    gap: var(--spacing-1);
   }
-  .footer .col-8 > span:not(:last-child)::after {
-    margin-inline: var(--spacing-2);
+
+  .footer-copyright::after {
+    display: none;
+  }
+
+  .footer-copyright {
+    font-size: 13px;
+  }
+
+  .footer-dev-label {
+    font-size: 12px;
+  }
+
+  .footer-developers {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--spacing-1);
+    font-size: 13px;
+  }
+
+  .footer-separator {
+    padding: 0 4px;
+    margin-top: -30px;
+  }
+
+  .footer a {
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 576px) {
+  .footer {
+    padding: var(--spacing-3) var(--spacing-2);
+  }
+
+  .footer-copyright {
+    font-size: 12px;
+  }
+
+  .footer-dev-label {
+    font-size: 11px;
+  }
+
+  .footer-developers {
+    gap: var(--spacing-1);
+    font-size: 12px;
+  }
+
+  .footer a {
+    font-size: 12px;
   }
 }
 

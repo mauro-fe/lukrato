@@ -10,8 +10,7 @@ class DashboardController extends BaseController
     public function dashboard(): void
     {
         $data = [
-            'pageTitle' => 'Dashboard',
-            'subTitle' => 'Controle Financeiro'
+            'pageTitle' => 'Dashboard'
         ];
 
         $this->render(

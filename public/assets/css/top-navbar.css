@@ -21,6 +21,17 @@ body.sidebar-collapsed .top-navbar {
   left: 100px;
 }
 
+/* Mobile - navbar em tela cheia */
+@media (max-width: 992px) {
+  .top-navbar {
+    left: 0 !important;
+  }
+
+  body.sidebar-collapsed .top-navbar {
+    left: 0 !important;
+  }
+}
+
 .top-navbar-container {
   height: 100%;
   padding: 0 var(--spacing-6);
@@ -31,8 +42,50 @@ body.sidebar-collapsed .top-navbar {
 }
 
 /* ===================================================================
+   MENU BUTTON
+   =================================================================== */
+
+.top-navbar-menu-btn {
+  display: none; /* Oculto em desktop */
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.top-navbar-menu-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--glass-bg));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 30%,
+    var(--glass-border)
+  );
+  color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.top-navbar-menu-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===================================================================
    PAGE TITLE / BREADCRUMB
    =================================================================== */
+
+.top-navbar-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
 
 .top-navbar-title h1 {
   font-size: var(--font-size-2xl);
@@ -40,6 +93,9 @@ body.sidebar-collapsed .top-navbar {
   color: var(--color-text);
   margin: 0;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .top-navbar-title .subtitle {
@@ -49,7 +105,7 @@ body.sidebar-collapsed .top-navbar {
 }
 
 /* ===================================================================
-   ACTIONS SECTION
+   ACTION BUTTONS
    =================================================================== */
 
 .top-navbar-actions {
@@ -297,6 +353,7 @@ body.sidebar-collapsed .top-navbar {
 @media (max-width: 992px) {
   .top-navbar {
     left: 0;
+    height: 60px;
   }
 
   body.sidebar-collapsed .top-navbar {
@@ -304,38 +361,119 @@ body.sidebar-collapsed .top-navbar {
   }
 
   .top-navbar-container {
-    padding: 0 var(--spacing-4);
+    padding: 0 var(--spacing-3);
+    gap: var(--spacing-3);
   }
 
-  .top-navbar-title h1 {
-    font-size: var(--font-size-xl);
-  }
-
-  .top-navbar-title .subtitle {
-    display: none;
-  }
-
-  .top-navbar-actions {
-    gap: var(--spacing-2);
+  .top-navbar-menu-btn {
+    display: flex;
   }
 
   .top-nav-btn {
-    height: 40px;
-    padding: 0 var(--spacing-2);
     font-size: 13px;
   }
 
   .theme-toggle {
     width: 40px;
   }
+
+  .content-wrapper {
+    padding-top: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-navbar {
+    height: 56px;
+    left: 0 !important;
+  }
+
+  .top-navbar-container {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  /* Mostrar botão menu em mobile */
+  .top-navbar-menu-btn {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 16px;
+  }
+
+  /* Ocultar botão logout em mobile */
+  .logout-btn {
+    display: none !important;
+  }
+
+  .top-navbar-title h1 {
+    font-size: 16px;
+  }
+
+  .top-nav-btn {
+    height: 36px;
+    padding: 0 8px;
+    font-size: 12px;
+    min-width: 36px;
+  }
+
+  .top-nav-btn .btn-text {
+    display: none;
+  }
+
+  .top-nav-btn i {
+    margin: 0;
+  }
+
+  .theme-toggle {
+    width: 36px;
+    padding: 0;
+  }
+
+  .content-wrapper {
+    padding-top: 56px;
+  }
 }
 
 @media (max-width: 640px) {
+  .top-navbar {
+    height: 50px;
+    left: 0 !important;
+  }
+
+  .top-navbar-container {
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .top-navbar-menu-btn {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 14px;
+  }
+
   .top-navbar-title h1 {
-    font-size: var(--font-size-lg);
+    font-size: 14px;
   }
 
   .upgrade-btn .btn-text {
     display: none;
+  }
+
+  .top-nav-btn {
+    height: 32px;
+    padding: 0 6px;
+    min-width: 32px;
+  }
+
+  .theme-toggle {
+    width: 32px;
+  }
+
+  .content-wrapper {
+    padding-top: 50px;
   }
 }

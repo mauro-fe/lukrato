@@ -527,17 +527,421 @@
 
     /* Responsivo */
     @media (max-width: 768px) {
-        .lk-tipo-grid {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
+        .lk-modal-lancamento {
+            max-width: calc(100vw - 16px) !important;
+            max-height: calc(100vh - 16px) !important;
+            margin: 8px;
+            border-radius: 12px;
+        }
+
+        .lk-modal-lancamento .lk-modal-body-modern {
+            max-height: calc(100vh - 180px);
+            min-height: auto;
+            padding: 1rem;
+        }
+
+        .lk-modal-modern {
+            max-width: calc(100vw - 16px);
+            max-height: calc(100vh - 16px);
+            margin: 8px;
+            border-radius: 12px;
+        }
+
+        .lk-modal-header-gradient {
+            padding: 1rem;
+            min-height: auto;
+        }
+
+        .lk-modal-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+        }
+
+        .lk-modal-title {
+            font-size: 1.25rem;
+        }
+
+        .lk-modal-close-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 1.125rem;
+        }
+
+        .lk-modal-body-modern {
+            padding: 1rem;
         }
 
         .lk-conta-info {
             flex-direction: column;
             gap: 0.75rem;
             text-align: center;
+            padding: 0.875rem;
+        }
+
+        .lk-conta-badge {
+            font-size: 0.9375rem;
+        }
+
+        .lk-conta-badge i {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+
+        .lk-conta-saldo {
+            font-size: 0.875rem;
+        }
+
+        .lk-conta-saldo strong {
+            font-size: 1.125rem;
+        }
+
+        .lk-historico-section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .lk-section-title {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .lk-historico-list {
+            max-height: 200px;
+            padding: 0.75rem;
+        }
+
+        .lk-historico-item {
+            padding: 0.75rem;
+            gap: 0.75rem;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .lk-historico-info {
+            width: 100%;
+        }
+
+        .lk-historico-valor {
+            font-size: 0.9375rem;
+            align-self: flex-end;
+        }
+
+        .lk-tipo-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .lk-tipo-card {
+            padding: 1rem;
+        }
+
+        .lk-tipo-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+        }
+
+        .lk-tipo-card h4 {
+            font-size: 1.125rem;
+        }
+
+        .lk-tipo-card p {
+            font-size: 0.8125rem;
+        }
+
+        .lk-tipo-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+        }
+
+        .lk-form-group {
+            margin-bottom: 1rem;
+        }
+
+        .lk-form-group label {
+            font-size: 0.875rem;
+        }
+
+        .lk-input,
+        .lk-select,
+        .lk-textarea {
+            font-size: 0.9375rem;
+            padding: 0.625rem 0.875rem;
+        }
+
+        .lk-label {
+            font-size: 0.875rem;
+            margin-bottom: 0.4375rem;
+        }
+
+        .lk-input,
+        .lk-select,
+        .lk-textarea {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.9375rem;
+        }
+
+        .lk-input-money {
+            font-size: 0.9375rem;
+        }
+
+        .lk-currency-symbol {
+            font-size: 0.9375rem;
+            left: 0.875rem;
+        }
+
+        .lk-input-money .lk-input-with-prefix,
+        input.lk-input.lk-input-with-prefix {
+            padding-left: 3.25rem !important;
+            font-size: 1rem;
+        }
+
+        .lk-select {
+            padding-right: 2.25rem;
+        }
+
+        .lk-select-icon {
+            right: 0.875rem;
+        }
+
+        .lk-helper-text {
+            font-size: 0.75rem;
+        }
+
+        .lk-checkbox-label {
+            font-size: 0.875rem;
+        }
+
+        .lk-btn-voltar {
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .lk-modal-footer {
+            padding: 1rem;
+            gap: 0.75rem;
+            flex-direction: column-reverse;
+        }
+
+        .lk-btn-primary,
+        .lk-btn-ghost,
+        .lk-btn-secondary {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+        }
+
+        .lk-parcelamento-preview {
+            font-size: 0.8125rem;
+            padding: 0.75rem;
         }
     }
+
+    @media (max-width: 480px) {
+        .lk-modal-lancamento {
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .lk-modal-lancamento .lk-modal-body-modern {
+            max-height: calc(100vh - 160px);
+            padding: 0.875rem;
+        }
+
+        .lk-modal-modern {
+            max-width: 100vw;
+            max-height: 100vh;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .lk-modal-header-gradient {
+            padding: 0.875rem;
+        }
+
+        .lk-modal-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            font-size: 1.125rem;
+        }
+
+        .lk-modal-title {
+            font-size: 1.125rem;
+        }
+
+        .lk-modal-close-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+        }
+
+        .lk-modal-body-modern {
+            padding: 0.875rem;
+        }
+
+        .lk-conta-info {
+            padding: 0.75rem;
+        }
+
+        .lk-conta-badge {
+            font-size: 0.875rem;
+            padding: 0.5rem 0.875rem;
+        }
+
+        .lk-conta-badge i {
+            width: 32px;
+            height: 32px;
+            font-size: 0.875rem;
+        }
+
+        .lk-conta-saldo {
+            font-size: 0.8125rem;
+        }
+
+        .lk-conta-saldo strong {
+            font-size: 1rem;
+        }
+
+        .lk-historico-section,
+        .lk-tipo-section,
+        .lk-form-section {
+            padding: 0.875rem;
+            margin-bottom: 0.875rem;
+        }
+
+        .lk-section-title {
+            font-size: 0.9375rem;
+        }
+
+        .lk-historico-list {
+            padding: 0.5rem;
+        }
+
+        .lk-historico-item {
+            padding: 0.625rem;
+        }
+
+        .lk-historico-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 0.75rem;
+        }
+
+        .lk-historico-desc h5 {
+            font-size: 0.8125rem;
+        }
+
+        .lk-historico-desc p {
+            font-size: 0.6875rem;
+        }
+
+        .lk-historico-valor {
+            font-size: 0.875rem;
+        }
+
+        .lk-tipo-card {
+            padding: 0.875rem;
+        }
+
+        .lk-tipo-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 1.125rem;
+        }
+
+        .lk-tipo-card h4 {
+            font-size: 1rem;
+        }
+
+        .lk-tipo-card p {
+            font-size: 0.75rem;
+        }
+
+        .lk-form-group {
+            margin-bottom: 0.875rem;
+        }
+
+        .lk-label {
+            font-size: 0.8125rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .lk-input,
+        .lk-select,
+        .lk-textarea {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .lk-input-money {
+            font-size: 0.875rem;
+        }
+
+        .lk-currency-symbol {
+            font-size: 0.875rem;
+            left: 0.75rem;
+        }
+
+        .lk-input-money .lk-input-with-prefix,
+        input.lk-input.lk-input-with-prefix {
+            padding-left: 3rem !important;
+            font-size: 0.9375rem;
+        }
+
+        .lk-select {
+            padding-right: 2rem;
+        }
+
+        .lk-select-icon {
+            right: 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .lk-helper-text {
+            font-size: 0.6875rem;
+        }
+
+        .lk-checkbox-label {
+            font-size: 0.8125rem;
+        }
+
+        .lk-checkbox-custom {
+            width: 18px;
+            height: 18px;
+        }
+
+        .lk-btn-voltar {
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8125rem;
+        }
+
+        .lk-modal-footer {
+            padding: 0.875rem;
+        }
+
+        .lk-btn-primary,
+        .lk-btn-ghost,
+        .lk-btn-secondary {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+        }
+
+        .lk-input-group .lk-input-suffix {
+            font-size: 0.8125rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .lk-parcelamento-preview {
+            font-size: 0.75rem;
+            padding: 0.625rem;
+        }
+    }
+
 
     /* ========================================
    HISTÓRICO RECENTE
@@ -800,6 +1204,109 @@
 
     .lk-form-group {
         margin-bottom: 1.5rem;
+    }
+
+    .lk-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .lk-label.required::after {
+        content: '*';
+        color: #dc3545;
+        margin-left: 0.25rem;
+    }
+
+    .lk-label i {
+        color: #667eea;
+        font-size: 0.875rem;
+    }
+
+    .lk-input,
+    .lk-select,
+    .lk-textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        color: #2c3e50;
+        background: #fff;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .lk-input:focus,
+    .lk-select:focus,
+    .lk-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .lk-input-money {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .lk-currency-symbol {
+        position: absolute;
+        left: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #2ecc71;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .lk-input-money .lk-input-with-prefix,
+    input.lk-input.lk-input-with-prefix {
+        padding-left: 3.5rem !important;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .lk-select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .lk-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 2.5rem !important;
+        cursor: pointer;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        line-height: 1.5 !important;
+        height: auto !important;
+        min-height: 2.75rem;
+    }
+
+    .lk-select-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.875rem;
+        color: #6c757d;
+        pointer-events: none;
+    }
+
+    .lk-helper-text {
+        display: block;
+        margin-top: 0.375rem;
+        font-size: 0.8125rem;
+        color: #6c757d;
     }
 
     /* Campos dinâmicos com animação suave */
