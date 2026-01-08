@@ -63,7 +63,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-header.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">+
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
+
 
     <?php loadPageCss(); ?>
 
@@ -380,6 +382,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <!-- ==================== MODAIS ==================== -->
     <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
+    <?php include __DIR__ . '/modals/modal_lancamento_global.php'; ?>
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
     <?php include __DIR__ . '/modals/aviso-lancamentos.php'; ?>
 

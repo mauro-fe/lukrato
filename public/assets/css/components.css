@@ -515,7 +515,12 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f59e0b 0%, var(--color-primary) 50%, #d97706 100%);
+  background: linear-gradient(
+    135deg,
+    #f59e0b 0%,
+    var(--color-primary) 50%,
+    #d97706 100%
+  );
   border: none;
   color: #fff;
   font-size: 24px;
@@ -616,9 +621,11 @@
 
 /* Receita - Verde */
 .fab-menu-item[data-open-modal="receita"] {
-  background: linear-gradient(135deg, 
-    rgba(46, 204, 113, 0.08) 0%, 
-    var(--color-surface) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.08) 0%,
+    var(--color-surface) 100%
+  );
   border-color: rgba(46, 204, 113, 0.2);
 }
 
@@ -628,9 +635,11 @@
 }
 
 .fab-menu-item[data-open-modal="receita"]:hover {
-  background: linear-gradient(135deg, 
-    rgba(46, 204, 113, 0.15) 0%, 
-    rgba(46, 204, 113, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.15) 0%,
+    rgba(46, 204, 113, 0.05) 100%
+  );
   border-color: var(--color-success);
   box-shadow: 0 4px 16px rgba(46, 204, 113, 0.2);
 }
@@ -643,9 +652,11 @@
 
 /* Despesa - Vermelho */
 .fab-menu-item[data-open-modal="despesa"] {
-  background: linear-gradient(135deg, 
-    rgba(231, 76, 60, 0.08) 0%, 
-    var(--color-surface) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.08) 0%,
+    var(--color-surface) 100%
+  );
   border-color: rgba(231, 76, 60, 0.2);
 }
 
@@ -655,9 +666,11 @@
 }
 
 .fab-menu-item[data-open-modal="despesa"]:hover {
-  background: linear-gradient(135deg, 
-    rgba(231, 76, 60, 0.15) 0%, 
-    rgba(231, 76, 60, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.15) 0%,
+    rgba(231, 76, 60, 0.05) 100%
+  );
   border-color: var(--color-danger);
   box-shadow: 0 4px 16px rgba(231, 76, 60, 0.2);
 }
@@ -670,9 +683,11 @@
 
 /* Agendar - Azul */
 .fab-menu-item[data-open-modal="agendamento"] {
-  background: linear-gradient(135deg, 
-    rgba(52, 152, 219, 0.08) 0%, 
-    var(--color-surface) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.08) 0%,
+    var(--color-surface) 100%
+  );
   border-color: rgba(52, 152, 219, 0.2);
 }
 
@@ -682,9 +697,11 @@
 }
 
 .fab-menu-item[data-open-modal="agendamento"]:hover {
-  background: linear-gradient(135deg, 
-    rgba(52, 152, 219, 0.15) 0%, 
-    rgba(52, 152, 219, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.15) 0%,
+    rgba(52, 152, 219, 0.05) 100%
+  );
   border-color: #3498db;
   box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2);
 }
@@ -701,24 +718,24 @@
     bottom: 20px !important;
     left: 20px !important;
   }
-  
+
   .fab {
     width: 56px;
     height: 56px;
     font-size: 20px;
   }
-  
+
   .fab-menu {
     min-width: 160px;
     padding: 12px;
     gap: 10px;
   }
-  
+
   .fab-menu-item {
     padding: 12px 14px;
     font-size: 14px;
   }
-  
+
   .fab-menu-item i {
     width: 24px;
     height: 24px;
@@ -1222,53 +1239,19 @@
   }
 }
 
-  /* Tabelas - força scroll */
-  .table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+/* Tabelas - força scroll */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
-  .table-container .tabulator {
-    min-width: 600px;
-  }
+.table-container .tabulator {
+  min-width: 600px;
 }
 
 /* ============================================================================
    PAGE TRANSITIONS
    ============================================================================ */
-
-#lkPageTransitionOverlay {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(12, 17, 29, 0.95) 70%
-  );
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-  z-index: 120000;
-}
-
-#lkPageTransitionOverlay::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    0deg,
-    var(--color-primary),
-    rgba(46, 134, 222, 0.25)
-  );
-  opacity: 0.1;
-  mix-blend-mode: screen;
-}
-
-#lkPageTransitionOverlay.active {
-  opacity: 0.5;
-  pointer-events: auto;
-}
 
 body.page-transitioning {
   cursor: progress;
@@ -1285,4 +1268,3 @@ body.page-transitioning * {
 /* ============================================================================
    FIM DO ARQUIVO
    ============================================================================ */
-

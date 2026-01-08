@@ -19,8 +19,8 @@
                         <a href="https://www.linkedin.com/in/mauro-felix-846a08268/" target="_blank"
                             rel="noopener">Mauro Felix</a>
                         <span class="footer-separator">&</span>
-                        <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank"
-                            rel="noopener">José Victor</a>
+                        <a href="https://www.linkedin.com/in/jose-victor-75b4322a5/" target="_blank" rel="noopener">José
+                            Victor</a>
                     </div>
                 </div>
             </div>
@@ -31,7 +31,7 @@
 <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.9/dist/inputmask.min.js">
 </script>
 <script src="https://cdn.jsdelivr.net/npm/just-validate@4.3.0/dist/just-validate.production.min.js"></script>
-
+<script src="<?= BASE_URL ?>assets/js/lancamento-global.js?v=<?= time() ?>"></script>
 <script src="<?= BASE_URL ?>assets/js/core/popper.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/core/bootstrap.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/plugins/perfect-scrollbar.min.js"></script>
