@@ -38,7 +38,7 @@ class Fatura extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Usuario::class, 'user_id');
     }
 
     /**
@@ -99,10 +99,14 @@ class Fatura extends Model
     public function getProgressoAttribute(): int
     {
         if ($this->numero_parcelas <= 0) {
+            \Application\Services\LogService::info('[Fatura::getProgressoAttribute] Fatura ID: ' . $this->id . ' - numero_parcelas <= 0, progresso = 0');
             return 0;
         }
 
         $pagas = $this->itens()->where('pago', 1)->count();
-        return (int) round(($pagas / $this->numero_parcelas) * 100);
+        $progresso = (int) round(($pagas / $this->numero_parcelas) * 100);
+        $progresso = min($progresso, 100); // Nunca ultrapassa 100%
+        \Application\Services\LogService::info('[Fatura::getProgressoAttribute] Fatura ID: ' . $this->id . ' | Pagas: ' . $pagas . ' | Total: ' . $this->numero_parcelas . ' | Progresso: ' . $progresso);
+        return $progresso;
     }
 }

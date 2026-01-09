@@ -9,18 +9,34 @@ use Application\Models\FaturaCartaoItem;
 use Application\Models\CartaoCredito;
 use Application\Models\Lancamento;
 use Exception;
-use Illuminate\Support\Collection;
+use InvalidArgumentException;
+use Illuminate\Support\Facades\DB;
+use DateTime;
 
 /**
  * Service para gerenciar faturas de cartão de crédito
  */
 class FaturaService
 {
+    private const STATUS_PENDENTE = 'pendente';
+    private const STATUS_PARCIAL = 'parcial';
+    private const STATUS_PAGA = 'paga';
+    private const STATUS_CANCELADO = 'cancelado';
+
+    private const VALOR_MINIMO = 0.01;
+    private const PARCELAS_MINIMAS = 1;
+    private const PARCELAS_MAXIMAS = 120;
+
     /**
      * Listar todas as faturas do usuário
      */
-    public function listar(int $usuarioId, ?int $cartaoId = null, ?string $status = null, ?int $mes = null, ?int $ano = null): array
-    {
+    public function listar(
+        int $usuarioId,
+        ?int $cartaoId = null,
+        ?string $status = null,
+        ?int $mes = null,
+        ?int $ano = null
+    ): array {
         try {
             $query = Fatura::where('user_id', $usuarioId)
                 ->with(['cartaoCredito', 'itens']);
@@ -39,132 +55,47 @@ class FaturaService
 
             // Filtrar por status se fornecido
             if ($status) {
-                $faturas = $faturas->filter(function ($fatura) use ($status) {
-                    $faturaStatus = $fatura->isPaga() ? 'paga' : 'ativa';
-                    if ($status === 'ativo') {
-                        return $faturaStatus === 'ativa';
-                    }
-                    if ($status === 'concluido') {
-                        return $faturaStatus === 'paga';
-                    }
-                    return true;
-                });
+                $faturas = $this->filtrarPorStatus($faturas, $status);
             }
 
             return $faturas->map(function ($fatura) {
-                $itensPagos = $fatura->itens->where('pago', 1)->count();
-                $totalItens = $fatura->itens->count();
-                $progresso = $fatura->progresso;
-
-                // Calcular valor pendente (apenas itens não pagos)
-                $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
-
-                // Pegar data de vencimento do primeiro item
-                $primeiroItem = $fatura->itens->first();
-                $dataVencimento = $primeiroItem ? $primeiroItem->data_vencimento : null;
-
-                // Determinar status baseado no progresso
-                if ($progresso === 0) {
-                    $status = 'pendente';
-                } elseif ($progresso === 100) {
-                    $status = 'paga';
-                } else {
-                    $status = 'parcial';
-                }
-
-                return [
-                    'id' => $fatura->id,
-                    'descricao' => $fatura->descricao,
-                    'valor_total' => $valorPendente, // Usar valor pendente ao invés do total
-                    'numero_parcelas' => $fatura->numero_parcelas,
-                    'valor_parcela' => $fatura->valor_parcela,
-                    'data_compra' => $fatura->data_compra->format('Y-m-d'),
-                    'data_vencimento' => $dataVencimento ? $dataVencimento->format('Y-m-d') : null,
-                    'cartao' => [
-                        'id' => $fatura->cartaoCredito->id,
-                        'nome' => $fatura->cartaoCredito->nome_cartao ?? $fatura->cartaoCredito->bandeira,
-                        'bandeira' => $fatura->cartaoCredito->bandeira,
-                        'ultimos_digitos' => $fatura->cartaoCredito->ultimos_digitos ?? '',
-                    ],
-                    'parcelas_pagas' => $itensPagos,
-                    'parcelas_pendentes' => $totalItens - $itensPagos,
-                    'progresso' => $progresso,
-                    'status' => $status,
-                ];
+                return $this->formatarFaturaListagem($fatura);
             })->toArray();
         } catch (Exception $e) {
-            error_log("Erro ao listar faturas: " . $e->getMessage());
-            return [];
+            LogService::error("Erro ao listar faturas", [
+                'usuario_id' => $usuarioId,
+                'error' => $e->getMessage()
+            ]);
+            throw new Exception("Erro ao listar faturas: " . $e->getMessage());
         }
     }
 
     /**
-     * Buscar fatura por ID
+     * Buscar fatura por ID com todos os detalhes
      */
     public function buscar(int $faturaId, int $usuarioId): ?array
     {
         try {
             $fatura = Fatura::where('id', $faturaId)
                 ->where('user_id', $usuarioId)
-                ->with(['cartaoCredito', 'itens'])
+                ->with(['cartaoCredito', 'itens' => function ($query) {
+                    $query->orderBy('mes_referencia')
+                        ->orderBy('ano_referencia');
+                }])
                 ->first();
 
             if (!$fatura) {
                 return null;
             }
 
-            $parcelas = $fatura->itens->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'numero_parcela' => $item->parcela_atual,
-                    'total_parcelas' => $item->total_parcelas,
-                    'valor' => $item->valor,
-                    'descricao' => $item->descricao,
-                    'data_vencimento' => $item->data_vencimento->format('Y-m-d'),
-                    'mes_referencia' => $item->mes_referencia,
-                    'ano_referencia' => $item->ano_referencia,
-                    'pago' => $item->pago,
-                    'data_pagamento' => $item->data_pagamento?->format('Y-m-d'),
-                ];
-            })->sortBy('mes_referencia')->values()->toArray();
-
-            $itensPagos = $fatura->itens->where('pago', 1)->count();
-            $totalItens = $fatura->itens->count();
-
-            // Calcular valor pendente
-            $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
-
-            $progresso = $fatura->progresso;
-            if ($progresso === 0) {
-                $status = 'pendente';
-            } elseif ($progresso === 100) {
-                $status = 'paga';
-            } else {
-                $status = 'parcial';
-            }
-
-            return [
-                'id' => $fatura->id,
-                'descricao' => $fatura->descricao,
-                'valor_total' => $fatura->valor_total,
-                'valor_pendente' => $valorPendente,
-                'numero_parcelas' => $fatura->numero_parcelas,
-                'data_compra' => $fatura->data_compra->format('Y-m-d'),
-                'cartao' => [
-                    'id' => $fatura->cartaoCredito->id,
-                    'nome' => $fatura->cartaoCredito->nome_cartao ?? $fatura->cartaoCredito->bandeira,
-                    'bandeira' => $fatura->cartaoCredito->bandeira,
-                    'ultimos_digitos' => $fatura->cartaoCredito->ultimos_digitos ?? '',
-                ],
-                'parcelas' => $parcelas,
-                'parcelas_pagas' => $itensPagos,
-                'parcelas_pendentes' => $totalItens - $itensPagos,
-                'progresso' => $progresso,
-                'status' => $status,
-            ];
+            return $this->formatarFaturaDetalhada($fatura);
         } catch (Exception $e) {
-            error_log("Erro ao buscar fatura {$faturaId}: " . $e->getMessage());
-            return null;
+            LogService::error("Erro ao buscar fatura", [
+                'fatura_id' => $faturaId,
+                'usuario_id' => $usuarioId,
+                'error' => $e->getMessage()
+            ]);
+            throw new Exception("Erro ao buscar fatura: " . $e->getMessage());
         }
     }
 
@@ -173,84 +104,52 @@ class FaturaService
      */
     public function criar(array $dados): ?int
     {
-        try {
-            // Validar dados básicos
-            $this->validarDados($dados);
+        DB::beginTransaction();
 
-            // Buscar cartão
-            $cartao = CartaoCredito::find($dados['cartao_credito_id']);
-            if (!$cartao) {
-                throw new Exception("Cartão não encontrado");
-            }
+        try {
+            // Validar dados
+            $this->validarDadosCriacao($dados);
+
+            // Buscar e validar cartão
+            $cartao = $this->buscarCartaoValidado($dados['cartao_credito_id'], $dados['user_id']);
 
             // Criar fatura
-            $fatura = Fatura::create([
-                'user_id' => $dados['user_id'],
-                'cartao_credito_id' => $dados['cartao_credito_id'],
-                'descricao' => $dados['descricao'],
-                'valor_total' => $dados['valor_total'],
-                'numero_parcelas' => $dados['numero_parcelas'],
-                'data_compra' => $dados['data_compra'],
-            ]);
-
-            // Calcular valor da parcela
-            $valorParcela = round($dados['valor_total'] / $dados['numero_parcelas'], 2);
-
-            // Ajustar última parcela para cobrir diferença de arredondamento
-            $somaParcelas = $valorParcela * ($dados['numero_parcelas'] - 1);
-            $ultimaParcela = $dados['valor_total'] - $somaParcelas;
+            $fatura = $this->criarFatura($dados);
 
             // Criar itens (parcelas)
-            $dataCompra = new \DateTime($dados['data_compra']);
-            $diaCompra = (int) $dataCompra->format('d');
-            $mesCompra = (int) $dataCompra->format('m');
-            $anoCompra = (int) $dataCompra->format('Y');
+            $this->criarItensFatura($fatura, $dados, $cartao);
 
-            for ($i = 1; $i <= $dados['numero_parcelas']; $i++) {
-                $valor = ($i === $dados['numero_parcelas']) ? $ultimaParcela : $valorParcela;
+            DB::commit();
 
-                // Calcular data de vencimento
-                $vencimento = $this->calcularDataVencimento(
-                    $diaCompra,
-                    $mesCompra,
-                    $anoCompra,
-                    $i,
-                    $cartao->dia_vencimento,
-                    $cartao->dia_fechamento
-                );
-
-                FaturaCartaoItem::create([
-                    'user_id' => $dados['user_id'],
-                    'cartao_credito_id' => $dados['cartao_credito_id'],
-                    'fatura_id' => $fatura->id,
-                    'descricao' => $dados['descricao'],
-                    'valor' => $valor,
-                    'data_compra' => $dados['data_compra'],
-                    'data_vencimento' => $vencimento['data'],
-                    'categoria_id' => $dados['categoria_id'] ?? null,
-                    'numero_parcela' => $i,
-                    'total_parcelas' => $dados['numero_parcelas'],
-                    'mes_referencia' => $vencimento['mes'],
-                    'ano_referencia' => $vencimento['ano'],
-                    'pago' => 0,
-                ]);
-            }
+            LogService::info("Fatura criada com sucesso", [
+                'fatura_id' => $fatura->id,
+                'usuario_id' => $dados['user_id']
+            ]);
 
             return $fatura->id;
         } catch (Exception $e) {
-            error_log("Erro ao criar fatura: " . $e->getMessage());
-            return null;
+            DB::rollBack();
+
+            LogService::error("Erro ao criar fatura", [
+                'dados' => $dados,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
         }
     }
 
     /**
-     * Cancelar fatura (remover fatura e todos os itens não pagos)
+     * Cancelar fatura (apenas se não tiver parcelas pagas)
      */
     public function cancelar(int $faturaId, int $usuarioId): bool
     {
+        DB::beginTransaction();
+
         try {
             $fatura = Fatura::where('id', $faturaId)
                 ->where('user_id', $usuarioId)
+                ->with('itens')
                 ->first();
 
             if (!$fatura) {
@@ -258,55 +157,250 @@ class FaturaService
             }
 
             // Verificar se tem parcelas pagas
-            $itensPagos = FaturaCartaoItem::where('fatura_id', $faturaId)
-                ->where('pago', 1)
-                ->count();
+            $itensPagos = $fatura->itens->where('pago', 1)->count();
 
             if ($itensPagos > 0) {
-                throw new Exception("Não é possível cancelar fatura com parcelas já pagas");
+                throw new InvalidArgumentException(
+                    "Não é possível cancelar fatura com {$itensPagos} parcela(s) já paga(s)"
+                );
             }
 
             // Remover itens pendentes
-            FaturaCartaoItem::where('fatura_id', $faturaId)->delete();
+            FaturaCartaoItem::where('fatura_id', $faturaId)
+                ->where('pago', 0)
+                ->delete();
 
             // Remover fatura
             $fatura->delete();
 
+            DB::commit();
+
+            LogService::info("Fatura cancelada", [
+                'fatura_id' => $faturaId,
+                'usuario_id' => $usuarioId
+            ]);
+
             return true;
         } catch (Exception $e) {
-            error_log("Erro ao cancelar fatura {$faturaId}: " . $e->getMessage());
-            return false;
+            DB::rollBack();
+
+            LogService::error("Erro ao cancelar fatura", [
+                'fatura_id' => $faturaId,
+                'usuario_id' => $usuarioId,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
         }
     }
 
     /**
-     * Validar dados de entrada
+     * Marcar item da fatura como pago/pendente
      */
-    private function validarDados(array $dados): void
+    public function toggleItemPago(int $faturaId, int $itemId, int $usuarioId, bool $pago): bool
     {
+        DB::beginTransaction();
+
+        try {
+            $item = FaturaCartaoItem::where('id', $itemId)
+                ->where('fatura_id', $faturaId)
+                ->where('user_id', $usuarioId)
+                ->with('cartaoCredito')
+                ->first();
+
+            if (!$item) {
+                throw new Exception("Item não encontrado");
+            }
+
+            if ($pago) {
+                $this->marcarItemComoPago($item, $usuarioId);
+            } else {
+                $this->desmarcarItemPago($item);
+            }
+
+            DB::commit();
+
+            LogService::info("Item de fatura atualizado", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'pago' => $pago
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            LogService::error("Erro ao atualizar item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    // ============================================================================
+    // MÉTODOS PRIVADOS - VALIDAÇÃO
+    // ============================================================================
+
+    /**
+     * Validar dados de criação de fatura
+     */
+    private function validarDadosCriacao(array $dados): void
+    {
+        $erros = [];
+
         if (empty($dados['user_id'])) {
-            throw new Exception("Usuário não informado");
+            $erros[] = "Usuário não informado";
         }
 
         if (empty($dados['cartao_credito_id'])) {
-            throw new Exception("Cartão não informado");
+            $erros[] = "Cartão não informado";
         }
 
-        if (empty($dados['descricao'])) {
-            throw new Exception("Descrição não informada");
+        if (empty($dados['descricao']) || strlen(trim($dados['descricao'])) < 3) {
+            $erros[] = "Descrição inválida (mínimo 3 caracteres)";
         }
 
-        if (empty($dados['valor_total']) || $dados['valor_total'] <= 0) {
-            throw new Exception("Valor inválido");
+        if (empty($dados['valor_total']) || $dados['valor_total'] < self::VALOR_MINIMO) {
+            $erros[] = sprintf("Valor inválido (mínimo R$ %.2f)", self::VALOR_MINIMO);
         }
 
-        if (empty($dados['numero_parcelas']) || $dados['numero_parcelas'] < 1) {
-            throw new Exception("Número de parcelas inválido");
+        if (
+            empty($dados['numero_parcelas']) ||
+            $dados['numero_parcelas'] < self::PARCELAS_MINIMAS ||
+            $dados['numero_parcelas'] > self::PARCELAS_MAXIMAS
+        ) {
+            $erros[] = sprintf(
+                "Número de parcelas inválido (entre %d e %d)",
+                self::PARCELAS_MINIMAS,
+                self::PARCELAS_MAXIMAS
+            );
         }
 
-        if (empty($dados['data_compra'])) {
-            throw new Exception("Data da compra não informada");
+        if (empty($dados['data_compra']) || !$this->validarData($dados['data_compra'])) {
+            $erros[] = "Data da compra inválida";
         }
+
+        if (!empty($erros)) {
+            throw new InvalidArgumentException(implode("; ", $erros));
+        }
+    }
+
+    /**
+     * Validar formato de data (Y-m-d)
+     */
+    private function validarData(string $data): bool
+    {
+        $d = DateTime::createFromFormat('Y-m-d', $data);
+        return $d && $d->format('Y-m-d') === $data;
+    }
+
+    /**
+     * Buscar cartão e validar se pertence ao usuário
+     */
+    private function buscarCartaoValidado(int $cartaoId, int $usuarioId): CartaoCredito
+    {
+        $cartao = CartaoCredito::where('id', $cartaoId)
+            ->where('user_id', $usuarioId)
+            ->first();
+
+        if (!$cartao) {
+            throw new InvalidArgumentException("Cartão não encontrado ou não pertence ao usuário");
+        }
+
+        if (empty($cartao->dia_vencimento) || empty($cartao->dia_fechamento)) {
+            throw new InvalidArgumentException("Cartão sem configuração de vencimento/fechamento");
+        }
+
+        return $cartao;
+    }
+
+    // ============================================================================
+    // MÉTODOS PRIVADOS - CRIAÇÃO
+    // ============================================================================
+
+    /**
+     * Criar registro da fatura
+     */
+    private function criarFatura(array $dados): Fatura
+    {
+        return Fatura::create([
+            'user_id' => $dados['user_id'],
+            'cartao_credito_id' => $dados['cartao_credito_id'],
+            'descricao' => trim($dados['descricao']),
+            'valor_total' => round((float) $dados['valor_total'], 2),
+            'numero_parcelas' => (int) $dados['numero_parcelas'],
+            'data_compra' => $dados['data_compra'],
+        ]);
+    }
+
+    /**
+     * Criar itens (parcelas) da fatura
+     */
+    private function criarItensFatura(Fatura $fatura, array $dados, CartaoCredito $cartao): void
+    {
+        $valorTotal = round((float) $dados['valor_total'], 2);
+        $numeroParcelas = (int) $dados['numero_parcelas'];
+
+        // Calcular valores das parcelas
+        $valoresParcelas = $this->calcularValoresParcelas($valorTotal, $numeroParcelas);
+
+        // Parsear data de compra
+        $dataCompra = new DateTime($dados['data_compra']);
+        $diaCompra = (int) $dataCompra->format('d');
+        $mesCompra = (int) $dataCompra->format('m');
+        $anoCompra = (int) $dataCompra->format('Y');
+
+        // Criar cada parcela
+        for ($i = 1; $i <= $numeroParcelas; $i++) {
+            $vencimento = $this->calcularDataVencimento(
+                $diaCompra,
+                $mesCompra,
+                $anoCompra,
+                $i,
+                $cartao->dia_vencimento,
+                $cartao->dia_fechamento
+            );
+
+            FaturaCartaoItem::create([
+                'user_id' => $dados['user_id'],
+                'cartao_credito_id' => $dados['cartao_credito_id'],
+                'fatura_id' => $fatura->id,
+                'descricao' => trim($dados['descricao']),
+                'valor' => $valoresParcelas[$i - 1],
+                'data_compra' => $dados['data_compra'],
+                'data_vencimento' => $vencimento['data'],
+                'categoria_id' => $dados['categoria_id'] ?? null,
+                'numero_parcela' => $i,
+                'total_parcelas' => $numeroParcelas,
+                'mes_referencia' => $vencimento['mes'],
+                'ano_referencia' => $vencimento['ano'],
+                'pago' => false,
+            ]);
+        }
+    }
+
+    /**
+     * Calcular valores das parcelas com ajuste de arredondamento
+     */
+    private function calcularValoresParcelas(float $valorTotal, int $numeroParcelas): array
+    {
+        $valorParcela = round($valorTotal / $numeroParcelas, 2);
+        $valores = array_fill(0, $numeroParcelas, $valorParcela);
+
+        // Ajustar última parcela para cobrir diferença de arredondamento
+        $soma = $valorParcela * ($numeroParcelas - 1);
+        $valores[$numeroParcelas - 1] = round($valorTotal - $soma, 2);
+
+        // Garantir que a soma bate exatamente
+        $somaTotal = array_sum($valores);
+        if (abs($somaTotal - $valorTotal) > 0.01) {
+            throw new Exception("Erro no cálculo das parcelas");
+        }
+
+        return $valores;
     }
 
     /**
@@ -320,7 +414,7 @@ class FaturaService
         int $diaVencimento,
         int $diaFechamento
     ): array {
-        // Se a compra foi feita no dia do fechamento ou depois, vai para o próximo mês
+        // Se a compra foi feita após o fechamento, vai para o próximo mês
         $mesReferencia = $mesCompra;
         $anoReferencia = $anoCompra;
 
@@ -345,71 +439,223 @@ class FaturaService
         $ultimoDiaMes = (int) date('t', mktime(0, 0, 0, $mesVencimento, 1, $anoVencimento));
         $diaFinal = min($diaVencimento, $ultimoDiaMes);
 
-        $dataVencimento = sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, $diaFinal);
-
         return [
-            'data' => $dataVencimento,
+            'data' => sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, $diaFinal),
             'mes' => $mesVencimento,
             'ano' => $anoVencimento,
         ];
     }
 
+    // ============================================================================
+    // MÉTODOS PRIVADOS - PAGAMENTO
+    // ============================================================================
+
     /**
-     * Marcar item da fatura como pago/pendente
+     * Marcar item como pago e criar lançamento
      */
-    public function toggleItemPago(int $faturaId, int $itemId, int $usuarioId, bool $pago): bool
+    private function marcarItemComoPago(FaturaCartaoItem $item, int $usuarioId): void
     {
-        try {
-            $item = FaturaCartaoItem::where('id', $itemId)
-                ->where('fatura_id', $faturaId)
-                ->where('user_id', $usuarioId)
-                ->with(['cartaoCredito'])
-                ->first();
+        // Se já está pago, não fazer nada
+        if ($item->pago) {
+            return;
+        }
 
-            if (!$item) {
-                return false;
+        // Verificar se cartão tem conta vinculada
+        if (!$item->cartaoCredito->conta_id) {
+            throw new InvalidArgumentException(
+                "Cartão '{$item->cartaoCredito->nome}' não tem conta vinculada"
+            );
+        }
+
+        // Criar lançamento se não existir
+        if (!$item->lancamento_id) {
+            $valorFormatado = round((float) $item->valor, 2);
+            $dataVencimento = $item->data_vencimento ?
+                $item->data_vencimento->format('Y-m-d') :
+                now()->format('Y-m-d');
+
+            $lancamento = Lancamento::create([
+                'user_id' => $usuarioId,
+                'tipo' => 'despesa',
+                'valor' => $valorFormatado,
+                'data' => $dataVencimento,
+                'descricao' => $item->descricao,
+                'categoria_id' => $item->categoria_id,
+                'conta_id' => $item->cartaoCredito->conta_id,
+                'pago' => true,
+                'data_pagamento' => now()->format('Y-m-d'),
+                'observacao' => sprintf(
+                    'Pagamento de fatura - %s (Parcela %d/%d)',
+                    $item->cartaoCredito->nome ?? $item->cartaoCredito->bandeira,
+                    $item->numero_parcela,
+                    $item->total_parcelas
+                )
+            ]);
+
+            $item->lancamento_id = $lancamento->id;
+        }
+
+        $item->pago = true;
+        $item->data_pagamento = now();
+        $item->save();
+    }
+
+    /**
+     * Desmarcar item como pago e remover lançamento
+     */
+    private function desmarcarItemPago(FaturaCartaoItem $item): void
+    {
+        // Se já está pendente, não fazer nada
+        if (!$item->pago) {
+            return;
+        }
+
+        // Remover lançamento se existir
+        if ($item->lancamento_id) {
+            Lancamento::where('id', $item->lancamento_id)->delete();
+            $item->lancamento_id = null;
+        }
+
+        $item->pago = false;
+        $item->data_pagamento = null;
+        $item->save();
+    }
+
+    // ============================================================================
+    // MÉTODOS PRIVADOS - FORMATAÇÃO
+    // ============================================================================
+
+    /**
+     * Filtrar faturas por status
+     */
+    private function filtrarPorStatus($faturas, string $status)
+    {
+        return $faturas->filter(function ($fatura) use ($status) {
+            $progresso = $fatura->progresso;
+
+            switch ($status) {
+                case self::STATUS_PENDENTE:
+                case 'ativo':
+                    return $progresso === 0;
+
+                case self::STATUS_PARCIAL:
+                    return $progresso > 0 && $progresso < 100;
+
+                case self::STATUS_PAGA:
+                case 'concluido':
+                    return $progresso >= 100;
+
+                case self::STATUS_CANCELADO:
+                    return false; // Faturas canceladas são deletadas
+
+                default:
+                    return true;
             }
+        });
+    }
 
-            // Se está marcando como pago, criar lançamento
-            if ($pago && !$item->lancamento_id) {
-                // Garantir que o valor está no formato correto (float com 2 casas decimais)
-                $valorFormatado = (float) number_format((float) $item->valor, 2, '.', '');
+    /**
+     * Formatar fatura para listagem
+     */
+    private function formatarFaturaListagem(Fatura $fatura): array
+    {
+        $itensPagos = $fatura->itens->where('pago', 1)->count();
+        $totalItens = $fatura->itens->count();
+        $progresso = $fatura->progresso;
 
-                // Verificar se o cartão tem conta vinculada
-                if (!$item->cartaoCredito->conta_id) {
-                    error_log("Cartão {$item->cartaoCredito->id} não tem conta vinculada");
-                    return false;
-                }
+        // Calcular valor pendente (apenas itens não pagos)
+        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
 
-                $lancamento = Lancamento::create([
-                    'user_id' => $usuarioId,
-                    'tipo' => 'despesa',
-                    'valor' => $valorFormatado,
-                    'data' => $item->data_vencimento ? $item->data_vencimento->format('Y-m-d') : now()->format('Y-m-d'),
-                    'descricao' => $item->descricao,
-                    'categoria_id' => $item->categoria_id,
-                    'conta_id' => $item->cartaoCredito->conta_id,
-                    'pago' => true,
-                    'data_pagamento' => now()->format('Y-m-d'),
-                    'observacao' => 'Pagamento de fatura - ' . $item->cartaoCredito->nome
-                ]);
+        // Data de vencimento do primeiro item pendente
+        $primeiroItemPendente = $fatura->itens->where('pago', 0)
+            ->sortBy('data_vencimento')
+            ->first();
 
-                $item->lancamento_id = $lancamento->id;
-            }
-            // Se está desmarcando, remover o lançamento
-            elseif (!$pago && $item->lancamento_id) {
-                Lancamento::where('id', $item->lancamento_id)->delete();
-                $item->lancamento_id = null;
-            }
+        $dataVencimento = $primeiroItemPendente ?
+            $primeiroItemPendente->data_vencimento :
+            $fatura->itens->first()?->data_vencimento;
 
-            $item->pago = $pago;
-            $item->data_pagamento = $pago ? now() : null;
-            $item->save();
+        return [
+            'id' => $fatura->id,
+            'descricao' => $fatura->descricao,
+            'valor_total' => round($valorPendente, 2),
+            'numero_parcelas' => $fatura->numero_parcelas,
+            'valor_parcela' => $fatura->valor_parcela,
+            'data_compra' => $fatura->data_compra->format('Y-m-d'),
+            'data_vencimento' => $dataVencimento ? $dataVencimento->format('Y-m-d') : null,
+            'cartao' => $this->formatarCartao($fatura->cartaoCredito),
+            'parcelas_pagas' => $itensPagos,
+            'parcelas_pendentes' => $totalItens - $itensPagos,
+            'progresso' => round($progresso, 2),
+            'status' => $this->determinarStatus($progresso),
+        ];
+    }
 
-            return true;
-        } catch (Exception $e) {
-            error_log("Erro ao atualizar item da fatura: " . $e->getMessage());
-            return false;
+    /**
+     * Formatar fatura detalhada
+     */
+    private function formatarFaturaDetalhada(Fatura $fatura): array
+    {
+        $parcelas = $fatura->itens->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'numero_parcela' => $item->parcela_atual,
+                'total_parcelas' => $item->total_parcelas,
+                'valor' => round((float) $item->valor, 2),
+                'descricao' => $item->descricao,
+                'data_vencimento' => $item->data_vencimento->format('Y-m-d'),
+                'mes_referencia' => $item->mes_referencia,
+                'ano_referencia' => $item->ano_referencia,
+                'pago' => (bool) $item->pago,
+                'data_pagamento' => $item->data_pagamento?->format('Y-m-d'),
+            ];
+        })->values()->toArray();
+
+        $itensPagos = $fatura->itens->where('pago', 1)->count();
+        $totalItens = $fatura->itens->count();
+        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+        $progresso = $fatura->progresso;
+
+        return [
+            'id' => $fatura->id,
+            'descricao' => $fatura->descricao,
+            'valor_total' => round((float) $valorPendente, 2),
+            'valor_original' => round((float) $fatura->valor_total, 2),
+            'numero_parcelas' => $fatura->numero_parcelas,
+            'data_compra' => $fatura->data_compra->format('Y-m-d'),
+            'cartao' => $this->formatarCartao($fatura->cartaoCredito),
+            'parcelas' => $parcelas,
+            'parcelas_pagas' => $itensPagos,
+            'parcelas_pendentes' => $totalItens - $itensPagos,
+            'progresso' => round($progresso, 2),
+            'status' => $this->determinarStatus($progresso),
+        ];
+    }
+
+    /**
+     * Formatar dados do cartão
+     */
+    private function formatarCartao(CartaoCredito $cartao): array
+    {
+        return [
+            'id' => $cartao->id,
+            'nome' => $cartao->nome_cartao ?? $cartao->bandeira,
+            'bandeira' => $cartao->bandeira,
+            'ultimos_digitos' => $cartao->ultimos_digitos ?? '',
+        ];
+    }
+
+    /**
+     * Determinar status baseado no progresso
+     */
+    private function determinarStatus(float $progresso): string
+    {
+        if ($progresso === 0.0) {
+            return self::STATUS_PENDENTE;
+        } elseif ($progresso >= 100.0) {
+            return self::STATUS_PAGA;
+        } else {
+            return self::STATUS_PARCIAL;
         }
     }
 }

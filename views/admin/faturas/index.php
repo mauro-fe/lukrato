@@ -30,9 +30,10 @@
                     </label>
                     <select id="filtroStatus" class="modern-select">
                         <option value="">Todos</option>
-                        <option value="ativo" selected>✅ Ativos</option>
-                        <option value="concluido">✔️ Concluídos</option>
-                        <option value="cancelado">❌ Cancelados</option>
+                        <option value="pendente">⏳ Pendentes</option>
+                        <option value="parcial">🔄 Parcialmente Pagas</option>
+                        <option value="paga">✅ Pagas</option>
+                        <option value="cancelado">❌ Canceladas</option>
                     </select>
                 </div>
 
@@ -45,11 +46,35 @@
                         <option value="">Todos os cartões</option>
                     </select>
                 </div>
+                <div class="filter-group">
+                    <label for="filtroAno" class="filter-label">
+                        <i class="fas fa-calendar"></i>
+                        <span>Ano</span>
+                    </label>
+                    <select id="filtroAno" class="modern-select">
+                        <!-- Preencher dinamicamente -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filtroMes" class="filter-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Mês</span>
+                    </label>
+                    <select id="filtroMes" class="modern-select">
+                        <option value="">Todos</option>
+                        <option value="1">Janeiro</option>
+                        <option value="2">Fevereiro</option>
+                        <!-- ... -->
+                        <option value="12">Dezembro</option>
+                    </select>
+                </div>
 
                 <button type="button" id="btnFiltrar" class="modern-btn secondary">
                     <i class="fas fa-search"></i>
                     <span>Filtrar</span>
                 </button>
+
+
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * SISTEMA DE GERENCIAMENTO DE PARCELAMENTOS
+ * SISTEMA DE GERENCIAMENTO DE PARCELAMENTOS - VERSÃO MELHORADA
  * ============================================================================
  */
 
@@ -20,7 +20,12 @@
         ENDPOINTS: {
             parcelamentos: 'api/faturas',
             categorias: 'api/categorias',
-            contas: 'api/contas'
+            contas: 'api/contas',
+            cartoes: 'api/cartoes'
+        },
+        TIMEOUTS: {
+            alert: 5000,
+            successMessage: 2000
         }
     };
 
@@ -52,13 +57,13 @@
     const STATE = {
         parcelamentos: [],
         cartoes: [],
-        faturaAtual: null, // Armazena a fatura que está sendo visualizada
+        faturaAtual: null,
         filtros: {
             status: '',
             cartao_id: '',
             ano: '',
-            mes: null,  // Será definido pelo month-picker
-            anoMes: null   // Será definido pelo month-picker
+            mes: null,
+            anoMes: null
         },
         modalDetalhesInstance: null
     };
@@ -87,12 +92,13 @@
         },
 
         showAlert(element, message, type = 'danger') {
+            if (!element) return;
             element.className = `alert alert-${type}`;
             element.textContent = message;
             element.style.display = 'block';
             setTimeout(() => {
                 element.style.display = 'none';
-            }, 5000);
+            }, CONFIG.TIMEOUTS.alert);
         },
 
         getCSRFToken() {
@@ -100,9 +106,22 @@
         },
 
         escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        },
+
+        buildUrl(endpoint, params = {}) {
+            const url = endpoint.startsWith('http')
+                ? endpoint
+                : CONFIG.BASE_URL + endpoint.replace(/^\//, '');
+
+            const filteredParams = Object.entries(params)
+                .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`);
+
+            return filteredParams.length > 0 ? `${url}?${filteredParams.join('&')}` : url;
         },
 
         async apiRequest(url, options = {}) {
@@ -113,25 +132,47 @@
                 }
             };
 
-            // Se a URL já começa com http, usar direto. Caso contrário, concatenar com BASE_URL
             const fullUrl = url.startsWith('http') ? url : CONFIG.BASE_URL + url.replace(/^\//, '');
 
-            const response = await fetch(fullUrl, {
-                ...defaultOptions,
-                ...options,
-                headers: {
-                    ...defaultOptions.headers,
-                    ...options.headers
+            try {
+                const response = await fetch(fullUrl, {
+                    ...defaultOptions,
+                    ...options,
+                    headers: {
+                        ...defaultOptions.headers,
+                        ...options.headers
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || `Erro ${response.status}: ${response.statusText}`);
                 }
-            });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Erro na requisição');
+                return data;
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                throw error;
             }
+        },
 
-            return data;
+        debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        },
+
+        calcularDiferencaDias(dataVencimento, dataPagamento) {
+            const dataVenc = new Date(dataVencimento + 'T00:00:00');
+            const dataPag = new Date(dataPagamento + 'T00:00:00');
+            return Math.floor((dataVenc - dataPag) / (1000 * 60 * 60 * 24));
         }
     };
 
@@ -140,35 +181,29 @@
     // ============================================================================
 
     const API = {
-        async listarParcelamentos(status = '', cartaoId = '', mes = null, ano = null, anoFiltro = '') {
-            let url = CONFIG.ENDPOINTS.parcelamentos;
-            const params = [];
+        async listarParcelamentos(filters = {}) {
+            const params = {
+                status: filters.status,
+                cartao_id: filters.cartao_id,
+                ano: filters.anoFiltro || (filters.mes && filters.ano ? undefined : undefined),
+                mes: filters.mes,
+                ano: filters.ano
+            };
 
-            if (status) params.push(`status=${status}`);
-            if (cartaoId) params.push(`cartao_id=${cartaoId}`);
-
-            // Se tem filtro de ano específico, usar ele
-            if (anoFiltro) {
-                params.push(`ano=${anoFiltro}`);
-            } else if (mes && ano) {
-                // Senão, usar mês e ano do seletor de mês
-                params.push(`mes=${mes}`);
-                params.push(`ano=${ano}`);
-            }
-
-            if (params.length > 0) {
-                url += '?' + params.join('&');
-            }
-
+            const url = Utils.buildUrl(CONFIG.ENDPOINTS.parcelamentos, params);
             return await Utils.apiRequest(url);
         },
 
         async listarCartoes() {
-            return await Utils.apiRequest(CONFIG.BASE_URL + 'api/cartoes');
+            return await Utils.apiRequest(CONFIG.ENDPOINTS.cartoes);
         },
 
         async buscarParcelamento(id) {
-            return await Utils.apiRequest(`${CONFIG.ENDPOINTS.parcelamentos}/${id}`);
+            const parcelamentoId = parseInt(id, 10);
+            if (isNaN(parcelamentoId)) {
+                throw new Error('ID inválido');
+            }
+            return await Utils.apiRequest(`${CONFIG.ENDPOINTS.parcelamentos}/${parcelamentoId}`);
         },
 
         async criarParcelamento(dados) {
@@ -185,9 +220,9 @@
         },
 
         async toggleItemFatura(faturaId, itemId, pago) {
-            return await Utils.apiRequest(`${CONFIG.BASE_URL}api/faturas/${faturaId}/itens/${itemId}/toggle`, {
+            return await Utils.apiRequest(`${CONFIG.ENDPOINTS.parcelamentos}/${faturaId}/itens/${itemId}/toggle`, {
                 method: 'POST',
-                body: JSON.stringify({ pago: pago })
+                body: JSON.stringify({ pago })
             });
         }
     };
@@ -213,49 +248,63 @@
         },
 
         renderParcelamentos(parcelamentos) {
-            if (!parcelamentos || parcelamentos.length === 0) {
+            if (!Array.isArray(parcelamentos) || parcelamentos.length === 0) {
                 this.showEmpty();
                 return;
             }
 
             DOM.emptyStateEl.style.display = 'none';
             DOM.containerEl.style.display = 'grid';
-            DOM.containerEl.innerHTML = '';
 
+            // Usar DocumentFragment para melhor performance
+            const fragment = document.createDocumentFragment();
             parcelamentos.forEach(parc => {
                 const card = this.createParcelamentoCard(parc);
-                DOM.containerEl.appendChild(card);
+                fragment.appendChild(card);
             });
+
+            DOM.containerEl.innerHTML = '';
+            DOM.containerEl.appendChild(fragment);
         },
 
         createParcelamentoCard(parc) {
             const progresso = parc.progresso || 0;
-            const totalItens = (parc.parcelas_pagas || 0) + (parc.parcelas_pendentes || 0);
             const itensPendentes = parc.parcelas_pendentes || 0;
             const itensPagos = parc.parcelas_pagas || 0;
+            const totalItens = itensPagos + itensPendentes;
 
             const div = document.createElement('div');
             div.className = `parcelamento-card status-${parc.status}`;
             div.dataset.id = parc.id;
 
             const statusBadge = this.getStatusBadge(parc.status, progresso);
+            const [mes, ano] = this.extrairMesAno(parc.descricao);
 
-            // Extrair mês/ano da descrição "Fatura 1/2026"
-            const mesAnoMatch = parc.descricao.match(/(\d+)\/(\d+)/);
-            const mes = mesAnoMatch ? mesAnoMatch[1] : '';
-            const ano = mesAnoMatch ? mesAnoMatch[2] : '';
+            div.innerHTML = this.createCardHTML({
+                parc,
+                statusBadge,
+                mes,
+                ano,
+                itensPendentes,
+                itensPagos,
+                totalItens,
+                progresso
+            });
 
-            div.innerHTML = `
+            this.attachCardEventListeners(div, parc.id);
+            return div;
+        },
+
+        createCardHTML({ parc, statusBadge, mes, ano, itensPendentes, itensPagos, totalItens, progresso }) {
+            const cartaoInfo = this.getCartaoInfo(parc);
+            const resumoPrincipal = this.getResumoPrincipal(parc);
+            const itensInfo = this.getItensInfo(itensPendentes, itensPagos);
+            const progressoSection = this.getProgressoSection(totalItens, itensPagos, progresso);
+
+            return `
                 <div class="parc-card-header">
                     <div class="header-info">
-                        <div class="cartao-info">
-                            ${parc.cartao ? `
-                                <span class="cartao-nome">${Utils.escapeHtml(parc.cartao.nome || parc.cartao.bandeira)}</span>
-                                <span class="cartao-numero">•••• ${parc.cartao.ultimos_digitos || ''}</span>
-                            ` : `
-                                <span class="cartao-nome">${Utils.escapeHtml(parc.descricao)}</span>
-                            `}
-                        </div>
+                        <div class="cartao-info">${cartaoInfo}</div>
                         <div class="fatura-periodo">
                             <i class="fas fa-calendar-alt"></i>
                             ${mes}/${ano}
@@ -263,50 +312,9 @@
                     </div>
                     ${statusBadge}
                 </div>
-
-                <div class="fatura-resumo-principal">
-                    <div class="resumo-item">
-                        <span class="resumo-label">Total a Pagar</span>
-                        <strong class="resumo-valor">${Utils.formatMoney(parc.valor_total)}</strong>
-                    </div>
-                    ${parc.data_vencimento ? `
-                        <div class="resumo-item">
-                            <span class="resumo-label">Vencimento</span>
-                            <strong class="resumo-data">${Utils.formatDate(parc.data_vencimento)}</strong>
-                        </div>
-                    ` : ''}
-                </div>
-
-                ${itensPendentes > 0 ? `
-                    <div class="fatura-itens-info">
-                        <div class="itens-badge itens-pendentes">
-                            <i class="fas fa-clock"></i>
-                            <span>${itensPendentes} ${itensPendentes === 1 ? 'item pendente' : 'itens pendentes'}</span>
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${itensPagos > 0 ? `
-                    <div class="fatura-itens-info">
-                        <div class="itens-badge itens-pagos">
-                            <i class="fas fa-check-circle"></i>
-                            <span>${itensPagos} ${itensPagos === 1 ? 'item pago' : 'itens pagos'}</span>
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${totalItens > 0 ? `
-                    <div class="parc-progress-section">
-                        <div class="parc-progress-header">
-                            <span class="parc-progress-text">${itensPagos} de ${totalItens} pagos</span>
-                            <span class="parc-progress-percent">${Math.round(progresso)}%</span>
-                        </div>
-                        <div class="parc-progress-bar">
-                            <div class="parc-progress-fill" style="width: ${progresso}%"></div>
-                        </div>
-                    </div>
-                ` : ''}
-
+                <div class="fatura-resumo-principal">${resumoPrincipal}</div>
+                ${itensInfo}
+                ${progressoSection}
                 <div class="parc-card-actions">
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
                         <i class="fas fa-eye"></i>
@@ -314,28 +322,100 @@
                     </button>
                 </div>
             `;
+        },
 
-            // Event listeners
-            div.querySelector('[data-action="view"]')?.addEventListener('click', () => {
-                this.showDetalhes(parc.id);
-            });
+        extrairMesAno(descricao) {
+            const match = descricao.match(/(\d+)\/(\d+)/);
+            return match ? [match[1], match[2]] : ['', ''];
+        },
 
-            return div;
+        getCartaoInfo(parc) {
+            if (!parc.cartao) {
+                return `<span class="cartao-nome">${Utils.escapeHtml(parc.descricao)}</span>`;
+            }
+            return `
+                <span class="cartao-nome">${Utils.escapeHtml(parc.cartao.nome || parc.cartao.bandeira)}</span>
+                <span class="cartao-numero">•••• ${parc.cartao.ultimos_digitos || ''}</span>
+            `;
+        },
+
+        getResumoPrincipal(parc) {
+            return `
+                <div class="resumo-item">
+                    <span class="resumo-label">Total a Pagar</span>
+                    <strong class="resumo-valor">${Utils.formatMoney(parc.valor_total)}</strong>
+                </div>
+                ${parc.data_vencimento ? `
+                    <div class="resumo-item">
+                        <span class="resumo-label">Vencimento</span>
+                        <strong class="resumo-data">${Utils.formatDate(parc.data_vencimento)}</strong>
+                    </div>
+                ` : ''}
+            `;
+        },
+
+        getItensInfo(itensPendentes, itensPagos) {
+            let html = '';
+
+            if (itensPendentes > 0) {
+                html += `
+                    <div class="fatura-itens-info">
+                        <div class="itens-badge itens-pendentes">
+                            <i class="fas fa-clock"></i>
+                            <span>${itensPendentes} ${itensPendentes === 1 ? 'item pendente' : 'itens pendentes'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (itensPagos > 0) {
+                html += `
+                    <div class="fatura-itens-info">
+                        <div class="itens-badge itens-pagos">
+                            <i class="fas fa-check-circle"></i>
+                            <span>${itensPagos} ${itensPagos === 1 ? 'item pago' : 'itens pagos'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return html;
+        },
+
+        getProgressoSection(totalItens, itensPagos, progresso) {
+            if (totalItens === 0) return '';
+
+            return `
+                <div class="parc-progress-section">
+                    <div class="parc-progress-header">
+                        <span class="parc-progress-text">${itensPagos} de ${totalItens} pagos</span>
+                        <span class="parc-progress-percent">${Math.round(progresso)}%</span>
+                    </div>
+                    <div class="parc-progress-bar">
+                        <div class="parc-progress-fill" style="width: ${progresso}%"></div>
+                    </div>
+                </div>
+            `;
+        },
+
+        attachCardEventListeners(card, id) {
+            const btnView = card.querySelector('[data-action="view"]');
+            if (btnView) {
+                btnView.addEventListener('click', () => this.showDetalhes(id));
+            }
         },
 
         getStatusBadge(status, progresso = null) {
-            // Se temos progresso, usar status mais descritivo
             if (progresso !== null) {
                 if (progresso === 0) {
                     return '<span class="parc-card-badge badge-pendente">⏳ Pendente</span>';
-                } else if (progresso === 100) {
+                } else if (progresso >= 100) {
                     return '<span class="parc-card-badge badge-paga">✅ Paga</span>';
                 } else {
                     return '<span class="parc-card-badge badge-parcial">🔄 Parcialmente Paga</span>';
                 }
             }
 
-            // Fallback para status antigos
             const badges = {
                 'ativo': '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>',
                 'paga': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
@@ -345,59 +425,21 @@
             return badges[status] || '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>';
         },
 
-        getProximaParcela(parcelas) {
-            if (!parcelas || parcelas.length === 0) return null;
-
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-
-            // Buscar primeira parcela não paga com data futura ou mais próxima
-            const naoPagas = parcelas.filter(p => !p.pago)
-                .sort((a, b) => new Date(a.data) - new Date(b.data));
-
-            return naoPagas.length > 0 ? naoPagas[0] : null;
-        },
-
         async showDetalhes(id) {
             try {
-                // Garantir que o ID é um número inteiro
-                const parcelamentoId = parseInt(id, 10);
-                if (isNaN(parcelamentoId)) {
-                    throw new Error('ID inválido');
-                }
-
-                console.log('showDetalhes chamado com ID:', parcelamentoId);
-                const response = await API.buscarParcelamento(parcelamentoId);
-                console.log('Resposta da API:', response);
-
-                // A API retorna { success: true, data: { fatura_object } }
+                const response = await API.buscarParcelamento(id);
                 const parc = response.data;
 
                 if (!parc) {
                     throw new Error('Fatura não encontrada');
                 }
 
-                // Armazenar fatura atual no estado
                 STATE.faturaAtual = parc;
-
                 DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
+                this.attachDetalhesEventListeners(parc.id);
 
-                // Adicionar event listeners nos botões toggle
-                const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-toggle-parcela');
-                btnToggles.forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const itemId = parseInt(e.target.dataset.lancamentoId);
-                        const isPago = e.target.dataset.pago === 'true';
-
-                        await this.toggleParcelaPaga(parcelamentoId, itemId, !isPago);
-                    });
-                });
-
-                // Limpar foco antes de mostrar o modal
-                if (document.activeElement) {
-                    document.activeElement.blur();
-                }
-
+                // Remover foco antes de mostrar modal
+                document.activeElement?.blur();
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
                 console.error('Erro ao abrir detalhes:', error);
@@ -409,16 +451,34 @@
             }
         },
 
+        attachDetalhesEventListeners(faturaId) {
+            const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-toggle-parcela');
+            btnToggles.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
+                    const isPago = e.currentTarget.dataset.pago === 'true';
+                    await this.toggleParcelaPaga(faturaId, itemId, !isPago);
+                });
+            });
+        },
+
         renderDetalhes(parc) {
-            const tipoText = 'Despesas';
-            const tipoIcon = '💸';
             const progresso = parc.progresso || 0;
+            const { valorPago, valorRestante } = this.calcularValores(parc);
+            const temItensPendentes = parc.parcelas_pendentes > 0 && valorRestante > 0;
 
-            // Calcular valores baseado nas parcelas reais
+            return `
+                ${this.renderDetalhesHeader(parc, temItensPendentes, valorRestante)}
+                ${this.renderDetalhesGrid(parc, progresso)}
+                ${this.renderDetalhesProgresso(parc, progresso, valorPago, valorRestante)}
+                ${this.renderParcelasTabela(parc)}
+            `;
+        },
+
+        calcularValores(parc) {
             let valorPago = 0;
-            let valorRestante = parc.valor_total; // valor_total já é o valor pendente da API
+            let valorRestante = parc.valor_total;
 
-            // Se tem parcelas detalhadas, calcular valores precisos
             if (parc.parcelas && parc.parcelas.length > 0) {
                 valorPago = parc.parcelas
                     .filter(p => p.pago)
@@ -428,77 +488,86 @@
                     .reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
             }
 
-            // Verificar se tem itens pendentes para mostrar o botão de pagar tudo
-            const temItensPendentes = parc.parcelas_pendentes > 0 && valorRestante > 0;
+            return { valorPago, valorRestante };
+        },
 
-            let html = `
+        renderDetalhesHeader(parc, temItensPendentes, valorRestante) {
+            return `
                 <div class="detalhes-header">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h3 class="detalhes-title" style="margin: 0;">${Utils.escapeHtml(parc.descricao)}</h3>
                         ${temItensPendentes ? `
-                            <button class="btn-pagar-fatura-completa" onclick="pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})" style="
-                                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                                color: white;
-                                border: none;
-                                padding: 0.75rem 1.5rem;
-                                border-radius: 8px;
-                                font-weight: 600;
-                                cursor: pointer;
-                                display: flex;
-                                align-items: center;
-                                gap: 0.5rem;
-                                transition: all 0.2s;
-                                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'" 
-                               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(16, 185, 129, 0.3)'">
+                            <button class="btn-pagar-fatura-completa" 
+                                    onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                           color: white; border: none; padding: 0.75rem 1.5rem;
+                                           border-radius: 8px; font-weight: 600; cursor: pointer;
+                                           display: flex; align-items: center; gap: 0.5rem;
+                                           transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);"
+                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'" 
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(16, 185, 129, 0.3)'">
                                 <i class="fas fa-check-double"></i>
                                 Pagar Fatura Completa
                             </button>
                         ` : ''}
                     </div>
-                    
-                    <!-- Informações Principais -->
-                    <div class="detalhes-grid">
-                        <div class="detalhes-item">
-                            <span class="detalhes-label">💵 Valor Total a Pagar</span>
-                            <span class="detalhes-value detalhes-value-highlight">${Utils.formatMoney(valorRestante)}</span>
-                        </div>
-                        <div class="detalhes-item">
-                            <span class="detalhes-label">📦 Itens</span>
-                            <span class="detalhes-value">${parc.parcelas_pagas + parc.parcelas_pendentes} itens</span>
-                        </div>
-                        <div class="detalhes-item">
-                            <span class="detalhes-label">📊 Tipo</span>
-                            <span class="detalhes-value">${tipoIcon} ${tipoText}</span>
-                        </div>
-                        <div class="detalhes-item">
-                            <span class="detalhes-label">🎯 Status</span>
-                            <span class="detalhes-value">${this.getStatusBadge(parc.status, progresso)}</span>
-                        </div>
-                        ${parc.cartao ? `
-                            <div class="detalhes-item">
-                                <span class="detalhes-label">💳 Cartão</span>
-                                <span class="detalhes-value">${parc.cartao.bandeira} ${parc.cartao.nome ? '- ' + Utils.escapeHtml(parc.cartao.nome) : ''}</span>
-                            </div>
-                        ` : ''}
-                    </div>
+                </div>
+            `;
+        },
 
-                    <!-- Barra de Progresso -->
-                    <div class="detalhes-progresso">
-                        <div class="progresso-info">
-                            <span><strong>${parc.parcelas_pagas}</strong> de <strong>${parc.parcelas_pagas + parc.parcelas_pendentes}</strong> itens pagos</span>
-                            <span class="progresso-percent"><strong>${Math.round(progresso)}%</strong></span>
+        renderDetalhesGrid(parc, progresso) {
+            const totalItens = parc.parcelas_pagas + parc.parcelas_pendentes;
+
+            return `
+                <div class="detalhes-grid">
+                    <div class="detalhes-item">
+                        <span class="detalhes-label">💵 Valor Total a Pagar</span>
+                        <span class="detalhes-value detalhes-value-highlight">${Utils.formatMoney(parc.valor_total)}</span>
+                    </div>
+                    <div class="detalhes-item">
+                        <span class="detalhes-label">📦 Itens</span>
+                        <span class="detalhes-value">${totalItens} itens</span>
+                    </div>
+                    <div class="detalhes-item">
+                        <span class="detalhes-label">📊 Tipo</span>
+                        <span class="detalhes-value">💸 Despesas</span>
+                    </div>
+                    <div class="detalhes-item">
+                        <span class="detalhes-label">🎯 Status</span>
+                        <span class="detalhes-value">${this.getStatusBadge(parc.status, progresso)}</span>
+                    </div>
+                    ${parc.cartao ? `
+                        <div class="detalhes-item">
+                            <span class="detalhes-label">💳 Cartão</span>
+                            <span class="detalhes-value">${parc.cartao.bandeira} ${parc.cartao.nome ? '- ' + Utils.escapeHtml(parc.cartao.nome) : ''}</span>
                         </div>
-                        <div class="progresso-barra">
-                            <div class="progresso-fill" style="width: ${progresso}%"></div>
-                        </div>
-                        <div class="progresso-valores">
-                            <span class="valor-pago">✅ Pago: ${Utils.formatMoney(valorPago)}</span>
-                            <span class="valor-restante">⏳ Restante: ${Utils.formatMoney(valorRestante)}</span>
-                        </div>
+                    ` : ''}
+                </div>
+            `;
+        },
+
+        renderDetalhesProgresso(parc, progresso, valorPago, valorRestante) {
+            const totalItens = parc.parcelas_pagas + parc.parcelas_pendentes;
+
+            return `
+                <div class="detalhes-progresso">
+                    <div class="progresso-info">
+                        <span><strong>${parc.parcelas_pagas}</strong> de <strong>${totalItens}</strong> itens pagos</span>
+                        <span class="progresso-percent"><strong>${Math.round(progresso)}%</strong></span>
+                    </div>
+                    <div class="progresso-barra">
+                        <div class="progresso-fill" style="width: ${progresso}%"></div>
+                    </div>
+                    <div class="progresso-valores">
+                        <span class="valor-pago">✅ Pago: ${Utils.formatMoney(valorPago)}</span>
+                        <span class="valor-restante">⏳ Restante: ${Utils.formatMoney(valorRestante)}</span>
                     </div>
                 </div>
+            `;
+        },
 
+        renderParcelasTabela(parc) {
+            let html = `
                 <h4 class="parcelas-titulo">📋 Lista de Itens</h4>
                 <div class="parcelas-container">
                     <table class="parcelas-table">
@@ -517,66 +586,7 @@
 
             if (parc.parcelas && parc.parcelas.length > 0) {
                 parc.parcelas.forEach((parcela, index) => {
-                    const isPaga = parcela.pago;
-                    const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
-                    const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
-                    const rowClass = isPaga ? 'tr-paga' : '';
-
-                    // Data de pagamento (se existir)
-                    let dataPagamentoHtml = '';
-                    if (isPaga && parcela.data_pagamento) {
-                        const dataVenc = new Date(parcela.data_vencimento + 'T00:00:00');
-                        const dataPag = new Date(parcela.data_pagamento + 'T00:00:00');
-                        const diasDiff = Math.floor((dataVenc - dataPag) / (1000 * 60 * 60 * 24));
-
-                        if (diasDiff > 0) {
-                            dataPagamentoHtml = `<small style="color: #10b981; display: block; margin-top: 3px;">💚 Pago ${diasDiff} dia(s) antes</small>`;
-                        } else if (diasDiff < 0) {
-                            dataPagamentoHtml = `<small style="color: #ef4444; display: block; margin-top: 3px;">⚠️ Pago ${Math.abs(diasDiff)} dia(s) atrasado</small>`;
-                        } else {
-                            dataPagamentoHtml = `<small style="color: #3b82f6; display: block; margin-top: 3px;">🎯 Pago no dia do vencimento</small>`;
-                        }
-                    }
-
-                    html += `
-                        <tr class="${rowClass}">
-                            <td data-label="#">
-                                <span class="parcela-numero">${index + 1}</span>
-                            </td>
-                            <td data-label="Descrição">
-                                <div class="parcela-desc">${Utils.escapeHtml(parcela.descricao || parc.descricao)}</div>
-                            </td>
-                            <td data-label="Vencimento">
-                                <span class="parcela-data">${Utils.formatDate(parcela.data_vencimento)}</span>
-                                ${dataPagamentoHtml}
-                            </td>
-                            <td data-label="Valor">
-                                <span class="parcela-valor">${Utils.formatMoney(parcela.valor)}</span>
-                            </td>
-                            <td data-label="Status">
-                                <span class="${statusClass}">${statusText}</span>
-                            </td>
-                            <td data-label="Ação">
-                                ${isPaga ? `
-                                    <button class="btn-toggle-parcela btn-desfazer" 
-                                        data-lancamento-id="${parcela.id}" 
-                                        data-pago="true"
-                                        title="Desfazer pagamento">
-                                        <i class="fas fa-undo"></i>
-                                        Desfazer
-                                    </button>
-                                ` : `
-                                    <button class="btn-toggle-parcela btn-pagar" 
-                                        data-lancamento-id="${parcela.id}" 
-                                        data-pago="false"
-                                        title="Marcar como pago">
-                                        <i class="fas fa-check"></i>
-                                        Pagar
-                                    </button>
-                                `}
-                            </td>
-                        </tr>
-                    `;
+                    html += this.renderParcelaRow(parcela, index, parc.descricao);
                 });
             } else {
                 html += `
@@ -592,9 +602,79 @@
                         </tbody>
                     </table>
                 </div>
-    `;
+            `;
 
             return html;
+        },
+
+        renderParcelaRow(parcela, index, descricaoFatura) {
+            const isPaga = parcela.pago;
+            const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
+            const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
+            const rowClass = isPaga ? 'tr-paga' : '';
+            const dataPagamentoHtml = this.getDataPagamentoInfo(parcela);
+
+            return `
+                <tr class="${rowClass}">
+                    <td data-label="#">
+                        <span class="parcela-numero">${index + 1}</span>
+                    </td>
+                    <td data-label="Descrição">
+                        <div class="parcela-desc">${Utils.escapeHtml(parcela.descricao || descricaoFatura)}</div>
+                    </td>
+                    <td data-label="Vencimento">
+                        <span class="parcela-data">${Utils.formatDate(parcela.data_vencimento)}</span>
+                        ${dataPagamentoHtml}
+                    </td>
+                    <td data-label="Valor">
+                        <span class="parcela-valor">${Utils.formatMoney(parcela.valor)}</span>
+                    </td>
+                    <td data-label="Status">
+                        <span class="${statusClass}">${statusText}</span>
+                    </td>
+                    <td data-label="Ação">
+                        ${this.renderParcelaButton(parcela, isPaga)}
+                    </td>
+                </tr>
+            `;
+        },
+
+        getDataPagamentoInfo(parcela) {
+            if (!parcela.pago || !parcela.data_pagamento) return '';
+
+            const diasDiff = Utils.calcularDiferencaDias(parcela.data_vencimento, parcela.data_pagamento);
+
+            if (diasDiff > 0) {
+                return `<small style="color: #10b981; display: block; margin-top: 3px;">💚 Pago ${diasDiff} dia(s) antes</small>`;
+            } else if (diasDiff < 0) {
+                return `<small style="color: #ef4444; display: block; margin-top: 3px;">⚠️ Pago ${Math.abs(diasDiff)} dia(s) atrasado</small>`;
+            } else {
+                return `<small style="color: #3b82f6; display: block; margin-top: 3px;">🎯 Pago no dia do vencimento</small>`;
+            }
+        },
+
+        renderParcelaButton(parcela, isPaga) {
+            if (isPaga) {
+                return `
+                    <button class="btn-toggle-parcela btn-desfazer" 
+                        data-lancamento-id="${parcela.id}" 
+                        data-pago="true"
+                        title="Desfazer pagamento">
+                        <i class="fas fa-undo"></i>
+                        Desfazer
+                    </button>
+                `;
+            } else {
+                return `
+                    <button class="btn-toggle-parcela btn-pagar" 
+                        data-lancamento-id="${parcela.id}" 
+                        data-pago="false"
+                        title="Marcar como pago">
+                        <i class="fas fa-check"></i>
+                        Pagar
+                    </button>
+                `;
+            }
         },
 
         async toggleParcelaPaga(faturaId, itemId, marcarComoPago) {
@@ -612,33 +692,25 @@
                     cancelButtonText: 'Cancelar'
                 });
 
-                if (!result.isConfirmed) {
-                    return;
-                }
+                if (!result.isConfirmed) return;
 
-                // Mostrar loading
                 Swal.fire({
                     title: 'Processando...',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => Swal.showLoading()
                 });
 
                 await API.toggleItemFatura(faturaId, itemId, marcarComoPago);
 
-                Swal.fire({
+                await Swal.fire({
                     icon: 'success',
                     title: 'Sucesso!',
                     text: marcarComoPago ? 'Item marcado como pago' : 'Pagamento desfeito',
-                    timer: 2000,
+                    timer: CONFIG.TIMEOUTS.successMessage,
                     showConfirmButton: false
                 });
 
-                // Recarregar a página de listagem
                 await App.carregarParcelamentos();
-
-                // Fechar o modal de detalhes
                 STATE.modalDetalhesInstance.hide();
 
             } catch (error) {
@@ -668,37 +740,26 @@
                     confirmButtonColor: '#10b981',
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: '<i class="fas fa-check"></i> Sim, pagar tudo',
-                    cancelButtonText: 'Cancelar',
-                    customClass: {
-                        confirmButton: 'btn-confirm-pagar',
-                        cancelButton: 'btn-cancel'
-                    }
+                    cancelButtonText: 'Cancelar'
                 });
 
-                if (!result.isConfirmed) {
-                    return;
-                }
+                if (!result.isConfirmed) return;
 
-                // Mostrar loading
                 Swal.fire({
                     title: 'Processando pagamento...',
                     html: 'Aguarde enquanto processamos o pagamento de todos os itens.',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => Swal.showLoading()
                 });
 
-                // Buscar detalhes da fatura para pegar todos os IDs dos itens pendentes
                 const fatura = await API.buscarParcelamento(faturaId);
                 const itensPendentes = fatura.data.parcelas.filter(p => !p.pago);
 
-                // Marcar todos os itens pendentes como pagos
                 for (const item of itensPendentes) {
                     await API.toggleItemFatura(faturaId, item.id, true);
                 }
 
-                Swal.fire({
+                await Swal.fire({
                     icon: 'success',
                     title: 'Fatura Paga!',
                     html: `
@@ -711,10 +772,7 @@
                     showConfirmButton: false
                 });
 
-                // Recarregar a página de listagem
                 await App.carregarParcelamentos();
-
-                // Fechar o modal de detalhes
                 STATE.modalDetalhesInstance.hide();
 
             } catch (error) {
@@ -724,27 +782,6 @@
                     title: 'Erro ao pagar fatura',
                     text: error.message || 'Não foi possível processar o pagamento. Tente novamente.'
                 });
-            }
-        },
-
-        async confirmarCancelamento(id, descricao) {
-            const result = await Swal.fire({
-                title: 'Cancelar Parcelamento?',
-                html: `
-        < p > Deseja realmente cancelar o parcelamento:</p >
-                    <strong>${descricao}</strong>
-                    <p class="text-muted mt-2">As parcelas não pagas serão removidas.</p>
-    `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Sim, cancelar',
-                cancelButtonText: 'Não'
-            });
-
-            if (result.isConfirmed) {
-                await App.cancelarParcelamento(id);
             }
         }
     };
@@ -756,76 +793,63 @@
     const App = {
         async init() {
             try {
-                // Inicializar modal de detalhes
-                STATE.modalDetalhesInstance = new bootstrap.Modal(DOM.modalDetalhes, {
-                    backdrop: true,
-                    keyboard: true,
-                    focus: true
-                });
-
-                // Event listeners do modal para gerenciar foco corretamente
-                DOM.modalDetalhes.addEventListener('show.bs.modal', () => {
-                    // Remove foco de elementos externos antes de abrir
-                    document.activeElement?.blur();
-                });
-
-                DOM.modalDetalhes.addEventListener('hidden.bs.modal', () => {
-                    // Limpa qualquer foco residual
-                    document.activeElement?.blur();
-                });
-
-                // Carregar filtros da URL
+                this.initModal();
                 this.aplicarFiltrosURL();
-
-                // Carregar cartões
                 await this.carregarCartoes();
-
-                // Carregar dados
                 await this.carregarParcelamentos();
-
-                // Event listeners
                 this.attachEventListeners();
 
-                console.log('✅ Parcelamentos inicializado');
+                console.log('✅ Sistema de Parcelamentos inicializado com sucesso');
             } catch (error) {
-                console.error('Erro ao inicializar:', error);
+                console.error('❌ Erro ao inicializar:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Erro',
-                    text: 'Erro ao carregar página'
+                    title: 'Erro de Inicialização',
+                    text: 'Não foi possível carregar a página. Tente recarregar.'
                 });
             }
+        },
+
+        initModal() {
+            STATE.modalDetalhesInstance = new bootstrap.Modal(DOM.modalDetalhes, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+
+            DOM.modalDetalhes.addEventListener('show.bs.modal', () => {
+                document.activeElement?.blur();
+            });
+
+            DOM.modalDetalhes.addEventListener('hidden.bs.modal', () => {
+                document.activeElement?.blur();
+            });
         },
 
         aplicarFiltrosURL() {
             const params = new URLSearchParams(window.location.search);
 
-            // Aplicar filtro de cartão
             if (params.has('cartao_id')) {
-                const cartaoId = params.get('cartao_id');
-                STATE.filtros.cartao_id = cartaoId;
+                STATE.filtros.cartao_id = params.get('cartao_id');
                 if (DOM.filtroCartao) {
-                    DOM.filtroCartao.value = cartaoId;
+                    DOM.filtroCartao.value = STATE.filtros.cartao_id;
                 }
             }
 
-            // Aplicar filtro de mês/ano
             if (params.has('mes') && params.has('ano')) {
-                STATE.filtros.mes = parseInt(params.get('mes'));
-                STATE.filtros.ano = parseInt(params.get('ano'));
+                STATE.filtros.mes = parseInt(params.get('mes'), 10);
+                STATE.filtros.ano = parseInt(params.get('ano'), 10);
 
-                // Atualizar o month-picker se existir
                 if (window.monthPicker) {
                     const monthPickerDate = new Date(STATE.filtros.ano, STATE.filtros.mes - 1);
                     window.monthPicker.setDate(monthPickerDate);
                 }
             }
 
-            // Aplicar filtro de status
             if (params.has('status')) {
                 STATE.filtros.status = params.get('status');
                 if (DOM.filtroStatus) {
-                    DOM.filtroStatus.value = params.get('status');
+                    DOM.filtroStatus.value = STATE.filtros.status;
                 }
             }
         },
@@ -835,31 +859,38 @@
                 const response = await API.listarCartoes();
                 STATE.cartoes = response.data || [];
 
-                // Preencher select de cartões
-                if (DOM.filtroCartao) {
-                    DOM.filtroCartao.innerHTML = '<option value="">Todos os cartões</option>';
-                    STATE.cartoes.forEach(cartao => {
-                        const option = document.createElement('option');
-                        option.value = cartao.id;
-                        option.textContent = cartao.nome || `${cartao.bandeira} **** ${cartao.ultimos_digitos || ''} `;
-                        DOM.filtroCartao.appendChild(option);
-                    });
-                }
-
-                // Preencher select de anos (últimos 5 anos)
-                if (DOM.filtroAno) {
-                    const anoAtual = new Date().getFullYear();
-                    DOM.filtroAno.innerHTML = '<option value="">Todos os anos</option>';
-                    for (let i = 0; i < 5; i++) {
-                        const ano = anoAtual - i;
-                        const option = document.createElement('option');
-                        option.value = ano;
-                        option.textContent = ano;
-                        DOM.filtroAno.appendChild(option);
-                    }
-                }
+                this.preencherSelectCartoes();
+                this.preencherSelectAnos();
             } catch (error) {
                 console.error('❌ Erro ao carregar cartões:', error);
+            }
+        },
+
+        preencherSelectCartoes() {
+            if (!DOM.filtroCartao) return;
+
+            DOM.filtroCartao.innerHTML = '<option value="">Todos os cartões</option>';
+
+            STATE.cartoes.forEach(cartao => {
+                const option = document.createElement('option');
+                option.value = cartao.id;
+                option.textContent = cartao.nome || `${cartao.bandeira} **** ${cartao.ultimos_digitos || ''}`;
+                DOM.filtroCartao.appendChild(option);
+            });
+        },
+
+        preencherSelectAnos() {
+            if (!DOM.filtroAno) return;
+
+            const anoAtual = new Date().getFullYear();
+            DOM.filtroAno.innerHTML = '<option value="">Todos os anos</option>';
+
+            for (let i = 0; i < 5; i++) {
+                const ano = anoAtual - i;
+                const option = document.createElement('option');
+                option.value = ano;
+                option.textContent = ano;
+                DOM.filtroAno.appendChild(option);
             }
         },
 
@@ -867,7 +898,6 @@
             UI.showLoading();
 
             try {
-                // Pegar mês e ano do sessionStorage (month-picker)
                 const monthKey = sessionStorage.getItem('lukrato.month.dashboard');
                 let mes = null;
                 let ano = null;
@@ -876,57 +906,80 @@
                     const [anoStr, mesStr] = monthKey.split('-');
                     mes = parseInt(mesStr, 10);
                     ano = parseInt(anoStr, 10);
-                    console.log('📅 Filtro de mês/ano ativo:', { mes, ano, monthKey });
-                } else {
-                    console.log('📅 Sem filtro de mês/ano - mostrando todos');
+                    console.log('📅 Filtro de mês/ano ativo:', { mes, ano });
                 }
 
                 STATE.filtros.mes = mes;
                 STATE.filtros.anoMes = ano;
 
-                const response = await API.listarParcelamentos(
-                    STATE.filtros.status,
-                    STATE.filtros.cartao_id,
-                    STATE.filtros.mes,
-                    STATE.filtros.anoMes,
-                    STATE.filtros.ano  // Filtro de ano separado
-                );
+                const response = await API.listarParcelamentos({
+                    status: STATE.filtros.status,
+                    cartao_id: STATE.filtros.cartao_id,
+                    mes: STATE.filtros.mes,
+                    ano: STATE.filtros.anoMes,
+                    anoFiltro: STATE.filtros.ano
+                });
 
                 let parcelamentos = response.data?.faturas || [];
-                console.log('📊 Faturas recebidas:', parcelamentos.length);
+                parcelamentos = this.filtrarPorStatus(parcelamentos);
 
                 STATE.parcelamentos = parcelamentos;
                 UI.renderParcelamentos(parcelamentos);
+
+                console.log('📊 Parcelamentos carregados:', parcelamentos.length);
             } catch (error) {
                 console.error('❌ Erro ao carregar parcelamentos:', error);
                 UI.showEmpty();
                 Swal.fire({
                     icon: 'error',
-                    title: 'Erro',
-                    text: error.message
+                    title: 'Erro ao Carregar',
+                    text: error.message || 'Não foi possível carregar os parcelamentos'
                 });
             } finally {
                 UI.hideLoading();
             }
         },
 
+        filtrarPorStatus(parcelamentos) {
+            const statusFiltro = STATE.filtros.status;
+            if (!statusFiltro) return parcelamentos;
+
+            return parcelamentos.filter(fatura => {
+                const progresso = fatura.progresso || 0;
+
+                switch (statusFiltro) {
+                    case 'pendente':
+                        return progresso === 0;
+                    case 'parcial':
+                        return progresso > 0 && progresso < 100;
+                    case 'paga':
+                        return progresso >= 100;
+                    case 'cancelado':
+                        return fatura.status === 'cancelado';
+                    default:
+                        return true;
+                }
+            });
+        },
+
         async cancelarParcelamento(id) {
             try {
                 await API.cancelarParcelamento(id);
 
-                Swal.fire({
+                await Swal.fire({
                     icon: 'success',
                     title: 'Cancelado!',
                     text: 'Parcelamento cancelado com sucesso',
-                    timer: 2000,
+                    timer: CONFIG.TIMEOUTS.successMessage,
                     showConfirmButton: false
                 });
 
                 await this.carregarParcelamentos();
             } catch (error) {
+                console.error('Erro ao cancelar:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Erro',
+                    title: 'Erro ao Cancelar',
                     text: error.message
                 });
             }
@@ -934,16 +987,18 @@
 
         attachEventListeners() {
             // Filtros
-            DOM.btnFiltrar?.addEventListener('click', () => {
-                STATE.filtros.status = DOM.filtroStatus.value;
-                STATE.filtros.cartao_id = DOM.filtroCartao?.value || '';
-                STATE.filtros.ano = DOM.filtroAno?.value || '';
-                this.carregarParcelamentos();
-            });
+            if (DOM.btnFiltrar) {
+                DOM.btnFiltrar.addEventListener('click', () => {
+                    STATE.filtros.status = DOM.filtroStatus?.value || '';
+                    STATE.filtros.cartao_id = DOM.filtroCartao?.value || '';
+                    STATE.filtros.ano = DOM.filtroAno?.value || '';
+                    this.carregarParcelamentos();
+                });
+            }
 
-            // Listener para mudança de mês do month-picker
+            // Listener para mudança de mês
             document.addEventListener('lukrato:month-changed', () => {
-                console.log('Mês alterado, recarregando parcelamentos...');
+                console.log('📅 Mês alterado, recarregando...');
                 this.carregarParcelamentos();
             });
         }
@@ -960,11 +1015,11 @@
     }
 
     // ============================================================================
-    // EXPOR FUNÇÕES GLOBAIS PARA ONCLICK
+    // EXPOR FUNÇÕES GLOBAIS
     // ============================================================================
 
-    window.pagarFaturaCompletaGlobal = async function (faturaId, valorTotal) {
-        await UI.pagarFaturaCompleta(faturaId, valorTotal);
+    window.pagarFaturaCompletaGlobal = (faturaId, valorTotal) => {
+        UI.pagarFaturaCompleta(faturaId, valorTotal);
     };
 
 })();
