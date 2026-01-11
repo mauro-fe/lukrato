@@ -188,10 +188,11 @@
         padding: var(--spacing-6);
         border-bottom: 1px solid var(--glass-border);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         background: var(--color-primary);
         color: white;
+        position: relative;
     }
 
     .modal-header-content {
@@ -226,17 +227,21 @@
     }
 
     .modal-close {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.15);
-        border: none;
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all var(--transition-normal);
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: var(--radius-md) !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: none !important;
+        color: white !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all var(--transition-normal) !important;
+        flex-shrink: 0 !important;
+        position: absolute !important;
+        top: var(--spacing-4) !important;
+        right: var(--spacing-4) !important;
     }
 
     .modal-close:hover {
@@ -343,6 +348,7 @@
         align-items: center;
         gap: var(--spacing-2);
         transition: all var(--transition-normal);
+        justify-content: center;
     }
 
     .btn-secondary {
@@ -376,6 +382,56 @@
 
         .form-row {
             grid-template-columns: 1fr;
+        }
+
+        .modal-header {
+            padding-right: calc(var(--spacing-6) + 44px);
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            top: var(--spacing-3);
+            right: var(--spacing-3);
+        }
+
+        .modal-footer {
+            flex-direction: column-reverse !important;
+            gap: var(--spacing-3) !important;
+            padding: var(--spacing-4) !important;
+        }
+
+        .modal-footer .btn {
+            width: 100% !important;
+            justify-content: center !important;
+            padding: 16px 24px !important;
+            font-size: 16px !important;
+            text-align: center !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            border-radius: 12px !important;
+            min-height: 52px !important;
+        }
+
+        .modal-footer .btn i {
+            font-size: 16px !important;
+            margin: 0 !important;
+        }
+
+        .modal-footer .btn-secondary {
+            background: rgba(30, 41, 59, 0.6) !important;
+            border: 2px solid rgba(148, 163, 184, 0.3) !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .modal-footer .btn-secondary:hover {
+            background: rgba(30, 41, 59, 0.8) !important;
+        }
+
+        .modal-footer .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%) !important;
+            border: none !important;
         }
     }
 </style>

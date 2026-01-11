@@ -308,6 +308,7 @@
             document.getElementById('btn-toggle-sidebar');
         const mobileBtn = document.getElementById('mobileMenuBtn');
         const closeBtn = document.getElementById('closeSidebarBtn');
+        const closeBtnNew = document.querySelector('.sidebar-close-btn');
         const backdrop = document.getElementById('sidebarBackdrop');
         const icon = btn?.querySelector('i');
 
@@ -338,20 +339,22 @@
 
         const setDesktopState = (collapsed) => {
             body.classList.toggle('sidebar-collapsed', collapsed);
-            btn.setAttribute('aria-expanded', String(!collapsed));
+            btn?.setAttribute('aria-expanded', String(!collapsed));
             localStorage.setItem(SIDEBAR_STORAGE_KEY, collapsed ? '1' : '0');
             setIcon();
         };
 
         const openMobile = () => {
             body.classList.add('sidebar-open-mobile');
-            btn.setAttribute('aria-expanded', 'true');
+            btn?.setAttribute('aria-expanded', 'true');
+            mobileBtn?.setAttribute('aria-expanded', 'true');
             setIcon();
         };
 
         const closeMobile = () => {
             body.classList.remove('sidebar-open-mobile');
-            btn.setAttribute('aria-expanded', 'false');
+            btn?.setAttribute('aria-expanded', 'false');
+            mobileBtn?.setAttribute('aria-expanded', 'false');
             setIcon();
         };
 
@@ -379,6 +382,7 @@
         btn?.addEventListener('click', handleToggle);
         mobileBtn?.addEventListener('click', handleToggle);
         closeBtn?.addEventListener('click', closeMobile);
+        closeBtnNew?.addEventListener('click', closeMobile);
         backdrop?.addEventListener('click', closeMobile);
 
         document.addEventListener('keydown', (event) => {

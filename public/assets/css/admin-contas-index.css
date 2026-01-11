@@ -704,7 +704,6 @@
   .lk-acc-actions .btn,
   .lk-acc-header > .btn {
     flex: 1 1 calc(33.33% - var(--spacing-2));
-    min-width: 0;
   }
 
   .acc-grid {
