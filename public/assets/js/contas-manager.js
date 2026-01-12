@@ -1173,15 +1173,31 @@ class ContasManager {
         document.getElementById('lancamentoContaId').value = this.contaSelecionadaLancamento.id;
         document.getElementById('lancamentoTipo').value = tipo;
 
-        // Data de hoje
-        const hoje = new Date().toISOString().split('T')[0];
-        document.getElementById('lancamentoData').value = hoje;
+        // Data de hoje (ou amanhã para agendamento)
+        const hoje = new Date();
+        if (tipo === 'agendamento') {
+            hoje.setDate(hoje.getDate() + 1); // Amanhã como padrão para agendamento
+        }
+        document.getElementById('lancamentoData').value = hoje.toISOString().split('T')[0];
+
+        // Grupos específicos
+        const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
+        const recorrenciaGroup = document.getElementById('recorrenciaGroup');
+        const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
+        const labelData = document.getElementById('labelDataLancamento');
+
+        // Ocultar grupos de agendamento por padrão
+        if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
+        if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+        if (numeroRepeticoesGroup) numeroRepeticoesGroup.style.display = 'none';
+        if (labelData) labelData.textContent = 'Data';
 
         // Carregar categorias (exceto para transferência)
         const categoriaGroup = document.getElementById('categoriaGroup');
         if (tipo !== 'transferencia') {
             console.log('📞 Chamando preencherCategorias...');
-            this.preencherCategorias(tipo);
+            const tipoCat = tipo === 'agendamento' ? 'despesa' : tipo;
+            this.preencherCategorias(tipoCat);
             if (categoriaGroup) categoriaGroup.style.display = 'block';
         } else {
             if (categoriaGroup) categoriaGroup.style.display = 'none';
@@ -1230,12 +1246,69 @@ class ContasManager {
 
             // Preencher select de contas destino
             this.preencherContasDestino();
+        } else if (tipo === 'agendamento') {
+            titulo.textContent = '📅 Novo Agendamento';
+            btnSalvar.innerHTML = '<i class="fas fa-calendar-check"></i> Agendar';
+            btnSalvar.className = 'lk-btn lk-btn-primary';
+            btnSalvar.style.background = 'linear-gradient(135deg, #e67e22, #d35400)';
+            if (headerGradient) {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)', 'important');
+            }
+            contaDestinoGroup.style.display = 'none';
+            cartaoCreditoGroup.style.display = 'none';
+
+            // Mostrar campos específicos de agendamento
+            if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'block';
+            if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
+            if (labelData) labelData.textContent = 'Data do Agendamento';
+
+            // Configurar evento de recorrência
+            this.configurarEventosRecorrencia();
         }
 
         // Focar no primeiro campo
         setTimeout(() => {
             document.getElementById('lancamentoDescricao')?.focus();
         }, 100);
+    }
+
+    /**
+     * Configurar eventos de recorrência
+     */
+    configurarEventosRecorrencia() {
+        const recorrenciaSelect = document.getElementById('lancamentoRecorrencia');
+        const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
+
+        if (recorrenciaSelect) {
+            recorrenciaSelect.addEventListener('change', () => {
+                if (recorrenciaSelect.value && numeroRepeticoesGroup) {
+                    numeroRepeticoesGroup.style.display = 'block';
+                } else if (numeroRepeticoesGroup) {
+                    numeroRepeticoesGroup.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    /**
+     * Selecionar tipo de agendamento (receita/despesa)
+     */
+    selecionarTipoAgendamento(tipo) {
+        const btnReceita = document.querySelector('.lk-btn-tipo-receita');
+        const btnDespesa = document.querySelector('.lk-btn-tipo-despesa');
+        const inputTipo = document.getElementById('lancamentoTipoAgendamento');
+
+        if (tipo === 'receita') {
+            btnReceita?.classList.add('active');
+            btnDespesa?.classList.remove('active');
+            this.preencherCategorias('receita');
+        } else {
+            btnDespesa?.classList.add('active');
+            btnReceita?.classList.remove('active');
+            this.preencherCategorias('despesa');
+        }
+
+        if (inputTipo) inputTipo.value = tipo;
     }
 
     /**
@@ -1532,6 +1605,17 @@ class ContasManager {
         document.getElementById('numeroParcelasGroup').style.display = 'none';
         document.getElementById('contaDestinoGroup').style.display = 'none';
 
+        // Ocultar campos de agendamento
+        const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
+        const recorrenciaGroup = document.getElementById('recorrenciaGroup');
+        const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
+        const labelData = document.getElementById('labelDataLancamento');
+
+        if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
+        if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+        if (numeroRepeticoesGroup) numeroRepeticoesGroup.style.display = 'none';
+        if (labelData) labelData.textContent = 'Data';
+
         // Restaurar título
         document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
 
@@ -1669,6 +1753,25 @@ class ContasManager {
                     observacao: formData.get('observacoes') || null,
                 };
             }
+            // Se for AGENDAMENTO, criar lançamento não pago (agendado)
+            else if (tipo === 'agendamento') {
+                const tipoAgendamento = formData.get('tipo_agendamento') || 'despesa';
+                const recorrencia = formData.get('recorrencia') || null;
+                const numeroRepeticoes = formData.get('numero_repeticoes') ? parseInt(formData.get('numero_repeticoes')) : null;
+
+                requestData = {
+                    conta_id: contaId,
+                    tipo: tipoAgendamento,
+                    descricao: formData.get('descricao'),
+                    valor: valor,
+                    data: formData.get('data'),
+                    categoria_id: formData.get('categoria_id') || null,
+                    pago: false, // Agendamento = não pago
+                    agendado: true,
+                    recorrencia: recorrencia,
+                    numero_repeticoes: numeroRepeticoes
+                };
+            }
             // Se for PARCELAMENTO SEM CARTÃO (conta bancária), usar endpoint de parcelamentos
             else if (ehParcelado && totalParcelas && totalParcelas > 1 && !cartaoCreditoId) {
                 apiUrl = `${this.baseUrl}/parcelamentos`;
@@ -1710,11 +1813,18 @@ class ContasManager {
             this.closeLancamentoModal();
 
             // Exibir Sweet Alert de sucesso
-            const tipoTexto = tipo === 'receita' ? 'Receita' : tipo === 'despesa' ? 'Despesa' : 'Transferência';
+            const tiposTexto = {
+                'receita': 'Receita',
+                'despesa': 'Despesa',
+                'transferencia': 'Transferência',
+                'agendamento': 'Agendamento'
+            };
+            const tipoTexto = tiposTexto[tipo] || 'Lançamento';
+            const mensagem = tipo === 'agendamento' ? 'agendado' : 'criada';
             await Swal.fire({
                 icon: 'success',
                 title: 'Sucesso!',
-                html: `<strong>${tipoTexto}</strong> criada com sucesso!`,
+                html: `<strong>${tipoTexto}</strong> ${mensagem} com sucesso!`,
                 timer: 2000,
                 showConfirmButton: false,
                 toast: false,

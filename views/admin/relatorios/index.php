@@ -1,5 +1,5 @@
 <!-- Relatórios View -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-relatorios-relatorios.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-relatorios-relatorios.css?v=<?= time() ?>">
 
 <div class="rel-page">
 

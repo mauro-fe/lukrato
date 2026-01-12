@@ -257,14 +257,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .lk-tipo-agendamento {
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    }
-
-    .lk-tipo-agendamento:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
-    }
-</style>
+<!-- Estilos movidos para: public/assets/css/modal-lancamento.css -->

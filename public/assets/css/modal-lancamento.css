@@ -1,0 +1,1503 @@
+/* ================================================
+   MODAL DE LANÇAMENTOS - ESTILOS UNIFICADOS
+   Lukrato - Sistema Financeiro
+   
+   Este arquivo contém todos os estilos para os modais
+   de lançamento (contas e global), usando variáveis
+   CSS do sistema para consistência visual.
+   ================================================ */
+
+/* ================================================
+   1. MODAL BASE - OVERLAY E CONTAINER
+   ================================================ */
+
+.lk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: var(--glass-backdrop);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spacing-4);
+  animation: lk-fadeIn 0.3s ease;
+}
+
+.lk-modal-overlay.active {
+  display: flex;
+}
+
+@keyframes lk-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Container do Modal */
+.lk-modal-modern {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-xl);
+  max-width: 580px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl), 0 0 0 1px var(--color-card-border);
+  animation: lk-slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+@keyframes lk-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal de Lançamento - Ajustes Específicos */
+.lk-modal-lancamento {
+  max-width: 720px !important;
+  max-height: 90vh !important;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: flex-start;
+  margin-top: 5vh;
+}
+
+.lk-modal-lancamento .lk-modal-body-modern {
+  overflow-y: auto;
+  max-height: calc(90vh - 100px);
+  min-height: 400px;
+  flex: 1;
+  padding: var(--spacing-8);
+  padding-bottom: var(--spacing-12);
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+/* ================================================
+   2. HEADER DO MODAL
+   ================================================ */
+
+.lk-modal-header-gradient {
+  background: var(--color-primary);
+  padding: var(--spacing-4) 30px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.lk-modal-header-gradient::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+/* Header Receita */
+.lk-modal-header-gradient.receita {
+  background: linear-gradient(135deg, var(--color-success) 0%, #27ae60 100%);
+}
+
+/* Header Despesa */
+.lk-modal-header-gradient.despesa {
+  background: linear-gradient(135deg, var(--color-danger) 0%, #c0392b 100%);
+}
+
+/* Header Transferência */
+.lk-modal-header-gradient.transferencia {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+/* Header Agendamento */
+.lk-modal-header-gradient.agendamento {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+}
+
+/* Ícone do Header */
+.lk-modal-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.lk-modal-icon-wrapper i {
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+/* Título do Modal */
+.lk-modal-title {
+  color: #fff;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  text-align: left;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  line-height: 1.4;
+  display: block;
+}
+
+/* Subtítulo do Modal */
+.lk-modal-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  text-align: left;
+  margin: var(--spacing-1) 0 0;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  line-height: 1.4;
+  display: block;
+  opacity: 0.95;
+}
+
+/* Botão Fechar */
+.lk-modal-close-btn {
+  position: absolute;
+  top: var(--spacing-3);
+  right: var(--spacing-3);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.lk-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg) scale(1.1);
+}
+
+.lk-modal-close-btn:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* ================================================
+   3. BODY DO MODAL
+   ================================================ */
+
+.lk-modal-body-modern {
+  padding: var(--spacing-8);
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
+}
+
+/* Scrollbar personalizada */
+.lk-modal-body-modern::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lk-modal-body-modern::-webkit-scrollbar-track {
+  background: var(--glass-bg);
+  border-radius: var(--radius-sm);
+}
+
+.lk-modal-body-modern::-webkit-scrollbar-thumb {
+  background: var(--color-neutral);
+  border-radius: var(--radius-sm);
+}
+
+.lk-modal-body-modern::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ================================================
+   4. INFO DA CONTA
+   ================================================ */
+
+.lk-conta-info {
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid var(--color-card-border);
+}
+
+.lk-conta-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-conta-badge i {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  color: white;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+.lk-conta-saldo {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+}
+
+.lk-conta-saldo strong {
+  font-size: var(--font-size-xl);
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+/* ================================================
+   5. SEÇÃO DE HISTÓRICO
+   ================================================ */
+
+.lk-historico-section {
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-section-title {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.lk-section-title i {
+  color: var(--color-primary);
+}
+
+.lk-historico-list {
+  background: var(--glass-bg);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Scrollbar do histórico */
+.lk-historico-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lk-historico-list::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: 3px;
+}
+
+.lk-historico-list::-webkit-scrollbar-thumb {
+  background: var(--color-neutral);
+  border-radius: 3px;
+}
+
+.lk-historico-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+.lk-historico-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-2);
+  border-left: 3px solid var(--color-card-border);
+  transition: all var(--transition-fast);
+}
+
+.lk-historico-item:last-child {
+  margin-bottom: 0;
+}
+
+.lk-historico-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+  background: var(--glass-bg);
+}
+
+/* Tipos de histórico */
+.lk-historico-receita,
+.lk-historico-item.receita {
+  border-left-color: var(--color-success);
+}
+
+.lk-historico-despesa,
+.lk-historico-item.despesa {
+  border-left-color: var(--color-danger);
+}
+
+.lk-historico-transferencia,
+.lk-historico-item.transferencia {
+  border-left-color: #3498db;
+}
+
+.lk-historico-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.lk-historico-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.lk-historico-icon.receita {
+  background: rgba(46, 204, 113, 0.15);
+  color: var(--color-success);
+}
+
+.lk-historico-icon.despesa {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--color-danger);
+}
+
+.lk-historico-icon.transferencia {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+}
+
+.lk-historico-desc {
+  flex: 1;
+  min-width: 0;
+}
+
+.lk-historico-desc h5 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lk-historico-desc p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 2px 0 0;
+}
+
+.lk-historico-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.lk-historico-valor {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.lk-historico-valor.positivo,
+.lk-historico-receita .lk-historico-valor {
+  color: var(--color-success);
+}
+
+.lk-historico-valor.negativo,
+.lk-historico-despesa .lk-historico-valor {
+  color: var(--color-danger);
+}
+
+.lk-historico-transferencia .lk-historico-valor {
+  color: #3498db;
+}
+
+.lk-historico-data {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+.lk-historico-empty {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  color: var(--color-text-muted);
+}
+
+.lk-historico-empty i {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-3);
+  opacity: 0.3;
+  color: var(--color-neutral);
+}
+
+.lk-historico-empty p {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+/* ================================================
+   6. SELEÇÃO DE TIPO DE MOVIMENTAÇÃO
+   ================================================ */
+
+.lk-tipo-section {
+  margin-top: var(--spacing-8);
+}
+
+.lk-tipo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+}
+
+.lk-tipo-grid-4 {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+.lk-tipo-card {
+  background: var(--glass-bg);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6) var(--spacing-4);
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.lk-tipo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Tipos de cards */
+.lk-tipo-receita {
+  border-color: rgba(46, 204, 113, 0.3);
+}
+
+.lk-tipo-receita:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.05),
+    rgba(46, 204, 113, 0.1)
+  );
+  border-color: var(--color-success);
+}
+
+.lk-tipo-despesa {
+  border-color: rgba(231, 76, 60, 0.3);
+}
+
+.lk-tipo-despesa:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.05),
+    rgba(231, 76, 60, 0.1)
+  );
+  border-color: var(--color-danger);
+}
+
+.lk-tipo-transferencia {
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.lk-tipo-transferencia:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.05),
+    rgba(52, 152, 219, 0.1)
+  );
+  border-color: #3498db;
+}
+
+.lk-tipo-agendamento {
+  border-color: rgba(230, 126, 34, 0.3);
+}
+
+.lk-tipo-agendamento:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 126, 34, 0.05),
+    rgba(230, 126, 34, 0.1)
+  );
+  border-color: var(--color-primary);
+}
+
+/* Ícone do tipo */
+.lk-tipo-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--spacing-4);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+.lk-tipo-receita .lk-tipo-icon {
+  background: linear-gradient(135deg, var(--color-success), #27ae60);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(46, 204, 113, 0.3);
+}
+
+.lk-tipo-despesa .lk-tipo-icon {
+  background: linear-gradient(135deg, var(--color-danger), #c0392b);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(231, 76, 60, 0.3);
+}
+
+.lk-tipo-transferencia .lk-tipo-icon {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(52, 152, 219, 0.3);
+}
+
+.lk-tipo-agendamento .lk-tipo-icon {
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(230, 126, 34, 0.3);
+}
+
+.lk-tipo-card h4 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-2);
+}
+
+.lk-tipo-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-4);
+}
+
+.lk-tipo-badge {
+  display: inline-block;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.lk-tipo-receita .lk-tipo-badge {
+  background: rgba(46, 204, 113, 0.15);
+  color: var(--color-success);
+}
+
+.lk-tipo-despesa .lk-tipo-badge {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--color-danger);
+}
+
+.lk-tipo-transferencia .lk-tipo-badge {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+}
+
+.lk-tipo-agendamento .lk-tipo-badge {
+  background: rgba(230, 126, 34, 0.15);
+  color: var(--color-primary);
+}
+
+/* ================================================
+   7. BOTÕES DE TIPO DE AGENDAMENTO
+   ================================================ */
+
+.lk-tipo-agendamento-btns {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.lk-btn-tipo-ag {
+  flex: 1;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  transition: all var(--transition-fast);
+}
+
+.lk-btn-tipo-ag:hover {
+  background: var(--color-surface-muted);
+}
+
+.lk-btn-tipo-receita.active {
+  border-color: var(--color-success);
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.15),
+    rgba(46, 204, 113, 0.25)
+  );
+  color: #155724;
+}
+
+.lk-btn-tipo-despesa.active {
+  border-color: var(--color-danger);
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.15),
+    rgba(231, 76, 60, 0.25)
+  );
+  color: #721c24;
+}
+
+/* ================================================
+   8. FORMULÁRIO
+   ================================================ */
+
+.lk-form-section {
+  animation: lk-slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes lk-slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.lk-form-group {
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-2);
+}
+
+.lk-label.required::after {
+  content: "*";
+  color: var(--color-danger);
+  margin-left: var(--spacing-1);
+}
+
+.lk-label i {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+}
+
+.lk-input,
+.lk-select,
+.lk-textarea {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--glass-bg);
+  transition: all var(--transition-fast);
+  font-family: var(--font-primary);
+}
+
+.lk-input:focus,
+.lk-select:focus,
+.lk-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.lk-input::placeholder {
+  color: var(--color-neutral);
+}
+
+/* Input com moeda */
+.lk-input-money {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lk-currency-symbol {
+  position: absolute;
+  left: var(--spacing-4);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-success);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lk-input-money .lk-input-with-prefix,
+input.lk-input.lk-input-with-prefix {
+  padding-left: 3.5rem !important;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Select wrapper */
+.lk-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.lk-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem !important;
+  cursor: pointer;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1.5 !important;
+  height: auto !important;
+  min-height: 2.75rem;
+}
+
+.lk-select-icon {
+  position: absolute;
+  right: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: transform var(--transition-fast);
+}
+
+.lk-select:focus ~ .lk-select-icon {
+  color: var(--color-primary);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.lk-helper-text {
+  display: block;
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Input Group */
+.lk-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lk-input-group .lk-input {
+  padding-right: 70px;
+}
+
+.lk-input-suffix {
+  position: absolute;
+  right: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Textarea */
+.lk-textarea {
+  resize: vertical;
+  font-family: var(--font-primary);
+  line-height: 1.5;
+}
+
+/* ================================================
+   9. CHECKBOX PERSONALIZADO
+   ================================================ */
+
+.lk-checkbox-wrapper {
+  margin: var(--spacing-3) 0;
+}
+
+.lk-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.lk-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.lk-checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-card-border);
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+  position: relative;
+  background: var(--color-card-bg);
+  flex-shrink: 0;
+}
+
+.lk-checkbox:checked ~ .lk-checkbox-custom {
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  border-color: var(--color-primary);
+}
+
+.lk-checkbox:checked ~ .lk-checkbox-custom::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.lk-checkbox-text {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.lk-checkbox-text i {
+  color: var(--color-primary);
+}
+
+/* ================================================
+   10. PREVIEW DE PARCELAMENTO
+   ================================================ */
+
+.lk-parcelamento-preview {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-4);
+  background: linear-gradient(
+    135deg,
+    rgba(230, 126, 34, 0.1),
+    rgba(230, 126, 34, 0.05)
+  );
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-primary);
+  animation: lk-slideIn 0.3s ease-out;
+}
+
+.lk-parcelamento-preview-title {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 var(--spacing-2);
+  letter-spacing: 0.5px;
+}
+
+.lk-parcelamento-valor {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: var(--spacing-1) 0;
+}
+
+.lk-parcelamento-detalhes {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.lk-parcelamento-detalhes strong {
+  color: var(--color-text);
+}
+
+/* ================================================
+   11. BOTÃO VOLTAR
+   ================================================ */
+
+.lk-btn-voltar {
+  background: none;
+  border: 2px solid var(--color-card-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.lk-btn-voltar:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  background: var(--glass-bg);
+  transform: translateX(-4px);
+}
+
+.lk-btn-voltar i {
+  transition: transform var(--transition-fast);
+}
+
+.lk-btn-voltar:hover i {
+  transform: translateX(-2px);
+}
+
+/* ================================================
+   12. FOOTER DO MODAL
+   ================================================ */
+
+.lk-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-6);
+  border-top: 2px solid var(--color-card-border);
+}
+
+/* ================================================
+   13. BOTÕES
+   ================================================ */
+
+.lk-btn {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.lk-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.lk-btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.lk-btn i {
+  font-size: var(--font-size-sm);
+}
+
+/* Botão Primário */
+.lk-btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lk-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4), 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.lk-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Botão Secondary */
+.lk-btn-secondary {
+  background: var(--glass-bg);
+  color: var(--color-text);
+  border: 2px solid var(--color-card-border);
+}
+
+.lk-btn-secondary:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Botão Ghost */
+.lk-btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 2px solid var(--color-card-border);
+}
+
+.lk-btn-ghost:hover {
+  background: var(--glass-bg);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.lk-btn-ghost:active {
+  background: var(--color-card-border);
+}
+
+/* Loading state */
+.lk-btn-primary.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.lk-btn-primary.loading i {
+  animation: lk-spin 1s linear infinite;
+}
+
+@keyframes lk-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================================================
+   14. FORM ACTIONS (MODAL GLOBAL)
+   ================================================ */
+
+.lk-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-6);
+  border-top: 2px solid var(--color-card-border);
+}
+
+/* ================================================
+   15. ESTADOS DE VALIDAÇÃO
+   ================================================ */
+
+.lk-input.invalid,
+.lk-select.invalid {
+  border-color: var(--color-danger);
+  animation: lk-shake 0.4s;
+}
+
+@keyframes lk-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+.lk-error-message {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 500;
+}
+
+.lk-error-message i {
+  font-size: var(--font-size-xs);
+}
+
+/* ================================================
+   16. RESPONSIVO - TABLET
+   ================================================ */
+
+@media (max-width: 768px) {
+  .lk-modal-lancamento {
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 16px) !important;
+    margin: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .lk-modal-lancamento .lk-modal-body-modern {
+    max-height: calc(100vh - 180px);
+    min-height: auto;
+    padding: var(--spacing-4);
+  }
+
+  .lk-modal-modern {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    margin: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .lk-modal-header-gradient {
+    padding: var(--spacing-4);
+    min-height: auto;
+  }
+
+  .lk-modal-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+
+  .lk-modal-title {
+    font-size: 1.25rem;
+  }
+
+  .lk-modal-close-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.125rem;
+  }
+
+  .lk-modal-body-modern {
+    padding: var(--spacing-4);
+  }
+
+  .lk-conta-info {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    text-align: center;
+    padding: var(--spacing-4);
+  }
+
+  .lk-conta-badge {
+    font-size: var(--font-size-base);
+  }
+
+  .lk-conta-badge i {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .lk-conta-saldo {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-conta-saldo strong {
+    font-size: var(--font-size-lg);
+  }
+
+  .lk-tipo-grid,
+  .lk-tipo-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--spacing-3);
+  }
+
+  .lk-tipo-card {
+    padding: var(--spacing-4);
+  }
+
+  .lk-tipo-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+
+  .lk-tipo-card h4 {
+    font-size: var(--font-size-lg);
+  }
+
+  .lk-tipo-card p {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-tipo-agendamento-btns {
+    flex-direction: column;
+  }
+
+  .lk-form-group {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .lk-modal-footer,
+  .lk-form-actions {
+    padding: var(--spacing-4);
+    gap: var(--spacing-3);
+    flex-direction: column-reverse;
+  }
+
+  .lk-btn-primary,
+  .lk-btn-ghost,
+  .lk-btn-secondary {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--font-size-base);
+    justify-content: center;
+  }
+}
+
+/* ================================================
+   17. RESPONSIVO - MOBILE
+   ================================================ */
+
+@media (max-width: 480px) {
+  .lk-modal-overlay {
+    padding: 0 !important;
+  }
+
+  .lk-modal-lancamento,
+  .lk-modal-modern {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .lk-modal-lancamento .lk-modal-body-modern {
+    max-height: calc(100vh - 160px);
+    padding: var(--spacing-4);
+  }
+
+  .lk-modal-header-gradient {
+    padding: var(--spacing-4);
+    padding-right: 3rem;
+  }
+
+  .lk-modal-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    font-size: 1.125rem;
+  }
+
+  .lk-modal-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .lk-modal-close-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    top: var(--spacing-4);
+    right: var(--spacing-3);
+  }
+
+  .lk-conta-info {
+    padding: var(--spacing-3);
+  }
+
+  .lk-conta-badge {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-conta-badge i {
+    width: 32px;
+    height: 32px;
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-conta-saldo {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-conta-saldo strong {
+    font-size: var(--font-size-base);
+  }
+
+  .lk-section-title {
+    font-size: var(--font-size-base);
+  }
+
+  .lk-historico-item {
+    padding: var(--spacing-3);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lk-historico-info {
+    width: 100%;
+  }
+
+  .lk-historico-right {
+    width: 100%;
+    text-align: left;
+    margin-top: var(--spacing-2);
+    padding-left: calc(36px + var(--spacing-3));
+  }
+
+  .lk-tipo-card {
+    padding: var(--spacing-4);
+  }
+
+  .lk-tipo-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.125rem;
+  }
+
+  .lk-tipo-card h4 {
+    font-size: var(--font-size-base);
+  }
+
+  .lk-tipo-card p {
+    font-size: var(--font-size-xs);
+  }
+
+  .lk-tipo-badge {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-3);
+  }
+
+  .lk-form-group {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .lk-label {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .lk-input,
+  .lk-select,
+  .lk-textarea {
+    padding: var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-input-money .lk-input-with-prefix,
+  input.lk-input.lk-input-with-prefix {
+    padding-left: 3rem !important;
+    font-size: var(--font-size-base);
+  }
+
+  .lk-currency-symbol {
+    font-size: var(--font-size-sm);
+    left: var(--spacing-3);
+  }
+
+  .lk-helper-text {
+    font-size: var(--font-size-xs);
+  }
+
+  .lk-checkbox-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-checkbox-custom {
+    width: 18px;
+    height: 18px;
+  }
+
+  .lk-btn-voltar {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-modal-footer,
+  .lk-form-actions {
+    padding: var(--spacing-4);
+  }
+
+  .lk-btn-primary,
+  .lk-btn-ghost,
+  .lk-btn-secondary {
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-parcelamento-preview {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-3);
+  }
+}
+
+/* ================================================
+   18. DARK MODE SUPPORT (usando variáveis)
+   ================================================ */
+
+:root[data-theme="dark"] .lk-tipo-card {
+  background: var(--glass-bg);
+}
+
+:root[data-theme="dark"] .lk-tipo-card h4 {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .lk-historico-item:hover {
+  background: var(--color-surface-muted);
+}
+
+:root[data-theme="dark"] .lk-checkbox-custom {
+  background: var(--color-surface);
+  border-color: var(--glass-border);
+}
+
+:root[data-theme="dark"] .lk-input::placeholder {
+  color: var(--color-text-muted);
+}

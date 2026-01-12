@@ -88,7 +88,7 @@
 
             const responseText = await response.text();
             console.log('📄 Response raw (primeiros 200 chars):', responseText.substring(0, 200));
-            
+
             let data;
             try {
                 data = JSON.parse(responseText);
@@ -97,7 +97,7 @@
                 console.error('❌ Response completa:', responseText.substring(0, 1000));
                 throw new Error('Resposta inválida do servidor (não é JSON)');
             }
-            
+
             console.log('📦 Estrutura da resposta:', {
                 hasStatus: 'status' in data,
                 statusValue: data.status,
@@ -128,9 +128,9 @@
         const modal = document.createElement('div');
         modal.id = 'cardDetailModalOverlay';
         modal.className = 'card-detail-modal-overlay';
-        
+
         const percentualLimite = data.fatura_mes.percentual_limite || 0;
-        
+
         modal.innerHTML = `
             <div class="card-detail-modal">
                 <div class="card-detail-header">
@@ -253,50 +253,98 @@
                         </div>
                         
                         ${data.parcelamentos.quantidade > 0 ? `
-                        <table class="parcelamentos-table">
-                            <thead>
-                                <tr>
-                                    <th>Compra</th>
-                                    <th>Categoria</th>
-                                    <th>Progresso</th>
-                                    <th>Valor/Mês</th>
-                                    <th>Restante</th>
-                                    <th>Término</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.parcelamentos.ativos.map(parc => {
-                                    const progress = ((parc.total_parcelas - parc.parcelas_restantes) / parc.total_parcelas) * 100;
-                                    return `
-                                        <tr>
-                                            <td><strong>${Utils.escapeHtml(parc.descricao)}</strong></td>
-                                            <td>
-                                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${parc.categoria_cor}; margin-right: 0.5rem;"></span>
-                                                ${Utils.escapeHtml(parc.categoria)}
-                                            </td>
-                                            <td>
-                                                <div class="parcela-progress">
-                                                    <span style="font-size: 0.75rem; color: var(--color-text-muted);">${parc.total_parcelas - parc.parcelas_restantes}/${parc.total_parcelas}</span>
-                                                    <div class="parcela-bar">
-                                                        <div class="parcela-bar-fill" style="width: ${progress}%; background: ${parc.categoria_cor};"></div>
+                        <!-- Tabela Desktop -->
+                        <div class="parcelamentos-table-wrapper">
+                            <table class="parcelamentos-table">
+                                <thead>
+                                    <tr>
+                                        <th>Compra</th>
+                                        <th>Categoria</th>
+                                        <th>Progresso</th>
+                                        <th>Valor/Mês</th>
+                                        <th>Restante</th>
+                                        <th>Término</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.parcelamentos.ativos.map(parc => {
+            const progress = ((parc.total_parcelas - parc.parcelas_restantes) / parc.total_parcelas) * 100;
+            return `
+                                            <tr>
+                                                <td><strong>${Utils.escapeHtml(parc.descricao)}</strong></td>
+                                                <td>
+                                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${parc.categoria_cor}; margin-right: 0.5rem;"></span>
+                                                    ${Utils.escapeHtml(parc.categoria)}
+                                                </td>
+                                                <td>
+                                                    <div class="parcela-progress">
+                                                        <span style="font-size: 0.75rem; color: var(--color-text-muted);">${parc.total_parcelas - parc.parcelas_restantes}/${parc.total_parcelas}</span>
+                                                        <div class="parcela-bar">
+                                                            <div class="parcela-bar-fill" style="width: ${progress}%; background: ${parc.categoria_cor};"></div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>${Utils.formatCurrency(parc.valor_parcela)}</td>
-                                            <td><strong>${Utils.formatCurrency(parc.valor_total_restante)}</strong></td>
-                                            <td style="font-size: 0.875rem; color: var(--color-text-muted);">${parc.data_final}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                        ` : `
-                        <div class="empty-state-detail" style="padding: 2rem; text-align: center;">
-                            <i class="fas fa-check-circle" style="font-size: 3rem; color: #2ecc71; margin-bottom: 1rem;"></i>
-                            <h3 style="color: #2ecc71; margin-bottom: 0.5rem;">Nenhuma parcela ativa</h3>
-                            <p style="color: var(--color-text-muted);">Este cartão não possui parcelamentos pendentes no momento.</p>
+                                                </td>
+                                                <td>${Utils.formatCurrency(parc.valor_parcela)}</td>
+                                                <td><strong>${Utils.formatCurrency(parc.valor_total_restante)}</strong></td>
+                                                <td style="font-size: 0.875rem; color: var(--color-text-muted);">${parc.data_final}</td>
+                                            </tr>
+                                        `;
+        }).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                        `}
+                        
+                        <!-- Cards Mobile para Parcelamentos -->
+                        <div class="parcelamentos-mobile-list">
+                            ${data.parcelamentos.ativos.map(parc => {
+            const progress = ((parc.total_parcelas - parc.parcelas_restantes) / parc.total_parcelas) * 100;
+            return `
+                                    <div class="parcelamento-card-mobile">
+                                        <div class="parcelamento-card-header">
+                                            <div class="parcelamento-card-title">
+                                                <span class="categoria-dot" style="background: ${parc.categoria_cor};"></span>
+                                                <strong>${Utils.escapeHtml(parc.descricao)}</strong>
+                                            </div>
+                                            <button class="btn-ver-detalhes" onclick="this.closest('.parcelamento-card-mobile').classList.toggle('expanded')">
+                                                <i class="fas fa-chevron-down"></i>
+                                                <span>Detalhes</span>
+                                            </button>
+                                        </div>
+                                        <div class="parcelamento-card-summary">
+                                            <span class="valor-mensal">${Utils.formatCurrency(parc.valor_parcela)}/mês</span>
+                                            <span class="parcelas-info">${parc.total_parcelas - parc.parcelas_restantes}/${parc.total_parcelas} parcelas</span>
+                                        </div>
+                                        <div class="parcelamento-card-progress">
+                                            <div class="parcela-bar">
+                                                <div class="parcela-bar-fill" style="width: ${progress}%; background: ${parc.categoria_cor};"></div>
+                                            </div>
+                                        </div>
+                                        <div class="parcelamento-card-details">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Categoria</span>
+                                                <span class="detail-value">
+                                                    <span class="categoria-dot" style="background: ${parc.categoria_cor};"></span>
+                                                    ${Utils.escapeHtml(parc.categoria)}
+                                                </span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Valor por Parcela</span>
+                                                <span class="detail-value">${Utils.formatCurrency(parc.valor_parcela)}</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Total Restante</span>
+                                                <span class="detail-value highlight">${Utils.formatCurrency(parc.valor_total_restante)}</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Término Previsto</span>
+                                                <span class="detail-value">${parc.data_final}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+        }).join('')}
+                        </div>
+                        ` : '<div class="empty-message"><i class="fas fa-check-circle"></i><p>Nenhum parcelamento ativo</p></div>'}
                     </div>
                     
                     <!-- Impacto Futuro -->
@@ -381,14 +429,14 @@
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
-        
+
         // Ativar modal com animação
         requestAnimationFrame(() => {
             modal.classList.add('active');
         });
-        
+
         // Renderizar gráficos
         setTimeout(() => {
             renderFaturaChart(data.fatura_mes.por_categoria);
@@ -400,9 +448,9 @@
     function closeCardDetailModal() {
         const modal = document.getElementById('cardDetailModalOverlay');
         if (!modal) return;
-        
+
         modal.classList.remove('active');
-        
+
         // Destruir gráficos
         if (detailChart) {
             detailChart.destroy();
@@ -416,7 +464,7 @@
             impactChart.destroy();
             impactChart = null;
         }
-        
+
         setTimeout(() => modal.remove(), 300);
     }
 
@@ -426,11 +474,11 @@
             if (canvas) canvas.parentElement.innerHTML = '<div class="empty-state-detail"><i class="fas fa-chart-pie"></i><p>Sem dados para exibir</p></div>';
             return;
         }
-        
+
         if (detailChart) {
             detailChart.destroy();
         }
-        
+
         const ctx = canvas.getContext('2d');
         detailChart = new Chart(ctx, {
             type: 'doughnut',
@@ -477,11 +525,11 @@
     function renderEvolutionChart(meses) {
         const canvas = document.getElementById('evolutionChart');
         if (!canvas) return;
-        
+
         if (evolutionChart) {
             evolutionChart.destroy();
         }
-        
+
         const ctx = canvas.getContext('2d');
         evolutionChart = new Chart(ctx, {
             type: 'line',
@@ -532,11 +580,11 @@
     function renderImpactChart(meses) {
         const canvas = document.getElementById('impactChart');
         if (!canvas) return;
-        
+
         if (impactChart) {
             impactChart.destroy();
         }
-        
+
         const ctx = canvas.getContext('2d');
         impactChart = new Chart(ctx, {
             type: 'bar',

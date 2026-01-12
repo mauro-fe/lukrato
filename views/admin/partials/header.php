@@ -63,8 +63,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-header.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">+
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento.css?v=<?= time() ?>">
 
 
     <?php loadPageCss(); ?>

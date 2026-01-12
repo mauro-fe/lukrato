@@ -255,6 +255,12 @@ class LancamentosController extends BaseController
             return;
         }
 
+        // Verificar se é agendamento (não pago)
+        $pago = !isset($payload['pago']) || (bool)$payload['pago'];
+        if (isset($payload['agendado']) && $payload['agendado']) {
+            $pago = false;
+        }
+
         // Criar DTO
         $dto = CreateLancamentoDTO::fromRequest($userId, [
             'tipo' => strtolower(trim($payload['tipo'])),
@@ -264,6 +270,7 @@ class LancamentosController extends BaseController
             'observacao' => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
             'categoria_id' => $categoriaId,
             'conta_id' => $contaId,
+            'pago' => $pago,
         ]);
 
         // Verificar limite antes de criar
@@ -351,7 +358,58 @@ class LancamentosController extends BaseController
         // LANÇAMENTO NORMAL (SEM CARTÃO)
         // ============================================================
 
-        // Criar lançamento
+        // Verificar se é lançamento recorrente
+        $recorrencia = $payload['recorrencia'] ?? null;
+        $numeroRepeticoes = isset($payload['numero_repeticoes']) ? (int)$payload['numero_repeticoes'] : 12;
+
+        $lancamentosCriados = [];
+
+        if ($recorrencia && in_array($recorrencia, ['semanal', 'quinzenal', 'mensal', 'bimestral', 'trimestral', 'semestral', 'anual'])) {
+            // Calcular intervalo de dias
+            $intervalos = [
+                'semanal' => 7,
+                'quinzenal' => 14,
+                'mensal' => 'P1M',
+                'bimestral' => 'P2M',
+                'trimestral' => 'P3M',
+                'semestral' => 'P6M',
+                'anual' => 'P1Y',
+            ];
+
+            $dataBase = new \DateTime($dto->data);
+
+            for ($i = 0; $i < $numeroRepeticoes; $i++) {
+                if ($i > 0) {
+                    $intervalo = $intervalos[$recorrencia];
+                    if (is_int($intervalo)) {
+                        $dataBase->modify("+{$intervalo} days");
+                    } else {
+                        $dataBase->add(new \DateInterval($intervalo));
+                    }
+                }
+
+                $dadosLancamento = $dto->toArray();
+                $dadosLancamento['data'] = $dataBase->format('Y-m-d');
+                $dadosLancamento['descricao'] = $dto->descricao . ($numeroRepeticoes > 1 ? " (" . ($i + 1) . "/{$numeroRepeticoes})" : '');
+
+                $lancamento = $this->lancamentoRepo->create($dadosLancamento);
+                $lancamentosCriados[] = $lancamento;
+            }
+
+            // Carregar relações do primeiro lançamento para resposta
+            $lancamentosCriados[0]->loadMissing(['categoria', 'conta']);
+
+            Response::success([
+                'lancamento' => LancamentoResponseFormatter::format($lancamentosCriados[0]),
+                'total_criados' => count($lancamentosCriados),
+                'recorrencia' => $recorrencia,
+                'usage' => $usage,
+                'ui_message' => $this->planService->getUsageMessage($usage),
+            ], count($lancamentosCriados) . ' lançamentos agendados com sucesso', 201);
+            return;
+        }
+
+        // Criar lançamento único
         $lancamento = $this->lancamentoRepo->create($dto->toArray());
         $lancamento->loadMissing(['categoria', 'conta']);
 
