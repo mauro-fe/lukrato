@@ -4,78 +4,114 @@
 
 <section class="parc-page">
 
-    <!-- ==================== HEADER COM SELETOR DE MÊS ==================== -->
-    <div class="parc-header-modern">
-        <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
-    </div>
-
-    <!-- ==================== FILTROS ==================== -->
-    <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="card-header-icon">
-            <div class="icon-wrapper filter">
-                <i class="fas fa-filter"></i>
+    <!-- ==================== FILTROS MODERNOS ==================== -->
+    <div class="filters-modern" data-aos="fade-up" data-aos-delay="100">
+        <div class="filters-header">
+            <div class="filters-title">
+                <div class="filters-icon">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <div class="filters-text">
+                    <h3>Filtros</h3>
+                    <span class="filters-subtitle">Refine sua busca</span>
+                </div>
             </div>
-            <div class="card-title-group">
-                <h3 class="card-title">Filtros</h3>
-                <p class="card-subtitle">Refine sua busca</p>
+            <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+
+        <div class="filters-body" id="filtersBody">
+            <div class="filters-grid">
+                <!-- Status -->
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroStatus">
+                        <i class="fas fa-circle-check"></i>
+                        Status
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="filtroStatus" class="filter-select">
+                            <option value="">Todos os status</option>
+                            <option value="pendente">⏳ Pendentes</option>
+                            <option value="parcial">🔄 Parcialmente Pagas</option>
+                            <option value="paga">✅ Pagas</option>
+                            <option value="cancelado">❌ Canceladas</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+
+                <!-- Cartão -->
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroCartao">
+                        <i class="fas fa-credit-card"></i>
+                        Cartão
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="filtroCartao" class="filter-select">
+                            <option value="">Todos os cartões</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+
+                <!-- Ano -->
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroAno">
+                        <i class="fas fa-calendar"></i>
+                        Ano
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="filtroAno" class="filter-select">
+                            <option value="">Todos os anos</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+
+                <!-- Mês -->
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroMes">
+                        <i class="fas fa-calendar-day"></i>
+                        Mês
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="filtroMes" class="filter-select">
+                            <option value="">Todos os meses</option>
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de ação -->
+            <div class="filters-actions">
+                <button type="button" id="btnLimparFiltros" class="btn-filter-clear">
+                    <i class="fas fa-times"></i>
+                    <span>Limpar</span>
+                </button>
+                <button type="button" id="btnFiltrar" class="btn-filter-apply">
+                    <i class="fas fa-search"></i>
+                    <span>Aplicar Filtros</span>
+                </button>
             </div>
         </div>
 
-        <div class="filter-controls">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label for="filtroStatus" class="filter-label">
-                        <i class="fas fa-toggle-on"></i>
-                        <span>Status</span>
-                    </label>
-                    <select id="filtroStatus" class="modern-select">
-                        <option value="">Todos</option>
-                        <option value="pendente">⏳ Pendentes</option>
-                        <option value="parcial">🔄 Parcialmente Pagas</option>
-                        <option value="paga">✅ Pagas</option>
-                        <option value="cancelado">❌ Canceladas</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="filtroTipo" class="filter-label">
-                        <i class="fas fa-credit-card"></i>
-                        <span>Cartão</span>
-                    </label>
-                    <select id="filtroCartao" class="modern-select">
-                        <option value="">Todos os cartões</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filtroAno" class="filter-label">
-                        <i class="fas fa-calendar"></i>
-                        <span>Ano</span>
-                    </label>
-                    <select id="filtroAno" class="modern-select">
-                        <!-- Preencher dinamicamente -->
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filtroMes" class="filter-label">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Mês</span>
-                    </label>
-                    <select id="filtroMes" class="modern-select">
-                        <option value="">Todos</option>
-                        <option value="1">Janeiro</option>
-                        <option value="2">Fevereiro</option>
-                        <!-- ... -->
-                        <option value="12">Dezembro</option>
-                    </select>
-                </div>
-
-                <button type="button" id="btnFiltrar" class="modern-btn secondary">
-                    <i class="fas fa-search"></i>
-                    <span>Filtrar</span>
-                </button>
-
-
-            </div>
+        <!-- Filtros ativos (badges) -->
+        <div class="active-filters" id="activeFilters" style="display: none;">
+            <!-- Badges de filtros ativos serão inseridos via JS -->
         </div>
     </div>
 
@@ -126,3 +162,4 @@
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
 </script>
+<script src="<?= BASE_URL ?>assets/js/admin-faturas-index.js"></script>

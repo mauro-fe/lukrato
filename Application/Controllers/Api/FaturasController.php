@@ -63,11 +63,15 @@ class FaturasController
                 $ano
             );
 
+            // Obter anos disponíveis (sem filtro de ano para ter todos)
+            $anosDisponiveis = $this->faturaService->obterAnosDisponiveis($usuarioId);
+
             Response::json([
                 'success' => true,
                 'data' => [
                     'faturas' => $faturas,
-                    'total' => count($faturas)
+                    'total' => count($faturas),
+                    'anos_disponiveis' => $anosDisponiveis
                 ],
             ]);
         } catch (InvalidArgumentException $e) {

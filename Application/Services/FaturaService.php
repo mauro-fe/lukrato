@@ -45,18 +45,25 @@ class FaturaService
                 $query->where('cartao_credito_id', $cartaoId);
             }
 
-            // Filtrar por mês/ano se fornecido
+            // Filtrar por status diretamente no banco (mais performático)
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            // Filtrar por mês/ano de referência (busca faturas que tenham itens nesse mês)
             if ($mes && $ano) {
-                $query->whereYear('data_compra', $ano)
-                    ->whereMonth('data_compra', $mes);
+                $query->whereHas('itens', function ($q) use ($mes, $ano) {
+                    $q->where('mes_referencia', $mes)
+                        ->where('ano_referencia', $ano);
+                });
+            } elseif ($ano) {
+                // Apenas ano: busca faturas com itens nesse ano
+                $query->whereHas('itens', function ($q) use ($ano) {
+                    $q->where('ano_referencia', $ano);
+                });
             }
 
             $faturas = $query->orderBy('data_compra', 'desc')->get();
-
-            // Filtrar por status se fornecido
-            if ($status) {
-                $faturas = $this->filtrarPorStatus($faturas, $status);
-            }
 
             return $faturas->map(function ($fatura) {
                 return $this->formatarFaturaListagem($fatura);
@@ -67,6 +74,39 @@ class FaturaService
                 'error' => $e->getMessage()
             ]);
             throw new Exception("Erro ao listar faturas: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obter anos disponíveis das faturas do usuário
+     */
+    public function obterAnosDisponiveis(int $usuarioId): array
+    {
+        try {
+            // Buscar anos únicos dos itens de faturas do usuário
+            $anos = FaturaCartaoItem::whereHas('fatura', function ($q) use ($usuarioId) {
+                $q->where('user_id', $usuarioId);
+            })
+                ->select('ano_referencia')
+                ->distinct()
+                ->pluck('ano_referencia')
+                ->filter()
+                ->sort()
+                ->values()
+                ->toArray();
+
+            // Se não houver anos, retorna o ano atual
+            if (empty($anos)) {
+                return [date('Y')];
+            }
+
+            return $anos;
+        } catch (Exception $e) {
+            LogService::error("Erro ao obter anos disponíveis", [
+                'usuario_id' => $usuarioId,
+                'error' => $e->getMessage()
+            ]);
+            return [date('Y')];
         }
     }
 
@@ -333,6 +373,7 @@ class FaturaService
             'valor_total' => round((float) $dados['valor_total'], 2),
             'numero_parcelas' => (int) $dados['numero_parcelas'],
             'data_compra' => $dados['data_compra'],
+            'status' => Fatura::STATUS_PENDENTE,
         ]);
     }
 
@@ -498,6 +539,14 @@ class FaturaService
         $item->pago = true;
         $item->data_pagamento = now();
         $item->save();
+
+        // Atualizar status da fatura
+        if ($item->fatura_id) {
+            $fatura = Fatura::find($item->fatura_id);
+            if ($fatura) {
+                $fatura->atualizarStatus();
+            }
+        }
     }
 
     /**
@@ -519,6 +568,14 @@ class FaturaService
         $item->pago = false;
         $item->data_pagamento = null;
         $item->save();
+
+        // Atualizar status da fatura
+        if ($item->fatura_id) {
+            $fatura = Fatura::find($item->fatura_id);
+            if ($fatura) {
+                $fatura->atualizarStatus();
+            }
+        }
     }
 
     // ============================================================================
@@ -587,7 +644,7 @@ class FaturaService
             'parcelas_pagas' => $itensPagos,
             'parcelas_pendentes' => $totalItens - $itensPagos,
             'progresso' => round($progresso, 2),
-            'status' => $this->determinarStatus($progresso),
+            'status' => $fatura->status ?? $this->determinarStatus($progresso),
         ];
     }
 
@@ -628,7 +685,7 @@ class FaturaService
             'parcelas_pagas' => $itensPagos,
             'parcelas_pendentes' => $totalItens - $itensPagos,
             'progresso' => round($progresso, 2),
-            'status' => $this->determinarStatus($progresso),
+            'status' => $fatura->status ?? $this->determinarStatus($progresso),
         ];
     }
 

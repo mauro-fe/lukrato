@@ -915,7 +915,7 @@
 
     async function updateSummaryCards() {
         const stats = await API.fetchSummaryStats();
-        
+
         const totalReceitasEl = document.getElementById('totalReceitas');
         const totalDespesasEl = document.getElementById('totalDespesas');
         const saldoMesEl = document.getElementById('saldoMes');
@@ -938,7 +938,7 @@
 
         // Atualizar insights se existir na página
         await updateInsightsSection();
-        
+
         // Atualizar comparativos se existir na página
         await updateComparativesSection();
     }
@@ -1010,7 +1010,7 @@
 
         const getTrendText = (value, isDespesa = false) => {
             if (Math.abs(value) < 0.1) return 'Sem alteração';
-            
+
             if (isDespesa) {
                 if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
                 if (value < 0) return `Reduziu ${Math.abs(value).toFixed(1)}%`;
@@ -1160,11 +1160,10 @@
                     </div>
                     
                     <div class="summary-stat">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, ${
-                            data.resumo_consolidado.utilizacao_geral > 70 ? '#e74c3c, #c0392b' :
-                            data.resumo_consolidado.utilizacao_geral > 50 ? '#f39c12, #e67e22' :
-                            '#2ecc71, #27ae60'
-                        });">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, ${data.resumo_consolidado.utilizacao_geral > 70 ? '#e74c3c, #c0392b' :
+                data.resumo_consolidado.utilizacao_geral > 50 ? '#f39c12, #e67e22' :
+                    '#2ecc71, #27ae60'
+            });">
                             <i class="fas fa-chart-pie"></i>
                         </div>
                         <div class="stat-info">
@@ -1226,7 +1225,7 @@
                             <!-- Header -->
                             <div class="card-header-gradient">
                                 <div class="card-brand">
-                                    <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, color-mix(in srgb, ${card.cor || '#E67E22'} 70%, black));">
+                                    <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}99);">">
                                         <i class="fas fa-credit-card"></i>
                                     </div>
                                     <div class="card-info">

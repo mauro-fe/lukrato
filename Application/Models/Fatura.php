@@ -23,7 +23,14 @@ class Fatura extends Model
         'valor_total',
         'numero_parcelas',
         'data_compra',
+        'status',
     ];
+
+    // Constantes de status
+    public const STATUS_PENDENTE = 'pendente';
+    public const STATUS_PARCIAL = 'parcial';
+    public const STATUS_PAGA = 'paga';
+    public const STATUS_CANCELADO = 'cancelado';
 
     protected $casts = [
         'user_id' => 'integer',
@@ -99,14 +106,49 @@ class Fatura extends Model
     public function getProgressoAttribute(): int
     {
         if ($this->numero_parcelas <= 0) {
-            \Application\Services\LogService::info('[Fatura::getProgressoAttribute] Fatura ID: ' . $this->id . ' - numero_parcelas <= 0, progresso = 0');
             return 0;
         }
 
         $pagas = $this->itens()->where('pago', 1)->count();
         $progresso = (int) round(($pagas / $this->numero_parcelas) * 100);
-        $progresso = min($progresso, 100); // Nunca ultrapassa 100%
-        \Application\Services\LogService::info('[Fatura::getProgressoAttribute] Fatura ID: ' . $this->id . ' | Pagas: ' . $pagas . ' | Total: ' . $this->numero_parcelas . ' | Progresso: ' . $progresso);
-        return $progresso;
+        return min($progresso, 100); // Nunca ultrapassa 100%
+    }
+
+    /**
+     * Atualiza o status da fatura baseado nas parcelas pagas
+     */
+    public function atualizarStatus(): void
+    {
+        $totalItens = $this->itens()->count();
+        $itensPagos = $this->itens()->where('pago', 1)->count();
+
+        if ($totalItens === 0) {
+            $this->status = self::STATUS_PENDENTE;
+        } elseif ($itensPagos === 0) {
+            $this->status = self::STATUS_PENDENTE;
+        } elseif ($itensPagos >= $totalItens) {
+            $this->status = self::STATUS_PAGA;
+        } else {
+            $this->status = self::STATUS_PARCIAL;
+        }
+
+        $this->save();
+    }
+
+    /**
+     * Calcula o status atual baseado nas parcelas (sem salvar)
+     */
+    public function calcularStatus(): string
+    {
+        $totalItens = $this->itens()->count();
+        $itensPagos = $this->itens()->where('pago', 1)->count();
+
+        if ($totalItens === 0 || $itensPagos === 0) {
+            return self::STATUS_PENDENTE;
+        } elseif ($itensPagos >= $totalItens) {
+            return self::STATUS_PAGA;
+        } else {
+            return self::STATUS_PARCIAL;
+        }
     }
 }

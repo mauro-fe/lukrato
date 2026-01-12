@@ -43,7 +43,13 @@
         filtroStatus: document.getElementById('filtroStatus'),
         filtroCartao: document.getElementById('filtroCartao'),
         filtroAno: document.getElementById('filtroAno'),
+        filtroMes: document.getElementById('filtroMes'),
         btnFiltrar: document.getElementById('btnFiltrar'),
+        btnLimparFiltros: document.getElementById('btnLimparFiltros'),
+        filtersContainer: document.querySelector('.filters-modern'),
+        filtersBody: document.getElementById('filtersBody'),
+        toggleFilters: document.getElementById('toggleFilters'),
+        activeFilters: document.getElementById('activeFilters'),
 
         // Modal Detalhes
         modalDetalhes: document.getElementById('modalDetalhesParcelamento'),
@@ -62,10 +68,10 @@
             status: '',
             cartao_id: '',
             ano: '',
-            mes: null,
-            anoMes: null
+            mes: ''
         },
-        modalDetalhesInstance: null
+        modalDetalhesInstance: null,
+        anosCarregados: false
     };
 
     // ============================================================================
@@ -185,12 +191,12 @@
             const params = {
                 status: filters.status,
                 cartao_id: filters.cartao_id,
-                ano: filters.anoFiltro || (filters.mes && filters.ano ? undefined : undefined),
-                mes: filters.mes,
-                ano: filters.ano
+                ano: filters.ano,
+                mes: filters.mes
             };
 
             const url = Utils.buildUrl(CONFIG.ENDPOINTS.parcelamentos, params);
+            console.log('🌐 API Request URL:', url, 'Params:', params);
             return await Utils.apiRequest(url);
         },
 
@@ -857,12 +863,34 @@
         async carregarCartoes() {
             try {
                 const response = await API.listarCartoes();
-                STATE.cartoes = response.data || [];
+                // API de cartões retorna array diretamente, não { data: [...] }
+                STATE.cartoes = Array.isArray(response) ? response : (response.data || []);
 
+                console.log('🃏 Cartões carregados:', STATE.cartoes.length, STATE.cartoes);
+
+                // Preencher o select de cartões
                 this.preencherSelectCartoes();
-                this.preencherSelectAnos();
+
+                // Reaplicar filtros da URL nos selects após preencher
+                this.sincronizarFiltrosComSelects();
             } catch (error) {
                 console.error('❌ Erro ao carregar cartões:', error);
+            }
+        },
+
+        sincronizarFiltrosComSelects() {
+            // Sincronizar valores dos selects com o estado dos filtros
+            if (DOM.filtroStatus && STATE.filtros.status) {
+                DOM.filtroStatus.value = STATE.filtros.status;
+            }
+            if (DOM.filtroCartao && STATE.filtros.cartao_id) {
+                DOM.filtroCartao.value = STATE.filtros.cartao_id;
+            }
+            if (DOM.filtroAno && STATE.filtros.ano) {
+                DOM.filtroAno.value = STATE.filtros.ano;
+            }
+            if (DOM.filtroMes && STATE.filtros.mes) {
+                DOM.filtroMes.value = STATE.filtros.mes;
             }
         },
 
@@ -874,56 +902,98 @@
             STATE.cartoes.forEach(cartao => {
                 const option = document.createElement('option');
                 option.value = cartao.id;
-                option.textContent = cartao.nome || `${cartao.bandeira} **** ${cartao.ultimos_digitos || ''}`;
+                // Tentar diferentes campos de nome
+                const nome = cartao.nome_cartao || cartao.nome || cartao.bandeira || 'Cartão';
+                const digitos = cartao.ultimos_digitos ? ` •••• ${cartao.ultimos_digitos}` : '';
+                option.textContent = nome + digitos;
                 DOM.filtroCartao.appendChild(option);
             });
+
+            console.log('📝 Select de cartões preenchido com', STATE.cartoes.length, 'opções');
         },
 
-        preencherSelectAnos() {
+        preencherSelectAnos(anosDisponiveis = []) {
             if (!DOM.filtroAno) return;
 
-            const anoAtual = new Date().getFullYear();
+            // Guardar valor selecionado atual
+            const valorAtual = DOM.filtroAno.value;
+
             DOM.filtroAno.innerHTML = '<option value="">Todos os anos</option>';
 
-            for (let i = 0; i < 5; i++) {
-                const ano = anoAtual - i;
+            if (anosDisponiveis.length > 0) {
+                // Usar anos das faturas
+                const anosOrdenados = [...anosDisponiveis].sort((a, b) => a - b);
+                anosOrdenados.forEach(ano => {
+                    const option = document.createElement('option');
+                    option.value = ano;
+                    option.textContent = ano;
+                    DOM.filtroAno.appendChild(option);
+                });
+            } else {
+                // Fallback: ano atual
+                const anoAtual = new Date().getFullYear();
                 const option = document.createElement('option');
-                option.value = ano;
-                option.textContent = ano;
+                option.value = anoAtual;
+                option.textContent = anoAtual;
                 DOM.filtroAno.appendChild(option);
             }
+
+            // Restaurar valor se ainda estiver disponível
+            if (valorAtual) {
+                DOM.filtroAno.value = valorAtual;
+            }
+
+            // Sincronizar filtros da URL
+            this.sincronizarFiltrosComSelects();
+
+            console.log('📅 Select de anos preenchido com', anosDisponiveis.length || 1, 'opções:', anosDisponiveis);
+        },
+
+        extrairAnosDisponiveis(faturas) {
+            const anosSet = new Set();
+
+            faturas.forEach(fatura => {
+                // Extrair ano da descrição (formato "Mês/Ano")
+                const descricao = fatura.descricao || '';
+                const match = descricao.match(/(\d{1,2})\/(\d{4})/);
+                if (match) {
+                    anosSet.add(parseInt(match[2], 10));
+                }
+
+                // Também verificar data_vencimento
+                if (fatura.data_vencimento) {
+                    const ano = new Date(fatura.data_vencimento).getFullYear();
+                    anosSet.add(ano);
+                }
+            });
+
+            return Array.from(anosSet);
         },
 
         async carregarParcelamentos() {
             UI.showLoading();
 
             try {
-                const monthKey = sessionStorage.getItem('lukrato.month.dashboard');
-                let mes = null;
-                let ano = null;
-
-                if (monthKey) {
-                    const [anoStr, mesStr] = monthKey.split('-');
-                    mes = parseInt(mesStr, 10);
-                    ano = parseInt(anoStr, 10);
-                    console.log('📅 Filtro de mês/ano ativo:', { mes, ano });
-                }
-
-                STATE.filtros.mes = mes;
-                STATE.filtros.anoMes = ano;
+                console.log('📊 Filtros aplicados:', STATE.filtros);
 
                 const response = await API.listarParcelamentos({
-                    status: STATE.filtros.status,
-                    cartao_id: STATE.filtros.cartao_id,
-                    mes: STATE.filtros.mes,
-                    ano: STATE.filtros.anoMes,
-                    anoFiltro: STATE.filtros.ano
+                    status: STATE.filtros.status || '',
+                    cartao_id: STATE.filtros.cartao_id || '',
+                    mes: STATE.filtros.mes || '',
+                    ano: STATE.filtros.ano || ''
                 });
 
                 let parcelamentos = response.data?.faturas || [];
-                parcelamentos = this.filtrarPorStatus(parcelamentos);
 
                 STATE.parcelamentos = parcelamentos;
+
+                // Usar anos da API (somente na primeira carga)
+                if (!STATE.anosCarregados) {
+                    const anosDisponiveis = response.data?.anos_disponiveis || this.extrairAnosDisponiveis(parcelamentos);
+                    this.preencherSelectAnos(anosDisponiveis);
+                    STATE.anosCarregados = true;
+                }
+
                 UI.renderParcelamentos(parcelamentos);
 
                 console.log('📊 Parcelamentos carregados:', parcelamentos.length);
@@ -938,28 +1008,6 @@
             } finally {
                 UI.hideLoading();
             }
-        },
-
-        filtrarPorStatus(parcelamentos) {
-            const statusFiltro = STATE.filtros.status;
-            if (!statusFiltro) return parcelamentos;
-
-            return parcelamentos.filter(fatura => {
-                const progresso = fatura.progresso || 0;
-
-                switch (statusFiltro) {
-                    case 'pendente':
-                        return progresso === 0;
-                    case 'parcial':
-                        return progresso > 0 && progresso < 100;
-                    case 'paga':
-                        return progresso >= 100;
-                    case 'cancelado':
-                        return fatura.status === 'cancelado';
-                    default:
-                        return true;
-                }
-            });
         },
 
         async cancelarParcelamento(id) {
@@ -986,21 +1034,175 @@
         },
 
         attachEventListeners() {
-            // Filtros
-            if (DOM.btnFiltrar) {
-                DOM.btnFiltrar.addEventListener('click', () => {
-                    STATE.filtros.status = DOM.filtroStatus?.value || '';
-                    STATE.filtros.cartao_id = DOM.filtroCartao?.value || '';
-                    STATE.filtros.ano = DOM.filtroAno?.value || '';
-                    this.carregarParcelamentos();
+            // Toggle filtros (expandir/colapsar)
+            if (DOM.toggleFilters) {
+                DOM.toggleFilters.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleFilters();
                 });
             }
 
-            // Listener para mudança de mês
-            document.addEventListener('lukrato:month-changed', () => {
-                console.log('📅 Mês alterado, recarregando...');
-                this.carregarParcelamentos();
+            // Click no header também expande/colapsa
+            const filtersHeader = document.querySelector('.filters-header');
+            if (filtersHeader) {
+                filtersHeader.addEventListener('click', () => {
+                    this.toggleFilters();
+                });
+            }
+
+            // Botão Filtrar
+            if (DOM.btnFiltrar) {
+                DOM.btnFiltrar.addEventListener('click', () => {
+                    this.aplicarFiltros();
+                });
+            }
+
+            // Botão Limpar Filtros
+            if (DOM.btnLimparFiltros) {
+                DOM.btnLimparFiltros.addEventListener('click', () => {
+                    this.limparFiltros();
+                });
+            }
+
+            // Enter nos selects aplica filtro
+            [DOM.filtroStatus, DOM.filtroCartao, DOM.filtroAno, DOM.filtroMes].forEach(select => {
+                if (select) {
+                    select.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            this.aplicarFiltros();
+                        }
+                    });
+                }
             });
+        },
+
+        toggleFilters() {
+            if (DOM.filtersContainer) {
+                DOM.filtersContainer.classList.toggle('collapsed');
+            }
+        },
+
+        aplicarFiltros() {
+            STATE.filtros.status = DOM.filtroStatus?.value || '';
+            STATE.filtros.cartao_id = DOM.filtroCartao?.value || '';
+            STATE.filtros.ano = DOM.filtroAno?.value || '';
+            STATE.filtros.mes = DOM.filtroMes?.value || '';
+
+            console.log('🔍 Filtros aplicados:', STATE.filtros);
+
+            this.atualizarBadgesFiltros();
+            this.carregarParcelamentos();
+        },
+
+        limparFiltros() {
+            // Resetar selects
+            if (DOM.filtroStatus) DOM.filtroStatus.value = '';
+            if (DOM.filtroCartao) DOM.filtroCartao.value = '';
+            if (DOM.filtroAno) DOM.filtroAno.value = '';
+            if (DOM.filtroMes) DOM.filtroMes.value = '';
+
+            // Resetar estado
+            STATE.filtros = {
+                status: '',
+                cartao_id: '',
+                ano: '',
+                mes: ''
+            };
+
+            this.atualizarBadgesFiltros();
+            this.carregarParcelamentos();
+        },
+
+        atualizarBadgesFiltros() {
+            if (!DOM.activeFilters) return;
+
+            const badges = [];
+            const meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+            // Status
+            if (STATE.filtros.status) {
+                const statusLabels = {
+                    'pendente': '⏳ Pendente',
+                    'parcial': '🔄 Parcial',
+                    'paga': '✅ Paga',
+                    'cancelado': '❌ Cancelado'
+                };
+                badges.push({
+                    key: 'status',
+                    label: statusLabels[STATE.filtros.status] || STATE.filtros.status
+                });
+            }
+
+            // Cartão
+            if (STATE.filtros.cartao_id) {
+                const cartao = STATE.cartoes.find(c => c.id == STATE.filtros.cartao_id);
+                const nomeCartao = cartao ? (cartao.nome_cartao || cartao.nome) : 'Cartão';
+                badges.push({
+                    key: 'cartao_id',
+                    label: `💳 ${nomeCartao}`
+                });
+            }
+
+            // Ano
+            if (STATE.filtros.ano) {
+                badges.push({
+                    key: 'ano',
+                    label: `📅 ${STATE.filtros.ano}`
+                });
+            }
+
+            // Mês
+            if (STATE.filtros.mes) {
+                badges.push({
+                    key: 'mes',
+                    label: `📆 ${meses[STATE.filtros.mes]}`
+                });
+            }
+
+            // Renderizar badges
+            if (badges.length > 0) {
+                DOM.activeFilters.style.display = 'flex';
+                DOM.activeFilters.innerHTML = badges.map(badge => `
+                    <span class="filter-badge">
+                        ${badge.label}
+                        <button class="filter-badge-remove" data-filter="${badge.key}" title="Remover filtro">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                `).join('');
+
+                // Adicionar eventos de remover
+                DOM.activeFilters.querySelectorAll('.filter-badge-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const filterKey = e.currentTarget.dataset.filter;
+                        this.removerFiltro(filterKey);
+                    });
+                });
+            } else {
+                DOM.activeFilters.style.display = 'none';
+                DOM.activeFilters.innerHTML = '';
+            }
+        },
+
+        removerFiltro(key) {
+            // Resetar o filtro específico
+            STATE.filtros[key] = '';
+
+            // Resetar o select correspondente
+            const selectMap = {
+                'status': DOM.filtroStatus,
+                'cartao_id': DOM.filtroCartao,
+                'ano': DOM.filtroAno,
+                'mes': DOM.filtroMes
+            };
+
+            if (selectMap[key]) {
+                selectMap[key].value = '';
+            }
+
+            this.atualizarBadgesFiltros();
+            this.carregarParcelamentos();
         }
     };
 

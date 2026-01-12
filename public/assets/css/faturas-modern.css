@@ -5,19 +5,19 @@
  */
 
 :root {
-  --parc-primary: var(--color-primary);
-  --parc-success: var(--color-success);
-  --parc-warning: var(--color-warning);
-  --parc-danger: var(--color-danger);
+  --parc-primary: var(--color-primary, #e67e22);
+  --parc-success: var(--color-success, #22c55e);
+  --parc-warning: var(--color-warning, #f59e0b);
+  --parc-danger: var(--color-danger, #ef4444);
   --parc-info: #3b82f6;
-  --parc-dark: var(--color-secondary);
-  --parc-light: var(--color-bg);
-  --parc-border: var(--color-card-border);
-  --parc-shadow: var(--shadow-md);
-  --parc-text: var(--color-text);
-  --parc-text-muted: var(--color-text-muted);
-  --parc-surface: var(--color-surface);
-  --parc-card-bg: var(--color-card-bg);
+  --parc-dark: var(--color-secondary, #1e293b);
+  --parc-light: var(--color-bg, #0f172a);
+  --parc-border: var(--color-card-border, #334155);
+  --parc-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+  --parc-text: var(--color-text, #f1f5f9);
+  --parc-text-muted: var(--color-text-muted, #94a3b8);
+  --parc-surface: var(--color-surface, #0f172a);
+  --parc-card-bg: var(--color-card-bg, #1e293b);
 }
 
 /* ==================== CONTAINER PRINCIPAL ==================== */
@@ -120,6 +120,368 @@
 }
 
 /* ==================== FILTROS ==================== */
+
+/* ========== FILTROS MODERNOS ========== */
+.filters-modern {
+  background: var(--parc-card-bg, #1e293b);
+  border-radius: 16px;
+  border: 1px solid var(--parc-border, #334155);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.08), transparent);
+  border-bottom: 1px solid var(--parc-border, #334155);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s ease;
+}
+
+.filters-header:hover {
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.12), transparent);
+}
+
+.filters-title {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.filters-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  color: white;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.filters-text h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--parc-text, #f1f5f9);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.filters-subtitle {
+  font-size: 0.8rem;
+  color: var(--parc-text-muted, #94a3b8);
+  margin-top: 2px;
+  display: block;
+}
+
+.filters-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: var(--parc-surface, #0f172a);
+  color: var(--parc-text-muted, #94a3b8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filters-toggle:hover {
+  background: #e67e22;
+  color: white;
+  transform: scale(1.05);
+}
+
+.filters-toggle i {
+  transition: transform 0.3s ease;
+}
+
+.filters-modern.collapsed .filters-toggle i {
+  transform: rotate(-90deg);
+}
+
+.filters-modern.collapsed .filters-body {
+  display: none;
+}
+
+/* Corpo dos filtros */
+.filters-body {
+  padding: 1.25rem;
+  background: var(--parc-card-bg, #1e293b);
+}
+
+/* Grid de filtros */
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+/* Item de filtro individual */
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--parc-text, #f1f5f9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-label-modern i {
+  color: #e67e22;
+  font-size: 0.85rem;
+}
+
+/* Wrapper do select customizado */
+.select-wrapper {
+  position: relative;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  border: 2px solid var(--parc-border, #334155);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--parc-text, #f1f5f9);
+  background: var(--parc-surface, #0f172a);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.filter-select:hover {
+  border-color: rgba(230, 126, 34, 0.5);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #e67e22;
+  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.15);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--parc-text-muted, #94a3b8);
+  font-size: 0.75rem;
+  pointer-events: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.select-wrapper:hover .select-arrow,
+.filter-select:focus ~ .select-arrow {
+  color: #e67e22;
+}
+
+/* Opções do select */
+.filter-select option {
+  padding: 0.75rem;
+  background: var(--parc-surface, #0f172a);
+  color: var(--parc-text, #f1f5f9);
+}
+
+/* Botões de ação dos filtros */
+.filters-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--parc-border, #334155);
+  justify-content: flex-end;
+}
+
+.btn-filter-clear,
+.btn-filter-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: none;
+}
+
+.btn-filter-clear {
+  background: var(--parc-surface, #0f172a);
+  color: var(--parc-text-muted, #94a3b8);
+  border: 2px solid var(--parc-border, #334155);
+}
+
+.btn-filter-clear:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.btn-filter-apply {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  color: white;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.btn-filter-apply:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+}
+
+.btn-filter-apply:active {
+  transform: translateY(0);
+}
+
+/* Filtros ativos (badges) */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--parc-surface, #0f172a);
+  border-top: 1px solid var(--parc-border, #334155);
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(230, 126, 34, 0.15);
+  color: #e67e22;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.filter-badge-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(230, 126, 34, 0.2);
+  color: #e67e22;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.filter-badge-remove:hover {
+  background: #e67e22;
+  color: white;
+}
+
+/* ========== RESPONSIVIDADE DOS FILTROS ========== */
+@media (max-width: 1200px) {
+  .filters-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-header {
+    padding: 0.875rem 1rem;
+  }
+
+  .filters-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .filters-text h3 {
+    font-size: 1rem;
+  }
+
+  .filters-body {
+    padding: 1rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .filter-select {
+    padding: 0.875rem 2.5rem 0.875rem 1rem;
+  }
+
+  .filters-actions {
+    flex-direction: column;
+  }
+
+  .btn-filter-clear,
+  .btn-filter-apply {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem;
+  }
+
+  .active-filters {
+    padding: 0.625rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-modern {
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .filters-subtitle {
+    display: none;
+  }
+
+  .filter-label-modern {
+    font-size: 0.75rem;
+  }
+
+  .filter-select {
+    font-size: 0.85rem;
+  }
+}
+
+/* Classe antiga mantida para compatibilidade */
 .filter-controls {
   display: flex;
   flex-direction: column;

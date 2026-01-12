@@ -512,9 +512,8 @@ class ReportService
     private function handleCartoesCreditoReport(ReportParameters $params): array
     {
         $userId = $params->userId;
-        $month = $params->start->format('Y-m');
-        $dataInicio = $params->start->toDateString();
-        $dataFim = $params->end->toDateString();
+        $mesAtual = (int) $params->start->format('m');
+        $anoAtual = (int) $params->start->format('Y');
 
         // Busca os cartões do usuário
         $query = \Application\Models\CartaoCredito::where('user_id', $userId)
@@ -529,11 +528,11 @@ class ReportService
 
         $cards = [];
         foreach ($cartoes as $cartao) {
-            // Soma os lançamentos do cartão no mês
-            $totalMes = \Application\Models\Lancamento::where('user_id', $userId)
+            // Soma os itens de fatura do cartão no mês/ano de referência
+            $totalMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cartao->id)
-                ->where('tipo', 'despesa')
-                ->whereBetween('data', [$dataInicio, $dataFim])
+                ->where('mes_referencia', $mesAtual)
+                ->where('ano_referencia', $anoAtual)
                 ->sum('valor');
 
             // Busca parcelamentos ativos deste cartão
@@ -549,11 +548,10 @@ class ReportService
             $proximosMeses = [];
             for ($i = 1; $i <= 3; $i++) {
                 $mesAnalise = $params->start->copy()->addMonths($i);
-                $valorMes = \Application\Models\Lancamento::where('user_id', $userId)
+                $valorMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                     ->where('cartao_credito_id', $cartao->id)
-                    ->where('tipo', 'despesa')
-                    ->whereYear('data', $mesAnalise->year)
-                    ->whereMonth('data', $mesAnalise->month)
+                    ->where('mes_referencia', (int) $mesAnalise->format('m'))
+                    ->where('ano_referencia', (int) $mesAnalise->format('Y'))
                     ->sum('valor');
 
                 $proximosMeses[] = [
@@ -572,11 +570,10 @@ class ReportService
             $totalHistorico = 0;
             for ($i = 5; $i >= 0; $i--) {
                 $mesHistorico = $params->start->copy()->subMonths($i);
-                $valorMes = \Application\Models\Lancamento::where('user_id', $userId)
+                $valorMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                     ->where('cartao_credito_id', $cartao->id)
-                    ->where('tipo', 'despesa')
-                    ->whereYear('data', $mesHistorico->year)
-                    ->whereMonth('data', $mesHistorico->month)
+                    ->where('mes_referencia', (int) $mesHistorico->format('m'))
+                    ->where('ano_referencia', (int) $mesHistorico->format('Y'))
                     ->sum('valor');
 
                 $historicoMeses[] = [
@@ -609,18 +606,18 @@ class ReportService
             // Gera alertas
             $alertas = [];
 
-            // Verifica se há lançamentos futuros próximos
-            $lancamentosFuturosProximos = \Application\Models\Lancamento::where('user_id', $userId)
+            // Verifica se há itens de fatura futuros próximos
+            $proximoMes = $params->start->copy()->addMonth();
+            $itensFuturosProximos = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cartao->id)
-                ->where('tipo', 'despesa')
-                ->where('data', '>', $dataFim)
-                ->where('data', '<=', $params->start->copy()->addMonth()->endOfMonth()->toDateString())
+                ->where('mes_referencia', (int) $proximoMes->format('m'))
+                ->where('ano_referencia', (int) $proximoMes->format('Y'))
                 ->sum('valor');
 
-            if ($lancamentosFuturosProximos > 0) {
+            if ($itensFuturosProximos > 0) {
                 $alertas[] = [
                     'type' => 'info',
-                    'message' => 'Próximo mês: ' . number_format($lancamentosFuturosProximos, 2, ',', '.')
+                    'message' => 'Próximo mês: ' . number_format($itensFuturosProximos, 2, ',', '.')
                 ];
             }
 
@@ -742,21 +739,20 @@ class ReportService
 
         $mesInt = (int) $mes;
         $anoInt = (int) $ano;
-        $dataInicio = "{$anoInt}-{$mes}-01";
-        $dataFim = date('Y-m-t', strtotime($dataInicio));
 
-        // 1. FATURA DO MÊS
-        $lancamentos = \Application\Models\Lancamento::where('user_id', $userId)
+        // 1. FATURA DO MÊS - Busca itens de fatura pelo mês/ano de referência
+        $itensFatura = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
             ->where('cartao_credito_id', $cardId)
-            ->where('tipo', 'despesa')
-            ->whereBetween('data', [$dataInicio, $dataFim])
+            ->where('mes_referencia', $mesInt)
+            ->where('ano_referencia', $anoInt)
             ->with('categoria')
-            ->orderBy('data', 'desc')
+            ->orderBy('data_compra', 'desc')
             ->get();
 
-        $aVista = $lancamentos->where('eh_parcelado', false)->sum('valor');
-        $parcelado = $lancamentos->where('eh_parcelado', true)->sum('valor');
-        $totalFatura = $lancamentos->sum('valor');
+        $aVista = $itensFatura->whereNull('total_parcelas')->sum('valor') +
+            $itensFatura->where('total_parcelas', 1)->sum('valor');
+        $parcelado = $itensFatura->where('total_parcelas', '>', 1)->sum('valor');
+        $totalFatura = $itensFatura->sum('valor');
 
         // Calcular limite e percentual de utilização (necessário para o status de saúde)
         $limite = (float) ($cartao->limite_total ?? $cartao->limite ?? 0);
@@ -764,10 +760,10 @@ class ReportService
 
         // Agrupar por categoria
         $porCategoria = [];
-        foreach ($lancamentos as $lanc) {
-            $catId = $lanc->categoria_id;
-            $catNome = $lanc->categoria ? $lanc->categoria->nome : 'Sem categoria';
-            $catCor = $lanc->categoria ? ($lanc->categoria->cor ?? '#E67E22') : '#E67E22';
+        foreach ($itensFatura as $item) {
+            $catId = $item->categoria_id ?? 0;
+            $catNome = $item->categoria ? $item->categoria->nome : 'Sem categoria';
+            $catCor = $item->categoria ? ($item->categoria->cor ?? '#E67E22') : '#E67E22';
 
             if (!isset($porCategoria[$catId])) {
                 $porCategoria[$catId] = [
@@ -778,27 +774,25 @@ class ReportService
                 ];
             }
 
-            $porCategoria[$catId]['valor'] += (float) $lanc->valor;
+            $porCategoria[$catId]['valor'] += (float) $item->valor;
             $porCategoria[$catId]['quantidade']++;
         }
 
         $porCategoria = array_values($porCategoria);
 
-        // 2. EVOLUÇÃO MENSAL (últimos 6 meses)
+        // 2. EVOLUÇÃO MENSAL (últimos 6 meses) - usando FaturaCartaoItem
         $evolucao = [];
         for ($i = 5; $i >= 0; $i--) {
             $dataAnalise = new \DateTime("{$anoInt}-{$mesInt}-01");
             $dataAnalise->modify("-{$i} months");
 
-            $mesAnalise = $dataAnalise->format('m');
-            $anoAnalise = $dataAnalise->format('Y');
-            $inicioMes = $dataAnalise->format('Y-m-01');
-            $fimMes = $dataAnalise->format('Y-m-t');
+            $mesAnalise = (int) $dataAnalise->format('m');
+            $anoAnalise = (int) $dataAnalise->format('Y');
 
-            $valorMes = \Application\Models\Lancamento::where('user_id', $userId)
+            $valorMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cardId)
-                ->where('tipo', 'despesa')
-                ->whereBetween('data', [$inicioMes, $fimMes])
+                ->where('mes_referencia', $mesAnalise)
+                ->where('ano_referencia', $anoAnalise)
                 ->sum('valor');
 
             $evolucao[] = [
@@ -818,16 +812,16 @@ class ReportService
         $ultimoValor = end($valores);
         $tendencia = $ultimoValor > $media * 1.1 ? 'subindo' : ($ultimoValor < $media * 0.9 ? 'caindo' : 'estável');
 
-        // COMPARATIVO COM MÊS ANTERIOR
+        // COMPARATIVO COM MÊS ANTERIOR - usando FaturaCartaoItem
         $mesAnterior = new \DateTime("{$anoInt}-{$mesInt}-01");
         $mesAnterior->modify("-1 month");
-        $inicioMesAnterior = $mesAnterior->format('Y-m-01');
-        $fimMesAnterior = $mesAnterior->format('Y-m-t');
+        $mesAnteriorInt = (int) $mesAnterior->format('m');
+        $anoAnteriorInt = (int) $mesAnterior->format('Y');
 
-        $faturaAnterior = \Application\Models\Lancamento::where('user_id', $userId)
+        $faturaAnterior = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
             ->where('cartao_credito_id', $cardId)
-            ->where('tipo', 'despesa')
-            ->whereBetween('data', [$inicioMesAnterior, $fimMesAnterior])
+            ->where('mes_referencia', $mesAnteriorInt)
+            ->where('ano_referencia', $anoAnteriorInt)
             ->sum('valor');
 
         $diferencaAbsoluta = $totalFatura - $faturaAnterior;
@@ -844,72 +838,71 @@ class ReportService
             $statusSaude = ['status' => 'risco', 'cor' => '#e74c3c', 'texto' => 'Risco'];
         }
 
-        // 3. PARCELAMENTOS ATIVOS
-        $parcelamentos = \Application\Models\Lancamento::where('user_id', $userId)
+        // 3. PARCELAMENTOS ATIVOS - busca itens de fatura parcelados pendentes
+        $itensParcelados = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
             ->where('cartao_credito_id', $cardId)
-            ->where('eh_parcelado', true)
+            ->where('total_parcelas', '>', 1)
             ->where('pago', false)
             ->with('categoria')
-            ->orderBy('data', 'asc')
+            ->orderBy('data_compra', 'asc')
             ->get();
 
         $parcelamentosAtivos = [];
         $parcelamentosAgrupados = [];
 
-        foreach ($parcelamentos as $lanc) {
-            $paiId = $lanc->lancamento_pai_id ?? $lanc->id;
+        foreach ($itensParcelados as $item) {
+            // Agrupa por descrição base (sem parcela)
+            $descricaoBase = preg_replace('/\s*\(\d+\/\d+\)\s*$/', '', $item->descricao);
+            $chaveAgrupamento = $descricaoBase . '_' . ($item->categoria_id ?? 0);
 
-            if (!isset($parcelamentosAgrupados[$paiId])) {
-                // Extrair descrição base (sem número de parcela)
-                $descricao = preg_replace('/\s*\(\d+\/\d+\)\s*$/', '', $lanc->descricao);
-
-                $parcelamentosAgrupados[$paiId] = [
-                    'descricao' => $descricao,
-                    'categoria' => $lanc->categoria ? $lanc->categoria->nome : 'Sem categoria',
-                    'categoria_cor' => $lanc->categoria ? ($lanc->categoria->cor ?? '#E67E22') : '#E67E22',
-                    'parcela_atual' => $lanc->parcela_atual ?? 1,
-                    'total_parcelas' => $lanc->total_parcelas ?? 1,
-                    'valor_parcela' => (float) $lanc->valor,
+            if (!isset($parcelamentosAgrupados[$chaveAgrupamento])) {
+                $parcelamentosAgrupados[$chaveAgrupamento] = [
+                    'descricao' => $descricaoBase,
+                    'categoria' => $item->categoria ? $item->categoria->nome : 'Sem categoria',
+                    'categoria_cor' => $item->categoria ? ($item->categoria->cor ?? '#E67E22') : '#E67E22',
+                    'parcela_atual' => $item->parcela_atual ?? 1,
+                    'total_parcelas' => $item->total_parcelas ?? 1,
+                    'valor_parcela' => (float) $item->valor,
                     'parcelas_restantes' => 0,
                     'valor_total_restante' => 0,
                     'data_final' => null,
-                    'lancamentos' => []
+                    'itens' => []
                 ];
             }
 
-            $parcelamentosAgrupados[$paiId]['lancamentos'][] = $lanc;
+            $parcelamentosAgrupados[$chaveAgrupamento]['itens'][] = $item;
         }
 
         // Calcular totais
-        foreach ($parcelamentosAgrupados as $paiId => &$grupo) {
-            $grupo['parcelas_restantes'] = count($grupo['lancamentos']);
-            $grupo['valor_total_restante'] = array_sum(array_column($grupo['lancamentos'], 'valor'));
+        foreach ($parcelamentosAgrupados as $chave => &$grupo) {
+            $grupo['parcelas_restantes'] = count($grupo['itens']);
+            $grupo['valor_total_restante'] = array_sum(array_map(fn($i) => (float) $i->valor, $grupo['itens']));
 
-            // Data final é a data do último lançamento
-            $ultimaData = max(array_column($grupo['lancamentos'], 'data'));
-            $grupo['data_final'] = date('d/m/Y', strtotime($ultimaData));
+            // Data final é baseada no último mês/ano de referência
+            $ultimoItem = end($grupo['itens']);
+            if ($ultimoItem) {
+                $grupo['data_final'] = sprintf('%02d/%d', $ultimoItem->mes_referencia, $ultimoItem->ano_referencia);
+            }
 
-            unset($grupo['lancamentos']); // Remove para não enviar ao frontend
+            unset($grupo['itens']); // Remove para não enviar ao frontend
         }
 
         $parcelamentosAtivos = array_values($parcelamentosAgrupados);
         $totalComprometidoFuturo = array_sum(array_column($parcelamentosAtivos, 'valor_total_restante'));
 
-        // 4. IMPACTO FUTURO (próximos 6 meses)
+        // 4. IMPACTO FUTURO (próximos 6 meses) - usando FaturaCartaoItem
         $impactoFuturo = [];
         for ($i = 1; $i <= 6; $i++) {
             $dataProjecao = new \DateTime("{$anoInt}-{$mesInt}-01");
             $dataProjecao->modify("+{$i} months");
 
-            $mesProjecao = $dataProjecao->format('m');
-            $anoProjecao = $dataProjecao->format('Y');
-            $inicioMes = $dataProjecao->format('Y-m-01');
-            $fimMes = $dataProjecao->format('Y-m-t');
+            $mesProjecao = (int) $dataProjecao->format('m');
+            $anoProjecao = (int) $dataProjecao->format('Y');
 
-            $valorMes = \Application\Models\Lancamento::where('user_id', $userId)
+            $valorMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cardId)
-                ->where('tipo', 'despesa')
-                ->whereBetween('data', [$inicioMes, $fimMes])
+                ->where('mes_referencia', $mesProjecao)
+                ->where('ano_referencia', $anoProjecao)
                 ->sum('valor');
 
             $impactoFuturo[] = [
@@ -971,16 +964,16 @@ class ReportService
                 'fatura_anterior' => $faturaAnterior,
                 'diferenca_absoluta' => $diferencaAbsoluta,
                 'diferenca_percentual' => $diferencaPercentual,
-                'lancamentos' => $lancamentos->map(function ($lanc) {
+                'lancamentos' => $itensFatura->map(function ($item) {
                     return [
-                        'id' => $lanc->id,
-                        'descricao' => $lanc->descricao,
-                        'valor' => (float) $lanc->valor,
-                        'data' => $lanc->data,
-                        'categoria' => $lanc->categoria ? $lanc->categoria->nome : 'Sem categoria',
-                        'categoria_cor' => $lanc->categoria ? ($lanc->categoria->cor ?? '#E67E22') : '#E67E22',
-                        'eh_parcelado' => (bool) $lanc->eh_parcelado,
-                        'parcela_info' => $lanc->eh_parcelado ? "{$lanc->parcela_atual}/{$lanc->total_parcelas}" : null
+                        'id' => $item->id,
+                        'descricao' => $item->descricao,
+                        'valor' => (float) $item->valor,
+                        'data' => $item->data_compra,
+                        'categoria' => $item->categoria ? $item->categoria->nome : 'Sem categoria',
+                        'categoria_cor' => $item->categoria ? ($item->categoria->cor ?? '#E67E22') : '#E67E22',
+                        'eh_parcelado' => ($item->total_parcelas ?? 1) > 1,
+                        'parcela_info' => ($item->total_parcelas ?? 1) > 1 ? "{$item->parcela_atual}/{$item->total_parcelas}" : null
                     ];
                 })->values()->toArray(),
                 'por_categoria' => $porCategoria,
