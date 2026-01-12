@@ -22,11 +22,16 @@
    HEADER DA PÁGINA
    ============================================================================ */
 
-.page-header {
+.ag-page .page-header {
   margin-bottom: var(--spacing-6);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-5);
 }
 
-.page-header .header-content {
+.ag-page .page-header .header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -34,12 +39,12 @@
   gap: var(--spacing-4);
 }
 
-.page-header .header-text {
+.ag-page .page-header .header-text {
   flex: 1;
   min-width: 200px;
 }
 
-.page-title {
+.ag-page .page-title {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
@@ -49,24 +54,20 @@
   color: var(--color-text);
 }
 
-.page-title i {
+.ag-page .page-title i {
   width: 48px;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 80%, black)
-  );
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
   border-radius: var(--radius-lg);
   color: white;
   font-size: 1.25rem;
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
 
-.page-subtitle {
+.ag-page .page-subtitle {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
@@ -76,16 +77,12 @@
    BOTÃO NOVO AGENDAMENTO
    ============================================================================ */
 
-.btn-new {
+.ag-page .btn-new {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-3) var(--spacing-5);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 85%, black)
-  );
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
   color: white;
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -98,297 +95,540 @@
   white-space: nowrap;
 }
 
-.btn-new:hover {
+.ag-page .btn-new:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(230, 126, 34, 0.35);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 90%, white),
-    var(--color-primary)
-  );
 }
 
-.btn-new:active {
+.ag-page .btn-new:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
 }
 
-.btn-new i {
+.ag-page .btn-new i {
   font-size: 0.9rem;
 }
 
 /* ============================================================================
-   CARD MODERNO
+   CARD DA TABELA
    ============================================================================ */
 
-.modern-card {
+.ag-page .modern-card {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   overflow: hidden;
-  transition: all 0.3s ease;
 }
 
-.modern-card:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-.modern-card .card-header {
+.ag-page .modern-card .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-5);
+  padding: var(--spacing-4) var(--spacing-5);
   border-bottom: 1px solid var(--glass-border);
-  background: var(--color-surface);
+  background: transparent;
 }
 
-.modern-card .card-header .header-left {
+.ag-page .modern-card .card-header .header-left {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
 }
 
-.modern-card .card-header .header-left > i {
-  width: 44px;
-  height: 44px;
+.ag-page .modern-card .card-header .header-left > i {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(230, 126, 34, 0.1),
-    rgba(230, 126, 34, 0.2)
-  );
+  background: rgba(230, 126, 34, 0.15);
   border-radius: var(--radius-md);
   color: var(--color-primary);
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
-.modern-card .card-header .header-text h3 {
+.ag-page .modern-card .card-header .header-text h3 {
   margin: 0 0 2px 0;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text);
 }
 
-.modern-card .card-header .header-text p {
+.ag-page .modern-card .card-header .header-text p {
   margin: 0;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
 
-.modern-card .card-body {
-  padding: var(--spacing-4);
+.ag-page .modern-card .card-body {
+  padding: 0;
 }
 
 /* ============================================================================
-   TABELA DESKTOP (TABULATOR)
+   TABELA DESKTOP (TABULATOR) - ESTILOS FORÇADOS
    ============================================================================ */
 
 .ag-table-desktop {
   display: block;
 }
 
-#agendamentosTable {
-  background: transparent;
-  border: none;
-}
-
-/* Customização do Tabulator */
-.tabulator {
+/* Container da tabela */
+.ag-page #agendamentosTable,
+.ag-page .tabulator {
   background: transparent !important;
   border: none !important;
   font-family: var(--font-primary) !important;
+  font-size: var(--font-size-sm) !important;
 }
 
-.tabulator-header {
-  background: var(--color-surface) !important;
-  border-bottom: 2px solid var(--glass-border) !important;
-}
-
-.tabulator-header .tabulator-col {
+/* Header da tabela */
+.ag-page .tabulator .tabulator-header {
   background: transparent !important;
-  border-right: none !important;
+  border-bottom: 2px solid var(--glass-border) !important;
+  color: var(--color-text-muted) !important;
 }
 
-.tabulator-header .tabulator-col-content {
-  padding: var(--spacing-3) var(--spacing-4) !important;
+.ag-page .tabulator .tabulator-header .tabulator-col {
+  background: transparent !important;
+  border: none !important;
 }
 
-.tabulator-header .tabulator-col-title {
-  font-size: var(--font-size-xs) !important;
+.ag-page .tabulator .tabulator-header .tabulator-col-content {
+  padding: var(--spacing-3) var(--spacing-3) !important;
+}
+
+.ag-page .tabulator .tabulator-col-title {
+  font-size: 0.7rem !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   color: var(--color-text-muted) !important;
 }
 
-.tabulator-tableholder {
+/* Ordenação */
+.ag-page .tabulator .tabulator-col.tabulator-sortable .tabulator-col-title {
+  padding-right: 20px !important;
+}
+
+.ag-page .tabulator .tabulator-arrow {
+  border-bottom-color: var(--color-text-muted) !important;
+}
+
+/* Corpo da tabela */
+.ag-page .tabulator .tabulator-tableholder {
   background: transparent !important;
 }
 
-.tabulator-row {
+/* Linhas */
+.ag-page .tabulator .tabulator-row {
   background: transparent !important;
   border-bottom: 1px solid var(--glass-border) !important;
   transition: all 0.2s ease !important;
+  min-height: 56px !important;
 }
 
-.tabulator-row:hover {
-  background: var(--color-surface-muted) !important;
+.ag-page .tabulator .tabulator-row:hover {
+  background: rgba(230, 126, 34, 0.05) !important;
 }
 
-.tabulator-row.tabulator-row-even {
-  background: rgba(0, 0, 0, 0.02) !important;
+.ag-page .tabulator .tabulator-row.tabulator-row-even {
+  background: rgba(255, 255, 255, 0.02) !important;
 }
 
-.tabulator-row:hover {
-  background: var(--color-surface-muted) !important;
+.ag-page .tabulator .tabulator-row.tabulator-row-even:hover {
+  background: rgba(230, 126, 34, 0.05) !important;
 }
 
-.tabulator-cell {
-  padding: var(--spacing-3) var(--spacing-4) !important;
+/* Células */
+.ag-page .tabulator .tabulator-cell {
+  padding: var(--spacing-3) !important;
+  border: none !important;
   border-right: none !important;
   font-size: var(--font-size-sm) !important;
   color: var(--color-text) !important;
+  vertical-align: middle !important;
+}
+
+/* Inputs de filtro - forçar dark theme */
+.ag-page .tabulator .tabulator-header-filter {
+  margin-top: var(--spacing-2) !important;
+}
+
+.ag-page .tabulator .tabulator-header-filter input,
+.ag-page .tabulator .tabulator-header-filter select,
+.ag-page .tabulator-header-filter input[type="search"],
+.ag-page .tabulator-header-filter input[type="text"],
+.ag-page .tabulator-header-filter select {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 8px 12px !important;
+  font-size: 0.75rem !important;
+  color: var(--color-text) !important;
+  width: 100% !important;
+  transition: all 0.2s ease !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Light mode override */
+[data-theme="light"] .ag-page .tabulator .tabulator-header-filter input,
+[data-theme="light"] .ag-page .tabulator .tabulator-header-filter select {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.ag-page .tabulator .tabulator-header-filter input:focus,
+.ag-page .tabulator .tabulator-header-filter select:focus {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.ag-page .tabulator .tabulator-header-filter input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-theme="light"]
+  .ag-page
+  .tabulator
+  .tabulator-header-filter
+  input::placeholder {
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Paginação do Tabulator */
+.ag-page .tabulator .tabulator-footer {
+  background: transparent !important;
+  border-top: 1px solid var(--glass-border) !important;
+  padding: var(--spacing-3) !important;
+}
+
+.ag-page .tabulator .tabulator-paginator {
+  color: var(--color-text) !important;
+}
+
+.ag-page .tabulator .tabulator-page {
+  background: var(--color-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--color-text) !important;
+  padding: 6px 12px !important;
+  margin: 0 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ag-page .tabulator .tabulator-page:hover {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+.ag-page .tabulator .tabulator-page.active {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
 }
 
 /* ============================================================================
-   BADGES E TAGS
+   BADGES E TAGS - NA TABELA
    ============================================================================ */
 
-.badge-tipo {
+/* Badge genérico */
+.ag-page .tabulator-cell .badge,
+.ag-page .badge-tipo,
+.ag-page .badge-frequencia,
+.ag-page .badge-status {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
-  font-size: 0.7rem;
-  font-weight: 600;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
-.badge-tipo.receita {
+/* Badge tipo */
+.ag-page .badge-tipo.receita,
+.ag-page .tabulator-cell .badge.receita {
   background: rgba(46, 204, 113, 0.15);
-  color: #27ae60;
+  color: #2ecc71;
   border: 1px solid rgba(46, 204, 113, 0.3);
 }
 
-.badge-tipo.despesa {
+.ag-page .badge-tipo.despesa,
+.ag-page .tabulator-cell .badge.despesa {
   background: rgba(231, 76, 60, 0.15);
-  color: #c0392b;
+  color: #e74c3c;
   border: 1px solid rgba(231, 76, 60, 0.3);
 }
 
-.badge-frequencia {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: rgba(52, 152, 219, 0.12);
-  color: #2980b9;
-  border: 1px solid rgba(52, 152, 219, 0.25);
-}
-
-.badge-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.badge-status.ativo {
+/* Badge status */
+.ag-page .badge-status.ativo,
+.ag-page .tabulator-cell .badge.ativo,
+.ag-page .tabulator-cell .badge-ativo {
   background: rgba(46, 204, 113, 0.15);
-  color: #27ae60;
+  color: #2ecc71;
   border: 1px solid rgba(46, 204, 113, 0.3);
 }
 
-.badge-status.pausado {
+.ag-page .badge-status.pausado,
+.ag-page .tabulator-cell .badge.pausado,
+.ag-page .tabulator-cell .badge-pausado {
   background: rgba(241, 196, 15, 0.15);
-  color: #d68910;
+  color: #f1c40f;
   border: 1px solid rgba(241, 196, 15, 0.3);
 }
 
-.badge-status.finalizado {
+.ag-page .badge-status.cancelado,
+.ag-page .tabulator-cell .badge.cancelado,
+.ag-page .tabulator-cell .badge-cancelado,
+.ag-page .tabulator-cell span[style*="background"][style*="red"],
+.ag-page .tabulator-cell span[style*="CANCELADO"] {
+  background: rgba(231, 76, 60, 0.15) !important;
+  color: #e74c3c !important;
+  border: 1px solid rgba(231, 76, 60, 0.3) !important;
+  padding: 5px 12px !important;
+  border-radius: 20px !important;
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+}
+
+.ag-page .badge-status.finalizado,
+.ag-page .tabulator-cell .badge.finalizado,
+.ag-page .tabulator-cell .badge-finalizado {
   background: rgba(149, 165, 166, 0.15);
-  color: #7f8c8d;
+  color: #95a5a6;
   border: 1px solid rgba(149, 165, 166, 0.3);
+}
+
+/* Badge frequência */
+.ag-page .badge-frequencia {
+  background: rgba(52, 152, 219, 0.12);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.25);
+}
+
+/* ============================================================================
+   BADGES BOOTSTRAP OVERRIDE (usado pelo JS)
+   ============================================================================ */
+
+/* Força estilo em TODOS os badges dentro da tabela */
+.ag-page .tabulator-cell .badge,
+.ag-page .tabulator .badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* bg-danger (Cancelado) */
+.ag-page .badge.bg-danger,
+.ag-page .tabulator-cell .badge.bg-danger,
+.ag-page .tabulator .tabulator-cell .badge.bg-danger {
+  background: rgba(231, 76, 60, 0.15) !important;
+  color: #e74c3c !important;
+  border: 1px solid rgba(231, 76, 60, 0.3) !important;
+}
+
+/* bg-success (Concluido) */
+.ag-page .badge.bg-success,
+.ag-page .tabulator-cell .badge.bg-success,
+.ag-page .tabulator .tabulator-cell .badge.bg-success {
+  background: rgba(46, 204, 113, 0.15) !important;
+  color: #2ecc71 !important;
+  border: 1px solid rgba(46, 204, 113, 0.3) !important;
+}
+
+/* bg-warning (Pendente) */
+.ag-page .badge.bg-warning,
+.ag-page .tabulator-cell .badge.bg-warning,
+.ag-page .tabulator .tabulator-cell .badge.bg-warning {
+  background: rgba(241, 196, 15, 0.15) !important;
+  color: #f1c40f !important;
+  border: 1px solid rgba(241, 196, 15, 0.3) !important;
+}
+
+/* bg-info (Enviado) */
+.ag-page .badge.bg-info,
+.ag-page .tabulator-cell .badge.bg-info,
+.ag-page .tabulator .tabulator-cell .badge.bg-info {
+  background: rgba(52, 152, 219, 0.15) !important;
+  color: #3498db !important;
+  border: 1px solid rgba(52, 152, 219, 0.3) !important;
+}
+
+/* bg-secondary */
+.ag-page .badge.bg-secondary,
+.ag-page .tabulator-cell .badge.bg-secondary,
+.ag-page .tabulator .tabulator-cell .badge.bg-secondary {
+  background: rgba(149, 165, 166, 0.15) !important;
+  color: #95a5a6 !important;
+  border: 1px solid rgba(149, 165, 166, 0.3) !important;
 }
 
 /* ============================================================================
    VALOR FORMATADO
    ============================================================================ */
 
-.valor-cell {
+.ag-page .valor-cell,
+.ag-page .tabulator-cell .valor {
   font-weight: 700;
-  font-family: "JetBrains Mono", "SF Mono", monospace;
-}
-
-.valor-cell.receita {
-  color: var(--color-success);
-}
-
-.valor-cell.despesa {
-  color: var(--color-danger);
-}
-
-/* ============================================================================
-   BOTÕES DE AÇÃO
-   ============================================================================ */
-
-.action-buttons {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-.btn-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 0.9rem;
 }
 
-.btn-action.btn-edit {
+.ag-page .valor-cell.receita,
+.ag-page .valor.receita {
+  color: #2ecc71;
+}
+
+.ag-page .valor-cell.despesa,
+.ag-page .valor.despesa {
+  color: #e74c3c;
+}
+
+/* ============================================================================
+   BOTÕES DE AÇÃO NA TABELA (lk-btn ghost)
+   ============================================================================ */
+
+/* Reset geral para botões na tabela */
+.ag-page .tabulator-cell button,
+.ag-page .tabulator-cell .lk-btn,
+.ag-page .tabulator-cell .btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.8rem !important;
+  padding: 0 !important;
+}
+
+/* Botão Pagar (verde) */
+.ag-page .tabulator-cell .btn-pay,
+.ag-page .tabulator-cell .lk-btn.btn-pay {
+  background: rgba(46, 204, 113, 0.12) !important;
+  color: #2ecc71 !important;
+  border: 1px solid rgba(46, 204, 113, 0.25) !important;
+}
+
+.ag-page .tabulator-cell .btn-pay:hover {
+  background: #2ecc71 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3) !important;
+}
+
+/* Botão Editar (azul) */
+.ag-page .tabulator-cell .btn-edit,
+.ag-page .tabulator-cell .lk-btn.btn-edit {
+  background: rgba(52, 152, 219, 0.12) !important;
+  color: #3498db !important;
+  border: 1px solid rgba(52, 152, 219, 0.25) !important;
+}
+
+.ag-page .tabulator-cell .btn-edit:hover {
+  background: #3498db !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3) !important;
+}
+
+/* Botão Cancelar (vermelho) */
+.ag-page .tabulator-cell .btn-cancel,
+.ag-page .tabulator-cell .lk-btn.btn-cancel {
+  background: rgba(231, 76, 60, 0.12) !important;
+  color: #e74c3c !important;
+  border: 1px solid rgba(231, 76, 60, 0.25) !important;
+}
+
+.ag-page .tabulator-cell .btn-cancel:hover {
+  background: #e74c3c !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
+}
+
+/* Botão Restaurar/Reativar (amarelo/laranja) */
+.ag-page .tabulator-cell .btn-restore,
+.ag-page .tabulator-cell .lk-btn.btn-restore {
+  background: rgba(241, 196, 15, 0.12) !important;
+  color: #f39c12 !important;
+  border: 1px solid rgba(241, 196, 15, 0.25) !important;
+}
+
+.ag-page .tabulator-cell .btn-restore:hover {
+  background: #f39c12 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3) !important;
+}
+
+/* Container dos botões */
+.ag-page .tabulator-cell .d-flex {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+/* Ícones dentro dos botões */
+.ag-page .tabulator-cell button i,
+.ag-page .tabulator-cell .lk-btn i {
+  font-size: 0.75rem !important;
+  line-height: 1 !important;
+}
+
+.ag-page .btn-action.btn-edit {
   background: rgba(52, 152, 219, 0.1);
   color: #3498db;
   border: 1px solid rgba(52, 152, 219, 0.2);
 }
 
-.btn-action.btn-edit:hover {
-  background: rgba(52, 152, 219, 0.2);
-  transform: translateY(-2px);
+.ag-page .btn-action.btn-edit:hover {
+  background: #3498db;
+  color: white;
 }
 
-.btn-action.btn-delete {
+.ag-page .btn-action.btn-delete {
   background: rgba(231, 76, 60, 0.1);
   color: #e74c3c;
   border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
-.btn-action.btn-delete:hover {
-  background: rgba(231, 76, 60, 0.2);
-  transform: translateY(-2px);
+.ag-page .btn-action.btn-delete:hover {
+  background: #e74c3c;
+  color: white;
 }
 
-.btn-action.btn-pause {
+.ag-page .btn-action.btn-pause,
+.ag-page .btn-action.btn-restore {
   background: rgba(241, 196, 15, 0.1);
   color: #f39c12;
   border: 1px solid rgba(241, 196, 15, 0.2);
+}
+
+.ag-page .btn-action.btn-pause:hover,
+.ag-page .btn-action.btn-restore:hover {
+  background: #f39c12;
+  color: white;
 }
 
 .btn-action.btn-pause:hover {
@@ -1069,4 +1309,191 @@
 .pager-btn {
   min-height: 44px;
   min-width: 44px;
+}
+/* ============================================================================
+   OVERRIDES FINAIS - MÁXIMA ESPECIFICIDADE
+   ============================================================================ */
+
+/* Forçar background transparente na tabela */
+.ag-page #agendamentosTable.tabulator,
+.ag-page div#agendamentosTable.tabulator,
+body .ag-page .tabulator {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Forçar estilo do header */
+body .ag-page .tabulator > .tabulator-header {
+  background-color: transparent !important;
+  background: transparent !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Forçar estilo das colunas */
+body .ag-page .tabulator .tabulator-header .tabulator-col {
+  background-color: transparent !important;
+  background: transparent !important;
+  border-right: none !important;
+}
+
+/* Forçar estilo das linhas */
+body
+  .ag-page
+  .tabulator
+  .tabulator-tableHolder
+  .tabulator-table
+  .tabulator-row {
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+body .ag-page .tabulator .tabulator-row:hover {
+  background-color: rgba(230, 126, 34, 0.08) !important;
+}
+
+body .ag-page .tabulator .tabulator-row.tabulator-row-even {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Forçar estilo das células */
+body .ag-page .tabulator .tabulator-cell {
+  border-right: none !important;
+  color: var(--color-text) !important;
+}
+
+/* Inputs de filtro - override absoluto */
+body .ag-page .tabulator input,
+body .ag-page .tabulator select,
+body .ag-page .tabulator .tabulator-header input,
+body .ag-page .tabulator .tabulator-header select {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  padding: 8px 10px !important;
+}
+
+body .ag-page .tabulator input:focus,
+body .ag-page .tabulator select:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.25) !important;
+  outline: none !important;
+}
+
+/* Light theme overrides */
+[data-theme="light"] body .ag-page .tabulator input,
+[data-theme="light"] body .ag-page .tabulator select,
+body[data-theme="light"] .ag-page .tabulator input,
+body[data-theme="light"] .ag-page .tabulator select {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  color: #1a1a2e !important;
+}
+
+/* Badges override final */
+body .ag-page .tabulator .badge.bg-danger {
+  background: rgba(231, 76, 60, 0.15) !important;
+  color: #e74c3c !important;
+  border: 1px solid rgba(231, 76, 60, 0.35) !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  font-size: 0.65rem !important;
+}
+
+body .ag-page .tabulator .badge.bg-success {
+  background: rgba(46, 204, 113, 0.15) !important;
+  color: #2ecc71 !important;
+  border: 1px solid rgba(46, 204, 113, 0.35) !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  font-size: 0.65rem !important;
+}
+
+body .ag-page .tabulator .badge.bg-warning {
+  background: rgba(241, 196, 15, 0.15) !important;
+  color: #f1c40f !important;
+  border: 1px solid rgba(241, 196, 15, 0.35) !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  font-size: 0.65rem !important;
+}
+
+body .ag-page .tabulator .badge.bg-info {
+  background: rgba(52, 152, 219, 0.15) !important;
+  color: #3498db !important;
+  border: 1px solid rgba(52, 152, 219, 0.35) !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  font-size: 0.65rem !important;
+}
+
+/* Botões de ação - override final */
+body .ag-page .tabulator button.lk-btn.btn-pay,
+body .ag-page .tabulator .btn-pay {
+  background: rgba(46, 204, 113, 0.12) !important;
+  color: #2ecc71 !important;
+  border: 1px solid rgba(46, 204, 113, 0.25) !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+body .ag-page .tabulator button.lk-btn.btn-edit,
+body .ag-page .tabulator .btn-edit {
+  background: rgba(52, 152, 219, 0.12) !important;
+  color: #3498db !important;
+  border: 1px solid rgba(52, 152, 219, 0.25) !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+body .ag-page .tabulator button.lk-btn.btn-cancel,
+body .ag-page .tabulator .btn-cancel {
+  background: rgba(231, 76, 60, 0.12) !important;
+  color: #e74c3c !important;
+  border: 1px solid rgba(231, 76, 60, 0.25) !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+body .ag-page .tabulator button.lk-btn.btn-restore,
+body .ag-page .tabulator .btn-restore {
+  background: rgba(241, 196, 15, 0.12) !important;
+  color: #f39c12 !important;
+  border: 1px solid rgba(241, 196, 15, 0.25) !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+/* Hover states para botões */
+body .ag-page .tabulator .btn-pay:hover {
+  background: #2ecc71 !important;
+  color: white !important;
+}
+
+body .ag-page .tabulator .btn-edit:hover {
+  background: #3498db !important;
+  color: white !important;
+}
+
+body .ag-page .tabulator .btn-cancel:hover {
+  background: #e74c3c !important;
+  color: white !important;
+}
+
+body .ag-page .tabulator .btn-restore:hover {
+  background: #f39c12 !important;
+  color: white !important;
 }

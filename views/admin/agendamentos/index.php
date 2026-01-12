@@ -2,8 +2,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
 
 <!-- CSS -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css?v=<?= time() ?>">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/agendamentos-modern.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/agendamentos-modern-v2.css?v=<?= time() ?>">
 
 <div class="ag-page">
     <!-- ==================== HEADER COM TÍTULO E BOTÃO ==================== -->
