@@ -39,6 +39,15 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
                 </span>
             </div>
 
+            <!-- Upgrade Button (if not pro) -->
+            <?php if (!$isPro): ?>
+                <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn"
+                    title="Fazer upgrade para Pro">
+                    <i class="fa-solid fa-crown"></i>
+                    <span class="btn-text">Upgrade</span>
+                </a>
+            <?php endif; ?>
+
             <!-- Theme Toggle -->
             <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle"
                 aria-label="Alternar tema" title="Modo claro/escuro">
@@ -50,22 +59,6 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
             <div class="top-nav-bell-wrapper">
                 <?php include __DIR__ . '/notificacoes/bell.php'; ?>
             </div>
-
-            <!-- Upgrade Button (if not pro) -->
-            <?php if (!$isPro): ?>
-                <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn"
-                    title="Fazer upgrade para Pro">
-                    <i class="fa-solid fa-crown"></i>
-                    <span class="btn-text">Upgrade</span>
-                </a>
-            <?php endif; ?>
-
-            <!-- Logout Button -->
-            <a href="<?= BASE_URL ?>logout" id="topNavLogout" class="top-nav-btn logout-btn"
-                title="Sair do sistema">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="btn-text">Sair</span>
-            </a>
         </div>
     </div>
 </div>

@@ -70,7 +70,136 @@
 
     // Garante recálculo das posições após o carregamento completo no mobile.
     window.addEventListener('load', () => AOS.refresh());
+
+    // Scroll to Top Button
+    (() => {
+        const scrollBtn = document.getElementById('scrollToTopBtn');
+        if (!scrollBtn) {
+            console.warn('Botão scrollToTopBtn não encontrado');
+            return;
+        }
+
+        console.log('Botão scroll to top inicializado');
+
+        const toggleScrollButton = () => {
+            if (window.scrollY > 300) {
+                scrollBtn.classList.add('show');
+            } else {
+                scrollBtn.classList.remove('show');
+            }
+        };
+
+        scrollBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Clicou no botão scroll to top');
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        window.addEventListener('scroll', toggleScrollButton);
+        toggleScrollButton();
+    })();
 </script>
+
+<style>
+    /* Botão Scroll to Top - Estilo Final Override */
+    button#scrollToTopBtn {
+        position: fixed !important;
+        bottom: 108px !important;
+        right: 24px !important;
+        left: auto !important;
+        width: 64px !important;
+        height: 64px !important;
+        min-width: 64px !important;
+        min-height: 64px !important;
+        border-radius: 100% !important;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        cursor: pointer !important;
+        z-index: 9998 !important;
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.3) !important;
+        display: none !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 24px !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transform: translateY(20px) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    button#scrollToTopBtn::before {
+        content: '' !important;
+        position: absolute !important;
+        inset: -4px !important;
+        border-radius: 100% !important;
+        background: linear-gradient(135deg, #3498db, #2980b9) !important;
+        opacity: 0 !important;
+        transition: opacity 0.3s ease !important;
+        z-index: -1 !important;
+        filter: blur(12px) !important;
+    }
+
+    button#scrollToTopBtn.show {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
+        display: flex !important;
+    }
+
+    button#scrollToTopBtn.show::before {
+        opacity: 0.5 !important;
+    }
+
+    button#scrollToTopBtn:hover {
+        transform: translateY(-4px) scale(1.05) !important;
+        box-shadow: 0 5px 20px rgba(52, 152, 219, 0.45) !important;
+        background: linear-gradient(135deg, #2980b9 0%, #3498db 100%) !important;
+    }
+
+    button#scrollToTopBtn:hover::before {
+        opacity: 0.6 !important;
+        animation: glow-pulse 2s ease-in-out infinite !important;
+    }
+
+    button#scrollToTopBtn:active {
+        transform: translateY(-2px) scale(1.02) !important;
+    }
+
+    button#scrollToTopBtn i {
+        font-size: 24px !important;
+    }
+
+    @keyframes glow-pulse {
+        0%, 100% {
+            opacity: 0.4;
+        }
+        50% {
+            opacity: 0.8;
+        }
+    }
+
+    /* Ocultar no desktop */
+    @media (min-width: 769px) {
+        button#scrollToTopBtn {
+            display: none !important;
+        }
+    }
+
+    /* Mostrar no mobile */
+    @media (max-width: 768px) {
+        button#scrollToTopBtn {
+            display: flex !important;
+        }
+    }
+</style>
+
 </body>
 
 </html>

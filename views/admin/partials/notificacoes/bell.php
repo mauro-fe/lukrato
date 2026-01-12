@@ -15,9 +15,9 @@
         position: relative;
         width: 44px;
         height: 44px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(230, 126, 34, 0.05));
-        border: 1px solid rgba(230, 126, 34, 0.2);
+        border-radius: var(--radius-md, 12px);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
         cursor: pointer;
         transition: all 0.3s ease;
         display: flex;
@@ -25,20 +25,23 @@
         justify-content: center;
         padding: 0;
         overflow: visible !important;
+        color: var(--color-text);
     }
 
     #lk-bell:hover {
-        background: linear-gradient(135deg, rgba(230, 126, 34, 0.15), rgba(230, 126, 34, 0.08));
+        background: rgba(230, 126, 34, 0.1);
         border-color: rgba(230, 126, 34, 0.3);
-        transform: scale(1.05);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
     }
 
     #lk-bell:active {
-        transform: scale(0.95);
+        transform: translateY(0);
     }
 
     #lk-bell i {
         font-size: 18px;
+        color: var(--color-text);
     }
 
     /* Badge de Contagem Modernizado */
@@ -298,18 +301,50 @@
     }
 
     /* Mobile */
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .lk-popover {
             width: 340px;
         }
 
         #lk-bell {
-            width: 40px;
-            height: 40px;
+            width: 36px !important;
+            height: 36px !important;
         }
 
         #lk-bell i {
-            font-size: 16px;
+            font-size: 16px !important;
+        }
+
+        #lk-bell-badge {
+            top: -8px !important;
+            right: -8px !important;
+            min-width: 20px !important;
+            height: 20px !important;
+            font-size: 11px !important;
+            border-width: 2px !important;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .lk-popover {
+            width: 320px;
+        }
+
+        #lk-bell {
+            width: 32px !important;
+            height: 32px !important;
+        }
+
+        #lk-bell i {
+            font-size: 14px !important;
+        }
+
+        #lk-bell-badge {
+            top: -6px !important;
+            right: -6px !important;
+            min-width: 18px !important;
+            height: 18px !important;
+            font-size: 10px !important;
         }
     }
 </style>

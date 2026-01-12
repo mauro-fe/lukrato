@@ -1089,3 +1089,48 @@ img.zoom-hover:hover {
   backdrop-filter: blur(16px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
+
+/* ============================================================================
+   34. RESPONSIVE - NOTIFICAÇÕES MOBILE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .top-nav-bell-wrapper #lk-bell {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  .top-nav-bell-wrapper #lk-bell i {
+    font-size: 16px !important;
+  }
+
+  .top-nav-bell-wrapper #lk-bell-badge {
+    top: -8px !important;
+    right: -8px !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    font-size: 11px !important;
+    border-width: 2px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-nav-bell-wrapper #lk-bell {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+
+  .top-nav-bell-wrapper #lk-bell i {
+    font-size: 14px !important;
+  }
+
+  .top-nav-bell-wrapper #lk-bell-badge {
+    top: -6px !important;
+    right: -6px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    font-size: 10px !important;
+  }
+}

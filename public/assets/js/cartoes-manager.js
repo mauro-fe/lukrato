@@ -284,9 +284,18 @@ class CartoesManager {
      * Verificar se cartões têm faturas pendentes
      */
     async verificarFaturasPendentes() {
+        // Temporariamente desabilitado para evitar erros 404 no console
+        // TODO: Implementar verificação quando a API estiver pronta
         const hoje = new Date();
         const mesAtual = hoje.getMonth() + 1;
         const anoAtual = hoje.getFullYear();
+
+        // Marcar todos os cartões como sem fatura pendente por padrão
+        this.cartoes.forEach(cartao => {
+            cartao.temFaturaPendente = false;
+        });
+
+        return; // Desabilitado temporariamente
 
         // Verificar para cada cartão se tem fatura pendente no mês atual
         const promises = this.cartoes.map(async (cartao) => {
@@ -304,11 +313,14 @@ class CartoesManager {
                     const fatura = await response.json();
                     // Se tem parcelas não pagas e total > 0, marca como pendente
                     cartao.temFaturaPendente = fatura.itens && fatura.itens.length > 0 && fatura.total > 0;
+                } else if (response.status === 404) {
+                    // Fatura não encontrada - normal para cartões sem lançamentos
+                    cartao.temFaturaPendente = false;
                 } else {
                     cartao.temFaturaPendente = false;
                 }
             } catch (error) {
-                console.warn(`Erro ao verificar fatura do cartão ${cartao.id}:`, error);
+                // Silenciar erro de rede/fetch
                 cartao.temFaturaPendente = false;
             }
         });
@@ -2106,7 +2118,7 @@ class CartoesManager {
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'same-origin'
-                }),
+                }).catch(() => ({ ok: false, status: 404 })),
                 fetch(`${this.baseUrl}api/cartoes/${cartaoId}/parcelamentos-resumo?mes=${novoMes}&ano=${novoAno}`, {
                     method: 'GET',
                     headers: {
@@ -2114,7 +2126,7 @@ class CartoesManager {
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'same-origin'
-                }),
+                }).catch(() => ({ ok: false, status: 404 })),
                 fetch(`${this.baseUrl}api/cartoes/${cartaoId}/fatura/status?mes=${novoMes}&ano=${novoAno}`, {
                     method: 'GET',
                     headers: {
@@ -2122,7 +2134,7 @@ class CartoesManager {
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'same-origin'
-                })
+                }).catch(() => ({ ok: false, status: 404 }))
             ]);
 
             if (!faturaResponse.ok) {
@@ -2184,6 +2196,10 @@ class CartoesManager {
         });
 
         if (!response.ok) {
+            if (response.status === 404) {
+                // Fatura não encontrada - retornar objeto vazio
+                return { itens: [], total: 0, pago: 0, pendente: 0 };
+            }
             throw new Error('Erro ao carregar fatura');
         }
 

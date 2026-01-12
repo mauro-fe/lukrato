@@ -60,8 +60,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          ============================================================================ -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-header.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-header.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">+
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
@@ -70,7 +70,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <?php loadPageCss(); ?>
 
     <!-- Enhancements por último para sobrescrever tudo -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css?v=<?= time() ?>">
 
     <!-- ============================================================================
          SCRIPTS EXTERNOS
@@ -254,14 +254,6 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     </script>
 
     <!-- ============================================================================
-         BOTÃO TOGGLE SIDEBAR (Edge Button)
-         ============================================================================ -->
-    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
-        title="Fechar/Abrir menu">
-        <i class="fa fa-angle-left" aria-hidden="true"></i>
-    </button>
-
-    <!-- ============================================================================
          SIDEBAR NAVIGATION
          ============================================================================ -->
     <aside class="sidebar no-glass" id="sidebar-main">
@@ -270,6 +262,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <a class="logo" href="<?= BASE_URL ?>dashboard" aria-label="Ir para o Dashboard">
                 <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
             </a>
+            <button class="sidebar-close-btn" aria-label="Fechar menu" title="Fechar menu">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
         <!-- Menu de Navegação -->
@@ -374,6 +369,11 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <?php endif; ?>
         </nav>
     </aside>
+
+    <!-- ================ BOTÃO TOGGLE SIDEBAR ======================== -->
+    <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Expandir/Colapsar Menu" title="Expandir/Colapsar Menu">
+        <i class="fas fa-angle-left"></i>
+    </button>
 
     <!-- ================ BOTÕES ======================== -->
 

@@ -844,20 +844,55 @@ img {
 button[class*="scroll-top"],
 .scroll-to-top,
 [class*="back-to-top"] {
-  display: none;
+  display: none !important;
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  z-index: 9998;
+  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  overflow: visible;
+}
+
+.scroll-to-top::before,
+button[class*="scroll-top"]::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(12px);
 }
 
 /* Mostrar quando visível */
 button[class*="scroll-top"].show,
 .scroll-to-top.show,
 [class*="back-to-top"].show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+}
+
+.scroll-to-top.show::before,
+button[class*="scroll-top"].show::before {
+  opacity: 0.5;
 }
 
 /* Posicionamento dos botões flutuantes */
@@ -900,12 +935,35 @@ button[class*="scroll-top"].show,
     bottom: 100px !important;
   }
 
-  /* Botão de scroll to top - Logo acima do suporte (48px do botão + 20px do bottom do suporte + 16px gap = 84px) */
+  /* Botão de scroll to top - Logo acima do suporte (64px do botão + 24px do bottom + 16px gap = 104px) */
   button[class*="scroll-top"],
   .scroll-to-top,
   [class*="back-to-top"] {
-    bottom: 84px !important;
-    right: 16px !important;
+    display: flex !important;
+    bottom: 104px !important;
+    right: 24px !important;
+    width: 56px !important;
+    height: 56px !important;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+    border: none !important;
+    color: white !important;
+  }
+
+  .scroll-to-top:hover,
+  button[class*="scroll-top"]:hover {
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 0 5px 20px rgba(52, 152, 219, 0.45) !important;
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%) !important;
+  }
+
+  .scroll-to-top:hover::before,
+  button[class*="scroll-top"]:hover::before {
+    opacity: 0.6 !important;
+  }
+
+  .scroll-to-top:active,
+  button[class*="scroll-top"]:active {
+    transform: translateY(-2px) scale(1.02) !important;
   }
 
   /* Hover/Active states otimizados para touch */
