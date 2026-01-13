@@ -4,6 +4,7 @@ namespace Application\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Application\Services\CircuitBreakerService;
 
 class AsaasService
 {
@@ -12,6 +13,7 @@ class AsaasService
     private ?string $webhookToken;
     private string $baseUrl;
     private string $userAgent;
+    private CircuitBreakerService $circuitBreaker;
 
     public function __construct()
     {
@@ -35,6 +37,9 @@ class AsaasService
                 'access_token' => $this->apiKey,
             ],
         ]);
+
+        // ✅ Inicializar Circuit Breaker
+        $this->circuitBreaker = new CircuitBreakerService('asaas');
     }
 
 
@@ -49,68 +54,65 @@ class AsaasService
      */
     private function request(string $method, string $uri, ?array $body = null): array
     {
-        $options = [];
+        // ✅ Usar Circuit Breaker para proteger contra falhas
+        return $this->circuitBreaker->execute(function () use ($method, $uri, $body) {
+            $options = [];
 
-        if (!empty($body)) {
-            $options['json'] = $body;
-        }
+            if (!empty($body)) {
+                $options['json'] = $body;
+            }
 
-        try {
-            $response = $this->client->request($method, ltrim($uri, '/'), $options);
-        } catch (GuzzleException $e) {
-            // Se você tiver LogService, pode logar aqui
+            try {
+                $response = $this->client->request($method, ltrim($uri, '/'), $options);
+            } catch (GuzzleException $e) {
+                // Se você tiver LogService, pode logar aqui
+                if (class_exists(LogService::class)) {
+                    LogService::error('Erro HTTP ao chamar Asaas', [
+                        'exception' => $e->getMessage(),
+                        'uri'       => $uri,
+                        'method'    => $method,
+                        'body'      => $body,
+                    ]);
+                }
+
+                throw new \RuntimeException('Falha ao comunicar com o Asaas. Tente novamente em instantes.');
+            }
+
+            $statusCode = $response->getStatusCode();
+            $rawBody    = (string) $response->getBody();
+            $data       = json_decode($rawBody, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                if (class_exists(LogService::class)) {
+                    LogService::error('Resposta inválida do Asaas (JSON)', [
+                        'status' => $statusCode,
+                        'body'   => $rawBody,
+                    ]);
+                }
+
+                throw new \RuntimeException('Resposta inesperada do Asaas. Tente novamente em instantes.');
+            }
+
+            if ($statusCode >= 200 && $statusCode < 300) {
+                return $data ?? [];
+            }
+
+            // Formato de erro padrão do Asaas
+            $message = $data['errors'][0]['description']
+                ?? $data['message']
+                ?? 'Erro desconhecido na API do Asaas';
+
             if (class_exists(LogService::class)) {
-                LogService::error('Erro HTTP ao chamar Asaas', [
-                    'exception' => $e->getMessage(),
-                    'uri'       => $uri,
-                    'method'    => $method,
-                    'body'      => $body,
+                LogService::error('Erro retornado do Asaas', [
+                    'status'  => $statusCode,
+                    'message' => $message,
+                    'uri'     => $uri,
+                    'method'  => $method,
                 ]);
             }
 
-            throw new \RuntimeException('Falha ao comunicar com o Asaas. Tente novamente em instantes.');
-        }
-
-        $statusCode = $response->getStatusCode();
-        $rawBody    = (string) $response->getBody();
-        $data       = json_decode($rawBody, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            if (class_exists(LogService::class)) {
-                LogService::error('Resposta inválida do Asaas (JSON)', [
-                    'status' => $statusCode,
-                    'body'   => $rawBody,
-                ]);
-            }
-
-            throw new \RuntimeException('Resposta inesperada do Asaas. Tente novamente em instantes.');
-        }
-
-        if ($statusCode >= 200 && $statusCode < 300) {
-            return $data ?? [];
-        }
-
-        // Formato de erro padrão do Asaas:
-        // {
-        //   "errors": [
-        //       { "code": "invalid_parameter", "description": "Mensagem..." }
-        //   ]
-        // }
-        $message = $data['errors'][0]['description']
-            ?? $data['message']
-            ?? 'Erro inesperado ao comunicar com o Asaas.';
-
-        if (class_exists(LogService::class)) {
-            LogService::warning('Erro de API do Asaas', [
-                'status'   => $statusCode,
-                'uri'      => $uri,
-                'method'   => $method,
-                'request'  => $body,
-                'response' => $data,
-            ]);
-        }
-
-        throw new \RuntimeException($message, $statusCode);
+            throw new \RuntimeException($message);
+        });
     }
 
     /**
@@ -243,13 +245,27 @@ class AsaasService
 
     /**
      * Valida o token do webhook enviado pelo Asaas.
-     * Configure o mesmo token no painel deles e no ASAAS_WEBHOOK_TOKEN.
+     * 
+     * SEGURANÇA MULTI-CAMADA:
+     * 1. Verifica token no header (asaas-access-token)
+     * 2. Opcional: Valida assinatura HMAC se configurada
+     * 3. Opcional: Valida IP de origem (whitelist)
+     * 
+     * Configure no .env:
+     * - ASAAS_WEBHOOK_TOKEN: Token configurado no painel Asaas
+     * - ASAAS_WEBHOOK_SECRET: (Opcional) Secret para HMAC
+     * - ASAAS_WEBHOOK_IPS: (Opcional) IPs permitidos separados por vírgula
      */
-    public function validateWebhookRequest(array $headers): bool
+    public function validateWebhookRequest(array $headers, ?string $rawBody = null): bool
     {
+        // ✅ NÍVEL 1: Token simples (obrigatório)
         if (empty($this->webhookToken)) {
-            // Sem token configurado, não faz validação
-            return true;
+            // Sem token configurado = ERRO DE CONFIGURAÇÃO
+            if (class_exists(LogService::class)) {
+                LogService::critical('ASAAS_WEBHOOK_TOKEN não configurado! Webhooks desprotegidos!');
+            }
+            // Por segurança, rejeitar se não tiver token configurado
+            return false;
         }
 
         // Normaliza possíveis variações de header
@@ -257,6 +273,7 @@ class AsaasService
             'asaas-access-token',
             'Asaas-Access-Token',
             'ASAAS-ACCESS-TOKEN',
+            'X-Asaas-Access-Token',
         ];
 
         $received = null;
@@ -268,10 +285,93 @@ class AsaasService
             }
         }
 
-        if (!is_string($received)) {
+        if (!is_string($received) || $received === '') {
+            if (class_exists(LogService::class)) {
+                LogService::warning('Webhook sem token de acesso', [
+                    'headers_received' => array_keys($headers),
+                ]);
+            }
             return false;
         }
 
-        return hash_equals($this->webhookToken, $received);
+        // Validação com hash_equals (timing-attack safe)
+        if (!hash_equals($this->webhookToken, $received)) {
+            if (class_exists(LogService::class)) {
+                LogService::warning('Webhook com token inválido', [
+                    'expected_length' => strlen($this->webhookToken),
+                    'received_length' => strlen($received),
+                ]);
+            }
+            return false;
+        }
+
+        // ✅ NÍVEL 2: Validação HMAC (opcional mas recomendado)
+        $webhookSecret = $_ENV['ASAAS_WEBHOOK_SECRET'] ?? getenv('ASAAS_WEBHOOK_SECRET') ?: null;
+
+        if ($webhookSecret && $rawBody !== null) {
+            $signatureHeader = $headers['X-Asaas-Signature']
+                ?? $headers['x-asaas-signature']
+                ?? $headers['Asaas-Signature']
+                ?? null;
+
+            if ($signatureHeader) {
+                $expectedSignature = hash_hmac('sha256', $rawBody, $webhookSecret);
+
+                if (!hash_equals($expectedSignature, $signatureHeader)) {
+                    if (class_exists(LogService::class)) {
+                        LogService::warning('Webhook com assinatura HMAC inválida');
+                    }
+                    return false;
+                }
+            }
+        }
+
+        // ✅ NÍVEL 3: Validação de IP (opcional)
+        $allowedIps = $_ENV['ASAAS_WEBHOOK_IPS'] ?? getenv('ASAAS_WEBHOOK_IPS') ?: null;
+
+        if ($allowedIps) {
+            $clientIp = $this->getClientIp();
+            $whitelist = array_map('trim', explode(',', $allowedIps));
+
+            if (!in_array($clientIp, $whitelist, true)) {
+                if (class_exists(LogService::class)) {
+                    LogService::warning('Webhook de IP não autorizado', [
+                        'ip' => $clientIp,
+                        'whitelist' => $whitelist,
+                    ]);
+                }
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Obtém IP real do cliente (considerando proxies)
+     */
+    private function getClientIp(): string
+    {
+        $headers = [
+            'HTTP_CF_CONNECTING_IP', // Cloudflare
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_REAL_IP',
+            'REMOTE_ADDR',
+        ];
+
+        foreach ($headers as $header) {
+            if (!empty($_SERVER[$header])) {
+                $ip = $_SERVER[$header];
+                // Se for lista, pegar o primeiro
+                if (str_contains($ip, ',')) {
+                    $ip = trim(explode(',', $ip)[0]);
+                }
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip;
+                }
+            }
+        }
+
+        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
 }

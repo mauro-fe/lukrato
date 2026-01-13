@@ -774,7 +774,7 @@
                 },
                 formatter: (cell) => {
                     const data = cell.getRow().getData();
-                    
+
                     // Renderizar grupos de parcelamento
                     if (data._isParcelamentoGroup) {
                         const totalParcelas = data._parcelas.length;
@@ -802,7 +802,7 @@
                             </div>
                         `;
                     }
-                    
+
                     return cell.getValue() || '-';
                 },
                 headerFilterFunc: (headerValue, rowValue) => {
@@ -831,13 +831,13 @@
                 formatter: (cell) => {
                     const data = cell.getRow().getData();
                     const tipoClass = Utils.getTipoClass(data?.tipo);
-                    
+
                     // Se é grupo, mostrar com barra de progresso
                     if (data._isParcelamentoGroup) {
                         const totalParcelas = data._parcelas.length;
                         const parcelasPagas = data._parcelas.filter(p => p.pago).length;
                         const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-                        
+
                         return `
                             <div>
                                 <div class="fw-bold ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</div>
@@ -848,7 +848,7 @@
                             </div>
                         `;
                     }
-                    
+
                     return `<span class="valor-cell ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</span>`;
                 },
                 headerFilterFunc: (headerValue, rowValue) => {
@@ -913,7 +913,7 @@
                 cellClick: async (e, cell) => {
                     const row = cell.getRow();
                     const data = row.getData();
-                    
+
                     // Se é grupo, não processar clicks normais
                     if (data._isParcelamentoGroup) {
                         return;
@@ -1009,7 +1009,7 @@
 
                     return container;
                 },
-                placeholder: 'Nenhum lançamento encontrado para o perÃ­odo selecionado',
+                placeholder: '<div class="empty-state" style="text-align:center;"><div class="empty-icon" style="width:120px;height:120px;margin:0 auto 1.5rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fas fa-exchange-alt" style="font-size:3rem;color:white;"></i></div><h3 style="color:var(--color-text);margin-bottom:0.75rem;font-size:1.5rem;font-weight:600;">Nenhum lançamento encontrado</h3><p style="color:var(--color-text-muted);margin-bottom:1.5rem;font-size:1rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p><div style="display:flex;justify-content:center;"><button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.75rem 1.5rem;font-size:1rem;border-radius:var(--radius-md);color:white;font-weight:500;"><i class="fas fa-plus"></i> Criar primeiro lançamento</button></div></div>',
                 selectable: true,
                 index: 'id',
                 pagination: 'local',
@@ -1072,10 +1072,10 @@
             const grid = TableManager.ensureTable();
             if (!grid) return;
             await TableManager.waitForTableReady(grid);
-            
+
             // AGRUPAR PARCELAMENTOS
             const processedItems = Array.isArray(items) ? ParcelamentoGrouper.processForTable(items) : [];
-            
+
             grid.setData(processedItems);
             TableManager.updateSelectionInfo();
         },
@@ -1186,8 +1186,15 @@
                     <span>Ações</span>
                 </div>
                 <div class="lan-card card-item" style="border-radius:0 0 16px 16px;">
-                    <div style="grid-column:1/-1;font-size:0.85rem;color:var(--color-text-muted);padding:0.5rem 0;">
-                        Nenhum lançamento encontrado para o perÃ­odo selecionado.
+                    <div class="empty-state" style="grid-column:1/-1;padding:2rem 1rem;text-align:center;">
+                        <div class="empty-icon" style="width:100px;height:100px;margin:0 auto 1rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-exchange-alt" style="font-size:2.5rem;color:white;"></i>
+                        </div>
+                        <h3 style="color:var(--color-text);margin-bottom:0.5rem;font-size:1.25rem;font-weight:600;">Nenhum lançamento encontrado</h3>
+                        <p style="color:var(--color-text-muted);margin-bottom:1.25rem;font-size:0.9rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p>
+                        <button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.65rem 1.25rem;font-size:0.95rem;border-radius:var(--radius-md);color:white;font-weight:500;">
+                            <i class="fas fa-plus"></i> Criar primeiro lançamento
+                        </button>
                     </div>
                 </div>
             `;
@@ -1882,7 +1889,7 @@
          */
         processForTable(items) {
             const { agrupados, simples } = this.agrupar(items);
-            
+
             // Retornar simples + grupos marcados
             return [
                 ...simples,
@@ -1945,7 +1952,7 @@
             const parcelasPagas = grupo.parcelas.filter(p => p.pago).length;
             const valorTotal = grupo.parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
             const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-            
+
             const primeira = grupo.parcelas[0];
             const tipoClass = primeira.tipo === 'receita' ? 'success' : 'danger';
             const tipoIcon = primeira.tipo === 'receita' ? '↑' : '↓';
@@ -2043,7 +2050,7 @@
             // Expandir - buscar parcelas do STATE
             const data = STATE.lancamentos || [];
             const parcelas = data.filter(item => item.parcelamento_id == parcelamentoId)
-                                  .sort((a, b) => new Date(a.data) - new Date(b.data));
+                .sort((a, b) => new Date(a.data) - new Date(b.data));
 
             if (parcelas.length === 0) return;
 
@@ -2072,9 +2079,9 @@
                                             <td>${Utils.fmtDate(parcela.data)}</td>
                                             <td class="text-end fw-bold">${Utils.fmtMoney(parcela.valor)}</td>
                                             <td class="text-center">
-                                                ${parcela.pago 
-                                                    ? '<span class="badge bg-success">✓ Pago</span>' 
-                                                    : '<span class="badge bg-warning">⏳ Pendente</span>'}
+                                                ${parcela.pago
+                    ? '<span class="badge bg-success">✓ Pago</span>'
+                    : '<span class="badge bg-warning">⏳ Pendente</span>'}
                                             </td>
                                             <td class="text-center">
                                                 <button class="btn btn-sm ${parcela.pago ? 'btn-warning' : 'btn-success'} toggle-pago-parcela"
