@@ -148,12 +148,8 @@ class CartaoCreditoService
 
         DB::beginTransaction();
         try {
-            // Atualizar campos
-            foreach ($data as $key => $value) {
-                if (property_exists($cartao, $key)) {
-                    $cartao->$key = $value;
-                }
-            }
+            // Atualizar campos usando fill() ou atribuição direta
+            $cartao->fill($data);
 
             // Se o limite total foi alterado, recalcular limite disponível
             if (isset($data['limite_total'])) {
@@ -212,9 +208,9 @@ class CartaoCreditoService
     }
 
     /**
-     * Excluir cartão permanentemente
+     * Arquivar cartão (soft delete)
      */
-    public function excluirCartao(int $cartaoId, int $userId, bool $force = false): array
+    public function arquivarCartao(int $cartaoId, int $userId): array
     {
         $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
 
@@ -222,19 +218,89 @@ class CartaoCreditoService
             return ['success' => false, 'message' => 'Cartão não encontrado.'];
         }
 
-        // Verificar se há lançamentos vinculados
-        $totalLancamentos = $cartao->lancamentos()->count();
+        $cartao->arquivado = true;
+        $cartao->ativo = false;
+        $cartao->save();
 
-        if ($totalLancamentos > 0 && !$force) {
+        return ['success' => true, 'message' => 'Cartão arquivado com sucesso.'];
+    }
+
+    /**
+     * Restaurar cartão arquivado
+     */
+    public function restaurarCartao(int $cartaoId, int $userId): array
+    {
+        $cartao = CartaoCredito::where('user_id', $userId)
+            ->where('id', $cartaoId)
+            ->first();
+
+        if (!$cartao) {
+            return ['success' => false, 'message' => 'Cartão não encontrado.'];
+        }
+
+        $cartao->arquivado = false;
+        $cartao->ativo = true;
+        $cartao->save();
+
+        return ['success' => true, 'message' => 'Cartão restaurado com sucesso.'];
+    }
+
+    /**
+     * Listar cartões arquivados
+     */
+    public function listarCartoesArquivados(int $userId): array
+    {
+        return CartaoCredito::where('user_id', $userId)
+            ->where('arquivado', true)
+            ->with('conta.instituicaoFinanceira')
+            ->orderBy('nome_cartao')
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * Excluir cartão permanentemente (somente de cartões arquivados)
+     */
+    public function excluirCartaoPermanente(int $cartaoId, int $userId, bool $force = false): array
+    {
+        $cartao = CartaoCredito::where('user_id', $userId)
+            ->where('id', $cartaoId)
+            ->first();
+
+        if (!$cartao) {
+            return ['success' => false, 'message' => 'Cartão não encontrado.'];
+        }
+
+        // Verificar se há dados vinculados
+        $totalLancamentos = $cartao->lancamentos()->count();
+        $totalFaturas = DB::table('faturas')->where('cartao_credito_id', $cartaoId)->count();
+        $totalItens = DB::table('faturas_cartao_itens')->where('cartao_credito_id', $cartaoId)->count();
+        $totalVinculados = $totalLancamentos + $totalFaturas + $totalItens;
+
+        if ($totalVinculados > 0 && !$force) {
+            $mensagem = "Este cartão possui dados vinculados:\n";
+            if ($totalLancamentos > 0) $mensagem .= "- {$totalLancamentos} lançamento(s)\n";
+            if ($totalFaturas > 0) $mensagem .= "- {$totalFaturas} fatura(s)\n";
+            if ($totalItens > 0) $mensagem .= "- {$totalItens} item(ns) de fatura\n";
+            $mensagem .= "Confirme para excluir tudo.";
+
             return [
                 'success' => false,
                 'requires_confirmation' => true,
-                'message' => "Este cartão possui {$totalLancamentos} lançamento(s). Confirme para excluir tudo.",
+                'message' => $mensagem,
                 'total_lancamentos' => $totalLancamentos,
+                'total_faturas' => $totalFaturas,
+                'total_itens' => $totalItens,
             ];
         }
 
-        DB::transaction(function () use ($cartao) {
+        DB::transaction(function () use ($cartao, $cartaoId) {
+            // Excluir itens de fatura vinculados
+            DB::table('faturas_cartao_itens')->where('cartao_credito_id', $cartaoId)->delete();
+
+            // Excluir faturas vinculadas
+            DB::table('faturas')->where('cartao_credito_id', $cartaoId)->delete();
+
             // Excluir lançamentos vinculados
             $cartao->lancamentos()->delete();
 
@@ -244,9 +310,21 @@ class CartaoCreditoService
 
         return [
             'success' => true,
-            'message' => 'Cartão excluído permanentemente.',
+            'message' => 'Cartão e todos os dados vinculados foram excluídos permanentemente.',
             'deleted_lancamentos' => $totalLancamentos,
+            'deleted_faturas' => $totalFaturas,
+            'deleted_itens' => $totalItens,
         ];
+    }
+
+    /**
+     * Excluir cartão (método antigo - mantido por compatibilidade)
+     * @deprecated Use arquivarCartao() seguido de excluirCartaoPermanente()
+     */
+    public function excluirCartao(int $cartaoId, int $userId, bool $force = false): array
+    {
+        // Por segurança, redireciona para arquivar
+        return $this->arquivarCartao($cartaoId, $userId);
     }
 
     /**

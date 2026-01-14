@@ -44,6 +44,7 @@ class CartaoCredito extends Model
         'dia_fechamento',
         'cor_cartao',
         'ativo',
+        'arquivado',
     ];
 
     protected $casts = [
@@ -54,6 +55,7 @@ class CartaoCredito extends Model
         'dia_vencimento' => 'int',
         'dia_fechamento' => 'int',
         'ativo' => 'bool',
+        'arquivado' => 'bool',
     ];
 
     protected $appends = ['numero_mascarado', 'limite_utilizado', 'percentual_uso'];
@@ -95,7 +97,7 @@ class CartaoCredito extends Model
      */
     public function scopeAtivos($query)
     {
-        return $query->where('ativo', true);
+        return $query->where('ativo', true)->where('arquivado', false);
     }
 
     /**

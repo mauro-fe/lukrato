@@ -16,7 +16,6 @@
 /* ==================== PÁGINA PRINCIPAL ==================== */
 .cartoes-page {
   padding: var(--spacing-6);
-  max-width: 1400px;
   margin: 0 auto;
   animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   min-height: calc(100vh - 100px);

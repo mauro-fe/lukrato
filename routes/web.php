@@ -106,6 +106,8 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth']);
 
+    Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived',    ['auth']);
+
     Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth']);
 
     Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth']);
@@ -213,6 +215,9 @@ function registerApiRoutes(): void
     Router::add('PUT',    '/api/cartoes/{id}',                'Api\\CartoesController@update',          ['auth', 'csrf']);
     Router::add('POST',   '/api/cartoes/{id}/deactivate',     'Api\\CartoesController@deactivate',      ['auth', 'csrf']);
     Router::add('POST',   '/api/cartoes/{id}/reactivate',     'Api\\CartoesController@reactivate',      ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/archive',        'Api\\CartoesController@archive',         ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/restore',        'Api\\CartoesController@restore',         ['auth', 'csrf']);
+    Router::add('POST',   '/api/cartoes/{id}/delete',         'Api\\CartoesController@delete',          ['auth', 'csrf']);
     Router::add('DELETE', '/api/cartoes/{id}',                'Api\\CartoesController@destroy',         ['auth', 'csrf']);
     Router::add('PUT',    '/api/cartoes/{id}/limite',         'Api\\CartoesController@updateLimit',     ['auth', 'csrf']);
 

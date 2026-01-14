@@ -7,6 +7,11 @@
                 <i class="fas fa-plus"></i>
                 Adicionar Cartão
             </button>
+
+            <a href="<?= BASE_URL ?>cartoes/arquivadas" class="btn btn-secondary">
+                <i class="fas fa-archive"></i>
+                Cartões Arquivados
+            </a>
         </div>
 
         <!-- Stats Cards -->
@@ -71,7 +76,8 @@
                     Visa
                 </button>
                 <button class="filter-btn" data-filter="mastercard">
-                    <img src="<?= BASE_URL ?>assets/img/bandeiras/mastercard.png" alt="Mastercard" class="brand-logo-filter">
+                    <img src="<?= BASE_URL ?>assets/img/bandeiras/mastercard.png" alt="Mastercard"
+                        class="brand-logo-filter">
                     Master
                 </button>
                 <button class="filter-btn" data-filter="elo">

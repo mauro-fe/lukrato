@@ -23,4 +23,22 @@ class CartoesController extends BaseController
             'admin/partials/footer'
         );
     }
+
+    /**
+     * Página de cartões arquivados
+     */
+    public function archived(): void
+    {
+        $this->requireAuth();
+
+        $this->render(
+            'admin/cartoes/arquivadas',
+            [
+                'pageTitle' => 'Cartões Arquivados',
+                'subTitle' => 'Gerencie seus cartões arquivados'
+            ],
+            'admin/partials/header',
+            'admin/partials/footer'
+        );
+    }
 }

@@ -38,8 +38,14 @@ class CartoesController
         $userId = Auth::id();
         $contaId = isset($_GET['conta_id']) ? (int) $_GET['conta_id'] : null;
         $apenasAtivos = (int) ($_GET['only_active'] ?? 1) === 1;
+        $arquivados = (int) ($_GET['archived'] ?? 0) === 1;
 
-        $cartoes = $this->service->listarCartoes($userId, $contaId, $apenasAtivos);
+        if ($arquivados) {
+            $cartoes = $this->service->listarCartoesArquivados($userId);
+        } else {
+            $cartoes = $this->service->listarCartoes($userId, $contaId, $apenasAtivos);
+        }
+
         Response::json($cartoes);
     }
 
@@ -133,7 +139,7 @@ class CartoesController
     }
 
     /**
-     * POST /api/cartoes/{id}/reativar
+     * POST /api/cartoes/{id}/reactivate
      * Reativar cartão
      */
     public function reactivate(int $id): void
@@ -150,16 +156,50 @@ class CartoesController
     }
 
     /**
-     * DELETE /api/cartoes/{id}
-     * Excluir cartão
+     * POST /api/cartoes/{id}/archive
+     * Arquivar cartão
      */
-    public function destroy(int $id): void
+    public function archive(int $id): void
+    {
+        $userId = Auth::id();
+        $resultado = $this->service->arquivarCartao($id, $userId);
+
+        if (!$resultado['success']) {
+            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            return;
+        }
+
+        Response::json($resultado);
+    }
+
+    /**
+     * POST /api/cartoes/{id}/restore
+     * Restaurar cartão arquivado
+     */
+    public function restore(int $id): void
+    {
+        $userId = Auth::id();
+        $resultado = $this->service->restaurarCartao($id, $userId);
+
+        if (!$resultado['success']) {
+            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            return;
+        }
+
+        Response::json($resultado);
+    }
+
+    /**
+     * POST /api/cartoes/{id}/delete
+     * Excluir cartão permanentemente
+     */
+    public function delete(int $id): void
     {
         $userId = Auth::id();
         $data = $this->getRequestPayload();
-        $force = (int) ($_GET['force'] ?? 0) === 1 || filter_var($data['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $force = filter_var($data['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $resultado = $this->service->excluirCartao($id, $userId, $force);
+        $resultado = $this->service->excluirCartaoPermanente($id, $userId, $force);
 
         if (!$resultado['success']) {
             $statusCode = isset($resultado['requires_confirmation']) && $resultado['requires_confirmation'] ? 422 : 404;
@@ -168,14 +208,21 @@ class CartoesController
                 'message' => $resultado['message'],
                 'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
                 'total_lancamentos' => $resultado['total_lancamentos'] ?? 0,
-                'suggestion' => $resultado['requires_confirmation'] ?? false
-                    ? 'Reenvie a requisição com ?force=1 ou JSON {"force": true} para confirmar a exclusão permanente.'
-                    : null,
             ], $statusCode);
             return;
         }
 
         Response::json($resultado);
+    }
+
+    /**
+     * DELETE /api/cartoes/{id}
+     * Excluir cartão (agora arquiva em vez de excluir)
+     */
+    public function destroy(int $id): void
+    {
+        // Agora redireciona para arquivar
+        $this->archive($id);
     }
 
     /**

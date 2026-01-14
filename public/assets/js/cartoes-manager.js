@@ -516,8 +516,8 @@ class CartoesManager {
                         <button class="card-action-btn" onclick="cartoesManager.editCartao(${cartao.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="card-action-btn" onclick="cartoesManager.deleteCartao(${cartao.id})" title="Excluir">
-                            <i class="fas fa-trash"></i>
+                        <button class="card-action-btn" onclick="cartoesManager.arquivarCartao(${cartao.id})" title="Arquivar">
+                            <i class="fas fa-archive"></i>
                         </button>
                     </div>
                 </div>
@@ -841,17 +841,17 @@ class CartoesManager {
     }
 
     /**
-     * Deletar cartão
+     * Arquivar cartão
      */
-    async deleteCartao(id) {
+    async arquivarCartao(id) {
         const cartao = this.cartoes.find(c => c.id === id);
         if (!cartao) return;
 
-        // Confirmação inicial
+        // Confirmação
         const confirmacao = await this.showConfirmDialog(
-            'Excluir Cartão',
-            `Tem certeza que deseja excluir o cartão "${cartao.nome_cartao}"?`,
-            'Excluir'
+            'Arquivar Cartão',
+            `Tem certeza que deseja arquivar o cartão "${cartao.nome_cartao}"? Você poderá restaurá-lo depois na página de Cartões Arquivados.`,
+            'Arquivar'
         );
 
         if (!confirmacao) return;
@@ -859,9 +859,8 @@ class CartoesManager {
         try {
             const csrfToken = await this.getCSRFToken();
 
-            // Primeira tentativa de exclusão
-            const response = await fetch(`${window.BASE_URL}api/cartoes/${id}`, {
-                method: 'DELETE',
+            const response = await fetch(`${window.BASE_URL}api/cartoes/${id}/archive`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -870,55 +869,27 @@ class CartoesManager {
                 credentials: 'same-origin'
             });
 
-            const result = await response.json();
-
             if (!response.ok) {
-                // Se retornar 422, é porque tem lançamentos vinculados
-                if (response.status === 422 && (result.requires_confirmation || result.status === 'confirm_delete')) {
-                    const total = result.total_lancamentos || 0;
-                    const mensagem = total > 0
-                        ? `Este cartão possui ${total} lançamento(s) vinculado(s).\n\nAo excluir o cartão, todos os lançamentos também serão excluídos.\n\nDeseja realmente continuar?`
-                        : `${result.message}\n\nDeseja realmente excluir este cartão?`;
-
-                    const confirmarExclusao = await this.showConfirmDialog(
-                        '⚠️ Atenção',
-                        mensagem,
-                        'Sim, excluir tudo'
-                    );
-
-                    if (!confirmarExclusao) return;
-
-                    // Segunda tentativa com force=true
-                    const forceResponse = await fetch(`${window.BASE_URL}api/cartoes/${id}?force=1`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-Token': csrfToken
-                        },
-                        credentials: 'same-origin'
-                    });
-
-                    if (!forceResponse.ok) {
-                        const forceResult = await forceResponse.json().catch(() => ({}));
-                        throw new Error(forceResult.message || 'Erro ao excluir cartão');
-                    }
-
-                    this.showToast('success', 'Cartão excluído com sucesso!');
-                    this.loadCartoes();
-                    return;
-                }
-
-                throw new Error(result.message || 'Erro ao excluir cartão');
+                const result = await response.json().catch(() => ({}));
+                throw new Error(result.message || 'Erro ao arquivar cartão');
             }
 
-            this.showToast('success', 'Cartão excluído com sucesso!');
+            this.showToast('success', 'Cartão arquivado com sucesso!');
             this.loadCartoes();
 
         } catch (error) {
-            console.error('Erro ao excluir:', error);
-            this.showToast('error', error.message || 'Erro ao excluir cartão');
+            console.error('Erro ao arquivar:', error);
+            this.showToast('error', error.message || 'Erro ao arquivar cartão');
         }
+    }
+
+    /**
+     * Deletar cartão (método antigo - mantido por compatibilidade)
+     * @deprecated Use arquivarCartao() em vez disso
+     */
+    async deleteCartao(id) {
+        // Redireciona para arquivar
+        return this.arquivarCartao(id);
     }
 
     /**
