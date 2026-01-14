@@ -179,7 +179,8 @@
   filter: brightness(0.6);
 }
 
-#modalEditarLancamento input[type="date"]::-webkit-calendar-picker-indicator:hover {
+#modalEditarLancamento
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 0.7;
 }
 
@@ -563,7 +564,8 @@
 }
 
 #modalEditarLancamento .btn-close-custom {
-  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%) hue-rotate(351deg) brightness(99%) contrast(89%);
+  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%)
+    hue-rotate(351deg) brightness(99%) contrast(89%);
   opacity: 1;
 }
 
@@ -1141,6 +1143,44 @@
     margin-top: var(--spacing-3);
   }
 
+  /* Melhorias no layout geral mobile */
+  .modern-table-wrapper {
+    border-radius: 16px;
+    overflow: visible;
+  }
+
+  .table-header-info {
+    border-radius: 16px 16px 0 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .info-group {
+    font-size: 1rem;
+  }
+
+  .table-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .table-actions .modern-btn,
+  .table-actions .icon-btn {
+    flex: 1;
+    min-width: fit-content;
+  }
+
+  .table-actions .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lan-table-container {
+    padding: 0;
+  }
+
   /* Cabe�alho "fake" com DATA | TIPO | VALOR | A��ES */
   .lan-cards-header {
     display: grid;
@@ -1174,6 +1214,10 @@
     row-gap: 0.35rem;
   }
 
+  .lan-card:last-child {
+    border-radius: 0 0 16px 16px;
+  }
+
   .lan-card + .lan-card {
     border-top: 1px solid rgba(255, 255, 255, 0.03);
   }
@@ -1187,16 +1231,18 @@
   }
 
   .lan-card-date {
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.875rem;
+    font-weight: 600;
     color: var(--color-text);
+    letter-spacing: -0.01em;
   }
 
   .lan-card-value {
-    font-weight: 600;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
   }
 
   .lan-card-value.receita {
@@ -1214,8 +1260,10 @@
   /* A��es (editar/excluir) */
   .lan-card-actions {
     display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
+    align-items: flex-start;
+    gap: 0.4rem;
+    align-self: start;
+    margin-top: 0.15rem;
   }
 
   .lan-card-actions[data-slot="details"] {
@@ -1223,7 +1271,60 @@
   }
 
   .lan-card-actions .lk-btn {
-    border-radius: 999px;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.8rem !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 0 !important;
+  }
+
+  .lan-card-actions .lk-btn:active {
+    transform: scale(0.95) !important;
+  }
+
+  .lan-card-actions .lk-btn.ghost {
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 15%,
+      var(--color-surface)
+    ) !important;
+    color: var(--color-primary) !important;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
+  }
+
+  .lan-card-actions .lk-btn.ghost:active {
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 25%,
+      var(--color-surface)
+    ) !important;
+  }
+
+  .lan-card-actions .lk-btn.danger {
+    background: color-mix(
+      in srgb,
+      var(--color-danger) 15%,
+      var(--color-surface)
+    ) !important;
+    color: var(--color-danger) !important;
+    border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent) !important;
+  }
+
+  .lan-card-actions .lk-btn.danger:active {
+    background: color-mix(
+      in srgb,
+      var(--color-danger) 25%,
+      var(--color-surface)
+    ) !important;
   }
 
   /* Toggle de detalhes (setinha + "Detalhes") */
@@ -1232,76 +1333,134 @@
     margin-top: 0.25rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: 0.5rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-primary);
     background: transparent;
     border: none;
-    padding: 0;
+    padding: 0.4rem 0;
     cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+  }
+
+  .lan-card-toggle:active {
+    opacity: 0.7;
   }
 
   .lan-card-toggle-icon {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1px solid var(--glass-border);
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 12%,
+      var(--color-surface)
+    );
+    border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
-    transition: transform 0.2s ease;
+    font-size: 0.7rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--color-primary);
   }
 
   .lan-card[aria-expanded="true"] .lan-card-toggle-icon {
     transform: rotate(90deg);
+    background: var(--color-primary);
+    color: white;
   }
 
-  /* Bloco de detalhes (Categoria, Conta, Descri��o) */
+  /* Bloco de detalhes (Categoria, Conta, Descrição) */
   .lan-card-details {
     grid-column: 1 / -1;
-    margin-top: 0.35rem;
-    padding-top: 0.45rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 0.5rem;
+    padding-top: 0.85rem;
+    border-top: 2px solid
+      color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
     display: none;
+    animation: slideDown 0.3s ease-out;
+    overflow: visible !important;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .lan-card[aria-expanded="true"] .lan-card-details {
     display: grid;
-    row-gap: 0.2rem;
+    row-gap: 0.65rem;
   }
 
   .lan-card-detail-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 0.75rem;
     font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    background: color-mix(in srgb, var(--color-surface-muted) 30%, transparent);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    min-height: 38px;
+  }
+
+  .lan-card-detail-row:active {
+    background: color-mix(in srgb, var(--color-surface-muted) 50%, transparent);
   }
 
   .lan-card-detail-row .lk-btn {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: 10px !important;
+    font-size: 0.8rem !important;
+    padding: 0 !important;
   }
 
   .lan-card-detail-label {
-    font-weight: 600;
-    color: var(--color-text);
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    min-width: 80px;
   }
 
   .lan-card-detail-value {
     color: var(--color-text);
     text-align: right;
+    font-weight: 600;
+    flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   /* Badge de tipo reutilizando .badge-tipo */
   .lan-card-type .badge-tipo {
-    font-size: 0.65rem;
-    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -1313,10 +1472,15 @@
 @media (max-width: 414px) {
   .lan-cards-header {
     grid-template-columns: 1.1fr 0.9fr 1.1fr !important;
+    padding: 0.9rem 1rem;
   }
 
   .lan-cards-header span:last-child {
     display: none;
+  }
+
+  .lan-card {
+    padding: 1rem;
   }
 
   .lan-card-main {
@@ -1330,23 +1494,318 @@
   .lan-card-details .lan-card-actions[data-slot="details"] {
     display: flex;
     justify-content: flex-start;
-    gap: var(--spacing-2);
-    margin-top: 0.35rem;
+    gap: var(--spacing-3);
+    margin-top: 0;
   }
 
   .lan-card-detail-row {
     align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .lan-card-detail-label {
+    margin-bottom: 0;
+    color: var(--color-text-muted);
+    width: 100%;
+  }
+
+  .lan-card-detail-value {
+    text-align: left;
+    width: 100%;
+    word-break: break-word;
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 0.9rem;
   }
 
   .lan-card-detail-row.actions-row {
     align-items: center;
     justify-content: space-between;
+    flex-direction: row;
+    background: color-mix(in srgb, var(--color-surface-muted) 30%, transparent);
+    padding: 0.5rem 0.75rem;
+    gap: 0.75rem;
+    border-radius: 8px;
+    overflow: visible !important;
   }
 
   .lan-card-detail-value.actions-slot {
-    display: inline-flex;
-    gap: var(--spacing-2);
+    display: flex;
+    gap: 0.5rem;
     align-items: center;
+    flex: 0 0 auto;
+    overflow: visible !important;
+    min-width: fit-content !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    min-height: 40px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    width: 32px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600;
+    gap: 0.4rem;
+    padding: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn.ghost {
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 20%,
+      transparent
+    ) !important;
+    color: var(--color-primary) !important;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn.danger {
+    background: color-mix(
+      in srgb,
+      var(--color-danger) 20%,
+      transparent
+    ) !important;
+    color: var(--color-danger) !important;
+    border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent) !important;
+  }
+
+  .lan-card-type .badge-tipo {
+    font-size: 0.68rem;
+    padding: 0.3rem 0.65rem;
+  }
+}
+
+/* ========================================================================
+   MOBILE MUITO PEQUENO (300px - 320px)
+   - Ajustes para dispositivos muito pequenos como iPhone SE
+   ======================================================================== */
+@media (max-width: 320px) {
+  /* DEBUG: Forçar botões a aparecerem com cor ultra-visível */
+  .lan-card-detail-value.actions-slot .lk-btn {
+    display: flex !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    height: 36px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    width: 30px !important;
+    border-radius: 10px !important;
+    font-size: 0.75rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 9999 !important;
+    overflow: visible !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn.ghost {
+    background: rgba(230, 126, 34, 0.2) !important;
+    color: var(--color-primary) !important;
+    border: 1px solid rgba(230, 126, 34, 0.4) !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn.danger {
+    background: rgba(231, 76, 60, 0.2) !important;
+    color: var(--color-danger) !important;
+    border: 1px solid rgba(231, 76, 60, 0.4) !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn i {
+    display: block !important;
+    font-size: 0.75rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .lan-cards-header {
+    grid-template-columns: 1fr 0.85fr 1fr !important;
+    column-gap: 0.35rem !important;
+    padding: 0.75rem 0.65rem !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .lan-cards-header span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lan-card {
+    padding: 0.85rem 0.65rem !important;
+    column-gap: 0.35rem !important;
+  }
+
+  .lan-card-main {
+    grid-template-columns: 1fr 0.85fr 1fr !important;
+    column-gap: 0.35rem !important;
+  }
+
+  .lan-card-date {
+    font-size: 0.8rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lan-card-value {
+    font-size: 0.85rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lan-card-type .badge-tipo {
+    font-size: 0.6rem !important;
+    padding: 0.25rem 0.4rem !important;
+    white-space: nowrap;
+  }
+
+  .lan-card-toggle {
+    font-size: 0.75rem !important;
+    gap: 0.4rem !important;
+  }
+
+  .lan-card-toggle-icon {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Melhor organização dos detalhes */
+  .lan-card-details {
+    margin-top: 0.65rem !important;
+    padding-top: 0.75rem !important;
+    row-gap: 0.5rem !important;
+  }
+
+  .lan-card-detail-row {
+    padding: 0.5rem 0.6rem !important;
+    gap: 0.4rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .lan-card-detail-label {
+    font-size: 0.65rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .lan-card-detail-value {
+    font-size: 0.8rem !important;
+    word-break: break-word;
+  }
+
+  .lan-card-detail-row.actions-row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .lan-card-detail-value.actions-slot {
+    display: flex !important;
+    gap: 0.4rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin-left: -70px;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn {
+    display: flex !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    height: 36px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    width: 30px !important;
+    border-radius: 10px !important;
+    font-size: 0.75rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    overflow: visible !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn.ghost {
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 20%,
+      transparent
+    ) !important;
+    color: var(--color-primary) !important;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn.danger {
+    background: color-mix(
+      in srgb,
+      var(--color-danger) 20%,
+      transparent
+    ) !important;
+    color: var(--color-danger) !important;
+    border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent) !important;
+  }
+
+  .lan-card-detail-value.actions-slot .lk-btn i {
+    display: block !important;
+    font-size: 0.75rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Paginação */
+  .lan-cards-pager {
+    padding: 0.85rem 0.65rem !important;
+    gap: 0.35rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .lan-pager-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Header da tabela */
+  .table-header-info {
+    padding: 0.85rem 0.65rem !important;
+  }
+
+  .info-group {
+    font-size: 0.9rem !important;
+  }
+
+  .table-actions .modern-btn {
+    font-size: 0.75rem !important;
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .table-actions .icon-btn {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 0.9rem !important;
   }
 }
 
@@ -1410,40 +1869,55 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  padding: 0.35rem 0.2rem;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-surface-muted) 80%, transparent),
+    color-mix(in srgb, var(--color-surface) 90%, transparent)
+  );
   backdrop-filter: blur(10px);
-  border-radius: 0 0 10px 10px;
-  font-size: 0.82rem;
-  color: var(--color-text-muted, #c5c8ce);
-  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 0 16px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--glass-border);
+  border-top: none;
 }
 
 .lan-pager-btn {
   border: none;
   background: var(--color-primary);
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-text, #f1f1f1);
-  font-size: 0.9rem;
-  transition: all 0.15s ease;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+}
+
+.lan-pager-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .lan-pager-btn:hover:not(:disabled) {
-  background: var(--color-warning);
+  background: color-mix(in srgb, var(--color-primary) 120%, black);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+  transform: translateY(-2px);
 }
 
 .lan-pager-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-  background: var(--ring);
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: var(--color-surface-muted);
+  box-shadow: none;
+  color: var(--color-text-muted);
 }
 
 /* Página atual */
