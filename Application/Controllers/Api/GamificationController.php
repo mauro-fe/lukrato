@@ -79,6 +79,7 @@ class GamificationController extends BaseController
     /**
      * GET /api/gamification/achievements
      * Retorna conquistas disponíveis e desbloqueadas
+     * @param ?string month - Filtro opcional por mês (formato YYYY-MM)
      */
     public function getAchievements(): void
     {
@@ -86,7 +87,10 @@ class GamificationController extends BaseController
 
         try {
             $user = \Application\Lib\Auth::user();
-            $achievements = $this->achievementService->getUserAchievements($this->userId);
+
+            // Filtro por mês (opcional)
+            $month = $_GET['month'] ?? null;
+            $achievements = $this->achievementService->getUserAchievements($this->userId, $month);
 
             // Estatísticas gerais
             $totalCount = count($achievements);
@@ -227,6 +231,91 @@ class GamificationController extends BaseController
         } catch (Exception $e) {
             error_log("🎮 [GAMIFICATION] Erro ao buscar estatísticas: " . $e->getMessage());
             Response::error('Erro ao buscar estatísticas', 500);
+        }
+    }
+
+    /**
+     * GET /api/gamification/history
+     * Retorna histórico de atividades recentes (últimas ações que deram pontos)
+     */
+    public function getHistory(): void
+    {
+        $this->requireAuth();
+
+        try {
+            $limit = (int)($_GET['limit'] ?? 10);
+            $limit = min(max($limit, 1), 50); // Entre 1 e 50
+
+            $history = \Application\Models\PointsLog::where('user_id', $this->userId)
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($log) {
+                    return [
+                        'id' => $log->id,
+                        'action' => $log->action,
+                        'points' => $log->points,
+                        'description' => $log->description ?? $this->formatActionName($log->action),
+                        'created_at' => $log->created_at?->format('Y-m-d H:i:s'),
+                        'relative_time' => $this->getRelativeTime($log->created_at),
+                    ];
+                });
+
+            Response::success([
+                'history' => $history,
+                'count' => $history->count(),
+            ], 'Histórico de atividades');
+        } catch (Exception $e) {
+            error_log("🎮 [GAMIFICATION] Erro ao buscar histórico: " . $e->getMessage());
+            Response::error('Erro ao buscar histórico', 500);
+        }
+    }
+
+    /**
+     * Formatar nome da ação para exibição
+     */
+    private function formatActionName(string $action): string
+    {
+        $names = [
+            'LAUNCH_CREATED' => 'Lançamento criado',
+            'LAUNCH_EDITED' => 'Lançamento editado',
+            'LAUNCH_DELETED' => 'Lançamento excluído',
+            'CATEGORY_CREATED' => 'Categoria criada',
+            'DAILY_LOGIN' => 'Login diário',
+            'STREAK_BONUS' => 'Bônus de sequência',
+            'ACHIEVEMENT_UNLOCKED' => 'Conquista desbloqueada',
+            'FIRST_LAUNCH_DAY' => 'Primeiro lançamento do dia',
+            'CARD_CREATED' => 'Cartão cadastrado',
+            'INVOICE_PAID' => 'Fatura paga',
+        ];
+
+        return $names[$action] ?? ucwords(str_replace('_', ' ', strtolower($action)));
+    }
+
+    /**
+     * Obter tempo relativo (ex: "há 2 horas")
+     */
+    private function getRelativeTime(?Carbon $date): string
+    {
+        if (!$date) return '';
+
+        $now = Carbon::now();
+        $diff = $date->diff($now);
+
+        if ($diff->days === 0) {
+            if ($diff->h === 0) {
+                if ($diff->i === 0) {
+                    return 'Agora';
+                }
+                return "Há {$diff->i} min";
+            }
+            return "Há {$diff->h}h";
+        } elseif ($diff->days === 1) {
+            return 'Ontem';
+        } elseif ($diff->days < 7) {
+            return "Há {$diff->days} dias";
+        } else {
+            return $date->format('d/m/Y');
         }
     }
 }

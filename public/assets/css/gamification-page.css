@@ -228,6 +228,28 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Scrollbar personalizada para conquistas */
+.achievements-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.achievements-grid::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: 3px;
+}
+
+.achievements-grid::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+.achievements-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-hover);
 }
 
 .achievement-card {
@@ -299,6 +321,28 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Scrollbar personalizada */
+.history-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-hover);
 }
 
 .history-item {
@@ -349,6 +393,27 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-md);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Scrollbar personalizada para ranking */
+.leaderboard-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leaderboard-container::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: 3px;
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-hover);
 }
 
 .leaderboard-table {

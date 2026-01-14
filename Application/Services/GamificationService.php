@@ -26,7 +26,7 @@ class GamificationService
 {
     /**
      * Thresholds de pontos para cada nível
-     * Níveis: 1→0, 2→300, 3→500, 4→700, 5→1000, 6→1500, 7→2200, 8→3000
+     * Níveis expandidos de 1 a 15
      */
     private const LEVEL_THRESHOLDS = [
         1 => 0,
@@ -37,6 +37,13 @@ class GamificationService
         6 => 1500,
         7 => 2200,
         8 => 3000,
+        9 => 4000,
+        10 => 5500,
+        11 => 7500,
+        12 => 10000,
+        13 => 15000,
+        14 => 25000,
+        15 => 50000,
     ];
 
     /**

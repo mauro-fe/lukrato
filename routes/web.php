@@ -251,6 +251,7 @@ function registerApiRoutes(): void
     Router::add('GET',  '/api/gamification/progress',      'Api\\GamificationController@getProgress',         ['auth']);
     Router::add('GET',  '/api/gamification/achievements',  'Api\\GamificationController@getAchievements',     ['auth']);
     Router::add('GET',  '/api/gamification/stats',         'Api\\GamificationController@getStats',            ['auth']);
+    Router::add('GET',  '/api/gamification/history',       'Api\\GamificationController@getHistory',          ['auth']);
     Router::add('POST', '/api/gamification/achievements/mark-seen', 'Api\\GamificationController@markAchievementsSeen', ['auth', 'csrf']);
     Router::add('GET',  '/api/gamification/leaderboard',   'Api\\GamificationController@getLeaderboard',      ['auth']);
 

@@ -1633,6 +1633,15 @@
   animation: badgeUnlock 0.6s ease-out;
 }
 
+.badge-item.unlocked-past {
+  opacity: 0.7;
+  filter: grayscale(30%);
+}
+
+.badge-item.unlocked-past .badge-unlocked-check {
+  opacity: 0.7;
+}
+
 @keyframes badgeUnlock {
   0% {
     transform: scale(0.5) rotate(0deg);

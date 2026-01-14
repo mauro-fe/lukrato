@@ -4,22 +4,24 @@ namespace Application\Services;
 
 use Application\Models\UserProgress;
 use Application\Models\Usuario;
+use Application\Models\Lancamento;
 use Carbon\Carbon;
 
 /**
  * Service: StreakService
  * 
- * Gerencia o sistema de dias consecutivos (streak) com proteção para usuários Pro
+ * Gerencia o sistema de dias ativos (streak) com proteção para usuários Pro
  * 
  * Regras:
- * - Incrementa se o usuário criar ao menos 1 lançamento no dia
- * - Se ficar 1 dia sem lançar → streak volta para 1
- * - Usuário Pro possui 1 dia de proteção por mês
+ * - Conta o total de dias únicos em que o usuário fez lançamentos
+ * - Não precisa ser consecutivo - qualquer dia com lançamento conta
+ * - Usuário Pro possui bônus de pontos extras
  */
 class StreakService
 {
     /**
      * Atualizar streak do usuário após criar um lançamento
+     * Agora conta dias únicos com lançamentos, não necessariamente consecutivos
      * 
      * @param int $userId
      * @param Carbon|null $date Data do lançamento (padrão: hoje)
@@ -50,45 +52,12 @@ class StreakService
                 'streak' => $progress->current_streak,
                 'best_streak' => $progress->best_streak,
                 'updated' => false,
-                'message' => 'Streak já registrado hoje',
+                'message' => 'Atividade já registrada hoje',
             ];
         }
 
-        $wasConsecutive = false;
-        $usedProtection = false;
-
-        // Verificar se é o primeiro dia ou se é consecutivo
-        if (!$lastActivity) {
-            // Primeiro dia
-            $progress->current_streak = 1;
-            $wasConsecutive = false;
-        } else {
-            $daysDifference = $lastActivity->diffInDays($today);
-
-            if ($daysDifference === 1) {
-                // Consecutivo
-                $progress->current_streak++;
-                $wasConsecutive = true;
-            } elseif ($daysDifference === 2) {
-                // 1 dia de diferença - verificar proteção Pro
-                $user = Usuario::find($userId);
-                $isPro = $user ? $user->isPro() : false;
-
-                if ($isPro && $this->canUseStreakProtection($progress)) {
-                    // Usar proteção
-                    $this->useStreakProtection($progress);
-                    $progress->current_streak++;
-                    $wasConsecutive = true;
-                    $usedProtection = true;
-                } else {
-                    // Perdeu o streak
-                    $progress->current_streak = 1;
-                }
-            } else {
-                // Perdeu o streak
-                $progress->current_streak = 1;
-            }
-        }
+        // Incrementar o contador de dias ativos (não precisa ser consecutivo)
+        $progress->current_streak++;
 
         // Atualizar best streak
         if ($progress->current_streak > $progress->best_streak) {
@@ -103,51 +72,64 @@ class StreakService
             'streak' => $progress->current_streak,
             'best_streak' => $progress->best_streak,
             'updated' => true,
-            'was_consecutive' => $wasConsecutive,
-            'used_protection' => $usedProtection,
-            'message' => $usedProtection
-                ? "Proteção Pro usada! Streak mantido em {$progress->current_streak} dias 🛡️"
-                : "Streak atualizado para {$progress->current_streak} dias 🔥",
+            'message' => "Dias ativos: {$progress->current_streak} 🔥",
         ];
     }
 
     /**
-     * Verificar se o usuário pode usar a proteção de streak este mês
+     * Recalcular streak baseado nos lançamentos reais do usuário
+     * Conta dias únicos com pelo menos 1 lançamento
      * 
-     * @param UserProgress $progress
-     * @return bool
+     * @param int $userId
+     * @return array Resultado com streak recalculado
      */
-    private function canUseStreakProtection(UserProgress $progress): bool
+    public function recalculateStreak(int $userId): array
     {
-        $currentMonth = Carbon::now()->format('Y-m');
+        // Contar dias únicos com lançamentos
+        $uniqueDays = Lancamento::where('user_id', $userId)
+            ->selectRaw('DATE(data) as dia')
+            ->groupBy('dia')
+            ->get()
+            ->count();
 
-        // Se nunca usou ou usou em outro mês
-        if (!$progress->streak_freeze_month || $progress->streak_freeze_month !== $currentMonth) {
-            return true;
+        // Buscar última data de lançamento
+        $lastLancamento = Lancamento::where('user_id', $userId)
+            ->orderBy('data', 'desc')
+            ->first();
+
+        $progress = UserProgress::firstOrCreate(
+            ['user_id' => $userId],
+            [
+                'total_points' => 0,
+                'current_level' => 1,
+                'points_to_next_level' => 300,
+                'current_streak' => 0,
+                'best_streak' => 0,
+                'last_activity_date' => null,
+            ]
+        );
+
+        $progress->current_streak = $uniqueDays;
+
+        // Atualizar best streak se necessário
+        if ($uniqueDays > $progress->best_streak) {
+            $progress->best_streak = $uniqueDays;
         }
 
-        return false;
-    }
+        // Atualizar última atividade
+        if ($lastLancamento) {
+            $progress->last_activity_date = Carbon::parse($lastLancamento->data);
+        }
 
-    /**
-     * Usar a proteção de streak (1x por mês para Pro)
-     * 
-     * @param UserProgress $progress
-     * @return void
-     */
-    private function useStreakProtection(UserProgress $progress): void
-    {
-        $now = Carbon::now();
-        $progress->streak_freeze_used_this_month = true;
-        $progress->streak_freeze_date = $now;
-        $progress->streak_freeze_month = $now->format('Y-m');
-    }
+        $progress->save();
 
-    /**
-     * Resetar proteção de streak no início do mês (executar via cron)
-     * 
-     * @return int Quantidade de usuários resetados
-     */
+        return [
+            'success' => true,
+            'streak' => $uniqueDays,
+            'best_streak' => $progress->best_streak,
+            'message' => "Streak recalculado: {$uniqueDays} dias únicos com lançamentos",
+        ];
+    }
     public function resetMonthlyProtections(): int
     {
         $currentMonth = Carbon::now()->format('Y-m');
@@ -188,32 +170,32 @@ class StreakService
             'current_streak' => $progress->current_streak,
             'best_streak' => $progress->best_streak,
             'last_activity' => $progress->last_activity_date?->format('Y-m-d'),
-            'protection_available' => $isPro && $this->canUseStreakProtection($progress),
-            'protection_used_this_month' => $progress->streak_freeze_used_this_month ?? false,
-            'protection_date' => $progress->streak_freeze_date?->format('Y-m-d'),
+            'protection_available' => $isPro, // Pro tem benefícios extras
+            'protection_used_this_month' => false,
+            'protection_date' => null,
         ];
     }
 
     /**
-     * Verificar streaks pendentes (se usuário perdeu o streak)
-     * Útil para notificações
+     * Verificar se usuário tem atividade recente
+     * Útil para notificações de engajamento
      * 
      * @param int $userId
-     * @return bool True se perdeu o streak
+     * @param int $days Número de dias para verificar
+     * @return bool True se não teve atividade nos últimos X dias
      */
-    public function hasLostStreak(int $userId): bool
+    public function hasBeenInactive(int $userId, int $days = 7): bool
     {
         $progress = UserProgress::where('user_id', $userId)->first();
 
         if (!$progress || !$progress->last_activity_date) {
-            return false;
+            return true;
         }
 
         $lastActivity = Carbon::parse($progress->last_activity_date);
         $today = Carbon::now()->startOfDay();
         $daysDifference = $lastActivity->diffInDays($today);
 
-        // Se passou mais de 2 dias (considerando proteção Pro)
-        return $daysDifference > 2;
+        return $daysDifference >= $days;
     }
 }

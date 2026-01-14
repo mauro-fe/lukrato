@@ -426,6 +426,12 @@
   border: 2px solid #10b981;
 }
 
+.badge-item.unlocked-past {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #86efac;
+  opacity: 0.75;
+}
+
 .badge-item.locked {
   opacity: 0.5;
   filter: grayscale(0.7);
@@ -481,6 +487,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.badge-unlocked-check.past {
+  color: #86efac;
+  opacity: 0.8;
 }
 
 .badge-skeleton {

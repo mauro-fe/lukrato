@@ -23,7 +23,7 @@
         leaderboardContainer: document.getElementById('leaderboardContainer')
     };
 
-    // Mapa de níveis
+    // Mapa de níveis (expandido para 15)
     const levelThresholds = {
         1: 0,
         2: 300,
@@ -32,7 +32,14 @@
         5: 1000,
         6: 1500,
         7: 2200,
-        8: 3000
+        8: 3000,
+        9: 4000,
+        10: 5500,
+        11: 7500,
+        12: 10000,
+        13: 15000,
+        14: 25000,
+        15: 50000
     };
 
     // Carregar todos os dados
@@ -40,18 +47,18 @@
         try {
             console.log('🎮 [PAGE] Carregando dados...');
 
-            const [progressData, achievementsData, statsData, leaderboardData] = await Promise.all([
+            const [progressData, achievementsData, historyData, leaderboardData] = await Promise.all([
                 fetch(`${BASE_URL}api/gamification/progress`, { credentials: 'same-origin' }).then(r => r.json()),
                 fetch(`${BASE_URL}api/gamification/achievements`, { credentials: 'same-origin' }).then(r => r.json()),
-                fetch(`${BASE_URL}api/gamification/stats`, { credentials: 'same-origin' }).then(r => r.json()),
+                fetch(`${BASE_URL}api/gamification/history?limit=20`, { credentials: 'same-origin' }).then(r => r.json()),
                 fetch(`${BASE_URL}api/gamification/leaderboard`, { credentials: 'same-origin' }).then(r => r.json())
             ]);
 
-            console.log('🎮 [PAGE] Dados recebidos:', { progressData, achievementsData, statsData, leaderboardData });
+            console.log('🎮 [PAGE] Dados recebidos:', { progressData, achievementsData, historyData, leaderboardData });
 
             updateProgressSection(progressData);
             updateAchievements(achievementsData);
-            updatePointsHistory(statsData);
+            updatePointsHistory(historyData);
             updateLeaderboard(leaderboardData);
 
         } catch (error) {
@@ -175,11 +182,13 @@
 
         if (!isSuccess || !data.data) {
             console.warn('⚠️ [PAGE] Dados de histórico inválidos:', data);
+            if (elements.pointsHistory) {
+                elements.pointsHistory.innerHTML = '<p class="empty-state">Nenhuma atividade recente</p>';
+            }
             return;
         }
 
-        // A API de stats não retorna histórico ainda, então deixamos vazio
-        const history = [];
+        const history = data.data.history || [];
 
         if (!elements.pointsHistory) return;
 
@@ -193,9 +202,11 @@
                 <div class="history-icon">${getActionIcon(action.action)}</div>
                 <div class="history-content">
                     <div class="history-title">${action.description || formatAction(action.action)}</div>
-                    <div class="history-date">${formatDate(action.created_at)}</div>
+                    <div class="history-date">${action.relative_time || formatDate(action.created_at)}</div>
                 </div>
-                <div class="history-points">+${action.points}</div>
+                <div class="history-points ${action.points >= 0 ? 'positive' : 'negative'}">
+                    ${action.points >= 0 ? '+' : ''}${action.points} pts
+                </div>
             </div>
         `).join('');
     }
@@ -290,17 +301,45 @@
 
     function getActionIcon(action) {
         const icons = {
+            // Lançamentos
+            'LAUNCH_CREATED': '💰',
+            'LAUNCH_EDITED': '✏️',
+            'LAUNCH_DELETED': '🗑️',
             'CREATE_LANCAMENTO': '💰',
+            'FIRST_LAUNCH_DAY': '🌅',
+
+            // Categorias
             'CREATE_CATEGORIA': '🏷️',
-            'VIEW_REPORT': '📊',
-            'CREATE_META': '🎯',
-            'CLOSE_MONTH': '📅',
+            'CATEGORY_CREATED': '🏷️',
+
+            // Atividade
+            'DAILY_LOGIN': '👋',
             'DAILY_ACTIVITY': '✅',
+            'VIEW_REPORT': '📊',
+
+            // Metas
+            'CREATE_META': '🎯',
+            'META_ACHIEVED': '🏆',
+
+            // Meses
+            'CLOSE_MONTH': '📅',
+            'POSITIVE_MONTH': '💚',
+
+            // Streaks
+            'STREAK_BONUS': '🔥',
             'STREAK_3_DAYS': '🔥',
             'STREAK_7_DAYS': '🔥🔥',
             'STREAK_30_DAYS': '🔥🔥🔥',
-            'POSITIVE_MONTH': '💚',
-            'LEVEL_UP': '⭐'
+
+            // Níveis
+            'LEVEL_UP': '⭐',
+
+            // Conquistas
+            'ACHIEVEMENT_UNLOCKED': '🏅',
+
+            // Cartões
+            'CARD_CREATED': '💳',
+            'INVOICE_PAID': '🧾'
         };
         return icons[action] || '📌';
     }

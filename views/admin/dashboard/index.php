@@ -24,7 +24,7 @@
             <div class="streak-card">
                 <div class="streak-icon">🔥</div>
                 <div class="streak-number" id="streakDays">0</div>
-                <div class="streak-label">Dias Consecutivos</div>
+                <div class="streak-label">Dias Ativos</div>
                 <div class="streak-protection" id="streakProtection" style="display: none;">
                     <i class="fas fa-shield-alt"></i>
                     <span>Proteção disponível</span>

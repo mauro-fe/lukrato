@@ -497,82 +497,14 @@
         },
 
         render: (gamificationData) => {
+            // NOTA: A renderização de gamificação (streak, nível, conquistas) 
+            // é feita pelo gamification-dashboard.js que usa dados da API.
+            // Este método apenas renderiza estatísticas básicas.
             if (!gamificationData) return;
 
-            // Streak
-            if (DOM.streakDays) {
-                DOM.streakDays.textContent = gamificationData.streak;
-            }
-
-            // Nível
-            if (DOM.userLevel) {
-                DOM.userLevel.innerHTML = `
-                    <i class="fas fa-star"></i>
-                    <span>Nível ${gamificationData.level}</span>
-                `;
-            }
-
-            // Progresso (baseado em pontos até próximo nível)
-            const levelThresholds = [0, 100, 300, 600, 1000, 1500, 2500, 5000, 10000, 20000, 50000];
-            const currentThreshold = levelThresholds[gamificationData.level - 1] || 0;
-            const nextThreshold = levelThresholds[gamificationData.level] || 50000;
-            const progressInLevel = gamificationData.points - currentThreshold;
-            const pointsNeeded = nextThreshold - currentThreshold;
-            const percentage = Math.min(100, Math.floor((progressInLevel / pointsNeeded) * 100));
-
-            if (DOM.organizationPercentage) {
-                DOM.organizationPercentage.textContent = `${percentage}%`;
-            }
-
-            if (DOM.organizationBar) {
-                setTimeout(() => {
-                    DOM.organizationBar.style.width = `${percentage}%`;
-                }, 100);
-            }
-
-            if (DOM.organizationText) {
-                const remaining = nextThreshold - gamificationData.points;
-                DOM.organizationText.textContent = remaining > 0
-                    ? `Faltam ${remaining} pontos para o nível ${gamificationData.level + 1}`
-                    : 'Nível máximo alcançado!';
-            }
-
-            // Badges
-            if (DOM.badgesGrid) {
-                const badgesHTML = Gamification.badges.map((badge) => {
-                    const unlocked = badge.condition(gamificationData);
-                    const classes = ['badge-item'];
-                    if (unlocked) classes.push('unlocked');
-                    else classes.push('locked');
-
-                    return `
-                        <div class="${classes.join(' ')}" title="${badge.name}">
-                            <div class="badge-icon">${badge.emoji}</div>
-                            <div class="badge-name">${badge.name}</div>
-                            ${unlocked ? '<div class="badge-check"><i class="fas fa-check"></i></div>' : ''}
-                        </div>
-                    `;
-                }).join('');
-
-                DOM.badgesGrid.innerHTML = badgesHTML;
-            }
-
-            // Stats
-            if (DOM.totalLancamentos) {
-                DOM.totalLancamentos.textContent = gamificationData.totalTransactions;
-            }
-
-            if (DOM.totalCategorias) {
-                DOM.totalCategorias.textContent = gamificationData.uniqueCategories;
-            }
-
-            if (DOM.mesesAtivos) {
-                DOM.mesesAtivos.textContent = gamificationData.activeMonths;
-            }
-
-            if (DOM.pontosTotal) {
-                DOM.pontosTotal.textContent = gamificationData.points.toLocaleString('pt-BR');
-            }
+            // Stats básicos (totalLancamentos, categorias, meses ativos)
+            // são atualizados pelo gamification-dashboard.js via API
+            // Não sobrescrever para evitar conflitos
         }
     };
 

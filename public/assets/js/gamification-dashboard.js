@@ -40,6 +40,15 @@
     let currentProgress = {};
 
     /**
+     * Recarregar todos os dados de gamificação
+     */
+    function refreshGamification() {
+        loadGamificationProgress();
+        loadGamificationStats();
+        loadAchievements();
+    }
+
+    /**
      * Inicializar sistema de gamificação
      */
     function initGamification() {
@@ -59,6 +68,16 @@
         if (btnProUpgrade) {
             btnProUpgrade.addEventListener('click', showProUpgrade);
         }
+
+        // Escutar mudança de mês para atualizar gamificação dinamicamente
+        document.addEventListener('lukrato:month-changed', () => {
+            refreshGamification();
+        });
+
+        // Escutar mudança de dados para atualizar gamificação
+        document.addEventListener('lukrato:data-changed', () => {
+            refreshGamification();
+        });
     }
 
     /**
@@ -253,11 +272,32 @@
     }
 
     /**
+     * Obter mês atual selecionado no header
+     */
+    function getCurrentMonth() {
+        // Tentar ler do LukratoHeader (API pública)
+        if (window.LukratoHeader && typeof window.LukratoHeader.getMonth === 'function') {
+            return window.LukratoHeader.getMonth();
+        }
+        // Fallback: ler do sessionStorage
+        const stored = sessionStorage.getItem('lkMes');
+        if (stored && /^\d{4}-(0[1-9]|1[0-2])$/.test(stored)) {
+            return stored;
+        }
+        // Fallback: mês atual
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    /**
      * Carregar conquistas
      */
     async function loadAchievements() {
         try {
-            const response = await fetch(`${BASE}api/gamification/achievements`, {
+            // Não filtra por mês - conquistas são permanentes
+            // O filtro por mês é apenas para destacar conquistas recentes
+            const month = getCurrentMonth();
+            const response = await fetch(`${BASE}api/gamification/achievements?month=${month}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -288,26 +328,65 @@
         const badgesGrid = document.getElementById('badgesGrid');
         if (!badgesGrid) return;
 
+        // Ordenar conquistas:
+        // 1. Desbloqueadas (unlocked ou unlocked_ever = true) - aparecem primeiro
+        // 2. Não desbloqueadas (locked) - aparecem por último
+        // Dentro das desbloqueadas, as do mês atual aparecem primeiro
+        const sorted = [...achievements].sort((a, b) => {
+            const aUnlocked = a.unlocked || a.unlocked_ever;
+            const bUnlocked = b.unlocked || b.unlocked_ever;
+
+            // Desbloqueadas primeiro
+            if (aUnlocked && !bUnlocked) return -1;
+            if (!aUnlocked && bUnlocked) return 1;
+
+            // Entre as desbloqueadas, priorizar as do mês atual
+            if (aUnlocked && bUnlocked) {
+                if (a.unlocked && !b.unlocked) return -1;
+                if (!a.unlocked && b.unlocked) return 1;
+            }
+
+            return 0;
+        });
+
         // Mostrar apenas as primeiras 6 conquistas no dashboard
-        const displayAchievements = achievements.slice(0, 6);
+        const displayAchievements = sorted.slice(0, 6);
 
         badgesGrid.innerHTML = '';
 
         displayAchievements.forEach(achievement => {
             const badgeItem = document.createElement('div');
-            badgeItem.className = `badge-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
 
+            // Definir classes baseado no status
+            // Uma conquista é considerada "unlocked" se foi desbloqueada em qualquer momento
+            const isUnlocked = achievement.unlocked || achievement.unlocked_ever;
+            let statusClass = isUnlocked ? 'unlocked' : 'locked';
+
+            // Se foi desbloqueada mas não neste mês, usar estilo ligeiramente diferente
+            if (achievement.unlocked_ever && !achievement.unlocked) {
+                statusClass = 'unlocked'; // Ainda mostra como unlocked, pois é permanente
+            }
+
+            badgeItem.className = `badge-item ${statusClass}`;
+
+            // Mostrar tag PRO apenas em conquistas pro_only para usuários que não são PRO
             if (achievement.is_pro_only && !isPro) {
                 badgeItem.classList.add('pro-only');
             }
 
             badgeItem.title = achievement.description;
 
+            // Mostrar check para conquistas já desbloqueadas
+            let checkMark = '';
+            if (isUnlocked) {
+                checkMark = `<div class="badge-unlocked-check">✓</div>`;
+            }
+
             badgeItem.innerHTML = `
                 <div class="badge-icon">${achievement.icon}</div>
                 <div class="badge-name">${achievement.name}</div>
                 ${achievement.is_pro_only ? '<div class="badge-pro-tag">PRO</div>' : ''}
-                ${achievement.unlocked ? '<div class="badge-unlocked-check">✓</div>' : ''}
+                ${checkMark}
             `;
 
             badgeItem.addEventListener('click', () => showAchievementDetail(achievement));
@@ -325,6 +404,18 @@
             return;
         }
 
+        // Determinar status de desbloqueio
+        const isUnlocked = achievement.unlocked || achievement.unlocked_ever;
+        let statusHtml = '';
+
+        if (achievement.unlocked) {
+            statusHtml = `<p class="achievement-unlocked">✓ Desbloqueada neste mês${achievement.unlocked_at ? ` em ${formatDate(achievement.unlocked_at)}` : ''}</p>`;
+        } else if (achievement.unlocked_ever) {
+            statusHtml = `<p class="achievement-unlocked past">✓ Conquistada anteriormente</p>`;
+        } else {
+            statusHtml = '<p class="achievement-locked">🔒 Ainda não desbloqueada</p>';
+        }
+
         Swal.fire({
             title: `${achievement.icon} ${achievement.name}`,
             html: `
@@ -333,9 +424,9 @@
                     <i class="fas fa-star"></i> ${achievement.points_reward} pontos
                 </p>
                 ${achievement.is_pro_only ? '<p class="achievement-pro-tag"><i class="fas fa-gem"></i> Conquista exclusiva Pro</p>' : ''}
-                ${achievement.unlocked ? `<p class="achievement-unlocked">✓ Desbloqueada em ${formatDate(achievement.unlocked_at)}</p>` : '<p class="achievement-locked">🔒 Ainda não desbloqueada</p>'}
+                ${statusHtml}
             `,
-            icon: achievement.unlocked ? 'success' : 'info',
+            icon: isUnlocked ? 'success' : 'info',
             confirmButtonText: 'Fechar',
             customClass: {
                 popup: 'achievement-modal',

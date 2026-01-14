@@ -8,6 +8,9 @@ use Application\Models\UserProgress;
 use Application\Models\Usuario;
 use Application\Models\Lancamento;
 use Application\Models\Categoria;
+use Application\Models\CartaoCredito;
+use Application\Models\Fatura;
+
 use Application\Enums\AchievementType;
 use Carbon\Carbon;
 
@@ -43,15 +46,22 @@ class AchievementService
         $unlockedNow = [];
 
         // Obter conquistas disponíveis para o plano do usuário
+        // Pro: pode desbloquear todas (free + pro + all)
+        // Free: pode desbloquear apenas free + all
         $isPro = $user->isPro();
-        $planType = $isPro ? 'pro' : 'free';
 
-        $availableAchievements = Achievement::active()
-            ->where(function ($q) use ($planType) {
-                $q->where('plan_type', $planType)
+        $availableQuery = Achievement::active();
+
+        if (!$isPro) {
+            // Usuário Free: apenas conquistas free e all
+            $availableQuery->where(function ($q) {
+                $q->where('plan_type', 'free')
                     ->orWhere('plan_type', 'all');
-            })
-            ->get();
+            });
+        }
+        // Usuário Pro: não filtra, pode desbloquear todas
+
+        $availableAchievements = $availableQuery->get();
 
         foreach ($availableAchievements as $achievement) {
             // Pular se já desbloqueou
@@ -136,6 +146,51 @@ class AchievementService
             AchievementType::TOTAL_100_LAUNCHES => $this->checkTotalLaunches($userId, 100),
             AchievementType::LEVEL_5 => $this->checkLevel($progress, 5),
 
+            // ===== NOVAS - LANÇAMENTOS =====
+            AchievementType::TOTAL_250_LAUNCHES => $this->checkTotalLaunches($userId, 250),
+            AchievementType::TOTAL_500_LAUNCHES => $this->checkTotalLaunches($userId, 500),
+            AchievementType::TOTAL_1000_LAUNCHES => $this->checkTotalLaunches($userId, 1000) && $user->isPro(),
+
+            // ===== NOVAS - DIAS ATIVOS =====
+            AchievementType::DAYS_50_ACTIVE => $this->checkStreak($progress, 50),
+            AchievementType::DAYS_100_ACTIVE => $this->checkStreak($progress, 100),
+            AchievementType::DAYS_365_ACTIVE => $this->checkStreak($progress, 365) && $user->isPro(),
+
+            // ===== NOVAS - ECONOMIA =====
+            AchievementType::SAVER_10 => $this->checkSavingsPercentage($userId, 10),
+            AchievementType::SAVER_20 => $this->checkSavingsPercentage($userId, 20),
+            AchievementType::SAVER_30 => $this->checkSavingsPercentage($userId, 30) && $user->isPro(),
+            AchievementType::POSITIVE_3_MONTHS => $this->checkConsecutivePositiveMonths($userId, 3),
+            AchievementType::POSITIVE_6_MONTHS => $this->checkConsecutivePositiveMonths($userId, 6) && $user->isPro(),
+            AchievementType::POSITIVE_12_MONTHS => $this->checkConsecutivePositiveMonths($userId, 12) && $user->isPro(),
+
+            // ===== NOVAS - ORGANIZAÇÃO =====
+            AchievementType::TOTAL_15_CATEGORIES => $this->checkTotalCategories($userId, 15),
+            AchievementType::TOTAL_25_CATEGORIES => $this->checkTotalCategories($userId, 25),
+            AchievementType::PERFECTIONIST => $this->checkPerfectionist($userId),
+
+            // ===== NOVAS - CARTÕES =====
+            AchievementType::FIRST_CARD => $this->checkFirstCard($userId),
+            AchievementType::FIRST_INVOICE_PAID => $this->checkFirstInvoicePaid($userId),
+            AchievementType::INVOICES_12_PAID => $this->checkInvoicesPaidInYear($userId, 12) && $user->isPro(),
+
+            // ===== NOVAS - TEMPO DE USO =====
+            AchievementType::ANNIVERSARY_1_YEAR => $this->checkDaysUsing($user, 365),
+            AchievementType::ANNIVERSARY_2_YEARS => $this->checkDaysUsing($user, 730) && $user->isPro(),
+
+            // ===== NOVAS - NÍVEIS =====
+            AchievementType::LEVEL_10 => $this->checkLevel($progress, 10),
+            AchievementType::LEVEL_12 => $this->checkLevel($progress, 12) && $user->isPro(),
+            AchievementType::LEVEL_15 => $this->checkLevel($progress, 15) && $user->isPro(),
+
+            // ===== NOVAS - ESPECIAIS =====
+            AchievementType::EARLY_BIRD => $this->checkEarlyBird($userId),
+            AchievementType::NIGHT_OWL => $this->checkNightOwl($userId),
+            AchievementType::CHRISTMAS => $this->checkHoliday($userId, 12, 25),
+            AchievementType::NEW_YEAR => $this->checkHoliday($userId, 1, 1),
+            AchievementType::WEEKEND_WARRIOR => $this->checkWeekendWarrior($userId),
+            AchievementType::SPEED_DEMON => $this->checkSpeedDemon($userId),
+
             default => false,
         };
     }
@@ -198,9 +253,10 @@ class AchievementService
      * Listar conquistas do usuário com status
      * 
      * @param int $userId
+     * @param string|null $month Filtro por mês (formato YYYY-MM)
      * @return array
      */
-    public function getUserAchievements(int $userId): array
+    public function getUserAchievements(int $userId, ?string $month = null): array
     {
         $user = Usuario::find($userId);
         if (!$user) {
@@ -208,38 +264,80 @@ class AchievementService
         }
 
         $isPro = $user->isPro();
-        $planType = $isPro ? 'pro' : 'free';
 
-        // Buscar todas as conquistas disponíveis
-        $achievements = Achievement::active()
-            ->where(function ($q) use ($planType) {
-                $q->where('plan_type', $planType)
+        // Buscar conquistas baseado no plano:
+        // - Pro: vê TODAS as conquistas (free + pro + all)
+        // - Free: vê apenas conquistas free + all
+        $achievementsQuery = Achievement::active()->orderBy('sort_order');
+
+        if (!$isPro) {
+            // Usuário Free: apenas conquistas free e all
+            $achievementsQuery->where(function ($q) {
+                $q->where('plan_type', 'free')
                     ->orWhere('plan_type', 'all');
-            })
-            ->orderBy('sort_order')
-            ->get();
+            });
+        }
+        // Usuário Pro: não filtra, vê todas
+
+        $achievements = $achievementsQuery->get();
 
         $result = [];
 
-        foreach ($achievements as $achievement) {
-            $unlocked = UserAchievement::where('user_id', $userId)
-                ->where('achievement_id', $achievement->id)
-                ->first();
+        // Calcular intervalo do mês se fornecido
+        $monthStart = null;
+        $monthEnd = null;
+        if ($month && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
+            $monthStart = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+            $monthEnd = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+        }
 
-            $result[] = [
-                'id' => $achievement->id,
-                'code' => $achievement->code,
-                'name' => $achievement->name,
-                'description' => $achievement->description,
-                'icon' => $achievement->icon,
-                'points_reward' => $achievement->points_reward,
-                'category' => $achievement->category,
-                'plan_type' => $achievement->plan_type,
-                'is_pro_only' => $achievement->plan_type === 'pro',
-                'unlocked' => (bool)$unlocked,
-                'unlocked_at' => $unlocked?->unlocked_at?->format('Y-m-d H:i:s'),
-                'can_unlock' => !$unlocked && $this->canUnlock($userId, $achievement->code, $user),
-            ];
+        foreach ($achievements as $achievement) {
+            $unlockedQuery = UserAchievement::where('user_id', $userId)
+                ->where('achievement_id', $achievement->id);
+
+            // Se tiver filtro de mês, só considera desbloqueadas naquele mês
+            if ($monthStart && $monthEnd) {
+                $unlockedInMonth = (clone $unlockedQuery)
+                    ->whereBetween('unlocked_at', [$monthStart, $monthEnd])
+                    ->first();
+
+                // Verifica se foi desbloqueada em qualquer momento (para o status geral)
+                $unlockedEver = $unlockedQuery->first();
+
+                $result[] = [
+                    'id' => $achievement->id,
+                    'code' => $achievement->code,
+                    'name' => $achievement->name,
+                    'description' => $achievement->description,
+                    'icon' => $achievement->icon,
+                    'points_reward' => $achievement->points_reward,
+                    'category' => $achievement->category,
+                    'plan_type' => $achievement->plan_type,
+                    'is_pro_only' => $achievement->plan_type === 'pro',
+                    'unlocked' => (bool)$unlockedInMonth, // Desbloqueada neste mês
+                    'unlocked_ever' => (bool)$unlockedEver, // Desbloqueada em algum momento
+                    'unlocked_at' => $unlockedInMonth?->unlocked_at?->format('Y-m-d H:i:s'),
+                    'can_unlock' => !$unlockedEver && $this->canUnlock($userId, $achievement->code, $user),
+                ];
+            } else {
+                $unlocked = $unlockedQuery->first();
+
+                $result[] = [
+                    'id' => $achievement->id,
+                    'code' => $achievement->code,
+                    'name' => $achievement->name,
+                    'description' => $achievement->description,
+                    'icon' => $achievement->icon,
+                    'points_reward' => $achievement->points_reward,
+                    'category' => $achievement->category,
+                    'plan_type' => $achievement->plan_type,
+                    'is_pro_only' => $achievement->plan_type === 'pro',
+                    'unlocked' => (bool)$unlocked,
+                    'unlocked_ever' => (bool)$unlocked,
+                    'unlocked_at' => $unlocked?->unlocked_at?->format('Y-m-d H:i:s'),
+                    'can_unlock' => !$unlocked && $this->canUnlock($userId, $achievement->code, $user),
+                ];
+            }
         }
 
         return $result;
@@ -329,5 +427,201 @@ class AchievementService
             ->sum('valor');
 
         return $receitas > $despesas;
+    }
+
+    // ===== NOVAS VERIFICAÇÕES - ECONOMIA =====
+
+    /**
+     * Verifica se o usuário economizou X% da receita em algum mês
+     */
+    private function checkSavingsPercentage(int $userId, int $percentage): bool
+    {
+        // Verificar os últimos 12 meses
+        for ($i = 0; $i < 12; $i++) {
+            $month = Carbon::now()->subMonths($i)->format('Y-m');
+
+            $receitas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'receita')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->sum('valor');
+
+            if ($receitas <= 0) continue;
+
+            $despesas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'despesa')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->sum('valor');
+
+            $savings = $receitas - $despesas;
+            $savingsPercentage = ($savings / $receitas) * 100;
+
+            if ($savingsPercentage >= $percentage) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica se o usuário teve X meses consecutivos com saldo positivo
+     */
+    private function checkConsecutivePositiveMonths(int $userId, int $months): bool
+    {
+        $consecutiveCount = 0;
+        $maxConsecutive = 0;
+
+        // Verificar os últimos 24 meses
+        for ($i = 0; $i < 24; $i++) {
+            $month = Carbon::now()->subMonths($i)->format('Y-m');
+
+            $receitas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'receita')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->sum('valor');
+
+            $despesas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'despesa')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->sum('valor');
+
+            if ($receitas > $despesas) {
+                $consecutiveCount++;
+                $maxConsecutive = max($maxConsecutive, $consecutiveCount);
+            } else {
+                $consecutiveCount = 0;
+            }
+        }
+
+        return $maxConsecutive >= $months;
+    }
+
+    // ===== NOVAS VERIFICAÇÕES - ORGANIZAÇÃO =====
+
+    /**
+     * Verifica se todas as despesas do mês atual estão categorizadas
+     */
+    private function checkPerfectionist(int $userId): bool
+    {
+        $currentMonth = Carbon::now()->format('Y-m');
+
+        $despesasSemCategoria = Lancamento::where('user_id', $userId)
+            ->where('tipo', 'despesa')
+            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
+            ->where(function ($q) {
+                $q->whereNull('categoria_id')
+                    ->orWhere('categoria_id', 0);
+            })
+            ->count();
+
+        $totalDespesas = Lancamento::where('user_id', $userId)
+            ->where('tipo', 'despesa')
+            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
+            ->count();
+
+        return $totalDespesas > 0 && $despesasSemCategoria === 0;
+    }
+
+    // ===== NOVAS VERIFICAÇÕES - CARTÕES =====
+
+    /**
+     * Verifica se o usuário cadastrou pelo menos um cartão
+     */
+    private function checkFirstCard(int $userId): bool
+    {
+        return CartaoCredito::where('user_id', $userId)->count() >= 1;
+    }
+
+    /**
+     * Verifica se o usuário pagou pelo menos uma fatura
+     * (status = 'paga')
+     */
+    private function checkFirstInvoicePaid(int $userId): bool
+    {
+        $userCards = CartaoCredito::where('user_id', $userId)->pluck('id');
+
+        if ($userCards->isEmpty()) {
+            return false;
+        }
+
+        return Fatura::whereIn('cartao_credito_id', $userCards)
+            ->where('status', 'paga')
+            ->count() >= 1;
+    }
+
+    /**
+     * Verifica se o usuário pagou X faturas no ano atual
+     */
+    private function checkInvoicesPaidInYear(int $userId, int $count): bool
+    {
+        $userCards = CartaoCredito::where('user_id', $userId)->pluck('id');
+
+        if ($userCards->isEmpty()) {
+            return false;
+        }
+
+        $currentYear = Carbon::now()->year;
+
+        return Fatura::whereIn('cartao_credito_id', $userCards)
+            ->where('status', 'paga')
+            ->whereYear('updated_at', $currentYear)
+            ->count() >= $count;
+    }
+
+    // ===== NOVAS VERIFICAÇÕES - ESPECIAIS =====
+
+    /**
+     * Verifica se o usuário fez lançamento antes das 6h
+     */
+    private function checkEarlyBird(int $userId): bool
+    {
+        return Lancamento::where('user_id', $userId)
+            ->whereRaw("HOUR(created_at) < 6")
+            ->count() >= 1;
+    }
+
+    /**
+     * Verifica se o usuário fez lançamento após as 23h
+     */
+    private function checkNightOwl(int $userId): bool
+    {
+        return Lancamento::where('user_id', $userId)
+            ->whereRaw("HOUR(created_at) >= 23")
+            ->count() >= 1;
+    }
+
+    /**
+     * Verifica se o usuário fez lançamento em um feriado específico
+     */
+    private function checkHoliday(int $userId, int $month, int $day): bool
+    {
+        return Lancamento::where('user_id', $userId)
+            ->whereRaw("MONTH(created_at) = ? AND DAY(created_at) = ?", [$month, $day])
+            ->count() >= 1;
+    }
+
+    /**
+     * Verifica se o usuário fez 10+ lançamentos em fins de semana
+     */
+    private function checkWeekendWarrior(int $userId): bool
+    {
+        // DAYOFWEEK: 1 = Sunday, 7 = Saturday
+        return Lancamento::where('user_id', $userId)
+            ->whereRaw("DAYOFWEEK(created_at) IN (1, 7)")
+            ->count() >= 10;
+    }
+
+    /**
+     * Verifica se o usuário fez 5+ lançamentos em um único dia
+     */
+    private function checkSpeedDemon(int $userId): bool
+    {
+        $result = Lancamento::where('user_id', $userId)
+            ->selectRaw("DATE(created_at) as day, COUNT(*) as count")
+            ->groupBy('day')
+            ->havingRaw("count >= 5")
+            ->first();
+
+        return $result !== null;
     }
 }
