@@ -851,9 +851,9 @@ button[class*="scroll-top"],
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: fixed;
   bottom: 100px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
   border: none;
@@ -864,7 +864,7 @@ button[class*="scroll-top"],
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   overflow: visible;
 }
 
@@ -941,12 +941,13 @@ button[class*="scroll-top"].show::before {
   [class*="back-to-top"] {
     display: flex !important;
     bottom: 104px !important;
-    right: 24px !important;
-    width: 56px !important;
-    height: 56px !important;
+    right: 20px !important;
+    width: 48px !important;
+    height: 48px !important;
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
     border: none !important;
     color: white !important;
+    font-size: 18px !important;
   }
 
   .scroll-to-top:hover,
@@ -1007,7 +1008,10 @@ button[class*="scroll-top"].show::before {
   .scroll-to-top,
   [class*="back-to-top"] {
     bottom: 74px !important;
-    right: 12px !important;
+    right: 16px !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 16px !important;
   }
   }
 

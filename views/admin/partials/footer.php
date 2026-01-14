@@ -107,13 +107,13 @@
     /* Botão Scroll to Top - Estilo Final Override */
     button#scrollToTopBtn {
         position: fixed !important;
-        bottom: 108px !important;
-        right: 24px !important;
+        bottom: 80px !important;
+        right: 20px !important;
         left: auto !important;
-        width: 64px !important;
-        height: 64px !important;
-        min-width: 64px !important;
-        min-height: 64px !important;
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
         border-radius: 100% !important;
         background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
         border: none !important;
@@ -124,7 +124,7 @@
         display: none !important;
         align-items: center !important;
         justify-content: center !important;
-        font-size: 24px !important;
+        font-size: 18px !important;
         opacity: 0 !important;
         visibility: hidden !important;
         transform: translateY(20px) !important;
@@ -173,13 +173,16 @@
     }
 
     button#scrollToTopBtn i {
-        font-size: 24px !important;
+        font-size: 18px !important;
     }
 
     @keyframes glow-pulse {
-        0%, 100% {
+
+        0%,
+        100% {
             opacity: 0.4;
         }
+
         50% {
             opacity: 0.8;
         }
