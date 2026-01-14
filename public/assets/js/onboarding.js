@@ -8,7 +8,7 @@ class OnboardingManager {
         this.baseUrl = window.BASE_URL || '/lukrato/public/';
         this.storageKey = 'lukrato_onboarding_completed';
         this.currentStep = 0;
-        this.totalSteps = 3;
+        this.totalSteps = 2;
 
         this.init();
         this.setupEventListeners();
@@ -57,32 +57,22 @@ class OnboardingManager {
             const lancamentos = await lancamentosResponse.json();
             const hasLancamentos = Array.isArray(lancamentos) ? lancamentos.length > 0 : (lancamentos.data?.length > 0 || false);
 
-            // Verificar se há categorias
-            const categoriasResponse = await fetch(`${this.baseUrl}api/categorias`);
-            const categorias = await categoriasResponse.json();
-            const hasCategorias = Array.isArray(categorias) ? categorias.length > 0 : (categorias.data?.length > 0 || false);
-
             // Salvar progresso
             this.updateProgress({
                 hasContas,
-                hasCategorias,
                 hasLancamentos
             });
 
             // Se não tem nada, mostrar empty state melhorado
-            if (!hasContas && !hasLancamentos && !hasCategorias) {
+            if (!hasContas && !hasLancamentos) {
                 this.showEmptyStateCards();
             }
-            // Se tem conta mas não tem categoria
-            else if (hasContas && !hasCategorias) {
-                this.showNextStepGuide('categoria');
-            }
-            // Se tem conta e categoria mas não tem lançamento
-            else if (hasContas && hasCategorias && !hasLancamentos) {
+            // Se tem conta mas não tem lançamento
+            else if (hasContas && !hasLancamentos) {
                 this.showNextStepGuide('lancamento');
             }
             // Se completou tudo, mostrar celebração
-            else if (hasContas && hasCategorias && hasLancamentos) {
+            else if (hasContas && hasLancamentos) {
                 this.showCompletionCelebration();
             }
         } catch (error) {
@@ -96,7 +86,7 @@ class OnboardingManager {
 
     getProgress() {
         const saved = localStorage.getItem('lukrato_onboarding_progress');
-        return saved ? JSON.parse(saved) : { hasContas: false, hasCategorias: false, hasLancamentos: false };
+        return saved ? JSON.parse(saved) : { hasContas: false, hasLancamentos: false };
     }
 
     getCurrentPage() {
@@ -113,10 +103,6 @@ class OnboardingManager {
         const currentPage = this.getCurrentPage();
 
         // NÃO mostrar banner se já estiver na página de destino
-        if (nextStep === 'categoria' && currentPage === 'categorias') {
-            console.log('🎯 Onboarding: Já está na página de categorias, não mostrando banner');
-            return;
-        }
         if (nextStep === 'lancamento' && currentPage === 'lancamentos') {
             console.log('🎯 Onboarding: Já está na página de lançamentos, não mostrando banner');
             return;
@@ -137,25 +123,15 @@ class OnboardingManager {
         const progress = this.getProgress();
 
         let stepInfo = {};
-        if (nextStep === 'categoria') {
-            stepInfo = {
-                icon: '🏷️',
-                title: 'Parabéns! Conta criada! 🎉',
-                subtitle: 'Agora vamos organizar suas finanças',
-                description: 'Crie categorias para classificar seus gastos e receitas',
-                actionText: 'Criar Categoria',
-                actionUrl: `${this.baseUrl}categorias`,
-                step: 2
-            };
-        } else if (nextStep === 'lancamento') {
+        if (nextStep === 'lancamento') {
             stepInfo = {
                 icon: '💰',
-                title: 'Ótimo! Categorias criadas! 🎊',
+                title: 'Ótimo! Conta criada! 🎉',
                 subtitle: 'Hora de registrar suas movimentações',
                 description: 'Adicione seus primeiros lançamentos para começar a controlar seu dinheiro',
                 actionText: 'Adicionar Lançamento',
                 actionCallback: () => this.openLancamentoModal(),
-                step: 3
+                step: 2
             };
         }
 
@@ -175,10 +151,6 @@ class OnboardingManager {
                     <div class="nsb-step ${progress.hasContas ? 'completed' : ''}">
                         <i class="fas ${progress.hasContas ? 'fa-check-circle' : 'fa-circle'}"></i>
                         <span>Conta</span>
-                    </div>
-                    <div class="nsb-step ${progress.hasCategorias ? 'completed' : ''}">
-                        <i class="fas ${progress.hasCategorias ? 'fa-check-circle' : 'fa-circle'}"></i>
-                        <span>Categorias</span>
                     </div>
                     <div class="nsb-step ${progress.hasLancamentos ? 'completed' : ''}">
                         <i class="fas ${progress.hasLancamentos ? 'fa-check-circle' : 'fa-circle'}"></i>
@@ -233,11 +205,11 @@ class OnboardingManager {
                         </div>
                         <div class="cc-achievement">
                             <i class="fas fa-check-circle"></i>
-                            <span>Categorias organizadas</span>
+                            <span>Categorias padrão já configuradas</span>
                         </div>
                         <div class="cc-achievement">
                             <i class="fas fa-check-circle"></i>
-                            <span>Primeiro lançamento</span>
+                            <span>Primeiro lançamento registrado</span>
                         </div>
                     </div>
 
@@ -316,34 +288,20 @@ class OnboardingManager {
                         <div class="qsc-badge">Passo 1</div>
                     </div>
 
-                    <div class="quick-start-card" data-action="create-category">
-                        <div class="qsc-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <div class="qsc-content">
-                            <h3>2. Organize com categorias</h3>
-                            <p>Crie categorias personalizadas para seus gastos e receitas</p>
-                            <button class="qsc-btn">
-                                <span>Criar Categoria</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                        <div class="qsc-badge">Passo 2</div>
-                    </div>
-
                     <div class="quick-start-card" data-action="create-transaction">
                         <div class="qsc-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
                             <i class="fas fa-receipt"></i>
                         </div>
                         <div class="qsc-content">
-                            <h3>3. Registre lançamentos</h3>
+                            <h3>2. Registre lançamentos</h3>
                             <p>Adicione suas receitas e despesas para controlar seu dinheiro</p>
+                            <p class="qsc-detail">✨ Categorias já estão configuradas para você!</p>
                             <button class="qsc-btn">
                                 <span>Adicionar Lançamento</span>
                                 <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
-                        <div class="qsc-badge">Passo 3</div>
+                        <div class="qsc-badge">Passo 2</div>
                     </div>
                 </div>
 
@@ -415,12 +373,6 @@ class OnboardingManager {
         const createAccountCard = document.querySelector('[data-action="create-account"]');
         createAccountCard?.querySelector('.qsc-btn')?.addEventListener('click', () => {
             window.location.href = `${this.baseUrl}contas`;
-        });
-
-        // Criar Categoria
-        const createCategoryCard = document.querySelector('[data-action="create-category"]');
-        createCategoryCard?.querySelector('.qsc-btn')?.addEventListener('click', () => {
-            window.location.href = `${this.baseUrl}categorias`;
         });
 
         // Criar Lançamento

@@ -13,6 +13,7 @@ use Application\Services\LogService;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
 use Application\Models\Usuario;
+use Application\Models\Categoria;
 use Carbon\Carbon;
 
 
@@ -57,6 +58,7 @@ class AuthService
 
             if (!empty($result['user_id'])) {
                 $this->criarAssinaturaPadrao((int) $result['user_id']);
+                $this->criarCategoriasPadrao((int) $result['user_id']);
             } else {
                 LogService::warning('[AuthService] Registro retornou sem user_id, não foi possível criar assinatura.', [
                     'email' => $data['email'] ?? 'não-informado'
@@ -123,6 +125,84 @@ class AuthService
             ]);
         } catch (Throwable $e) {
             LogService::error('[AuthService] Erro ao criar assinatura padrão.', [
+                'user_id' => $userId,
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
+        }
+    }
+
+    /**
+     * Cria categorias padrão para o novo usuário
+     */
+    private function criarCategoriasPadrao(int $userId): void
+    {
+        try {
+            $user = Usuario::find($userId);
+
+            if (!$user) {
+                LogService::warning('[AuthService] Usuário não encontrado ao criar categorias padrão.', [
+                    'user_id' => $userId,
+                ]);
+                return;
+            }
+
+            // Categorias de Despesa
+            $categoriasDespesa = [
+                '🏠 Moradia',
+                '🍔 Alimentação',
+                '🚗 Transporte',
+                '💡 Contas e Serviços',
+                '🏥 Saúde',
+                '🎓 Educação',
+                '👕 Vestuário',
+                '🎬 Lazer',
+                '💳 Cartão de Crédito',
+                '📱 Assinaturas',
+                '🛒 Compras',
+                '💰 Outros Gastos',
+            ];
+
+            // Categorias de Receita
+            $categoriasReceita = [
+                '💼 Salário',
+                '💰 Freelance',
+                '📈 Investimentos',
+                '🎁 Bônus',
+                '💸 Vendas',
+                '🏆 Prêmios',
+                '💵 Outras Receitas',
+            ];
+
+            $criadas = 0;
+
+            // Criar despesas
+            foreach ($categoriasDespesa as $nome) {
+                Categoria::create([
+                    'nome' => $nome,
+                    'tipo' => 'despesa',
+                    'user_id' => $userId,
+                ]);
+                $criadas++;
+            }
+
+            // Criar receitas
+            foreach ($categoriasReceita as $nome) {
+                Categoria::create([
+                    'nome' => $nome,
+                    'tipo' => 'receita',
+                    'user_id' => $userId,
+                ]);
+                $criadas++;
+            }
+
+            LogService::info('[AuthService] Categorias padrão criadas com sucesso.', [
+                'user_id' => $userId,
+                'total_criadas' => $criadas,
+            ]);
+        } catch (Throwable $e) {
+            LogService::error('[AuthService] Erro ao criar categorias padrão.', [
                 'user_id' => $userId,
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),

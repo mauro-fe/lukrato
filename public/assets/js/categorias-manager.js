@@ -67,7 +67,7 @@ class CategoriasManager {
 
             const baseUrl = this.getBaseUrl();
             const response = await fetch(`${baseUrl}api/categorias`);
-            
+
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
             }
@@ -122,7 +122,7 @@ class CategoriasManager {
      */
     renderListaReceitas(receitas) {
         const container = document.getElementById('receitasList');
-        
+
         if (receitas.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -141,7 +141,7 @@ class CategoriasManager {
      */
     renderListaDespesas(despesas) {
         const container = document.getElementById('despesasList');
-        
+
         if (despesas.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -159,10 +159,13 @@ class CategoriasManager {
      * Renderizar item de categoria
      */
     renderCategoriaItem(categoria, tipo) {
+        // Verificar se o nome já tem emoji (caracteres Unicode > U+1F300)
+        const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(categoria.nome);
+
         return `
             <div class="category-item" data-id="${categoria.id}">
                 <span class="category-name">
-                    <i class="fas fa-tag"></i>
+                    ${hasEmoji ? '' : '<i class="fas fa-tag"></i>'}
                     ${this.escapeHtml(categoria.nome)}
                 </span>
                 <div class="category-actions">
@@ -223,7 +226,7 @@ class CategoriasManager {
 
             this.showSuccess('Categoria criada com sucesso!');
             form.reset();
-            
+
             // Recarregar categorias
             await this.loadCategorias();
 
@@ -285,7 +288,7 @@ class CategoriasManager {
             console.log('✅ Categoria editada:', result);
 
             this.showSuccess('Categoria atualizada com sucesso!');
-            
+
             // Fechar modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditCategoria'));
             modal.hide();
@@ -339,7 +342,7 @@ class CategoriasManager {
             console.log('✅ Categoria excluída');
 
             this.showSuccess('Categoria excluída com sucesso!');
-            
+
             // Recarregar categorias
             await this.loadCategorias();
 

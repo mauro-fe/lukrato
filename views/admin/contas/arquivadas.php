@@ -1,7 +1,8 @@
 <div class="cont-page">
     <!-- ==================== HEADER ==================== -->
     <div class="lk-accounts-wrap" style="margin-bottom: 2rem;" data-aos="fade-down">
-        <div class="lk-acc-header" style="margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
+        <div class="lk-acc-header"
+            style="margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
             <h1 style="font-size: 1.75rem; margin: 0; color: var(--color-text); font-weight: 700;">
                 <i class="fas fa-archive" style="color: var(--color-primary);"></i>
                 Contas Arquivadas
