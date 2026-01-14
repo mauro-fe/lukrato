@@ -1204,7 +1204,12 @@
             }
 
             const parts = [];
-            const isXs = window.matchMedia('(max-width: 768px)').matches;
+            const isXs = window.matchMedia('(max-width: 414px)').matches;
+            
+            // Debug log
+            if (isXs) {
+                console.log('Mobile mode (≤414px) - botões nos detalhes');
+            }
 
             // CabeÃ§alho
             // CabeÃ§alho
@@ -1261,6 +1266,7 @@
                     '';
                 const descricao = descRaw || '--';
 
+                // Botões de ação para desktop/tablet
                 const actionsHtml = `
                 ${Utils.canEditLancamento(item)
                         ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento">
@@ -1274,7 +1280,36 @@
                        </button>`
                         : ''
                     }
-            `;
+            `.trim();
+
+                // Para mobile pequeno, sempre gera os botões (com ou sem permissões para garantir que apareçam)
+                let mobileActionsHtml = '';
+                if (isXs) {
+                    const canEdit = Utils.canEditLancamento(item);
+                    const canDelete = !Utils.isSaldoInicial(item);
+                    
+                    const buttonStyle = 'display: flex !important; visibility: visible !important; opacity: 1 !important; width: 30px !important; height: 36px !important; min-width: 30px !important; min-height: 36px !important; border-radius: 10px !important; padding: 0 !important; margin: 0 2px !important; align-items: center !important; justify-content: center !important; flex: 0 0 auto !important; position: relative !important; z-index: 999 !important;';
+                    
+                    // Se tiver ao menos uma permissão, mostra os botões permitidos
+                    if (canEdit || canDelete) {
+                        mobileActionsHtml = `
+                        ${canEdit ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento" style="${buttonStyle} background: rgba(230, 126, 34, 0.3) !important; color: #e67e22 !important; border: 1px solid #e67e22 !important;">
+                               <i class="fas fa-pen" style="font-size: 0.75rem; color: #e67e22;"></i>
+                           </button>` : ''}
+                        ${canDelete ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento" style="${buttonStyle} background: rgba(231, 76, 60, 0.3) !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;">
+                               <i class="fas fa-trash" style="font-size: 0.75rem; color: #e74c3c;"></i>
+                           </button>` : ''}`.trim();
+                    } else {
+                        // Fallback: sempre mostra os botões em telas pequenas
+                        mobileActionsHtml = `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento" style="${buttonStyle} background: rgba(230, 126, 34, 0.3) !important; color: #e67e22 !important; border: 1px solid #e67e22 !important;">
+                               <i class="fas fa-pen" style="font-size: 0.75rem; color: #e67e22;"></i>
+                           </button>
+                           <button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento" style="${buttonStyle} background: rgba(231, 76, 60, 0.3) !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;">
+                               <i class="fas fa-trash" style="font-size: 0.75rem; color: #e74c3c;"></i>
+                           </button>`.trim();
+                    }
+                    console.log('mobileActionsHtml gerado:', mobileActionsHtml ? 'SIM' : 'NÃO');
+                }
 
                 parts.push(`
                 <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
@@ -1312,10 +1347,10 @@
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}</span>
                         </div>
-                        ${isXs ? `<div class="lan-card-detail-row card-detail-row actions-row">
-                                    <span class="lan-card-detail-label card-detail-label">Ações</span>
-                                    <span class="lan-card-detail-value card-detail-value actions-slot">
-                                        ${actionsHtml}
+                        ${isXs && mobileActionsHtml ? `<div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
+                                    <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
+                                    <span class="lan-card-detail-value card-detail-value actions-slot" style="display: flex !important;">
+                                        ${mobileActionsHtml}
                                     </span>
                                   </div>` : ``}
                     </div>
@@ -1324,6 +1359,16 @@
             }
 
             DOM.lanCards.innerHTML = parts.join('');
+            
+            // Debug: verificar se os botões foram inseridos no DOM
+            if (isXs) {
+                const actionsRows = document.querySelectorAll('.actions-row');
+                console.log('Linhas de ações encontradas:', actionsRows.length);
+                actionsRows.forEach((row, i) => {
+                    const buttons = row.querySelectorAll('.lk-btn');
+                    console.log(`Linha ${i}: ${buttons.length} botões`);
+                });
+            }
             this.updatePager(total, page, totalPages);
             this.updateSortIndicators();
         },
