@@ -173,17 +173,16 @@ class GamificationService
 
         $levelUp = $newLevel > $previousLevel;
 
+        // Atualizar nível e calcular pontos para próximo nível
+        $progress->current_level = $newLevel;
+        $nextLevelThreshold = self::LEVEL_THRESHOLDS[$newLevel + 1] ?? null;
+        $progress->points_to_next_level = $nextLevelThreshold
+            ? $nextLevelThreshold - $points
+            : 0;
+
+        $progress->save();
+
         if ($levelUp) {
-            $progress->current_level = $newLevel;
-
-            // Calcular pontos para próximo nível
-            $nextLevelThreshold = self::LEVEL_THRESHOLDS[$newLevel + 1] ?? null;
-            $progress->points_to_next_level = $nextLevelThreshold
-                ? $nextLevelThreshold - $points
-                : 0;
-
-            $progress->save();
-
             // Registrar level up
             PointsLog::create([
                 'user_id' => $userId,
@@ -321,7 +320,7 @@ class GamificationService
             [
                 'total_points' => 0,
                 'current_level' => 1,
-                'points_to_next_level' => 100,
+                'points_to_next_level' => 300,
                 'current_streak' => 0,
                 'best_streak' => 0,
                 'last_activity_date' => null,

@@ -3,18 +3,38 @@
  * Gerencia carregamento e exibição de dados de gamificação
  */
 
-console.log('🎮 [GAMIFICATION] Script carregado!');
-
 (function () {
     'use strict';
 
-    console.log('🎮 [GAMIFICATION] Iniciando IIFE...');
+    // ========== UTILITÁRIOS (DEFINIDOS NO TOPO) ==========
+
+    /**
+     * Obter threshold de pontos para cada nível
+     */
+    function getLevelThreshold(level) {
+        const thresholdsArray = [0, 0, 300, 500, 700, 1000, 1500, 2200, 3000, 3000];
+        return thresholdsArray[level] !== undefined ? thresholdsArray[level] : 3000;
+    }
+
+    function formatNumber(num) {
+        return new Intl.NumberFormat('pt-BR').format(num);
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
+    }
+
+    // ========== VARIÁVEIS ==========
 
     // Ler BASE_URL do meta tag
     const baseUrlMeta = document.querySelector('meta[name="base-url"]');
     const BASE = baseUrlMeta ? baseUrlMeta.content : (window.BASE_URL || '/');
-
-    console.log('🎮 [GAMIFICATION] BASE:', BASE);
 
     let isPro = false;
     let currentProgress = {};
@@ -23,17 +43,11 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
      * Inicializar sistema de gamificação
      */
     function initGamification() {
-        console.log('🎮 [GAMIFICATION] initGamification() chamada!');
-
         // Verificar se estamos na página correta
         const gamificationSection = document.querySelector('.gamification-section');
         if (!gamificationSection) {
-            console.log('🎮 [GAMIFICATION] Seção não encontrada, script não será executado');
-            return; // Não está na página do dashboard
+            return;
         }
-
-        console.log('🎮 [GAMIFICATION] Inicializando sistema...');
-        console.log('🎮 [GAMIFICATION] BASE_URL:', BASE);
 
         loadGamificationProgress();
         loadGamificationStats();
@@ -51,9 +65,6 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
      * Carregar progresso do usuário
      */
     async function loadGamificationProgress() {
-        console.log('🎮 [GAMIFICATION] loadGamificationProgress() iniciada');
-        console.log('🎮 [GAMIFICATION] URL:', `${BASE}api/gamification/progress`);
-
         try {
             const response = await fetch(`${BASE}api/gamification/progress`, {
                 method: 'GET',
@@ -63,32 +74,20 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
                 credentials: 'same-origin'
             });
 
-            console.log('🎮 [GAMIFICATION] Response status:', response.status);
-            console.log('🎮 [GAMIFICATION] Response ok:', response.ok);
-
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.warn('🎮 [GAMIFICATION] Erro ao carregar progresso:', errorData.message || response.statusText);
                 return;
             }
 
             const data = await response.json();
-            console.log('🎮 [GAMIFICATION] Data recebida:', data);
-
-            // Aceitar tanto 'success' quanto 'status'
             const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
 
             if (isSuccess && data.data) {
-                console.log('🎮 [GAMIFICATION] Chamando updateProgressUI...');
                 currentProgress = data.data;
                 isPro = data.data.is_pro;
                 updateProgressUI(data.data);
-            } else {
-                console.warn('🎮 [GAMIFICATION] Data inválida:', data);
             }
         } catch (error) {
-            console.error('🎮 [GAMIFICATION] ERRO ao carregar progresso:', error);
-            // Não mostrar erro para o usuário, apenas log no console
+            // Silenciar erros
         }
     }
 
@@ -96,8 +95,6 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
      * Atualizar UI com dados de progresso
      */
     function updateProgressUI(progress) {
-        console.log('=== UPDATE PROGRESS UI ===');
-        console.log('Progress recebido:', progress);
 
         // Badge Pro
         const proBadge = document.getElementById('proBadge');
@@ -123,12 +120,6 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
         const progressPoints = document.getElementById('levelProgressPoints');
         const progressText = document.getElementById('levelProgressText');
 
-        console.log('Elementos encontrados:', {
-            progressBar: progressBar ? 'SIM' : 'NÃO',
-            progressPoints: progressPoints ? 'SIM' : 'NÃO',
-            progressText: progressText ? 'SIM' : 'NÃO'
-        });
-
         if (progressBar && progressPoints) {
             const percentage = progress.progress_percentage || 0;
             const nextLevelPoints = getLevelThreshold(progress.current_level + 1);
@@ -136,26 +127,12 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
             const neededPoints = nextLevelPoints - currentLevelPoints;
             let currentInLevel = progress.total_points - currentLevelPoints;
 
-            // Proteção contra valores negativos (inconsistência de dados)
             if (currentInLevel < 0) {
-                console.warn('🎮 [GAMIFICATION] Inconsistência detectada: pontos negativos no nível');
                 currentInLevel = 0;
             }
 
-            console.log('Cálculos:', {
-                total_points: progress.total_points,
-                current_level: progress.current_level,
-                currentLevelPoints: currentLevelPoints,
-                nextLevelPoints: nextLevelPoints,
-                currentInLevel: currentInLevel,
-                neededPoints: neededPoints,
-                percentage: percentage
-            });
-
             progressBar.style.width = `${Math.max(0, percentage)}%`;
             progressPoints.textContent = `${currentInLevel} / ${neededPoints} pontos`;
-
-            console.log('Texto atualizado para:', `${currentInLevel} / ${neededPoints} pontos`);
 
             if (progressText) {
                 if (progress.current_level >= 8) {
@@ -602,36 +579,6 @@ console.log('🎮 [GAMIFICATION] Script carregado!');
             loadGamificationProgress();
         }, 500);
     };
-
-    // Utilitários
-    function getLevelThreshold(level) {
-        const thresholds = {
-            1: 0,
-            2: 300,
-            3: 500,
-            4: 700,
-            5: 1000,
-            6: 1500,
-            7: 2200,
-            8: 3000,
-            9: 3000 // máximo
-        };
-        return thresholds[level] || 3000;
-    }
-
-    function formatNumber(num) {
-        return new Intl.NumberFormat('pt-BR').format(num);
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        }).format(date);
-    }
 
     // Inicializar quando o DOM estiver pronto
     if (document.readyState === 'loading') {
