@@ -5,7 +5,7 @@
 
 /* ===== SECTION: GAMIFICAÇÃO ===== */
 .gamification-section {
-  background: var(--card-bg, #fff);
+  background-color: var(--glass-bg) !important;
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -84,11 +84,10 @@
 
 /* ===== BARRA DE PROGRESSO DE NÍVEL ===== */
 .level-progress-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--color-primary);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -103,12 +102,12 @@
   align-items: flex-start;
   margin-bottom: 1rem;
   gap: 0.75rem;
+  color: var(--color-text) !important;
 }
 
 .level-progress-label {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary, #1f2937);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -146,7 +145,11 @@
 
 .level-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-secondary) 100%
+  );
   border-radius: 20px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -178,7 +181,6 @@
 
 .level-progress-text {
   font-size: 0.85rem;
-  color: var(--text-secondary, #6b7280);
   text-align: center;
   font-weight: 500;
 }
@@ -295,10 +297,11 @@
   gap: 0.5rem;
   margin-top: 0.75rem;
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-surface-muted);
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
+  color: var(--color-text);
 }
 
 /* ===== PROGRESS CARD ===== */
@@ -372,6 +375,9 @@
   border-radius: 16px;
   padding: 1.5rem;
 }
+.badges-card:hover {
+  transform: translateY(-2px);
+}
 
 .badges-title {
   display: flex;
@@ -415,26 +421,27 @@
   align-items: center;
   padding: 1rem 0.5rem;
   border-radius: 12px;
-  background: var(--bg-secondary, #f9fafb);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
 }
 
 .badge-item.unlocked {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border: 2px solid #10b981;
+  border: 1px solid var(--color-text);
+  background-color: var(--glass-bg);
 }
 
 .badge-item.unlocked-past {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 2px solid #86efac;
+  border: 1px solid var(--color-text);
+
   opacity: 0.75;
+  background-color: var(--glass-bg);
 }
 
 .badge-item.locked {
   opacity: 0.5;
   filter: grayscale(0.7);
+  border: var(--primary-color);
 }
 
 .badge-item.pro-only::after {
@@ -751,48 +758,4 @@
   .badges-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-/* ===== DARK MODE ===== */
-[data-theme="dark"] .gamification-section {
-  background: var(--card-bg-dark, #1f2937);
-}
-
-[data-theme="dark"] .level-progress-card {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  border-color: rgba(99, 102, 241, 0.2);
-}
-
-[data-theme="dark"] .level-progress-label {
-  color: var(--text-primary-dark, #f9fafb);
-}
-
-[data-theme="dark"] .level-progress-points {
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-}
-
-[data-theme="dark"] .level-progress-bar-container {
-  background: rgba(99, 102, 241, 0.1);
-}
-
-[data-theme="dark"] .level-progress-text {
-  color: var(--text-secondary-dark, #9ca3af);
-}
-
-[data-theme="dark"] .gamification-title,
-[data-theme="dark"] .progress-title,
-[data-theme="dark"] .badge-name {
-  color: var(--text-primary-dark, #f9fafb);
-}
-
-[data-theme="dark"] .progress-card,
-[data-theme="dark"] .badges-card {
-  background: var(--card-bg-dark, #1f2937);
-  border-color: var(--border-color-dark, #374151);
-}
-
-[data-theme="dark"] .stat-mini,
-[data-theme="dark"] .badge-item {
-  background: var(--bg-secondary-dark, #374151);
 }

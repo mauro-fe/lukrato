@@ -178,7 +178,6 @@
 }
 
 .ag-page .tabulator .tabulator-header .tabulator-col {
-  background: transparent !important;
   border-right: 1px solid
     color-mix(in srgb, var(--glass-border) 50%, transparent) !important;
   color: var(--color-text) !important;

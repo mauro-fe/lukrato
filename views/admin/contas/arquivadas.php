@@ -581,7 +581,6 @@
 
     .account-body {
         padding: 1.5rem;
-        background: var(--color-card-bg);
     }
 
     .account-name {

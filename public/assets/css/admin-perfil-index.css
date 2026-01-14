@@ -138,7 +138,7 @@
   font-size: var(--font-size-base);
   font-family: var(--font-primary);
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-bg) !important;
   transition: all var(--transition-fast);
 }
 

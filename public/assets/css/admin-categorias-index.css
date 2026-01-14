@@ -206,7 +206,6 @@
 /* Inputs de filtro dentro do header */
 .table-container .tabulator .tabulator-header .tabulator-col input,
 .table-container .tabulator .tabulator-header .tabulator-col select {
-  background: rgba(0, 0, 0, 0.25);
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #ffffff;
@@ -781,39 +780,6 @@ button:disabled {
   font-size: 14px;
 }
 
-.modern-input {
-  width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--font-size-base);
-  font-family: var(--font-primary);
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.modern-input::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.7;
-}
-
-.modern-input:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 40%,
-    var(--glass-border)
-  );
-}
-
-.modern-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--ring);
-  background: var(--color-surface);
-}
-
 .modern-select {
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
@@ -1204,39 +1170,4 @@ button:disabled {
 .icon-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* ============================================================================
-   DARK MODE - ESTILOS COMPLEMENTARES
-   ============================================================================ */
-
-[data-theme="dark"] .modern-card,
-[data-theme="dark"] .category-card {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme="dark"] .modern-card:hover,
-[data-theme="dark"] .category-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .icon-wrapper.create {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface))
-  );
-}
-
-[data-theme="dark"] .category-item {
-  background: var(--color-surface-muted);
-}
-
-[data-theme="light"] .modern-input,
-[data-theme="light"] .modern-select {
-  background: #ffffff;
-}
-
-[data-theme="light"] .category-item {
-  background: #ffffff;
 }

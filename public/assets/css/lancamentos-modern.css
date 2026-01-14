@@ -165,34 +165,6 @@
   font-size: 14px;
 }
 
-.modern-input {
-  width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--font-size-base);
-  font-family: var(--font-primary);
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.modern-input:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 40%,
-    var(--glass-border)
-  );
-}
-
-.modern-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--ring);
-  background: var(--color-surface);
-}
-
 .export-actions-group {
   display: flex;
   gap: var(--spacing-3);
@@ -204,33 +176,23 @@
   padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: var(--color-bg);
   color: var(--color-text);
   font-size: var(--font-size-base);
   font-family: var(--font-primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e67e22' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right var(--spacing-3) center;
   padding-right: var(--spacing-8);
 }
 
 .modern-select:hover {
   border-color: var(--color-primary);
-  background-color: color-mix(
-    in srgb,
-    var(--color-primary) 5%,
-    var(--color-surface)
-  );
 }
 
 .modern-select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--ring);
 }
 
 /* ============================================================================
@@ -387,11 +349,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-4) var(--spacing-5);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)),
-    color-mix(in srgb, var(--color-secondary) 5%, var(--color-surface))
-  );
+
   border-bottom: 1px solid var(--glass-border);
   gap: var(--spacing-4);
   flex-wrap: wrap;
@@ -455,17 +413,11 @@
 }
 
 .tab-desktop .tabulator .tabulator-header {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-surface) 100%, transparent),
-    color-mix(in srgb, var(--color-surface-muted) 50%, transparent)
-  ) !important;
   border-bottom: 2px solid var(--glass-border) !important;
   font-weight: 700;
 }
 
 .tab-desktop .tabulator .tabulator-header .tabulator-col {
-  background: transparent !important;
   border-right: 1px solid
     color-mix(in srgb, var(--glass-border) 50%, transparent) !important;
   color: var(--color-text) !important;
@@ -479,11 +431,6 @@
 }
 
 .tab-desktop .tabulator .tabulator-row:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 4%, var(--color-surface))
-  ) !important;
   transform: translateX(4px);
   box-shadow: -4px 0 0 var(--color-primary) inset;
 }
@@ -629,51 +576,4 @@
 
 .modern-btn:hover i {
   animation: pulse 1s ease-in-out infinite;
-}
-
-/* ============================================================================
-   TEMAS
-   ============================================================================ */
-
-/* Dark Theme específico */
-[data-theme="dark"] .modern-card {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme="dark"] .modern-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .icon-wrapper.export {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-secondary) 15%, var(--color-surface))
-  );
-}
-
-[data-theme="dark"] .icon-wrapper.filter {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface)),
-    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface))
-  );
-}
-
-/* Light Theme específico */
-[data-theme="light"] .modern-input,
-[data-theme="light"] .modern-select {
-  background: #ffffff;
-}
-
-[data-theme="light"] .tab-desktop .tabulator .tabulator-row {
-  background: #ffffff !important;
-}
-
-[data-theme="light"] .tab-desktop .tabulator .tabulator-row:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 5%, #ffffff),
-    color-mix(in srgb, var(--color-primary) 2%, #ffffff)
-  ) !important;
 }

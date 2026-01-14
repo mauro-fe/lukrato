@@ -582,7 +582,6 @@
 }
 
 .invest-table-desktop .tabulator-row {
-  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
   border-bottom: 1px solid var(--glass-border);
   transition: var(--transition-fast);
   min-height: 48px;

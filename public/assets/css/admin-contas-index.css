@@ -229,7 +229,6 @@
 .empty-state .btn {
   margin-top: 1rem;
   font-size: 1.1rem;
-  padding: 0.875rem 2.5rem;
   border-radius: var(--radius-lg);
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.25);
@@ -471,7 +470,6 @@
   gap: var(--spacing-2);
   border: none;
   border-radius: var(--radius-md);
-  padding: var(--spacing-3) var(--spacing-5);
   cursor: pointer;
   font-weight: 600;
   text-decoration: none;
@@ -1018,6 +1016,7 @@
 
 .account-body {
   padding: 1.25rem;
+  background-color: var(--color-bg);
 }
 
 .account-name {
@@ -1217,96 +1216,4 @@
   .lk-toast.lk-toast-show {
     transform: translateY(0);
   }
-}
-
-/* ============================================================================
-   DARK MODE - ESTILOS COMPLEMENTARES
-   ============================================================================ */
-
-[data-theme="dark"] .stat-card {
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
-}
-
-[data-theme="dark"] .stat-value {
-  color: var(--color-text);
-}
-
-[data-theme="dark"] .stat-label {
-  color: var(--color-text-muted);
-}
-
-[data-theme="dark"] .lk-accounts-wrap {
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
-}
-
-[data-theme="dark"] .account-card {
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
-}
-
-[data-theme="dark"] .account-body {
-  background: var(--color-card-bg);
-}
-
-[data-theme="dark"] .account-name {
-  color: var(--color-text);
-}
-
-[data-theme="dark"] .account-institution {
-  color: var(--color-text-muted);
-}
-
-[data-theme="dark"] .empty-state {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(230, 126, 34, 0.2);
-}
-
-[data-theme="dark"] .empty-state h3 {
-  color: var(--color-text);
-}
-
-[data-theme="dark"] .empty-state p {
-  color: var(--color-text-muted);
-}
-
-[data-theme="dark"] .empty-icon {
-  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.25);
-}
-
-[data-theme="dark"] .btn-ghost {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-[data-theme="dark"] .btn-light {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .btn-light:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .badge-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-[data-theme="dark"] .badge-light {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-[data-theme="dark"] .acc-skeleton {
-  background: linear-gradient(90deg, #2a3f54 25%, #1c2c3c 50%, #2a3f54 75%);
-  background-size: 200% 100%;
 }
