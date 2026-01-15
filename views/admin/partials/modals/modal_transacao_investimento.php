@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Modal para registrar compras ou vendas de um investimento existente.
  */
@@ -72,7 +73,6 @@
             </form>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="submit" class="btn btn-primary" form="form-transacao-investimento">
                     <i class="fa-solid fa-floppy-disk me-2"></i>Salvar transação
                 </button>

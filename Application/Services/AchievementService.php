@@ -129,7 +129,6 @@ class AchievementService
             AchievementType::STREAK_3 => $this->checkStreak($progress, 3),
             AchievementType::STREAK_7 => $this->checkStreak($progress, 7),
             AchievementType::DAYS_30_USING => $this->checkDaysUsing($user, 30),
-            AchievementType::FIRST_META => $this->checkFirstMeta($userId),
             AchievementType::TOTAL_10_LAUNCHES => $this->checkTotalLaunches($userId, 10),
             AchievementType::TOTAL_5_CATEGORIES => $this->checkTotalCategories($userId, 5),
 

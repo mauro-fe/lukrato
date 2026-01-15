@@ -84,50 +84,50 @@
     }
 
     /* Botão Close Moderno */
-#modalAgendamento .btn-close {
-    background: var(--glass-bg);
-    background-image: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    opacity: 0.8;
-    transition: var(--transition-normal);
-    position: relative;
-    backdrop-filter: blur(10px);
-    border: 1px solid transparent;
-}
+    #modalAgendamento .btn-close {
+        background: var(--glass-bg);
+        background-image: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        opacity: 0.8;
+        transition: var(--transition-normal);
+        position: relative;
+        backdrop-filter: blur(10px);
+        border: 1px solid transparent;
+    }
 
-#modalAgendamento .btn-close::before,
-#modalAgendamento .btn-close::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14px;
-    height: 2px;
-    background: var(--color-text);
-    transform-origin: center;
-    transition: inherit;
-}
+    #modalAgendamento .btn-close::before,
+    #modalAgendamento .btn-close::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 14px;
+        height: 2px;
+        background: var(--color-text);
+        transform-origin: center;
+        transition: inherit;
+    }
 
-#modalAgendamento .btn-close::before {
-    transform: translate(-50%, -50%) rotate(45deg);
-}
+    #modalAgendamento .btn-close::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
 
-#modalAgendamento .btn-close::after {
-    transform: translate(-50%, -50%) rotate(-45deg);
-}
+    #modalAgendamento .btn-close::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
 
-#modalAgendamento .btn-close:hover {
-    opacity: 1;
-    background: var(--color-danger);
-    transform: rotate(90deg) scale(1.1);
-}
+    #modalAgendamento .btn-close:hover {
+        opacity: 1;
+        background: var(--color-danger);
+        transform: rotate(90deg) scale(1.1);
+    }
 
-#modalAgendamento .btn-close:hover::before,
-#modalAgendamento .btn-close:hover::after {
-    background: #fff;
-}
+    #modalAgendamento .btn-close:hover::before,
+    #modalAgendamento .btn-close:hover::after {
+        background: #fff;
+    }
 
     /* Body */
     #modalAgendamento .modal-body {
@@ -489,9 +489,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    Cancelar
-                </button>
+
                 <button type="submit" form="formAgendamento" class="btn btn-primary">
                     Salvar Agendamento
                 </button>

@@ -10,7 +10,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
   display: none;
   align-items: center;
@@ -185,6 +184,7 @@
   padding: 2rem;
   max-height: calc(90vh - 200px);
   overflow-y: auto;
+  background-color: var(--glass-bg) !important;
 }
 
 /* Scrollbar personalizada */
@@ -918,34 +918,9 @@
   }
 }
 
-/* ================================================
-   ESTILOS DO MODAL DE CONTAS
-   ================================================ */
-
-/* Overlay do Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease;
-}
-
-.modal-overlay.active {
-  display: flex;
-}
-
 /* Container do Modal */
 .modal-container {
-  background: var(--color-card-bg);
+  background: var(--color-bg) !important;
   border-radius: 24px;
   max-width: 580px;
   width: 100%;

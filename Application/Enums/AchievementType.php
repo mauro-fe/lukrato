@@ -15,7 +15,6 @@ enum AchievementType: string
     case STREAK_3 = 'STREAK_3';                             // 3 dias ativos (antigo: consecutivos)
     case STREAK_7 = 'STREAK_7';                             // 7 dias ativos
     case DAYS_30_USING = 'DAYS_30_USING';                   // 30 dias usando o sistema
-    case FIRST_META = 'FIRST_META';                         // Primeira meta criada
     case TOTAL_10_LAUNCHES = 'TOTAL_10_LAUNCHES';           // 10 lançamentos
     case TOTAL_5_CATEGORIES = 'TOTAL_5_CATEGORIES';         // 5 categorias
 
@@ -114,7 +113,6 @@ enum AchievementType: string
             self::STREAK_3 => '3 Dias Ativos',
             self::STREAK_7 => '7 Dias Ativos',
             self::DAYS_30_USING => '30 Dias Usando',
-            self::FIRST_META => 'Primeira Meta',
             self::TOTAL_10_LAUNCHES => '10 Lançamentos',
             self::TOTAL_5_CATEGORIES => '5 Categorias',
 
@@ -189,7 +187,6 @@ enum AchievementType: string
             self::STREAK_3 => 'Alcance 3 dias ativos com lançamentos',
             self::STREAK_7 => 'Alcance 7 dias ativos com lançamentos',
             self::DAYS_30_USING => 'Use o sistema por 30 dias',
-            self::FIRST_META => 'Crie sua primeira meta financeira',
             self::TOTAL_10_LAUNCHES => 'Registre 10 lançamentos no total',
             self::TOTAL_5_CATEGORIES => 'Crie 5 categorias personalizadas',
 
@@ -264,7 +261,6 @@ enum AchievementType: string
             self::STREAK_3 => '🔥',
             self::STREAK_7 => '⚡',
             self::DAYS_30_USING => '📅',
-            self::FIRST_META => '🎪',
             self::TOTAL_10_LAUNCHES => '📊',
             self::TOTAL_5_CATEGORIES => '🎨',
 
@@ -339,7 +335,6 @@ enum AchievementType: string
             self::STREAK_3 => 30,
             self::STREAK_7 => 50,
             self::DAYS_30_USING => 100,
-            self::FIRST_META => 40,
             self::TOTAL_10_LAUNCHES => 30,
             self::TOTAL_5_CATEGORIES => 25,
 

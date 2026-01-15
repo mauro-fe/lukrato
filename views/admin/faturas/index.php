@@ -137,24 +137,8 @@
         <p>Suas faturas de cartão aparecerão aqui quando você fizer compras parceladas</p>
     </div>
 </section>
+<?php include __DIR__ . '/../partials/modals/modal-detalhes-faturas.php'; ?>
 
-<!-- ==================== MODAL: DETALHES DA FATURA ==================== -->
-<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content modern-modal">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-list"></i>
-                    <span>Detalhes da Fatura</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="detalhesParcelamentoContent">
-                <!-- Conteúdo carregado dinamicamente -->
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

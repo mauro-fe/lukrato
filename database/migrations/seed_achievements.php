@@ -65,17 +65,7 @@ $achievements = [
         'sort_order' => 4,
         'active' => true,
     ],
-    [
-        'code' => AchievementType::FIRST_META->value,
-        'name' => AchievementType::FIRST_META->displayName(),
-        'description' => AchievementType::FIRST_META->description(),
-        'icon' => AchievementType::FIRST_META->icon(),
-        'points_reward' => AchievementType::FIRST_META->pointsReward(),
-        'category' => AchievementType::FIRST_META->category(),
-        'plan_type' => 'free',
-        'sort_order' => 5,
-        'active' => true,
-    ],
+
     [
         'code' => AchievementType::TOTAL_10_LAUNCHES->value,
         'name' => AchievementType::TOTAL_10_LAUNCHES->displayName(),

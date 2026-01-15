@@ -5,7 +5,8 @@
         <div class="modal-content bg-dark text-light border-0 rounded-3">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalEditCategoriaLabel">Editar Categoria</h5>
-                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal"
+                    aria-label="Fechar"></button>
             </div>
 
             <div class="modal-body pt-0">
@@ -29,9 +30,6 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
                 <button type="submit" class="btn btn-primary btn-sm" form="formEditCategoria">
                     <i class="fas fa-save"></i> Salvar
                 </button>

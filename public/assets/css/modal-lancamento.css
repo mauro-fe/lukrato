@@ -17,7 +17,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: #0007 !important;
   backdrop-filter: var(--glass-backdrop);
   display: none;
   align-items: center;
@@ -42,7 +42,7 @@
 
 /* Container do Modal */
 .lk-modal-modern {
-  background: var(--color-card-bg);
+  background: var(--color-bg);
   border-radius: var(--radius-xl);
   max-width: 580px;
   width: 100%;
@@ -241,7 +241,7 @@
 }
 
 .lk-modal-body-modern::-webkit-scrollbar-thumb {
-  background: var(--color-neutral);
+  background: var(--color-bg);
   border-radius: var(--radius-sm);
 }
 
@@ -756,7 +756,7 @@
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
   color: var(--color-text);
-  background: var(--glass-bg);
+  background: var(--color-bg) !important;
   transition: all var(--transition-fast);
   font-family: var(--font-primary);
 }
@@ -1479,29 +1479,4 @@ input.lk-input.lk-input-with-prefix {
     font-size: var(--font-size-xs);
     padding: var(--spacing-3);
   }
-}
-
-/* ================================================
-   18. DARK MODE SUPPORT (usando variáveis)
-   ================================================ */
-
-:root[data-theme="dark"] .lk-tipo-card {
-  background: var(--glass-bg);
-}
-
-:root[data-theme="dark"] .lk-tipo-card h4 {
-  color: var(--color-text);
-}
-
-:root[data-theme="dark"] .lk-historico-item:hover {
-  background: var(--color-surface-muted);
-}
-
-:root[data-theme="dark"] .lk-checkbox-custom {
-  background: var(--color-surface);
-  border-color: var(--glass-border);
-}
-
-:root[data-theme="dark"] .lk-input::placeholder {
-  color: var(--color-text-muted);
 }

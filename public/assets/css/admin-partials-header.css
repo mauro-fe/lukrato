@@ -292,7 +292,7 @@ h3 {
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6);
-  color: #fff;
+  color: var(--color-text);
   text-decoration: none;
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -318,7 +318,7 @@ h3 {
 /* 5.4 Nav Item States */
 .sidebar .nav-item:hover {
   background: var(--glass-bg);
-  color: #fff;
+  color: var(--color-primary);
   transform: translateX(4px);
 }
 
@@ -328,7 +328,7 @@ h3 {
 
 .sidebar-nav .nav-item.active,
 .sidebar-nav .nav-item[aria-current="page"] {
-  color: #fff;
+  color: var(--color-primary);
   background: color-mix(in srgb, var(--laranja) 10%, transparent);
   font-weight: 700;
   border-left: 3px solid var(--laranja);
