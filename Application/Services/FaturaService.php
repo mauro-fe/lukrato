@@ -621,7 +621,8 @@ class FaturaService
         $progresso = $fatura->progresso;
 
         // Calcular valor pendente (apenas itens não pagos)
-        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor_parcela');
+        // Nota: usa 'valor' que é o campo real na tabela faturas_cartao_itens
+        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
 
         // Próxima parcela pendente (por mês/ano)
         $primeiroItemPendente = $fatura->itens->where('pago', 0)
@@ -638,7 +639,7 @@ class FaturaService
             'valor_parcela' => $fatura->valor_parcela,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
             'proxima_parcela' => $primeiroItemPendente ? [
-                'numero' => $primeiroItemPendente->numero_parcela,
+                'numero' => $primeiroItemPendente->parcela_atual,
                 'mes' => $primeiroItemPendente->mes_referencia,
                 'ano' => $primeiroItemPendente->ano_referencia,
             ] : null,
@@ -658,10 +659,10 @@ class FaturaService
         $parcelas = $fatura->itens->map(function ($item) use ($fatura) {
             return [
                 'id' => $item->id,
-                'numero_parcela' => $item->numero_parcela,
-                'total_parcelas' => $fatura->numero_parcelas,
-                'valor_parcela' => round((float) $item->valor_parcela, 2),
-                'descricao' => $fatura->descricao,
+                'numero_parcela' => $item->parcela_atual,
+                'total_parcelas' => $item->total_parcelas ?? $fatura->numero_parcelas,
+                'valor_parcela' => round((float) $item->valor, 2),
+                'descricao' => $item->descricao ?? $fatura->descricao,
                 'mes_referencia' => $item->mes_referencia,
                 'ano_referencia' => $item->ano_referencia,
                 'pago' => (bool) $item->pago,
@@ -671,7 +672,8 @@ class FaturaService
 
         $itensPagos = $fatura->itens->where('pago', 1)->count();
         $totalItens = $fatura->itens->count();
-        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor_parcela');
+        // Nota: usa 'valor' que é o campo real na tabela faturas_cartao_itens
+        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
         $progresso = $fatura->progresso;
 
         return [

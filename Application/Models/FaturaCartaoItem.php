@@ -15,24 +15,54 @@ class FaturaCartaoItem extends Model
     protected $table = 'faturas_cartao_itens';
 
     protected $fillable = [
+        'user_id',
+        'cartao_credito_id',
         'fatura_id',
         'lancamento_id',
-        'numero_parcela',
-        'valor_parcela',
+        'descricao',
+        'valor',
+        'data_compra',
+        'data_vencimento',
         'mes_referencia',
         'ano_referencia',
+        'categoria_id',
+        'eh_parcelado',
+        'parcela_atual',
+        'total_parcelas',
+        'item_pai_id',
         'pago',
         'data_pagamento',
     ];
 
     protected $casts = [
-        'valor_parcela' => 'decimal:2',
+        'valor' => 'decimal:2',
+        'data_compra' => 'date',
+        'data_vencimento' => 'date',
         'data_pagamento' => 'date',
         'pago' => 'boolean',
-        'numero_parcela' => 'integer',
+        'eh_parcelado' => 'boolean',
+        'parcela_atual' => 'integer',
+        'total_parcelas' => 'integer',
         'mes_referencia' => 'integer',
         'ano_referencia' => 'integer',
     ];
+
+    /**
+     * Accessor para manter compatibilidade com código que usa valor_parcela
+     * O campo real na tabela é 'valor'
+     */
+    public function getValorParcelaAttribute()
+    {
+        return $this->valor;
+    }
+
+    /**
+     * Mutator para manter compatibilidade com código que usa valor_parcela
+     */
+    public function setValorParcelaAttribute($value)
+    {
+        $this->attributes['valor'] = $value;
+    }
 
     // Relacionamentos
     public function fatura()
