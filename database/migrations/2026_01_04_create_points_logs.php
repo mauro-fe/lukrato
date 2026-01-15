@@ -16,16 +16,8 @@ echo "🔄 Criando tabela points_logs...\n";
 try {
     // Verificar se já existe
     if (DB::schema()->hasTable('points_logs')) {
-        echo "⚠️  Tabela points_logs já existe!\n";
-
-        $drop = readline("Deseja recriar a tabela? (s/n): ");
-        if (strtolower($drop) !== 's') {
-            echo "❌ Operação cancelada.\n";
-            exit(0);
-        }
-
-        DB::schema()->dropIfExists('points_logs');
-        echo "🗑️  Tabela anterior removida.\n";
+        echo "⚠️  Tabela points_logs já existe! Pulando...\n";
+        exit(0);
     }
 
     // Criar tabela
