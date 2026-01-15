@@ -7,6 +7,8 @@
 /* ==================== CONTAINER PRINCIPAL ==================== */
 .parc-page {
   margin: 0 auto;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ==================== HEADER ==================== */
@@ -145,11 +147,12 @@
 }
 
 .parcelas-container {
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: hidden;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-card-border);
+  width: 100%;
 }
 
 .parcelas-table {
@@ -176,6 +179,9 @@
   font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .parcelas-table tbody tr {
@@ -193,6 +199,9 @@
   padding: var(--spacing-2);
   font-size: var(--font-size-xs);
   color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
 }
 
 .parcela-numero {
@@ -281,6 +290,34 @@
   letter-spacing: 0.03em;
 }
 
+.btn-ver-detalhes-parcela {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  background: var(--color-primary);
+  color: white;
+  width: 100%;
+  max-width: 120px;
+}
+
+.btn-ver-detalhes-parcela:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-ver-detalhes-parcela i {
+  font-size: var(--font-size-xs);
+}
+
 .btn-pago {
   background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
   color: white;
@@ -313,33 +350,41 @@
   transform: translateY(0);
 }
 
-/* ==================== RESPONSIVO ==================== */
+/* ==================== RESPONSIVO - MELHORIAS MOBILE ==================== */
 @media (max-width: 768px) {
   .parc-page {
-    padding: var(--spacing-4);
+    padding: var(--spacing-3);
   }
 
   .parc-header-modern {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--spacing-4);
   }
 
   .page-title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
+  }
+
+  .page-title i {
+    font-size: var(--font-size-lg);
   }
 
   .modern-btn.large {
     width: 100%;
     justify-content: center;
+    padding: var(--spacing-3) var(--spacing-4);
   }
 
   .parcelamentos-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-4);
   }
 
   .filter-row {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--spacing-3);
   }
 
   .filter-group {
@@ -351,6 +396,76 @@
     justify-content: center;
   }
 
+  /* Filtros mobile */
+  .filters-modern {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .filters-actions {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .btn-filter-clear,
+  .btn-filter-apply {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Cards mobile */
+  .parc-card {
+    padding: var(--spacing-4);
+  }
+
+  .parc-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .parc-card-info {
+    width: 100%;
+  }
+
+  .parc-card-title {
+    font-size: var(--font-size-base);
+  }
+
+  .parc-card-badge {
+    align-self: flex-start;
+  }
+
+  .parc-card-body {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .parc-card-stat {
+    padding: var(--spacing-3);
+  }
+
+  .parc-card-stat-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .parc-card-stat-value {
+    font-size: var(--font-size-base);
+  }
+
+  .parc-card-actions {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .parc-card-actions .modern-btn {
+    width: 100%;
+  }
+
   /* Modal responsivo */
   .modern-modal .modal-dialog {
     margin: var(--spacing-2);
@@ -358,11 +473,21 @@
   }
 
   .modern-modal .modal-body {
-    padding: var(--spacing-4);
+    padding: var(--spacing-3);
+  }
+
+  .modern-modal .modal-footer {
+    padding: var(--spacing-3);
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .modern-modal .modal-footer .btn {
+    width: 100%;
   }
 
   .detalhes-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: var(--spacing-3);
   }
 
@@ -379,14 +504,185 @@
     gap: var(--spacing-1);
     align-items: flex-start;
   }
+
+  /* Tabela de parcelas mobile */
+  .parcelas-container {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .parcelas-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Mobile: ocultar colunas descricao e status, mostrar info na coluna vencimento */
+  .parcelas-table .col-descricao,
+  .parcelas-table .col-status {
+    display: none;
+  }
+
+  /* Headers mobile: ocultar texto desktop, mostrar texto mobile */
+  .parcelas-table th .th-desktop {
+    display: none;
+  }
+
+  .parcelas-table th .th-mobile {
+    display: inline;
+  }
+
+  /* Mobile: ocultar vencimento desktop, mostrar vencimento mobile */
+  .parcelas-table .desktop-vencimento {
+    display: none !important;
+  }
+
+  .parcelas-table .mobile-vencimento {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .parcelas-table .mobile-vencimento .mobile-status-icon,
+  .parcelas-table .mobile-vencimento .mobile-mes {
+    display: inline !important;
+  }
+
+  /* Mobile: ajustar larguras */
+  .parcelas-table .col-numero { width: 15%; }
+  .parcelas-table .col-vencimento { width: 40%; }
+  .parcelas-table .col-valor { width: 20%; }
+  .parcelas-table .col-acao { width: 25%; }
+
+  /* Mostrar elementos mobile */
+  .mobile-status-icon,
+  .mobile-mes {
+    display: inline !important;
+  }
+
+  /* Ocultar botões desktop, mostrar botão mobile */
+  .btn-toggle-parcela {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .parcelas-table th,
+  .parcelas-table td {
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .parcela-numero {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .parcela-paga,
+  .parcela-pendente {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .btn-ver-detalhes-parcela {
+    padding: 6px 10px;
+    font-size: 10px;
+    max-width: 100%;
+    gap: 4px;
+  }
+
+  .btn-ver-detalhes-parcela .btn-text {
+    display: inline;
+  }
+}
+
+/* Smartphones e dispositivos pequenos */
+@media (max-width: 576px) {
+  .parcelamentos-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .parcelamento-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .parcelamento-card * {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 576px) {
+  .parc-page {
+    padding: var(--spacing-2);
+  }
+
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .page-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  /* Filtros mobile simplificados */
+  .filters-header {
+    padding: var(--spacing-3);
+  }
+
+  .filters-title h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .filters-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .filters-body {
+    padding: var(--spacing-3);
+  }
+
+  /* Cards ultra compactos */
+  .parc-card {
+    padding: var(--spacing-3);
+  }
+
+  .parc-card-header {
+    gap: var(--spacing-2);
+  }
+
+  .parc-card-title {
+    font-size: var(--font-size-sm);
+  }
+
+  .parc-card-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .parc-card-body {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .parc-card-stat {
+    padding: var(--spacing-2);
+  }
+
+  .parc-card-footer {
+    padding: var(--spacing-3);
+  }
+
   .parc-card-actions {
     flex-direction: column;
   }
 
-  /* Modal mobile */
+  /* Modal fullscreen em mobile */
   .modern-modal .modal-dialog {
     margin: 0;
     max-width: 100%;
@@ -400,7 +696,7 @@
 
   .modern-modal .modal-header {
     border-radius: 0;
-    padding: var(--spacing-4);
+    padding: var(--spacing-3);
   }
 
   .modern-modal .modal-body {
@@ -412,7 +708,914 @@
   }
 
   .detalhes-title {
+    font-size: var(--font-size-lg);
+    padding-bottom: var(--spacing-2);
+  }
+
+  .detalhes-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .detalhes-item {
+    padding: var(--spacing-2);
+  }
+
+  .detalhes-label {
+    font-size: 10px;
+  }
+
+  .detalhes-value {
+    font-size: var(--font-size-sm);
+  }
+
+  /* Progresso mobile otimizado */
+  .detalhes-progresso {
+    padding: var(--spacing-2);
+  }
+
+  .progresso-info {
+    font-size: var(--font-size-xs);
+  }
+
+  .progresso-percent {
     font-size: var(--font-size-base);
+  }
+
+  /* Tabela responsiva sem scroll horizontal */
+  .parcelas-container {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .parcelas-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Mobile: ocultar colunas descricao e status */
+  .parcelas-table .col-descricao,
+  .parcelas-table .col-status {
+    display: none;
+  }
+
+  /* Headers mobile: ocultar texto desktop, mostrar texto mobile */
+  .parcelas-table th .th-desktop {
+    display: none;
+  }
+
+  .parcelas-table th .th-mobile {
+    display: inline;
+  }
+
+  /* Mobile: ocultar vencimento desktop, mostrar vencimento mobile */
+  .parcelas-table .desktop-vencimento {
+    display: none !important;
+  }
+
+  .parcelas-table .mobile-vencimento {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .parcelas-table .mobile-vencimento .mobile-status-icon,
+  .parcelas-table .mobile-vencimento .mobile-mes {
+    display: inline !important;
+  }
+
+  /* Mobile: ajustar larguras */
+  .parcelas-table .col-numero { width: 15%; }
+  .parcelas-table .col-vencimento { width: 40%; }
+  .parcelas-table .col-valor { width: 20%; }
+  .parcelas-table .col-acao { width: 25%; }
+
+  /* Mostrar elementos mobile */
+  .mobile-status-icon,
+  .mobile-mes {
+    display: inline !important;
+  }
+
+  /* Ocultar botões desktop, mostrar botão mobile */
+  .btn-toggle-parcela {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .parcelas-table th {
+    font-size: 10px;
+    padding: var(--spacing-1) var(--spacing-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .parcelas-table td {
+    font-size: 11px;
+    padding: var(--spacing-1) var(--spacing-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .parcela-numero {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .parcela-paga,
+  .parcela-pendente {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .btn-ver-detalhes-parcela {
+    padding: 6px 8px;
+    font-size: 10px;
+    max-width: 100%;
+  }
+
+  .btn-ver-detalhes-parcela .btn-text {
+    display: none;
+  }
+
+  /* Botões mobile otimizados */
+  .modern-btn {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .modern-btn i {
+    font-size: var(--font-size-sm);
+  }
+
+  /* Empty state mobile */
+  .empty-state {
+    padding: var(--spacing-6) var(--spacing-3);
+  }
+
+  .empty-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .empty-icon i {
+    font-size: var(--font-size-3xl);
+  }
+
+  .empty-state h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  .empty-state p {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Smartphones pequenos */
+@media (max-width: 375px) {
+  .parc-page {
+    padding: var(--spacing-2);
+  }
+
+  .page-title {
+    font-size: var(--font-size-base);
+  }
+
+  .parc-card {
+    padding: var(--spacing-2);
+  }
+
+  .parc-card-title {
+    font-size: var(--font-size-xs);
+  }
+
+  .parc-card-stat-label {
+    font-size: 10px;
+  }
+
+  .parc-card-stat-value {
+    font-size: var(--font-size-sm);
+  }
+
+  .modern-btn {
+    padding: var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+
+  .filters-title h3 {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Dispositivos ultra pequenos - 390px e menores (cobre 300px a 389px) */
+@media (max-width: 390px) {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  .parc-page {
+    padding: 4px;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+  }
+
+  .parc-page > * {
+    max-width: 100%;
+  }
+
+  /* Header ultra compacto */
+  .page-title {
+    font-size: 14px;
+  }
+
+  .page-title i {
+    font-size: 12px;
+  }
+
+  .page-subtitle {
+    font-size: 10px;
+  }
+
+  /* Filtros ultra compactos */
+  .filters-modern {
+    border-radius: 6px;
+    margin-bottom: 8px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .filters-header {
+    padding: 8px;
+  }
+
+  .filters-title {
+    gap: 6px;
+  }
+
+  .filters-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .filters-title h3 {
+    font-size: 12px;
+  }
+
+  .filters-subtitle {
+    font-size: 9px;
+  }
+
+  .filters-body {
+    padding: 8px;
+  }
+
+  .filters-grid {
+    gap: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .filter-label-modern {
+    font-size: 10px;
+    padding: 4px 0;
+  }
+
+  .filter-label-modern i {
+    font-size: 10px;
+  }
+
+  .filter-select {
+    padding: 6px 24px 6px 8px;
+    font-size: 11px;
+  }
+
+  .select-arrow {
+    right: 8px;
+    font-size: 10px;
+  }
+
+  .filters-actions {
+    margin-top: 8px;
+    padding-top: 8px;
+    gap: 6px;
+  }
+
+  .btn-filter-apply,
+  .btn-filter-clear {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  /* Cards ultra compactos */
+  .parcelamentos-grid {
+    gap: 8px;
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .parcelamento-card,
+  .parc-card {
+    padding: 8px;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .parcelamento-card:hover {
+    transform: none;
+  }
+
+  .parc-card-header {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .parc-card-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .parc-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .parc-card-title {
+    font-size: 11px;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .parc-card-subtitle {
+    font-size: 9px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .parc-card-badge {
+    padding: 2px 6px;
+    font-size: 9px;
+    flex-shrink: 0;
+  }
+
+  .parc-card-body {
+    gap: 6px;
+    margin-bottom: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .parc-card-stat {
+    padding: 6px;
+    border-radius: 4px;
+  }
+
+  .parc-card-stat-label {
+    font-size: 9px;
+    margin-bottom: 2px;
+  }
+
+  .parc-card-stat-value {
+    font-size: 11px;
+  }
+
+  .parc-card-stat i {
+    font-size: 10px;
+  }
+
+  .parc-card-footer {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .parc-card-progress {
+    margin-bottom: 6px;
+  }
+
+  .parc-card-progress-text {
+    font-size: 9px;
+  }
+
+  .parc-card-progress-bar {
+    height: 4px;
+  }
+
+  .parc-card-actions {
+    gap: 6px;
+    flex-direction: column;
+  }
+
+  .modern-btn {
+    padding: 8px 12px;
+    font-size: 10px;
+    border-radius: 4px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modern-btn i {
+    font-size: 10px;
+  }
+
+  /* Modal ultra compacto */
+  .modern-modal .modal-header {
+    padding: 8px;
+  }
+
+  .modern-modal .modal-title {
+    font-size: 12px;
+  }
+
+  .modern-modal .modal-title i {
+    font-size: 12px;
+  }
+
+  .modern-modal .modal-body {
+    padding: 8px;
+  }
+
+  .modern-modal .modal-footer {
+    padding: 8px;
+  }
+
+  .detalhes-title {
+    font-size: 14px;
+  }
+
+  .detalhes-grid {
+    gap: 6px;
+  }
+
+  .detalhes-item {
+    padding: 6px;
+  }
+
+  .detalhes-label {
+    font-size: 9px;
+  }
+
+  .detalhes-value {
+    font-size: 11px;
+  }
+
+  .detalhes-progresso {
+    padding: 6px;
+  }
+
+  .progresso-info {
+    font-size: 9px;
+  }
+
+  .progresso-percent {
+    font-size: 12px;
+  }
+
+  .progresso-barra {
+    height: 6px;
+  }
+
+  .progresso-valores {
+    font-size: 9px;
+  }
+
+  .parcelas-titulo {
+    font-size: 12px;
+    margin: 8px 0;
+  }
+
+  .parcelas-container {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .parcelas-table {
+    width: 100%;
+    font-size: 10px;
+    table-layout: fixed;
+  }
+
+  /* Mobile: ocultar colunas descricao e status */
+  .parcelas-table .col-descricao,
+  .parcelas-table .col-status {
+    display: none;
+  }
+
+  /* Headers mobile: ocultar texto desktop, mostrar texto mobile */
+  .parcelas-table th .th-desktop {
+    display: none;
+  }
+
+  .parcelas-table th .th-mobile {
+    display: inline;
+  }
+
+  /* Mobile: ocultar vencimento desktop, mostrar vencimento mobile */
+  .parcelas-table .desktop-vencimento {
+    display: none !important;
+  }
+
+  .parcelas-table .mobile-vencimento {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .parcelas-table .mobile-vencimento .mobile-status-icon,
+  .parcelas-table .mobile-vencimento .mobile-mes {
+    display: inline !important;
+  }
+
+  /* Mobile: ajustar larguras */
+  .parcelas-table .col-numero { width: 15%; }
+  .parcelas-table .col-vencimento { width: 40%; }
+  .parcelas-table .col-valor { width: 20%; }
+  .parcelas-table .col-acao { width: 25%; }
+
+  /* Mostrar elementos mobile */
+  .mobile-status-icon,
+  .mobile-mes {
+    display: inline !important;
+  }
+
+  /* Ocultar botões desktop, mostrar botão mobile */
+  .btn-toggle-parcela {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .parcelas-table th {
+    font-size: 9px;
+    padding: 4px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .parcelas-table td {
+    font-size: 10px;
+    padding: 4px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .parcela-numero {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+
+  .parcela-paga,
+  .parcela-pendente {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .btn-ver-detalhes-parcela {
+    padding: 4px 6px;
+    font-size: 9px;
+    max-width: 100%;
+    gap: 3px;
+  }
+
+  .btn-ver-detalhes-parcela .btn-text {
+    display: none;
+  }
+
+  /* Parcelamento cards específicos */
+  .parcelamento-card .parc-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .parcelamento-card .parc-card-title {
+    font-size: 11px;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .parcelamento-card .parc-card-badge {
+    align-self: flex-start;
+  }
+
+  .parcelamento-card .parc-card-values {
+    padding: 6px;
+    margin-bottom: 8px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .parcelamento-card .parc-value-row {
+    padding: 4px 0;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .parcelamento-card .parc-value-label {
+    font-size: 9px;
+  }
+
+  .parcelamento-card .parc-value-amount {
+    font-size: 11px;
+  }
+
+  .parcelamento-card .parc-value-amount.primary {
+    font-size: 13px;
+  }
+
+  .parcelamento-card .parc-card-info {
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-direction: column;
+  }
+
+  .parcelamento-card .parc-info-item {
+    font-size: 9px;
+  }
+
+  .parcelamento-card .parc-card-progress {
+    margin-bottom: 6px;
+  }
+
+  .parcelamento-card .parc-progress-text {
+    font-size: 9px;
+  }
+
+  .parcelamento-card .parc-progress-bar {
+    height: 4px;
+  }
+
+  .parcelamento-card .parc-proxima-parcela {
+    padding: 6px;
+    font-size: 9px;
+    margin-top: 8px;
+    gap: 6px;
+  }
+
+  .parcelamento-card .parc-card-actions {
+    padding-top: 8px;
+    gap: 6px;
+    flex-direction: column;
+  }
+
+  .parcelamento-card .parc-btn {
+    padding: 8px 12px;
+    font-size: 10px;
+    width: 100%;
+  }
+
+  /* Garantir que todos elementos respeitam a largura */
+  .parcelamento-card * {
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+
+  .parcelamento-card .parc-card-header,
+  .parcelamento-card .parc-card-values,
+  .parcelamento-card .parc-value-row,
+  .parcelamento-card .parc-card-info,
+  .parcelamento-card .parc-info-item,
+  .parcelamento-card .parc-card-progress,
+  .parcelamento-card .parc-proxima-parcela,
+  .parcelamento-card .parc-card-actions {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Empty state ultra compacto */
+  .empty-state {
+    padding: 16px 8px;
+  }
+
+  .empty-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .empty-icon i {
+    font-size: 24px;
+  }
+
+  .empty-state h3 {
+    font-size: 14px;
+  }
+
+  .empty-state p {
+    font-size: 11px;
+  }
+
+  /* Loading ultra compacto */
+  .loading-container {
+    padding: 16px 8px;
+  }
+
+  .loading-spinner {
+    padding: 16px;
+  }
+
+  .loading-spinner i {
+    font-size: 24px;
+  }
+
+  .loading-spinner p {
+    font-size: 11px;
+  }
+
+  /* Ajustes de largura */
+  .filters-modern,
+  .parc-card,
+  .parcelamentos-grid {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Scroll suave */
+  .filters-body,
+  .parc-card,
+  .parcelas-container {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Orientação paisagem mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .modern-modal .modal-dialog {
+    margin: var(--spacing-2);
+    max-width: 90%;
+    min-height: auto;
+    height: auto;
+  }
+
+  .modern-modal .modal-content {
+    max-height: calc(100vh - var(--spacing-4));
+    overflow-y: auto;
+  }
+
+  .parc-card-body {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Melhorias de acessibilidade touch */
+@media (hover: none) and (pointer: coarse) {
+  .modern-btn,
+  .filter-select,
+  .filters-toggle,
+  .btn-close {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .parc-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .parc-card:active {
+    transform: scale(0.98);
+  }
+
+  /* Scroll suave em dispositivos touch */
+  .parcelas-container,
+  .filters-body,
+  .modal-body {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+/* Tabela de parcelas mobile */
+.parcelas-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.parcelas-table {
+  min-width: 500px;
+}
+
+.parcelas-table th,
+.parcelas-table td {
+  padding: var(--spacing-2);
+  font-size: var(--font-size-xs);
+}
+
+@media (max-width: 576px) {
+  .parc-page {
+    padding: var(--spacing-2);
+  }
+
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .page-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  /* Filtros mobile simplificados */
+  .filters-header {
+    padding: var(--spacing-3);
+  }
+
+  .filters-title h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .filters-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .filters-body {
+    padding: var(--spacing-3);
+  }
+
+  /* Cards ultra compactos */
+  .parc-card {
+    padding: var(--spacing-3);
+  }
+
+  .parc-card-header {
+    gap: var(--spacing-2);
+  }
+
+  .parc-card-title {
+    font-size: var(--font-size-sm);
+  }
+
+  .parc-card-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .parc-card-body {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .parc-card-stat {
+    padding: var(--spacing-2);
+  }
+
+  .parc-card-footer {
+    padding: var(--spacing-3);
+  }
+
+  .parc-card-actions {
+    flex-direction: column;
+  }
+
+  /* Modal fullscreen em mobile */
+  .modern-modal .modal-dialog {
+    margin: 0;
+    max-width: 100%;
+    min-height: 100vh;
+  }
+
+  .modern-modal .modal-content {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+
+  .modern-modal .modal-header {
+    border-radius: 0;
+    padding: var(--spacing-3);
+  }
+
+  .modern-modal .modal-body {
+    padding: var(--spacing-3);
+  }
+
+  .modern-modal .modal-footer {
+    padding: var(--spacing-3);
+  }
+
+  .detalhes-title {
+    font-size: var(--font-size-lg);
     padding-bottom: var(--spacing-2);
   }
 
@@ -829,7 +2032,8 @@
   height: 36px;
   border-radius: var(--radius-sm);
   border: none;
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  background: var(--color-primary);
   cursor: pointer;
   transition: all var(--transition-normal);
   display: flex;
@@ -1228,6 +2432,15 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: var(--spacing-6);
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .parcelamentos-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
 }
 
 .parcelamento-card {

@@ -15,43 +15,26 @@ class FaturaCartaoItem extends Model
     protected $table = 'faturas_cartao_itens';
 
     protected $fillable = [
-        'user_id',
-        'cartao_credito_id',
         'fatura_id',
-        'descricao',
-        'valor',
-        'data_compra',
-        'data_vencimento',
-        'categoria_id',
-        'parcela_atual',
-        'total_parcelas',
+        'lancamento_id',
+        'numero_parcela',
+        'valor_parcela',
         'mes_referencia',
         'ano_referencia',
         'pago',
         'data_pagamento',
-        'lancamento_id',
     ];
 
     protected $casts = [
-        'valor' => 'decimal:2',
-        'data_compra' => 'date',
-        'data_vencimento' => 'date',
+        'valor_parcela' => 'decimal:2',
         'data_pagamento' => 'date',
-        'eh_parcelado' => 'boolean',
         'pago' => 'boolean',
+        'numero_parcela' => 'integer',
+        'mes_referencia' => 'integer',
+        'ano_referencia' => 'integer',
     ];
 
     // Relacionamentos
-    public function cartaoCredito()
-    {
-        return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
-    }
-
-    public function categoria()
-    {
-        return $this->belongsTo(Categoria::class, 'categoria_id');
-    }
-
     public function fatura()
     {
         return $this->belongsTo(Fatura::class, 'fatura_id');
@@ -63,14 +46,10 @@ class FaturaCartaoItem extends Model
     }
 
     // Scopes
-    public function scopeForUser($query, int $userId)
+    public function scopeDoMesAno($query, int $mes, int $ano)
     {
-        return $query->where('user_id', $userId);
-    }
-
-    public function scopeDoCartao($query, int $cartaoId)
-    {
-        return $query->where('cartao_credito_id', $cartaoId);
+        return $query->where('mes_referencia', $mes)
+            ->where('ano_referencia', $ano);
     }
 
     public function scopePendentes($query)

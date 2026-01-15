@@ -89,7 +89,7 @@ class Fatura extends Model
      */
     public function getValorPagoAttribute(): float
     {
-        return (float) $this->itens()->where('pago', 1)->sum('valor');
+        return (float) $this->itens()->where('pago', 1)->sum('valor_parcela');
     }
 
     /**
@@ -97,7 +97,7 @@ class Fatura extends Model
      */
     public function getValorPendenteAttribute(): float
     {
-        return (float) $this->itens()->where('pago', 0)->sum('valor');
+        return (float) $this->itens()->where('pago', 0)->sum('valor_parcela');
     }
 
     /**

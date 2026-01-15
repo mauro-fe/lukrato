@@ -618,22 +618,23 @@
             const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
             const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
             const rowClass = isPaga ? 'tr-paga' : '';
+            const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
             const dataPagamentoHtml = this.getDataPagamentoInfo(parcela);
 
             return `
                 <tr class="${rowClass}">
                     <td data-label="#">
-                        <span class="parcela-numero">${index + 1}</span>
+                        <span class="parcela-numero">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
                     </td>
                     <td data-label="Descrição">
-                        <div class="parcela-desc">${Utils.escapeHtml(parcela.descricao || descricaoFatura)}</div>
+                        <div class="parcela-desc">${Utils.escapeHtml(descricaoFatura)}</div>
                     </td>
                     <td data-label="Vencimento">
-                        <span class="parcela-data">${Utils.formatDate(parcela.data_vencimento)}</span>
+                        <span class="parcela-data">${mesAno}</span>
                         ${dataPagamentoHtml}
                     </td>
                     <td data-label="Valor">
-                        <span class="parcela-valor">${Utils.formatMoney(parcela.valor)}</span>
+                        <span class="parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
                     </td>
                     <td data-label="Status">
                         <span class="${statusClass}">${statusText}</span>
@@ -647,16 +648,8 @@
 
         getDataPagamentoInfo(parcela) {
             if (!parcela.pago || !parcela.data_pagamento) return '';
-
-            const diasDiff = Utils.calcularDiferencaDias(parcela.data_vencimento, parcela.data_pagamento);
-
-            if (diasDiff > 0) {
-                return `<small style="color: #10b981; display: block; margin-top: 3px;">💚 Pago ${diasDiff} dia(s) antes</small>`;
-            } else if (diasDiff < 0) {
-                return `<small style="color: #ef4444; display: block; margin-top: 3px;">⚠️ Pago ${Math.abs(diasDiff)} dia(s) atrasado</small>`;
-            } else {
-                return `<small style="color: #3b82f6; display: block; margin-top: 3px;">🎯 Pago no dia do vencimento</small>`;
-            }
+            
+            return `<small style="color: #10b981; display: block; margin-top: 3px;">✅ Pago em ${parcela.data_pagamento}</small>`;
         },
 
         renderParcelaButton(parcela, isPaga) {
@@ -681,6 +674,75 @@
                     </button>
                 `;
             }
+        },
+
+        getNomeMes(mes) {
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            return meses[mes - 1] || mes;
+        },
+
+        mostrarDetalhesParcela(parcela, descricao) {
+            const isPaga = parcela.pago;
+            const statusIcon = isPaga ? '✅' : '⏳';
+            const statusText = isPaga ? 'Paga' : 'Pendente';
+            const statusColor = isPaga ? '#10b981' : '#f59e0b';
+            const mesAno = `${this.getNomeMesCompleto(parcela.mes_referencia)}/${parcela.ano_referencia}`;
+
+            let dataPagamentoHtml = '';
+            if (isPaga && parcela.data_pagamento) {
+                dataPagamentoHtml = `
+                    <div class="detalhes-item">
+                        <span class="detalhes-label">Data de Pagamento</span>
+                        <span class="detalhes-value">${Utils.formatDate(parcela.data_pagamento)}</span>
+                    </div>
+                `;
+            }
+
+            Swal.fire({
+                title: `${statusIcon} Detalhes da Parcela`,
+                html: `
+                    <div style="text-align: left;">
+                        <div style="background: ${statusColor}15; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid ${statusColor};">
+                            <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">Status</div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: ${statusColor};">${statusText}</div>
+                        </div>
+                        
+                        <div class="detalhes-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="detalhes-item">
+                                <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Parcela</span>
+                                <span class="detalhes-value" style="display: block; font-weight: 600; color: #1f2937;">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
+                            </div>
+                            
+                            <div class="detalhes-item">
+                                <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Valor</span>
+                                <span class="detalhes-value" style="display: block; font-weight: 600; color: ${statusColor};">${Utils.formatMoney(parcela.valor)}</span>
+                            </div>
+                        </div>
+
+                        <div class="detalhes-item" style="margin-bottom: 1rem;">
+                            <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Descrição</span>
+                            <span class="detalhes-value" style="display: block; font-weight: 500; color: #1f2937;">${Utils.escapeHtml(descricao)}</span>
+                        </div>
+
+                        <div class="detalhes-item" style="margin-bottom: 1rem;">
+                            <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Mês de Referência</span>
+                            <span class="detalhes-value" style="display: block; font-weight: 600; color: #1f2937;">${mesAno}</span>
+                        </div>
+
+                        ${dataPagamentoHtml}
+                    </div>
+                `,
+                icon: false,
+                confirmButtonText: 'Fechar',
+                confirmButtonColor: '#6366f1',
+                width: '500px'
+            });
+        },
+
+        getNomeMesCompleto(mes) {
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            return meses[mes - 1] || mes;
         },
 
         async toggleParcelaPaga(faturaId, itemId, marcarComoPago) {
@@ -829,6 +891,17 @@
 
             DOM.modalDetalhes.addEventListener('hidden.bs.modal', () => {
                 document.activeElement?.blur();
+            });
+
+            // Listener delegado para botões de ver detalhes de parcela
+            DOM.modalDetalhes.addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-ver-detalhes-parcela');
+                if (btn) {
+                    e.preventDefault();
+                    const parcelaData = JSON.parse(btn.dataset.parcela);
+                    const descricao = btn.dataset.descricao;
+                    this.mostrarDetalhesParcela(parcelaData, descricao);
+                }
             });
         },
 

@@ -621,16 +621,14 @@ class FaturaService
         $progresso = $fatura->progresso;
 
         // Calcular valor pendente (apenas itens não pagos)
-        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor_parcela');
 
-        // Data de vencimento do primeiro item pendente
+        // Próxima parcela pendente (por mês/ano)
         $primeiroItemPendente = $fatura->itens->where('pago', 0)
-            ->sortBy('data_vencimento')
+            ->sortBy(function ($item) {
+                return $item->ano_referencia * 100 + $item->mes_referencia;
+            })
             ->first();
-
-        $dataVencimento = $primeiroItemPendente ?
-            $primeiroItemPendente->data_vencimento :
-            $fatura->itens->first()?->data_vencimento;
 
         return [
             'id' => $fatura->id,
@@ -639,7 +637,11 @@ class FaturaService
             'numero_parcelas' => $fatura->numero_parcelas,
             'valor_parcela' => $fatura->valor_parcela,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
-            'data_vencimento' => $dataVencimento ? $dataVencimento->format('Y-m-d') : null,
+            'proxima_parcela' => $primeiroItemPendente ? [
+                'numero' => $primeiroItemPendente->numero_parcela,
+                'mes' => $primeiroItemPendente->mes_referencia,
+                'ano' => $primeiroItemPendente->ano_referencia,
+            ] : null,
             'cartao' => $this->formatarCartao($fatura->cartaoCredito),
             'parcelas_pagas' => $itensPagos,
             'parcelas_pendentes' => $totalItens - $itensPagos,
@@ -653,14 +655,13 @@ class FaturaService
      */
     private function formatarFaturaDetalhada(Fatura $fatura): array
     {
-        $parcelas = $fatura->itens->map(function ($item) {
+        $parcelas = $fatura->itens->map(function ($item) use ($fatura) {
             return [
                 'id' => $item->id,
-                'numero_parcela' => $item->parcela_atual,
-                'total_parcelas' => $item->total_parcelas,
-                'valor' => round((float) $item->valor, 2),
-                'descricao' => $item->descricao,
-                'data_vencimento' => $item->data_vencimento->format('Y-m-d'),
+                'numero_parcela' => $item->numero_parcela,
+                'total_parcelas' => $fatura->numero_parcelas,
+                'valor_parcela' => round((float) $item->valor_parcela, 2),
+                'descricao' => $fatura->descricao,
                 'mes_referencia' => $item->mes_referencia,
                 'ano_referencia' => $item->ano_referencia,
                 'pago' => (bool) $item->pago,
@@ -670,7 +671,7 @@ class FaturaService
 
         $itensPagos = $fatura->itens->where('pago', 1)->count();
         $totalItens = $fatura->itens->count();
-        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor_parcela');
         $progresso = $fatura->progresso;
 
         return [
