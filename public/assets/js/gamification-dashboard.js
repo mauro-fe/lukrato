@@ -10,11 +10,33 @@
 
     /**
      * Obter threshold de pontos para cada nível
+     * Níveis expandidos de 1 a 15 (sincronizado com backend)
      */
     function getLevelThreshold(level) {
-        const thresholdsArray = [0, 0, 300, 500, 700, 1000, 1500, 2200, 3000, 3000];
-        return thresholdsArray[level] !== undefined ? thresholdsArray[level] : 3000;
+        const thresholds = {
+            1: 0,
+            2: 300,
+            3: 500,
+            4: 700,
+            5: 1000,
+            6: 1500,
+            7: 2200,
+            8: 3000,
+            9: 4000,
+            10: 5500,
+            11: 7500,
+            12: 10000,
+            13: 15000,
+            14: 25000,
+            15: 50000
+        };
+        return thresholds[level] !== undefined ? thresholds[level] : thresholds[15];
     }
+
+    /**
+     * Nível máximo do sistema
+     */
+    const MAX_LEVEL = 15;
 
     function formatNumber(num) {
         return new Intl.NumberFormat('pt-BR').format(num);
@@ -151,14 +173,24 @@
             }
 
             progressBar.style.width = `${Math.max(0, percentage)}%`;
-            progressPoints.textContent = `${currentInLevel} / ${neededPoints} pontos`;
+
+            // Verificar se está no nível máximo
+            const isMaxLevel = progress.current_level >= MAX_LEVEL;
+
+            if (isMaxLevel) {
+                // Nível máximo - mostrar pontos totais
+                progressPoints.textContent = `${formatNumber(progress.total_points)} pontos`;
+                progressBar.style.width = '100%';
+            } else {
+                progressPoints.textContent = `${formatNumber(currentInLevel)} / ${formatNumber(neededPoints)} pontos`;
+            }
 
             if (progressText) {
-                if (progress.current_level >= 8) {
+                if (isMaxLevel) {
                     progressText.textContent = '🎉 Nível máximo alcançado!';
                 } else {
                     const remaining = progress.points_to_next_level || 0;
-                    progressText.textContent = `Faltam ${remaining} pontos para o próximo nível`;
+                    progressText.textContent = `Faltam ${formatNumber(remaining)} pontos para o próximo nível`;
                 }
             }
         } else {
@@ -558,7 +590,7 @@
                         </div>
                         <div class="pro-benefit">
                             <i class="fas fa-crown"></i>
-                            <span>Alcance o <strong>nível máximo 8</strong></span>
+                            <span>Alcance o <strong>nível máximo 15</strong></span>
                         </div>
                     </div>
                 </div>

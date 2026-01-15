@@ -42,6 +42,8 @@
         15: 50000
     };
 
+    const MAX_LEVEL = 15;
+
     // Carregar todos os dados
     async function loadAllData() {
         try {
@@ -98,21 +100,28 @@
         if (elements.currentStreakCard) elements.currentStreakCard.textContent = streak;
 
         // Calcular progresso para próximo nível
+        const isMaxLevel = level >= MAX_LEVEL;
         const nextLevel = level + 1;
         const currentLevelPoints = levelThresholds[level] || 0;
-        const nextLevelPoints = levelThresholds[nextLevel] || levelThresholds[8];
+        const nextLevelPoints = levelThresholds[nextLevel] || levelThresholds[MAX_LEVEL];
         const pointsInLevel = nextLevelPoints - currentLevelPoints;
         let currentInLevel = totalPoints - currentLevelPoints;
 
         // Proteção contra valores negativos
         if (currentInLevel < 0) currentInLevel = 0;
 
-        const percentage = Math.round((currentInLevel / pointsInLevel) * 100);
+        const percentage = isMaxLevel ? 100 : Math.round((currentInLevel / pointsInLevel) * 100);
 
         // Atualizar barra de progresso
-        if (elements.nextLevel) elements.nextLevel.textContent = nextLevel;
+        if (elements.nextLevel) {
+            elements.nextLevel.textContent = isMaxLevel ? 'MAX' : nextLevel;
+        }
         if (elements.progressPointsLarge) {
-            elements.progressPointsLarge.textContent = `${currentInLevel} / ${pointsInLevel}`;
+            if (isMaxLevel) {
+                elements.progressPointsLarge.textContent = `${totalPoints.toLocaleString('pt-BR')} pontos (Máximo!)`;
+            } else {
+                elements.progressPointsLarge.textContent = `${currentInLevel.toLocaleString('pt-BR')} / ${pointsInLevel.toLocaleString('pt-BR')}`;
+            }
         }
         if (elements.progressFillLarge) {
             elements.progressFillLarge.style.width = `${Math.max(0, percentage)}%`;

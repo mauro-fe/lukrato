@@ -22,7 +22,16 @@ $thresholds = [
     6 => 1500,
     7 => 2200,
     8 => 3000,
+    9 => 4000,
+    10 => 5500,
+    11 => 7500,
+    12 => 10000,
+    13 => 15000,
+    14 => 25000,
+    15 => 50000,
 ];
+
+$MAX_LEVEL = 15;
 
 try {
     $progressRecords = UserProgress::all();
@@ -43,8 +52,8 @@ try {
         }
 
         // Calcular pontos para próximo nível
-        $nextLevelThreshold = $thresholds[$newLevel + 1] ?? $thresholds[8];
-        $pointsToNext = $nextLevelThreshold - $points;
+        $nextLevelThreshold = $thresholds[$newLevel + 1] ?? null;
+        $pointsToNext = $nextLevelThreshold ? $nextLevelThreshold - $points : 0;
 
         // Calcular porcentagem de progresso no nível atual
         $currentLevelThreshold = $thresholds[$newLevel];

@@ -1260,9 +1260,7 @@
 
 /* ==================== GAMIFICAÇÃO ==================== */
 .gamification-section {
-  background: var(--glass-bg);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 24px;
   margin-bottom: 24px;
@@ -1390,14 +1388,13 @@
 /* Streak Card */
 .streak-card {
   background: var(--glass-bg);
-  border: 2px solid rgba(239, 68, 68, 0.25);
   border-radius: 16px;
   padding: 20px;
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--color-bg);
 }
 
 .streak-card::before {
@@ -1413,8 +1410,8 @@
 
 .streak-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 16px 32px rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 16px 32px var(--color-bg);
+  border-color: var(--color-bg);
 }
 
 .streak-icon {
@@ -1563,7 +1560,6 @@
 /* Badges Card */
 .badges-card {
   background: var(--glass-bg);
-  border: 2px solid rgba(168, 85, 247, 0.2);
   border-radius: 16px;
   padding: 20px;
 }

@@ -85,6 +85,14 @@ class CartaoCredito extends Model
     }
 
     /**
+     * Itens de fatura deste cartão
+     */
+    public function itensFatura()
+    {
+        return $this->hasMany(FaturaCartaoItem::class, 'cartao_credito_id');
+    }
+
+    /**
      * Scope para cartões do usuário
      */
     public function scopeForUser($query, int $userId)
@@ -154,12 +162,13 @@ class CartaoCredito extends Model
     }
 
     /**
-     * Atualiza limite disponível
+     * Atualiza limite disponível baseado nos itens de fatura não pagos
      */
     public function atualizarLimiteDisponivel(): void
     {
-        // Soma dos lançamentos não pagos deste cartão
-        $totalUtilizado = $this->lancamentos()
+        // Soma dos itens de fatura não pagos deste cartão
+        // Usa faturas_cartao_itens que é a fonte correta de dados de fatura
+        $totalUtilizado = $this->itensFatura()
             ->where('pago', false)
             ->sum('valor');
 
