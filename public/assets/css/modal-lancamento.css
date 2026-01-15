@@ -92,7 +92,8 @@
 
 .lk-modal-header-gradient {
   background: var(--color-primary);
-  padding: var(--spacing-4) 30px;
+  padding: var(--spacing-4) var(--spacing-6);
+  padding-right: 56px;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -193,10 +194,10 @@
 /* Botão Fechar */
 .lk-modal-close-btn {
   position: absolute;
-  top: var(--spacing-3);
-  right: var(--spacing-3);
-  width: 32px;
-  height: 32px;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -206,7 +207,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all var(--transition-fast);
-  z-index: 2;
+  z-index: 10;
   backdrop-filter: blur(10px);
 }
 
@@ -1206,6 +1207,7 @@ input.lk-input.lk-input-with-prefix {
 
   .lk-modal-header-gradient {
     padding: var(--spacing-4);
+    padding-right: 52px;
     min-height: auto;
   }
 
@@ -1220,9 +1222,11 @@ input.lk-input.lk-input-with-prefix {
   }
 
   .lk-modal-close-btn {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     font-size: 1.125rem;
+    top: 6px;
+    right: 6px;
   }
 
   .lk-modal-body-modern {
@@ -1327,7 +1331,7 @@ input.lk-input.lk-input-with-prefix {
 
   .lk-modal-header-gradient {
     padding: var(--spacing-4);
-    padding-right: 3rem;
+    padding-right: 50px;
   }
 
   .lk-modal-icon-wrapper {
@@ -1341,11 +1345,11 @@ input.lk-input.lk-input-with-prefix {
   }
 
   .lk-modal-close-btn {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     font-size: 1rem;
-    top: var(--spacing-4);
-    right: var(--spacing-3);
+    top: 6px;
+    right: 6px;
   }
 
   .lk-conta-info {

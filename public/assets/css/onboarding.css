@@ -507,10 +507,12 @@
   );
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  padding: 16px 20px;
+  padding: 20px;
   margin-bottom: 24px;
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
   align-items: center;
   gap: 16px;
   position: relative;
@@ -535,47 +537,53 @@
 }
 
 .nsb-icon {
-  font-size: 32px;
+  font-size: 40px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   flex-shrink: 0;
+  grid-row: 1 / 2;
+  align-self: start;
 }
 
 .nsb-content {
   color: white;
   position: relative;
   z-index: 1;
-  flex: 1;
+  grid-row: 1 / 2;
+  min-width: 0;
 }
 
 .nsb-content h3 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   color: white;
+  line-height: 1.3;
 }
 
 .nsb-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 0;
+  margin-bottom: 4px;
   opacity: 0.9;
-  display: none;
+  display: block;
+  line-height: 1.4;
 }
 
 .nsb-description {
-  font-size: 13px;
+  font-size: 14px;
   opacity: 0.85;
   margin: 0;
+  line-height: 1.5;
 }
 
 .nsb-action-btn {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background: white;
   color: #059669;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -584,6 +592,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
   white-space: nowrap;
+  grid-row: 1 / 2;
+  height: fit-content;
 }
 
 .nsb-action-btn:hover {
@@ -593,22 +603,27 @@
 
 .nsb-progress {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
+  grid-column: 1 / -1;
+  grid-row: 2 / 3;
+  justify-content: center;
+  margin-top: 8px;
 }
 
 .nsb-step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 10px;
+  font-size: 11px;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .nsb-step i {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .nsb-step.completed {
@@ -810,14 +825,49 @@
   }
 
   .next-step-banner {
-    grid-template-columns: 1fr;
-    text-align: center;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .nsb-icon {
+    font-size: 32px;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .nsb-content {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+
+  .nsb-content h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .nsb-subtitle {
+    font-size: 12px;
+  }
+
+  .nsb-description {
+    font-size: 12px;
+  }
+
+  .nsb-action-btn {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
   }
 
   .nsb-progress {
-    position: static;
-    justify-content: center;
-    margin-top: 16px;
+    grid-column: 1 / -1;
+    grid-row: 3 / 4;
+    margin-top: 4px;
   }
 
   .cc-rewards {
@@ -826,5 +876,39 @@
 
   .completion-celebration {
     padding: 32px 24px;
+  }
+}
+
+/* Media query para dispositivos muito pequenos (< 375px) */
+@media (max-width: 374px) {
+  .next-step-banner {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .nsb-icon {
+    font-size: 28px;
+  }
+
+  .nsb-content h3 {
+    font-size: 14px;
+  }
+
+  .nsb-subtitle,
+  .nsb-description {
+    font-size: 11px;
+  }
+
+  .nsb-action-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .nsb-step {
+    font-size: 10px;
+  }
+
+  .nsb-step i {
+    font-size: 14px;
   }
 }

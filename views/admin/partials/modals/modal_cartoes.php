@@ -424,7 +424,7 @@
             border: 2px solid rgba(148, 163, 184, 0.3) !important;
             color: #e2e8f0 !important;
         }
-        
+
         .modal-footer .btn-secondary:hover {
             background: rgba(30, 41, 59, 0.8) !important;
         }

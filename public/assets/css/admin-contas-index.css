@@ -1217,3 +1217,108 @@
     transform: translateY(0);
   }
 }
+
+/* Media query para dispositivos móveis pequenos (300-390px) */
+@media (max-width: 390px) {
+  .account-card {
+    border-radius: 12px;
+  }
+
+  .account-header {
+    padding: 1rem;
+    min-height: 70px;
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .account-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    padding: 5px;
+  }
+
+  .account-actions {
+    gap: 0.375rem;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .account-body {
+    padding: 1rem;
+  }
+
+  .account-name {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+  }
+
+  .account-institution {
+    font-size: 0.75rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .account-balance {
+    font-size: 1.5rem;
+    margin-bottom: 0.875rem;
+    word-break: break-all;
+  }
+
+  .btn-new-transaction {
+    width: 100%;
+    justify-content: center;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    gap: 0.375rem;
+  }
+
+  .btn-new-transaction i {
+    font-size: 0.875rem;
+  }
+}
+
+/* Media query para dispositivos muito pequenos (< 320px) */
+@media (max-width: 319px) {
+  .account-header {
+    padding: 0.875rem;
+    min-height: 65px;
+  }
+
+  .account-logo {
+    width: 42px;
+    height: 42px;
+    padding: 4px;
+  }
+
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8125rem;
+  }
+
+  .account-body {
+    padding: 0.875rem;
+  }
+
+  .account-name {
+    font-size: 0.9375rem;
+  }
+
+  .account-institution {
+    font-size: 0.6875rem;
+  }
+
+  .account-balance {
+    font-size: 1.375rem;
+  }
+
+  .btn-new-transaction {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}

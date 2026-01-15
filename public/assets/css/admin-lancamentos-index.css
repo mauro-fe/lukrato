@@ -1330,16 +1330,16 @@
   /* Toggle de detalhes (setinha + "Detalhes") */
   .lan-card-toggle {
     grid-column: 1 / -1;
-    margin-top: 0.25rem;
+    margin-top: 0.15rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
+    gap: 0.4rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--color-primary);
     background: transparent;
     border: none;
-    padding: 0.4rem 0;
+    padding: 0.3rem 0;
     cursor: pointer;
     transition: all 0.2s ease;
     letter-spacing: 0.02em;
@@ -1376,8 +1376,8 @@
   /* Bloco de detalhes (Categoria, Conta, Descrição) */
   .lan-card-details {
     grid-column: 1 / -1;
-    margin-top: 0.5rem;
-    padding-top: 0.85rem;
+    margin-top: 0.4rem;
+    padding-top: 0.7rem;
     border-top: 2px solid
       color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
     display: none;
@@ -1398,20 +1398,20 @@
 
   .lan-card[aria-expanded="true"] .lan-card-details {
     display: grid;
-    row-gap: 0.65rem;
+    row-gap: 0.5rem;
   }
 
   .lan-card-detail-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    padding: 0.5rem 0.75rem;
+    gap: 0.65rem;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.65rem;
     background: color-mix(in srgb, var(--color-surface-muted) 30%, transparent);
     border-radius: 8px;
     transition: all 0.2s ease;
-    min-height: 38px;
+    min-height: 36px;
   }
 
   .lan-card-detail-row:active {
@@ -1437,19 +1437,24 @@
     font-weight: 700;
     color: var(--color-text-muted);
     text-transform: uppercase;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     letter-spacing: 0.05em;
     flex-shrink: 0;
-    min-width: 80px;
+    width: 90px;
+    max-width: 90px;
   }
 
   .lan-card-detail-value {
     color: var(--color-text);
     text-align: right;
     font-weight: 600;
+    font-size: 0.8rem;
     flex: 1;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
   }
 
   /* Badge de tipo reutilizando .badge-tipo */
@@ -1518,6 +1523,7 @@
     color: var(--color-text);
     font-weight: 600;
     font-size: 0.9rem;
+    margin-top: -27px;
   }
 
   .lan-card-detail-row.actions-row {
@@ -1581,6 +1587,42 @@
   .lan-card-type .badge-tipo {
     font-size: 0.68rem;
     padding: 0.3rem 0.65rem;
+  }
+}
+
+/* ========================================================================
+   MOBILE PEQUENO (321px - 356px)
+   - Ajustes específicos para dispositivos na faixa de 321-356px
+   ======================================================================== */
+@media (max-width: 356px) and (min-width: 321px) {
+  .lan-card-detail-label {
+    font-size: 0.6rem;
+    width: 80px;
+    max-width: 80px;
+    letter-spacing: 0.03em;
+  }
+
+  .lan-card-detail-value {
+    font-size: 0.75rem;
+    margin-left: -50px;
+  }
+
+  .lan-card-detail-row {
+    padding: 0.35rem 0.6rem;
+    gap: 0.5rem;
+    min-height: 34px;
+  }
+  .card-detail-row.actions-row .actions-slot {
+    margin-left: -30px;
+  }
+  .lan-card-detail-row .lk-btn {
+    min-width: 30px !important;
+    min-height: 30px !important;
+    max-width: 30px !important;
+    max-height: 30px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 0.75rem !important;
   }
 }
 
@@ -1706,6 +1748,7 @@
   .lan-card-detail-value {
     font-size: 0.8rem !important;
     word-break: break-word;
+    margin-top: -27px;
   }
 
   .lan-card-detail-row.actions-row {
@@ -1723,7 +1766,8 @@
     gap: 0.4rem !important;
     visibility: visible !important;
     opacity: 1 !important;
-    margin-left: -70px;
+    margin-left: -85px;
+    margin-top: 5px;
   }
 
   .lan-card-detail-value.actions-slot .lk-btn {
