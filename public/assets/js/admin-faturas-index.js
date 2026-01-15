@@ -488,10 +488,10 @@
             if (parc.parcelas && parc.parcelas.length > 0) {
                 valorPago = parc.parcelas
                     .filter(p => p.pago)
-                    .reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                    .reduce((sum, p) => sum + parseFloat(p.valor_parcela || p.valor || 0), 0);
                 valorRestante = parc.parcelas
                     .filter(p => !p.pago)
-                    .reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                    .reduce((sum, p) => sum + parseFloat(p.valor_parcela || p.valor || 0), 0);
             }
 
             return { valorPago, valorRestante };
@@ -500,20 +500,14 @@
         renderDetalhesHeader(parc, temItensPendentes, valorRestante) {
             return `
                 <div class="detalhes-header">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h3 class="detalhes-title" style="margin: 0;">${Utils.escapeHtml(parc.descricao)}</h3>
+                    <div class="detalhes-header-content">
+                        <h3 class="detalhes-title">${Utils.escapeHtml(parc.descricao)}</h3>
                         ${temItensPendentes ? `
                             <button class="btn-pagar-fatura-completa" 
-                                    onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})"
-                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                                           color: white; border: none; padding: 0.75rem 1.5rem;
-                                           border-radius: 8px; font-weight: 600; cursor: pointer;
-                                           display: flex; align-items: center; gap: 0.5rem;
-                                           transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);"
-                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'" 
-                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(16, 185, 129, 0.3)'">
+                                    onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})">
                                 <i class="fas fa-check-double"></i>
-                                Pagar Fatura Completa
+                                <span class="btn-text-desktop">Pagar Fatura Completa</span>
+                                <span class="btn-text-mobile">Pagar Tudo</span>
                             </button>
                         ` : ''}
                     </div>
@@ -573,18 +567,21 @@
         },
 
         renderParcelasTabela(parc) {
+            // Versão desktop: tabela
             let html = `
                 <h4 class="parcelas-titulo">📋 Lista de Itens</h4>
-                <div class="parcelas-container">
+                
+                <!-- Tabela Desktop -->
+                <div class="parcelas-container parcelas-desktop">
                     <table class="parcelas-table">
                         <thead>
                             <tr>
-                                <th style="width: 60px;">#</th>
+                                <th>#</th>
                                 <th>Descrição</th>
-                                <th style="width: 120px;">Vencimento</th>
-                                <th style="width: 120px;">Valor</th>
-                                <th style="width: 120px;">Status</th>
-                                <th style="width: 140px;">Ação</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -608,9 +605,61 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Cards Mobile -->
+                <div class="parcelas-container parcelas-mobile">
             `;
 
+            if (parc.parcelas && parc.parcelas.length > 0) {
+                parc.parcelas.forEach((parcela, index) => {
+                    html += this.renderParcelaCard(parcela, index, parc.descricao);
+                });
+            } else {
+                html += `
+                    <div class="parcela-card-empty">
+                        <p>Nenhuma parcela encontrada</p>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
             return html;
+        },
+
+        renderParcelaCard(parcela, index, descricaoFatura) {
+            const isPaga = parcela.pago;
+            const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
+            const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
+            const cardClass = isPaga ? 'parcela-card-paga' : '';
+            const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
+
+            return `
+                <div class="parcela-card ${cardClass}">
+                    <div class="parcela-card-header">
+                        <span class="parcela-numero">${parcela.numero_parcela || (index + 1)}/${parcela.total_parcelas || 1}</span>
+                        <span class="${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="parcela-card-body">
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Vencimento</span>
+                            <span class="parcela-card-value">${mesAno}</span>
+                        </div>
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Valor</span>
+                            <span class="parcela-card-value parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
+                        </div>
+                    </div>
+                    <div class="parcela-card-footer">
+                        ${this.renderParcelaButton(parcela, isPaga)}
+                    </div>
+                    ${isPaga && parcela.data_pagamento ? `
+                        <div class="parcela-card-pago-info">
+                            ✅ Pago em ${parcela.data_pagamento}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         },
 
         renderParcelaRow(parcela, index, descricaoFatura) {
@@ -648,7 +697,7 @@
 
         getDataPagamentoInfo(parcela) {
             if (!parcela.pago || !parcela.data_pagamento) return '';
-            
+
             return `<small style="color: #10b981; display: block; margin-top: 3px;">✅ Pago em ${parcela.data_pagamento}</small>`;
         },
 
@@ -740,8 +789,8 @@
         },
 
         getNomeMesCompleto(mes) {
-            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
             return meses[mes - 1] || mes;
         },
 
