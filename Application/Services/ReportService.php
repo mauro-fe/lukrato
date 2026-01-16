@@ -754,8 +754,13 @@ class ReportService
         $parcelado = $itensFatura->where('total_parcelas', '>', 1)->sum('valor');
         $totalFatura = $itensFatura->sum('valor');
 
-        // Calcular limite e percentual de utilização (necessário para o status de saúde)
-        $limite = (float) ($cartao->limite_total ?? $cartao->limite ?? 0);
+        // Calcular limite e percentual de utilização GERAL (todos os itens não pagos)
+        $limite = (float) ($cartao->limite_total ?? 0);
+        $totalUtilizado = $cartao->limite_utilizado; // Usa o accessor que calcula dinamicamente
+        $limiteDisponivel = $cartao->limite_disponivel_real; // Usa o accessor calculado
+        $percentualUtilizacaoGeral = $limite > 0 ? ($totalUtilizado / $limite) * 100 : 0;
+
+        // Percentual apenas do mês atual (para exibição)
         $percentualUtilizacao = $limite > 0 ? ($totalFatura / $limite) * 100 : 0;
 
         // Agrupar por categoria
@@ -829,10 +834,10 @@ class ReportService
             ? round(($diferencaAbsoluta / $faturaAnterior) * 100, 1)
             : 0;
 
-        // STATUS DE SAÚDE
-        if ($percentualUtilizacao <= 30) {
+        // STATUS DE SAÚDE (baseado no percentual geral, não apenas do mês)
+        if ($percentualUtilizacaoGeral <= 30) {
             $statusSaude = ['status' => 'saudavel', 'cor' => '#2ecc71', 'texto' => 'Saudável'];
-        } elseif ($percentualUtilizacao <= 60) {
+        } elseif ($percentualUtilizacaoGeral <= 60) {
             $statusSaude = ['status' => 'atencao', 'cor' => '#f39c12', 'texto' => 'Atenção'];
         } else {
             $statusSaude = ['status' => 'risco', 'cor' => '#e74c3c', 'texto' => 'Risco'];
@@ -948,9 +953,12 @@ class ReportService
         return [
             'cartao' => [
                 'id' => $cartao->id,
-                'nome' => $cartao->nome_cartao ?? $cartao->nome,
+                'nome' => $cartao->nome_cartao,
                 'bandeira' => $cartao->bandeira ?? 'outros',
                 'limite' => $limite,
+                'limite_disponivel' => $limiteDisponivel,
+                'limite_utilizado' => $totalUtilizado,
+                'percentual_utilizacao_geral' => round($percentualUtilizacaoGeral, 1),
                 'dia_vencimento' => $cartao->dia_vencimento,
                 'cor' => $cartao->conta ? ($cartao->conta->cor ?? '#E67E22') : '#E67E22',
                 'status_saude' => $statusSaude

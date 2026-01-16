@@ -1,60 +1,50 @@
-#!/usr/bin/env php
 <?php
-/**
- * Script para verificar e recalcular limite disponível dos cartões
- */
-
-require_once dirname(__DIR__) . '/bootstrap.php';
+require __DIR__ . '/../bootstrap.php';
 
 use Application\Models\CartaoCredito;
-use Application\Models\Lancamento;
+use Illuminate\Database\Capsule\Manager as DB;
 
-$userId = $argv[1] ?? 1;
+$cartaoId = 36;
 
-echo "=== Verificando cartões do usuário {$userId} ===" . PHP_EOL . PHP_EOL;
+echo "=== DADOS DO CARTÃO ===\n\n";
+$cartao = CartaoCredito::with('conta')->find($cartaoId);
 
-$cartoes = CartaoCredito::where('user_id', $userId)->get();
-
-if ($cartoes->isEmpty()) {
-    echo "Nenhum cartão encontrado para o usuário {$userId}" . PHP_EOL;
-    exit(1);
+if (!$cartao) {
+    die("Cartão não encontrado!\n");
 }
 
-$totalCorrigidos = 0;
+echo "ID: {$cartao->id}\n";
+echo "Nome: {$cartao->nome_cartao}\n";
+echo "Limite Total: R$ " . number_format($cartao->limite_total, 2, ',', '.') . "\n";
+echo "Limite Disponível (campo): R$ " . number_format($cartao->limite_disponivel, 2, ',', '.') . "\n";
+echo "Ativo: " . ($cartao->ativo ? 'SIM' : 'NÃO') . "\n";
 
-foreach ($cartoes as $cartao) {
-    echo "📌 Cartão: {$cartao->nome_cartao} (ID: {$cartao->id})" . PHP_EOL;
-    echo "   Limite Total: R$ " . number_format($cartao->limite_total, 2, ',', '.') . PHP_EOL;
-    echo "   Limite Disponível (atual): R$ " . number_format($cartao->limite_disponivel, 2, ',', '.') . PHP_EOL;
+echo "\n=== ITENS DE FATURA NÃO PAGOS ===\n\n";
+$itensNaoPagos = DB::table('faturas_cartao_itens')
+    ->where('cartao_credito_id', $cartaoId)
+    ->where('pago', false)
+    ->select('id', 'descricao', 'valor', 'mes_referencia', 'ano_referencia')
+    ->orderBy('ano_referencia')
+    ->orderBy('mes_referencia')
+    ->get();
 
-    // Verificar lançamentos não pagos (usando a coluna correta: cartao_credito_id)
-    $lancamentosNaoPagos = Lancamento::where('cartao_credito_id', $cartao->id)
-        ->get();
-
-    $totalNaoPago = $lancamentosNaoPagos->sum('valor');
-
-    echo "   Lançamentos não pagos: " . $lancamentosNaoPagos->count() . PHP_EOL;
-    echo "   Total não pago: R$ " . number_format($totalNaoPago, 2, ',', '.') . PHP_EOL;
-
-    $limiteCorreto = $cartao->limite_total - $totalNaoPago;
-    echo "   Limite que deveria ser: R$ " . number_format($limiteCorreto, 2, ',', '.') . PHP_EOL;
-
-    if (abs($cartao->limite_disponivel - $limiteCorreto) > 0.01) {
-        echo "   ⚠️  DIFERENÇA ENCONTRADA! Corrigindo..." . PHP_EOL;
-
-        // Corrigir usando o método do modelo
-        $cartao->atualizarLimiteDisponivel();
-        $cartao->refresh();
-
-        echo "   ✅ Limite atualizado para: R$ " . number_format($cartao->limite_disponivel, 2, ',', '.') . PHP_EOL;
-        $totalCorrigidos++;
-    } else {
-        echo "   ✅ Limite está correto!" . PHP_EOL;
-    }
-
-    echo PHP_EOL;
+$totalNaoPago = 0;
+foreach ($itensNaoPagos as $item) {
+    echo sprintf(
+        "ID: %d | %s | R$ %.2f | %02d/%d\n",
+        $item->id,
+        substr($item->descricao, 0, 40),
+        $item->valor,
+        $item->mes_referencia,
+        $item->ano_referencia
+    );
+    $totalNaoPago += $item->valor;
 }
 
-echo "=============================================" . PHP_EOL;
-echo "Total de cartões verificados: " . $cartoes->count() . PHP_EOL;
-echo "Total de cartões corrigidos: {$totalCorrigidos}" . PHP_EOL;
+echo "\nTotal não pago: R$ " . number_format($totalNaoPago, 2, ',', '.') . "\n";
+echo "Limite disponível REAL: R$ " . number_format($cartao->limite_total - $totalNaoPago, 2, ',', '.') . "\n";
+echo "Utilização REAL: " . number_format(($totalNaoPago / $cartao->limite_total) * 100, 1, ',', '.') . "%\n";
+
+echo "\n=== VERIFICANDO ACCESSORS DO MODEL ===\n\n";
+echo "limite_utilizado (accessor): R$ " . number_format($cartao->limite_utilizado, 2, ',', '.') . "\n";
+echo "percentual_uso (accessor): " . number_format($cartao->percentual_uso, 1, ',', '.') . "%\n";

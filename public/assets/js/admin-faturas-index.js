@@ -498,10 +498,18 @@
         },
 
         renderDetalhesHeader(parc, temItensPendentes, valorRestante) {
+            // Extrair mês e ano da descrição da fatura (ex: "Fatura 2/2026")
+            const [mes, ano] = this.extrairMesAno(parc.descricao);
+            const mesNome = this.getNomeMes(mes);
+            const mesAnoFormatado = `${mesNome}/${ano}`;
+            
             return `
                 <div class="detalhes-header">
                     <div class="detalhes-header-content">
-                        <h3 class="detalhes-title">${Utils.escapeHtml(parc.descricao)}</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="color: #9ca3af; font-size: 0.875rem; font-weight: 500;">Vencimento</span>
+                            <h3 class="detalhes-title" style="margin: 0;">${mesAnoFormatado}</h3>
+                        </div>
                         ${temItensPendentes ? `
                             <button class="btn-pagar-fatura-completa" 
                                     onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})">
@@ -578,7 +586,6 @@
                             <tr>
                                 <th>#</th>
                                 <th>Descrição</th>
-                                <th>Vencimento</th>
                                 <th>Valor</th>
                                 <th>Status</th>
                                 <th>Ação</th>
@@ -594,7 +601,7 @@
             } else {
                 html += `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                        <td colspan="5" style="text-align: center; padding: 2rem;">
                             <p style="color: #6b7280;">Nenhuma parcela encontrada</p>
                         </td>
                     </tr>
@@ -633,6 +640,19 @@
             const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
             const cardClass = isPaga ? 'parcela-card-paga' : '';
             const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
+            
+            // Usar a descrição da parcela ou categoria se disponível
+            let descricaoItem = parcela.descricao || descricaoFatura;
+            
+            // Remover o contador de parcelas (X/Y) da descrição
+            descricaoItem = descricaoItem.replace(/\s*\(\d+\/\d+\)\s*$/, '');
+            
+            // Se tiver categoria, mostrar o nome da categoria
+            if (parcela.categoria) {
+                const iconeCategoria = parcela.categoria.icone || '📋';
+                const nomeCategoria = parcela.categoria.nome || parcela.categoria;
+                descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
+            }
 
             return `
                 <div class="parcela-card ${cardClass}">
@@ -642,8 +662,8 @@
                     </div>
                     <div class="parcela-card-body">
                         <div class="parcela-card-info">
-                            <span class="parcela-card-label">Vencimento</span>
-                            <span class="parcela-card-value">${mesAno}</span>
+                            <span class="parcela-card-label">Descrição</span>
+                            <span class="parcela-card-value">${Utils.escapeHtml(descricaoItem)}</span>
                         </div>
                         <div class="parcela-card-info">
                             <span class="parcela-card-label">Valor</span>
@@ -669,6 +689,19 @@
             const rowClass = isPaga ? 'tr-paga' : '';
             const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
             const dataPagamentoHtml = this.getDataPagamentoInfo(parcela);
+            
+            // Usar a descrição da parcela ou categoria se disponível
+            let descricaoItem = parcela.descricao || descricaoFatura;
+            
+            // Remover o contador de parcelas (X/Y) da descrição
+            descricaoItem = descricaoItem.replace(/\s*\(\d+\/\d+\)\s*$/, '');
+            
+            // Se tiver categoria, mostrar o nome da categoria
+            if (parcela.categoria) {
+                const iconeCategoria = parcela.categoria.icone || '📋';
+                const nomeCategoria = parcela.categoria.nome || parcela.categoria;
+                descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
+            }
 
             return `
                 <tr class="${rowClass}">
@@ -676,11 +709,7 @@
                         <span class="parcela-numero">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
                     </td>
                     <td data-label="Descrição">
-                        <div class="parcela-desc">${Utils.escapeHtml(descricaoFatura)}</div>
-                    </td>
-                    <td data-label="Vencimento">
-                        <span class="parcela-data">${mesAno}</span>
-                        ${dataPagamentoHtml}
+                        <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}</div>
                     </td>
                     <td data-label="Valor">
                         <span class="parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
@@ -709,7 +738,7 @@
                         data-pago="true"
                         title="Desfazer pagamento">
                         <i class="fas fa-undo"></i>
-                        Desfazer
+                       
                     </button>
                 `;
             } else {
@@ -728,6 +757,17 @@
         getNomeMes(mes) {
             const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             return meses[mes - 1] || mes;
+        },
+
+        extrairMesAno(descricao) {
+            // Extrai mês e ano de strings como "Fatura 2/2026" ou "2/2026"
+            const match = descricao.match(/(\d{1,2})\/(\d{4})/);
+            if (match) {
+                return [parseInt(match[1], 10), match[2]];
+            }
+            // Fallback para data atual
+            const hoje = new Date();
+            return [hoje.getMonth() + 1, hoje.getFullYear()];
         },
 
         mostrarDetalhesParcela(parcela, descricao) {
@@ -806,7 +846,15 @@
                     confirmButtonColor: marcarComoPago ? '#10b981' : '#ef4444',
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: marcarComoPago ? 'Sim, marcar como pago' : 'Sim, desfazer',
-                    cancelButtonText: 'Cancelar'
+                    cancelButtonText: 'Cancelar',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
 
                 if (!result.isConfirmed) return;
@@ -814,7 +862,15 @@
                 Swal.fire({
                     title: 'Processando...',
                     allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
+                    heightAuto: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    },
+                    customClass: {
+                        container: 'swal-above-modal'
+                    }
                 });
 
                 await API.toggleItemFatura(faturaId, itemId, marcarComoPago);
@@ -824,18 +880,39 @@
                     title: 'Sucesso!',
                     text: marcarComoPago ? 'Item marcado como pago' : 'Pagamento desfeito',
                     timer: CONFIG.TIMEOUTS.successMessage,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
 
+                // Recarregar parcelamentos e reabrir modal atualizado
                 await App.carregarParcelamentos();
-                STATE.modalDetalhesInstance.hide();
+                
+                // Reabrir o modal com dados atualizados
+                setTimeout(() => {
+                    UI.showDetalhes(faturaId);
+                }, 100);
 
             } catch (error) {
                 console.error('Erro ao alternar status:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
-                    text: error.message || 'Erro ao processar operação'
+                    text: error.message || 'Erro ao processar operação',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
             }
         },
@@ -857,7 +934,15 @@
                     confirmButtonColor: '#10b981',
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: '<i class="fas fa-check"></i> Sim, pagar tudo',
-                    cancelButtonText: 'Cancelar'
+                    cancelButtonText: 'Cancelar',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
 
                 if (!result.isConfirmed) return;
@@ -866,7 +951,15 @@
                     title: 'Processando pagamento...',
                     html: 'Aguarde enquanto processamos o pagamento de todos os itens.',
                     allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
+                    heightAuto: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    },
+                    customClass: {
+                        container: 'swal-above-modal'
+                    }
                 });
 
                 const fatura = await API.buscarParcelamento(faturaId);
@@ -886,10 +979,20 @@
                         </div>
                     `,
                     timer: 3000,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
 
                 await App.carregarParcelamentos();
+                
+                // Fechar o modal após pagamento completo
                 STATE.modalDetalhesInstance.hide();
 
             } catch (error) {
@@ -897,7 +1000,15 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro ao pagar fatura',
-                    text: error.message || 'Não foi possível processar o pagamento. Tente novamente.'
+                    text: error.message || 'Não foi possível processar o pagamento. Tente novamente.',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
             }
         }

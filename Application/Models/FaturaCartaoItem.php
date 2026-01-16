@@ -64,6 +64,23 @@ class FaturaCartaoItem extends Model
         $this->attributes['valor'] = $value;
     }
 
+    /**
+     * Accessor para manter compatibilidade com código que usa numero_parcela
+     * O campo real na tabela é 'parcela_atual'
+     */
+    public function getNumeroParcelaAttribute()
+    {
+        return $this->parcela_atual;
+    }
+
+    /**
+     * Mutator para manter compatibilidade com código que usa numero_parcela
+     */
+    public function setNumeroParcelaAttribute($value)
+    {
+        $this->attributes['parcela_atual'] = $value;
+    }
+
     // Relacionamentos
     public function fatura()
     {
@@ -73,6 +90,16 @@ class FaturaCartaoItem extends Model
     public function lancamento()
     {
         return $this->belongsTo(Lancamento::class, 'lancamento_id');
+    }
+
+    public function cartaoCredito()
+    {
+        return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
+    }
+
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
     // Scopes

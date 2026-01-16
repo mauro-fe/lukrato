@@ -4450,12 +4450,52 @@ canvas {
   }
 }
 
+/* Grid para os cards de gráficos - Evolução Mensal e Impacto Futuro */
+.detail-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+.detail-section-grid .detail-section,
+.detail-section-grid .detail-section-grid-item {
+  margin-bottom: 0;
+  flex: 1;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-4);
+}
+
+.detail-section-grid .detail-chart-container {
+  flex: 1;
+  min-height: 250px;
+  height: auto;
+}
+
+@media (max-width: 992px) {
+  .detail-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-section-grid .detail-section,
+  .detail-section-grid .detail-section-grid-item {
+    min-height: 350px;
+  }
+}
+
 .detail-chart-container {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: var(--spacing-4);
   height: 300px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .lancamentos-list {

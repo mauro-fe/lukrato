@@ -129,7 +129,8 @@
         modal.id = 'cardDetailModalOverlay';
         modal.className = 'card-detail-modal-overlay';
 
-        const percentualLimite = data.fatura_mes.percentual_limite || 0;
+        const percentualLimiteGeral = data.cartao.percentual_utilizacao_geral || 0;
+        const limiteDisponivel = data.cartao.limite_disponivel || 0;
 
         modal.innerHTML = `
             <div class="card-detail-modal">
@@ -160,11 +161,11 @@
                         </div>
                         <div class="stat-box">
                             <span class="stat-box-label">DISPONÍVEL</span>
-                            <span class="stat-box-value">${Utils.formatCurrency(data.cartao.limite - data.fatura_mes.total)}</span>
+                            <span class="stat-box-value">${Utils.formatCurrency(limiteDisponivel)}</span>
                         </div>
                         <div class="stat-box">
                             <span class="stat-box-label">UTILIZAÇÃO</span>
-                            <span class="stat-box-value">${percentualLimite.toFixed(1)}%</span>
+                            <span class="stat-box-value">${percentualLimiteGeral.toFixed(1)}%</span>
                         </div>
                     </div>
                 </div>

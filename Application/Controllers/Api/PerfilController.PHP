@@ -145,4 +145,34 @@ class PerfilController
             );
         }
     }
+
+    public function delete(): void
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                Response::error('Não autenticado', 401);
+                return;
+            }
+
+            // Deletar todos os dados do usuário
+            $this->perfilService->deletarConta($user->id);
+
+            // Fazer logout
+            Auth::logout();
+
+            Response::success([
+                'message' => 'Conta excluída com sucesso',
+            ]);
+        } catch (Throwable $e) {
+            error_log("🗑️ [DELETE] ERRO ao excluir conta: " . $e->getMessage());
+            error_log("🗑️ [DELETE] Stack: " . $e->getTraceAsString());
+            Response::error(
+                'Erro ao excluir conta',
+                500,
+                ['exception' => $e->getMessage()]
+            );
+        }
+    }
 }

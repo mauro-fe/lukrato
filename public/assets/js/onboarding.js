@@ -5,7 +5,14 @@
 
 class OnboardingManager {
     constructor() {
-        this.baseUrl = window.BASE_URL || '/lukrato/public/';
+        // Usar a função global LK.getBase() se disponível
+        if (window.LK && typeof window.LK.getBase === 'function') {
+            this.baseUrl = window.LK.getBase();
+        } else {
+            // Fallback para meta tag
+            const meta = document.querySelector('meta[name="base-url"]');
+            this.baseUrl = meta?.content || window.BASE_URL || '/lukrato/public/';
+        }
         this.storageKey = 'lukrato_onboarding_completed';
         this.currentStep = 0;
         this.totalSteps = 2;

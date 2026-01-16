@@ -10,6 +10,7 @@ use Application\Repositories\EnderecoRepository;
 use Application\Builders\PerfilPayloadBuilder;
 use Application\Formatters\DocumentFormatter;
 use Application\Formatters\TelefoneFormatter;
+use Application\Services\AsaasService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -85,6 +86,83 @@ class PerfilService
 
             // Retorna o perfil atualizado
             return $this->obterPerfil($userId);
+        });
+    }
+
+    /**
+     * Deleta completamente a conta do usuário e todos os seus dados
+     */
+    public function deletarConta(int $userId): void
+    {
+        DB::connection()->transaction(function () use ($userId) {
+            // Verificar se o usuário existe
+            $user = $this->usuarioRepo->findById($userId);
+            if (!$user) {
+                throw new \Exception('Usuário não encontrado');
+            }
+
+            // Cancelar assinatura PRO se existir
+            if ($user->assinatura_plano === 'pro' && $user->assinatura_ativa) {
+                $asaasService = new AsaasService();
+                if ($user->assinatura_id) {
+                    try {
+                        $asaasService->cancelarAssinatura($user->assinatura_id);
+                    } catch (\Exception $e) {
+                        error_log("Erro ao cancelar assinatura Asaas: " . $e->getMessage());
+                        // Continua com a exclusão mesmo se falhar o cancelamento
+                    }
+                }
+            }
+
+            // Deletar dados relacionados (cascade será feito pelo banco em alguns casos)
+            // Mas vamos deletar explicitamente para garantir
+
+            // Lançamentos
+            DB::table('lancamentos')->where('user_id', $userId)->delete();
+
+            // Agendamentos
+            DB::table('agendamentos')->where('user_id', $userId)->delete();
+
+            // Categorias
+            DB::table('categorias')->where('user_id', $userId)->delete();
+
+            // Contas
+            DB::table('contas')->where('user_id', $userId)->delete();
+
+            // Cartões de crédito
+            DB::table('cartoes_credito')->where('user_id', $userId)->delete();
+
+            // Faturas e itens de fatura
+            DB::table('faturas_cartao_itens')->where('user_id', $userId)->delete();
+            DB::table('faturas')->where('user_id', $userId)->delete();
+
+            // Investimentos
+            DB::table('investimentos')->where('user_id', $userId)->delete();
+
+            // Metas
+            DB::table('metas')->where('user_id', $userId)->delete();
+
+            // Gamificação
+            DB::table('user_achievements')->where('user_id', $userId)->delete();
+            DB::table('points_log')->where('user_id', $userId)->delete();
+
+            // Notificações
+            DB::table('notificacoes')->where('user_id', $userId)->delete();
+
+            // Preferências
+            DB::table('preferencias_usuario')->where('user_id', $userId)->delete();
+
+            // Documentos
+            $this->documentoRepo->deleteCpf($userId);
+
+            // Telefones
+            $this->telefoneRepo->delete($userId);
+
+            // Endereços
+            $this->enderecoRepo->deletePrincipal($userId);
+
+            // Por fim, deletar o usuário
+            $this->usuarioRepo->delete($userId);
         });
     }
 }

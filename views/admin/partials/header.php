@@ -135,6 +135,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             return (meta?.content || '/').replace(/\/?$/, '/');
         };
 
+        // Definir window.BASE_URL para compatibilidade com scripts antigos
+        window.BASE_URL = LK.getBase();
+
         LK.getCSRF = () => {
             return document.querySelector('meta[name="csrf-token"]')?.content ||
                 document.querySelector('input[name="_token"]')?.value || '';

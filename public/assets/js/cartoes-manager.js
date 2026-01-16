@@ -57,6 +57,20 @@ class CartoesManager {
      */
     getBaseUrl() {
         try {
+            // Usar a função global LK.getBase() se disponível
+            if (window.LK && typeof window.LK.getBase === 'function') {
+                const url = window.LK.getBase();
+                console.log('✅ LK.getBase() encontrado:', url);
+                return url;
+            }
+
+            // Fallback para meta tag
+            const meta = document.querySelector('meta[name="base-url"]');
+            if (meta?.content) {
+                console.log('✅ BASE_URL da meta tag:', meta.content);
+                return meta.content;
+            }
+
             if (window.BASE_URL) {
                 const url = window.BASE_URL.endsWith('/') ? window.BASE_URL : window.BASE_URL + '/';
                 console.log('✅ BASE_URL encontrado:', url);
@@ -664,7 +678,7 @@ class CartoesManager {
         console.log('🔄 Carregando contas no select...');
 
         try {
-            const url = `${this.baseUrl}api/contas?only_active=0`;
+            const url = `${this.baseUrl}api/contas?only_active=0&with_balances=1`;
             console.log('📡 URL completa:', url);
 
             const response = await fetch(url, {
@@ -717,8 +731,8 @@ class CartoesManager {
                     conta.nome ||
                     'Sem instituição';
                 const nome = this.escapeHtml(instituicao);
-                // Tentar pegar o saldo de diferentes campos possíveis
-                const saldoValue = parseFloat(conta.saldo_atual || conta.saldo || conta.saldo_inicial || 0);
+                // Tentar pegar o saldo de diferentes campos possíveis (saldoAtual é o campo retornado com with_balances=1)
+                const saldoValue = parseFloat(conta.saldoAtual || conta.saldo_atual || conta.saldo || conta.saldo_inicial || 0);
                 const saldo = this.formatMoney(saldoValue);
                 console.log(`  → Conta: ID=${conta.id}, Instituição=${nome}, Saldo=${saldo}`);
                 return `<option value="${conta.id}">${nome} - ${saldo}</option>`;

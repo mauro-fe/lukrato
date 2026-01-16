@@ -31,6 +31,7 @@ Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send');
 Router::add('GET',  '/api/perfil', 'Api\\PerfilController@show',   ['auth']);
 Router::add('POST', '/api/perfil', 'Api\\PerfilController@update', ['auth', 'csrf']);
 Router::add('POST', '/api/perfil/tema', 'Api\\PerfilController@updateTheme', ['auth', 'csrf']);
+Router::add('DELETE', '/api/perfil/delete', 'Api\\PerfilController@delete', ['auth', 'csrf']);
 
 // ============================================
 // DASHBOARD
