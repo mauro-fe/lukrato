@@ -7,7 +7,7 @@
         width: 64px;
         height: 64px;
         background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
-        color: #fff;
+        color: var(--color-text) !important;
         border-radius: 100%;
         display: flex;
         align-items: center;
