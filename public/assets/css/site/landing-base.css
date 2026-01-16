@@ -273,11 +273,11 @@ svg {
 }
 
 .lk-footer {
-  background: #f4f9ff;
+  background: #092741 !important;
   border-top: 1px solid #e2e8f0;
   padding: 48px 24px 24px;
   font-size: 0.95rem;
-  color: #475569;
+  color: #fff;
   margin-top: 64px;
 }
 
@@ -316,7 +316,6 @@ svg {
 }
 
 .lk-footer a {
-  color: #475569;
   text-decoration: none;
   transition: color 0.2s;
   outline: none;
@@ -329,6 +328,13 @@ svg {
 }
 
 .lk-footer a:hover {
+  color: #e67e22;
+}
+
+.lk-footer-icons i {
+  color: #092741;
+}
+.lk-footer-icons i:hover {
   color: #e67e22;
 }
 

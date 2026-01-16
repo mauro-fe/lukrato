@@ -38,14 +38,14 @@
      */
     function getToken() {
         if (csrfToken) return csrfToken;
-        
+
         // Tenta obter da meta tag
         const metaToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
         if (metaToken) {
             csrfToken = metaToken;
             return csrfToken;
         }
-        
+
         // Tenta obter do window.LK
         if (window.LK) {
             if (typeof window.LK.csrfToken === 'string' && window.LK.csrfToken) {
@@ -60,7 +60,7 @@
                 }
             }
         }
-        
+
         return '';
     }
 
@@ -69,17 +69,17 @@
      */
     function applyToken(token, ttl = null) {
         if (!token) return;
-        
+
         csrfToken = token;
         if (ttl !== null && typeof ttl === 'number') {
             csrfTtl = ttl;
         }
         lastCheck = Date.now();
-        
+
         // Atualiza meta tag
         const meta = document.querySelector('meta[name="csrf-token"]');
         if (meta) meta.setAttribute('content', token);
-        
+
         // Atualiza campos com data-csrf-id
         document.querySelectorAll(`[data-csrf-id="${CONFIG.TOKEN_ID}"]`).forEach((el) => {
             if (el.tagName === 'META') {
@@ -88,12 +88,12 @@
                 el.value = token;
             }
         });
-        
+
         // Atualiza window.LK
         if (window.LK) {
             window.LK.csrfToken = token;
         }
-        
+
         console.log('[CSRF] Token atualizado. TTL:', ttl || 'desconhecido');
     }
 
@@ -105,13 +105,13 @@
             console.log('[CSRF] Refresh já em andamento, aguardando...');
             return csrfToken;
         }
-        
+
         refreshInProgress = true;
-        
+
         try {
             const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '/';
             const url = `${baseUrl}${CONFIG.REFRESH_ENDPOINT}`.replace(/\/{2,}/g, '/').replace(':/', '://');
-            
+
             const res = await fetch(url, {
                 method: 'POST',
                 credentials: 'include',
@@ -121,19 +121,19 @@
                 },
                 body: JSON.stringify({ token_id: CONFIG.TOKEN_ID })
             });
-            
+
             if (!res.ok) {
                 throw new Error(`HTTP ${res.status}`);
             }
-            
+
             const data = await res.json();
-            
+
             if (data?.token) {
                 applyToken(data.token, data.ttl);
                 console.log('[CSRF] Token renovado com sucesso');
                 return data.token;
             }
-            
+
             throw new Error('Resposta sem token');
         } catch (err) {
             console.error('[CSRF] Falha ao renovar token:', err);
@@ -149,7 +149,7 @@
     function checkAndRefreshIfNeeded() {
         const elapsed = (Date.now() - lastCheck) / 1000;
         const estimatedRemaining = Math.max(0, csrfTtl - elapsed);
-        
+
         if (estimatedRemaining < CONFIG.PROACTIVE_REFRESH_THRESHOLD) {
             console.log('[CSRF] TTL baixo detectado, renovando proativamente...');
             refreshToken().catch(() => {
@@ -200,7 +200,7 @@
      */
     async function fetchWithCsrf(url, options = {}, retry = true) {
         const token = getToken();
-        
+
         const finalOptions = {
             credentials: 'include',
             ...options,
@@ -212,12 +212,12 @@
                 ...(options.headers || {})
             }
         };
-        
+
         const response = await fetch(url, finalOptions);
-        
+
         // Atualiza TTL com base no header
         updateTtlFromResponse(response);
-        
+
         // Tenta parsear JSON
         let data = null;
         const contentType = response.headers.get('content-type') || '';
@@ -228,11 +228,11 @@
                 // Ignora erros de parse
             }
         }
-        
+
         // Verifica se é erro de CSRF
         if (isCsrfError(response, data) && retry) {
             console.warn('[CSRF] Token expirado detectado, tentando renovar...');
-            
+
             try {
                 await refreshToken();
                 console.log('[CSRF] Tentando novamente a requisição...');
@@ -242,7 +242,7 @@
                 // Retorna a resposta original do erro
             }
         }
-        
+
         return response;
     }
 
@@ -251,11 +251,11 @@
      */
     async function fetchJson(url, options = {}, retry = true) {
         const response = await fetchWithCsrf(url, options, retry);
-        
+
         if (!response.ok) {
             const contentType = response.headers.get('content-type') || '';
             let errorMsg = `HTTP ${response.status}`;
-            
+
             if (contentType.includes('application/json')) {
                 try {
                     const errorData = await response.json();
@@ -264,10 +264,10 @@
                     // Ignora erro de parse
                 }
             }
-            
+
             throw new Error(errorMsg);
         }
-        
+
         return response.json();
     }
 
@@ -277,10 +277,10 @@
 
     // Inicializa com token existente
     applyToken(getToken());
-    
+
     // Inicia verificação periódica
     setInterval(checkAndRefreshIfNeeded, CONFIG.CHECK_INTERVAL);
-    
+
     // Expõe API global
     window.CsrfManager = {
         getToken,
@@ -289,11 +289,10 @@
         fetchJson,
         applyToken
     };
-    
+
     // Backward compatibility com window.LK
     if (!window.LK) window.LK = {};
     window.LK.getCSRF = getToken;
     window.LK.refreshCSRF = refreshToken;
-    
-    console.log('[CSRF] Gerenciador global inicializado');
+
 })();

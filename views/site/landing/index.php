@@ -572,11 +572,9 @@
 
 
 <!-- Seção de Planos -->
-<section id="planos" class="relative py-20 md:py-32 bg-white">
+<section id="planos" class="relative py-20 md:py-32 bg-gray-50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
-        <!-- Header -->
-        <!-- Container único com Alpine.js para sincronizar toggle e cards -->
         <div x-data="{ 
                 period: 'mensal',
                 get discount() {
@@ -588,233 +586,144 @@
                     if (this.period === 'mensal') return 'mês';
                     if (this.period === 'semestral') return 'semestre';
                     return 'ano';
-                },
-                scrollToCard(cardId) {
-                    // Só rola em mobile (largura menor que 1024px)
-                    if (window.innerWidth < 1024) {
-                        const element = document.getElementById(cardId);
-                        if (element) {
-                            setTimeout(() => {
-                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }, 100);
-                        }
-                    }
                 }
             }">
 
-            <div class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+            <div class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                     Planos simples,
-                    <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
+                    <span class="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
                         sem complicação
                     </span>
                 </h2>
-                <p class="text-lg sm:text-xl text-gray-600 mb-8">
-                    Comece grátis e evolua para o Pro quando quiser mais controle, organização e tranquilidade no dia a
-                    dia.
+                <p class="text-lg text-gray-600 mb-10">
+                    Comece grátis e evolua para o Pro quando quiser mais controle e tranquilidade.
                 </p>
 
-                <!-- Toggle de Período -->
-                <div class="inline-flex bg-white border-2 border-gray-200 rounded-xl p-1.5 shadow-lg gap-2">
+                <div class="inline-flex bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm gap-1">
                     <button @click="period = 'mensal'"
-                        :class="period === 'mensal' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
-                        class="px-6 py-3 rounded-lg font-semibold transition-all duration-300">
+                        :class="period === 'mensal' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'"
+                        class="px-6 py-2.5 rounded-xl font-semibold transition-all duration-200">
                         Mensal
                     </button>
-                    <button @click="period = 'semestral'; scrollToCard('plano-pro')"
-                        :class="period === 'semestral' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
-                        class="relative px-6 py-3 rounded-lg font-semibold transition-all duration-300">
+                    <button @click="period = 'semestral'"
+                        :class="period === 'semestral' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'"
+                        class="relative px-6 py-2.5 rounded-xl font-semibold transition-all duration-200">
                         Semestral
                         <span
-                            class="absolute -top-3 -right-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">-10%</span>
+                            class="absolute -top-2 -right-1 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-10%</span>
                     </button>
-                    <button @click="period = 'anual'; scrollToCard('plano-pro')"
-                        :class="period === 'anual' ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'"
-                        class="relative px-6 py-3 rounded-lg font-semibold transition-all duration-300">
+                    <button @click="period = 'anual'"
+                        :class="period === 'anual' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'"
+                        class="relative px-6 py-2.5 rounded-xl font-semibold transition-all duration-200">
                         Anual
                         <span
-                            class="absolute -top-3 -right-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">-15%</span>
+                            class="absolute -top-2 -right-1 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Grid de Planos -->
-            <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16 items-stretch">
 
-                <!-- Plano Gratuito -->
                 <?php if ($planoGratuito): ?>
-                    <div id="plano-gratuito"
-                        class="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-xl transition-all duration-300"
+                    <div class="flex flex-col bg-white border-2 border-gray-100 rounded-3xl p-8 hover:border-orange-200 transition-all duration-300 shadow-sm hover:shadow-xl"
                         data-aos="fade-right">
-                        <div class="mb-6">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($planoGratuito->nome) ?>
-                            </h3>
-                            <div class="flex items-baseline gap-2 mb-4">
-                                <span class="text-5xl font-bold text-gray-900">R$ 0</span>
+                        <div class="flex-grow">
+                            <div class="mb-8">
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                    <?= htmlspecialchars($planoGratuito->nome) ?></h3>
+                                <div class="flex items-baseline gap-1 mb-4">
+                                    <span class="text-5xl font-extrabold text-gray-900">R$ 0</span>
+                                </div>
+                                <p class="text-gray-500 text-sm leading-relaxed">
+                                    <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização.') ?>
+                                </p>
                             </div>
-                            <p class="text-gray-600">
-                                <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
-                            </p>
+
+                            <ul class="space-y-4 mb-8">
+                                <li class="flex items-center gap-3 text-gray-700">
+                                    <i class="fa-solid fa-check text-green-500"></i>
+                                    <span>Controle financeiro essencial</span>
+                                </li>
+                                <?php
+                                $limitacoes = ['Relatórios avançados', 'Agendamentos', 'Exportação de dados', 'Suporte prioritário'];
+                                foreach ($limitacoes as $limite): ?>
+                                    <li class="flex items-center gap-3 text-gray-400 opacity-60">
+                                        <i class="fa-solid fa-xmark text-gray-300"></i>
+                                        <span class="text-sm"><?= $limite ?></span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
-                        <p class="text-gray-600">
-                            <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização financeira.') ?>
-                        </p>
-                    </div>
 
-                    <ul class="space-y-4 mb-8">
-                        <?php
-                        $recursos = $planoGratuito->metadados['recursos'] ?? [
-                            'Controle financeiro essencial'
-                        ];
-                        $limitacoes = $planoGratuito->metadados['limitacoes'] ?? [
-                            'Relatórios avançados',
-                            'Agendamentos de pagamentos',
-                            'Exportação de dados',
-                            'Categorias ilimitadas',
-                            'Suporte prioritário'
-                        ];
-                        ?>
-                        <?php foreach ($recursos as $recurso): ?>
-                            <li class="flex items-start gap-3">
-                                <i class="fa-solid fa-check text-green-500 mt-1"></i>
-                                <span class="text-gray-700"><?= htmlspecialchars($recurso) ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                        <?php foreach ($limitacoes as $limitacao): ?>
-                            <li class="flex items-start gap-3 opacity-50">
-                                <i class="fa-solid fa-xmark text-gray-400 mt-1"></i>
-                                <span class="text-gray-500"><?= htmlspecialchars($limitacao) ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-
-                    <a href="<?= BASE_URL ?>login"
-                        class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white border-2 border-primary rounded-xl hover:bg-orange-50 transition-all duration-300">
-                        Começar grátis
-                    </a>
-            </div>
-        <?php endif; ?>
-
-        <!-- Planos Pagos -->
-        <?php foreach ($planosPagos as $index => $plano):
-            $precoMensal = $plano->preco_centavos / 100;
-            $recursos = $plano->metadados['recursos'] ?? [
-                'Controle financeiro essencial',
-                'Relatórios avançados',
-                'Agendamentos de pagamentos',
-                'Exportação de dados',
-                'Categorias ilimitadas',
-                'Suporte prioritário'
-            ];
-            $destaque = $plano->metadados['destaque'] ?? ($index === 0);
-        ?>
-            <div id="plano-pro"
-                class="relative bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 text-white shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
-                data-aos="fade-left" x-data="{ 
-                    basePrice: <?= $precoMensal ?>,
-                    get currentPrice() {
-                        if (period === 'mensal') return this.basePrice.toFixed(2);
-                        if (period === 'semestral') return (this.basePrice * 6 * 0.90).toFixed(2);
-                        return (this.basePrice * 12 * 0.85).toFixed(2);
-                    },
-                    get monthlyEq() {
-                        if (period === 'mensal') return this.basePrice.toFixed(2);
-                        if (period === 'semestral') return (this.basePrice * 0.90).toFixed(2);
-                        return (this.basePrice * 0.85).toFixed(2);
-                    },
-                    get originalPriceCalc() {
-                        if (period === 'semestral') return (this.basePrice * 6).toFixed(2);
-                        if (period === 'anual') return (this.basePrice * 12).toFixed(2);
-                        return null;
-                    }
-                 }">
-
-                <?php if ($destaque): ?>
-                    <!-- Badge -->
-                    <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-                        <span
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-full shadow-lg">
-                            <i class="fa-solid fa-star"></i>
-                            <?= htmlspecialchars($plano->metadados['badge'] ?? 'Mais escolhido') ?>
-                        </span>
+                        <a href="<?= BASE_URL ?>login"
+                            class="block w-full text-center py-4 px-6 text-orange-600 font-bold border-2 border-orange-600 rounded-2xl hover:bg-orange-50 transition-all">
+                            Começar grátis
+                        </a>
                     </div>
                 <?php endif; ?>
 
-                <!-- Badge de Desconto (aparece apenas em semestral/anual) -->
-                <div x-show="discount > 0" x-transition
-                    class="absolute -top-4 -right-4 bg-green-500 text-white font-bold px-4 py-2 rounded-full shadow-lg">
-                    <span x-text="'-' + discount + '%'"></span>
-                </div>
+                <?php foreach ($planosPagos as $plano):
+                    $precoMensal = $plano->preco_centavos / 100;
+                ?>
+                    <div class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
+                        x-data="{ basePrice: <?= $precoMensal ?> }" data-aos="fade-left">
 
-                <div class="mb-6 pt-4">
-                    <h3 class="text-2xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+                        <div
+                            class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-orange-900 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                            Mais Escolhido
+                        </div>
 
-                    <!-- Preço Original Riscado (aparece apenas com desconto) -->
-                    <div x-show="originalPriceCalc" x-transition class="mb-1">
-                        <span class="text-lg line-through text-orange-200">
-                            R$ <span x-text="originalPriceCalc"></span>
-                        </span>
+                        <div class="flex-grow">
+                            <div class="mb-8 pt-2">
+                                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+
+                                <div x-show="period !== 'mensal'" class="h-6">
+                                    <span class="text-orange-200 line-through text-sm">
+                                        R$ <span
+                                            x-text="period === 'semestral' ? (basePrice * 6).toFixed(2) : (basePrice * 12).toFixed(2)"></span>
+                                    </span>
+                                </div>
+
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-5xl font-extrabold"
+                                        x-text="'R$ ' + (period === 'mensal' ? basePrice.toFixed(2) : (period === 'semestral' ? (basePrice * 6 * 0.9).toFixed(2) : (basePrice * 12 * 0.85).toFixed(2)))"></span>
+                                    <span class="text-orange-100 text-sm" x-text="'/ ' + periodLabel"></span>
+                                </div>
+
+                                <p class="text-orange-100 text-sm opacity-90"
+                                    x-text="period === 'mensal' ? 'Plano flexível' : 'Equivalente a R$ ' + (period === 'semestral' ? (basePrice * 0.9).toFixed(2) : (basePrice * 0.85).toFixed(2)) + ' / mês'">
+                                </p>
+                            </div>
+
+                            <ul class="space-y-4 mb-8">
+                                <?php
+                                $recursos = $plano->metadados['recursos'] ?? ['Relatórios avançados', 'Agendamentos', 'Exportação total', 'Categorias ilimitadas', 'Suporte VIP'];
+                                foreach ($recursos as $recurso): ?>
+                                    <li class="flex items-center gap-3">
+                                        <i class="fa-solid fa-check text-orange-200"></i>
+                                        <span class="font-medium"><?= htmlspecialchars($recurso) ?></span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+
+                        <a href="<?= BASE_URL ?>billing"
+                            class="block w-full text-center py-4 px-6 bg-white text-orange-600 font-bold rounded-2xl hover:bg-gray-50 transition-all shadow-lg">
+                            Assinar Pro agora
+                        </a>
                     </div>
+                <?php endforeach; ?>
 
-                    <div class="flex items-baseline gap-2 mb-2">
-                        <span class="text-5xl font-bold" x-text="'R$ ' + currentPrice"></span>
-                        <span class="text-xl text-orange-100">
-                            / <span x-text="periodLabel"></span>
-                        </span>
-                    </div>
-
-                    <!-- Equivalente mensal (aparece apenas em semestral/anual) -->
-                    <div x-show="period !== 'mensal'" x-transition class="mb-2">
-                        <p class="text-orange-100 text-sm">
-                            Equivalente a
-                            <strong class="text-white text-lg" x-text="'R$ ' + monthlyEq"></strong>
-                            por mês
-                        </p>
-                    </div>
-
-                    <p class="text-orange-100">
-                        <?php if (isset($plano->metadados['mensagens'])): ?>
-                            <span
-                                x-show="period === 'mensal'"><?= htmlspecialchars($plano->metadados['mensagens']['mensal'] ?? 'Plano mensal flexível') ?></span>
-                            <span
-                                x-show="period === 'semestral'"><?= htmlspecialchars($plano->metadados['mensagens']['semestral'] ?? 'Economize 10% pagando semestralmente!') ?></span>
-                            <span
-                                x-show="period === 'anual'"><?= htmlspecialchars($plano->metadados['mensagens']['anual'] ?? 'Melhor oferta! Economize 15% no plano anual.') ?></span>
-                        <?php else: ?>
-                            <span x-show="period === 'mensal'">Menos que um lanche por mês para ter controle total do
-                                seu dinheiro.</span>
-                            <span x-show="period === 'semestral'">Economize 10% pagando semestralmente!</span>
-                            <span x-show="period === 'anual'">Melhor oferta! Economize 15% no plano anual.</span>
-                        <?php endif; ?>
-                    </p>
-                </div>
-
-                <ul class="space-y-4 mb-8">
-                    <?php foreach ($recursos as $recurso): ?>
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-check text-green-300 mt-1"></i>
-                            <span><?= htmlspecialchars($recurso) ?></span>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-
-                <a href="<?= BASE_URL ?>billing"
-                    class="block w-full text-center px-6 py-4 text-base font-semibold text-primary bg-white rounded-xl hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300">
-                    Assinar <?= htmlspecialchars($plano->nome) ?>
-                </a>
             </div>
-        <?php endforeach; ?>
+            <div class="text-center" data-aos="fade-up">
+                <p class="text-gray-500 flex items-center justify-center gap-2 text-sm font-medium">
+                    <i class="fa-solid fa-shield-halved text-green-500"></i>
+                    Sem fidelidade. Cancele quando quiser pelo painel.
+                </p>
+            </div>
 
         </div>
-
-        <!-- Nota de rodapé -->
-        <p class="text-center text-gray-600 max-w-2xl mx-auto" data-aos="fade-up">
-            <i class="fa-solid fa-shield-halved text-primary mr-2"></i>
-            Sem fidelidade. Cancele quando quiser, direto pelo sistema.
-        </p>
-
-    </div> <!-- Fim do container Alpine.js -->
-
     </div>
 </section>
 

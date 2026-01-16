@@ -26,9 +26,9 @@
                             <select name="categoria_id" id="category_id" class="form-select" required>
                                 <option value="">Selecione uma categoria</option>
                                 <?php foreach ($categories as $cat): ?>
-                                    <option value="<?= (int)$cat['id'] ?>">
-                                        <?= htmlspecialchars($cat['nome']) ?>
-                                    </option>
+                                <option value="<?= (int)$cat['id'] ?>">
+                                    <?= htmlspecialchars($cat['nome']) ?>
+                                </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -114,89 +114,89 @@
 </div>
 
 <script>
-    // --- C�lculo de total investido (Qtd * Pre�o M�dio) ---
-    (function() {
-        const quantityInput = document.getElementById('quantity');
-        const avgPriceInput = document.getElementById('avg_price');
-        const totalInvestedInput = document.getElementById('total_invested');
-        const form = document.getElementById('form-investimento');
-        const currentPriceInput = document.getElementById('current_price');
-        const modalEl = document.getElementById('modal-investimentos');
+// --- C�lculo de total investido (Qtd * Pre�o M�dio) ---
+(function() {
+    const quantityInput = document.getElementById('quantity');
+    const avgPriceInput = document.getElementById('avg_price');
+    const totalInvestedInput = document.getElementById('total_invested');
+    const form = document.getElementById('form-investimento');
+    const currentPriceInput = document.getElementById('current_price');
+    const modalEl = document.getElementById('modal-investimentos');
 
-        if (!quantityInput || !avgPriceInput || !totalInvestedInput || !form) {
+    if (!quantityInput || !avgPriceInput || !totalInvestedInput || !form) {
+        return;
+    }
+
+    const parseMoney = (value) => {
+        if (!value) return 0;
+        const clean = String(value)
+            .replace(/[^\d,-]/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.');
+        const num = parseFloat(clean);
+        return Number.isFinite(num) ? num : 0;
+    };
+
+    const formatMoney = (value) => {
+        try {
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        } catch {
+            return (value || 0).toFixed(2).replace('.', ',');
+        }
+    };
+
+    function calculateTotal() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const avgPrice = parseMoney(avgPriceInput.value);
+        const total = quantity * avgPrice;
+        totalInvestedInput.value = formatMoney(total);
+    }
+
+    const sanitizeCurrencyInput = (input) => {
+        if (!input) return;
+        const raw = String(input.value || '').trim();
+        if (!raw) {
+            input.value = '';
             return;
         }
+        const numeric = parseMoney(raw);
+        input.value = numeric.toFixed(2);
+    };
 
-        const parseMoney = (value) => {
-            if (!value) return 0;
-            const clean = String(value)
-                .replace(/[^\d,-]/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.');
-            const num = parseFloat(clean);
-            return Number.isFinite(num) ? num : 0;
-        };
+    quantityInput.addEventListener('input', calculateTotal);
+    avgPriceInput.addEventListener('input', calculateTotal);
 
-        const formatMoney = (value) => {
-            try {
-                return new Intl.NumberFormat('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }).format(value || 0);
-            } catch {
-                return (value || 0).toFixed(2).replace('.', ',');
-            }
-        };
-
-        function calculateTotal() {
-            const quantity = parseFloat(quantityInput.value) || 0;
-            const avgPrice = parseMoney(avgPriceInput.value);
-            const total = quantity * avgPrice;
-            totalInvestedInput.value = formatMoney(total);
+    form.addEventListener('submit', function() {
+        if (currentPriceInput && !currentPriceInput.value.trim()) {
+            currentPriceInput.value = avgPriceInput.value || '';
         }
+        sanitizeCurrencyInput(avgPriceInput);
+        sanitizeCurrencyInput(currentPriceInput);
+    });
 
-        const sanitizeCurrencyInput = (input) => {
-            if (!input) return;
-            const raw = String(input.value || '').trim();
-            if (!raw) {
-                input.value = '';
-                return;
-            }
-            const numeric = parseMoney(raw);
-            input.value = numeric.toFixed(2);
-        };
+    if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', calculateTotal);
+    }
 
-        quantityInput.addEventListener('input', calculateTotal);
-        avgPriceInput.addEventListener('input', calculateTotal);
-
-        form.addEventListener('submit', function() {
-            if (currentPriceInput && !currentPriceInput.value.trim()) {
-                currentPriceInput.value = avgPriceInput.value || '';
-            }
-            sanitizeCurrencyInput(avgPriceInput);
-            sanitizeCurrencyInput(currentPriceInput);
-        });
-
-        if (modalEl) {
-            modalEl.addEventListener('shown.bs.modal', calculateTotal);
-        }
-
-        calculateTotal();
-    })();
+    calculateTotal();
+})();
 </script>
 
 <script>
-    function formatarReal(valor) {
-        valor = valor.replace(/\D/g, "");
-        valor = (valor / 100).toFixed(2) + "";
-        valor = valor.replace(".", ",");
-        valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        return valor;
-    }
+function formatarReal(valor) {
+    valor = valor.replace(/\D/g, "");
+    valor = (valor / 100).toFixed(2) + "";
+    valor = valor.replace(".", ",");
+    valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return valor;
+}
 
-    document.querySelectorAll(".real").forEach(function(input) {
-        input.addEventListener("input", function() {
-            this.value = "R$ " + formatarReal(this.value);
-        });
+document.querySelectorAll(".real").forEach(function(input) {
+    input.addEventListener("input", function() {
+        this.value = "R$ " + formatarReal(this.value);
     });
+});
 </script>

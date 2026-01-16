@@ -1,4 +1,3 @@
-console.log("JS da landing carregado!");
 
 /*-------URLS------------------------*/
 
@@ -136,17 +135,17 @@ function initLandingScripts() {
   const modal = document.getElementById(modalId);
   if (!modal) return;
 
-  const openButtons  = document.querySelectorAll(`[data-open="${modalId}"]`);
+  const openButtons = document.querySelectorAll(`[data-open="${modalId}"]`);
   const closeButtons = modal.querySelectorAll(`[data-close="${modalId}"]`);
 
-  const track  = modal.querySelector(".lk-gallery-track");
+  const track = modal.querySelector(".lk-gallery-track");
   const slides = track ? Array.from(track.querySelectorAll("img")) : [];
 
   const prevBtn = modal.querySelector(".lk-gallery-prev");
   const nextBtn = modal.querySelector(".lk-gallery-next");
 
   const titleEl = modal.querySelector("#lkGalleryTitle");
-  const descEl  = modal.querySelector("#lkGalleryDesc");
+  const descEl = modal.querySelector("#lkGalleryDesc");
   const countEl = modal.querySelector("#lkGalleryCount");
 
   const gallery = modal.querySelector(".lk-gallery");
@@ -178,7 +177,7 @@ function initLandingScripts() {
     const d = s.dataset.desc || "";
 
     if (titleEl) titleEl.textContent = t;
-    if (descEl)  descEl.textContent = d;
+    if (descEl) descEl.textContent = d;
     if (countEl) countEl.textContent = `${currentIndex + 1}/${slides.length}`;
   }
 
@@ -274,7 +273,7 @@ if (document.readyState === "loading") {
   if (!root) return;
 
   const buttons = root.querySelectorAll('.lk-toggle-btn');
-  const panels  = root.querySelectorAll('.lk-contact-panel');
+  const panels = root.querySelectorAll('.lk-contact-panel');
 
   function show(target) {
     // ativa botão
@@ -358,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // tenta ler como JSON, mas sem quebrar caso venha texto/html
       const raw = await res.text();
       let payload = null;
-      try { payload = JSON.parse(raw); } catch (_) {}
+      try { payload = JSON.parse(raw); } catch (_) { }
 
       // Se seu Response::success retorna {status:"success", data:{...}}
       const okByStatus = payload?.status === 'success';
