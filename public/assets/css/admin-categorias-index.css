@@ -334,7 +334,7 @@
 
 /* ==================== MODAL ==================== */
 #modalEditCategoria .modal-content {
-  background: var(--color-surface) !important;
+  background: var(--color-bg) !important;
   color: var(--color-text);
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
@@ -344,11 +344,7 @@
 
 #modalEditCategoria .modal-header {
   border: 0;
-  background: linear-gradient(
-    135deg,
-    var(--color-surface-muted) 0%,
-    transparent 100%
-  );
+  background: var(--color-bg);
   padding: var(--spacing-5);
 }
 
@@ -372,7 +368,7 @@
 }
 
 #modalEditCategoria .modal-body {
-  padding: var(--spacing-5);
+  padding-top: var(--spacing-4) !important;
 }
 
 #modalEditCategoria .modal-footer {
@@ -394,7 +390,7 @@
 
 #modalEditCategoria .form-control,
 #modalEditCategoria .form-select {
-  background: var(--color-surface-muted);
+  background: var(--color-bg);
   color: var(--color-text);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
@@ -1008,7 +1004,7 @@ button:disabled {
 }
 
 .category-list::-webkit-scrollbar-track {
-  background: var(--color-surface-muted);
+  background: var(--color-bg) !important;
   border-radius: 4px;
 }
 
@@ -1026,8 +1022,8 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface);
+  padding: var(--spacing-6) var(--spacing-4) !important;
+  background: var(--color-bg) !important;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

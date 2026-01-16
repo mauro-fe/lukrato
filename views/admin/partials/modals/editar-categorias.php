@@ -2,7 +2,7 @@
 <div class="modal fade" id="modalEditCategoria" tabindex="-1" aria-labelledby="modalEditCategoriaLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
-        <div class="modal-content bg-dark text-light border-0 rounded-3">
+        <div class="modal-content border-0 rounded-3">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalEditCategoriaLabel">Editar Categoria</h5>
                 <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal"

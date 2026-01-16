@@ -233,7 +233,7 @@
                             </span>
                         </div>
                         
-                        <div class="detail-chart-container" style="height: 250px;">
+                        <div class="detail-chart-container"">
                             <canvas id="evolutionChart"></canvas>
                         </div>
                         
@@ -354,7 +354,7 @@
                             <h3>Impacto Futuro</h3>
                         </div>
                         
-                        <div class="detail-chart-container" style="height: 250px;">
+                        <div class="detail-chart-container"">
                             <canvas id="impactChart"></canvas>
                         </div>
                         

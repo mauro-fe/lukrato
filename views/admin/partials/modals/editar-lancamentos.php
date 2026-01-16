@@ -2,10 +2,11 @@
 <div class="modal fade" id="modalEditarLancamento" tabindex="-1" aria-labelledby="modalEditarLancamentoLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
-        <div class="modal-content bg-dark text-light border-0 rounded-3">
+        <div class="modal-content border-0 rounded-3">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar Lançamento</h5>
-                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Fechar modal"></button>
+                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal"
+                    aria-label="Fechar modal"></button>
             </div>
             <div class="modal-body pt-0">
                 <div id="editLancAlert" class="alert alert-danger d-none" role="alert"></div>
