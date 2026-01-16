@@ -282,7 +282,7 @@
         border-radius: var(--radius-md);
         font-size: var(--font-size-base);
         color: var(--color-text);
-        background: var(--color-bg);
+        background: var(--color-bg) !important;
         transition: all var(--transition-normal);
     }
 

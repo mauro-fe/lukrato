@@ -184,7 +184,7 @@
   padding: 2rem;
   max-height: calc(90vh - 200px);
   overflow-y: auto;
-  background-color: var(--glass-bg) !important;
+  background-color: var(--color-bg) !important;
 }
 
 /* Scrollbar personalizada */
@@ -361,7 +361,6 @@
 /* Footer do Modal */
 .lk-modal-footer {
   display: flex;
-  justify-content: flex-end;
   gap: 0.875rem;
   margin-top: 2rem;
   padding-top: 1.5rem;

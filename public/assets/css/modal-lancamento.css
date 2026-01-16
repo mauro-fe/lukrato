@@ -1017,7 +1017,6 @@ input.lk-input.lk-input-with-prefix {
 
 .lk-modal-footer {
   display: flex;
-  justify-content: flex-end;
   gap: var(--spacing-4);
   margin-top: var(--spacing-8);
   padding-top: var(--spacing-6);

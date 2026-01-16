@@ -330,8 +330,8 @@
     border-top: 1px solid var(--glass-border);
     display: flex;
     gap: var(--spacing-3);
-    justify-content: flex-end;
     background: var(--color-bg);
+    justify-content: center;
 }
 
 .btn {

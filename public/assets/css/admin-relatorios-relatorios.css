@@ -462,32 +462,25 @@
   margin-top: var(--spacing-5);
 }
 
-.lk-chart,
 .chart-container {
   padding: var(--spacing-5);
-  min-height: 450px;
   background: var(--glass-bg);
   border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px #00000014;
   position: relative;
-  width: 100%;
 }
 
 .chart-container canvas {
-  min-height: 400px !important;
-  max-height: 500px !important;
-  width: 100% !important;
-  height: auto !important;
-  display: block;
+  display: flex;
   margin: 0 auto;
   transition: transform 0.3s ease;
+  position: absolute;
 }
 
 /* Wrapper para garantir responsividade do Chart.js */
 .chart-wrapper {
   position: relative;
-  width: 100%;
-  height: 100%;
+  display: flex;
 }
 
 .chart-container:hover canvas {
@@ -499,8 +492,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: var(--spacing-5);
-  min-height: 320px;
   margin-top: var(--spacing-4);
+  position: relative;
 }
 
 @media (max-width: 900px) {
@@ -622,7 +615,7 @@
    RESPONSIVIDADE
    ============================================================================ */
 
-@media (max-width: 1200px) {
+@media (max-width: 1270px) {
   .controls-section {
     flex-direction: column;
     align-items: stretch;
@@ -1623,19 +1616,6 @@ canvas {
   font-weight: 500;
 }
 
-/* Chart Containers */
-.chart-container {
-  background-color: var(--color-bg);
-  width: 100%;
-  height: 340px;
-  max-height: 380px;
-  position: relative;
-  padding: var(--spacing-4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .chart-title {
   font-size: var(--font-size-xl);
   font-weight: 700;
@@ -1816,7 +1796,7 @@ canvas {
    ============================================================================ */
 
 .consolidated-summary {
-  background: var(--glass-bg);
+  background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
@@ -1926,6 +1906,10 @@ canvas {
 @media (max-width: 1200px) {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .chart-container {
+    height: 650px;
+    display: flex;
   }
 }
 
@@ -2037,7 +2021,7 @@ canvas {
 }
 
 .card-item {
-  background: var(--glass-bg);
+  background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-top: 4px solid var(--card-color);
@@ -2835,7 +2819,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 320px !important;
-    max-height: 400px !important;
   }
 
   .chart-dual {
@@ -3203,7 +3186,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 260px !important;
-    max-height: 320px !important;
   }
 
   .chart-dual {
@@ -3442,7 +3424,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 220px !important;
-    max-height: 280px !important;
   }
 
   .chart-title {
@@ -3501,7 +3482,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 180px !important;
-    max-height: 220px !important;
   }
 
   .chart-title {
@@ -3570,7 +3550,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 300px !important;
-    max-height: 380px !important;
   }
 
   /* Comparativos em 2 colunas */
@@ -3604,7 +3583,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 240px !important;
-    max-height: 280px !important;
   }
 
   .tabs-container {
@@ -3632,7 +3610,6 @@ canvas {
 
   .chart-container canvas {
     min-height: 340px !important;
-    max-height: 420px !important;
   }
 
   .cards-grid {
