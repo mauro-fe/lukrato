@@ -58,7 +58,7 @@ class CartaoCredito extends Model
         'arquivado' => 'bool',
     ];
 
-    protected $appends = ['numero_mascarado', 'limite_utilizado', 'percentual_uso'];
+    protected $appends = ['numero_mascarado', 'limite_utilizado', 'limite_disponivel_real', 'percentual_uso'];
 
     /**
      * Relacionamento com usuário
@@ -125,15 +125,29 @@ class CartaoCredito extends Model
     }
 
     /**
-     * Retorna limite utilizado
+     * Retorna limite utilizado (calcula dinamicamente baseado em itens não pagos)
      */
     public function getLimiteUtilizadoAttribute(): float
     {
-        return (float) ($this->limite_total - $this->limite_disponivel);
+        // Busca total de itens de fatura não pagos
+        $totalNaoPago = \Illuminate\Database\Capsule\Manager::table('faturas_cartao_itens')
+            ->where('cartao_credito_id', $this->id)
+            ->where('pago', false)
+            ->sum('valor');
+
+        return (float) $totalNaoPago;
     }
 
     /**
-     * Retorna percentual de uso do limite
+     * Retorna limite disponível real (calcula dinamicamente)
+     */
+    public function getLimiteDisponivelRealAttribute(): float
+    {
+        return (float) ($this->limite_total - $this->limite_utilizado);
+    }
+
+    /**
+     * Retorna percentual de uso do limite (calcula dinamicamente)
      */
     public function getPercentualUsoAttribute(): float
     {

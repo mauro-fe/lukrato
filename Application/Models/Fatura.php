@@ -105,12 +105,20 @@ class Fatura extends Model
      */
     public function getProgressoAttribute(): int
     {
-        if ($this->numero_parcelas <= 0) {
+        // Usar itens já carregados se disponível, senão fazer query
+        if ($this->relationLoaded('itens')) {
+            $totalItens = $this->itens->count();
+            $pagas = $this->itens->where('pago', 1)->count();
+        } else {
+            $totalItens = $this->itens()->count();
+            $pagas = $this->itens()->where('pago', 1)->count();
+        }
+
+        if ($totalItens <= 0) {
             return 0;
         }
 
-        $pagas = $this->itens()->where('pago', 1)->count();
-        $progresso = (int) round(($pagas / $this->numero_parcelas) * 100);
+        $progresso = (int) round(($pagas / $totalItens) * 100);
         return min($progresso, 100); // Nunca ultrapassa 100%
     }
 
@@ -119,8 +127,11 @@ class Fatura extends Model
      */
     public function atualizarStatus(): void
     {
-        $totalItens = $this->itens()->count();
-        $itensPagos = $this->itens()->where('pago', 1)->count();
+        // Recarregar itens para garantir dados atualizados
+        $this->load('itens');
+
+        $totalItens = $this->itens->count();
+        $itensPagos = $this->itens->where('pago', 1)->count();
 
         if ($totalItens === 0) {
             $this->status = self::STATUS_PENDENTE;

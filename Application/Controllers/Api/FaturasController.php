@@ -282,10 +282,21 @@ class FaturasController
                 'message' => $pago ? 'Item marcado como pago' : 'Pagamento desfeito',
             ]);
         } catch (InvalidArgumentException $e) {
+            LogService::error("Erro de validação ao atualizar item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage()
+            ]);
             Response::json(['error' => $e->getMessage()], 400);
         } catch (Exception $e) {
             $this->logError("Erro ao atualizar item {$itemId} da fatura {$faturaId}", $e);
-            Response::json(['error' => 'Erro ao atualizar item'], 500);
+            LogService::error("Erro geral ao atualizar item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            Response::json(['error' => 'Erro ao atualizar item: ' . $e->getMessage()], 500);
         }
     }
 

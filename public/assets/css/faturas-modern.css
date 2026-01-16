@@ -4,6 +4,23 @@
  * ============================================================================
  */
 
+/* ==================== Z-INDEX PARA SWEET ALERT ==================== */
+/* Sweet Alert acima do modal do Bootstrap */
+/* Bootstrap modal tem z-index: 1050, backdrop: 1040 */
+.swal2-container.swal-above-modal {
+  z-index: 99999 !important;
+}
+
+.swal2-container.swal-above-modal .swal2-popup {
+  z-index: 99999 !important;
+}
+
+/* Backdrop do SweetAlert também precisa estar acima */
+.swal2-container.swal2-backdrop-show.swal-above-modal {
+  z-index: 99998 !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
 /* ==================== CONTAINER PRINCIPAL ==================== */
 .parc-page {
   margin: 0 auto;
@@ -2974,7 +2991,7 @@
 
 .parcela-numero {
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .parcela-paga {

@@ -8,9 +8,10 @@ use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\CartaoCredito;
 use Application\Models\Lancamento;
+use Application\Services\LogService;
 use Exception;
 use InvalidArgumentException;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Capsule\Manager as DB;
 use DateTime;
 
 /**
@@ -502,6 +503,10 @@ class FaturaService
         }
 
         // Verificar se cartão tem conta vinculada
+        if (!$item->cartaoCredito) {
+            throw new InvalidArgumentException("Cartão não encontrado");
+        }
+
         if (!$item->cartaoCredito->conta_id) {
             throw new InvalidArgumentException(
                 "Cartão '{$item->cartaoCredito->nome}' não tem conta vinculada"
@@ -520,16 +525,16 @@ class FaturaService
                 'tipo' => 'despesa',
                 'valor' => $valorFormatado,
                 'data' => $dataVencimento,
-                'descricao' => $item->descricao,
+                'descricao' => $item->descricao ?: 'Pagamento de fatura',
                 'categoria_id' => $item->categoria_id,
                 'conta_id' => $item->cartaoCredito->conta_id,
                 'pago' => true,
                 'data_pagamento' => now()->format('Y-m-d'),
                 'observacao' => sprintf(
                     'Pagamento de fatura - %s (Parcela %d/%d)',
-                    $item->cartaoCredito->nome ?? $item->cartaoCredito->bandeira,
-                    $item->numero_parcela,
-                    $item->total_parcelas
+                    $item->cartaoCredito->nome ?? $item->cartaoCredito->bandeira ?? 'Cartão',
+                    $item->parcela_atual ?? 1,
+                    $item->total_parcelas ?? 1
                 )
             ]);
 

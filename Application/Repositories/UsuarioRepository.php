@@ -89,13 +89,36 @@ class UsuarioRepository
     private function normalizeSexoValue(string $value): string
     {
         $base = strtr($value, [
-            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
-            'Ã' => 'A', 'Õ' => 'O', 'Ç' => 'C',
-            'á' => 'A', 'é' => 'E', 'í' => 'I', 'ó' => 'O', 'ú' => 'U',
-            'ã' => 'A', 'õ' => 'O', 'ç' => 'C',
+            'Á' => 'A',
+            'É' => 'E',
+            'Í' => 'I',
+            'Ó' => 'O',
+            'Ú' => 'U',
+            'Ã' => 'A',
+            'Õ' => 'O',
+            'Ç' => 'C',
+            'á' => 'A',
+            'é' => 'E',
+            'í' => 'I',
+            'ó' => 'O',
+            'ú' => 'U',
+            'ã' => 'A',
+            'õ' => 'O',
+            'ç' => 'C',
         ]);
 
         $base = str_replace(['-', '_', ' '], ' ', $base);
         return strtoupper(trim($base));
+    }
+
+    /**
+     * Deleta o usuário.
+     */
+    public function delete(int $id): void
+    {
+        $user = Usuario::find($id);
+        if ($user) {
+            $user->delete();
+        }
     }
 }

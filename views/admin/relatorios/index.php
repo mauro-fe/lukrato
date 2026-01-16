@@ -230,7 +230,11 @@
     </div>
 </div>
 
+<!-- Template do Modal de Detalhes do Cartão -->
+<?php include BASE_PATH . '/views/modals/card-detail-modal.php'; ?>
+
 <!-- ==================== SCRIPTS ==================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="<?= BASE_URL ?>assets/js/card-detail-modal.js?v=<?= time() ?>"></script>
+<script src="<?= BASE_URL ?>assets/js/card-modal-renderers.js?v=<?= time() ?>"></script>
+<script src="<?= BASE_URL ?>assets/js/card-detail-modal-refactored.js?v=<?= time() ?>"></script>
 <script src="<?= BASE_URL ?>assets/js/admin-relatorios-relatorios.js"></script>
