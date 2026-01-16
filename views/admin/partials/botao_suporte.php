@@ -1,4 +1,5 @@
 <style>
+<<<<<<< HEAD
 .lk-support-button {
     position: fixed !important;
     bottom: 24px !important;
@@ -254,6 +255,29 @@
     0%,
     100% {
         box-shadow: 0 2px 10px 10px rgba(230, 126, 34, 0.35);
+=======
+    .lk-support-button {
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        left: auto !important;
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+        color: var(--color-text) !important;
+        border-radius: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        box-shadow: none !important;
+        transition: all var(--transition-normal);
+        z-index: 9999 !important;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        overflow: visible !important;
+>>>>>>> 6bf6af1d243d52eb377952db9b5dcbd007ecd6cc
     }
 
     50% {
