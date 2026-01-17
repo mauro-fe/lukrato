@@ -177,7 +177,8 @@
     </div>
 
     <!-- ==================== BOTÃO FLUTUANTE ==================== -->
-    <button type="button" id="btnAddAgendamento" class="btn-float" title="Novo agendamento" aria-label="Adicionar agendamento">
+    <button type="button" id="btnAddAgendamento" class="btn-float" title="Novo agendamento"
+        aria-label="Adicionar agendamento">
         <i class="fas fa-plus"></i>
     </button>
 </section>
@@ -239,8 +240,8 @@
                         <label for="agValor" class="form-label">
                             <i class="fas fa-dollar-sign"></i> Valor *
                         </label>
-                        <input type="text" id="agValor" name="valor" class="form-control"
-                            placeholder="R$ 0,00" required>
+                        <input type="text" id="agValor" name="valor" class="form-control" placeholder="R$ 0,00"
+                            required>
                     </div>
 
                     <!-- Data de Pagamento -->
@@ -248,14 +249,15 @@
                         <label for="agDataPagamento" class="form-label">
                             <i class="fas fa-calendar-alt"></i> Data de Execução *
                         </label>
-                        <input type="datetime-local" id="agDataPagamento" name="data_pagamento"
-                            class="form-control" required>
+                        <input type="datetime-local" id="agDataPagamento" name="data_pagamento" class="form-control"
+                            required>
                     </div>
 
                     <!-- Recorrente -->
                     <div class="mb-3">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="agRecorrente" name="recorrente" value="1">
+                            <input class="form-check-input" type="checkbox" id="agRecorrente" name="recorrente"
+                                value="1">
                             <label class="form-check-label" for="agRecorrente">
                                 <i class="fas fa-sync-alt"></i> Agendamento Recorrente
                             </label>
@@ -279,8 +281,8 @@
                         <label for="agDescricao" class="form-label">
                             <i class="fas fa-align-left"></i> Descrição
                         </label>
-                        <textarea id="agDescricao" name="descricao" class="form-control"
-                            rows="3" placeholder="Informações adicionais..." maxlength="500"></textarea>
+                        <textarea id="agDescricao" name="descricao" class="form-control" rows="3"
+                            placeholder="Informações adicionais..." maxlength="500"></textarea>
                         <small class="text-muted">Opcional</small>
                     </div>
                 </form>
