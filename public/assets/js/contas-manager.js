@@ -1753,23 +1753,23 @@ class ContasManager {
                     observacao: formData.get('observacoes') || null,
                 };
             }
-            // Se for AGENDAMENTO, criar lançamento não pago (agendado)
+            // Se for AGENDAMENTO, usar endpoint específico de agendamentos
             else if (tipo === 'agendamento') {
+                apiUrl = `${this.baseUrl}/agendamentos`;
                 const tipoAgendamento = formData.get('tipo_agendamento') || 'despesa';
                 const recorrencia = formData.get('recorrencia') || null;
-                const numeroRepeticoes = formData.get('numero_repeticoes') ? parseInt(formData.get('numero_repeticoes')) : null;
 
                 requestData = {
-                    conta_id: contaId,
+                    titulo: formData.get('descricao'),
                     tipo: tipoAgendamento,
-                    descricao: formData.get('descricao'),
                     valor: valor,
-                    data: formData.get('data'),
+                    data_pagamento: formData.get('data'),
                     categoria_id: formData.get('categoria_id') || null,
-                    pago: false, // Agendamento = não pago
-                    agendado: true,
-                    recorrencia: recorrencia,
-                    numero_repeticoes: numeroRepeticoes
+                    conta_id: contaId,
+                    descricao: formData.get('observacoes') || null,
+                    recorrente: recorrencia ? true : false,
+                    recorrencia_freq: recorrencia,
+                    canal_inapp: true
                 };
             }
             // Se for PARCELAMENTO SEM CARTÃO (conta bancária), usar endpoint de parcelamentos

@@ -10,11 +10,11 @@ use RuntimeException;
 
 class AgendamentoService
 {
- 
+
     private function getUserId(Agendamento $agendamento): int
     {
         $userId = $agendamento->user_id ?? Auth::user()->id ?? null;
-        
+
         if (!$userId) {
             throw new RuntimeException('Usuário não definido para o agendamento.');
         }
@@ -22,24 +22,24 @@ class AgendamentoService
         return (int) $userId;
     }
 
- 
+
     private function centavosParaValor(?int $valorCentavos): float
     {
         if ($valorCentavos === null) {
             return 0.0;
         }
-        
+
         return round($valorCentavos / 100, 2);
     }
 
     private function gerarObservacao(Agendamento $agendamento): string
     {
         $observacaoBase = trim((string) ($agendamento->descricao ?? ''));
-        
+
         if ($observacaoBase !== '') {
             return "{$observacaoBase} (Agendamento #{$agendamento->id})";
         }
-        
+
         return "Gerado automaticamente do agendamento #{$agendamento->id}";
     }
 
@@ -48,14 +48,14 @@ class AgendamentoService
         if ($dataPagamento instanceof \DateTimeInterface) {
             return $dataPagamento->format('Y-m-d');
         }
-        
+
         if (!empty($dataPagamento)) {
             $dt = date_create($dataPagamento);
             if ($dt) {
                 return $dt->format('Y-m-d');
             }
         }
-        
+
         return date('Y-m-d');
     }
 
@@ -70,7 +70,7 @@ class AgendamentoService
     {
         $userId = $this->getUserId($agendamento);
         $valor = $this->centavosParaValor($agendamento->valor_centavos);
-        
+
         if ($valor <= 0) {
             throw new RuntimeException('Valor do agendamento deve ser maior que zero.');
         }
@@ -103,61 +103,155 @@ class AgendamentoService
     }
 
     /**
-     * Processa agendamentos pendentes e cria lançamentos
+     * EXECUTAR AGENDAMENTO - Lógica principal do sistema
+     * 
+     * CASO A: NÃO RECORRENTE
+     * - Criar lançamento
+     * - Marcar como concluído
+     * - Agendamento não aparece mais
+     * 
+     * CASO B: RECORRENTE
+     * - Criar lançamento
+     * - Avançar data para próxima ocorrência
+     * - Agendamento continua ativo
      * 
      * @param Agendamento $agendamento
-     * @return bool
+     * @return array ['lancamento' => Lancamento, 'agendamento' => Agendamento, 'proximaData' => string|null]
+     * @throws RuntimeException
      */
-    public function processarAgendamento(Agendamento $agendamento): bool
+    public function executarAgendamento(Agendamento $agendamento): array
     {
-        if ($agendamento->status !== 'pendente') {
-            return false;
+        // 1. Criar lançamento
+        $lancamento = $this->createLancamentoFromAgendamento($agendamento);
+
+        if (!$lancamento) {
+            throw new RuntimeException('Falha ao criar lançamento.');
         }
 
-        try {
-            // Criar lançamento
-            $lancamento = $this->createLancamentoFromAgendamento($agendamento);
-            
-            if ($lancamento) {
-                // Atualizar agendamento para concluído
-                $agendamento->update([
-                    'status' => 'concluido',
-                    'data_pagamento' => date('Y-m-d'),
-                ]);
+        // 2. Verificar se é recorrente
+        if ($agendamento->recorrente && $agendamento->recorrencia_freq) {
+            // CASO B: RECORRENTE - Avançar data
+            $proximaData = $this->calcularProximaData(
+                $agendamento->data_pagamento,
+                $agendamento->recorrencia_freq,
+                $agendamento->recorrencia_intervalo ?? 1
+            );
 
-                return true;
-            }
-
-            return false;
-        } catch (\Throwable $e) {
-            LogService::error('Erro ao processar agendamento', [
-                'agendamento_id' => $agendamento->id,
-                'error' => $e->getMessage(),
+            // Atualizar para próxima ocorrência
+            $agendamento->update([
+                'data_pagamento' => $proximaData,
+                'concluido_em' => date('Y-m-d H:i:s'), // Registra última execução
+                // Status continua PENDENTE para aparecer novamente
             ]);
-            return false;
+
+            LogService::info('Agendamento recorrente executado e avançado', [
+                'agendamento_id' => $agendamento->id,
+                'proxima_data' => $proximaData,
+            ]);
+
+            return [
+                'lancamento' => $lancamento,
+                'agendamento' => $agendamento->fresh(),
+                'proximaData' => $proximaData,
+                'recorrente' => true,
+            ];
+        } else {
+            // CASO A: NÃO RECORRENTE - Finalizar
+            $agendamento->update([
+                'status' => 'concluido',
+                'concluido_em' => date('Y-m-d H:i:s'),
+            ]);
+
+            LogService::info('Agendamento único executado e finalizado', [
+                'agendamento_id' => $agendamento->id,
+            ]);
+
+            return [
+                'lancamento' => $lancamento,
+                'agendamento' => $agendamento->fresh(),
+                'proximaData' => null,
+                'recorrente' => false,
+            ];
+        }
+    }
+
+    /**
+     * Calcula STATUS DINÂMICO baseado na data e recorrência
+     * NÃO SALVA NO BANCO - apenas retorna o status calculado
+     * 
+     * @param Agendamento $agendamento
+     * @return string 'hoje', 'agendado', 'vencido', 'executado'
+     */
+    public function calcularStatusDinamico(Agendamento $agendamento): string
+    {
+        // Se foi cancelado, retorna cancelado
+        if ($agendamento->status === 'cancelado') {
+            return 'cancelado';
+        }
+
+        // Se foi executado E não é recorrente, está finalizado
+        if ($agendamento->concluido_em && !$agendamento->recorrente) {
+            return 'executado';
+        }
+
+        // Para recorrentes, calcular baseado na próxima data
+        $dataAgendada = $agendamento->data_pagamento;
+        if (!$dataAgendada) {
+            return 'agendado';
+        }
+
+        $hoje = date('Y-m-d');
+        $dataComparacao = $dataAgendada instanceof \DateTimeInterface
+            ? $dataAgendada->format('Y-m-d')
+            : date('Y-m-d', strtotime($dataAgendada));
+
+        if ($dataComparacao === $hoje) {
+            return 'hoje';
+        } elseif ($dataComparacao < $hoje) {
+            return 'vencido';
+        } else {
+            return 'agendado';
         }
     }
 
     /**
      * Calcula a próxima data de vencimento baseada na recorrência
      * 
-     * @param string $dataBase Data base (Y-m-d)
-     * @param string $recorrencia Tipo de recorrência (mensal, semanal, anual)
-     * @return string Nova data (Y-m-d)
+     * @param string|\DateTimeInterface $dataBase Data base
+     * @param string|null $recorrenciaFreq Tipo de recorrência (daily, weekly, monthly, yearly)
+     * @param int $intervalo Intervalo de recorrência (padrão: 1)
+     * @return string Nova data (Y-m-d H:i:s)
      */
-    public function calcularProximaData(string $dataBase, string $recorrencia): string
-    {
-        $data = \DateTime::createFromFormat('Y-m-d', $dataBase);
-        
-        if (!$data) {
-            return date('Y-m-d');
+    public function calcularProximaData(
+        $dataBase,
+        ?string $recorrenciaFreq = null,
+        int $intervalo = 1
+    ): string {
+        // Converter para DateTime
+        if ($dataBase instanceof \DateTimeInterface) {
+            $data = \DateTime::createFromFormat('Y-m-d H:i:s', $dataBase->format('Y-m-d H:i:s'));
+        } else {
+            $data = \DateTime::createFromFormat('Y-m-d H:i:s', $dataBase);
+            if (!$data) {
+                $data = \DateTime::createFromFormat('Y-m-d', $dataBase);
+                if (!$data) {
+                    $data = new \DateTime($dataBase);
+                }
+            }
         }
 
-        return match(strtolower($recorrencia)) {
-            'semanal' => $data->modify('+1 week')->format('Y-m-d'),
-            'mensal' => $data->modify('+1 month')->format('Y-m-d'),
-            'anual' => $data->modify('+1 year')->format('Y-m-d'),
-            default => $dataBase,
+        if (!$data || !$recorrenciaFreq) {
+            return date('Y-m-d H:i:s');
+        }
+
+        $intervalo = max(1, $intervalo); // Mínimo 1
+
+        return match (strtolower($recorrenciaFreq)) {
+            'daily' => $data->modify("+{$intervalo} day")->format('Y-m-d H:i:s'),
+            'weekly' => $data->modify("+{$intervalo} week")->format('Y-m-d H:i:s'),
+            'monthly' => $data->modify("+{$intervalo} month")->format('Y-m-d H:i:s'),
+            'yearly' => $data->modify("+{$intervalo} year")->format('Y-m-d H:i:s'),
+            default => $data->format('Y-m-d H:i:s'),
         };
     }
 

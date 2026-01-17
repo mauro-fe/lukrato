@@ -121,6 +121,7 @@ Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoContr
 Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
 Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']); // Compat
 Router::add('POST', '/api/agendamentos/{id}/status',      'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
+Router::add('POST', '/api/agendamentos/{id}/executar',    'Api\\AgendamentoController@executar',     ['auth', 'csrf']);
 Router::add('POST', '/api/agendamentos/{id}/cancelar',    'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
 Router::add('POST', '/api/agendamentos/{id}/reativar',    'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
 

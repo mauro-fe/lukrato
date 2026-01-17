@@ -107,6 +107,25 @@
                 <form id="globalFormLancamento" autocomplete="off">
                     <input type="hidden" id="globalLancamentoContaId" name="conta_id">
                     <input type="hidden" id="globalLancamentoTipo" name="tipo">
+                    <input type="hidden" id="globalLancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
+
+                    <!-- Tipo de Agendamento (somente para agendamento) -->
+                    <div class="lk-form-group" id="globalTipoAgendamentoGroup" style="display: none;">
+                        <label class="lk-label required">
+                            <i class="fas fa-tag"></i>
+                            Tipo de Agendamento
+                        </label>
+                        <div class="lk-tipo-agendamento-btns">
+                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active"
+                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
+                                <i class="fas fa-arrow-up"></i> Despesa
+                            </button>
+                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita"
+                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('receita')">
+                                <i class="fas fa-arrow-down"></i> Receita
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Descrição -->
                     <div class="lk-form-group">
