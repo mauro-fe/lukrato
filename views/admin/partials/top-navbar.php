@@ -33,10 +33,10 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
             <!-- User Info -->
             <div class="user-info">
                 <span class="greeting">Olá, <strong><?= $topNavFirstName ?: 'usuário' ?></strong></span>
-                <span class="plan-badge <?= $isPro ? 'pro' : 'free' ?>">
+                <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>" title="Gerenciar assinatura">
                     <i class="fa-solid <?= $isPro ? 'fa-crown' : 'fa-leaf' ?>"></i>
                     <?= $planLabel ?>
-                </span>
+                </a>
             </div>
 
             <!-- Upgrade Button (if not pro) -->
@@ -59,6 +59,12 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
             <div class="top-nav-bell-wrapper">
                 <?php include __DIR__ . '/notificacoes/bell.php'; ?>
             </div>
+
+            <!-- Logout Button (Desktop Only) -->
+            <a href="<?= BASE_URL ?>logout" class="top-nav-btn logout-btn desktop-only" title="Sair">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="btn-text">Sair</span>
+            </a>
         </div>
     </div>
 </div>
@@ -86,13 +92,11 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
         }
 
         async function saveThemeToDatabase(theme) {
-            // Temporariamente desabilitado - rota não implementada
-            return;
-
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
                 if (!csrfToken) {
+                    console.warn('[Theme] CSRF token não encontrado');
                     return;
                 }
 
@@ -114,9 +118,12 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('[Theme] Tema salvo no banco:', data);
+                } else {
+                    console.warn('[Theme] Falha ao salvar tema:', response.status);
                 }
             } catch (error) {
-                // Silenciosamente falha - não é crítico
+                console.warn('[Theme] Erro ao salvar tema:', error);
             }
         }
 

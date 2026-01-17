@@ -2,6 +2,17 @@
    TOP NAVBAR - Complementa a sidebar lateral
    =================================================================== */
 
+/* Utilitários */
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .desktop-only {
+    display: flex;
+  }
+}
+
 .top-navbar {
   position: fixed;
   top: 0;
@@ -152,6 +163,15 @@ body.sidebar-collapsed .top-navbar {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plan-badge:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .plan-badge.pro {

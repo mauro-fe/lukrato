@@ -269,7 +269,8 @@ h3 {
 /* 5.3 Sidebar Navigation */
 .sidebar-nav {
   flex: 1;
-  padding: var(--spacing-4) 0;
+  padding-top: var(--spacing-4);
+  padding-bottom: 100px;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1045,7 +1046,9 @@ body.sidebar-collapsed .content-wrapper {
     box-shadow var(--transition-fast), background var(--transition-fast),
     border-color var(--transition-fast), color var(--transition-fast);
 }
-
+.lk-btn.delete {
+  background-color: #dd0000 !important;
+}
 .effect {
   transition: 0.2s;
 }

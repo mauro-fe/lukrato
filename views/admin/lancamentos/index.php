@@ -29,8 +29,8 @@
                             <i class="fas fa-calendar-alt"></i>
                             <span>Data Inicial</span>
                         </label>
-                        <input type="date" id="exportStart" class="modern-input"
-                            data-default-today="1" aria-label="Data inicial">
+                        <input type="date" id="exportStart" class="modern-input" data-default-today="1"
+                            aria-label="Data inicial">
                     </div>
 
                     <div class="input-group">
@@ -38,8 +38,8 @@
                             <i class="fas fa-calendar-alt"></i>
                             <span>Data Final</span>
                         </label>
-                        <input type="date" id="exportEnd" class="modern-input"
-                            data-default-today="1" aria-label="Data final">
+                        <input type="date" id="exportEnd" class="modern-input" data-default-today="1"
+                            aria-label="Data final">
                     </div>
                 </div>
 
@@ -49,8 +49,7 @@
                         <option value="excel">📊 Excel (.xlsx)</option>
                     </select>
 
-                    <button id="btnExportar" type="button" class="modern-btn primary"
-                        aria-label="Exportar lançamentos">
+                    <button id="btnExportar" type="button" class="modern-btn primary" aria-label="Exportar lançamentos">
                         <i class="fas fa-download"></i>
                         <span>Exportar</span>
                     </button>
@@ -107,8 +106,7 @@
                 </div>
 
                 <div class="filter-actions">
-                    <button id="btnFiltrar" type="button" class="modern-btn primary"
-                        aria-label="Aplicar filtros">
+                    <button id="btnFiltrar" type="button" class="modern-btn primary" aria-label="Aplicar filtros">
                         <i class="fas fa-search"></i>
                         <span>Aplicar Filtros</span>
                     </button>
@@ -125,16 +123,14 @@
                 <span>Seus Lançamentos</span>
             </div>
             <div class="table-actions">
-                <button type="button" class="modern-btn"
-                    onclick="lancamentoGlobalManager.openModal()"
-                    style="background: var(--color-primary); color: white;"
-                    aria-label="Novo lançamento">
+                <button type="button" class="modern-btn" onclick="lancamentoGlobalManager.openModal()"
+                    style="background: var(--color-primary); color: white;" aria-label="Novo lançamento">
                     <i class="fas fa-plus"></i>
                     <span>Novo Lançamento</span>
                 </button>
 
-                <button id="btnExcluirSel" type="button" class="modern-btn danger"
-                    disabled aria-label="Excluir registros selecionados">
+                <button id="btnExcluirSel" type="button" class="modern-btn delete" disabled
+                    aria-label="Excluir registros selecionados">
                     <i class="fas fa-trash-alt"></i>
                     <span>Excluir (<span id="selCount">0</span>)</span>
                 </button>

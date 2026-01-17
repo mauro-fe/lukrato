@@ -89,7 +89,8 @@ class PremiumController extends BaseController
                     return;
                 }
 
-                if ($assinatura->external_subscription_id) {
+                // Só tenta cancelar no Asaas se for uma assinatura do gateway Asaas
+                if ($assinatura->gateway === 'asaas' && $assinatura->external_subscription_id) {
                     $this->asaas->cancelSubscription($assinatura->external_subscription_id);
                 }
 
@@ -117,6 +118,7 @@ class PremiumController extends BaseController
     private function getAuthenticatedUser(): Usuario
     {
         $userId = $this->userId;
+        if (!$userId) {
             throw new \RuntimeException('Usuário não identificado na sessão.');
         }
 
@@ -269,7 +271,6 @@ class PremiumController extends BaseController
     private function getActiveSubscription(Usuario $usuario): ?AssinaturaUsuario
     {
         return $usuario->assinaturas()
-            ->where('gateway', 'asaas')
             ->whereIn('status', [
                 AssinaturaUsuario::ST_ACTIVE,
                 AssinaturaUsuario::ST_PENDING,
@@ -312,6 +313,9 @@ class PremiumController extends BaseController
             DB::rollBack();
         }
 
+        error_log("🔴 [CANCEL] Erro ao cancelar assinatura: " . $e->getMessage());
+        error_log("🔴 [CANCEL] Stack trace: " . $e->getTraceAsString());
+
         if (class_exists(LogService::class)) {
             LogService::error('Erro ao cancelar', [
                 'userId' => $this->userId,
@@ -319,6 +323,6 @@ class PremiumController extends BaseController
             ]);
         }
 
-        Response::error('Não foi possível cancelar agora.');
+        Response::error('Erro interno no servidor.', 500);
     }
 }

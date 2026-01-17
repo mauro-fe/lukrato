@@ -27,6 +27,7 @@ class AssinaturaUsuario extends Model
     public const ST_PAST_DUE = 'past_due';
     public const ST_CANCELED = 'canceled';
     public const ST_PAUSED   = 'paused';
+    public const ST_EXPIRED  = 'expired';
 
     protected $table = 'assinaturas_usuarios';
     protected $fillable = [

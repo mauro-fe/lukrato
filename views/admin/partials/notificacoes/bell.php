@@ -26,6 +26,7 @@
         padding: 0;
         overflow: visible !important;
         color: var(--color-text);
+        box-sizing: border-box;
     }
 
     #lk-bell:hover {
@@ -40,7 +41,7 @@
     }
 
     #lk-bell i {
-        font-size: 18px;
+        font-size: 16px;
         color: var(--color-text);
     }
 
@@ -356,7 +357,7 @@ $initialUnread = (int)($initialUnread ?? 0);
 $badgeStyle = $initialUnread > 0 ? 'inline-flex' : 'none';
 $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 ?>
-<button id="lk-bell" class="btn btn-ghost relative" aria-label="Notificacoes" aria-expanded="false">
+<button id="lk-bell" aria-label="Notificacoes" aria-expanded="false">
     <i class="fas fa-bell"></i>
     <span id="lk-bell-badge" <?= $initialUnread > 0 ? '' : 'class="hidden"' ?>>
         <?= $initialBadgeLabel ?>

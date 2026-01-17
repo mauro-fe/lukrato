@@ -159,6 +159,12 @@
   overflow: hidden;
 }
 
+/* Excluir ag-card do overflow:hidden para permitir expansão dos detalhes */
+.ag-card,
+.card-item {
+  overflow: visible !important;
+}
+
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);

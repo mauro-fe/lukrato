@@ -151,7 +151,40 @@ class Usuario extends Model
 
     public function isPro(): bool
     {
-        return $this->planoAtual()?->code === 'pro';
+        $assinatura = $this->assinaturaAtiva()->with('plano')->first();
+
+        if (!$assinatura || $assinatura->plano?->code !== 'pro') {
+            return false;
+        }
+
+        // Se a assinatura está ativa, verifica se passou do período de carência
+        if ($assinatura->status === AssinaturaUsuario::ST_ACTIVE && $assinatura->renova_em) {
+            $renewsAt = \Carbon\Carbon::parse($assinatura->renova_em);
+
+            // Se ainda não venceu, é PRO
+            if ($renewsAt->isFuture()) {
+                return true;
+            }
+
+            // Se venceu, verifica período de carência (3 dias)
+            $gracePeriodDays = 3;
+            $daysSinceExpiry = $renewsAt->diffInDays(\Carbon\Carbon::now());
+
+            // Ainda está no período de carência
+            if ($daysSinceExpiry < $gracePeriodDays) {
+                return true;
+            }
+
+            // Passou do período de carência - não é mais PRO
+            return false;
+        }
+
+        // Status expired ou outro = não é PRO
+        if ($assinatura->status === AssinaturaUsuario::ST_EXPIRED) {
+            return false;
+        }
+
+        return true;
     }
 
     public function isGratuito(): bool

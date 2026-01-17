@@ -7,6 +7,7 @@ use Application\Core\Response;
 use Application\Models\Notificacao;
 use Application\Services\CartaoFaturaService;
 use Application\Services\CartaoCreditoService;
+use Application\Services\SubscriptionExpirationService;
 use Throwable;
 
 class NotificacaoController extends BaseController
@@ -103,6 +104,41 @@ class NotificacaoController extends BaseController
                 // Se falhar ao buscar alertas, apenas loga e continua com notificações do banco
                 error_log("⚠️ Erro ao buscar alertas de cartões para notificações: " . $e->getMessage());
                 error_log("Stack trace: " . $e->getTraceAsString());
+            }
+
+            // Adiciona alerta de período de carência (plano PRO vencendo)
+            try {
+                $usuario = \Application\Models\Usuario::find($userId);
+                if ($usuario) {
+                    $assinatura = $usuario->assinaturaAtiva()->with('plano')->first();
+
+                    if ($assinatura && $assinatura->plano?->code === 'pro') {
+                        $graceDaysLeft = SubscriptionExpirationService::getGraceDaysRemaining($assinatura);
+                        $isInGrace = SubscriptionExpirationService::isInGracePeriod($assinatura);
+
+                        if ($isInGrace && $graceDaysLeft > 0) {
+                            $alertaId = 'subscription_grace_' . $assinatura->id;
+
+                            if (!isset($alertasIgnorados[$alertaId])) {
+                                $itens[] = [
+                                    'id' => $alertaId,
+                                    'tipo' => 'alerta',
+                                    'titulo' => '⏰ Plano PRO vencendo!',
+                                    'mensagem' => "Seu plano venceu! Restam {$graceDaysLeft} dia(s) para renovar antes de perder o acesso PRO.",
+                                    'lida' => false,
+                                    'created_at' => date('Y-m-d H:i:s'),
+                                    'link' => '/billing',
+                                    'icone' => '⏰',
+                                    'cor' => '#e74c3c',
+                                    'dinamico' => true,
+                                    'priority' => 'high'
+                                ];
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("⚠️ Erro ao verificar período de carência: " . $e->getMessage());
             }
 
             $unread = count(array_filter($itens, fn($i) => !($i['lida'] ?? true)));

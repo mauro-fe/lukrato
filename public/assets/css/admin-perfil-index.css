@@ -262,6 +262,119 @@
   transform: translateY(0);
 }
 
+/* ============================================================================
+ * SEÇÃO DO PLANO
+ * ============================================================================ */
+
+.plan-section {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+.plan-section-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-6);
+  flex-wrap: wrap;
+}
+
+.plan-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.current-plan {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-3);
+}
+
+.current-plan.pro {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.15),
+    rgba(249, 115, 22, 0.15)
+  );
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.current-plan.free {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15),
+    rgba(16, 185, 129, 0.15)
+  );
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.current-plan i {
+  font-size: 1.1em;
+}
+
+.plan-description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.btn-manage-plan {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  text-decoration: none !important;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.btn-manage-plan::after,
+.btn-manage-plan::before {
+  display: none !important;
+  content: none !important;
+}
+
+.btn-manage-plan.pro {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: var(--color-text) !important;
+}
+
+.btn-manage-plan.pro:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #d97706, #b45309);
+  text-decoration: none !important;
+}
+
+.btn-manage-plan.free {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 80%, black)
+  );
+  color: white;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.btn-manage-plan.free:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.5);
+}
+
+.btn-manage-plan:active {
+  transform: translateY(0);
+}
+
 @keyframes fadeInDown {
   from {
     opacity: 0;

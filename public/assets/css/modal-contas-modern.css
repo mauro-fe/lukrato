@@ -63,6 +63,7 @@
   position: relative;
   overflow: hidden;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
 }
@@ -152,9 +153,6 @@
 
 /* Botão Fechar */
 .lk-modal-close-btn {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
   width: 32px;
   height: 32px;
   border-radius: 50%;

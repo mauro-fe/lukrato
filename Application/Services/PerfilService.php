@@ -114,43 +114,53 @@ class PerfilService
                 }
             }
 
+            // Helper para deletar de tabela se ela existir
+            $deleteIfExists = function (string $table) use ($userId) {
+                try {
+                    DB::table($table)->where('user_id', $userId)->delete();
+                } catch (\Exception $e) {
+                    // Tabela não existe, ignorar
+                    error_log("Tabela {$table} não existe ou erro ao deletar: " . $e->getMessage());
+                }
+            };
+
             // Deletar dados relacionados (cascade será feito pelo banco em alguns casos)
             // Mas vamos deletar explicitamente para garantir
 
             // Lançamentos
-            DB::table('lancamentos')->where('user_id', $userId)->delete();
+            $deleteIfExists('lancamentos');
 
             // Agendamentos
-            DB::table('agendamentos')->where('user_id', $userId)->delete();
+            $deleteIfExists('agendamentos');
 
             // Categorias
-            DB::table('categorias')->where('user_id', $userId)->delete();
+            $deleteIfExists('categorias');
 
             // Contas
-            DB::table('contas')->where('user_id', $userId)->delete();
+            $deleteIfExists('contas');
 
             // Cartões de crédito
-            DB::table('cartoes_credito')->where('user_id', $userId)->delete();
+            $deleteIfExists('cartoes_credito');
 
             // Faturas e itens de fatura
-            DB::table('faturas_cartao_itens')->where('user_id', $userId)->delete();
-            DB::table('faturas')->where('user_id', $userId)->delete();
+            $deleteIfExists('faturas_cartao_itens');
+            $deleteIfExists('faturas');
 
             // Investimentos
-            DB::table('investimentos')->where('user_id', $userId)->delete();
+            $deleteIfExists('investimentos');
 
             // Metas
-            DB::table('metas')->where('user_id', $userId)->delete();
+            $deleteIfExists('metas');
 
             // Gamificação
-            DB::table('user_achievements')->where('user_id', $userId)->delete();
-            DB::table('points_log')->where('user_id', $userId)->delete();
+            $deleteIfExists('user_achievements');
+            $deleteIfExists('points_log');
 
             // Notificações
-            DB::table('notificacoes')->where('user_id', $userId)->delete();
+            $deleteIfExists('notificacoes');
 
             // Preferências
-            DB::table('preferencias_usuario')->where('user_id', $userId)->delete();
+            $deleteIfExists('preferencias_usuario');
 
             // Documentos
             $this->documentoRepo->deleteCpf($userId);

@@ -49,7 +49,7 @@
                     Escolha o tipo de movimentação
                 </h3>
 
-                <div class="lk-tipo-grid">
+                <div class="lk-tipo-grid lk-tipo-grid-4">
                     <!-- Receita -->
                     <button type="button" class="lk-tipo-card lk-tipo-receita"
                         onclick="lancamentoGlobalManager.mostrarFormulario('receita')">

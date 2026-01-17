@@ -107,7 +107,7 @@
     /* Botão Scroll to Top - Estilo Final Override */
     button#scrollToTopBtn {
         position: fixed !important;
-        bottom: 80px !important;
+        bottom: 100px !important;
         right: 20px !important;
         left: auto !important;
         width: 48px !important;

@@ -69,6 +69,7 @@
     }
 
     @keyframes float {
+
         0%,
         100% {
             transform: translate(0, 0) scale(1);
@@ -110,9 +111,12 @@
     }
 
     @keyframes gradientShift {
-        0%, 100% {
+
+        0%,
+        100% {
             background-position: 0% center;
         }
+
         50% {
             background-position: 100% center;
         }
@@ -157,15 +161,24 @@
         animation: cardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
     }
 
-    .plan-card:nth-child(1) { animation-delay: 0.1s; }
-    .plan-card:nth-child(2) { animation-delay: 0.2s; }
-    .plan-card:nth-child(3) { animation-delay: 0.3s; }
+    .plan-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .plan-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .plan-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
 
     @keyframes cardSlideIn {
         from {
             opacity: 0;
             transform: translateY(30px) scale(0.95);
         }
+
         to {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -234,6 +247,7 @@
     }
 
     @keyframes pulse {
+
         0%,
         100% {
             transform: scale(1) translateY(0);
@@ -254,7 +268,7 @@
                 color-mix(in srgb, var(--color-success) 8%, var(--color-surface)),
                 var(--color-surface));
         box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 20%, transparent),
-                    0 8px 32px color-mix(in srgb, var(--color-success) 25%, transparent);
+            0 8px 32px color-mix(in srgb, var(--color-success) 25%, transparent);
         position: relative;
     }
 
@@ -266,13 +280,16 @@
 
     /* Efeito de pulso no plano ativo */
     @keyframes activePulse {
-        0%, 100% {
+
+        0%,
+        100% {
             box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 20%, transparent),
-                        0 8px 32px color-mix(in srgb, var(--color-success) 25%, transparent);
+                0 8px 32px color-mix(in srgb, var(--color-success) 25%, transparent);
         }
+
         50% {
             box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-success) 15%, transparent),
-                        0 12px 40px color-mix(in srgb, var(--color-success) 30%, transparent);
+                0 12px 40px color-mix(in srgb, var(--color-success) 30%, transparent);
         }
     }
 
@@ -387,6 +404,7 @@
             opacity: 0;
             transform: translateY(10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -545,6 +563,38 @@
 
     .plan-card__button:disabled:hover {
         transform: none;
+    }
+
+    /* Botão de Cancelar Assinatura */
+    .plan-card__cancel-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-2);
+        width: 100%;
+        padding: var(--spacing-3) var(--spacing-4);
+        margin-top: var(--spacing-3);
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-danger);
+        background: transparent;
+        border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .plan-card__cancel-btn:hover {
+        background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+        border-color: var(--color-danger);
+    }
+
+    .plan-card__cancel-btn:active {
+        transform: scale(0.98);
+    }
+
+    .plan-card__cancel-btn i {
+        font-size: 1rem;
     }
 
     /* Loading state */
@@ -968,7 +1018,7 @@ function formatInterval(string $interval): string
                     </p>
 
                     <!-- Preço -->
-                    <div class="plan-card__price" 
+                    <div class="plan-card__price"
                         <?= strcasecmp($plan['code'], 'pro') === 0 ? 'id="planProPrice"' : '' ?>
                         data-base-price="<?= number_format($priceValue, 2, '.', '') ?>"
                         aria-label="<?= $priceCents > 0 ? 'Preço: ' . number_format($priceValue, 2, ',', '.') . ' por ' . $intervalLabel : 'Plano gratuito' ?>">
@@ -1024,6 +1074,15 @@ function formatInterval(string $interval): string
                                 <?php endif; ?>
                             </span>
                         </button>
+
+                        <?php if (!$isFreePlan): ?>
+                            <!-- Botão de Cancelar Plano PRO -->
+                            <button type="button" class="plan-card__cancel-btn" id="btn-cancel-subscription"
+                                aria-label="Cancelar assinatura do plano Pro">
+                                <i class="fa-solid fa-times-circle"></i>
+                                <span>Cancelar assinatura</span>
+                            </button>
+                        <?php endif; ?>
                     <?php elseif ($isFreePlan): ?>
                         <button class="plan-card__button" disabled aria-label="Plano gratuito">
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
@@ -1104,6 +1163,11 @@ function formatInterval(string $interval): string
                     title: 'Ops! Algo deu errado 😕',
                     text: 'Pagamento não aprovado. Tente novamente.',
                     icon: 'error'
+                },
+                cancelled: {
+                    title: 'Assinatura cancelada',
+                    text: 'Sua assinatura Pro foi cancelada com sucesso.',
+                    icon: 'success'
                 }
             };
 
@@ -1125,3 +1189,123 @@ function formatInterval(string $interval): string
         })();
     </script>
 <?php endif; ?>
+
+<!-- ============================================================================
+     SCRIPT DE CANCELAMENTO DE ASSINATURA
+     ============================================================================ -->
+<script>
+    (function() {
+        'use strict';
+
+        const cancelBtn = document.getElementById('btn-cancel-subscription');
+        if (!cancelBtn) return;
+
+        cancelBtn.addEventListener('click', async () => {
+            if (typeof Swal === 'undefined') {
+                alert('Erro: SweetAlert não carregado');
+                return;
+            }
+
+            // Primeira confirmação
+            const result = await Swal.fire({
+                title: '⚠️ Cancelar assinatura Pro?',
+                html: `
+                <div style="text-align: left; padding: 1rem 0;">
+                    <p style="margin-bottom: 1rem;">Ao cancelar sua assinatura:</p>
+                    <ul style="margin: 0; padding-left: 1.5rem; color: var(--color-text-muted);">
+                        <li style="margin-bottom: 0.5rem;">Você perderá acesso aos recursos Pro</li>
+                        <li style="margin-bottom: 0.5rem;">Agendamentos serão desativados</li>
+                        <li style="margin-bottom: 0.5rem;">Relatórios avançados serão bloqueados</li>
+                        <li>Seus dados serão mantidos</li>
+                    </ul>
+                </div>
+            `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sim, cancelar assinatura',
+                cancelButtonText: 'Manter plano Pro',
+                focusCancel: true
+            });
+
+            if (!result.isConfirmed) return;
+
+            // Segunda confirmação
+            const finalConfirm = await Swal.fire({
+                title: 'Última confirmação',
+                text: 'Digite "CANCELAR" para confirmar o cancelamento',
+                input: 'text',
+                inputPlaceholder: 'Digite: CANCELAR',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Confirmar cancelamento',
+                cancelButtonText: 'Voltar',
+                inputValidator: (value) => {
+                    if (value !== 'CANCELAR') {
+                        return 'Você precisa digitar "CANCELAR" para confirmar';
+                    }
+                }
+            });
+
+            if (!finalConfirm.isConfirmed) return;
+
+            // Mostrar loading
+            Swal.fire({
+                title: 'Cancelando assinatura...',
+                text: 'Por favor aguarde',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '/';
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+                const response = await fetch(`${baseUrl}premium/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Erro ao cancelar assinatura');
+                }
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Assinatura cancelada!',
+                    html: `
+                    <p>Sua assinatura Pro foi cancelada com sucesso.</p>
+                    <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+                        Você ainda terá acesso aos recursos Pro até o fim do período pago.
+                    </p>
+                `,
+                    confirmButtonText: 'Entendi',
+                    confirmButtonColor: '#e67e22'
+                });
+
+                // Recarregar a página
+                window.location.reload();
+
+            } catch (err) {
+                console.error('Erro ao cancelar assinatura:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: err.message || 'Não foi possível cancelar a assinatura. Tente novamente.'
+                });
+            }
+        });
+    })();
+</script>

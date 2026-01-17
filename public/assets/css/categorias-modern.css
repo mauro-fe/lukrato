@@ -534,7 +534,7 @@
   height: 36px;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: var(--color-primary);
   color: var(--color-text);
   display: flex;
   align-items: center;
@@ -543,21 +543,23 @@
   transition: all 0.2s ease;
   font-size: 14px;
 }
-
+.category-actions .action-btn.delete {
+  background-color: #dd0000 !important;
+}
 .category-actions .action-btn:hover {
   transform: scale(1.1);
 }
 
 .category-actions .action-btn.edit:hover {
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-text);
   border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
 
 .category-actions .action-btn.delete:hover {
   background: linear-gradient(135deg, var(--color-danger), #c0392b);
-  color: #ffffff;
+  color: var(--color-text);
   border-color: var(--color-danger);
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }

@@ -114,7 +114,21 @@ class PerfilController
 
             error_log("🎨 [TEMA] Usuário autenticado: ID={$user->id}, Nome={$user->nome}");
 
+            // Tentar obter theme de $_POST primeiro, depois de JSON body
             $theme = $_POST['theme'] ?? null;
+
+            if ($theme === null) {
+                $rawInput = file_get_contents('php://input');
+                error_log("🎨 [TEMA] Raw input: " . $rawInput);
+
+                if ($rawInput) {
+                    $jsonData = json_decode($rawInput, true);
+                    if (json_last_error() === JSON_ERROR_NONE && isset($jsonData['theme'])) {
+                        $theme = $jsonData['theme'];
+                    }
+                }
+            }
+
             error_log("🎨 [TEMA] Tema recebido: " . var_export($theme, true));
 
             // Validar tema

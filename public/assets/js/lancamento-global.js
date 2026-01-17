@@ -220,6 +220,13 @@ const lancamentoGlobalManager = {
         if (overlay) {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
+            
+            // Resetar cor do header para o padrão (laranja)
+            const headerGradient = overlay.querySelector('.lk-modal-header-gradient');
+            if (headerGradient) {
+                headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
+            }
+            
             this.resetarFormulario();
         }
     },
@@ -229,7 +236,10 @@ const lancamentoGlobalManager = {
             Swal.fire({
                 icon: 'warning',
                 title: 'Atenção',
-                text: 'Selecione uma conta primeiro!'
+                text: 'Selecione uma conta primeiro!',
+                customClass: {
+                    container: 'swal-above-modal'
+                }
             });
             return;
         }
@@ -268,6 +278,24 @@ const lancamentoGlobalManager = {
     configurarCamposPorTipo(tipo) {
         console.log('Configurando campos para o tipo:', tipo);
         console.log('Categorias disponíveis:', this.categorias);
+        
+        // Mudar cor do header conforme o tipo
+        const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
+        if (headerGradient) {
+            // Remover classes anteriores
+            headerGradient.classList.remove('receita', 'despesa', 'transferencia', 'agendamento');
+            
+            // Aplicar cor conforme o tipo
+            if (tipo === 'receita') {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #28a745 0%, #20c997 100%)', 'important');
+            } else if (tipo === 'despesa') {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)', 'important');
+            } else if (tipo === 'transferencia') {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)', 'important');
+            } else if (tipo === 'agendamento') {
+                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)', 'important');
+            }
+        }
         
         // Conta Destino (apenas transferência)
         const contaDestinoGroup = document.getElementById('globalContaDestinoGroup');
@@ -393,6 +421,13 @@ const lancamentoGlobalManager = {
         document.getElementById('globalFormSection').style.display = 'none';
         document.getElementById('globalTipoSection').style.display = 'block';
         document.getElementById('modalLancamentoGlobalTitulo').textContent = 'Nova Movimentação';
+        
+        // Resetar cor do header para o padrão (laranja)
+        const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
+        if (headerGradient) {
+            headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
+        }
+        
         this.resetarFormulario();
     },
 

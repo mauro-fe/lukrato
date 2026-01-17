@@ -906,7 +906,7 @@
                     if (Utils.canEditLancamento(data)) {
                         buttons.push('<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>');
                     }
-                    buttons.push('<button class="lk-btn danger" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>');
+                    buttons.push('<button class="lk-btn delete" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>');
 
                     return `<div class="lk-actions">${buttons.join('')}</div>`;
                 },
@@ -946,7 +946,7 @@
 
                         if (okDel) {
                             row.delete();
-                            Notifications.toast('lançamento excluÃ­do com sucesso!');
+                            Notifications.toast('lançamento excluí­do com sucesso!');
                             TableManager.updateSelectionInfo();
                         } else {
                             Notifications.toast('Falha ao excluir lançamento.', 'error');
@@ -1331,7 +1331,7 @@
 
                     <button class="lan-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
                         <span class="lan-card-toggle-icon card-toggle-icon"><i class="fas fa-chevron-right"></i></span>
-                        <span> Ver detalhes</span>
+                        <span class="detalhes"> Ver detalhes</span>
                     </button>
 
                     <div class="lan-card-details card-details">

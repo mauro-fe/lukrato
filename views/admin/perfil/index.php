@@ -168,6 +168,43 @@
         </div>
     </form>
 
+    <!-- Seção de Plano -->
+    <div class="profile-section plan-section" data-aos="fade-up" data-aos-delay="250">
+        <div class="section-header">
+            <div class="section-icon">👑</div>
+            <div class="section-header-text">
+                <h3>Meu Plano</h3>
+                <p>Gerencie sua assinatura</p>
+            </div>
+        </div>
+
+        <div class="plan-section-content">
+            <div class="plan-info">
+                <?php
+                $isPro = isset($currentUser) && method_exists($currentUser, 'isPro') && $currentUser->isPro();
+                $planName = $isPro ? 'PRO' : 'Gratuito';
+                $planIcon = $isPro ? 'fa-crown' : 'fa-leaf';
+                $planClass = $isPro ? 'pro' : 'free';
+                ?>
+                <div class="current-plan <?= $planClass ?>">
+                    <i class="fa-solid <?= $planIcon ?>"></i>
+                    <span class="plan-name">Plano <?= $planName ?></span>
+                </div>
+                <p class="plan-description">
+                    <?php if ($isPro): ?>
+                        Você tem acesso a todos os recursos premium do Lukrato.
+                    <?php else: ?>
+                        Faça upgrade para desbloquear recursos avançados como importação automática, relatórios detalhados e muito mais.
+                    <?php endif; ?>
+                </p>
+            </div>
+            <a href="<?= BASE_URL ?>billing" class="btn-manage-plan <?= $planClass ?>">
+                <i class="fa-solid <?= $isPro ? 'fa-gear' : 'fa-rocket' ?>"></i>
+                <span><?= $isPro ? 'Gerenciar Plano' : 'Fazer Upgrade' ?></span>
+            </a>
+        </div>
+    </div>
+
     <!-- Zona de Perigo -->
     <div class="profile-section danger-zone" data-aos="fade-up" data-aos-delay="300">
         <div class="section-header">
@@ -443,21 +480,26 @@
 
                     const data = await res.json();
 
-                    if (!res.ok || !data.success) {
+                    if (!res.ok || data.status !== 'success') {
                         throw new Error(data.message || 'Erro ao excluir conta');
                     }
 
-                    Swal.fire({
+                    await Swal.fire({
                         icon: 'success',
-                        title: 'Conta excluída',
-                        text: 'Sua conta foi excluída com sucesso. Você será redirecionado...',
-                        timer: 2000,
-                        showConfirmButton: false
+                        title: '✅ Conta excluída!',
+                        html: `
+                            <div style="text-align: center;">
+                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sua conta foi excluída com sucesso.</p>
+                                <p style="color: #666;">Você será redirecionado para a página inicial...</p>
+                            </div>
+                        `,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        allowOutsideClick: false
                     });
 
-                    setTimeout(() => {
-                        window.location.href = BASE + 'logout';
-                    }, 2000);
+                    window.location.href = BASE + 'logout';
 
                 } catch (err) {
                     console.error('Erro ao excluir conta:', err);

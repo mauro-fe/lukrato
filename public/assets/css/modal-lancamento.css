@@ -8,6 +8,13 @@
    ================================================ */
 
 /* ================================================
+   SWEETALERT ACIMA DO MODAL
+   ================================================ */
+.swal-above-modal {
+  z-index: 99999 !important;
+}
+
+/* ================================================
    1. MODAL BASE - OVERLAY E CONTAINER
    ================================================ */
 
@@ -194,8 +201,6 @@
 /* Botão Fechar */
 .lk-modal-close-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -503,6 +508,11 @@
 
 .lk-tipo-grid-4 {
   grid-template-columns: repeat(4, 1fr) !important;
+}
+
+/* Modal maior quando tem grid de 4 colunas */
+.lk-modal-modern:has(.lk-tipo-grid-4) {
+  max-width: 750px;
 }
 
 .lk-tipo-card {
