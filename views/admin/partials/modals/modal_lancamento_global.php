@@ -23,7 +23,8 @@
                     Selecione a Conta
                 </label>
                 <div class="lk-select-wrapper">
-                    <select id="globalContaSelect" class="lk-select" required onchange="lancamentoGlobalManager.onContaChange()">
+                    <select id="globalContaSelect" class="lk-select" required
+                        onchange="lancamentoGlobalManager.onContaChange()">
                         <option value="">Escolha uma conta...</option>
                         <!-- Preenchido via JS -->
                     </select>
@@ -84,7 +85,7 @@
                     </button>
 
                     <!-- Agendamento -->
-                    <button type="button" class="lk-tipo-card lk-tipo-agendamento"
+                    <!-- <button type="button" class="lk-tipo-card lk-tipo-agendamento"
                         onclick="lancamentoGlobalManager.mostrarFormulario('agendamento')">
                         <div class="lk-tipo-icon">
                             <i class="fas fa-calendar-plus"></i>
@@ -92,7 +93,7 @@
                         <h4>Agendamento</h4>
                         <p>Programar para depois</p>
                         <div class="lk-tipo-badge">📅 Agendar</div>
-                    </button>
+                    </button> -->
                 </div>
             </div>
 
@@ -109,7 +110,7 @@
                     <input type="hidden" id="globalLancamentoTipo" name="tipo">
                     <input type="hidden" id="globalLancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
 
-                    <!-- Tipo de Agendamento (somente para agendamento) -->
+                    Tipo de Agendamento (somente para agendamento)
                     <div class="lk-form-group" id="globalTipoAgendamentoGroup" style="display: none;">
                         <label class="lk-label required">
                             <i class="fas fa-tag"></i>
@@ -145,8 +146,9 @@
                         </label>
                         <div class="lk-input-money">
                             <span class="lk-currency-symbol">R$</span>
-                            <input type="text" id="globalLancamentoValor" name="valor" class="lk-input lk-input-with-prefix"
-                                value="0,00" placeholder="0,00" autocomplete="off" required>
+                            <input type="text" id="globalLancamentoValor" name="valor"
+                                class="lk-input lk-input-with-prefix" value="0,00" placeholder="0,00" autocomplete="off"
+                                required>
                         </div>
                     </div>
 
@@ -179,14 +181,16 @@
                             </select>
                             <i class="fas fa-chevron-down lk-select-icon"></i>
                         </div>
-                        <small class="lk-helper-text">Se usar cartão, o débito será na data de vencimento da fatura</small>
+                        <small class="lk-helper-text">Se usar cartão, o débito será na data de vencimento da
+                            fatura</small>
                     </div>
 
                     <!-- Parcelamento (somente se cartão selecionado) -->
                     <div class="lk-form-group" id="globalParcelamentoGroup" style="display: none;">
                         <div class="lk-checkbox-wrapper">
                             <label class="lk-checkbox-label">
-                                <input type="checkbox" id="globalLancamentoParcelado" name="eh_parcelado" class="lk-checkbox">
+                                <input type="checkbox" id="globalLancamentoParcelado" name="eh_parcelado"
+                                    class="lk-checkbox">
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i class="fas fa-calendar-alt"></i>
@@ -203,8 +207,8 @@
                             Número de Parcelas
                         </label>
                         <div class="lk-input-group">
-                            <input type="number" id="globalLancamentoTotalParcelas" name="total_parcelas" class="lk-input"
-                                min="2" max="48" value="2" placeholder="12">
+                            <input type="number" id="globalLancamentoTotalParcelas" name="total_parcelas"
+                                class="lk-input" min="2" max="48" value="2" placeholder="12">
                             <span class="lk-input-suffix">vezes</span>
                         </div>
                         <div id="globalParcelamentoPreview" class="lk-parcelamento-preview" style="display: none;">
@@ -242,15 +246,16 @@
                             <i class="fas fa-comment-alt"></i>
                             Observação (opcional)
                         </label>
-                        <textarea id="globalLancamentoObservacao" name="observacao" class="lk-textarea"
-                            rows="2" placeholder="Adicione detalhes sobre esta movimentação..." maxlength="500"></textarea>
+                        <textarea id="globalLancamentoObservacao" name="observacao" class="lk-textarea" rows="2"
+                            placeholder="Adicione detalhes sobre esta movimentação..." maxlength="500"></textarea>
                     </div>
 
                     <!-- Pago/Pendente -->
                     <div class="lk-form-group" id="globalPagoGroup">
                         <div class="lk-checkbox-wrapper">
                             <label class="lk-checkbox-label">
-                                <input type="checkbox" id="globalLancamentoPago" name="pago" class="lk-checkbox" checked>
+                                <input type="checkbox" id="globalLancamentoPago" name="pago" class="lk-checkbox"
+                                    checked>
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i class="fas fa-check-circle"></i>
@@ -262,7 +267,8 @@
 
                     <!-- Botões de Ação -->
                     <div class="lk-form-actions">
-                        <button type="button" class="lk-btn lk-btn-secondary" onclick="lancamentoGlobalManager.closeModal()">
+                        <button type="button" class="lk-btn lk-btn-secondary"
+                            onclick="lancamentoGlobalManager.closeModal()">
                             <i class="fas fa-times"></i>
                             Cancelar
                         </button>
