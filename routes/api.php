@@ -116,13 +116,14 @@ Router::add('DELETE', '/api/categorias/{id}', 'Api\\CategoriaController@delete',
 // AGENDAMENTOS (REST)
 // ============================================
 
-Router::add('GET',  '/api/agendamentos',                  'Api\\AgendamentoController@index',        ['auth']);
-Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoController@store',        ['auth', 'csrf']);
-Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']); // Compat
-Router::add('POST', '/api/agendamentos/{id}/status',      'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/cancelar',    'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/reativar',    'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
+// Router::add('GET',  '/api/agendamentos',                  'Api\\AgendamentoController@index',        ['auth']);
+// Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoController@store',        ['auth', 'csrf']);
+// Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
+// Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
+// Router::add('POST', '/api/agendamentos/{id}/status',      'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
+// Router::add('POST', '/api/agendamentos/{id}/executar',    'Api\\AgendamentoController@executar',     ['auth', 'csrf']);
+// Router::add('POST', '/api/agendamentos/{id}/cancelar',    'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
+// Router::add('POST', '/api/agendamentos/{id}/reativar',    'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
 
 // ============================================
 // INVESTIMENTOS

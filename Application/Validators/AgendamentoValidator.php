@@ -56,14 +56,24 @@ class AgendamentoValidator
             }
         }
 
-        // Validar valor_centavos
+        // Validar valor (aceita valor_centavos ou valor em reais)
         $valorCentavos = $data['valor_centavos'] ?? null;
+        $valor = $data['valor'] ?? null;
+
+        // Se não tem valor_centavos, tenta converter de valor em reais
+        if (($valorCentavos === null || $valorCentavos === '') && $valor !== null && $valor !== '') {
+            // Converter valor em reais para centavos
+            if (is_numeric($valor)) {
+                $valorCentavos = (int) round(floatval($valor) * 100);
+            }
+        }
+
         if ($valorCentavos === null || $valorCentavos === '') {
-            $errors['valor_centavos'] = 'O valor é obrigatório.';
+            $errors['valor'] = 'O valor é obrigatório.';
         } elseif (!is_numeric($valorCentavos)) {
-            $errors['valor_centavos'] = 'Valor inválido.';
+            $errors['valor'] = 'Valor inválido.';
         } elseif ((int)$valorCentavos <= 0) {
-            $errors['valor_centavos'] = 'O valor deve ser maior que zero.';
+            $errors['valor'] = 'O valor deve ser maior que zero.';
         }
 
         // Validar lembrar_antes_segundos (opcional)
@@ -95,7 +105,7 @@ class AgendamentoValidator
         if ($recorrente) {
             $freq = trim($data['recorrencia_freq'] ?? '');
             $validFreqs = ['diario', 'semanal', 'mensal', 'anual'];
-            
+
             if (empty($freq)) {
                 $errors['recorrencia_freq'] = 'A frequência de recorrência é obrigatória quando recorrente é verdadeiro.';
             } elseif (!in_array($freq, $validFreqs, true)) {
@@ -208,7 +218,7 @@ class AgendamentoValidator
             if ($recorrente && isset($data['recorrencia_freq'])) {
                 $freq = trim($data['recorrencia_freq']);
                 $validFreqs = ['diario', 'semanal', 'mensal', 'anual'];
-                
+
                 if (!empty($freq) && !in_array($freq, $validFreqs, true)) {
                     $errors['recorrencia_freq'] = 'Frequência inválida. Use: diario, semanal, mensal ou anual.';
                 }

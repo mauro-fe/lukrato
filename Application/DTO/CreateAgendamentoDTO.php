@@ -105,14 +105,22 @@ readonly class CreateAgendamentoDTO
     }
 
     /**
-     * Converte string monetária para centavos.
+     * Converte valor monetário para centavos.
+     * Aceita string formatada ou número (int/float).
      */
-    private static function moneyToCents(?string $str): ?int
+    private static function moneyToCents(mixed $value): ?int
     {
-        if (empty($str)) {
+        if ($value === null || $value === '') {
             return null;
         }
 
+        // Se for número, converte diretamente
+        if (is_int($value) || is_float($value)) {
+            return (int) round($value * 100);
+        }
+
+        // Se for string, faz o parsing
+        $str = (string) $value;
         $s = preg_replace('/[^\d,.-]/', '', $str);
 
         if (str_contains($s, ',') && str_contains($s, '.')) {

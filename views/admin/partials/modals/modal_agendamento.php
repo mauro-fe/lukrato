@@ -85,7 +85,7 @@
 
     /* Botão Close Moderno */
     #modalAgendamento .btn-close {
-        background: var(--glass-bg);
+
         background-image: none;
         border-radius: 50%;
         width: 36px;
@@ -93,7 +93,6 @@
         opacity: 0.8;
         transition: var(--transition-normal);
         position: relative;
-        backdrop-filter: blur(10px);
         border: 1px solid transparent;
     }
 

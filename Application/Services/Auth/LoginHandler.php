@@ -10,9 +10,11 @@ use Application\Contracts\Auth\AuthHandlerInterface;
 use Application\DTO\Auth\CredentialsDTO;
 use Application\DTO\Auth\LoginResultDTO;
 use Application\Core\Request;
+use Application\Core\Exceptions\ValidationException;
 use Application\Services\CacheService;
 use Application\Services\LogService;
 use Application\Lib\Helpers;
+use Application\Models\Usuario;
 use Throwable;
 
 class LoginHandler implements AuthHandlerInterface
@@ -31,13 +33,23 @@ class LoginHandler implements AuthHandlerInterface
         $this->csrfCheck = new CsrfSecurityCheck($request, 'login_form');
         $this->rateLimitCheck = new RateLimitSecurityCheck($request, $cache, 'login');
     }
-
     public function handle(CredentialsDTO $credentials): array
     {
         try {
             $this->validationStrategy->validate($credentials);
 
-            $user = $this->findUser($credentials->email);
+            $user = Usuario::authenticate(
+                $credentials->email,
+                $credentials->password
+            );
+
+            if (!$user) {
+                throw new ValidationException(
+                    ['credentials' => 'E-mail ou senha inválidos.'],
+                    'Credenciais inválidas'
+                );
+            }
+
             $this->sessionManager->createSession($user);
 
             LogService::info('Login success', [
@@ -46,7 +58,6 @@ class LoginHandler implements AuthHandlerInterface
             ]);
 
             return [
-                'usuario' => $user,
                 'redirect' => Helpers::baseUrl('dashboard')
             ];
         } catch (Throwable $e) {
@@ -54,6 +65,7 @@ class LoginHandler implements AuthHandlerInterface
             throw $e;
         }
     }
+
 
     private function findUser(string $email)
     {

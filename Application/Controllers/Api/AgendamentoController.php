@@ -35,7 +35,7 @@ class AgendamentoController extends BaseController
     private function ensureSchedulingAccess(): bool
     {
         $user = Auth::user();
-        
+
         if (!$user || (method_exists($user, 'podeAcessar') && !$user->podeAcessar('scheduling'))) {
             Response::forbidden('Agendamentos são exclusivos do plano Pro.');
             return false;
@@ -72,16 +72,34 @@ class AgendamentoController extends BaseController
         return (int) (property_exists($this, 'userId') ? $this->userId : Auth::user()->id);
     }
 
+    /**
+     * Obter dados da requisição (JSON ou POST)
+     */
+    private function getRequestData(): array
+    {
+        // Tentar primeiro obter JSON do corpo da requisição
+        $json = file_get_contents('php://input');
+        if (!empty($json)) {
+            $data = json_decode($json, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($data)) {
+                return $data;
+            }
+        }
+
+        // Fallback para $_POST
+        return $_POST;
+    }
+
     public function store(): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->ensureSchedulingAccess()) {
             return;
         }
 
         try {
-            $data = $this->validator->sanitize($_POST);
+            $data = $this->validator->sanitize($this->getRequestData());
             $data = $this->normalizeDataPagamento($data);
 
             // Validar com AgendamentoValidator
@@ -101,14 +119,13 @@ class AgendamentoController extends BaseController
             $agendamento = $this->agendamentoRepo->create($dto->toArray());
 
             Response::success(['agendamento' => $agendamento]);
-            
         } catch (Throwable $e) {
             LogService::error('Erro inesperado ao criar agendamento.', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'user_id' => $this->getUserId()
             ]);
-            
+
             Response::error('Erro ao processar sua solicitação.', 500);
         }
     }
@@ -116,28 +133,43 @@ class AgendamentoController extends BaseController
     public function index(): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->ensureSchedulingAccess()) {
             return;
         }
 
         try {
-            $agendamentos = Agendamento::with(['categoria:id,nome', 'conta:id,nome'])
+            $query = Agendamento::with(['categoria:id,nome', 'conta:id,nome'])
                 ->where('user_id', $this->getUserId())
-                ->whereIn('status', [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::CANCELADO->value])
-                ->orderBy('data_pagamento', 'asc')
+                ->whereIn('status', [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::CANCELADO->value]);
+
+            // Filtrar por mês se fornecido (formato: YYYY-MM)
+            $month = $_GET['month'] ?? null;
+            if ($month && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
+                $startDate = $month . '-01 00:00:00';
+                $endDate = date('Y-m-t 23:59:59', strtotime($startDate));
+                $query->whereBetween('data_pagamento', [$startDate, $endDate]);
+            }
+
+            $agendamentos = $query->orderBy('data_pagamento', 'asc')
                 ->limit(100)
                 ->get();
 
+            // Adicionar status dinâmico a cada agendamento
+            $agendamentos = $agendamentos->map(function ($agendamento) {
+                $agendamentoArray = $agendamento->toArray();
+                $agendamentoArray['status_dinamico'] = $this->service->calcularStatusDinamico($agendamento);
+                return $agendamentoArray;
+            });
+
             Response::success(['itens' => $agendamentos]);
-            
         } catch (Throwable $e) {
             LogService::error('Erro inesperado ao listar agendamentos.', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'user_id' => $this->getUserId()
             ]);
-            
+
             Response::error('Erro ao buscar agendamentos.', 500);
         }
     }
@@ -183,7 +215,7 @@ class AgendamentoController extends BaseController
             // Recalcular próxima execução se necessário
             $dataPagamento = $dto->data_pagamento ?? $agendamento->data_pagamento;
             $lembrarSegundos = $dto->lembrar_antes_segundos ?? $agendamento->lembrar_antes_segundos;
-            
+
             if ($dto->data_pagamento !== null || $dto->lembrar_antes_segundos !== null) {
                 $dto = $dto->withProximaExecucao($dataPagamento, $lembrarSegundos);
             }
@@ -216,7 +248,7 @@ class AgendamentoController extends BaseController
                 'agendamento_id' => $id,
                 'user_id' => $this->getUserId()
             ]);
-            
+
             Response::notFound('Agendamento não encontrado.');
         }
 
@@ -227,10 +259,9 @@ class AgendamentoController extends BaseController
     {
         try {
             return AgendamentoStatus::from(strtolower(trim($statusString)));
-            
         } catch (ValueError $e) {
             $statusPermitidos = implode(', ', array_column(AgendamentoStatus::cases(), 'value'));
-            
+
             LogService::warning('Status inválido para agendamento.', [
                 'status_enviado' => $statusString,
                 'error' => $e->getMessage(),
@@ -241,7 +272,7 @@ class AgendamentoController extends BaseController
             Response::validationError([
                 'status' => "Status inválido. Valores permitidos: {$statusPermitidos}"
             ]);
-            
+
             return null;
         }
     }
@@ -258,14 +289,13 @@ class AgendamentoController extends BaseController
         if ($statusAnterior !== AgendamentoStatus::CONCLUIDO->value) {
             try {
                 $lancamento = $this->service->createLancamentoFromAgendamento($agendamento);
-                
             } catch (Throwable $e) {
                 LogService::error('Falha ao gerar lançamento do agendamento.', [
                     'error' => $e->getMessage(),
                     'agendamento_id' => $agendamento->id,
                     'user_id' => $this->getUserId()
                 ]);
-                
+
                 Response::error('Falha ao gerar lançamento: ' . $e->getMessage(), 500);
                 exit;
             }
@@ -277,7 +307,7 @@ class AgendamentoController extends BaseController
     public function updateStatus(int $id): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->ensureSchedulingAccess()) {
             return;
         }
@@ -300,7 +330,6 @@ class AgendamentoController extends BaseController
                 $resultado = $this->processarConclusao($agendamento, $statusAnterior);
                 $payload = $resultado['payload'];
                 $lancamento = $resultado['lancamento'];
-                
             } else {
                 $payload = [
                     'status' => $novoStatus->value,
@@ -315,7 +344,6 @@ class AgendamentoController extends BaseController
                 'agendamento' => $agendamento,
                 'lancamento' => $lancamento,
             ]);
-            
         } catch (Throwable $e) {
             LogService::error('Erro inesperado no updateStatus do agendamento.', [
                 'error' => $e->getMessage(),
@@ -323,7 +351,7 @@ class AgendamentoController extends BaseController
                 'agendamento_id' => $id,
                 'user_id' => $this->getUserId()
             ]);
-            
+
             Response::error('Erro ao atualizar agendamento.', 500);
         }
     }
@@ -331,7 +359,7 @@ class AgendamentoController extends BaseController
     public function cancel(int $id): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->ensureSchedulingAccess()) {
             return;
         }
@@ -355,7 +383,6 @@ class AgendamentoController extends BaseController
             $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
 
             Response::success(['agendamento' => $agendamento]);
-            
         } catch (Throwable $e) {
             LogService::error('Erro inesperado ao cancelar agendamento.', [
                 'error' => $e->getMessage(),
@@ -363,7 +390,7 @@ class AgendamentoController extends BaseController
                 'agendamento_id' => $id,
                 'user_id' => $this->getUserId()
             ]);
-            
+
             Response::error('Erro ao cancelar agendamento.', 500);
         }
     }
@@ -404,6 +431,67 @@ class AgendamentoController extends BaseController
             ]);
 
             Response::error('Erro ao reativar agendamento.', 500);
+        }
+    }
+
+    /**
+     * EXECUTAR AGENDAMENTO - Cria lançamento e gerencia recorrência
+     * 
+     * POST /api/agendamentos/{id}/executar
+     */
+    public function executar(int $id): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->ensureSchedulingAccess()) {
+            return;
+        }
+
+        try {
+            $agendamento = $this->buscarAgendamentoOuFalhar($id);
+            if (!$agendamento) {
+                return;
+            }
+
+            if ($agendamento->status !== AgendamentoStatus::PENDENTE->value) {
+                Response::error('Somente agendamentos pendentes podem ser executados.', 400);
+                return;
+            }
+
+            // Executar agendamento (cria lançamento + gerencia recorrência)
+            $resultado = $this->service->executarAgendamento($agendamento);
+
+            // Calcular status dinâmico para resposta
+            $statusDinamico = $this->service->calcularStatusDinamico($resultado['agendamento']);
+            $agendamentoData = $resultado['agendamento']->toArray();
+            $agendamentoData['status_dinamico'] = $statusDinamico;
+
+            $mensagem = $resultado['recorrente']
+                ? 'Lançamento criado! Próxima ocorrência agendada para ' . date('d/m/Y', strtotime($resultado['proximaData']))
+                : 'Agendamento executado com sucesso!';
+
+            Response::success([
+                'message' => $mensagem,
+                'agendamento' => $agendamentoData,
+                'lancamento' => $resultado['lancamento'],
+                'proxima_data' => $resultado['proximaData'],
+                'recorrente' => $resultado['recorrente'],
+            ]);
+
+            LogService::info('Agendamento executado via endpoint', [
+                'agendamento_id' => $id,
+                'recorrente' => $resultado['recorrente'],
+                'user_id' => $this->getUserId(),
+            ]);
+        } catch (Throwable $e) {
+            LogService::error('Erro ao executar agendamento.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'agendamento_id' => $id,
+                'user_id' => $this->getUserId()
+            ]);
+
+            Response::error('Erro ao executar agendamento: ' . $e->getMessage(), 500);
         }
     }
 }

@@ -194,7 +194,8 @@
                     <?php if ($isPro): ?>
                         Você tem acesso a todos os recursos premium do Lukrato.
                     <?php else: ?>
-                        Faça upgrade para desbloquear recursos avançados como importação automática, relatórios detalhados e muito mais.
+                        Faça upgrade para desbloquear recursos avançados como importação automática, relatórios detalhados e
+                        muito mais.
                     <?php endif; ?>
                 </p>
             </div>
@@ -356,8 +357,12 @@
                 const r = await fetch(`${API}perfil`, {
                     method: 'POST',
                     credentials: 'include',
-                    body: fd
+                    body: fd,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
+
 
                 const j = await r.json().catch(() => null);
                 if (!r.ok || j?.status === 'error') {

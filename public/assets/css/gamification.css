@@ -75,7 +75,9 @@
   font-weight: 600;
   font-size: 1rem;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .level-badge:hover {
@@ -89,7 +91,9 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--color-bg);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   background-color: var(--glass-bg);
 }
 
@@ -233,7 +237,9 @@
   padding: 1.5rem;
   text-align: center;
   color: white;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
 }
@@ -310,7 +316,9 @@
   border: 2px solid var(--border-color, #e5e7eb);
   border-radius: 16px;
   padding: 1.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .progress-card:hover {
@@ -530,7 +538,9 @@
   padding: 1rem;
   background: var(--bg-secondary, #f9fafb);
   border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-mini:hover {
@@ -578,6 +588,7 @@
   justify-content: center;
   font-size: 2rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: var(--color-primary);
 }
 
 .pro-cta-text {

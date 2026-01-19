@@ -323,10 +323,34 @@ const lancamentoGlobalManager = {
         if (tipo === 'agendamento') {
             pagoGroup.style.display = 'none';
             document.getElementById('globalLancamentoPago').checked = false;
+            // Mostrar seleção de tipo de agendamento
+            const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
+            if (tipoAgGroup) tipoAgGroup.style.display = 'block';
         } else {
             pagoGroup.style.display = 'block';
             document.getElementById('globalLancamentoPago').checked = true;
+            // Ocultar seleção de tipo de agendamento
+            const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
+            if (tipoAgGroup) tipoAgGroup.style.display = 'none';
         }
+    },
+
+    selecionarTipoAgendamento(tipo) {
+        // Atualizar campo hidden
+        const input = document.getElementById('globalLancamentoTipoAgendamento');
+        if (input) input.value = tipo;
+
+        // Atualizar visual dos botões
+        const btns = document.querySelectorAll('#globalTipoAgendamentoGroup .lk-btn-tipo-ag');
+        btns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.classList.contains(`lk-btn-tipo-${tipo}`)) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Atualizar categorias para o tipo selecionado
+        this.preencherCategorias(tipo);
     },
 
     preencherContasDestino() {
@@ -441,6 +465,12 @@ const lancamentoGlobalManager = {
         document.getElementById('globalLancamentoData').value = new Date().toISOString().split('T')[0];
         document.getElementById('globalParcelamentoGroup').style.display = 'none';
         document.getElementById('globalNumeroParcelasGroup').style.display = 'none';
+        
+        // Resetar tipo de agendamento
+        const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
+        if (tipoAgGroup) tipoAgGroup.style.display = 'none';
+        const tipoAgInput = document.getElementById('globalLancamentoTipoAgendamento');
+        if (tipoAgInput) tipoAgInput.value = 'despesa';
 
         this.tipoAtual = null;
     },
@@ -457,9 +487,13 @@ const lancamentoGlobalManager = {
         }
 
         this.salvando = true;
+        
+        console.log('🚀 Iniciando salvarLancamento');
+        console.log('📌 tipoAtual:', this.tipoAtual);
 
         try {
             const dados = this.coletarDadosFormulario();
+            console.log('📋 Dados coletados:', dados);
 
             // Desabilitar botão de submit
             const btnSalvar = document.getElementById('globalBtnSalvar');
@@ -469,16 +503,57 @@ const lancamentoGlobalManager = {
             }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            console.log('CSRF Token:', csrfToken);
-            console.log('URL da API:', `${this.baseUrl}api/lancamentos`);
+            
+            // Determinar endpoint e dados baseado no tipo
+            let apiUrl = `${this.baseUrl}api/lancamentos`;
+            let requestData = dados;
+            
+            console.log('🔍 Verificando tipo:', this.tipoAtual);
+            
+            if (this.tipoAtual === 'agendamento') {
+                // Usar endpoint de agendamentos
+                apiUrl = `${this.baseUrl}api/agendamentos`;
+                const tipoAgendamento = document.getElementById('globalLancamentoTipoAgendamento')?.value || 'despesa';
+                
+                // Garantir que a data tenha hora (adicionar 12:00 se não tiver)
+                let dataPagamento = dados.data;
+                if (dataPagamento && !dataPagamento.includes(' ') && !dataPagamento.includes('T')) {
+                    dataPagamento = dataPagamento + ' 12:00:00';
+                }
+                
+                requestData = {
+                    titulo: dados.descricao,
+                    tipo: tipoAgendamento,
+                    valor: dados.valor,
+                    data_pagamento: dataPagamento,
+                    categoria_id: dados.categoria_id,
+                    conta_id: dados.conta_id,
+                    descricao: dados.observacao,
+                    canal_inapp: true
+                };
+                console.log('✅ Enviando para API de Agendamentos:', requestData);
+            } else if (this.tipoAtual === 'transferencia') {
+                apiUrl = `${this.baseUrl}api/transfers`;
+                requestData = {
+                    conta_id: dados.conta_id,
+                    conta_id_destino: dados.conta_destino_id,
+                    valor: dados.valor,
+                    data: dados.data,
+                    descricao: dados.descricao,
+                    observacao: dados.observacao
+                };
+            }
+            
+            console.log('🌐 URL da API:', apiUrl);
+            console.log('📤 Dados a enviar:', requestData);
 
-            const response = await fetch(`${this.baseUrl}api/lancamentos`, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': csrfToken
                 },
-                body: JSON.stringify(dados)
+                body: JSON.stringify(requestData)
             });
 
             console.log('Response status:', response.status);
@@ -494,6 +569,9 @@ const lancamentoGlobalManager = {
             );
 
             if (isSuccess) {
+                // Guardar tipo atual ANTES de fechar o modal (pois closeModal reseta)
+                const tipoLancamento = this.tipoAtual;
+                
                 // Fechar modal ANTES de mostrar o Sweet Alert
                 this.closeModal();
                 
@@ -507,7 +585,7 @@ const lancamentoGlobalManager = {
                     'transferencia': 'Transferência Criada!',
                     'agendamento': 'Agendamento Criado!'
                 };
-                const titulo = titulos[this.tipoAtual] || 'Lançamento Criado!';
+                const titulo = titulos[tipoLancamento] || 'Lançamento Criado!';
                 
                 await Swal.fire({
                     icon: 'success',
@@ -528,13 +606,26 @@ const lancamentoGlobalManager = {
                     }
                 });
 
-                // Recarregar página se estiver em página de contas ou lançamentos
-                if (window.location.pathname.includes('contas') || window.location.pathname.includes('lancamentos')) {
+                // Recarregar página se estiver em página relevante
+                const currentPath = window.location.pathname.toLowerCase();
+                
+                console.log('📍 Verificando reload - Path:', currentPath, 'Tipo:', tipoLancamento);
+                
+                // Sempre recarregar se criou agendamento
+                if (tipoLancamento === 'agendamento') {
+                    console.log('🔄 Recarregando página após criar agendamento');
                     window.location.reload();
-                } else {
-                    // Disparar evento para atualizar outras partes da página
-                    window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
+                    return;
                 }
+                
+                // Recarregar para contas ou lançamentos
+                if (currentPath.includes('contas') || currentPath.includes('lancamentos')) {
+                    window.location.reload();
+                    return;
+                }
+                
+                // Disparar eventos para atualizar outras partes da página
+                window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
                 
                 this.salvando = false;
                 

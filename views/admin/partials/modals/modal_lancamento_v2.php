@@ -84,7 +84,7 @@
                 </button>
 
                 <!-- Agendamento -->
-                <button type="button" class="lk-tipo-card lk-tipo-agendamento"
+                <!-- <button type="button" class="lk-tipo-card lk-tipo-agendamento"
                     onclick="contasManager.mostrarFormularioLancamento('agendamento')">
                     <div class="lk-tipo-icon">
                         <i class="fas fa-calendar-plus"></i>
@@ -92,7 +92,7 @@
                     <h4>Agendamento</h4>
                     <p>Programar para depois</p>
                     <div class="lk-tipo-badge">📅 Agendar</div>
-                </button>
+                </button> -->
             </div>
         </div>
 
@@ -184,8 +184,8 @@
                         Número de Parcelas
                     </label>
                     <div class="lk-input-group">
-                        <input type="number" id="lancamentoTotalParcelas" name="total_parcelas" class="lk-input"
-                            min="2" max="48" value="2" placeholder="12">
+                        <input type="number" id="lancamentoTotalParcelas" name="total_parcelas" class="lk-input" min="2"
+                            max="48" value="2" placeholder="12">
                         <span class="lk-input-suffix">vezes</span>
                     </div>
                     <div id="parcelamentoPreview" class="lk-parcelamento-preview" style="display: none;">
@@ -209,10 +209,12 @@
                         Tipo do Lançamento
                     </label>
                     <div class="lk-tipo-agendamento-btns">
-                        <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita" data-tipo="receita" onclick="contasManager.selecionarTipoAgendamento('receita')">
+                        <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita" data-tipo="receita"
+                            onclick="contasManager.selecionarTipoAgendamento('receita')">
                             <i class="fas fa-arrow-down"></i> Receita
                         </button>
-                        <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active" data-tipo="despesa" onclick="contasManager.selecionarTipoAgendamento('despesa')">
+                        <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active" data-tipo="despesa"
+                            onclick="contasManager.selecionarTipoAgendamento('despesa')">
                             <i class="fas fa-arrow-up"></i> Despesa
                         </button>
                     </div>
