@@ -29,7 +29,11 @@ function defineApplicationConstants(): void
     }
 
     if (!defined('BASE_URL')) {
-        define('BASE_URL', $_ENV['BASE_URL'] ?? 'http://localhost/lukrato/public/');
+        if (APP_ENV === 'production') {
+            define('BASE_URL', rtrim($_ENV['BASE_URL'] ?? 'https://lukrato.com.br', '/'));
+        } else {
+            define('BASE_URL', rtrim($_ENV['BASE_URL'] ?? 'http://localhost/lukrato', '/'));
+        }
     }
 }
 
