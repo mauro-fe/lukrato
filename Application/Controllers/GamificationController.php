@@ -17,11 +17,15 @@ class GamificationController extends BaseController
     public function index(): void
     {
         $this->requireAuth();
+        $user = \Application\Lib\Auth::user();
+        $isPro = $user ? $user->isPro() : false;
 
         $this->render(
             'admin/gamification/index',
             [
-                'pageTitle' => 'Gamificação - Lukrato'
+                'pageTitle' => 'Gamificação - Lukrato',
+                'isPro' => $isPro,
+                'currentUser' => $user
             ],
             'admin/partials/header',
             'admin/partials/footer'

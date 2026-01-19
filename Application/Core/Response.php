@@ -38,7 +38,7 @@ class Response
     {
         $this->statusCode = $statusCode;
         $this->header('Content-Type', 'application/json; charset=utf-8');
-        
+
         // Adiciona header com TTL restante do CSRF token
         if (class_exists('\Application\Middlewares\CsrfMiddleware')) {
             $remainingTtl = \Application\Middlewares\CsrfMiddleware::getTokenRemainingTtl();
@@ -46,7 +46,7 @@ class Response
                 $this->header('X-CSRF-TTL', (string)$remainingTtl);
             }
         }
-        
+
         try {
             $this->content = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
@@ -159,6 +159,7 @@ class Response
     public static function success(mixed $data = null, string $message = 'Success', int $statusCode = 200): void
     {
         self::json([
+            'success' => true,
             'status'  => 'success',
             'message' => $message,
             'data'    => $data,

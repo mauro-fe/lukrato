@@ -374,13 +374,8 @@ class AchievementService
 
     private function checkTotalCategories(int $userId, int $total): bool
     {
-        // Não contar categorias padrão (is_auto_seed = true)
-        return Categoria::where('user_id', $userId)
-            ->where(function ($q) {
-                $q->where('is_auto_seed', false)
-                    ->orWhereNull('is_auto_seed');
-            })
-            ->count() >= $total;
+        // Contar todas as categorias do usuário
+        return Categoria::where('user_id', $userId)->count() >= $total;
     }
 
     private function checkMasterOrganization(int $userId, Usuario $user): bool

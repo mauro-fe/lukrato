@@ -97,7 +97,14 @@ class Usuario extends Model
     public function assinaturaAtiva()
     {
         return $this->hasOne(AssinaturaUsuario::class, 'user_id')
-            ->where('status', AssinaturaUsuario::ST_ACTIVE)
+            ->where(function ($query) {
+                $query->where('status', AssinaturaUsuario::ST_ACTIVE)
+                    // Incluir assinaturas canceladas que ainda estão no período pago
+                    ->orWhere(function ($q) {
+                        $q->where('status', AssinaturaUsuario::ST_CANCELED)
+                            ->where('renova_em', '>', now());
+                    });
+            })
             ->latest('id');
     }
 
@@ -157,10 +164,20 @@ class Usuario extends Model
             return false;
         }
 
-        // Se a assinatura está ativa, verifica se passou do período de carência
-        if ($assinatura->status === AssinaturaUsuario::ST_ACTIVE && $assinatura->renova_em) {
-            $renewsAt = \Carbon\Carbon::parse($assinatura->renova_em);
+        // Verifica data de renovação
+        if (!$assinatura->renova_em) {
+            return false;
+        }
 
+        $renewsAt = \Carbon\Carbon::parse($assinatura->renova_em);
+
+        // CANCELADA: Tem acesso até o fim do período pago
+        if ($assinatura->status === AssinaturaUsuario::ST_CANCELED) {
+            return $renewsAt->isFuture();
+        }
+
+        // ATIVA: Tem acesso até o fim do período + 3 dias de carência
+        if ($assinatura->status === AssinaturaUsuario::ST_ACTIVE) {
             // Se ainda não venceu, é PRO
             if ($renewsAt->isFuture()) {
                 return true;
@@ -184,7 +201,7 @@ class Usuario extends Model
             return false;
         }
 
-        return true;
+        return false;
     }
 
     public function isGratuito(): bool

@@ -547,6 +547,26 @@
         box-shadow: 0 8px 24px color-mix(in srgb, var(--color-success) 40%, transparent);
     }
 
+    /* Botão do plano cancelado (warning) */
+    .plan-card__button--warning {
+        background: linear-gradient(135deg, #ff9800, #ff6b00);
+        color: white;
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+        animation: pulse-warning 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-warning {
+
+        0%,
+        100% {
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+        }
+
+        50% {
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.6);
+        }
+    }
+
     .plan-card__button--active:hover {
         background: color-mix(in srgb, var(--color-success) 90%, black);
         transform: translateY(-2px);
@@ -1063,25 +1083,37 @@ function formatInterval(string $interval): string
 
                     <!-- Botão de Ação -->
                     <?php if ($isCurrentPlan): ?>
-                        <button class="plan-card__button plan-card__button--active" disabled
-                            aria-label="<?= $renewDate ? 'Plano ativo até ' . $renewDate : 'Plano atual' ?>">
-                            <i class="plan-card__button-icon fa-solid fa-check-circle" aria-hidden="true"></i>
-                            <span>
-                                <?php if ($renewDate && !$isFreePlan): ?>
-                                    Ativo até <?= htmlspecialchars($renewDate) ?>
-                                <?php else: ?>
-                                    <?= htmlspecialchars($meta['current_label'] ?? 'Plano atual') ?>
-                                <?php endif; ?>
-                            </span>
-                        </button>
-
-                        <?php if (!$isFreePlan): ?>
-                            <!-- Botão de Cancelar Plano PRO -->
-                            <button type="button" class="plan-card__cancel-btn" id="btn-cancel-subscription"
-                                aria-label="Cancelar assinatura do plano Pro">
-                                <i class="fa-solid fa-times-circle"></i>
-                                <span>Cancelar assinatura</span>
+                        <?php if ($isCanceled ?? false): ?>
+                            <!-- Status: Cancelado mas ainda tem acesso -->
+                            <button class="plan-card__button plan-card__button--warning" disabled
+                                aria-label="Plano cancelado - acesso até <?= $accessUntil ?? '' ?>">
+                                <i class="plan-card__button-icon fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+                                <span>
+                                    Cancelado - Acesso até <?= htmlspecialchars($accessUntil ?? $renewDate ?? '') ?>
+                                </span>
                             </button>
+                        <?php else: ?>
+                            <!-- Status: Ativo normalmente -->
+                            <button class="plan-card__button plan-card__button--active" disabled
+                                aria-label="<?= $renewDate ? 'Plano ativo até ' . $renewDate : 'Plano atual' ?>">
+                                <i class="plan-card__button-icon fa-solid fa-check-circle" aria-hidden="true"></i>
+                                <span>
+                                    <?php if ($renewDate && !$isFreePlan): ?>
+                                        Ativo até <?= htmlspecialchars($renewDate) ?>
+                                    <?php else: ?>
+                                        <?= htmlspecialchars($meta['current_label'] ?? 'Plano atual') ?>
+                                    <?php endif; ?>
+                                </span>
+                            </button>
+
+                            <?php if (!$isFreePlan): ?>
+                                <!-- Botão de Cancelar Plano PRO -->
+                                <button type="button" class="plan-card__cancel-btn" id="btn-cancel-subscription"
+                                    aria-label="Cancelar assinatura do plano Pro">
+                                    <i class="fa-solid fa-times-circle"></i>
+                                    <span>Cancelar assinatura</span>
+                                </button>
+                            <?php endif; ?>
                         <?php endif; ?>
                     <?php elseif ($isFreePlan): ?>
                         <button class="plan-card__button" disabled aria-label="Plano gratuito">

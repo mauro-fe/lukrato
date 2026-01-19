@@ -188,3 +188,9 @@ Router::add('POST',   '/api/parcelamentos',              'Api\\FaturasController
 Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\FaturasController@show',        ['auth']);
 Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
 Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController@store',       ['auth', 'csrf']);
+
+// ============================================
+// SYSADMIN
+// ============================================
+
+Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'csrf']);

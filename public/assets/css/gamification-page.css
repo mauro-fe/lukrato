@@ -267,6 +267,7 @@
   transition: all var(--transition-normal);
   min-height: 220px;
   position: relative;
+  cursor: pointer;
 }
 
 .achievement-card.unlocked {
@@ -275,8 +276,9 @@
 }
 
 .achievement-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
 }
 
 .achievement-icon {
@@ -430,6 +432,148 @@
 
 .leaderboard-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-hover);
+}
+
+/* Bloqueio do Ranking (Free Users) */
+.leaderboard-locked {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.1),
+    rgba(255, 152, 0, 0.05)
+  );
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 48px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboard-locked::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 193, 7, 0.1) 0%,
+    transparent 70%
+  );
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.locked-icon {
+  position: relative;
+  z-index: 1;
+  font-size: 64px;
+  margin-bottom: 24px;
+  color: var(--color-warning);
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.leaderboard-locked h3 {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 16px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.leaderboard-locked p {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 32px;
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.locked-features {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.locked-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-card-border);
+}
+
+.locked-feature i {
+  font-size: 24px;
+  color: var(--color-warning);
+}
+
+.locked-feature span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.btn-upgrade-ranking {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: var(--color-primary);
+  color: var(--color-text) !important;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(255, 193, 7, 0.4);
+}
+
+.btn-upgrade-ranking:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(255, 193, 7, 0.6);
+}
+
+.btn-upgrade-ranking i {
+  font-size: 20px;
 }
 
 .leaderboard-table {
@@ -1044,4 +1188,54 @@
     padding: 30px 20px;
     font-size: 14px;
   }
+}
+
+/* ===============================================
+   SWEETALERT CUSTOMIZATION
+   =============================================== */
+
+.achievement-modal.swal2-popup {
+  background: var(--color-bg) !important;
+  border: 1px solid var(--color-card-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.achievement-modal .swal2-title {
+  color: var(--color-text) !important;
+  font-size: 24px !important;
+}
+
+.achievement-modal .swal2-html-container {
+  color: var(--color-text) !important;
+}
+
+.achievement-modal .swal2-html-container p {
+  color: var(--color-text-muted) !important;
+}
+
+.achievement-modal .swal2-confirm {
+  background: var(--color-primary) !important;
+  border: none !important;
+  padding: 10px 24px !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 600 !important;
+  transition: all var(--transition-normal) !important;
+}
+
+.achievement-modal .swal2-confirm:hover {
+  background: var(--color-primary-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.achievement-modal .swal2-icon.swal2-success,
+.achievement-modal .swal2-icon.swal2-info {
+  border-color: var(--color-primary) !important;
+}
+
+.achievement-modal .swal2-icon.swal2-success [class^="swal2-success-line"] {
+  background-color: var(--color-primary) !important;
+}
+
+.achievement-modal .swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgba(249, 115, 22, 0.3) !important;
 }

@@ -1,7 +1,8 @@
 <style>
 #lk-usage-banner-root {
-    margin: 10px 0;
+    margin: 0 0 16px 0;
     animation: lk-slideInDown 0.4s ease-out;
+    width: 100%;
 }
 
 @keyframes lk-slideInDown {
@@ -9,6 +10,7 @@
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -16,8 +18,15 @@
 }
 
 @keyframes lk-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .lk-usage-banner {
@@ -187,8 +196,6 @@
     }
 }
 </style>
-
-<div id="lk-usage-banner-root"></div>
 
 <script>
 (function() {

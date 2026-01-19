@@ -35,7 +35,7 @@ class GamificationController extends BaseController
      */
     public function getProgress(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
@@ -83,14 +83,18 @@ class GamificationController extends BaseController
      */
     public function getAchievements(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $user = \Application\Lib\Auth::user();
+            error_log("🎮 [ACHIEVEMENTS API] User ID: {$this->userId}, isPro: " . ($user->isPro() ? 'true' : 'false'));
 
             // Filtro por mês (opcional)
             $month = $_GET['month'] ?? null;
+            error_log("🎮 [ACHIEVEMENTS API] Month filter: " . ($month ?? 'null'));
+
             $achievements = $this->achievementService->getUserAchievements($this->userId, $month);
+            error_log("🎮 [ACHIEVEMENTS API] Total conquistas retornadas: " . count($achievements));
 
             // Estatísticas gerais
             $totalCount = count($achievements);
@@ -105,12 +109,15 @@ class GamificationController extends BaseController
                 'is_pro' => $user->isPro(),
             ];
 
+            error_log("🎮 [ACHIEVEMENTS API] Sending response - Total: {$totalCount}, Unlocked: {$unlockedCount}");
+
             Response::success([
                 'achievements' => $achievements,
                 'stats' => $stats,
             ], 'Conquistas do usuário');
         } catch (Exception $e) {
             error_log("🎮 [GAMIFICATION] Erro ao buscar conquistas: " . $e->getMessage());
+            error_log("🎮 [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
             Response::error('Erro ao buscar conquistas', 500);
         }
     }
@@ -121,7 +128,7 @@ class GamificationController extends BaseController
      */
     public function markAchievementsSeen(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $payload = $this->getRequestPayload();
@@ -151,7 +158,7 @@ class GamificationController extends BaseController
      */
     public function getLeaderboard(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $topUsers = UserProgress::with('user:id,nome')
@@ -199,7 +206,7 @@ class GamificationController extends BaseController
      */
     public function getStats(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $user = \Application\Lib\Auth::user();
@@ -240,7 +247,7 @@ class GamificationController extends BaseController
      */
     public function getHistory(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $limit = (int)($_GET['limit'] ?? 10);

@@ -1,0 +1,10 @@
+{
+    "status": "closed",
+    "failure_count": 1,
+    "success_count": 0,
+    "opened_at": 0,
+    "last_failure": {
+        "message": "Informe o CPF ou CNPJ do titular do cart\u00e3o.",
+        "time": 1768858460
+    }
+}

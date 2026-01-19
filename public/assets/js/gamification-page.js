@@ -130,6 +130,8 @@
 
     // Atualizar conquistas
     function updateAchievements(data) {
+        console.log('🏆 [ACHIEVEMENTS] Dados recebidos:', data);
+
         const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
 
         if (!isSuccess || !data.data || !data.data.achievements) {
@@ -141,21 +143,36 @@
         const stats = data.data.stats || {};
         const unlockedCount = stats.unlocked_count || achievements.filter(a => a.unlocked).length;
 
+        console.log('🏆 [ACHIEVEMENTS] Total de conquistas:', achievements.length);
+        console.log('🏆 [ACHIEVEMENTS] Desbloqueadas:', unlockedCount);
+
+        // Atualizar contador no card
+        if (elements.achievementsCountCard) {
+            elements.achievementsCountCard.textContent = `${unlockedCount}/${achievements.length}`;
+        }
+
         renderAchievements(achievements);
     }
 
     // Renderizar conquistas
     function renderAchievements(achievements) {
-        if (!elements.achievementsGridPage) return;
+        if (!elements.achievementsGridPage) {
+            console.error('❌ [ACHIEVEMENTS] Elemento achievementsGridPage não encontrado!');
+            return;
+        }
+
+        console.log('🏆 [RENDER] Renderizando', achievements.length, 'conquistas');
 
         const filtered = filterAchievements(achievements, currentFilter);
+
+        console.log('🏆 [RENDER] Após filtro:', filtered.length, 'conquistas');
 
         elements.achievementsGridPage.innerHTML = filtered.map(achievement => {
             const isUnlocked = achievement.unlocked;
             const cardClass = isUnlocked ? 'achievement-card unlocked' : 'achievement-card';
 
             return `
-                <div class="${cardClass}">
+                <div class="${cardClass}" data-achievement='${JSON.stringify(achievement).replace(/'/g, "&#39;")}' style="cursor: pointer;">
                     <div class="achievement-icon">${achievement.icon}</div>
                     <div class="achievement-info">
                         <h3 class="achievement-title">${achievement.name}</h3>
@@ -171,6 +188,14 @@
                 </div>
             `;
         }).join('');
+
+        // Adicionar eventos de clique nos cards
+        document.querySelectorAll('.achievement-card').forEach(card => {
+            card.addEventListener('click', function () {
+                const achievement = JSON.parse(this.dataset.achievement);
+                showAchievementDetail(achievement);
+            });
+        });
     }
 
     // Filtrar conquistas
@@ -289,6 +314,47 @@
         if (diffDays < 7) return `${diffDays} dias atrás`;
 
         return date.toLocaleDateString('pt-BR');
+    }
+
+    // Mostrar detalhes da conquista em modal
+    function showAchievementDetail(achievement) {
+        if (typeof Swal === 'undefined') {
+            console.warn('SweetAlert2 não está carregado');
+            return;
+        }
+
+        const isUnlocked = achievement.unlocked || achievement.unlocked_ever;
+        let statusHtml = '';
+
+        if (achievement.unlocked) {
+            statusHtml = `<p style="color: #10b981; font-weight: 600; margin-top: 15px;">✓ Desbloqueada${achievement.unlocked_at ? ` em ${formatDate(achievement.unlocked_at)}` : ''}</p>`;
+        } else if (achievement.unlocked_ever) {
+            statusHtml = `<p style="color: #10b981; font-weight: 600; margin-top: 15px;">✓ Conquistada anteriormente</p>`;
+        } else {
+            statusHtml = '<p style="color: #94a3b8; font-weight: 600; margin-top: 15px;">🔒 Ainda não desbloqueada</p>';
+        }
+
+        const proTag = achievement.is_pro_only
+            ? '<p style="color: #f59e0b; font-weight: 600; margin-top: 10px;"><i class="fas fa-gem"></i> Conquista exclusiva PRO</p>'
+            : '';
+
+        Swal.fire({
+            title: `${achievement.icon} ${achievement.name}`,
+            html: `
+                <p style="font-size: 16px; color: #64748b; margin-bottom: 15px;">${achievement.description}</p>
+                <p style="font-size: 18px; color: #f59e0b; font-weight: 700;">
+                    ⭐ ${achievement.points_reward} pontos
+                </p>
+                ${proTag}
+                ${statusHtml}
+            `,
+            icon: isUnlocked ? 'success' : 'info',
+            confirmButtonText: 'Fechar',
+            confirmButtonColor: '#f97316',
+            customClass: {
+                popup: 'achievement-modal'
+            }
+        });
     }
 
     function formatAction(action) {

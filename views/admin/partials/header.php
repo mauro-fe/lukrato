@@ -406,4 +406,5 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          CONTENT WRAPPER
          ============================================================================ -->
     <div class="content-wrapper">
+        <div id="lk-usage-banner-root"></div>
         <main class="lk-main">

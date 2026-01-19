@@ -282,6 +282,18 @@
   box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
 }
 
+.btn-control.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-control.success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
 .search-box {
   display: flex;
   gap: var(--spacing-3);
@@ -536,4 +548,47 @@
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ===================================================================
+   SYSADMIN SWAL CUSTOMIZATION
+   =================================================================== */
+
+.sysadmin-swal.swal2-popup {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--glass-border);
+}
+
+.sysadmin-swal .swal2-title {
+  color: var(--color-text) !important;
+}
+
+.sysadmin-swal .swal2-html-container {
+  color: var(--color-text) !important;
+}
+
+.sysadmin-swal label {
+  color: var(--color-text) !important;
+}
+
+.sysadmin-swal .swal2-input,
+.sysadmin-swal .swal2-select {
+  background: var(--glass-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+.sysadmin-swal .swal2-input::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+.sysadmin-swal .swal2-confirm {
+  background: linear-gradient(135deg, #f97316, #ea580c) !important;
+}
+
+.sysadmin-swal .swal2-cancel {
+  background: var(--glass-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--glass-border) !important;
 }
