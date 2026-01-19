@@ -102,10 +102,6 @@ $registerErrorMessage = $registerErrorMessage ?? '';
                             <!-- REGISTER -->
                             <div class="flip-face flip-register">
                                 <h3 class="card-title">Cadastrar</h3>
-                                <?php
-                                var_dump(BASE_URL);
-                                exit;
-                                ?>
 
                                 <form action="<?= BASE_URL ?>register/criar" method="POST" id="registerForm" novalidate>
                                     <?= csrf_input('register_form') ?>
