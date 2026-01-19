@@ -19,6 +19,15 @@ class SessionManager implements SessionManagerInterface
         $_SESSION['usuario_nome'] = (string) ($user->nome ?? '');
         $_SESSION['admin_id'] ??= $_SESSION['user_id'];
         $_SESSION['admin_username'] ??= ($_SESSION['usuario_nome'] ?: 'usuario');
+
+        // Log de depuração da sessão
+        if (class_exists('Application\\Services\\LogService')) {
+            \Application\Services\LogService::info('Sessão após login', [
+                'session' => $_SESSION
+            ]);
+        } else {
+            error_log('Sessão após login: ' . print_r($_SESSION, true));
+        }
     }
 
     public function destroySession(): void
