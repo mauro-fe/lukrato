@@ -106,9 +106,25 @@ class UserProgress extends Model
      */
     private function getPreviousLevelThreshold(): int
     {
-        // Níveis: 1→0, 2→300, 3→500, 4→700, 5→1000, 6→1500, 7→2200, 8→3000
-        $thresholds = [0, 300, 500, 700, 1000, 1500, 2200, 3000];
-        $index = max(0, $this->current_level - 2);
+        // Usar thresholds completos do GamificationService
+        $thresholds = [
+            1 => 0,
+            2 => 300,
+            3 => 500,
+            4 => 700,
+            5 => 1000,
+            6 => 1500,
+            7 => 2200,
+            8 => 3000,
+            9 => 4000,
+            10 => 5500,
+            11 => 7500,
+            12 => 10000,
+            13 => 15000,
+            14 => 25000,
+            15 => 50000
+        ];
+        $index = max(1, $this->current_level - 1);
         return $thresholds[$index] ?? 0;
     }
 
@@ -117,9 +133,25 @@ class UserProgress extends Model
      */
     private function getCurrentLevelThreshold(): int
     {
-        // Níveis: 1→0, 2→300, 3→500, 4→700, 5→1000, 6→1500, 7→2200, 8→3000
-        $thresholds = [0, 300, 500, 700, 1000, 1500, 2200, 3000];
-        $index = max(0, $this->current_level - 1);
-        return $thresholds[$index] ?? 3000;
+        // Usar thresholds completos do GamificationService
+        $thresholds = [
+            1 => 0,
+            2 => 300,
+            3 => 500,
+            4 => 700,
+            5 => 1000,
+            6 => 1500,
+            7 => 2200,
+            8 => 3000,
+            9 => 4000,
+            10 => 5500,
+            11 => 7500,
+            12 => 10000,
+            13 => 15000,
+            14 => 25000,
+            15 => 50000
+        ];
+        $index = max(1, $this->current_level);
+        return $thresholds[$index] ?? 50000;
     }
 }

@@ -5,7 +5,7 @@
 
 class ContasManager {
     constructor() {
-        this.baseUrl = '/lukrato/public/api';
+        this.baseUrl = this.getBaseUrl() + 'api';
         this.instituicoes = [];
         this.contas = [];
         this.categorias = null; // Cache de categorias
@@ -134,7 +134,8 @@ class ContasManager {
     getBaseUrl() {
         // Tentar usar a variável global primeiro
         if (window.BASE_URL) {
-            return window.BASE_URL;
+            // Garante que termina com barra
+            return window.BASE_URL.endsWith('/') ? window.BASE_URL : window.BASE_URL + '/';
         }
 
         // Fallback: extrair do pathname
