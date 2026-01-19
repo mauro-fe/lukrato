@@ -30,10 +30,16 @@ function defineApplicationConstants(): void
 
     if (!defined('BASE_URL')) {
         if (APP_ENV === 'production') {
-            define('BASE_URL', rtrim($_ENV['BASE_URL'] ?? 'https://lukrato.com.br', '/'));
+            $base = $_ENV['BASE_URL'] ?? 'https://lukrato.com.br/';
         } else {
-            define('BASE_URL', rtrim($_ENV['BASE_URL'] ?? 'http://localhost/lukrato', '/'));
+            $base = $_ENV['BASE_URL'] ?? 'http://localhost/lukrato/';
         }
+
+        $base = trim($base);
+        $base = rtrim($base, '/');
+        $base .= '/';
+
+        define('BASE_URL', $base);
     }
 }
 

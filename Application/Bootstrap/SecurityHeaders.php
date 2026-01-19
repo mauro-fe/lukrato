@@ -17,8 +17,8 @@ class SecurityHeaders
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
         $allowedOrigins = [
-            'https://lukrato.com.br',
-            'https://www.lukrato.com.br',
+            'https://lukrato.com.br/',
+            'https://www.lukrato.com.br/',
         ];
 
         if (in_array($origin, $allowedOrigins, true)) {
