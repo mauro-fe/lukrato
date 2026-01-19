@@ -310,7 +310,7 @@ class RelatoriosController extends BaseController
     public function insights(): void
     {
         try {
-            $this->requireAuthApi();
+            $this->validateAccess();
 
             $userId = Auth::id();
             $year = (int)($_GET['year'] ?? date('Y'));
@@ -466,7 +466,7 @@ class RelatoriosController extends BaseController
     public function comparatives(): void
     {
         try {
-            $this->requireAuthApi();
+            $this->validateAccess();
 
             $userId = Auth::id();
             $year = (int)($_GET['year'] ?? date('Y'));
@@ -593,7 +593,7 @@ class RelatoriosController extends BaseController
     {
         error_log("🔍 cardDetails chamado com ID: $id");
         error_log("🔍 GET params: " . json_encode($_GET));
-        
+
         try {
             $this->validateAccess();
 
@@ -618,7 +618,7 @@ class RelatoriosController extends BaseController
             $data = $this->reportService->getCardDetailedReport($userId, $id, $mes, $ano);
 
             error_log("✅ Dados recebidos do service: " . json_encode(array_keys($data)));
-            
+
             Response::success($data);
         } catch (\Exception $e) {
             error_log("❌ Exception: " . $e->getMessage());

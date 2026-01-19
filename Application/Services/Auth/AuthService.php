@@ -177,22 +177,24 @@ class AuthService
 
             $criadas = 0;
 
-            // Criar despesas
+            // Criar despesas (sem acionar gamificação)
             foreach ($categoriasDespesa as $nome) {
                 Categoria::create([
                     'nome' => $nome,
                     'tipo' => 'despesa',
                     'user_id' => $userId,
+                    'is_auto_seed' => true, // Flag para não dar pontos
                 ]);
                 $criadas++;
             }
 
-            // Criar receitas
+            // Criar receitas (sem acionar gamificação)
             foreach ($categoriasReceita as $nome) {
                 Categoria::create([
                     'nome' => $nome,
                     'tipo' => 'receita',
                     'user_id' => $userId,
+                    'is_auto_seed' => true, // Flag para não dar pontos
                 ]);
                 $criadas++;
             }

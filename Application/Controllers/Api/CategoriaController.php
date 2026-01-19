@@ -181,23 +181,36 @@ class CategoriaController extends BaseController
 
         // Criar DTO e categoria
         $dto = CreateCategoriaDTO::fromRequest($this->userId, ['nome' => $nome, 'tipo' => $tipo]);
-        $categoria = $this->categoriaRepo->create($dto->toArray());
+        $categoriaData = $dto->toArray();
 
-        error_log("✅ [CATEGORIA CREATE] Categoria criada com ID: {$categoria->id}");
+        // Verificar se é seed automático (não dar pontos)
+        $isAutoSeed = $payload['is_auto_seed'] ?? false;
+        if ($isAutoSeed) {
+            $categoriaData['is_auto_seed'] = true;
+        }
 
-        // 🎮 GAMIFICAÇÃO: Adicionar pontos por criar categoria
+        $categoria = $this->categoriaRepo->create($categoriaData);
+
+        error_log("✅ [CATEGORIA CREATE] Categoria criada com ID: {$categoria->id}" . ($isAutoSeed ? " (seed automático - sem pontos)" : ""));
+
+        // 🎮 GAMIFICAÇÃO: Adicionar pontos APENAS se for criação manual do usuário
         $gamificationResult = [];
-        try {
-            $gamificationService = new GamificationService();
-            $pointsResult = $gamificationService->addPoints(
-                $this->userId,
-                \Application\Enums\GamificationAction::CREATE_CATEGORIA,
-                $categoria->id,
-                'categoria'
-            );
-            $gamificationResult = ['points' => $pointsResult];
-        } catch (\Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
+        if (!$isAutoSeed) {
+            try {
+                $gamificationService = new GamificationService();
+                $pointsResult = $gamificationService->addPoints(
+                    $this->userId,
+                    \Application\Enums\GamificationAction::CREATE_CATEGORIA,
+                    $categoria->id,
+                    'categoria'
+                );
+                $gamificationResult = ['points' => $pointsResult];
+                error_log("🎮 [GAMIFICATION] Pontos adicionados para categoria ID: {$categoria->id}");
+            } catch (\Exception $e) {
+                error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
+            }
+        } else {
+            error_log("🎮 [GAMIFICATION] Seed automático - pontos NÃO concedidos");
         }
 
         Response::success([
