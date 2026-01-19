@@ -102,8 +102,19 @@ class Request
 
     public function isAjax(): bool
     {
-        return strtolower($this->header('x-requested-with') ?? '') === 'xmlhttprequest';
+        // Header clássico (jQuery)
+        if (strtolower($this->header('x-requested-with') ?? '') === 'xmlhttprequest') {
+            return true;
+        }
+
+        // Fetch / Axios / APIs modernas
+        if ($this->wantsJson()) {
+            return true;
+        }
+
+        return false;
     }
+
 
     public function header(string $key): ?string
     {

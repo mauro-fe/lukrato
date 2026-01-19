@@ -226,7 +226,6 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          SCRIPTS DE PÁGINA
          ============================================================================ -->
     <?php loadPageJs('admin-home-header'); ?>
-    <?php loadPageJs('admin-agendamentos-index'); ?>
     <?php loadPageJs(); ?>
 </head>
 

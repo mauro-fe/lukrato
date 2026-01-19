@@ -173,271 +173,320 @@ $registerErrorMessage = $registerErrorMessage ?? '';
             </section>
         </div>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    // Partículas
-    function createParticles() {
-        const container = document.getElementById('particles');
-        for (let i = 0; i < 20; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 8 + 's';
-            particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
-            container.appendChild(particle);
+        // Partículas
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                container.appendChild(particle);
+            }
         }
-    }
-    createParticles();
+        createParticles();
 
-    // Tabs
-    const card = document.querySelector('.card');
-    const tabBtns = document.querySelectorAll('.tab-btn');
+        // Tabs
+        const card = document.querySelector('.card');
+        const tabBtns = document.querySelectorAll('.tab-btn');
 
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            card.dataset.active = tab;
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                card.dataset.active = tab;
 
-            tabBtns.forEach(b => b.classList.remove('is-active'));
-            btn.classList.add('is-active');
+                tabBtns.forEach(b => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+            });
         });
-    });
 
-    // Toggle password
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.toggle-password');
-        if (!btn) return;
+        // Toggle password
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.toggle-password');
+            if (!btn) return;
 
-        const targetId = btn.dataset.target;
-        const input = document.getElementById(targetId);
-        if (!input) return;
+            const targetId = btn.dataset.target;
+            const input = document.getElementById(targetId);
+            if (!input) return;
 
-        const icon = btn.querySelector('i');
-        const isPassword = input.type === 'password';
+            const icon = btn.querySelector('i');
+            const isPassword = input.type === 'password';
 
-        input.type = isPassword ? 'text' : 'password';
-        icon.classList.toggle('fa-eye', !isPassword);
-        icon.classList.toggle('fa-eye-slash', isPassword);
-    });
+            input.type = isPassword ? 'text' : 'password';
+            icon.classList.toggle('fa-eye', !isPassword);
+            icon.classList.toggle('fa-eye-slash', isPassword);
+        });
 
-    // Helpers de erro
-    function showError(inputId, errorId, message) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        if (error) error.textContent = message;
-        if (input) {
-            input.style.borderColor = 'var(--error)';
-            input.addEventListener('input', () => {
-                input.style.borderColor = 'transparent';
-                if (error) error.textContent = '';
-            }, {
-                once: true
+        // Helpers de erro
+        function showError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            if (error) error.textContent = message;
+            if (input) {
+                input.style.borderColor = 'var(--error)';
+                input.addEventListener('input', () => {
+                    input.style.borderColor = 'transparent';
+                    if (error) error.textContent = '';
+                }, {
+                    once: true
+                });
+            }
+        }
+
+        function clearErrors(form) {
+            form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+            form.querySelectorAll('input').forEach(el => el.style.borderColor = 'transparent');
+            form.querySelectorAll('.general-message').forEach(el => {
+                el.textContent = '';
+                el.classList.remove('show');
             });
         }
-    }
 
-    function clearErrors(form) {
-        form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-        form.querySelectorAll('input').forEach(el => el.style.borderColor = 'transparent');
-        form.querySelectorAll('.general-message').forEach(el => {
-            el.textContent = '';
-            el.classList.remove('show');
-        });
-    }
+        // ======================
+        // LOGIN REAL COM AJAX
+        // ======================
+        const loginForm = document.getElementById('loginForm');
 
-    // ======================
-    // LOGIN REAL COM AJAX
-    // ======================
-    const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearErrors(loginForm);
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearErrors(loginForm);
+                const emailVal = document.getElementById('email').value.trim();
+                const passwordVal = document.getElementById('password').value;
 
-            const emailVal = document.getElementById('email').value.trim();
-            const passwordVal = document.getElementById('password').value;
+                let hasError = false;
 
-            let hasError = false;
-
-            if (!emailVal) {
-                showError('email', 'emailError', 'Digite seu e-mail');
-                hasError = true;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-                showError('email', 'emailError', 'E-mail inválido');
-                hasError = true;
-            }
-
-            if (!passwordVal) {
-                showError('password', 'passwordError', 'Digite sua senha');
-                hasError = true;
-            }
-
-            if (hasError) return;
-
-            const btn = loginForm.querySelector('.btn-primary');
-            const originalBtnHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span>Entrando...</span>';
-
-            const generalError = document.getElementById('generalError');
-            const generalSuccess = document.getElementById('generalSuccess');
-
-            try {
-                const formData = new FormData(loginForm);
-
-                const response = await fetch(loginForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                });
-
-                let data = null;
-                try {
-                    data = await response.json();
-                } catch (e) {
-                    // Se não veio JSON, tratamos como erro genérico
+                if (!emailVal) {
+                    showError('email', 'emailError', 'Digite seu e-mail');
+                    hasError = true;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+                    showError('email', 'emailError', 'E-mail inválido');
+                    hasError = true;
                 }
 
-                const payload = (data && typeof data.data === 'object') ? data.data : {};
-                const success = data && (data.success === true || data.status === 'success');
+                if (!passwordVal) {
+                    showError('password', 'passwordError', 'Digite sua senha');
+                    hasError = true;
+                }
 
-                if (!response.ok || !success) {
-                    const message =
-                        (data && data.message) ||
-                        (response.status === 429 ?
-                            'Muitas tentativas. Aguarde um pouco e tente novamente.' :
-                            'E-mail ou senha inválidos ou erro ao processar login.');
+                if (hasError) return;
 
+                const btn = loginForm.querySelector('.btn-primary');
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span>Entrando...</span>';
+
+                const generalError = document.getElementById('generalError');
+                const generalSuccess = document.getElementById('generalSuccess');
+
+                try {
+                    const formData = new FormData(loginForm);
+
+                    const response = await fetch(loginForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    let data = null;
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        // Se não veio JSON, tratamos como erro genérico
+                    }
+
+                    const payload = (data && typeof data.data === 'object') ? data.data : {};
+                    const success = data && (data.success === true || data.status === 'success');
+
+                    if (!response.ok || !success) {
+                        const message =
+                            (data && data.message) ||
+                            (response.status === 429 ?
+                                'Muitas tentativas. Aguarde um pouco e tente novamente.' :
+                                'E-mail ou senha inválidos ou erro ao processar login.');
+
+                        if (generalError) {
+                            generalError.textContent = message;
+                            generalError.classList.add('show');
+                        }
+
+                        // Exibir erros de campos, se a API mandar
+                        if (data && data.errors && typeof data.errors === 'object') {
+                            if (data.errors.email) {
+                                const msg = Array.isArray(data.errors.email) ?
+                                    data.errors.email[0] :
+                                    data.errors.email;
+                                showError('email', 'emailError', msg);
+                            }
+                            if (data.errors.password) {
+                                const msg = Array.isArray(data.errors.password) ?
+                                    data.errors.password[0] :
+                                    data.errors.password;
+                                showError('password', 'passwordError', msg);
+                            }
+                        }
+
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml;
+                        return;
+                    }
+
+                    // Sucesso
+                    if (generalSuccess) {
+                        generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
+                        generalSuccess.classList.add('show');
+                    }
+
+                    const redirectUrl = (data && data.redirect) ? data.redirect : '<?= BASE_URL ?>dashboard';
+
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 800);
+
+                } catch (error) {
+                    console.error('Erro na requisição de login:', error);
                     if (generalError) {
-                        generalError.textContent = message;
+                        generalError.textContent =
+                            'Não foi possível realizar o login. Tente novamente em instantes.';
                         generalError.classList.add('show');
                     }
-
-                    // Exibir erros de campos, se a API mandar
-                    if (data && data.errors && typeof data.errors === 'object') {
-                        if (data.errors.email) {
-                            const msg = Array.isArray(data.errors.email) ?
-                                data.errors.email[0] :
-                                data.errors.email;
-                            showError('email', 'emailError', msg);
-                        }
-                        if (data.errors.password) {
-                            const msg = Array.isArray(data.errors.password) ?
-                                data.errors.password[0] :
-                                data.errors.password;
-                            showError('password', 'passwordError', msg);
-                        }
-                    }
-
                     btn.disabled = false;
                     btn.innerHTML = originalBtnHtml;
-                    return;
                 }
-
-                // Sucesso
-                if (generalSuccess) {
-                    generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
-                    generalSuccess.classList.add('show');
-                }
-
-                const redirectUrl = (data && data.redirect) ? data.redirect : '<?= BASE_URL ?>dashboard';
-
-                setTimeout(() => {
-                    window.location.href = redirectUrl;
-                }, 800);
-
-            } catch (error) {
-                console.error('Erro na requisição de login:', error);
-                if (generalError) {
-                    generalError.textContent =
-                        'Não foi possível realizar o login. Tente novamente em instantes.';
-                    generalError.classList.add('show');
-                }
-                btn.disabled = false;
-                btn.innerHTML = originalBtnHtml;
-            }
-        });
-    }
-
-    // ======================
-    // REGISTER (VALIDA E ENVIA NORMAL)
-    // ======================
-    const registerForm = document.getElementById('registerForm');
-
-    if (registerForm) {
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            clearErrors(registerForm);
-
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('reg_email').value.trim();
-            const password = document.getElementById('reg_password').value;
-            const confirm = document.getElementById('reg_password_confirm').value;
-
-            let hasError = false;
-
-            if (!name) {
-                showError('name', 'nameError', 'Digite seu nome completo');
-                hasError = true;
-            }
-
-            if (!email) {
-                showError('reg_email', 'regEmailError', 'Digite seu e-mail');
-                hasError = true;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showError('reg_email', 'regEmailError', 'E-mail inválido');
-                hasError = true;
-            }
-
-            if (!password) {
-                showError('reg_password', 'regPasswordError', 'Digite sua senha');
-                hasError = true;
-            } else if (password.length < 8) {
-                showError('reg_password', 'regPasswordError', 'Senha deve ter no mínimo 8 caracteres');
-                hasError = true;
-            }
-
-            if (!confirm) {
-                showError('reg_password_confirm', 'regPasswordConfirmError', 'Confirme sua senha');
-                hasError = true;
-            } else if (password !== confirm) {
-                showError('reg_password_confirm', 'regPasswordConfirmError', 'As senhas não coincidem');
-                hasError = true;
-            }
-
-            if (hasError) return;
-
-            // Se passou pela validação, envia normalmente para o backend tratar
-            registerForm.submit();
-        });
-    }
-
-    // Confete de celebração (você pode usar depois no cadastro se quiser)
-    function createConfetti() {
-        const colors = ['#e67e22', '#f39c12', '#79e6a0', '#7aa7ff'];
-        for (let i = 0; i < 40; i++) {
-            const confetti = document.createElement('div');
-            confetti.style.position = 'fixed';
-            confetti.style.width = '10px';
-            confetti.style.height = '10px';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.top = '-10px';
-            confetti.style.borderRadius = '50%';
-            confetti.style.pointerEvents = 'none';
-            confetti.style.zIndex = '9999';
-            confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s ease-out forwards`;
-            document.body.appendChild(confetti);
-            setTimeout(() => confetti.remove(), 4000);
+            });
         }
-    }
 
-    const style = document.createElement('style');
-    style.textContent = `
+        // ======================
+        // REGISTER (VALIDA E ENVIA NORMAL)
+        // ======================
+        const registerForm = document.getElementById('registerForm');
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearErrors(registerForm);
+
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('reg_email').value.trim();
+                const password = document.getElementById('reg_password').value;
+                const confirm = document.getElementById('reg_password_confirm').value;
+
+                let hasError = false;
+
+                // Validações
+                if (!name) {
+                    showError('name', 'nameError', 'Digite seu nome completo');
+                    hasError = true;
+                }
+
+                if (!email) {
+                    showError('reg_email', 'regEmailError', 'Digite seu e-mail');
+                    hasError = true;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showError('reg_email', 'regEmailError', 'E-mail inválido');
+                    hasError = true;
+                }
+
+                if (!password) {
+                    showError('reg_password', 'regPasswordError', 'Digite sua senha');
+                    hasError = true;
+                } else if (password.length < 8) {
+                    showError('reg_password', 'regPasswordError', 'Senha deve ter no mínimo 8 caracteres');
+                    hasError = true;
+                }
+
+                if (!confirm) {
+                    showError('reg_password_confirm', 'regPasswordConfirmError', 'Confirme sua senha');
+                    hasError = true;
+                } else if (password !== confirm) {
+                    showError('reg_password_confirm', 'regPasswordConfirmError', 'As senhas não coincidem');
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
+                const btn = registerForm.querySelector('.btn-primary');
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span>Criando conta...</span>';
+
+                try {
+                    const formData = new FormData(registerForm);
+
+                    const response = await fetch(registerForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || data.success !== true) {
+                        throw new Error(data.message || 'Erro ao criar conta.');
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Conta criada com sucesso!',
+                        text: data.message || 'Agora você pode fazer login.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => {
+                        window.location.href = data.redirect || '<?= BASE_URL ?>login';
+                    }, 2000);
+
+                } catch (err) {
+                    const message = err.message || 'Erro ao criar conta.';
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Não foi possível criar a conta',
+                        text: message
+                    });
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                }
+
+            });
+
+        }
+
+        // Confete de celebração (você pode usar depois no cadastro se quiser)
+        function createConfetti() {
+            const colors = ['#e67e22', '#f39c12', '#79e6a0', '#7aa7ff'];
+            for (let i = 0; i < 40; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.borderRadius = '50%';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '9999';
+                confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s ease-out forwards`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
         @keyframes confettiFall {
             to {
                 transform: translateY(100vh) rotate(${Math.random() * 360}deg);
@@ -445,7 +494,7 @@ $registerErrorMessage = $registerErrorMessage ?? '';
             }
         }
     `;
-    document.head.appendChild(style);
+        document.head.appendChild(style);
     </script>
 
 </body>

@@ -102,24 +102,17 @@ class PerfilController
     public function updateTheme(): void
     {
         try {
-            error_log("🎨 [TEMA] Requisição recebida - POST: " . json_encode($_POST));
-
             $user = Auth::user();
-
             if (!$user) {
-                error_log("🎨 [TEMA] Erro: Usuário não autenticado");
                 Response::error('Não autenticado', 401);
                 return;
             }
-
-            error_log("🎨 [TEMA] Usuário autenticado: ID={$user->id}, Nome={$user->nome}");
 
             // Tentar obter theme de $_POST primeiro, depois de JSON body
             $theme = $_POST['theme'] ?? null;
 
             if ($theme === null) {
                 $rawInput = file_get_contents('php://input');
-                error_log("🎨 [TEMA] Raw input: " . $rawInput);
 
                 if ($rawInput) {
                     $jsonData = json_decode($rawInput, true);
@@ -133,7 +126,6 @@ class PerfilController
 
             // Validar tema
             if (!in_array($theme, ['light', 'dark'], true)) {
-                error_log("🎨 [TEMA] Erro: Tema inválido - {$theme}");
                 Response::error('Tema inválido. Use "light" ou "dark"', 400);
                 return;
             }
@@ -143,15 +135,12 @@ class PerfilController
             $user->theme_preference = $theme;
             $user->save();
 
-            error_log("🎨 [TEMA] Tema atualizado com sucesso: {$temaAnterior} -> {$theme}");
 
             Response::success([
                 'message' => 'Tema atualizado com sucesso',
                 'theme' => $theme,
             ]);
         } catch (Throwable $e) {
-            error_log("🎨 [TEMA] ERRO: " . $e->getMessage());
-            error_log("🎨 [TEMA] Stack: " . $e->getTraceAsString());
             Response::error(
                 'Erro ao atualizar tema',
                 500,
@@ -180,8 +169,6 @@ class PerfilController
                 'message' => 'Conta excluída com sucesso',
             ]);
         } catch (Throwable $e) {
-            error_log("🗑️ [DELETE] ERRO ao excluir conta: " . $e->getMessage());
-            error_log("🗑️ [DELETE] Stack: " . $e->getTraceAsString());
             Response::error(
                 'Erro ao excluir conta',
                 500,

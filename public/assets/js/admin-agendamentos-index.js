@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Retorna ícone de recorrência
          */
         recorrenteIcon(isRecorrente) {
-            return isRecorrente 
+            return isRecorrente
                 ? '<span class="recorrente-icon" title="Agendamento recorrente">🔁</span>'
                 : '';
         }
@@ -791,7 +791,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.dataset.id = item.id;
 
             const isRecorrente = item.recorrente === 1 || item.recorrente === true;
-            const statusDinamico = item.status_dinamico || 
+            const statusDinamico = item.status_dinamico ||
                 Format.calcularStatusDinamico(item.data_agendada, isRecorrente, status);
 
             // Adicionar classe de destaque ao card
@@ -912,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const field = el?.dataset?.field;
 
                 if (field === this.sortField) {
-                    el.textContent = this.sortDir === 'asc' ? '↑' : '↓';
+                    el.textContent = this.sortDir === 'asc' ? '?' : '?';
                 } else {
                     el.textContent = '';
                 }
@@ -958,14 +958,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const status = String(item.status || '').toLowerCase();
             const tipo = String(item.tipo || '').toLowerCase();
             const isRecorrente = item.recorrente === 1 || item.recorrente === true;
-            
+
             // Calcular status dinâmico
-            const statusDinamico = item.status_dinamico || 
+            const statusDinamico = item.status_dinamico ||
                 Format.calcularStatusDinamico(item.data_agendada, isRecorrente, status);
 
             // Classe CSS para linha baseada no status
-            const rowClass = statusDinamico === 'vencido' ? 'row-vencido' : 
-                            statusDinamico === 'hoje' ? 'row-hoje' : '';
+            const rowClass = statusDinamico === 'vencido' ? 'row-vencido' :
+                statusDinamico === 'hoje' ? 'row-hoje' : '';
 
             return `
                 <tr data-id="${item.id}" class="${rowClass}">
@@ -1037,13 +1037,13 @@ document.addEventListener('DOMContentLoaded', () => {
         async load() {
             console.log('[Agendamentos.load] CHAMADO - activeQuickFilter:', STATE.activeQuickFilter);
             console.trace('[Agendamentos.load] Stack trace:');
-            
+
             // Se há filtro rápido ativo, não recarregar (mantém filtro aplicado)
             if (STATE.activeQuickFilter) {
                 console.log('[Agendamentos.load] BLOQUEADO - filtro rápido ativo:', STATE.activeQuickFilter);
                 return;
             }
-            
+
             try {
                 const res = await fetch(`${CONFIG.BASE_URL}api/agendamentos`, {
                     credentials: 'include'
@@ -1192,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         preencherDados(agendamento) {
             const isRecorrente = agendamento.recorrente === 1 || agendamento.recorrente === true;
-            const statusDinamico = agendamento.status_dinamico || 
+            const statusDinamico = agendamento.status_dinamico ||
                 Format.calcularStatusDinamico(agendamento.data_pagamento, isRecorrente, agendamento.status);
 
             // Título e subtítulo do modal
@@ -1203,13 +1203,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Informações Principais
             this.setElementText('viewTitulo', titulo);
-            
+
             const tipoEl = document.getElementById('viewTipo');
             const tipo = agendamento.tipo === 'receita' ? 'Receita' : 'Despesa';
             tipoEl.innerHTML = `<span class="ag-tipo-badge ${agendamento.tipo}">${tipo}</span>`;
 
             this.setElementText('viewValor', Format.currency(agendamento.valor_centavos || agendamento.valor));
-            
+
             const statusEl = document.getElementById('viewStatus');
             statusEl.innerHTML = Format.statusDinamicoBadge(statusDinamico);
 
@@ -1552,7 +1552,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const confirm = await Swal.fire({
                 title: 'Executar agendamento?',
-                html: isRecorrente 
+                html: isRecorrente
                     ? '<p>✅ Um lançamento será criado.</p><p>🔁 Este agendamento é <strong>recorrente</strong> e continuará ativo na próxima data.</p>'
                     : '<p>✅ Um lançamento será criado.</p><p>❌ Este agendamento será <strong>finalizado</strong> e não aparecerá mais.</p>',
                 icon: 'question',
@@ -1581,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const mensagemSucesso = json?.data?.message || 'Agendamento executado com sucesso!';
-                
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Executado!',
@@ -1744,13 +1744,13 @@ document.addEventListener('DOMContentLoaded', () => {
         apply() {
             console.log('[Filters.apply] CHAMADO - activeQuickFilter:', STATE.activeQuickFilter);
             console.trace('[Filters.apply] Stack trace:');
-            
+
             // Se há filtro rápido ativo, não aplicar filtros normais
             if (STATE.activeQuickFilter) {
                 console.log('[Filters.apply] IGNORADO - filtro rápido ativo:', STATE.activeQuickFilter);
                 return;
             }
-            
+
             const isDesktop = Helpers.isDesktopView();
             const allData = Array.from(STATE.cache.values());
 
@@ -1789,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Limpar filtro rápido ativo
             STATE.activeQuickFilter = null;
-            
+
             // Limpar filtros rápidos
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -1803,7 +1803,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         applyQuickFilter(filterType) {
             console.log('[Quick Filter] INICIANDO aplicação do filtro:', filterType);
-            
+
             // Marcar filtro rápido ativo
             STATE.activeQuickFilter = filterType;
             console.log('[Quick Filter] activeQuickFilter definido:', filterType);
@@ -1815,7 +1815,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[Quick Filter] Total de registros:', allData.length);
             let filtered = allData;
 
-            switch(filterType) {
+            switch (filterType) {
                 case 'hoje':
                     filtered = allData.filter(item => {
                         if (!item.data_agendada) return false;
@@ -1866,11 +1866,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[Quick Filter] Renderizando dados filtrados...');
             console.log('[Quick Filter] Passando para DesktopTable:', filtered.length, 'registros');
             console.log('[Quick Filter] Passando para MobileCards:', filtered.length, 'registros');
-            
+
             // Renderizar resultados
             DesktopTable.render(filtered);
             MobileCards.setData(filtered);
-            
+
             console.log('[Quick Filter] CONCLUÍDO');
         }
     };
@@ -2087,12 +2087,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Toggle button para Recorrente
             const btnToggleRecorrente = document.getElementById('btnToggleRecorrente');
             if (btnToggleRecorrente) {
-                btnToggleRecorrente.addEventListener('click', function() {
+                btnToggleRecorrente.addEventListener('click', function () {
                     const checkbox = document.getElementById('agRecorrente');
                     if (!checkbox) return;
-                    
+
                     checkbox.checked = !checkbox.checked;
-                    
+
                     if (checkbox.checked) {
                         this.classList.add('active');
                         this.querySelector('.toggle-text').textContent = 'Sim, agendamento recorrente';
@@ -2106,16 +2106,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Toggle buttons para Notificações
             const btnToggleSistema = document.getElementById('btnToggleSistema');
             const btnToggleEmail = document.getElementById('btnToggleEmail');
-            
+
             if (btnToggleSistema) {
-                btnToggleSistema.addEventListener('click', function() {
+                btnToggleSistema.addEventListener('click', function () {
                     this.classList.toggle('active');
                     updateLembrarCheckbox();
                 });
             }
 
             if (btnToggleEmail) {
-                btnToggleEmail.addEventListener('click', function() {
+                btnToggleEmail.addEventListener('click', function () {
                     this.classList.toggle('active');
                     updateLembrarCheckbox();
                 });
@@ -2126,7 +2126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const checkbox = document.getElementById('agLembrar');
                 const sistemaActive = btnToggleSistema?.classList.contains('active');
                 const emailActive = btnToggleEmail?.classList.contains('active');
-                
+
                 if (checkbox) {
                     checkbox.checked = sistemaActive || emailActive;
                 }
@@ -2198,12 +2198,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Filtros rápidos
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const filterType = this.dataset.filter;
-                    
+
                     // Toggle active state
                     const wasActive = this.classList.contains('active');
-                    
+
                     // Remover active de todos
                     document.querySelectorAll('.quick-filter-btn').forEach(b => {
                         b.classList.remove('active');
