@@ -21,7 +21,7 @@ $registerErrorMessage = $registerErrorMessage ?? '';
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo" aria-label="Lukrato">
-                        <img src="<?= BASE_URL ?>assets/img/logo-top.png" alt="Lukrato">
+                        <img src="<?= ASSETS_URL ?>assets/img/logo-top.png" alt="Lukrato">
                     </div>
                 </div>
 
