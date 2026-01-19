@@ -44,7 +44,7 @@ Router::add('GET', '/investimentos', 'Admin\\InvestimentosController@index', ['a
 Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);
 
 // Super Admin
-Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index');
+Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth']);
 
 // Redirects legados
 Router::add('GET', '/admin', function () {

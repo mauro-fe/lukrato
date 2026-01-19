@@ -374,7 +374,13 @@ class AchievementService
 
     private function checkTotalCategories(int $userId, int $total): bool
     {
-        return Categoria::where('user_id', $userId)->count() >= $total;
+        // Não contar categorias padrão (is_auto_seed = true)
+        return Categoria::where('user_id', $userId)
+            ->where(function ($q) {
+                $q->where('is_auto_seed', false)
+                    ->orWhereNull('is_auto_seed');
+            })
+            ->count() >= $total;
     }
 
     private function checkMasterOrganization(int $userId, Usuario $user): bool
@@ -415,6 +421,15 @@ class AchievementService
     {
         $currentMonth = Carbon::now()->format('Y-m');
 
+        // Precisa ter pelo menos 3 lançamentos no mês para validar
+        $totalLancamentos = Lancamento::where('user_id', $userId)
+            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
+            ->count();
+
+        if ($totalLancamentos < 3) {
+            return false;
+        }
+
         $receitas = Lancamento::where('user_id', $userId)
             ->where('tipo', 'receita')
             ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
@@ -425,7 +440,7 @@ class AchievementService
             ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
             ->sum('valor');
 
-        return $receitas > $despesas;
+        return $receitas > 0 && $despesas > 0 && $receitas > $despesas;
     }
 
     // ===== NOVAS VERIFICAÇÕES - ECONOMIA =====
@@ -439,6 +454,13 @@ class AchievementService
         for ($i = 0; $i < 12; $i++) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
 
+            // Precisa ter pelo menos 5 lançamentos no mês para validar economia
+            $totalLancamentos = Lancamento::where('user_id', $userId)
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->count();
+
+            if ($totalLancamentos < 5) continue;
+
             $receitas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'receita')
                 ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
@@ -450,6 +472,9 @@ class AchievementService
                 ->where('tipo', 'despesa')
                 ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->sum('valor');
+
+            // Precisa ter despesas registradas para validar economia
+            if ($despesas <= 0) continue;
 
             $savings = $receitas - $despesas;
             $savingsPercentage = ($savings / $receitas) * 100;
