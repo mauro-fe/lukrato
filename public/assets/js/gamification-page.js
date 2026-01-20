@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('🎮 [GAMIFICATION PAGE] Script carregado!');
 
     // Configuração
     const BASE_URL = document.querySelector('meta[name="base-url"]')?.content || window.BASE_URL || '/';
@@ -47,7 +46,6 @@
     // Carregar todos os dados
     async function loadAllData() {
         try {
-            console.log('🎮 [PAGE] Carregando dados...');
 
             const [progressData, achievementsData, historyData, leaderboardData] = await Promise.all([
                 fetch(`${BASE_URL}api/gamification/progress`, { credentials: 'same-origin' }).then(r => r.json()),
@@ -55,8 +53,6 @@
                 fetch(`${BASE_URL}api/gamification/history?limit=20`, { credentials: 'same-origin' }).then(r => r.json()),
                 fetch(`${BASE_URL}api/gamification/leaderboard`, { credentials: 'same-origin' }).then(r => r.json())
             ]);
-
-            console.log('🎮 [PAGE] Dados recebidos:', { progressData, achievementsData, historyData, leaderboardData });
 
             updateProgressSection(progressData);
             updateAchievements(achievementsData);
@@ -130,7 +126,6 @@
 
     // Atualizar conquistas
     function updateAchievements(data) {
-        console.log('🏆 [ACHIEVEMENTS] Dados recebidos:', data);
 
         const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
 
@@ -143,8 +138,6 @@
         const stats = data.data.stats || {};
         const unlockedCount = stats.unlocked_count || achievements.filter(a => a.unlocked).length;
 
-        console.log('🏆 [ACHIEVEMENTS] Total de conquistas:', achievements.length);
-        console.log('🏆 [ACHIEVEMENTS] Desbloqueadas:', unlockedCount);
 
         // Atualizar contador no card
         if (elements.achievementsCountCard) {
@@ -161,11 +154,7 @@
             return;
         }
 
-        console.log('🏆 [RENDER] Renderizando', achievements.length, 'conquistas');
-
         const filtered = filterAchievements(achievements, currentFilter);
-
-        console.log('🏆 [RENDER] Após filtro:', filtered.length, 'conquistas');
 
         elements.achievementsGridPage.innerHTML = filtered.map(achievement => {
             const isUnlocked = achievement.unlocked;
@@ -443,7 +432,5 @@
     } else {
         loadAllData();
     }
-
-    console.log('🎮 [GAMIFICATION PAGE] Inicializado!');
 
 })();

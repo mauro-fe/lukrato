@@ -38,9 +38,14 @@
                         <i class="fas fa-building"></i>
                         Instituição Financeira
                     </label>
-                    <select id="instituicaoFinanceiraSelect" name="instituicao_financeira_id" class="form-select">
-                        <option value="">Selecione uma instituição</option>
-                    </select>
+                    <div class="input-with-action">
+                        <select id="instituicaoFinanceiraSelect" name="instituicao_financeira_id" class="form-select">
+                            <option value="">Selecione uma instituição</option>
+                        </select>
+                        <button type="button" class="btn-add-instituicao" id="btnAddInstituicao" title="Adicionar nova instituição">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                     <small class="form-help">Escolha o banco ou fintech desta conta</small>
                 </div>
 
@@ -417,6 +422,36 @@
         box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
     }
 
+    /* Input with action button */
+    .input-with-action {
+        display: flex;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .input-with-action .form-select {
+        flex: 1;
+    }
+
+    .btn-add-instituicao {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        min-width: 42px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add-instituicao:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .modal-container {
@@ -428,5 +463,132 @@
         .form-row {
             grid-template-columns: 1fr;
         }
+    }
+</style>
+
+<!-- Modal de Nova Instituição -->
+<div class="modal-overlay" id="modalNovaInstituicaoOverlay" style="z-index: 10001;">
+    <div class="modal-container" id="modalNovaInstituicao" onclick="event.stopPropagation()" style="max-width: 480px;">
+        <!-- Header -->
+        <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+            <div class="modal-header-content">
+                <div class="modal-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div>
+                    <h2 class="modal-title">Nova Instituição</h2>
+                    <p class="modal-subtitle">Adicione um banco que não está na lista</p>
+                </div>
+            </div>
+            <button class="modal-close modal-close-btn" type="button" onclick="contasManager.closeNovaInstituicaoModal()" aria-label="Fechar modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <form id="formNovaInstituicao" autocomplete="off">
+                <!-- Nome da Instituição -->
+                <div class="form-group">
+                    <label for="nomeInstituicao" class="form-label required">
+                        <i class="fas fa-building"></i>
+                        Nome da Instituição
+                    </label>
+                    <input type="text" id="nomeInstituicao" name="nome" class="form-input"
+                        placeholder="Ex: Banco XYZ, Cooperativa ABC" required maxlength="100">
+                </div>
+
+                <!-- Tipo -->
+                <div class="form-group">
+                    <label for="tipoInstituicao" class="form-label required">
+                        <i class="fas fa-tag"></i>
+                        Tipo
+                    </label>
+                    <select id="tipoInstituicao" name="tipo" class="form-select" required>
+                        <option value="banco">Banco</option>
+                        <option value="fintech">Fintech</option>
+                        <option value="carteira_digital">Carteira Digital</option>
+                        <option value="corretora">Corretora</option>
+                        <option value="cooperativa">Cooperativa de Crédito</option>
+                        <option value="outro" selected>Outro</option>
+                    </select>
+                </div>
+
+                <!-- Cor -->
+                <div class="form-group">
+                    <label for="corInstituicao" class="form-label">
+                        <i class="fas fa-palette"></i>
+                        Cor de Identificação
+                    </label>
+                    <div class="color-picker-row">
+                        <input type="color" id="corInstituicao" name="cor_primaria" class="form-color" value="#3498db">
+                        <span class="color-preview" id="colorPreview" style="background: #3498db;"></span>
+                        <span class="color-value" id="colorValue">#3498db</span>
+                    </div>
+                    <small class="form-help">Cor para identificar esta instituição</small>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="contasManager.closeNovaInstituicaoModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Adicionar Instituição
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal Nova Instituição - Estilos específicos */
+    #modalNovaInstituicaoOverlay {
+        display: none;
+    }
+
+    #modalNovaInstituicaoOverlay.active {
+        display: flex;
+    }
+
+    .color-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .form-color {
+        width: 60px;
+        height: 42px;
+        padding: 0;
+        border: 2px solid var(--glass-border);
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+    }
+
+    .form-color::-webkit-color-swatch-wrapper {
+        padding: 2px;
+    }
+
+    .form-color::-webkit-color-swatch {
+        border-radius: 6px;
+        border: none;
+    }
+
+    .color-preview {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid var(--glass-border);
+    }
+
+    .color-value {
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
     }
 </style>

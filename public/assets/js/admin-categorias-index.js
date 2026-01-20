@@ -256,11 +256,11 @@
                 btn.addEventListener('click', async (e) => {
                     const action = btn.getAttribute('data-action');
                     const id = btn.getAttribute('data-id');
-                    
+
                     if (!id) return;
-                    
+
                     btn.disabled = true;
-                    
+
                     try {
                         if (action === 'edit') {
                             await ModalManager.openEdit(id);
@@ -296,7 +296,7 @@
             ListRenderer.updateCounts(receitas, despesas);
         }
     };
-    
+
     // ==================== GERENCIAMENTO DE MODAL ====================
     const ModalManager = {
         ensure: () => {
@@ -559,7 +559,6 @@
 
     // ==================== INICIALIZAÇÃO ====================
     const init = async () => {
-        console.log('🚀 Inicializando Sistema de Categorias...');
 
         // Inicializar componentes
         ModalManager.ensure();
@@ -568,8 +567,6 @@
         // Carregar dados iniciais
         await DataManager.load();
 
-        console.log('✅ Sistema de Categorias carregado com sucesso!');
-        console.log(`📊 ${STATE.categoriaCache.size} categoria(s) carregada(s)`);
     };
 
     // Iniciar aplicação

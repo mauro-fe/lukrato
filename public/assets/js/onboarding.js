@@ -24,7 +24,6 @@ class OnboardingManager {
     setupEventListeners() {
         // Escuta eventos de mudança de dados para atualizar onboarding automaticamente
         window.addEventListener('lukrato:data-changed', () => {
-            console.log('🎯 Dados mudaram, atualizando onboarding...');
             setTimeout(() => this.checkEmptyState(), 1500);
         });
     }
@@ -111,7 +110,6 @@ class OnboardingManager {
 
         // NÃO mostrar banner se já estiver na página de destino
         if (nextStep === 'lancamento' && currentPage === 'lancamentos') {
-            console.log('🎯 Onboarding: Já está na página de lançamentos, não mostrando banner');
             return;
         }
 
@@ -124,8 +122,6 @@ class OnboardingManager {
             console.warn('🎯 Onboarding: Container não encontrado para banner');
             return;
         }
-
-        console.log('🎯 Onboarding: Mostrando banner de próximo passo:', nextStep, 'em', container.className);
 
         const progress = this.getProgress();
 
@@ -256,7 +252,6 @@ class OnboardingManager {
         // Verificar página atual - NÃO mostrar cards se já estiver em página específica
         const currentPage = this.getCurrentPage();
         if (currentPage !== 'dashboard' && currentPage !== 'other') {
-            console.log('🎯 Onboarding: Já está em página específica, não mostrando cards de boas-vindas');
             return;
         }
 
@@ -268,7 +263,6 @@ class OnboardingManager {
             return;
         }
 
-        console.log('🎯 Onboarding: Mostrando cards de boas-vindas em', container.className);
 
         // Criar cards de ação rápida
         const quickStartHTML = `

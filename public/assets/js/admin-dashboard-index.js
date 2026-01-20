@@ -914,9 +914,7 @@
         },
 
         init: async () => {
-            console.log('Inicializando Dashboard...');
             await DashboardManager.refresh();
-            console.log('Dashboard carregado com sucesso!');
         }
     };
 

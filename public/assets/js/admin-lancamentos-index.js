@@ -347,7 +347,6 @@
                     timerProgressBar: true
                 });
             } else {
-                console.log(`[${icon.toUpperCase()}] ${msg}`);
             }
         }
     };
@@ -1208,7 +1207,6 @@
 
             // Debug log
             if (isXs) {
-                console.log('Mobile mode (≤414px) - botões nos detalhes');
             }
 
             // CabeÃ§alho
@@ -1308,7 +1306,6 @@
                                <i class="fas fa-trash" style="font-size: 0.75rem; color: #e74c3c;"></i>
                            </button>`.trim();
                     }
-                    console.log('mobileActionsHtml gerado:', mobileActionsHtml ? 'SIM' : 'NÃO');
                 }
 
                 parts.push(`
@@ -1363,10 +1360,8 @@
             // Debug: verificar se os botões foram inseridos no DOM
             if (isXs) {
                 const actionsRows = document.querySelectorAll('.actions-row');
-                console.log('Linhas de ações encontradas:', actionsRows.length);
                 actionsRows.forEach((row, i) => {
                     const buttons = row.querySelectorAll('.lk-btn');
-                    console.log(`Linha ${i}: ${buttons.length} botões`);
                 });
             }
             this.updatePager(total, page, totalPages);
@@ -1831,18 +1826,14 @@
                     limit: CONFIG.DATA_LIMIT
                 });
 
-                console.log('📊 [DataManager.load] Fetched items:', items.length, items);
 
                 // Armazenar no STATE para uso do ParcelamentoGrouper
                 STATE.lancamentos = items;
 
-                console.log('🔄 [DataManager.load] Rendering table...');
                 await TableManager.renderRows(items);
 
-                console.log('📱 [DataManager.load] Setting mobile cards...');
                 MobileCards.setItems(items);
 
-                console.log('✅ [DataManager.load] Complete!');
             }, CONFIG.DEBOUNCE_DELAY);
         },
 
@@ -2288,7 +2279,6 @@
     // ============================================================================
 
     const init = async () => {
-        console.log('ðŸš€ Inicializando Sistema de lançamentos...');
 
         // Instalar sistema de agrupamento de parcelamentos
         ParcelamentoGrouper.installInterceptor();
@@ -2301,8 +2291,6 @@
         // Carregar dados iniciais
         await OptionsManager.loadFilterOptions();
         await DataManager.load();
-
-        console.log('âœ… Sistema de lançamentos carregado com sucesso!');
     };
 
     // Expor funÃ§Ãµes globais necessÃ¡rias

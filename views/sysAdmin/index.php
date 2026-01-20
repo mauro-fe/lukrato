@@ -324,8 +324,6 @@
             return;
         }
 
-        console.log('Buscando:', value);
-        // Implementar logica de busca aqui
     }
 
     function loadRecentUsers() {
@@ -473,7 +471,6 @@
     }
 
     function editUser(userId) {
-        console.log('Editando usuario:', userId);
 
         // Buscar dados do usuário
         fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`)
@@ -781,10 +778,6 @@
             });
 
             const data = await response.json();
-
-            console.log('🔍 Response status:', response.status);
-            console.log('🔍 Response ok:', response.ok);
-            console.log('🔍 Data received:', data);
 
             if (response.ok && data.success) {
                 Swal.fire({
@@ -1215,7 +1208,9 @@
             }
 
             const gatewayColors = gatewayLabels.map((label, i) => {
-                const colors = [chartColors.success, chartColors.secondary, chartColors.purple, chartColors.pink, chartColors.warning];
+                const colors = [chartColors.success, chartColors.secondary, chartColors.purple, chartColors.pink,
+                    chartColors.warning
+                ];
                 return colors[i % colors.length];
             });
 

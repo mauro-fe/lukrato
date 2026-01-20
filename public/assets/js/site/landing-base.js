@@ -392,9 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmButtonColor: '#e67e22'
       });
 
-      // Se quiser, loga o retorno bruto pra depurar
-      console.log('Contato API STATUS:', res.status);
-      console.log('Contato API BODY:', raw);
+
 
     } catch (err) {
       console.error(err);

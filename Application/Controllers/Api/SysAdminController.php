@@ -23,7 +23,7 @@ class SysAdminController extends BaseController
             $user = \Application\Lib\Auth::user();
 
             // Verificar se é SysAdmin
-            if ($user?->is_admin !== 1) {
+            if (!$user || (int)$user->is_admin !== 1) {
                 Response::error('Acesso negado. Apenas administradores podem executar esta ação.', 403);
                 return;
             }
@@ -110,7 +110,7 @@ class SysAdminController extends BaseController
             $user = \Application\Lib\Auth::user();
 
             // Verificar se é SysAdmin
-            if ($user?->is_admin !== 1) {
+            if (!$user || (int)$user->is_admin !== 1) {
                 Response::error('Acesso negado. Apenas administradores podem executar esta ação.', 403);
                 return;
             }

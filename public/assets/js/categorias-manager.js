@@ -14,7 +14,6 @@ class CategoriasManager {
      * Inicializar manager
      */
     init() {
-        console.log('🚀 Inicializando CategoriasManager...');
         this.attachEventListeners();
         this.loadCategorias();
     }
@@ -63,7 +62,6 @@ class CategoriasManager {
      */
     async loadCategorias() {
         try {
-            console.log('📡 Carregando categorias...');
 
             const baseUrl = this.getBaseUrl();
             const response = await fetch(`${baseUrl}api/categorias`);
@@ -73,10 +71,6 @@ class CategoriasManager {
             }
 
             const result = await response.json();
-            console.log('✅ Resposta da API:', result);
-            console.log('Tipo de result:', typeof result);
-            console.log('result.data:', result.data);
-            console.log('É Array?', Array.isArray(result.data));
 
             // Processar resposta
             if (result.success && result.data) {
@@ -91,8 +85,6 @@ class CategoriasManager {
                 this.categorias = [];
             }
 
-            console.log('Categorias após processamento:', this.categorias);
-            console.log(`✅ ${this.categorias.length} categorias carregadas`);
             this.renderCategorias();
 
         } catch (error) {
@@ -204,8 +196,6 @@ class CategoriasManager {
                 tipo: formData.get('tipo')
             };
 
-            console.log('Criando categoria:', data);
-
             const baseUrl = this.getBaseUrl();
             const response = await fetch(`${baseUrl}api/categorias`, {
                 method: 'POST',
@@ -222,7 +212,6 @@ class CategoriasManager {
             }
 
             const result = await response.json();
-            console.log('✅ Categoria criada:', result);
 
             this.showSuccess('Categoria criada com sucesso!');
             form.reset();
@@ -267,7 +256,6 @@ class CategoriasManager {
                 tipo: formData.get('tipo')
             };
 
-            console.log('Editando categoria:', this.categoriaEmEdicao.id, data);
 
             const baseUrl = this.getBaseUrl();
             const response = await fetch(`${baseUrl}api/categorias/${this.categoriaEmEdicao.id}`, {
@@ -285,7 +273,6 @@ class CategoriasManager {
             }
 
             const result = await response.json();
-            console.log('✅ Categoria editada:', result);
 
             this.showSuccess('Categoria atualizada com sucesso!');
 
@@ -323,7 +310,6 @@ class CategoriasManager {
         if (!confirmacao.isConfirmed) return;
 
         try {
-            console.log('Excluindo categoria:', id);
 
             const baseUrl = this.getBaseUrl();
             const response = await fetch(`${baseUrl}api/categorias/${id}`, {
@@ -339,7 +325,6 @@ class CategoriasManager {
                 throw new Error(error.message || 'Erro ao excluir categoria');
             }
 
-            console.log('✅ Categoria excluída');
 
             this.showSuccess('Categoria excluída com sucesso!');
 

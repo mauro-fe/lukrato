@@ -100,11 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar estilos inline
         applyStyles(button, styles) {
             const props = ['backgroundColor', 'backgroundImage', 'borderColor', 'color', 'boxShadow'];
-            
+
             props.forEach(prop => {
                 const cssProperty = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
                 const value = styles[prop];
-                
+
                 if (value) {
                     button.style.setProperty(cssProperty, value, 'important');
                 } else {
@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const frequenciaGroup = document.getElementById('frequenciaGroup');
             if (frequenciaGroup) frequenciaGroup.style.display = 'block';
 
-            console.log('[RecurrenceToggle] ✓ ATIVADO');
         },
 
         // Desativar (cinza)
@@ -148,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const frequenciaGroup = document.getElementById('frequenciaGroup');
             if (frequenciaGroup) frequenciaGroup.style.display = 'none';
 
-            console.log('[RecurrenceToggle] ✗ DESATIVADO');
         },
 
         // Toggle (inverter estado)
@@ -179,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         init() {
             this.clearElementsCache();
             const { button } = this.elements;
-            
+
             if (!button) {
                 console.warn('[RecurrenceToggle] Botão não encontrado');
                 return false;
@@ -188,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remover listeners antigos clonando o elemento
             const newButton = button.cloneNode(true);
             button.parentNode.replaceChild(newButton, button);
-            
+
             // Atualizar cache com novo botão E novo textSpan (que está dentro do botão clonado)
             this._elements.button = newButton;
             this._elements.textSpan = newButton.querySelector('#recorrenteText');
@@ -200,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.toggle();
             });
 
-            console.log('[RecurrenceToggle] ✓ Inicializado com sucesso');
             return true;
         },
 
@@ -844,9 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sortDir: 'desc',
 
         setData(list) {
-            console.log('[MobileCards.setData] Recebendo', list ? list.length : 0, 'registros');
-            console.log('[MobileCards.setData] Filtro ativo:', STATE.activeQuickFilter);
-            
+
             this.data = Array.isArray(list) ? [...list] : [];
             this.currentPage = 1;
             this.render();
@@ -1111,9 +1106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const DesktopTable = {
         render(data) {
-            console.log('[DesktopTable.render] Renderizando', data ? data.length : 0, 'registros');
-            console.log('[DesktopTable.render] Filtro ativo:', STATE.activeQuickFilter);
-            
+
             if (!DOM.tableBody) return;
 
             if (!data || data.length === 0) {
@@ -1222,14 +1215,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const Agendamentos = {
         async load() {
             const stack = new Error().stack;
-            console.log('[Agendamentos.load] CHAMADO - activeQuickFilter:', STATE.activeQuickFilter);
-            console.log('[Agendamentos.load] applyingQuickFilter:', STATE.applyingQuickFilter);
-            console.log('[Agendamentos.load] Stack trace:', stack);
 
             // Se há filtro rápido ativo OU está sendo aplicado, não recarregar
             if (STATE.activeQuickFilter || STATE.applyingQuickFilter) {
-                console.log('[Agendamentos.load] BLOQUEADO - filtro rápido ativo ou sendo aplicado');
-                console.log('[Agendamentos.load] Manteremos os dados filtrados atuais');
                 return;
             }
 
@@ -1560,11 +1548,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Atualizar checkboxes de notificação com valores do registro
             const checkboxSistema = document.getElementById('agCanalInapp');
             const checkboxEmail = document.getElementById('agCanalEmail');
-            
+
             // Usar valores específicos do registro, ou fallback para lembrar
             const canalInappValor = record.canal_inapp === 1 || record.canal_inapp === '1' || record.canal_inapp === true;
             const canalEmailValor = record.canal_email === 1 || record.canal_email === '1' || record.canal_email === true;
-            
+
             if (checkboxSistema) checkboxSistema.checked = canalInappValor;
             if (checkboxEmail) checkboxEmail.checked = canalEmailValor;
 
@@ -1615,19 +1603,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (descricao) payload.append('descricao', descricao);
 
             payload.append('recorrente', DOM.agRecorrente?.checked ? '1' : '0');
-            
+
             // Enviar frequência apenas se recorrente (nome do campo: recorrencia_freq)
             if (DOM.agRecorrente?.checked) {
                 const frequencia = document.getElementById('agFrequencia')?.value || 'mensal';
                 payload.append('recorrencia_freq', frequencia);
             }
-            
+
             // Campos de notificação
             const canalInapp = document.getElementById('agCanalInapp');
             const canalEmail = document.getElementById('agCanalEmail');
             payload.append('canal_inapp', canalInapp?.checked ? '1' : '0');
             payload.append('canal_email', canalEmail?.checked ? '1' : '0');
-            
+
             // Lembrar (compatível com campo antigo)
             payload.append('lembrar', (canalInapp?.checked || canalEmail?.checked) ? '1' : '0');
 
@@ -1695,14 +1683,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Tentar renovar token CSRF ANTES de criar o payload
                 try {
                     await CSRF.refresh();
-                    console.log('[Actions.save] Token CSRF renovado com sucesso');
                 } catch (csrfError) {
                     console.warn('[Actions.save] Não foi possível renovar CSRF, usando token atual:', csrfError);
                 }
-                
+
                 // Criar payload DEPOIS do refresh para garantir token atualizado
                 const payload = FormManager.getData(valorCentavos);
-                
+
                 const endpoint = isEditMode
                     ? `${CONFIG.BASE_URL}api/agendamentos/${agendamentoId}`
                     : `${CONFIG.BASE_URL}api/agendamentos`;
@@ -1935,12 +1922,9 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         apply() {
-            console.log('[Filters.apply] CHAMADO - activeQuickFilter:', STATE.activeQuickFilter);
 
             // Se há filtro rápido ativo, não aplicar filtros normais
             if (STATE.activeQuickFilter) {
-                console.log('[Filters.apply] IGNORADO - filtro rápido ativo:', STATE.activeQuickFilter);
-                console.log('[Filters.apply] Manteremos os dados do filtro rápido');
                 return;
             }
 
@@ -1995,7 +1979,6 @@ document.addEventListener('DOMContentLoaded', () => {
          * Aplicar filtro rápido
          */
         applyQuickFilter(filterType) {
-            console.log('[Quick Filter] INICIANDO aplicação do filtro:', filterType);
 
             // Marcar que estamos aplicando um filtro rápido
             STATE.applyingQuickFilter = true;
@@ -2014,7 +1997,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
 
-            console.log('[Quick Filter] Total de registros:', allData.length);
             let filtered = allData;
 
             switch (filterType) {
@@ -2064,8 +2046,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     filtered = allData;
             }
 
-            console.log('[Quick Filter] Registros após filtro:', filtered.length);
-            console.log('[Quick Filter] Renderizando dados filtrados...');
 
             // Renderizar resultados
             DesktopTable.render(filtered);
@@ -2074,8 +2054,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Liberar flag e confirmar estado
             STATE.applyingQuickFilter = false;
             STATE.activeQuickFilter = filterType;
-            
-            console.log('[Quick Filter] ✓ Filtro aplicado com sucesso:', filterType);
+
         }
     };
 
@@ -2257,10 +2236,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupModalEvents() {
-            console.log('[setupModalEvents] Configurando eventos do modal...');
-            
+
             DOM.modal?.addEventListener('shown.bs.modal', async () => {
-                console.log('[Modal Event] shown.bs.modal disparado!');
                 try {
                     // Carregar dados necessários para o formulário
                     await Promise.all([
@@ -2279,12 +2256,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Configurar botões de toggle (precisa ser feito toda vez que o modal abre)
-                    console.log('[Modal Event] Chamando setupToggleButtonsInModal...');
                     Events.setupToggleButtonsInModal();
 
                     Modal.hideError();
                 } catch (error) {
-                    console.error(error);
                     Modal.showError(error?.message || 'Não foi possível carregar os dados do formulário.');
                 }
             });
@@ -2297,20 +2272,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setupToggleButtons() {
             // Esta função é chamada na inicialização, mas os botões só existem no modal
             // Por isso, criamos setupToggleButtonsInModal() que é chamado quando o modal abre
-            console.log('[Setup] setupToggleButtons chamado na inicialização (botões podem não existir ainda)');
         },
 
         setupToggleButtonsInModal() {
-            console.log('[Modal] Configurando botões do modal via módulo RecurrenceToggle...');
-            
+
             // Usar módulo profissional centralizado
             const success = RecurrenceToggle.init();
-            
+
             if (success) {
-                console.log('[RecurrenceToggle] ✓ Módulo inicializado com sucesso');
-                console.log('[RecurrenceToggle] Debug:', RecurrenceToggle.debug());
             } else {
-                console.warn('[RecurrenceToggle] ✗ Falha na inicialização');
             }
         },
 
@@ -2382,31 +2352,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
+
                     const filterType = this.dataset.filter;
                     const isCurrentlyActive = this.classList.contains('active');
                     const isSameFilter = STATE.activeQuickFilter === filterType;
 
-                    console.log('[Event] Clique no filtro rápido:', filterType);
-                    console.log('[Event] isCurrentlyActive:', isCurrentlyActive, 'isSameFilter:', isSameFilter);
-                    console.log('[Event] STATE.activeQuickFilter atual:', STATE.activeQuickFilter);
 
                     // Se clicar no mesmo filtro que já está ativo, desativa
                     if (isSameFilter && isCurrentlyActive) {
-                        console.log('[Event] Desativando filtro');
                         this.classList.remove('active');
                         STATE.activeQuickFilter = null;
                         Agendamentos.load();
                     } else {
-                        console.log('[Event] Ativando filtro:', filterType);
                         // Remover active de todos os botões
                         document.querySelectorAll('.quick-filter-btn').forEach(b => {
                             b.classList.remove('active');
                         });
-                        
+
                         // Adicionar active ao botão clicado
                         this.classList.add('active');
-                        
+
                         // Aplicar o filtro
                         Filters.applyQuickFilter(filterType);
                     }
@@ -2427,10 +2392,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 await Selects.loadCategorias(DOM.agTipo?.value || 'despesa');
 
                 Modal.open();
-                
+
                 // Configurar botões de toggle após abrir o modal
                 setTimeout(() => {
-                    console.log('[setupAddButton] Configurando botões após abertura do modal...');
                     Events.setupToggleButtonsInModal();
                 }, 300);
             });

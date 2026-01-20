@@ -73,7 +73,6 @@
             });
 
             const url = `${BASE_URL}api/reports/card-details/${cardId}?${params}`;
-            console.log('🔍 Carregando detalhes do cartão:', url);
 
             const response = await fetch(url, {
                 credentials: 'include'
@@ -87,7 +86,6 @@
             }
 
             const responseText = await response.text();
-            console.log('📄 Response raw (primeiros 200 chars):', responseText.substring(0, 200));
 
             let data;
             try {
@@ -98,12 +96,7 @@
                 throw new Error('Resposta inválida do servidor (não é JSON)');
             }
 
-            console.log('📦 Estrutura da resposta:', {
-                hasStatus: 'status' in data,
-                statusValue: data.status,
-                hasData: 'data' in data,
-                dataKeys: data.data ? Object.keys(data.data) : null
-            });
+
 
             // Response::success retorna {status: 'success', message: '...', data: {...}}
             if (data.status !== 'success' || !data.data) {

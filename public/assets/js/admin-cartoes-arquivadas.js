@@ -245,7 +245,6 @@
 
         try {
             // Tenta excluir sem force
-            console.log('🔍 Tentando excluir cartão ID:', id);
             const res = await fetchAPI(`cartoes/${id}/delete`, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -260,20 +259,15 @@
                 })
             });
 
-            console.log('📡 Response status:', res.status);
             const data = await safeJson(res);
-            console.log('📦 Response data:', data);
 
             if (res.status === 422) {
-                console.log('⚠️ Status 422 detectado - requer confirmação');
 
                 if (data?.status === 'confirm_delete') {
-                    console.log('✅ Status confirm_delete confirmado');
                     const totalLancamentos = data?.total_lancamentos || 0;
                     const totalFaturas = data?.total_faturas || 0;
                     const totalItens = data?.total_itens || 0;
-                    console.log('📊 Lançamentos:', totalLancamentos, 'Faturas:', totalFaturas, 'Itens:',
-                        totalItens);
+
 
                     let detalhes = '';
                     let totalGeral = totalLancamentos + totalFaturas + totalItens;
@@ -291,7 +285,6 @@
                             `<p style="margin: 1rem 0; white-space: pre-line;">${data.message || 'Nenhum dado vinculado encontrado'}</p>`;
                     }
 
-                    console.log('📝 HTML detalhes:', detalhes);
 
                     const confirm = await Swal.fire({
                         title: 'Excluir cartão e TODOS os dados vinculados?',
@@ -313,11 +306,9 @@
                     });
 
                     if (!confirm.isConfirmed) {
-                        console.log('❌ Usuário cancelou a exclusão');
                         return;
                     }
 
-                    console.log('✅ Usuário confirmou - excluindo com force=true');
 
                     // Excluir com force=true
                     const delRes = await fetchAPI(`cartoes/${id}/delete`, {
@@ -335,7 +326,6 @@
                     });
 
                     const delData = await safeJson(delRes);
-                    console.log('📦 Resposta da exclusão com force:', delData);
 
                     if (!delRes.ok || !delData.success) {
                         throw new Error(delData?.message || 'Erro ao excluir');

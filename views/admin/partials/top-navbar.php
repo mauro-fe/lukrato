@@ -18,8 +18,8 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 <div class="top-navbar">
     <div class="top-navbar-container">
         <!-- Menu Button (Mobile Only) -->
-        <button id="mobileMenuBtn" class="top-navbar-menu-btn" aria-label="Abrir/fechar menu"
-            aria-expanded="false" title="Menu">
+        <button id="mobileMenuBtn" class="top-navbar-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
+            title="Menu">
             <i class="fa fa-bars" aria-hidden="true"></i>
         </button>
 
@@ -33,7 +33,8 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
             <!-- User Info -->
             <div class="user-info">
                 <span class="greeting">Olá, <strong><?= $topNavFirstName ?: 'usuário' ?></strong></span>
-                <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>" title="Gerenciar assinatura">
+                <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>"
+                    title="Gerenciar assinatura">
                     <i class="fa-solid <?= $isPro ? 'fa-crown' : 'fa-leaf' ?>"></i>
                     <?= $planLabel ?>
                 </a>
@@ -41,16 +42,15 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 
             <!-- Upgrade Button (if not pro) -->
             <?php if (!$isPro): ?>
-                <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn"
-                    title="Fazer upgrade para Pro">
+                <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn" title="Fazer upgrade para Pro">
                     <i class="fa-solid fa-crown"></i>
                     <span class="btn-text">Upgrade</span>
                 </a>
             <?php endif; ?>
 
             <!-- Theme Toggle -->
-            <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle"
-                aria-label="Alternar tema" title="Modo claro/escuro">
+            <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle" aria-label="Alternar tema"
+                title="Modo claro/escuro">
                 <i class="fa-solid fa-sun"></i>
                 <i class="fa-solid fa-moon"></i>
             </button>
@@ -118,7 +118,6 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('[Theme] Tema salvo no banco:', data);
                 } else {
                     console.warn('[Theme] Falha ao salvar tema:', response.status);
                 }

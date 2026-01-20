@@ -176,7 +176,6 @@
             subtree: true
         });
 
-        console.log('✅ Sistema moderno de contas carregado');
     })();
 </script>
 <script

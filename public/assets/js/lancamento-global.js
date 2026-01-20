@@ -34,7 +34,7 @@ const lancamentoGlobalManager = {
             // Carregar contas com saldos calculados
             const resContas = await fetch(`${this.baseUrl}api/contas?with_balances=1`);
             if (!resContas.ok) {
-                console.error('Erro ao carregar contas:', resContas.status);
+
                 this.contas = [];
             } else {
                 const dataContas = await resContas.json();
@@ -46,7 +46,6 @@ const lancamentoGlobalManager = {
                     saldo: conta.saldoAtual !== undefined ? conta.saldoAtual : (conta.saldo_inicial || 0)
                 }));
 
-                console.log('Contas carregadas:', this.contas);
             }
             this.preencherSelectContas();
 
@@ -60,8 +59,6 @@ const lancamentoGlobalManager = {
                 // Garantir que seja sempre um array
                 let categoriasData = dataCategorias.categorias || dataCategorias.data || dataCategorias;
                 this.categorias = Array.isArray(categoriasData) ? categoriasData : [];
-                console.log('Categorias carregadas:', this.categorias);
-                console.log('Tipo:', Array.isArray(this.categorias) ? 'Array' : typeof this.categorias);
             }
 
             // Carregar cartões
@@ -74,7 +71,6 @@ const lancamentoGlobalManager = {
                 // Garantir que seja sempre um array
                 let cartoesData = dataCartoes.cartoes || dataCartoes.data || dataCartoes;
                 this.cartoes = Array.isArray(cartoesData) ? cartoesData : [];
-                console.log('Cartões carregados:', this.cartoes);
             }
 
         } catch (error) {
@@ -106,7 +102,6 @@ const lancamentoGlobalManager = {
             select.appendChild(option);
         });
 
-        console.log('Select preenchido com', this.contas.length, 'contas');
     },
 
     onContaChange() {
@@ -247,21 +242,25 @@ const lancamentoGlobalManager = {
 
         // Garantir que categorias e cartões estejam carregados
         if (this.categorias.length === 0 || this.cartoes.length === 0) {
-            console.log('Recarregando categorias e cartões...');
             await this.carregarDados();
         }
 
         this.tipoAtual = tipo;
 
         // Esconder seleção de tipo
-        document.getElementById('globalTipoSection').style.display = 'none';
+        const tipoSection = document.getElementById('globalTipoSection');
+        if (tipoSection) tipoSection.style.display = 'none';
 
         // Mostrar formulário
-        document.getElementById('globalFormSection').style.display = 'block';
+        const formSection = document.getElementById('globalFormSection');
+        if (formSection) formSection.style.display = 'block';
 
         // Configurar tipo
-        document.getElementById('globalLancamentoTipo').value = tipo === 'agendamento' ? 'despesa' : tipo;
-        document.getElementById('globalLancamentoContaId').value = this.contaSelecionada.id;
+        const tipoInput = document.getElementById('globalLancamentoTipo');
+        if (tipoInput) tipoInput.value = tipo === 'agendamento' ? 'despesa' : tipo;
+
+        const contaIdInput = document.getElementById('globalLancamentoContaId');
+        if (contaIdInput) contaIdInput.value = this.contaSelecionada.id;
 
         // Configurar campos específicos por tipo
         this.configurarCamposPorTipo(tipo);
@@ -273,12 +272,11 @@ const lancamentoGlobalManager = {
             transferencia: 'Nova Transferência',
             agendamento: 'Novo Agendamento'
         };
-        document.getElementById('modalLancamentoGlobalTitulo').textContent = titulos[tipo] || 'Nova Movimentação';
+        const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
+        if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova Movimentação';
     },
 
     configurarCamposPorTipo(tipo) {
-        console.log('Configurando campos para o tipo:', tipo);
-        console.log('Categorias disponíveis:', this.categorias);
 
         // Mudar cor do header conforme o tipo
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
@@ -300,7 +298,9 @@ const lancamentoGlobalManager = {
 
         // Conta Destino (apenas transferência)
         const contaDestinoGroup = document.getElementById('globalContaDestinoGroup');
-        contaDestinoGroup.style.display = tipo === 'transferencia' ? 'block' : 'none';
+        if (contaDestinoGroup) {
+            contaDestinoGroup.style.display = tipo === 'transferencia' ? 'block' : 'none';
+        }
 
         if (tipo === 'transferencia') {
             this.preencherContasDestino();
@@ -308,7 +308,9 @@ const lancamentoGlobalManager = {
 
         // Cartão de crédito (apenas despesa/agendamento)
         const cartaoGroup = document.getElementById('globalCartaoCreditoGroup');
-        cartaoGroup.style.display = (tipo === 'despesa' || tipo === 'agendamento') ? 'block' : 'none';
+        if (cartaoGroup) {
+            cartaoGroup.style.display = (tipo === 'despesa' || tipo === 'agendamento') ? 'block' : 'none';
+        }
 
         if (tipo === 'despesa' || tipo === 'agendamento') {
             this.preencherCartoes();
@@ -316,23 +318,12 @@ const lancamentoGlobalManager = {
 
         // Categoria
         const tipoCategoriaABuscar = tipo === 'receita' ? 'receita' : 'despesa';
-        console.log('Tipo de categoria a buscar:', tipoCategoriaABuscar);
         this.preencherCategorias(tipoCategoriaABuscar);
 
-        // Pago (ocultar para agendamento)
-        const pagoGroup = document.getElementById('globalPagoGroup');
-        if (tipo === 'agendamento') {
-            pagoGroup.style.display = 'none';
-            document.getElementById('globalLancamentoPago').checked = false;
-            // Mostrar seleção de tipo de agendamento
-            const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
-            if (tipoAgGroup) tipoAgGroup.style.display = 'block';
-        } else {
-            pagoGroup.style.display = 'block';
-            document.getElementById('globalLancamentoPago').checked = true;
-            // Ocultar seleção de tipo de agendamento
-            const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
-            if (tipoAgGroup) tipoAgGroup.style.display = 'none';
+        // Mostrar/ocultar seleção de tipo de agendamento
+        const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
+        if (tipoAgGroup) {
+            tipoAgGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
         }
     },
 
@@ -393,14 +384,12 @@ const lancamentoGlobalManager = {
         }
 
         const cartoesAtivos = this.cartoes.filter(c => c.ativo);
-        console.log('Cartões ativos:', cartoesAtivos);
 
         const optionsCartoes = cartoesAtivos
             .map(cartao => `<option value="${cartao.id}">${cartao.nome_cartao || cartao.bandeira} •••• ${cartao.ultimos_digitos}</option>`)
             .join('');
 
         select.innerHTML = optionVazio + optionsCartoes;
-        console.log('Select de cartões preenchido com', cartoesAtivos.length, 'cartões');
     },
 
     preencherCategorias(tipo) {
@@ -424,7 +413,6 @@ const lancamentoGlobalManager = {
         }
 
         const categoriasFiltradas = this.categorias.filter(c => c.tipo === tipo);
-        console.log(`Preenchendo categorias do tipo "${tipo}":`, categoriasFiltradas);
 
         select.innerHTML = '<option value="">Sem categoria</option>';
 
@@ -439,13 +427,17 @@ const lancamentoGlobalManager = {
             });
         }
 
-        console.log('Select de categorias preenchido com', categoriasFiltradas.length, 'categorias');
     },
 
     voltarEscolhaTipo() {
-        document.getElementById('globalFormSection').style.display = 'none';
-        document.getElementById('globalTipoSection').style.display = 'block';
-        document.getElementById('modalLancamentoGlobalTitulo').textContent = 'Nova Movimentação';
+        const formSection = document.getElementById('globalFormSection');
+        if (formSection) formSection.style.display = 'none';
+
+        const tipoSection = document.getElementById('globalTipoSection');
+        if (tipoSection) tipoSection.style.display = 'block';
+
+        const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
+        if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
 
         // Resetar cor do header para o padrão (laranja)
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
@@ -462,12 +454,19 @@ const lancamentoGlobalManager = {
             form.reset();
         }
 
-        document.getElementById('globalLancamentoValor').value = '0,00';
+        const valorInput = document.getElementById('globalLancamentoValor');
+        if (valorInput) valorInput.value = '0,00';
+
         // Usar data local, não UTC (evita pular um dia em fusos negativos)
         const hoje = new Date();
-        document.getElementById('globalLancamentoData').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-        document.getElementById('globalParcelamentoGroup').style.display = 'none';
-        document.getElementById('globalNumeroParcelasGroup').style.display = 'none';
+        const dataInput = document.getElementById('globalLancamentoData');
+        if (dataInput) dataInput.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
+        const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
+        if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
+
+        const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
+        if (numParcelasGroup) numParcelasGroup.style.display = 'none';
 
         // Resetar tipo de agendamento
         const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
@@ -491,12 +490,9 @@ const lancamentoGlobalManager = {
 
         this.salvando = true;
 
-        console.log('🚀 Iniciando salvarLancamento');
-        console.log('📌 tipoAtual:', this.tipoAtual);
 
         try {
             const dados = this.coletarDadosFormulario();
-            console.log('📋 Dados coletados:', dados);
 
             // Desabilitar botão de submit
             const btnSalvar = document.getElementById('globalBtnSalvar');
@@ -511,7 +507,6 @@ const lancamentoGlobalManager = {
             let apiUrl = `${this.baseUrl}api/lancamentos`;
             let requestData = dados;
 
-            console.log('🔍 Verificando tipo:', this.tipoAtual);
 
             if (this.tipoAtual === 'agendamento') {
                 // Usar endpoint de agendamentos
@@ -534,7 +529,6 @@ const lancamentoGlobalManager = {
                     descricao: dados.observacao,
                     canal_inapp: true
                 };
-                console.log('✅ Enviando para API de Agendamentos:', requestData);
             } else if (this.tipoAtual === 'transferencia') {
                 apiUrl = `${this.baseUrl}api/transfers`;
                 requestData = {
@@ -547,8 +541,6 @@ const lancamentoGlobalManager = {
                 };
             }
 
-            console.log('🌐 URL da API:', apiUrl);
-            console.log('📤 Dados a enviar:', requestData);
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -559,10 +551,8 @@ const lancamentoGlobalManager = {
                 body: JSON.stringify(requestData)
             });
 
-            console.log('Response status:', response.status);
 
             const result = await response.json();
-            console.log('Response data:', result);
 
             // Verificar se foi sucesso (status 200/201 ou result.success/result.status === 'success')
             const isSuccess = response.ok && (
@@ -613,11 +603,9 @@ const lancamentoGlobalManager = {
                 // Recarregar página se estiver em página relevante
                 const currentPath = window.location.pathname.toLowerCase();
 
-                console.log('📍 Verificando reload - Path:', currentPath, 'Tipo:', tipoLancamento);
 
                 // Sempre recarregar se criou agendamento
                 if (tipoLancamento === 'agendamento') {
-                    console.log('🔄 Recarregando página após criar agendamento');
                     window.location.reload();
                     return;
                 }
@@ -695,9 +683,13 @@ const lancamentoGlobalManager = {
     },
 
     validarFormulario() {
-        const descricao = document.getElementById('globalLancamentoDescricao').value.trim();
-        const valor = this.parseMoney(document.getElementById('globalLancamentoValor').value);
-        const data = document.getElementById('globalLancamentoData').value;
+        const descricaoEl = document.getElementById('globalLancamentoDescricao');
+        const valorEl = document.getElementById('globalLancamentoValor');
+        const dataEl = document.getElementById('globalLancamentoData');
+
+        const descricao = descricaoEl ? descricaoEl.value.trim() : '';
+        const valor = valorEl ? this.parseMoney(valorEl.value) : 0;
+        const data = dataEl ? dataEl.value : '';
 
         if (!descricao) {
             Swal.fire({
@@ -756,7 +748,8 @@ const lancamentoGlobalManager = {
         }
 
         if (this.tipoAtual === 'transferencia') {
-            const contaDestino = document.getElementById('globalLancamentoContaDestino').value;
+            const contaDestinoEl = document.getElementById('globalLancamentoContaDestino');
+            const contaDestino = contaDestinoEl ? contaDestinoEl.value : null;
             if (!contaDestino) {
                 Swal.fire({
                     icon: 'warning',
@@ -786,32 +779,30 @@ const lancamentoGlobalManager = {
             valor: this.parseMoney(document.getElementById('globalLancamentoValor').value),
             data: document.getElementById('globalLancamentoData').value,
             categoria_id: document.getElementById('globalLancamentoCategoria').value || null,
-            observacao: document.getElementById('globalLancamentoObservacao').value.trim() || null,
-            pago: document.getElementById('globalLancamentoPago').checked
+            pago: true
         };
 
-        console.log('Dados base coletados:', dados);
-
         if (this.tipoAtual === 'transferencia') {
-            dados.conta_destino_id = parseInt(document.getElementById('globalLancamentoContaDestino').value);
+            const contaDestinoEl = document.getElementById('globalLancamentoContaDestino');
+            dados.conta_destino_id = contaDestinoEl ? parseInt(contaDestinoEl.value) : null;
             dados.eh_transferencia = true;
-            console.log('Transferência - conta_destino_id:', dados.conta_destino_id);
         }
 
         if (this.tipoAtual === 'despesa' || this.tipoAtual === 'agendamento') {
-            const cartaoId = document.getElementById('globalLancamentoCartaoCredito').value;
+            const cartaoEl = document.getElementById('globalLancamentoCartaoCredito');
+            const cartaoId = cartaoEl ? cartaoEl.value : null;
             if (cartaoId) {
                 dados.cartao_credito_id = parseInt(cartaoId);
-                dados.eh_parcelado = document.getElementById('globalLancamentoParcelado').checked;
+                const parceladoEl = document.getElementById('globalLancamentoParcelado');
+                dados.eh_parcelado = parceladoEl ? parceladoEl.checked : false;
 
                 if (dados.eh_parcelado) {
-                    dados.total_parcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas').value);
+                    const parcelasEl = document.getElementById('globalLancamentoTotalParcelas');
+                    dados.total_parcelas = parcelasEl ? parseInt(parcelasEl.value) : 1;
                 }
-                console.log('Cartão selecionado:', cartaoId, 'Parcelado:', dados.eh_parcelado);
             }
         }
 
-        console.log('Dados finais para enviar:', dados);
         return dados;
     },
 

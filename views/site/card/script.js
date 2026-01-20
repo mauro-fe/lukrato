@@ -1,25 +1,17 @@
 // Tracking de cliques nos links
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Rastrear cliques em links
     const trackableLinks = document.querySelectorAll('.link-card, .btn, .social-btn');
-    
+
     trackableLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             const linkType = this.classList.contains('btn') ? 'CTA Button' :
-                            this.classList.contains('social-btn') ? 'Social Link' :
-                            'Link Card';
-            const linkText = this.querySelector('h3')?.textContent || 
-                           this.getAttribute('title') || 
-                           this.textContent.trim();
-            
-            // Log para debug (pode substituir por analytics real)
-            console.log(`Click tracked: ${linkType} - ${linkText}`);
-            
-            // Se tiver Google Analytics ou similar, adicionar aqui:
-            // gtag('event', 'click', {
-            //     'event_category': linkType,
-            //     'event_label': linkText
-            // });
+                this.classList.contains('social-btn') ? 'Social Link' :
+                    'Link Card';
+            const linkText = this.querySelector('h3')?.textContent ||
+                this.getAttribute('title') ||
+                this.textContent.trim();
+
         });
     });
 
@@ -29,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         rootMargin: '0px 0px -50px 0px'
     };
 
-    const observer = new IntersectionObserver(function(entries) {
+    const observer = new IntersectionObserver(function (entries) {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.style.opacity = '1';
@@ -46,11 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Adicionar efeito de partículas no hover do botão principal (opcional)
     const primaryBtn = document.querySelector('.btn-primary');
     if (primaryBtn) {
-        primaryBtn.addEventListener('mouseenter', function() {
+        primaryBtn.addEventListener('mouseenter', function () {
             this.style.transform = 'translateY(-3px)';
         });
-        
-        primaryBtn.addEventListener('mouseleave', function() {
+
+        primaryBtn.addEventListener('mouseleave', function () {
             this.style.transform = 'translateY(0)';
         });
     }
@@ -77,9 +69,9 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: all 0.3s ease;
     `;
 
-    shareBtn.addEventListener('click', async function() {
+    shareBtn.addEventListener('click', async function () {
         const url = window.location.href;
-        
+
         if (navigator.share) {
             try {
                 await navigator.share({
@@ -88,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     url: url
                 });
             } catch (err) {
-                console.log('Compartilhamento cancelado');
             }
         } else if (navigator.clipboard) {
             try {
@@ -100,11 +91,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    shareBtn.addEventListener('mouseenter', function() {
+    shareBtn.addEventListener('mouseenter', function () {
         this.style.transform = 'scale(1.1) translateY(-4px)';
     });
 
-    shareBtn.addEventListener('mouseleave', function() {
+    shareBtn.addEventListener('mouseleave', function () {
         this.style.transform = 'scale(1) translateY(0)';
     });
 
@@ -126,9 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
             z-index: 1001;
             animation: slideInRight 0.3s ease-out;
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.animation = 'slideOutRight 0.3s ease-in';
             setTimeout(() => notification.remove(), 300);
@@ -164,11 +155,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Analytics de tempo na página
     let startTime = Date.now();
-    
-    window.addEventListener('beforeunload', function() {
+
+    window.addEventListener('beforeunload', function () {
         const timeSpent = Math.round((Date.now() - startTime) / 1000);
-        console.log(`Tempo na página: ${timeSpent} segundos`);
-        
+
         // Enviar para analytics se configurado
         // gtag('event', 'timing_complete', {
         //     'name': 'page_view',

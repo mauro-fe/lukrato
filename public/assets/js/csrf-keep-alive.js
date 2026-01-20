@@ -29,7 +29,6 @@
                         window.LK.csrfToken = data.token;
                     }
 
-                    console.log('✓ CSRF token atualizado');
                 }
             })
             .catch(err => {
@@ -40,5 +39,4 @@
     // Agendar atualização periódica
     setInterval(refreshCsrfToken, REFRESH_INTERVAL);
 
-    console.log('✓ CSRF Keep-Alive iniciado');
 })();

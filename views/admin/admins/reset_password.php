@@ -749,9 +749,7 @@
                 // Confete de sucesso
                 createConfetti();
 
-                setTimeout(() => {
-                    console.log('Redirecionar para login');
-                }, 1500);
+                setTimeout(() => {}, 1500);
             }, 1500);
         });
 

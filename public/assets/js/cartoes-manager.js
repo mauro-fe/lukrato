@@ -13,8 +13,6 @@ class CartoesManager {
         this.searchTerm = '';
         this.baseUrl = this.getBaseUrl();
 
-        console.log('🚀 CartoesManager inicializado');
-        console.log('📍 Base URL:', this.baseUrl);
 
         this.init();
     }
@@ -60,20 +58,17 @@ class CartoesManager {
             // Usar a função global LK.getBase() se disponível
             if (window.LK && typeof window.LK.getBase === 'function') {
                 const url = window.LK.getBase();
-                console.log('✅ LK.getBase() encontrado:', url);
                 return url;
             }
 
             // Fallback para meta tag
             const meta = document.querySelector('meta[name="base-url"]');
             if (meta?.content) {
-                console.log('✅ BASE_URL da meta tag:', meta.content);
                 return meta.content;
             }
 
             if (window.BASE_URL) {
                 const url = window.BASE_URL.endsWith('/') ? window.BASE_URL : window.BASE_URL + '/';
-                console.log('✅ BASE_URL encontrado:', url);
                 return url;
             }
 
@@ -84,13 +79,11 @@ class CartoesManager {
             if (publicIndex !== -1) {
                 const base = path.substring(0, publicIndex + 8);
                 const url = window.location.origin + base;
-                console.log('⚠️ BASE_URL detectado automaticamente:', url);
                 return url;
             }
 
             // Último fallback
             const url = window.location.origin + '/lukrato/public/';
-            console.log('⚠️ Usando fallback padrão:', url);
             return url;
         } catch (error) {
             console.error('❌ Erro ao obter BASE_URL:', error);
@@ -675,11 +668,9 @@ class CartoesManager {
             return;
         }
 
-        console.log('🔄 Carregando contas no select...');
 
         try {
             const url = `${this.baseUrl}api/contas?only_active=0&with_balances=1`;
-            console.log('📡 URL completa:', url);
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -690,7 +681,6 @@ class CartoesManager {
                 credentials: 'same-origin'
             });
 
-            console.log('📥 Response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -699,11 +689,7 @@ class CartoesManager {
             }
 
             const data = await response.json();
-            console.log('✅ Dados recebidos da API:', data);
-            console.log('📊 Tipo de data:', typeof data);
-            console.log('📊 É array?', Array.isArray(data));
-            console.log('📊 Keys do objeto:', Object.keys(data));
-            console.log('📊 JSON completo:', JSON.stringify(data, null, 2));
+
 
             // Tentar diferentes estruturas de resposta
             let contas = [];
@@ -715,8 +701,6 @@ class CartoesManager {
                 contas = Array.isArray(data.contas) ? data.contas : [];
             }
 
-            console.log('📊 Array de contas extraído:', contas);
-            console.log('📊 Total de contas:', contas.length);
 
             if (contas.length === 0) {
                 select.innerHTML = '<option value="">Nenhuma conta cadastrada</option>';
@@ -734,12 +718,10 @@ class CartoesManager {
                 // Tentar pegar o saldo de diferentes campos possíveis (saldoAtual é o campo retornado com with_balances=1)
                 const saldoValue = parseFloat(conta.saldoAtual || conta.saldo_atual || conta.saldo || conta.saldo_inicial || 0);
                 const saldo = this.formatMoney(saldoValue);
-                console.log(`  → Conta: ID=${conta.id}, Instituição=${nome}, Saldo=${saldo}`);
                 return `<option value="${conta.id}">${nome} - ${saldo}</option>`;
             }).join('');
 
             select.innerHTML = '<option value="">Selecione a conta</option>' + options;
-            console.log('✅ Select preenchido com', contas.length, 'conta(s)');
         } catch (error) {
             console.error('❌ Erro ao carregar contas:', error);
             console.error('Stack:', error.stack);
@@ -779,25 +761,13 @@ class CartoesManager {
             csrf_token: csrfToken
         };
 
-        console.log('💾 Salvando cartão:', data);
-        console.log('📝 Validações:', {
-            nome_cartao: data.nome_cartao,
-            conta_id: data.conta_id,
-            bandeira: data.bandeira,
-            ultimos_digitos: data.ultimos_digitos,
-            limite_total: data.limite_total,
-            limite_total_type: typeof data.limite_total,
-            limite_total_original: limiteOriginal,
-            csrf_token: csrfToken ? '✅ Presente' : '❌ Ausente'
-        });
 
         try {
             const url = isEdit
                 ? `${window.BASE_URL}api/cartoes/${cartaoId}`
                 : `${window.BASE_URL}api/cartoes`;
 
-            console.log('📡 URL:', url);
-            console.log('📤 Método:', isEdit ? 'PUT' : 'POST');
+
 
             const response = await fetch(url, {
                 method: isEdit ? 'PUT' : 'POST',
@@ -810,7 +780,6 @@ class CartoesManager {
                 body: JSON.stringify(data)
             });
 
-            console.log('📥 Response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -1119,7 +1088,6 @@ class CartoesManager {
         if (!cartao) return;
 
         // Implementar modal de detalhes (futuro)
-        console.log('Detalhes do cartão:', cartao);
     }
 
     /**
@@ -1197,13 +1165,11 @@ class CartoesManager {
             return;
         }
 
-        console.log('✅ Campo limiteTotal encontrado:', limiteInput);
 
         // Handler da máscara
         limiteInput.addEventListener('input', function (e) {
             let value = e.target.value;
 
-            console.log('🔍 Input detectado:', value);
 
             // Remove tudo que não é número
             value = value.replace(/[^\d]/g, '');
@@ -1217,11 +1183,9 @@ class CartoesManager {
                 .replace('.', ',')
                 .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-            console.log('✅ Valor formatado:', formatted);
             e.target.value = formatted;
         });
 
-        console.log('✅ Máscara de dinheiro aplicada com sucesso!');
 
         // Formata ao carregar
         limiteInput.value = '0,00';
@@ -1339,7 +1303,6 @@ class CartoesManager {
         // IMPORTANTE: Remover qualquer modal existente antes de criar um novo
         const modalExistente = document.querySelector('.modal-fatura-overlay');
         if (modalExistente) {
-            console.log('⚠️ Modal já existe, removendo...');
             modalExistente.remove();
         }
 
@@ -1384,23 +1347,10 @@ class CartoesManager {
 
         // Guard: se já foi configurado, não configurar novamente
         if (modal.dataset.parcelasConfigured === 'true') {
-            console.log('⚠️ setupParcelaSelection já foi executado para este modal, pulando...');
             return;
         }
         modal.dataset.parcelasConfigured = 'true';
 
-        console.log('🔍 setupParcelaSelection:', {
-            modal: !!modal,
-            selectAll: selectAll ? selectAll.checked : 'not found',
-            checkboxesCount: checkboxes.length,
-            totalElement: !!totalElement
-        });
-
-        // Log de TODOS os checkboxes
-        console.log('📋 TODOS os checkboxes no modal:');
-        checkboxes.forEach((cb, idx) => {
-            console.log(`  [${idx}] ID: ${cb.dataset.id}, Valor: ${cb.dataset.valor}, Checked: ${cb.checked}`);
-        });
 
         // Atualizar total quando mudar seleção
         const atualizarTotal = () => {
@@ -1418,10 +1368,7 @@ class CartoesManager {
         // Selecionar/desselecionar todos
         if (selectAll) {
             selectAll.addEventListener('change', (e) => {
-                console.log('✅ Select All clicked:', e.target.checked);
-                checkboxes.forEach(cb => {
-                    cb.checked = e.target.checked;
-                });
+
                 atualizarTotal();
             });
         }
@@ -1448,14 +1395,10 @@ class CartoesManager {
     async pagarParcelasSelecionadas(fatura) {
         const checkboxes = document.querySelectorAll('.parcela-checkbox:checked');
 
-        console.log('💰 pagarParcelasSelecionadas chamado');
-        console.log('✅ Checkboxes marcados:', checkboxes.length);
-        console.log('📋 Total de itens na fatura:', fatura.itens?.length || 0);
+
 
         // Log detalhado de cada checkbox
-        console.log('📌 Detalhes dos checkboxes marcados:');
         checkboxes.forEach((cb, index) => {
-            console.log(`  [${index}] ID: ${cb.dataset.id}, Valor: ${cb.dataset.valor}, Checked: ${cb.checked}`);
         });
 
         if (checkboxes.length === 0) {
@@ -1470,11 +1413,9 @@ class CartoesManager {
         let totalSelecionado = 0;
         checkboxes.forEach(cb => {
             const valor = parseFloat(cb.dataset.valor);
-            console.log(`📌 Somando parcela ID ${cb.dataset.id}: R$ ${valor}`);
             totalSelecionado += valor;
         });
 
-        console.log(`💵 Total selecionado: R$ ${totalSelecionado}`);
 
         const confirmado = await this.showConfirmDialog(
             'Confirmar Pagamento',
@@ -1483,7 +1424,6 @@ class CartoesManager {
 
         if (!confirmado) return;
 
-        console.log('🚀 Chamando pagarParcelasIndividuais...');
         await this.pagarParcelasIndividuais(checkboxes, fatura);
     }
 
@@ -1497,13 +1437,7 @@ class CartoesManager {
             // Obter cartao_id correto (pode estar em fatura.cartao_id ou fatura.cartao.id)
             const cartaoId = fatura.cartao_id || fatura.cartao?.id;
 
-            console.log('🎯 pagarParcelasIndividuais - Dados:', {
-                cartaoId: cartaoId,
-                faturaCompleta: fatura,
-                parcelaIds: parcelaIds,
-                mes: fatura.mes,
-                ano: fatura.ano
-            });
+
 
             if (!cartaoId) {
                 throw new Error('ID do cartão não encontrado na fatura');
@@ -1571,22 +1505,12 @@ class CartoesManager {
         // Garantir que temos o cartaoId correto
         const idCartao = cartaoId || fatura.cartao_id || fatura.cartao?.id;
 
-        console.log('🎨 criarConteudoModal chamado com:', {
-            statusPagamento,
-            statusPago: statusPagamento?.pago,
-            temStatus: !!statusPagamento,
-            cartaoId: idCartao,
-            mes: fatura.mes,
-            ano: fatura.ano
-        });
+
 
         // Se a fatura está paga, mostrar modal diferente
         if (statusPagamento && statusPagamento.pago) {
-            console.log('✅ Renderizando modal de fatura PAGA');
             return this.criarConteudoModalFaturaPaga(fatura, statusPagamento, parcelamentos, idCartao);
         }
-
-        console.log('📋 Renderizando modal de fatura PENDENTE');
 
         return `
                 <div class="modal-fatura-header">
@@ -1801,7 +1725,6 @@ class CartoesManager {
             }
 
             const resultado = await response.json();
-            console.log('✅ Fatura paga:', resultado);
 
             this.showToast('success', `Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`);
 
@@ -1843,16 +1766,13 @@ class CartoesManager {
         // Garantir que temos o cartaoId correto
         const idCartao = cartaoId || fatura.cartao_id || fatura.cartao?.id;
 
-        console.log('📋 criarConteudoModalFaturaPaga - statusPagamento:', statusPagamento);
-        console.log('📅 data_pagamento recebida:', statusPagamento?.data_pagamento);
-        console.log('🆔 cartaoId:', idCartao);
+
 
         // Usar data_pagamento do status, ou pegar da primeira parcela paga como fallback
         const dataPagamento = statusPagamento?.data_pagamento ||
             (fatura.itens || []).find(p => p.pago && p.data_pagamento)?.data_pagamento ||
             null;
 
-        console.log('📅 dataPagamento final:', dataPagamento);
 
         return `
             <div class="modal-fatura-header">
@@ -2077,7 +1997,6 @@ class CartoesManager {
      * Navegar entre meses na fatura
      */
     async navegarMes(cartaoId, mesAtual, anoAtual, direcao) {
-        console.log('🔄 navegarMes chamado:', { cartaoId, mesAtual, anoAtual, direcao });
 
         // Calcular novo mês/ano
         let novoMes = mesAtual + direcao;
@@ -2090,8 +2009,6 @@ class CartoesManager {
             novoMes = 12;
             novoAno--;
         }
-
-        console.log('📅 Navegando para:', { novoMes, novoAno, cartaoId });
 
         try {
             // Buscar fatura, parcelamentos e status do novo mês

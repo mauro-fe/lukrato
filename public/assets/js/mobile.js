@@ -5,22 +5,20 @@
    Descrição: Melhorias de UX e funcionalidades específicas para mobile
    ============================================================================ */
 
-(function() {
+(function () {
   'use strict';
 
   // ============================================================================
   // SCROLL TO TOP BUTTON
   // ============================================================================
   const initScrollToTop = () => {
-    const scrollBtn = document.getElementById('scrollToTopBtn') || 
-                      document.querySelector('.scroll-to-top, [class*="scroll-top"], [class*="back-to-top"]');
-    
+    const scrollBtn = document.getElementById('scrollToTopBtn') ||
+      document.querySelector('.scroll-to-top, [class*="scroll-top"], [class*="back-to-top"]');
+
     if (!scrollBtn) {
-      console.log('Scroll to top button not found');
       return;
     }
 
-    console.log('Scroll to top button initialized');
 
     // Mostrar/ocultar baseado no scroll
     const toggleButton = () => {
@@ -58,7 +56,7 @@
   // ============================================================================
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           window.innerWidth <= 768;
+      window.innerWidth <= 768;
   };
 
   const isTablet = () => {
@@ -106,7 +104,7 @@
       document.body.classList.add('sidebar-open-mobile');
       sidebar.setAttribute('aria-hidden', 'false');
       sidebarBackdrop.setAttribute('aria-hidden', 'false');
-      
+
       // Focar no primeiro link do menu
       setTimeout(() => {
         const firstLink = sidebar.querySelector('.nav-item');
@@ -173,7 +171,7 @@
   // ============================================================================
   const initTabelasResponsivas = () => {
     const tables = document.querySelectorAll('table:not(.table-responsive)');
-    
+
     tables.forEach(table => {
       // Envolver tabela em container responsivo se não estiver
       if (!table.parentElement.classList.contains('table-responsive')) {
@@ -199,9 +197,9 @@
             border-radius: 8px;
             margin-top: 8px;
           `;
-          
+
           wrapper.parentNode.insertBefore(indicator, wrapper.nextSibling);
-          
+
           // Remover indicador após primeiro scroll
           wrapper.addEventListener('scroll', function removeIndicator() {
             indicator.style.display = 'none';
@@ -217,7 +215,7 @@
   // ============================================================================
   const initScrollSuave = () => {
     const scrollContainers = document.querySelectorAll('.cartoes-scroll, .scroll-horizontal');
-    
+
     scrollContainers.forEach(container => {
       let isDown = false;
       let startX;
@@ -256,7 +254,7 @@
   const preventZoomOnInput = () => {
     if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
       const inputs = document.querySelectorAll('input, select, textarea');
-      
+
       inputs.forEach(input => {
         // Garantir font-size mínimo de 16px para evitar zoom
         const fontSize = window.getComputedStyle(input).fontSize;
@@ -274,7 +272,7 @@
     if (!isMobile()) return;
 
     let backToTopBtn = document.getElementById('backToTop');
-    
+
     if (!backToTopBtn) {
       backToTopBtn = document.createElement('button');
       backToTopBtn.id = 'backToTop';
@@ -358,7 +356,7 @@
     const doubleTapElements = document.querySelectorAll('[data-double-tap]');
 
     doubleTapElements.forEach(element => {
-      element.addEventListener('touchend', function(e) {
+      element.addEventListener('touchend', function (e) {
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTap;
 
@@ -366,7 +364,7 @@
           // Double tap detectado
           e.preventDefault();
           const action = this.getAttribute('data-double-tap');
-          
+
           if (action === 'edit') {
             this.click();
           }
@@ -385,7 +383,7 @@
 
     let touchStartX = 0;
     let touchEndX = 0;
-    
+
     const swipeElements = document.querySelectorAll('[data-swipe]');
 
     swipeElements.forEach(element => {
@@ -425,7 +423,7 @@
   const initLazyLoad = () => {
     if ('IntersectionObserver' in window) {
       const images = document.querySelectorAll('img[data-src]');
-      
+
       const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -455,7 +453,7 @@
     if (!isTouchDevice() || !('vibrate' in navigator)) return;
 
     const vibrationButtons = document.querySelectorAll('.btn-danger, .btn-success, [data-vibrate]');
-    
+
     vibrationButtons.forEach(button => {
       button.addEventListener('click', () => {
         vibrate([10]);
@@ -467,9 +465,9 @@
   // ORIENTAÇÃO DA TELA
   // ============================================================================
   const handleOrientationChange = () => {
-    const orientation = window.screen.orientation?.type || 
-                       (window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
-    
+    const orientation = window.screen.orientation?.type ||
+      (window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
+
     document.body.setAttribute('data-orientation', orientation);
 
     // Recarregar charts em mudança de orientação
@@ -502,24 +500,23 @@
 
     document.addEventListener('touchmove', (e) => {
       if (!pulling) return;
-      
+
       currentY = e.touches[0].pageY;
       const pullDistance = currentY - startY;
 
       if (pullDistance > 100) {
         // Threshold atingido - pode recarregar
-        console.log('Pull to refresh threshold reached');
       }
     });
 
     document.addEventListener('touchend', () => {
       const pullDistance = currentY - startY;
-      
+
       if (pulling && pullDistance > 100) {
         // Recarregar página
         window.location.reload();
       }
-      
+
       pulling = false;
       startY = 0;
       currentY = 0;
@@ -532,11 +529,8 @@
   const init = () => {
     // Executar apenas em dispositivos móveis ou touch
     if (!isMobile() && !isTouchDevice()) {
-      console.log('Desktop detected - mobile features disabled');
       return;
     }
-
-    console.log('Mobile enhancements initialized');
 
     // Inicializar todos os recursos
     initScrollToTop();
@@ -551,7 +545,7 @@
     initLazyLoad();
     initVibracao();
     handleOrientationChange();
-    
+
     // Pull to refresh é experimental - descomentar se desejar
     // initPullToRefresh();
   };

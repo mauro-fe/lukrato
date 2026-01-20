@@ -380,7 +380,6 @@ $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
     (() => {
         // Evita múltiplas instâncias
         if (window.__lkNotificationManagerInitialized) {
-            console.log('NotificationManager já inicializado, ignorando duplicação');
             return;
         }
         window.__lkNotificationManagerInitialized = true;

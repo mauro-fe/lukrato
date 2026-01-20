@@ -617,7 +617,6 @@
      */
     window.notifyPointsGained = function (points, message = 'Pontos ganhos!') {
         if (typeof Swal === 'undefined') {
-            console.log(`${message}: +${points} pontos`);
             return;
         }
 

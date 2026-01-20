@@ -35,7 +35,6 @@ class ContasManager {
                     if (metaTag) {
                         metaTag.setAttribute('content', data.token);
                     }
-                    console.log('✓ Token CSRF fresco obtido da API:', data.token.substring(0, 20) + '...');
                     return data.token;
                 }
             }
@@ -46,18 +45,15 @@ class ContasManager {
         // Fallback: tentar meta tag
         const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
         if (metaToken) {
-            console.log('✓ CSRF token obtido da meta tag:', metaToken.substring(0, 20) + '...');
             return metaToken;
         }
 
         if (window.LK?.getCSRF) {
             const token = window.LK.getCSRF();
-            console.log('✓ CSRF token obtido do LK.getCSRF:', token.substring(0, 20) + '...');
             return token;
         }
 
         if (window.CSRF) {
-            console.log('✓ CSRF token obtido do window.CSRF');
             return window.CSRF;
         }
 
@@ -69,7 +65,6 @@ class ContasManager {
         const metaTag = document.querySelector('meta[name="csrf-token"]');
         if (metaTag) {
             metaTag.setAttribute('content', newToken);
-            console.log('✓ CSRF token atualizado:', newToken.substring(0, 20) + '...');
         }
         if (window.LK) {
             window.LK.csrf = newToken;
@@ -89,8 +84,7 @@ class ContasManager {
             return;
         }
 
-        // Fallback: usar alert simples
-        console.log(`[${type.toUpperCase()}] ${message}`);
+
 
         // Criar notificação toast simples
         const toast = document.createElement('div');
@@ -163,13 +157,11 @@ class ContasManager {
 
             this.instituicoes = await response.json();
 
-            console.log('=== INSTITUIÇÕES CARREGADAS ===');
-            console.log('Total:', this.instituicoes.length);
+
             if (this.instituicoes.length > 0) {
                 const nubank = this.instituicoes.find(i => i.codigo === 'nubank');
                 if (nubank) {
-                    console.log('Nubank encontrado:', nubank);
-                    console.log('Logo URL:', nubank.logo_url);
+
                 }
             }
 
@@ -205,11 +197,8 @@ class ContasManager {
             // A resposta pode ser um array direto ou um objeto com data
             this.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
 
-            console.log('=== CONTAS CARREGADAS ===');
-            console.log('Total:', this.contas.length);
             if (this.contas.length > 0) {
-                console.log('Primeira conta:', this.contas[0]);
-                console.log('Instituição da primeira:', this.contas[0].instituicao_financeira);
+
             }
 
             this.renderContas();
@@ -269,14 +258,6 @@ class ContasManager {
         const corPrimaria = instituicao?.cor_primaria || '#667eea';
         const saldo = conta.saldo_atual || conta.saldoAtual || 0;
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
-
-        console.log('=== CRIANDO CARD ===');
-        console.log('Conta:', conta.nome);
-        console.log('ID Instituição:', conta.instituicao_financeira_id);
-        console.log('Objeto instituicao_financeira:', conta.instituicao_financeira);
-        console.log('Instituição encontrada:', instituicao);
-        console.log('Logo URL final:', logoUrl);
-        console.log('Cor:', corPrimaria);
 
         return `
             <div class="account-card" data-account-id="${conta.id}">
@@ -347,6 +328,111 @@ class ContasManager {
     }
 
     /**
+     * Abrir modal de nova instituição
+     */
+    openNovaInstituicaoModal() {
+        const overlay = document.getElementById('modalNovaInstituicaoOverlay');
+        if (overlay) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Focar no campo de nome
+            setTimeout(() => {
+                document.getElementById('nomeInstituicao')?.focus();
+            }, 100);
+        }
+    }
+
+    /**
+     * Fechar modal de nova instituição
+     */
+    closeNovaInstituicaoModal() {
+        const overlay = document.getElementById('modalNovaInstituicaoOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+
+            // Limpar formulário
+            document.getElementById('formNovaInstituicao')?.reset();
+            document.getElementById('corInstituicao').value = '#3498db';
+            this.updateColorPreview('#3498db');
+        }
+    }
+
+    /**
+     * Atualizar preview de cor
+     */
+    updateColorPreview(color) {
+        const preview = document.getElementById('colorPreview');
+        const value = document.getElementById('colorValue');
+        if (preview) preview.style.background = color;
+        if (value) value.textContent = color;
+    }
+
+    /**
+     * Criar nova instituição
+     */
+    async createInstituicao(data) {
+        try {
+            const csrfToken = await this.getCSRFToken();
+            const response = await fetch(`${this.baseUrl}/instituicoes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Erro ao criar instituição');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Erro ao criar instituição:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Handler do formulário de nova instituição
+     */
+    async handleNovaInstituicaoSubmit(form) {
+        const formData = new FormData(form);
+        const data = {
+            nome: formData.get('nome'),
+            tipo: formData.get('tipo'),
+            cor_primaria: formData.get('cor_primaria'),
+            cor_secundaria: '#FFFFFF'
+        };
+
+        try {
+            const result = await this.createInstituicao(data);
+
+            // Adicionar a nova instituição à lista
+            if (result.data) {
+                this.instituicoes.push(result.data);
+                this.renderInstituicoesSelect();
+
+                // Selecionar a nova instituição no select
+                const select = document.getElementById('instituicaoFinanceiraSelect');
+                if (select) {
+                    select.value = result.data.id;
+                }
+            }
+
+            this.closeNovaInstituicaoModal();
+            this.showToast('Instituição criada com sucesso!', 'success');
+
+        } catch (error) {
+            this.showToast(error.message, 'error');
+        }
+    }
+
+    /**
      * Agrupar instituições por tipo
      */
     groupByTipo(instituicoes) {
@@ -366,6 +452,7 @@ class ContasManager {
             'fintech': 'Fintechs',
             'carteira_digital': 'Carteiras Digitais',
             'corretora': 'Corretoras',
+            'cooperativa': 'Cooperativas de Crédito',
             'fisica': 'Dinheiro Físico',
             'outro': 'Outros'
         };
@@ -410,13 +497,8 @@ class ContasManager {
         const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
         try {
-            console.log('🚀 [' + requestId + '] INÍCIO - Criar conta', data);
 
             const csrfToken = await this.getCSRFToken();
-            console.log('🔐 [' + requestId + '] CSRF token obtido:', csrfToken.substring(0, 20) + '...');
-
-            console.log('📤 [' + requestId + '] Enviando POST para:', `${this.baseUrl}/contas`);
-
             const response = await fetch(`${this.baseUrl}/contas`, {
                 method: 'POST',
                 headers: {
@@ -426,13 +508,7 @@ class ContasManager {
                 body: JSON.stringify(data)
             });
 
-            console.log('📥 [' + requestId + '] Resposta recebida - Status:', response.status);
-            console.log('📥 [' + requestId + '] response.ok:', response.ok);
-
             const result = await response.json();
-            console.log('📋 [' + requestId + '] Resultado parseado:', result);
-            console.log('📋 [' + requestId + '] result.ok:', result.ok);
-            console.log('📋 [' + requestId + '] result.success:', result.success);
 
             if (!response.ok || (!result.ok && !result.success)) {
                 console.error('❌ [' + requestId + '] Erro na resposta - Condição falhou');
@@ -447,7 +523,6 @@ class ContasManager {
                 this.updateCSRFToken(result.csrf_token);
             }
 
-            console.log('✅ [' + requestId + '] Conta criada com sucesso!');
             this.showToast('Conta criada com sucesso!', 'success');
             this.closeModal();
             await this.loadContas();
@@ -461,7 +536,6 @@ class ContasManager {
             this.showToast(error.message, 'error');
         } finally {
             this.isSubmitting = false;
-            console.log('🏁 [' + requestId + '] FIM - isSubmitting resetado');
         }
     }
 
@@ -475,8 +549,6 @@ class ContasManager {
             return;
         }
 
-        console.log('Editando conta:', conta);
-
         // Preencher formulário de edição
         this.openModal('edit', conta);
     }
@@ -487,8 +559,6 @@ class ContasManager {
     async updateConta(contaId, data) {
         try {
             const csrfToken = await this.getCSRFToken();
-            console.log('🔐 Usando CSRF token para atualizar conta:', csrfToken.substring(0, 20) + '...');
-
             const response = await fetch(`${this.baseUrl}/contas/${contaId}`, {
                 method: 'POST',
                 headers: {
@@ -499,12 +569,8 @@ class ContasManager {
                 body: JSON.stringify(data)
             });
 
-            console.log('📡 Response status:', response.status);
-            console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-
             // Capturar o texto da resposta primeiro
             const responseText = await response.text();
-            console.log('📡 Response text:', responseText);
 
             let result;
             try {
@@ -565,7 +631,6 @@ class ContasManager {
 
         try {
             const csrfToken = await this.getCSRFToken();
-            console.log('🔐 Usando CSRF token para arquivar conta:', csrfToken.substring(0, 20) + '...');
 
             const response = await fetch(`${this.baseUrl}/contas/${contaId}/archive`, {
                 method: 'POST',
@@ -611,7 +676,6 @@ class ContasManager {
         this.showDeleteConfirmation(nomeConta, async () => {
             try {
                 const csrfToken = await this.getCSRFToken();
-                console.log('🔐 Usando CSRF token para deletar conta:', csrfToken.substring(0, 20) + '...');
 
                 const response = await fetch(`${this.baseUrl}/contas/${contaId}`, {
                     method: 'POST',
@@ -820,14 +884,12 @@ class ContasManager {
 
         // Preencher formulário se for edição
         if (mode === 'edit' && data) {
-            console.log('Preenchendo modal com:', data);
 
             document.getElementById('contaId').value = data.id;
             document.getElementById('nomeConta').value = data.nome;
 
             // Instituicao financeira - garantir que preenche corretamente
             const instituicaoId = data.instituicao_financeira_id || data.instituicao_financeira?.id || '';
-            console.log('Instituicao ID a preencher:', instituicaoId);
             document.getElementById('instituicaoFinanceiraSelect').value = instituicaoId;
 
             document.getElementById('tipoContaSelect').value = data.tipo_conta || 'conta_corrente';
@@ -940,6 +1002,36 @@ class ContasManager {
             btnReload.dataset.listenerAdded = 'true';
         }
 
+        // Formulário de nova instituição
+        const formNovaInstituicao = document.getElementById('formNovaInstituicao');
+        if (formNovaInstituicao && !formNovaInstituicao.dataset.listenerAdded) {
+            formNovaInstituicao.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleNovaInstituicaoSubmit(e.target);
+            });
+            formNovaInstituicao.dataset.listenerAdded = 'true';
+        }
+
+        // Input de cor da instituição
+        const corInstituicao = document.getElementById('corInstituicao');
+        if (corInstituicao && !corInstituicao.dataset.listenerAdded) {
+            corInstituicao.addEventListener('input', (e) => {
+                this.updateColorPreview(e.target.value);
+            });
+            corInstituicao.dataset.listenerAdded = 'true';
+        }
+
+        // Fechar modal de nova instituição ao clicar no overlay
+        const modalNovaInstituicaoOverlay = document.getElementById('modalNovaInstituicaoOverlay');
+        if (modalNovaInstituicaoOverlay && !modalNovaInstituicaoOverlay.dataset.listenerAdded) {
+            modalNovaInstituicaoOverlay.addEventListener('click', (e) => {
+                if (e.target.id === 'modalNovaInstituicaoOverlay') {
+                    this.closeNovaInstituicaoModal();
+                }
+            });
+            modalNovaInstituicaoOverlay.dataset.listenerAdded = 'true';
+        }
+
         // Botão novo cartão
         const btnNovoCartao = document.getElementById('btnNovoCartao');
         if (btnNovoCartao && !btnNovoCartao.dataset.listenerAdded) {
@@ -988,6 +1080,14 @@ class ContasManager {
             document.getElementById('moedaSelect')?.addEventListener('change', (e) => {
                 this.updateCurrencySymbol(e.target.value);
             });
+
+            // Re-adicionar listener do botão de nova instituição após clonar o form
+            const btnAddInstituicaoNew = document.getElementById('btnAddInstituicao');
+            if (btnAddInstituicaoNew) {
+                btnAddInstituicaoNew.addEventListener('click', () => {
+                    this.openNovaInstituicaoModal();
+                });
+            }
         }
 
         // Formulário de lançamento
@@ -1106,8 +1206,6 @@ class ContasManager {
             // A resposta pode vir como array direto ou dentro de result.data
             const lancamentos = Array.isArray(result) ? result : (result.data || result.lancamentos || []);
 
-            console.log('📊 Histórico carregado:', lancamentos);
-
             if (!lancamentos || lancamentos.length === 0) {
                 historicoContainer.innerHTML = `
                     <div class="lk-historico-empty">
@@ -1161,8 +1259,6 @@ class ContasManager {
      * Mostrar formulário de lançamento
      */
     mostrarFormularioLancamento(tipo) {
-        console.log('🚀 Abrindo formulário de lançamento, tipo:', tipo);
-
         // Ocultar seção de escolha
         document.getElementById('tipoSection').style.display = 'none';
 
@@ -1197,7 +1293,6 @@ class ContasManager {
         // Carregar categorias (exceto para transferência)
         const categoriaGroup = document.getElementById('categoriaGroup');
         if (tipo !== 'transferencia') {
-            console.log('📞 Chamando preencherCategorias...');
             const tipoCat = tipo === 'agendamento' ? 'despesa' : tipo;
             this.preencherCategorias(tipoCat);
             if (categoriaGroup) categoriaGroup.style.display = 'block';
@@ -1320,14 +1415,11 @@ class ContasManager {
         const select = document.getElementById('lancamentoContaDestino');
         const contaOrigemId = this.contaSelecionadaLancamento.id;
 
-        console.log('🔄 Preenchendo contas destino. Origem ID:', contaOrigemId);
-        console.log('🔄 Total de contas:', this.contas.length);
 
         select.innerHTML = '<option value="">Selecione a conta de destino</option>';
 
         let contasAdicionadas = 0;
         this.contas.forEach(conta => {
-            console.log(`  → Conta ${conta.id} (${conta.nome}): ${conta.id != contaOrigemId ? 'INCLUÍDA' : 'IGNORADA (origem)'}`);
             if (conta.id != contaOrigemId) {
                 const option = document.createElement('option');
                 option.value = conta.id;
@@ -1337,7 +1429,6 @@ class ContasManager {
             }
         });
 
-        console.log(`✅ ${contasAdicionadas} contas adicionadas ao select de destino`);
     }
 
     /**
@@ -1499,52 +1590,38 @@ class ContasManager {
             return;
         }
 
-        console.log('🔍 Preenchendo categorias para tipo:', tipo);
 
         try {
             // Se as categorias já foram carregadas, usar cache
             if (!this.categorias) {
                 const baseUrl = this.getBaseUrl();
                 const url = `${baseUrl}api/categorias`;
-                console.log('📡 Buscando categorias em:', url);
 
                 const response = await fetch(url);
-                console.log('📥 Response status:', response.status);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const result = await response.json();
-                console.log('✅ Resposta da API de categorias:', result);
-                console.log('📊 Tipo da resposta:', typeof result);
-                console.log('📊 result.success:', result.success);
-                console.log('📊 result.status:', result.status);
-                console.log('📊 result.data:', result.data);
-                console.log('📊 Array.isArray(result):', Array.isArray(result));
+
 
                 // A resposta vem como { status: 'success', data: [...] }
                 if (result.status === 'success' && result.data) {
-                    console.log('✓ Usando result.data');
                     this.categorias = result.data;
                 } else if (result.success && result.data) {
-                    console.log('✓ Usando result.data (success)');
                     this.categorias = result.data;
                 } else if (Array.isArray(result)) {
-                    console.log('✓ result é array direto');
                     this.categorias = result;
                 } else if (result.categorias) {
-                    console.log('✓ Usando result.categorias');
                     this.categorias = result.categorias;
                 } else {
                     console.warn('⚠️ Formato de resposta inesperado:', result);
                     this.categorias = [];
                 }
 
-                console.log('📦 Categorias salvas no cache:', this.categorias);
             }
 
-            console.log('📦 Total de categorias no cache:', this.categorias?.length || 0);
 
             if (!this.categorias || this.categorias.length === 0) {
                 console.warn('⚠️ Nenhuma categoria disponível');
@@ -1559,8 +1636,6 @@ class ContasManager {
                 return true; // transferência pode usar qualquer
             });
 
-            console.log(`✅ ${categoriasFiltradas.length} categorias filtradas para ${tipo}:`, categoriasFiltradas);
-
             // Preencher select
             select.innerHTML = '<option value="">Selecione a categoria (opcional)</option>';
 
@@ -1570,8 +1645,6 @@ class ContasManager {
                 option.textContent = cat.nome;
                 select.appendChild(option);
             });
-
-            console.log('✅ Select preenchido com', categoriasFiltradas.length, 'opções');
 
         } catch (error) {
             console.error('❌ Erro ao carregar categorias:', error);
@@ -1673,7 +1746,6 @@ class ContasManager {
      */
     async handleLancamentoSubmit(form) {
         if (this.isSubmitting) {
-            console.log('⚠️ Submissão já em andamento, ignorando...');
             return;
         }
 
@@ -1694,13 +1766,7 @@ class ContasManager {
             const valorFormatado = formData.get('valor');
             const contaDestinoId = formData.get('conta_destino_id');
 
-            console.log('📋 Dados do formulário:', { tipo, contaId, contaDestinoId, valorFormatado });
-            console.log('📋 Tipos:', {
-                contaId: `${typeof contaId} = "${contaId}"`,
-                contaDestinoId: `${typeof contaDestinoId} = "${contaDestinoId}"`,
-                saoIguais: contaId === contaDestinoId,
-                saoIguaisString: String(contaId) === String(contaDestinoId)
-            });
+
 
             // Validações
             if (tipo === 'transferencia' && !contaDestinoId) {
@@ -1804,9 +1870,6 @@ class ContasManager {
             }
             // Se tem CARTÃO, sempre usar endpoint de lancamentos (ele detecta o cartao_credito_id)
             // Isso vale para cartão à vista ou parcelado
-
-            console.log('Enviando lançamento:', requestData);
-
             // Enviar para API
             const csrfToken = await this.getCSRFToken();
             const response = await fetch(apiUrl, {
@@ -1824,7 +1887,6 @@ class ContasManager {
             }
 
             const result = await response.json();
-            console.log('✅ Lançamento criado:', result);
 
             // Fechar modal primeiro
             this.closeLancamentoModal();
@@ -1852,11 +1914,9 @@ class ContasManager {
             if (result.data?.gamification?.points) {
                 const gamif = result.data.gamification.points;
                 if (gamif.points_gained > 0) {
-                    console.log(`🎮 +${gamif.points_gained} pontos! Total: ${gamif.total_points} pts (Nível ${gamif.level})`);
                 }
                 if (gamif.new_achievements && gamif.new_achievements.length > 0) {
                     gamif.new_achievements.forEach(ach => {
-                        console.log(`🏆 Nova conquista desbloqueada: ${ach.name} (+${ach.points_reward} pts)`);
 
                         // Exibir modal grande de conquista desbloqueada
                         if (typeof window.notifyAchievementUnlocked === 'function') {
@@ -1883,10 +1943,8 @@ class ContasManager {
 
             // Atualizar dashboard se estiver disponível
             if (typeof window.refreshDashboard === 'function') {
-                console.log('🔄 Atualizando dashboard...');
                 window.refreshDashboard();
             } else if (window.LK?.refreshDashboard) {
-                console.log('🔄 Atualizando dashboard (LK)...');
                 window.LK.refreshDashboard();
             }
 
@@ -1941,7 +1999,6 @@ class ContasManager {
      */
     async handleFormSubmit(form) {
         if (this.isSubmitting) {
-            console.log('⚠️ Submissão já em andamento, ignorando...');
             return;
         }
 
@@ -1961,13 +2018,6 @@ class ContasManager {
             const saldoFormatado = formData.get('saldo_inicial');
             const instituicaoId = formData.get('instituicao_financeira_id');
 
-            console.log('Form data:', {
-                nome: formData.get('nome'),
-                instituicao_raw: instituicaoId,
-                tipo_conta: formData.get('tipo_conta'),
-                moeda: formData.get('moeda'),
-                saldo_formatado: saldoFormatado
-            });
 
             const data = {
                 nome: formData.get('nome'),
@@ -1977,8 +2027,7 @@ class ContasManager {
                 saldo_inicial: this.parseMoneyInput(saldoFormatado)
             };
 
-            console.log('Dados a enviar:', data);
-            console.log('Instituição ID (tipo):', typeof data.instituicao_financeira_id, data.instituicao_financeira_id);
+
 
             if (contaId) {
                 await this.updateConta(parseInt(contaId), data);
@@ -2264,8 +2313,6 @@ class ContasManager {
             dia_vencimento: parseInt(document.getElementById('diaVencimento').value) || null,
         };
 
-        console.log('📤 Enviando cartão:', formData);
-
         try {
             const csrfToken = await this.getCSRFToken();
             const url = isEdit
@@ -2318,7 +2365,6 @@ if (!window.__CONTAS_MANAGER_INITIALIZED__) {
             console.warn('⚠️ Removendo instância anterior do ContasManager');
         }
 
-        console.log('🚀 Inicializando ContasManager v2.0');
         contasManager = new ContasManager();
         window.contasManager = contasManager; // Expor globalmente para debug
     });

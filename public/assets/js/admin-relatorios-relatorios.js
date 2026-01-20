@@ -1466,8 +1466,6 @@
     // ============================================================================
 
     async function initialize() {
-        console.log('ðŸš€ Inicializando Sistema de RelatÃ³rios...');
-        console.log('Base URL:', CONFIG.BASE_URL);
 
         setupChartDefaults();
 
@@ -1521,7 +1519,6 @@
         updateControls();
         renderReport();
 
-        console.log('âœ… Sistema de RelatÃ³rios carregado com sucesso!');
     }
 
     // Iniciar

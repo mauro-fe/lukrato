@@ -60,7 +60,6 @@
             });
 
             const url = `${BASE_URL}api/reports/card-details/${cardId}?${params}`;
-            console.log('🔍 Carregando detalhes do cartão:', url);
 
             const response = await fetch(url, {
                 credentials: 'include'
@@ -73,7 +72,7 @@
 
             const responseText = await response.text();
             let data;
-            
+
             try {
                 data = JSON.parse(responseText);
             } catch (e) {

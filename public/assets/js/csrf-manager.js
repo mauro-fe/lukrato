@@ -93,8 +93,6 @@
         if (window.LK) {
             window.LK.csrfToken = token;
         }
-
-        console.log('[CSRF] Token atualizado. TTL:', ttl || 'desconhecido');
     }
 
     /**
@@ -102,7 +100,6 @@
      */
     async function refreshToken() {
         if (refreshInProgress) {
-            console.log('[CSRF] Refresh já em andamento, aguardando...');
             return csrfToken;
         }
 
@@ -130,7 +127,6 @@
 
             if (data?.token) {
                 applyToken(data.token, data.ttl);
-                console.log('[CSRF] Token renovado com sucesso');
                 return data.token;
             }
 
@@ -151,7 +147,6 @@
         const estimatedRemaining = Math.max(0, csrfTtl - elapsed);
 
         if (estimatedRemaining < CONFIG.PROACTIVE_REFRESH_THRESHOLD) {
-            console.log('[CSRF] TTL baixo detectado, renovando proativamente...');
             refreshToken().catch(() => {
                 console.warn('[CSRF] Falha na renovação proativa');
             });
@@ -235,10 +230,8 @@
 
             try {
                 await refreshToken();
-                console.log('[CSRF] Tentando novamente a requisição...');
                 return fetchWithCsrf(url, options, false);
             } catch (refreshErr) {
-                console.error('[CSRF] Falha ao renovar token:', refreshErr);
                 // Retorna a resposta original do erro
             }
         }

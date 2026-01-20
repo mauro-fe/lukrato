@@ -292,4 +292,97 @@ class ContasController
             Response::json(['error' => 'Erro ao carregar instituições: ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * POST /api/instituicoes
+     * Criar nova instituição financeira personalizada
+     */
+    public function createInstituicao(): void
+    {
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+
+            // Validações
+            if (empty($data['nome'])) {
+                Response::json(['error' => 'Nome da instituição é obrigatório'], 400);
+                return;
+            }
+
+            $nome = trim($data['nome']);
+            $tipo = $data['tipo'] ?? 'outro';
+            $corPrimaria = $data['cor_primaria'] ?? '#757575';
+            $corSecundaria = $data['cor_secundaria'] ?? '#FFFFFF';
+
+            // Gerar código único baseado no nome
+            $codigo = $this->generateUniqueCode($nome);
+
+            // Verificar se já existe com o mesmo nome
+            $exists = InstituicaoFinanceira::where('nome', $nome)->exists();
+            if ($exists) {
+                Response::json(['error' => 'Já existe uma instituição com este nome'], 400);
+                return;
+            }
+
+            // Criar a instituição
+            $instituicao = InstituicaoFinanceira::create([
+                'nome' => $nome,
+                'codigo' => $codigo,
+                'tipo' => $tipo,
+                'cor_primaria' => $corPrimaria,
+                'cor_secundaria' => $corSecundaria,
+                'logo_path' => '/assets/img/banks/outro.svg', // Logo padrão
+                'ativo' => true,
+            ]);
+
+            Response::json([
+                'success' => true,
+                'message' => 'Instituição criada com sucesso!',
+                'data' => [
+                    'id' => $instituicao->id,
+                    'nome' => $instituicao->nome,
+                    'codigo' => $instituicao->codigo,
+                    'tipo' => $instituicao->tipo,
+                    'cor_primaria' => $instituicao->cor_primaria,
+                    'cor_secundaria' => $instituicao->cor_secundaria,
+                    'logo_url' => $instituicao->logo_url,
+                ]
+            ], 201);
+        } catch (\Throwable $e) {
+            LogService::error('Erro ao criar instituição', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            Response::json(['error' => 'Erro ao criar instituição: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Gerar código único para instituição
+     */
+    private function generateUniqueCode(string $nome): string
+    {
+        // Converter para minúsculas e remover acentos
+        $codigo = strtolower(trim($nome));
+        $codigo = preg_replace('/[áàãâä]/u', 'a', $codigo);
+        $codigo = preg_replace('/[éèêë]/u', 'e', $codigo);
+        $codigo = preg_replace('/[íìîï]/u', 'i', $codigo);
+        $codigo = preg_replace('/[óòõôö]/u', 'o', $codigo);
+        $codigo = preg_replace('/[úùûü]/u', 'u', $codigo);
+        $codigo = preg_replace('/[ç]/u', 'c', $codigo);
+        // Remover caracteres especiais e substituir espaços por underscore
+        $codigo = preg_replace('/[^a-z0-9]/', '_', $codigo);
+        $codigo = preg_replace('/_+/', '_', $codigo);
+        $codigo = trim($codigo, '_');
+
+        // Se já existe, adicionar sufixo numérico
+        $baseCode = $codigo;
+        $counter = 1;
+        while (InstituicaoFinanceira::where('codigo', $codigo)->exists()) {
+            $codigo = $baseCode . '_' . $counter;
+            $counter++;
+        }
+
+        return $codigo;
+    }
 }

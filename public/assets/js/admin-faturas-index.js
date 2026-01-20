@@ -196,7 +196,6 @@
             };
 
             const url = Utils.buildUrl(CONFIG.ENDPOINTS.parcelamentos, params);
-            console.log('🌐 API Request URL:', url, 'Params:', params);
             return await Utils.apiRequest(url);
         },
 
@@ -1085,7 +1084,6 @@
                 await this.carregarParcelamentos();
                 this.attachEventListeners();
 
-                console.log('✅ Sistema de Parcelamentos inicializado com sucesso');
             } catch (error) {
                 console.error('❌ Erro ao inicializar:', error);
                 Swal.fire({
@@ -1157,7 +1155,6 @@
                 // API de cartões retorna array diretamente, não { data: [...] }
                 STATE.cartoes = Array.isArray(response) ? response : (response.data || []);
 
-                console.log('🃏 Cartões carregados:', STATE.cartoes.length, STATE.cartoes);
 
                 // Preencher o select de cartões
                 this.preencherSelectCartoes();
@@ -1200,7 +1197,6 @@
                 DOM.filtroCartao.appendChild(option);
             });
 
-            console.log('📝 Select de cartões preenchido com', STATE.cartoes.length, 'opções');
         },
 
         preencherSelectAnos(anosDisponiveis = []) {
@@ -1237,7 +1233,6 @@
             // Sincronizar filtros da URL
             this.sincronizarFiltrosComSelects();
 
-            console.log('📅 Select de anos preenchido com', anosDisponiveis.length || 1, 'opções:', anosDisponiveis);
         },
 
         extrairAnosDisponiveis(faturas) {
@@ -1265,7 +1260,6 @@
             UI.showLoading();
 
             try {
-                console.log('📊 Filtros aplicados:', STATE.filtros);
 
                 const response = await API.listarParcelamentos({
                     status: STATE.filtros.status || '',
@@ -1287,7 +1281,6 @@
 
                 UI.renderParcelamentos(parcelamentos);
 
-                console.log('📊 Parcelamentos carregados:', parcelamentos.length);
             } catch (error) {
                 console.error('❌ Erro ao carregar parcelamentos:', error);
                 UI.showEmpty();
@@ -1379,7 +1372,6 @@
             STATE.filtros.ano = DOM.filtroAno?.value || '';
             STATE.filtros.mes = DOM.filtroMes?.value || '';
 
-            console.log('🔍 Filtros aplicados:', STATE.filtros);
 
             this.atualizarBadgesFiltros();
             this.carregarParcelamentos();

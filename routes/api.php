@@ -95,6 +95,7 @@ Router::add('POST', '/api/accounts/unarchive', 'Api\\ContasController@unarchive'
 
 // Rotas em português (compatibilidade com frontend)
 Router::add('GET',    '/api/instituicoes',             'Api\\ContasController@instituicoes', ['auth']);
+Router::add('POST',   '/api/instituicoes',             'Api\\ContasController@createInstituicao', ['auth', 'csrf']);
 Router::add('GET',    '/api/contas/instituicoes',      'Api\\ContasController@instituicoes', ['auth']);
 Router::add('GET',    '/api/contas',                   'Api\\ContasController@index',        ['auth']);
 Router::add('POST',   '/api/contas',                   'Api\\ContasController@store',        ['auth', 'csrf']);

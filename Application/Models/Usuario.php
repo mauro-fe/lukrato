@@ -47,7 +47,10 @@ class Usuario extends Model
     ];
 
     protected $hidden = ['senha', 'password'];
-    protected $casts = ['data_nascimento' => 'date:Y-m-d'];
+    protected $casts = [
+        'data_nascimento' => 'date:Y-m-d',
+        'is_admin' => 'integer',
+    ];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito'];
 
     use SoftDeletes;

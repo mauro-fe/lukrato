@@ -79,8 +79,6 @@
             return;
         }
 
-        console.log('Botão scroll to top inicializado');
-
         const toggleScrollButton = () => {
             if (window.scrollY > 300) {
                 scrollBtn.classList.add('show');
@@ -91,7 +89,6 @@
 
         scrollBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Clicou no botão scroll to top');
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'

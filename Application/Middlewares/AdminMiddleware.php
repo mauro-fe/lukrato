@@ -8,7 +8,7 @@ class AdminMiddleware
     {
         $user = $_SESSION['user'] ?? null;
 
-        if (!$user || $user->is_admin !== 1) {
+        if (!$user || (int)$user->is_admin !== 1) {
             header('Location: /login?error=unauthorized');
             exit;
         }
