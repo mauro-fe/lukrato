@@ -323,11 +323,11 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             </a>
 
             <!-- Agendamentos -->
-            <!-- <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
+            <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
                 <?= $aria('agendamentos') ?> title="Agendamentos">
                 <i class="fas fa-clock"></i>
                 <span>Agendados</span>
-            </a> -->
+            </a>
 
             <!-- Gamificação -->
             <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"

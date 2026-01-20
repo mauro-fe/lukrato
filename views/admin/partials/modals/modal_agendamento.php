@@ -1,25 +1,39 @@
 <style>
+    /* =============================================================================
+       MODAL MODERNO - AGENDAMENTOS
+       ============================================================================= */
+
+    /* SweetAlert na frente do modal */
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+
     /* Modal Backdrop com Blur Premium */
     .modal-backdrop.show {
         backdrop-filter: blur(12px) saturate(180%);
         background: rgba(0, 0, 0, 0.5);
     }
 
-
-    /* Modal Content - Design Moderno */
-    #modalAgendamento .modal-content {
-        background: var(--color-surface) !important;
-        color: var(--color-text);
+    /* Modal Container */
+    #modalAgendamento.modern-modal .modal-content {
+        border: none;
         border-radius: var(--radius-xl);
-        border: 1px solid var(--glass-border);
+        background: var(--color-surface);
         box-shadow: var(--shadow-xl), 0 0 0 1px rgba(230, 126, 34, 0.1);
         overflow: hidden;
-        position: relative;
-        font-family: var(--font-primary);
     }
 
-    /* Barra decorativa superior com gradiente */
-    #modalAgendamento .modal-content::before {
+    /* Modal Header */
+    #modalAgendamento .modern-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+        color: white;
+        padding: var(--spacing-6);
+        border-bottom: none;
+        position: relative;
+    }
+
+    /* Barra decorativa superior */
+    #modalAgendamento .modern-header::before {
         content: '';
         position: absolute;
         top: 0;
@@ -28,109 +42,64 @@
         height: 3px;
         background: linear-gradient(90deg,
                 transparent,
-                var(--color-primary) 30%,
-                var(--color-primary) 70%,
+                rgba(255, 255, 255, 0.5) 30%,
+                rgba(255, 255, 255, 0.5) 70%,
                 transparent);
-        opacity: 0.8;
-        animation: shimmer 3s ease-in-out infinite;
+        opacity: 0.6;
     }
 
-    @keyframes shimmer {
-
-        0%,
-        100% {
-            opacity: 0.6;
-        }
-
-        50% {
-            opacity: 1;
-        }
-    }
-
-    /* Header Premium */
-    #modalAgendamento .modal-header {
-        border: 0;
-        background: transparent;
-        padding: var(--spacing-6) var(--spacing-6) var(--spacing-4);
-        position: relative;
-    }
-
-    #modalAgendamento .modal-title {
-        font-size: var(--font-size-xl);
-        font-weight: 700;
-        color: var(--color-primary);
-        letter-spacing: -0.02em;
+    #modalAgendamento .modal-title-wrapper {
         display: flex;
         align-items: center;
         gap: var(--spacing-3);
     }
 
-    #modalAgendamento .modal-title::before {
-        content: '📅';
-        font-size: var(--font-size-2xl);
-        animation: pulse 2s ease-in-out infinite;
+    #modalAgendamento .modal-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        backdrop-filter: blur(10px);
     }
 
-    @keyframes pulse {
-
-        0%,
-        100% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.1);
-        }
+    #modalAgendamento .modern-header .modal-title {
+        color: white;
+        font-size: var(--font-size-xl);
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.02em;
     }
 
-    /* Botão Close Moderno */
-    #modalAgendamento .btn-close {
+    #modalAgendamento .modal-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: var(--font-size-sm);
+        margin: 0;
+        margin-top: 4px;
+    }
 
-        background-image: none;
+    #modalAgendamento .modern-header .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+        transition: var(--transition-normal);
         border-radius: 50%;
         width: 36px;
         height: 36px;
-        opacity: 0.8;
-        transition: var(--transition-normal);
-        position: relative;
-        border: 1px solid transparent;
     }
 
-    #modalAgendamento .btn-close::before,
-    #modalAgendamento .btn-close::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 14px;
-        height: 2px;
-        background: var(--color-text);
-        transform-origin: center;
-        transition: inherit;
-    }
-
-    #modalAgendamento .btn-close::before {
-        transform: translate(-50%, -50%) rotate(45deg);
-    }
-
-    #modalAgendamento .btn-close::after {
-        transform: translate(-50%, -50%) rotate(-45deg);
-    }
-
-    #modalAgendamento .btn-close:hover {
+    #modalAgendamento .modern-header .btn-close:hover {
         opacity: 1;
-        background: var(--color-danger);
         transform: rotate(90deg) scale(1.1);
+        background: rgba(255, 255, 255, 0.2);
     }
 
-    #modalAgendamento .btn-close:hover::before,
-    #modalAgendamento .btn-close:hover::after {
-        background: #fff;
-    }
-
-    /* Body */
-    #modalAgendamento .modal-body {
-        padding: 0 var(--spacing-6) var(--spacing-5);
+    /* Modal Body */
+    #modalAgendamento .modern-body {
+        padding: var(--spacing-6);
+        background: var(--color-surface);
     }
 
     /* Alert Moderno */
@@ -142,6 +111,7 @@
         padding: var(--spacing-3) var(--spacing-4);
         font-size: var(--font-size-sm);
         animation: slideDown 0.3s ease;
+        margin-bottom: var(--spacing-4);
     }
 
     @keyframes slideDown {
@@ -156,38 +126,58 @@
         }
     }
 
-    /* Labels Modernos */
+    /* Form Groups */
+    #modalAgendamento .form-group {
+        margin-bottom: var(--spacing-4);
+    }
+
     #modalAgendamento .form-label {
-        color: var(--color-text);
-        font-size: var(--font-size-sm);
-        font-weight: 600;
-        margin-bottom: var(--spacing-2);
         display: flex;
         align-items: center;
         gap: var(--spacing-2);
+        font-weight: 600;
+        color: var(--color-text);
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-2);
         letter-spacing: 0.01em;
     }
 
-    /* Inputs e Selects Premium */
-    #modalAgendamento .form-control,
-    #modalAgendamento .form-select {
-        background: var(--color-surface-muted);
-        color: var(--color-text);
+    #modalAgendamento .form-label i {
+        color: var(--color-primary);
+        font-size: 1rem;
+    }
+
+    #modalAgendamento .optional-badge {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        font-weight: normal;
+        margin-left: auto;
+    }
+
+    /* Form Controls */
+    #modalAgendamento .modern-body input.form-control,
+    #modalAgendamento .modern-body select.form-control,
+    #modalAgendamento .modern-body textarea.form-control {
+        width: 100%;
+        padding: var(--spacing-3) var(--spacing-4);
         border: 1px solid var(--glass-border);
         border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
+        color: var(--color-text);
         font-size: var(--font-size-sm);
-        padding: var(--spacing-3) var(--spacing-4);
         transition: var(--transition-normal);
         font-family: var(--font-primary);
     }
 
-    #modalAgendamento .form-control::placeholder {
+    #modalAgendamento .modern-body input.form-control::placeholder,
+    #modalAgendamento .modern-body textarea.form-control::placeholder {
         color: var(--color-text-muted);
         opacity: 0.6;
     }
 
-    #modalAgendamento .form-control:focus,
-    #modalAgendamento .form-select:focus {
+    #modalAgendamento .modern-body input.form-control:focus,
+    #modalAgendamento .modern-body select.form-control:focus,
+    #modalAgendamento .modern-body textarea.form-control:focus {
         outline: none;
         border-color: var(--color-primary);
         box-shadow: 0 0 0 4px var(--ring);
@@ -195,56 +185,102 @@
         transform: translateY(-1px);
     }
 
-    #modalAgendamento .form-control:hover:not(:focus),
-    #modalAgendamento .form-select:hover:not(:focus) {
+    #modalAgendamento .modern-body input.form-control:hover:not(:focus),
+    #modalAgendamento .modern-body select.form-control:hover:not(:focus) {
         border-color: rgba(230, 126, 34, 0.4);
     }
 
-    /* Select customizado */
-    #modalAgendamento .form-select {
-        cursor: pointer;
+    #modalAgendamento .modern-body textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
 
+    /* Select customizado */
+    #modalAgendamento .modern-body select.form-control {
+        cursor: pointer;
         background-position: right var(--spacing-3) center;
         background-size: 16px;
         padding-right: var(--spacing-6);
     }
 
-    /* Botão Toggle Recorrência Premium */
-    #modalAgendamento #agRecorrenteToggle {
-        background: var(--glass-bg);
-        border: 2px solid var(--glass-border);
-        color: var(--color-text);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-3) var(--spacing-4);
-        font-weight: 600;
-        font-size: var(--font-size-sm);
-        transition: var(--transition-normal);
+    /* Form Rows */
+    #modalAgendamento .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-4);
+        margin-bottom: var(--spacing-4);
+    }
+
+    @media (max-width: 768px) {
+        #modalAgendamento .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Toggle Button Modern */
+    #modalAgendamento .toggle-btn-modern {
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
         overflow: hidden;
     }
 
-    #modalAgendamento #agRecorrenteToggle::before {
-        content: '🔄';
-        margin-right: var(--spacing-2);
-        font-size: var(--font-size-base);
-    }
-
-    #modalAgendamento #agRecorrenteToggle:hover {
-        background: var(--color-surface-muted);
-        border-color: var(--color-primary);
+    #modalAgendamento .toggle-btn-modern:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: #e67e22 !important;
         transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    #modalAgendamento #agRecorrenteToggle[data-recorrente="1"] {
-        background: linear-gradient(135deg, var(--color-primary), #d35400);
-        border-color: var(--color-primary);
-        color: var(--branco);
+    #modalAgendamento button.toggle-btn-modern.active,
+    #modalAgendamento .toggle-btn-modern.active,
+    #modalAgendamento .toggle-btn-modern[data-active="true"] {
+        background: linear-gradient(135deg, #e67e22, #d35400) !important;
+        border-color: #e67e22 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4) !important;
+    }
+
+    #modalAgendamento .toggle-btn-modern.active span,
+    #modalAgendamento .toggle-btn-modern[data-active="true"] span {
+        color: #ffffff !important;
+    }
+
+    #modalAgendamento .toggle-btn-modern span {
+        color: inherit;
+        transition: all 0.3s ease;
+    }
+
+    @keyframes bounce {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
     }
 
     /* Checkboxes Modernos */
     #modalAgendamento .form-check {
         padding-left: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        margin-bottom: var(--spacing-2);
     }
 
     #modalAgendamento .form-check-input {
@@ -255,8 +291,7 @@
         border-radius: 6px;
         cursor: pointer;
         transition: var(--transition-fast);
-        margin-right: var(--spacing-2);
-        margin: 0 10px;
+        margin: 0;
     }
 
     #modalAgendamento .form-check-input:checked {
@@ -276,49 +311,46 @@
         user-select: none;
     }
 
-    /* Footer Moderno */
-    #modalAgendamento .modal-footer {
-        border: 0;
-        padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
-        background: transparent;
-        gap: var(--spacing-3);
-    }
-
-    /* Botões Premium */
-    #modalAgendamento .btn {
+    /* Modern Buttons */
+    #modalAgendamento .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-2);
+        padding: var(--spacing-3) var(--spacing-6);
+        border: none;
         border-radius: var(--radius-md);
         font-size: var(--font-size-sm);
         font-weight: 600;
-        padding: var(--spacing-3) var(--spacing-6);
+        cursor: pointer;
         transition: var(--transition-normal);
-        border: none;
+        text-decoration: none;
         font-family: var(--font-primary);
         letter-spacing: 0.02em;
-    }
-
-    #modalAgendamento .btn-outline-secondary {
-        background: var(--glass-bg);
-        border: 2px solid var(--glass-border);
-        color: var(--color-text);
-    }
-
-    #modalAgendamento .btn-outline-secondary:hover {
-        background: var(--color-surface-muted);
-        border-color: var(--color-text-muted);
-        color: var(--color-text);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    #modalAgendamento .btn-primary {
-        background: linear-gradient(135deg, var(--color-primary), #d35400);
-        color: var(--branco);
-        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
         position: relative;
         overflow: hidden;
     }
 
-    #modalAgendamento .btn-primary::before {
+    #modalAgendamento .btn-modern i {
+        font-size: 1rem;
+    }
+
+    #modalAgendamento .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    #modalAgendamento .btn-modern:active {
+        transform: translateY(0);
+    }
+
+    #modalAgendamento .btn-primary-modern {
+        background: linear-gradient(135deg, var(--color-primary), #d35400);
+        color: white;
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+    }
+
+    #modalAgendamento .btn-primary-modern::before {
         content: '';
         position: absolute;
         top: 0;
@@ -329,23 +361,35 @@
         transition: left 0.5s ease;
     }
 
-    #modalAgendamento .btn-primary:hover::before {
+    #modalAgendamento .btn-primary-modern:hover::before {
         left: 100%;
     }
 
-    #modalAgendamento .btn-primary:hover {
-        transform: translateY(-2px);
+    #modalAgendamento .btn-primary-modern:hover {
+        color: white;
         box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
     }
 
-    #modalAgendamento .btn-primary:active {
-        transform: translateY(0);
+    #modalAgendamento .btn-secondary-modern {
+        background: var(--glass-bg);
+        color: var(--color-text);
+        border: 2px solid var(--glass-border);
     }
 
-    /* Grid responsivo melhorado */
-    #modalAgendamento .row {
-        --bs-gutter-x: var(--spacing-4);
-        --bs-gutter-y: var(--spacing-4);
+    #modalAgendamento .btn-secondary-modern:hover {
+        background: var(--color-surface-muted);
+        border-color: var(--color-text-muted);
+        color: var(--color-text);
+    }
+
+    /* Modal Footer */
+    #modalAgendamento .modern-footer {
+        padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+        background: transparent;
+        border: 0;
+        display: flex;
+        gap: var(--spacing-3);
+        justify-content: flex-end;
     }
 
     /* Animação de entrada */
@@ -365,132 +409,184 @@
         }
     }
 
+    /* Dark Mode Support */
+    :root[data-theme="dark"] #modalAgendamento.modern-modal .modal-content {
+        background: var(--color-surface);
+    }
+
+    :root[data-theme="dark"] #modalAgendamento .modern-body input.form-control,
+    :root[data-theme="dark"] #modalAgendamento .modern-body select.form-control,
+    :root[data-theme="dark"] #modalAgendamento .modern-body textarea.form-control,
+    :root[data-theme="dark"] #modalAgendamento .toggle-btn-modern,
+    :root[data-theme="dark"] #modalAgendamento .notification-btn {
+        background: var(--color-surface-muted);
+        border-color: var(--glass-border);
+        color: var(--color-text);
+    }
+
+    :root[data-theme="dark"] #modalAgendamento .modern-body {
+        background: var(--color-surface);
+    }
+
+    :root[data-theme="dark"] #modalAgendamento .modern-footer {
+        background: transparent;
+    }
+
     /* Responsivo */
     @media (max-width: 576px) {
         #modalAgendamento .modal-content {
             border-radius: var(--radius-lg);
         }
 
-        #modalAgendamento .modal-body,
-        #modalAgendamento .modal-header,
-        #modalAgendamento .modal-footer {
+        #modalAgendamento .modern-body,
+        #modalAgendamento .modern-header,
+        #modalAgendamento .modern-footer {
             padding-left: var(--spacing-4);
             padding-right: var(--spacing-4);
         }
     }
 </style>
 
-<!-- Modal: Agendar pagamento -->
-<div class="modal fade" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoTitle" aria-hidden="true"
-    data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
+<!-- ==================== MODAL AGENDAMENTO (REDESENHADO) ==================== -->
+<div class="modal fade modern-modal" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalAgendamentoTitle">Agendar pagamento</h5>
+            <div class="modal-header modern-header">
+                <div class="modal-title-wrapper">
+                    <div class="modal-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title" id="modalAgendamentoLabel">Novo Agendamento</h5>
+                        <p class="modal-subtitle">Configure seu lançamento recorrente</p>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
 
-            <div class="modal-body">
-                <div id="agAlert" class="alert alert-danger d-none" role="alert"></div>
-
+            <div class="modal-body modern-body">
                 <form id="formAgendamento" novalidate>
-                    <input type="hidden" id="agId" name="id" value="">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="agTitulo" class="form-label">📝 Título</label>
-                            <input type="text" id="agTitulo" name="titulo" class="form-control"
-                                placeholder="Ex.: Fatura Nubank" required maxlength="160">
-                        </div>
+                    <input type="hidden" id="agId" name="id">
 
-                        <div class="col-md-6">
-                            <label for="agDataHora" class="form-label">🗓️ Data/Hora</label>
-                            <input type="datetime-local" id="agDataHora" name="data_pagamento" class="form-control"
+                    <!-- Alerta de erros -->
+                    <div id="agAlert" class="alert alert-danger d-none" role="alert"></div>
+
+                    <!-- Linha 1: Tipo e Título -->
+                    <div class="form-row">
+                        <div class="form-group col-tipo">
+                            <label for="agTipo" class="form-label">
+                                <i class="fas fa-tag"></i> Tipo
+                            </label>
+                            <select id="agTipo" name="tipo" class="form-control modern-select" required>
+                                <option value="despesa">💰 Despesa</option>
+                                <option value="receita">💵 Receita</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-titulo">
+                            <label for="agTitulo" class="form-label">
+                                <i class="fas fa-heading"></i> Título
+                            </label>
+                            <input type="text" id="agTitulo" name="titulo" class="form-control"
+                                placeholder="Ex: Aluguel, Salário..." required maxlength="100">
+                        </div>
+                    </div>
+
+                    <!-- Linha 2: Categoria e Valor -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="agCategoria" class="form-label">
+                                <i class="fas fa-folder"></i> Categoria
+                            </label>
+                            <select id="agCategoria" name="categoria_id" class="form-control modern-select" required>
+                                <option value="">Selecione uma categoria</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="agValor" class="form-label">
+                                <i class="fas fa-dollar-sign"></i> Valor
+                            </label>
+                            <input type="text" id="agValor" name="valor" class="form-control" placeholder="R$ 0,00"
                                 required>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label for="agLembrar" class="form-label">⏰ Lembrar antes</label>
-                            <select id="agLembrar" name="lembrar_antes_segundos" class="form-select">
-                                <option value="0">No horário</option>
-                                <option value="3600">1 hora</option>
-                                <option value="21600">6 horas</option>
-                                <option value="86400">1 dia</option>
-                                <option value="172800">2 dias</option>
-                                <option value="604800">1 semana</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="agTipo" class="form-label">💼 Tipo</label>
-                            <select id="agTipo" name="tipo" class="form-select" required>
-                                <option value="despesa">Despesa</option>
-                                <option value="receita">Receita</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="agCategoria" class="form-label">🏷️ Categoria</label>
-                            <select id="agCategoria" name="categoria_id" class="form-select" required>
-                                <option value="">Selecione uma categoria</option>
-
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="agConta" class="form-label">🏦 Conta</label>
-                            <select id="agConta" name="conta_id" class="form-select">
+                    <!-- Linha 3: Conta e Data -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="agConta" class="form-label">
+                                <i class="fas fa-wallet"></i> Conta
+                            </label>
+                            <select id="agConta" name="conta_id" class="form-control modern-select">
                                 <option value="">Todas as contas (opcional)</option>
-
                             </select>
                         </div>
-
-                        <div class="col-md-6">
-                            <label for="agValor" class="form-label">💰 Valor</label>
-                            <input type="text" id="agValor" name="valor" class="form-control money-mask"
-                                placeholder="R$ 0,00">
+                        <div class="form-group">
+                            <label for="agDataPagamento" class="form-label">
+                                <i class="fas fa-calendar-alt"></i> Data de Execução
+                            </label>
+                            <input type="datetime-local" id="agDataPagamento" name="data_pagamento" class="form-control"
+                                required>
                         </div>
+                    </div>
 
-                        <div class="col-12">
-                            <label for="agDescricao" class="form-label">📄 Descrição</label>
-                            <input type="text" id="agDescricao" name="descricao" class="form-control"
-                                placeholder="Informações adicionais (opcional)">
-                        </div>
+                    <!-- Recorrência -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-sync-alt"></i> Recorrência
+                        </label>
+                        <input type="checkbox" id="agRecorrente" name="recorrente" value="1" hidden>
+                        <button type="button" class="toggle-btn-modern" id="btnToggleRecorrente" data-active="false">
+                            <span id="recorrenteText">Não, agendamento único</span>
+                        </button>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label d-block">🔄 Recorrência</label>
-                            <button type="button" id="agRecorrenteToggle" class="btn w-100" data-recorrente="0">
-                                Não, agendamento único
-                            </button>
-                            <input type="hidden" id="agRecorrente" name="recorrente" value="0">
-                        </div>
+                    <!-- Frequência (aparece quando recorrente) -->
+                    <div class="form-group" id="frequenciaGroup" style="display: none;">
+                        <label for="agFrequencia" class="form-label">
+                            <i class="fas fa-calendar-week"></i> Frequência
+                        </label>
+                        <select id="agFrequencia" name="recorrencia_freq" class="form-control modern-select">
+                            <option value="mensal">📅 Mensal</option>
+                            <option value="semanal">📆 Semanal</option>
+                            <option value="diario">🗓️ Diário</option>
+                            <option value="anual">📌 Anual</option>
+                        </select>
+                    </div>
 
-                        <div class="col-md-6 teste">
-                            <label class="form-label d-block">📢 Canais de notificação</label>
-                            <div class="d-flex flex-column gap-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="agCanalInapp" name="canal_inapp"
-                                        value="1" checked>
-                                    <label class="form-check-label" for="agCanalInapp">
-                                        Aviso no sistema
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="agCanalEmail" name="canal_email"
-                                        value="1" checked>
-                                    <label class="form-check-label" for="agCanalEmail">
-                                        E-mail
-                                    </label>
-                                </div>
+                    <!-- Notificações -->
+                    <div class="form-group">
+                        <label class="form-label d-block">
+                            <i class="fas fa-bell"></i> Canais de Notificação
+                        </label>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agCanalInapp" name="canal_inapp"
+                                    value="1" checked>
+                                <label class="form-check-label" for="agCanalInapp">
+                                    Aviso no sistema
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agCanalEmail" name="canal_email"
+                                    value="1" checked>
+                                <label class="form-check-label" for="agCanalEmail">
+                                    E-mail
+                                </label>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <div class="modal-footer">
-
-                <button type="submit" form="formAgendamento" class="btn btn-primary">
-                    Salvar Agendamento
+            <div class="modal-footer modern-footer">
+                <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    <span>Cancelar</span>
+                </button>
+                <button type="submit" form="formAgendamento" class="btn-modern btn-primary-modern">
+                    <i class="fas fa-save"></i>
+                    <span>Salvar Agendamento</span>
                 </button>
             </div>
         </div>

@@ -32,7 +32,192 @@ document.addEventListener('DOMContentLoaded', () => {
             categorias: new Map()
         },
         ignoreFilterChange: false,
-        activeQuickFilter: null
+        activeQuickFilter: null,
+        applyingQuickFilter: false
+    };
+
+
+    // ============================================================================
+    // MÓDULO TOGGLE RECORRÊNCIA - PROFISSIONAL
+    // ============================================================================
+
+    const RecurrenceToggle = {
+        // Configuração de estilos
+        styles: {
+            active: {
+                backgroundColor: '#e67e22',
+                backgroundImage: 'linear-gradient(135deg, #e67e22, #d35400)',
+                borderColor: '#e67e22',
+                color: '#ffffff',
+                boxShadow: '0 4px 12px rgba(230, 126, 34, 0.4)'
+            },
+            inactive: {
+                backgroundColor: '',
+                backgroundImage: '',
+                borderColor: '',
+                color: '',
+                boxShadow: ''
+            }
+        },
+
+        // Textos
+        text: {
+            active: 'Sim, agendamento recorrente',
+            inactive: 'Não, agendamento único'
+        },
+
+        // Referências DOM (lazy)
+        _elements: null,
+
+        // Getter para elementos DOM
+        get elements() {
+            if (!this._elements) {
+                this._elements = {
+                    button: document.getElementById('btnToggleRecorrente'),
+                    checkbox: document.getElementById('agRecorrente'),
+                    textSpan: document.getElementById('recorrenteText')
+                };
+            }
+            return this._elements;
+        },
+
+        // Resetar cache de elementos
+        clearElementsCache() {
+            this._elements = null;
+        },
+
+        // Verificar se elementos existem
+        isAvailable() {
+            const { button, checkbox, textSpan } = this.elements;
+            return !!(button && checkbox && textSpan);
+        },
+
+        // Obter estado atual
+        isActive() {
+            return this.elements.checkbox?.checked || false;
+        },
+
+        // Aplicar estilos inline
+        applyStyles(button, styles) {
+            const props = ['backgroundColor', 'backgroundImage', 'borderColor', 'color', 'boxShadow'];
+            
+            props.forEach(prop => {
+                const cssProperty = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
+                const value = styles[prop];
+                
+                if (value) {
+                    button.style.setProperty(cssProperty, value, 'important');
+                } else {
+                    button.style.removeProperty(cssProperty);
+                }
+            });
+        },
+
+        // Ativar (laranja)
+        activate() {
+            const { button, checkbox, textSpan } = this.elements;
+            if (!button || !checkbox || !textSpan) return;
+
+            checkbox.checked = true;
+            button.classList.add('active');
+            button.setAttribute('data-active', 'true');
+            this.applyStyles(button, this.styles.active);
+            textSpan.textContent = this.text.active;
+            textSpan.style.setProperty('color', '#ffffff', 'important');
+
+            // Mostrar campo de frequência
+            const frequenciaGroup = document.getElementById('frequenciaGroup');
+            if (frequenciaGroup) frequenciaGroup.style.display = 'block';
+
+            console.log('[RecurrenceToggle] ✓ ATIVADO');
+        },
+
+        // Desativar (cinza)
+        deactivate() {
+            const { button, checkbox, textSpan } = this.elements;
+            if (!button || !checkbox || !textSpan) return;
+
+            checkbox.checked = false;
+            button.classList.remove('active');
+            button.setAttribute('data-active', 'false');
+            this.applyStyles(button, this.styles.inactive);
+            textSpan.textContent = this.text.inactive;
+            textSpan.style.removeProperty('color');
+
+            // Ocultar campo de frequência
+            const frequenciaGroup = document.getElementById('frequenciaGroup');
+            if (frequenciaGroup) frequenciaGroup.style.display = 'none';
+
+            console.log('[RecurrenceToggle] ✗ DESATIVADO');
+        },
+
+        // Toggle (inverter estado)
+        toggle() {
+            if (this.isActive()) {
+                this.deactivate();
+            } else {
+                this.activate();
+            }
+        },
+
+        // Definir estado específico
+        setState(active) {
+            if (active) {
+                this.activate();
+            } else {
+                this.deactivate();
+            }
+        },
+
+        // Reset para estado inicial
+        reset() {
+            this.clearElementsCache();
+            this.deactivate();
+        },
+
+        // Inicializar event listeners
+        init() {
+            this.clearElementsCache();
+            const { button } = this.elements;
+            
+            if (!button) {
+                console.warn('[RecurrenceToggle] Botão não encontrado');
+                return false;
+            }
+
+            // Remover listeners antigos clonando o elemento
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Atualizar cache com novo botão E novo textSpan (que está dentro do botão clonado)
+            this._elements.button = newButton;
+            this._elements.textSpan = newButton.querySelector('#recorrenteText');
+
+            // Adicionar listener
+            newButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggle();
+            });
+
+            console.log('[RecurrenceToggle] ✓ Inicializado com sucesso');
+            return true;
+        },
+
+        // Debug: mostrar estado atual
+        debug() {
+            const { button } = this.elements;
+            if (!button) return null;
+
+            const computed = window.getComputedStyle(button);
+            return {
+                isActive: this.isActive(),
+                dataActive: button.getAttribute('data-active'),
+                hasActiveClass: button.classList.contains('active'),
+                computedBg: computed.backgroundColor,
+                computedBgImage: computed.backgroundImage
+            };
+        }
     };
 
 
@@ -660,9 +845,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setData(list) {
             console.log('[MobileCards.setData] Recebendo', list ? list.length : 0, 'registros');
-            if (list && list.length === 4) {
-                console.trace('[MobileCards.setData] Stack trace (4 registros):');
-            }
+            console.log('[MobileCards.setData] Filtro ativo:', STATE.activeQuickFilter);
+            
             this.data = Array.isArray(list) ? [...list] : [];
             this.currentPage = 1;
             this.render();
@@ -928,9 +1112,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DesktopTable = {
         render(data) {
             console.log('[DesktopTable.render] Renderizando', data ? data.length : 0, 'registros');
-            if (data && data.length === 4) {
-                console.trace('[DesktopTable.render] Stack trace (4 registros):');
-            }
+            console.log('[DesktopTable.render] Filtro ativo:', STATE.activeQuickFilter);
+            
             if (!DOM.tableBody) return;
 
             if (!data || data.length === 0) {
@@ -961,11 +1144,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Calcular status dinâmico
             const statusDinamico = item.status_dinamico ||
-                Format.calcularStatusDinamico(item.data_agendada, isRecorrente, status);
+                Format.calcularStatusDinamico(item.data_pagamento || item.data_agendada, isRecorrente, status);
 
             // Classe CSS para linha baseada no status
             const rowClass = statusDinamico === 'vencido' ? 'row-vencido' :
                 statusDinamico === 'hoje' ? 'row-hoje' : '';
+
+            // Usar data_pagamento (ou data_agendada como fallback)
+            const dataExibicao = item.data_pagamento || item.data_agendada;
 
             return `
                 <tr data-id="${item.id}" class="${rowClass}">
@@ -981,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${Format.escapeHtml(item.categoria?.nome || item.categoria_nome || '-')}</td>
                     <td>${Format.escapeHtml(item.conta?.nome || item.conta_nome || '-')}</td>
                     <td>${Format.currency(item.valor_centavos)}</td>
-                    <td>${Format.escapeHtml(Format.dateTime(item.data_agendada))}</td>
+                    <td>${dataExibicao ? Format.escapeHtml(Format.dateTime(dataExibicao)) : '-'}</td>
                     <td>${Format.statusDinamicoBadge(statusDinamico)}</td>
                     <td>${this.renderActions(status, item.id, statusDinamico)}</td>
                 </tr>
@@ -1035,12 +1221,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const Agendamentos = {
         async load() {
+            const stack = new Error().stack;
             console.log('[Agendamentos.load] CHAMADO - activeQuickFilter:', STATE.activeQuickFilter);
-            console.trace('[Agendamentos.load] Stack trace:');
+            console.log('[Agendamentos.load] applyingQuickFilter:', STATE.applyingQuickFilter);
+            console.log('[Agendamentos.load] Stack trace:', stack);
 
-            // Se há filtro rápido ativo, não recarregar (mantém filtro aplicado)
-            if (STATE.activeQuickFilter) {
-                console.log('[Agendamentos.load] BLOQUEADO - filtro rápido ativo:', STATE.activeQuickFilter);
+            // Se há filtro rápido ativo OU está sendo aplicado, não recarregar
+            if (STATE.activeQuickFilter || STATE.applyingQuickFilter) {
+                console.log('[Agendamentos.load] BLOQUEADO - filtro rápido ativo ou sendo aplicado');
+                console.log('[Agendamentos.load] Manteremos os dados filtrados atuais');
                 return;
             }
 
@@ -1278,6 +1467,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getFrequenciaTexto(freq) {
             const textos = {
+                'diario': 'Diário',
+                'semanal': 'Semanal',
+                'mensal': 'Mensal',
+                'anual': 'Anual',
+                // Fallback para valores em inglês (caso existam dados antigos)
                 'daily': 'Diário',
                 'weekly': 'Semanal',
                 'monthly': 'Mensal',
@@ -1352,47 +1546,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (DOM.agDescricao) DOM.agDescricao.value = record.descricao || '';
 
+            // Usar módulo profissional para recorrência
             const recorrenteValor = record.recorrente === 1 || record.recorrente === '1';
-            if (DOM.agRecorrente) {
-                DOM.agRecorrente.checked = recorrenteValor;
+            RecurrenceToggle.clearElementsCache();
+            RecurrenceToggle.setState(recorrenteValor);
+
+            // Preencher frequência se recorrente (campo: recorrencia_freq)
+            if (recorrenteValor && record.recorrencia_freq) {
+                const agFrequencia = document.getElementById('agFrequencia');
+                if (agFrequencia) agFrequencia.value = record.recorrencia_freq;
             }
 
-            // Atualizar botão toggle de recorrente
-            const btnToggleRecorrente = document.getElementById('btnToggleRecorrente');
-            if (btnToggleRecorrente) {
-                if (recorrenteValor) {
-                    btnToggleRecorrente.classList.add('active');
-                    const textEl = btnToggleRecorrente.querySelector('.toggle-text');
-                    if (textEl) textEl.textContent = 'Sim, agendamento recorrente';
-                } else {
-                    btnToggleRecorrente.classList.remove('active');
-                    const textEl = btnToggleRecorrente.querySelector('.toggle-text');
-                    if (textEl) textEl.textContent = 'Não, agendamento único';
-                }
-            }
-
-            const lembrarValor = record.lembrar === 1 || record.lembrar === '1';
-            if (DOM.agLembrar) {
-                DOM.agLembrar.checked = lembrarValor;
-            }
-
-            // Atualizar botões toggle de notificação
-            const btnToggleSistema = document.getElementById('btnToggleSistema');
-            const btnToggleEmail = document.getElementById('btnToggleEmail');
-            if (btnToggleSistema) {
-                if (lembrarValor) {
-                    btnToggleSistema.classList.add('active');
-                } else {
-                    btnToggleSistema.classList.remove('active');
-                }
-            }
-            if (btnToggleEmail) {
-                if (lembrarValor) {
-                    btnToggleEmail.classList.add('active');
-                } else {
-                    btnToggleEmail.classList.remove('active');
-                }
-            }
+            // Atualizar checkboxes de notificação com valores do registro
+            const checkboxSistema = document.getElementById('agCanalInapp');
+            const checkboxEmail = document.getElementById('agCanalEmail');
+            
+            // Usar valores específicos do registro, ou fallback para lembrar
+            const canalInappValor = record.canal_inapp === 1 || record.canal_inapp === '1' || record.canal_inapp === true;
+            const canalEmailValor = record.canal_email === 1 || record.canal_email === '1' || record.canal_email === true;
+            
+            if (checkboxSistema) checkboxSistema.checked = canalInappValor;
+            if (checkboxEmail) checkboxEmail.checked = canalEmailValor;
 
             Modal.hideError();
         },
@@ -1441,7 +1615,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (descricao) payload.append('descricao', descricao);
 
             payload.append('recorrente', DOM.agRecorrente?.checked ? '1' : '0');
-            payload.append('lembrar', DOM.agLembrar?.checked ? '1' : '0');
+            
+            // Enviar frequência apenas se recorrente (nome do campo: recorrencia_freq)
+            if (DOM.agRecorrente?.checked) {
+                const frequencia = document.getElementById('agFrequencia')?.value || 'mensal';
+                payload.append('recorrencia_freq', frequencia);
+            }
+            
+            // Campos de notificação
+            const canalInapp = document.getElementById('agCanalInapp');
+            const canalEmail = document.getElementById('agCanalEmail');
+            payload.append('canal_inapp', canalInapp?.checked ? '1' : '0');
+            payload.append('canal_email', canalEmail?.checked ? '1' : '0');
+            
+            // Lembrar (compatível com campo antigo)
+            payload.append('lembrar', (canalInapp?.checked || canalEmail?.checked) ? '1' : '0');
 
             return payload;
         },
@@ -1459,18 +1647,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOM.agValor.value = MoneyMask.format(0);
             }
 
-            // Resetar botões toggle
-            const btnToggleRecorrente = document.getElementById('btnToggleRecorrente');
-            if (btnToggleRecorrente) {
-                btnToggleRecorrente.classList.remove('active');
-                const textEl = btnToggleRecorrente.querySelector('.toggle-text');
-                if (textEl) textEl.textContent = 'Não, agendamento único';
-            }
+            // Usar módulo profissional para reset da recorrência
+            RecurrenceToggle.reset();
 
-            const btnToggleSistema = document.getElementById('btnToggleSistema');
-            const btnToggleEmail = document.getElementById('btnToggleEmail');
-            if (btnToggleSistema) btnToggleSistema.classList.add('active');
-            if (btnToggleEmail) btnToggleEmail.classList.add('active');
+            // Ativar todos os checkboxes de notificação por padrão
+            const checkboxSistema = document.getElementById('agCanalInapp');
+            const checkboxEmail = document.getElementById('agCanalEmail');
+            if (checkboxSistema) checkboxSistema.checked = true;
+            if (checkboxEmail) checkboxEmail.checked = true;
         }
     };
 
@@ -1500,8 +1684,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const payload = FormManager.getData(valorCentavos);
-
             Swal.fire({
                 title: isEditMode ? 'Salvando alterações...' : 'Salvando...',
                 text: 'Aguarde enquanto o agendamento é salvo.',
@@ -1510,6 +1692,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             try {
+                // Tentar renovar token CSRF ANTES de criar o payload
+                try {
+                    await CSRF.refresh();
+                    console.log('[Actions.save] Token CSRF renovado com sucesso');
+                } catch (csrfError) {
+                    console.warn('[Actions.save] Não foi possível renovar CSRF, usando token atual:', csrfError);
+                }
+                
+                // Criar payload DEPOIS do refresh para garantir token atualizado
+                const payload = FormManager.getData(valorCentavos);
+                
                 const endpoint = isEditMode
                     ? `${CONFIG.BASE_URL}api/agendamentos/${agendamentoId}`
                     : `${CONFIG.BASE_URL}api/agendamentos`;
@@ -1743,11 +1936,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         apply() {
             console.log('[Filters.apply] CHAMADO - activeQuickFilter:', STATE.activeQuickFilter);
-            console.trace('[Filters.apply] Stack trace:');
 
             // Se há filtro rápido ativo, não aplicar filtros normais
             if (STATE.activeQuickFilter) {
                 console.log('[Filters.apply] IGNORADO - filtro rápido ativo:', STATE.activeQuickFilter);
+                console.log('[Filters.apply] Manteremos os dados do filtro rápido');
                 return;
             }
 
@@ -1804,9 +1997,18 @@ document.addEventListener('DOMContentLoaded', () => {
         applyQuickFilter(filterType) {
             console.log('[Quick Filter] INICIANDO aplicação do filtro:', filterType);
 
-            // Marcar filtro rápido ativo
+            // Marcar que estamos aplicando um filtro rápido
+            STATE.applyingQuickFilter = true;
             STATE.activeQuickFilter = filterType;
-            console.log('[Quick Filter] activeQuickFilter definido:', filterType);
+
+            // Atualizar visualmente os botões IMEDIATAMENTE
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filterType) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
 
             const allData = Array.from(STATE.cache.values());
             const hoje = new Date();
@@ -1864,14 +2066,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('[Quick Filter] Registros após filtro:', filtered.length);
             console.log('[Quick Filter] Renderizando dados filtrados...');
-            console.log('[Quick Filter] Passando para DesktopTable:', filtered.length, 'registros');
-            console.log('[Quick Filter] Passando para MobileCards:', filtered.length, 'registros');
 
             // Renderizar resultados
             DesktopTable.render(filtered);
             MobileCards.setData(filtered);
 
-            console.log('[Quick Filter] CONCLUÍDO');
+            // Liberar flag e confirmar estado
+            STATE.applyingQuickFilter = false;
+            STATE.activeQuickFilter = filterType;
+            
+            console.log('[Quick Filter] ✓ Filtro aplicado com sucesso:', filterType);
         }
     };
 
@@ -2053,7 +2257,10 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupModalEvents() {
+            console.log('[setupModalEvents] Configurando eventos do modal...');
+            
             DOM.modal?.addEventListener('shown.bs.modal', async () => {
+                console.log('[Modal Event] shown.bs.modal disparado!');
                 try {
                     // Carregar dados necessários para o formulário
                     await Promise.all([
@@ -2071,6 +2278,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         DOM.agValor.value = MoneyMask.format(0);
                     }
 
+                    // Configurar botões de toggle (precisa ser feito toda vez que o modal abre)
+                    console.log('[Modal Event] Chamando setupToggleButtonsInModal...');
+                    Events.setupToggleButtonsInModal();
+
                     Modal.hideError();
                 } catch (error) {
                     console.error(error);
@@ -2084,52 +2295,22 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupToggleButtons() {
-            // Toggle button para Recorrente
-            const btnToggleRecorrente = document.getElementById('btnToggleRecorrente');
-            if (btnToggleRecorrente) {
-                btnToggleRecorrente.addEventListener('click', function () {
-                    const checkbox = document.getElementById('agRecorrente');
-                    if (!checkbox) return;
+            // Esta função é chamada na inicialização, mas os botões só existem no modal
+            // Por isso, criamos setupToggleButtonsInModal() que é chamado quando o modal abre
+            console.log('[Setup] setupToggleButtons chamado na inicialização (botões podem não existir ainda)');
+        },
 
-                    checkbox.checked = !checkbox.checked;
-
-                    if (checkbox.checked) {
-                        this.classList.add('active');
-                        this.querySelector('.toggle-text').textContent = 'Sim, agendamento recorrente';
-                    } else {
-                        this.classList.remove('active');
-                        this.querySelector('.toggle-text').textContent = 'Não, agendamento único';
-                    }
-                });
-            }
-
-            // Toggle buttons para Notificações
-            const btnToggleSistema = document.getElementById('btnToggleSistema');
-            const btnToggleEmail = document.getElementById('btnToggleEmail');
-
-            if (btnToggleSistema) {
-                btnToggleSistema.addEventListener('click', function () {
-                    this.classList.toggle('active');
-                    updateLembrarCheckbox();
-                });
-            }
-
-            if (btnToggleEmail) {
-                btnToggleEmail.addEventListener('click', function () {
-                    this.classList.toggle('active');
-                    updateLembrarCheckbox();
-                });
-            }
-
-            // Função auxiliar para atualizar checkbox "lembrar" baseado nos toggles de notificação
-            function updateLembrarCheckbox() {
-                const checkbox = document.getElementById('agLembrar');
-                const sistemaActive = btnToggleSistema?.classList.contains('active');
-                const emailActive = btnToggleEmail?.classList.contains('active');
-
-                if (checkbox) {
-                    checkbox.checked = sistemaActive || emailActive;
-                }
+        setupToggleButtonsInModal() {
+            console.log('[Modal] Configurando botões do modal via módulo RecurrenceToggle...');
+            
+            // Usar módulo profissional centralizado
+            const success = RecurrenceToggle.init();
+            
+            if (success) {
+                console.log('[RecurrenceToggle] ✓ Módulo inicializado com sucesso');
+                console.log('[RecurrenceToggle] Debug:', RecurrenceToggle.debug());
+            } else {
+                console.warn('[RecurrenceToggle] ✗ Falha na inicialização');
             }
         },
 
@@ -2198,25 +2379,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Filtros rápidos
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     const filterType = this.dataset.filter;
+                    const isCurrentlyActive = this.classList.contains('active');
+                    const isSameFilter = STATE.activeQuickFilter === filterType;
 
-                    // Toggle active state
-                    const wasActive = this.classList.contains('active');
+                    console.log('[Event] Clique no filtro rápido:', filterType);
+                    console.log('[Event] isCurrentlyActive:', isCurrentlyActive, 'isSameFilter:', isSameFilter);
+                    console.log('[Event] STATE.activeQuickFilter atual:', STATE.activeQuickFilter);
 
-                    // Remover active de todos
-                    document.querySelectorAll('.quick-filter-btn').forEach(b => {
-                        b.classList.remove('active');
-                    });
-
-                    if (!wasActive) {
-                        // Ativar este filtro
-                        this.classList.add('active');
-                        Filters.applyQuickFilter(filterType);
-                    } else {
-                        // Desativar e mostrar todos
+                    // Se clicar no mesmo filtro que já está ativo, desativa
+                    if (isSameFilter && isCurrentlyActive) {
+                        console.log('[Event] Desativando filtro');
+                        this.classList.remove('active');
                         STATE.activeQuickFilter = null;
                         Agendamentos.load();
+                    } else {
+                        console.log('[Event] Ativando filtro:', filterType);
+                        // Remover active de todos os botões
+                        document.querySelectorAll('.quick-filter-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        
+                        // Adicionar active ao botão clicado
+                        this.classList.add('active');
+                        
+                        // Aplicar o filtro
+                        Filters.applyQuickFilter(filterType);
                     }
                 });
             });
@@ -2235,6 +2427,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 await Selects.loadCategorias(DOM.agTipo?.value || 'despesa');
 
                 Modal.open();
+                
+                // Configurar botões de toggle após abrir o modal
+                setTimeout(() => {
+                    console.log('[setupAddButton] Configurando botões após abertura do modal...');
+                    Events.setupToggleButtonsInModal();
+                }, 300);
             });
         }
     };
@@ -2247,6 +2445,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const init = async () => {
         // Aplicar CSRF token
         CSRF.apply(CSRF.get());
+
+        // Limpar estado inicial dos filtros rápidos
+        STATE.activeQuickFilter = null;
+        document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
 
         // Configurar máscara de dinheiro
         if (DOM.agValor) {
