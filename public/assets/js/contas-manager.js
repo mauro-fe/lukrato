@@ -1856,11 +1856,24 @@ class ContasManager {
                 if (gamif.new_achievements && gamif.new_achievements.length > 0) {
                     gamif.new_achievements.forEach(ach => {
                         console.log(`🏆 Nova conquista desbloqueada: ${ach.name} (+${ach.points_reward} pts)`);
-                        this.showNotification(`🏆 ${ach.name} desbloqueada!`, 'success');
+
+                        // Exibir modal grande de conquista desbloqueada
+                        if (typeof window.notifyAchievementUnlocked === 'function') {
+                            window.notifyAchievementUnlocked(ach);
+                        } else {
+                            // Fallback para notificação simples
+                            this.showNotification(`🏆 ${ach.name} desbloqueada!`, 'success');
+                        }
                     });
                 }
                 if (gamif.level_up) {
-                    this.showNotification(`🎉 Subiu para o Nível ${gamif.level}!`, 'success');
+                    // Exibir modal grande de level up
+                    if (typeof window.notifyLevelUp === 'function') {
+                        window.notifyLevelUp(gamif.level);
+                    } else {
+                        // Fallback para notificação simples
+                        this.showNotification(`🎉 Subiu para o Nível ${gamif.level}!`, 'success');
+                    }
                 }
             }
 
