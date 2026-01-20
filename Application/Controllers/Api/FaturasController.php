@@ -301,6 +301,51 @@ class FaturasController
     }
 
     /**
+     * Excluir item individual da fatura
+     */
+    public function destroyItem(int $faturaId, int $itemId): void
+    {
+        try {
+            $usuarioId = $this->getAuthenticatedUserId();
+
+            // Validar IDs
+            if ($faturaId <= 0 || $itemId <= 0) {
+                Response::json(['error' => 'IDs inválidos'], 400);
+                return;
+            }
+
+            // Verificar se fatura existe e pertence ao usuário
+            $fatura = $this->faturaService->buscar($faturaId, $usuarioId);
+            if (!$fatura) {
+                Response::json(['error' => 'Fatura não encontrada'], 404);
+                return;
+            }
+
+            $success = $this->faturaService->excluirItem($faturaId, $itemId, $usuarioId);
+
+            if (!$success) {
+                Response::json(['error' => 'Item não encontrado ou não pertence a esta fatura'], 404);
+                return;
+            }
+
+            Response::json([
+                'success' => true,
+                'message' => 'Item excluído com sucesso',
+            ]);
+        } catch (InvalidArgumentException $e) {
+            LogService::error("Erro de validação ao excluir item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage()
+            ]);
+            Response::json(['error' => $e->getMessage()], 400);
+        } catch (Exception $e) {
+            $this->logError("Erro ao excluir item {$itemId} da fatura {$faturaId}", $e);
+            Response::json(['error' => 'Erro ao excluir item: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Obter ID do usuário autenticado
      * 
      * @throws InvalidArgumentException Se usuário não está autenticado

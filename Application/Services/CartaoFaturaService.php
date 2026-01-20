@@ -192,9 +192,8 @@ class CartaoFaturaService
 
             $this->atualizarStatusFaturas($faturasAfetadas);
 
-            // Liberar limite do cartão
-            $cartao->limite_disponivel += $totalPagar;
-            $cartao->save();
+            // Liberar limite do cartão (recalcula baseado nos itens não pagos)
+            $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
 
@@ -307,9 +306,8 @@ class CartaoFaturaService
 
             $this->atualizarStatusFaturas($faturasAfetadas);
 
-            // Liberar limite do cartão
-            $cartao->limite_disponivel += $totalPagar;
-            $cartao->save();
+            // Liberar limite do cartão (recalcula baseado nos itens não pagos)
+            $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
 
@@ -391,8 +389,8 @@ class CartaoFaturaService
                 $this->atualizarStatusFaturas([$faturaId]);
             }
 
-            $cartao->limite_disponivel -= $item->valor;
-            $cartao->save();
+            // Recalcular limite do cartão baseado nos itens não pagos
+            $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
 
@@ -522,12 +520,12 @@ class CartaoFaturaService
 
             $this->atualizarStatusFaturas($faturasAfetadas);
 
-            $cartao->limite_disponivel -= $totalPagamentos;
-            $cartao->save();
-
             foreach ($lancamentosPagamento as $pagamento) {
                 $pagamento->delete();
             }
+
+            // Recalcular limite do cartão baseado nos itens não pagos
+            $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
 

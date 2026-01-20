@@ -7,18 +7,24 @@
 /* ==================== Z-INDEX PARA SWEET ALERT ==================== */
 /* Sweet Alert acima do modal do Bootstrap */
 /* Bootstrap modal tem z-index: 1050, backdrop: 1040 */
+/* Modal de fatura tem z-index: 1000 */
 .swal2-container.swal-above-modal {
-  z-index: 99999 !important;
+  z-index: 999999 !important;
 }
 
 .swal2-container.swal-above-modal .swal2-popup {
-  z-index: 99999 !important;
+  z-index: 999999 !important;
 }
 
 /* Backdrop do SweetAlert também precisa estar acima */
 .swal2-container.swal2-backdrop-show.swal-above-modal {
-  z-index: 99998 !important;
+  z-index: 999998 !important;
   background: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Garantir que qualquer swal2-container dentro de um modal apareça na frente */
+.swal2-container {
+  z-index: 999999 !important;
 }
 
 /* ==================== CONTAINER PRINCIPAL ==================== */
@@ -114,6 +120,67 @@
 
 .btn-pagar-fatura-completa .btn-text-desktop {
   display: inline;
+}
+
+/* Botão Excluir Fatura */
+.btn-excluir-fatura {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  white-space: nowrap;
+}
+
+.btn-excluir-fatura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-excluir-fatura .btn-text-mobile {
+  display: none;
+}
+
+.btn-excluir-fatura .btn-text-desktop {
+  display: inline;
+}
+
+/* Grupo de botões de ação do item */
+.btn-group-parcela {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Botão Excluir Item Individual */
+.btn-excluir-item {
+  background: #ef4444;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.btn-excluir-item:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
 
 .detalhes-grid {
@@ -222,6 +289,7 @@
   border-collapse: collapse;
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
+  table-layout: fixed;
 }
 
 .parcelas-table thead {
@@ -234,17 +302,32 @@
 }
 
 .parcelas-table th {
-  padding: var(--spacing-1);
-  text-align: left;
+  padding: var(--spacing-2) var(--spacing-3);
+  text-align: center;
   font-weight: 600;
   color: #ffffff;
   font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Larguras específicas das colunas */
+.parcelas-table th:nth-child(1) {
+  width: 70px;
+} /* # */
+.parcelas-table th:nth-child(2) {
+  width: auto;
+} /* Descrição */
+.parcelas-table th:nth-child(3) {
+  width: 110px;
+} /* Valor */
+.parcelas-table th:nth-child(4) {
+  width: 100px;
+} /* Status */
+.parcelas-table th:nth-child(5) {
+  width: 120px;
+} /* Ação */
 
 .parcelas-table tbody tr {
   border-bottom: 1px solid var(--color-card-border);
@@ -258,12 +341,11 @@
 }
 
 .parcelas-table td {
-  padding: var(--spacing-2);
-  font-size: var(--font-size-xs);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
   color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 0;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .parcela-numero {
@@ -468,15 +550,53 @@
   font-weight: 600;
 }
 
+/* Seção de detalhes expandível no card mobile */
+.parcela-card-detalhes {
+  padding: var(--spacing-3);
+  background: rgba(0, 0, 0, 0.03);
+  border-top: 1px dashed var(--color-card-border);
+}
+
+.parcela-card-detalhes .parcela-card-info {
+  padding: var(--spacing-1) 0;
+  border-bottom: none;
+}
+
 .parcela-card-footer {
   padding: var(--spacing-3);
   border-top: 1px solid var(--color-card-border);
   display: flex;
-  justify-content: stretch;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
 }
 
-.parcela-card-footer .btn-toggle-parcela {
-  width: 100%;
+.parcela-card-footer .btn-toggle-parcela,
+.parcela-card-footer .btn-excluir-item {
+  flex: 1;
+  max-width: none;
+}
+
+/* Botão Ver Detalhes (mobile) */
+.btn-ver-detalhes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.btn-ver-detalhes:hover {
+  background: color-mix(in srgb, var(--color-primary) 85%, black);
+  transform: translateY(-1px);
 }
 
 .parcela-card-pago-info {
@@ -564,6 +684,25 @@
 
   .btn-pagar-fatura-completa .btn-text-mobile {
     display: inline;
+  }
+
+  .btn-excluir-fatura {
+    width: 100%;
+    justify-content: center;
+    padding: var(--spacing-3);
+  }
+
+  .btn-excluir-fatura .btn-text-desktop {
+    display: none;
+  }
+
+  .btn-excluir-fatura .btn-text-mobile {
+    display: inline;
+  }
+
+  .btn-group-parcela {
+    flex-direction: row;
+    gap: 0.3rem;
   }
 
   /* Mostrar cards mobile, ocultar tabela desktop */
@@ -2010,19 +2149,20 @@
 .btn-toggle-parcela {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: var(--spacing-2) var(--spacing-4);
-  font-size: var(--font-size-sm);
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: 6px;
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
-  white-space: nowrap;
 }
 
 .btn-toggle-parcela i {
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
 }
 
 .btn-toggle-parcela.btn-pagar {
@@ -2038,14 +2178,15 @@
 }
 
 .btn-toggle-parcela.btn-desfazer {
-  background: var(--color-danger);
+  background: var(--color-warning);
   color: white;
 }
 
 .btn-toggle-parcela.btn-desfazer:hover {
-  background: color-mix(in srgb, var(--color-danger) 90%, black);
+  background: color-mix(in srgb, var(--color-warning) 90%, black);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--color-danger) 30%, transparent);
+  box-shadow: 0 4px 8px
+    color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
 .btn-toggle-parcela:disabled {
@@ -2057,8 +2198,17 @@
 /* Responsivo para botões */
 @media (max-width: 768px) {
   .btn-toggle-parcela {
-    padding: 0.4rem var(--spacing-3);
-    font-size: var(--font-size-xs);
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 0.75rem;
+  }
+
+  .btn-excluir-item {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 0.75rem;
   }
 }
 .card-header-icon {
@@ -2278,7 +2428,9 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   pointer-events: none;
-  transition: transform var(--transition-fast), color var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .select-wrapper:hover .select-arrow,

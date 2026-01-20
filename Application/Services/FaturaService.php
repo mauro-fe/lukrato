@@ -281,6 +281,84 @@ class FaturaService
         }
     }
 
+    /**
+     * Excluir item individual da fatura
+     */
+    public function excluirItem(int $faturaId, int $itemId, int $usuarioId): bool
+    {
+        DB::beginTransaction();
+
+        try {
+            $item = FaturaCartaoItem::where('id', $itemId)
+                ->where('fatura_id', $faturaId)
+                ->where('user_id', $usuarioId)
+                ->with('cartaoCredito')
+                ->first();
+
+            if (!$item) {
+                throw new Exception("Item não encontrado");
+            }
+
+            // Não permitir excluir item já pago
+            if ($item->pago) {
+                throw new InvalidArgumentException(
+                    "Não é possível excluir um item já pago. Desfaça o pagamento primeiro."
+                );
+            }
+
+            $cartao = $item->cartaoCredito;
+            $faturaId = $item->fatura_id;
+
+            // Excluir o item
+            $item->delete();
+
+            // Atualizar limite do cartão (liberar limite)
+            if ($cartao) {
+                $cartao->atualizarLimiteDisponivel();
+            }
+
+            // Atualizar status da fatura
+            if ($faturaId) {
+                $fatura = Fatura::find($faturaId);
+                if ($fatura) {
+                    // Verificar se ainda tem itens
+                    $itensRestantes = FaturaCartaoItem::where('fatura_id', $faturaId)->count();
+
+                    if ($itensRestantes === 0) {
+                        // Se não tem mais itens, excluir a fatura também
+                        $fatura->delete();
+                    } else {
+                        // Atualizar valor total e status
+                        $novoTotal = FaturaCartaoItem::where('fatura_id', $faturaId)->sum('valor');
+                        $fatura->valor_total = $novoTotal;
+                        $fatura->save();
+                        $fatura->atualizarStatus();
+                    }
+                }
+            }
+
+            DB::commit();
+
+            LogService::info("Item de fatura excluído", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'usuario_id' => $usuarioId
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            LogService::error("Erro ao excluir item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
+
     // ============================================================================
     // MÉTODOS PRIVADOS - VALIDAÇÃO
     // ============================================================================
@@ -543,6 +621,11 @@ class FaturaService
         $item->data_pagamento = now();
         $item->save();
 
+        // Atualizar limite do cartão de crédito (liberar limite)
+        if ($item->cartaoCredito) {
+            $item->cartaoCredito->atualizarLimiteDisponivel();
+        }
+
         // Atualizar status da fatura
         if ($item->fatura_id) {
             $fatura = Fatura::find($item->fatura_id);
@@ -571,6 +654,11 @@ class FaturaService
         $item->pago = false;
         $item->data_pagamento = null;
         $item->save();
+
+        // Atualizar limite do cartão de crédito (consumir limite novamente)
+        if ($item->cartaoCredito) {
+            $item->cartaoCredito->atualizarLimiteDisponivel();
+        }
 
         // Atualizar status da fatura
         if ($item->fatura_id) {

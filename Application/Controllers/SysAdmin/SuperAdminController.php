@@ -13,7 +13,8 @@ class SuperAdminController extends BaseController
         $this->requireAuth();
         $user = Auth::user();
 
-        if ($user?->is_admin !== 1) {
+        // Usar comparação não-estrita para funcionar com string "1" ou int 1
+        if (!$user || $user->is_admin != 1) {
             $this->redirect('login');
             return;
         }

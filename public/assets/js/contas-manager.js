@@ -1899,7 +1899,10 @@ class ContasManager {
                         title: 'Limite Insuficiente',
                         text: error.message,
                         confirmButtonText: 'Entendi',
-                        confirmButtonColor: '#d33'
+                        confirmButtonColor: '#d33',
+                        customClass: {
+                            container: 'swal-above-modal'
+                        }
                     });
                 } else {
                     this.showNotification(

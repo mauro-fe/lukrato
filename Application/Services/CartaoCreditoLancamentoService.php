@@ -291,6 +291,7 @@ class CartaoCreditoLancamentoService
 
     /**
      * Atualizar limite disponível do cartão
+     * Usa o método atualizarLimiteDisponivel() do model que recalcula baseado nos itens não pagos
      */
     private function atualizarLimiteCartao(int $cartaoId, float $valor, string $operacao): void
     {
@@ -299,13 +300,11 @@ class CartaoCreditoLancamentoService
 
         $limiteAnterior = $cartao->limite_disponivel;
 
-        if ($operacao === 'debito') {
-            $cartao->limite_disponivel = max(0, $cartao->limite_disponivel - $valor);
-        } else if ($operacao === 'credito') {
-            $cartao->limite_disponivel = min($cartao->limite_total, $cartao->limite_disponivel + $valor);
-        }
+        // Recalcular limite baseado nos itens de fatura não pagos (forma mais confiável)
+        $cartao->atualizarLimiteDisponivel();
 
-        $cartao->save();
+        // Recarregar o modelo para ter o valor atualizado
+        $cartao->refresh();
 
         LogService::info("💳 [LIMITE] Limite atualizado", [
             'cartao_id' => $cartaoId,

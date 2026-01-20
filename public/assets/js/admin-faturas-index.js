@@ -458,12 +458,22 @@
         },
 
         attachDetalhesEventListeners(faturaId) {
+            // Botões de pagar/desfazer pagamento
             const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-toggle-parcela');
             btnToggles.forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
                     const isPago = e.currentTarget.dataset.pago === 'true';
                     await this.toggleParcelaPaga(faturaId, itemId, !isPago);
+                });
+            });
+
+            // Botões de excluir item individual
+            const btnExcluirItem = DOM.detalhesContent.querySelectorAll('.btn-excluir-item');
+            btnExcluirItem.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const itemId = parseInt(e.currentTarget.dataset.itemId, 10);
+                    await window.excluirItemFaturaGlobal(faturaId, itemId);
                 });
             });
         },
@@ -502,7 +512,10 @@
             const [mes, ano] = this.extrairMesAno(parc.descricao);
             const mesNome = this.getNomeMes(mes);
             const mesAnoFormatado = `${mesNome}/${ano}`;
-            
+
+            // Verificar se pode excluir (apenas se não tiver itens pagos)
+            const temItensPagos = parc.parcelas_pagas > 0;
+
             return `
                 <div class="detalhes-header">
                     <div class="detalhes-header-content">
@@ -510,14 +523,25 @@
                             <span style="color: #9ca3af; font-size: 0.875rem; font-weight: 500;">Vencimento</span>
                             <h3 class="detalhes-title" style="margin: 0;">${mesAnoFormatado}</h3>
                         </div>
-                        ${temItensPendentes ? `
-                            <button class="btn-pagar-fatura-completa" 
-                                    onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})">
-                                <i class="fas fa-check-double"></i>
-                                <span class="btn-text-desktop">Pagar Fatura Completa</span>
-                                <span class="btn-text-mobile">Pagar Tudo</span>
-                            </button>
-                        ` : ''}
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            ${temItensPendentes ? `
+                                <button class="btn-pagar-fatura-completa" 
+                                        onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})">
+                                    <i class="fas fa-check-double"></i>
+                                    <span class="btn-text-desktop">Pagar Fatura Completa</span>
+                                    <span class="btn-text-mobile">Pagar Tudo</span>
+                                </button>
+                            ` : ''}
+                            ${!temItensPagos ? `
+                                <button class="btn-excluir-fatura" 
+                                        onclick="window.excluirFaturaGlobal(${parc.id})"
+                                        title="Excluir fatura completa">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="btn-text-desktop">Excluir Fatura</span>
+                                    <span class="btn-text-mobile">Excluir</span>
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             `;
@@ -640,22 +664,24 @@
             const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
             const cardClass = isPaga ? 'parcela-card-paga' : '';
             const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
-            
+            const cardId = `parcela-card-${parcela.id || index}`;
+
             // Usar a descrição da parcela ou categoria se disponível
             let descricaoItem = parcela.descricao || descricaoFatura;
-            
+
             // Remover o contador de parcelas (X/Y) da descrição
             descricaoItem = descricaoItem.replace(/\s*\(\d+\/\d+\)\s*$/, '');
-            
+
             // Se tiver categoria, mostrar o nome da categoria
+            let categoriaInfo = '';
             if (parcela.categoria) {
                 const iconeCategoria = parcela.categoria.icone || '📋';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-                descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
+                categoriaInfo = `${iconeCategoria} ${nomeCategoria}`;
             }
 
             return `
-                <div class="parcela-card ${cardClass}">
+                <div class="parcela-card ${cardClass}" id="${cardId}">
                     <div class="parcela-card-header">
                         <span class="parcela-numero">${parcela.numero_parcela || (index + 1)}/${parcela.total_parcelas || 1}</span>
                         <span class="${statusClass}">${statusText}</span>
@@ -670,14 +696,39 @@
                             <span class="parcela-card-value parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
                         </div>
                     </div>
+                    
+                    <!-- Detalhes expandíveis -->
+                    <div class="parcela-card-detalhes" id="detalhes-${cardId}" style="display: none;">
+                        ${categoriaInfo ? `
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Categoria</span>
+                            <span class="parcela-card-value">${categoriaInfo}</span>
+                        </div>
+                        ` : ''}
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Mês/Ano</span>
+                            <span class="parcela-card-value">${mesAno}</span>
+                        </div>
+                        ${isPaga && parcela.data_pagamento ? `
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Data Pagamento</span>
+                            <span class="parcela-card-value">${parcela.data_pagamento}</span>
+                        </div>
+                        ` : ''}
+                        ${parcela.id ? `
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">ID do Item</span>
+                            <span class="parcela-card-value">#${parcela.id}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
                     <div class="parcela-card-footer">
+                        <button type="button" class="btn-ver-detalhes" onclick="FaturasModule.toggleCardDetalhes('${cardId}', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
                         ${this.renderParcelaButton(parcela, isPaga)}
                     </div>
-                    ${isPaga && parcela.data_pagamento ? `
-                        <div class="parcela-card-pago-info">
-                            ✅ Pago em ${parcela.data_pagamento}
-                        </div>
-                    ` : ''}
                 </div>
             `;
         },
@@ -689,13 +740,13 @@
             const rowClass = isPaga ? 'tr-paga' : '';
             const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
             const dataPagamentoHtml = this.getDataPagamentoInfo(parcela);
-            
+
             // Usar a descrição da parcela ou categoria se disponível
             let descricaoItem = parcela.descricao || descricaoFatura;
-            
+
             // Remover o contador de parcelas (X/Y) da descrição
             descricaoItem = descricaoItem.replace(/\s*\(\d+\/\d+\)\s*$/, '');
-            
+
             // Se tiver categoria, mostrar o nome da categoria
             if (parcela.categoria) {
                 const iconeCategoria = parcela.categoria.icone || '📋';
@@ -733,23 +784,30 @@
         renderParcelaButton(parcela, isPaga) {
             if (isPaga) {
                 return `
-                    <button class="btn-toggle-parcela btn-desfazer" 
-                        data-lancamento-id="${parcela.id}" 
-                        data-pago="true"
-                        title="Desfazer pagamento">
-                        <i class="fas fa-undo"></i>
-                       
-                    </button>
+                    <div class="btn-group-parcela">
+                        <button class="btn-toggle-parcela btn-desfazer" 
+                            data-lancamento-id="${parcela.id}" 
+                            data-pago="true"
+                            title="Desfazer pagamento">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
                 `;
             } else {
                 return `
-                    <button class="btn-toggle-parcela btn-pagar" 
-                        data-lancamento-id="${parcela.id}" 
-                        data-pago="false"
-                        title="Marcar como pago">
-                        <i class="fas fa-check"></i>
-                        Pagar
-                    </button>
+                    <div class="btn-group-parcela">
+                        <button class="btn-toggle-parcela btn-pagar" 
+                            data-lancamento-id="${parcela.id}" 
+                            data-pago="false"
+                            title="Marcar como pago">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn-excluir-item" 
+                            data-item-id="${parcela.id}"
+                            title="Excluir item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 `;
             }
         },
@@ -893,7 +951,7 @@
 
                 // Recarregar parcelamentos e reabrir modal atualizado
                 await App.carregarParcelamentos();
-                
+
                 // Reabrir o modal com dados atualizados
                 setTimeout(() => {
                     UI.showDetalhes(faturaId);
@@ -991,7 +1049,7 @@
                 });
 
                 await App.carregarParcelamentos();
-                
+
                 // Fechar o modal após pagamento completo
                 STATE.modalDetalhesInstance.hide();
 
@@ -1455,6 +1513,132 @@
 
     window.pagarFaturaCompletaGlobal = (faturaId, valorTotal) => {
         UI.pagarFaturaCompleta(faturaId, valorTotal);
+    };
+
+    window.excluirFaturaGlobal = async (faturaId) => {
+        const result = await Swal.fire({
+            title: 'Excluir Fatura?',
+            html: `
+                <p>Você está prestes a excluir esta fatura e <strong>todos os seus itens pendentes</strong>.</p>
+                <p style="color: #ef4444; font-weight: 500;">Esta ação não pode ser desfeita!</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await Utils.apiRequest(`api/faturas/${faturaId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Fatura Excluída!',
+                    text: 'A fatura foi excluída com sucesso.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Fechar modal e recarregar lista
+                if (STATE.modalDetalhesInstance) {
+                    STATE.modalDetalhesInstance.hide();
+                }
+                App.carregarParcelamentos();
+            } else {
+                throw new Error(response.error || 'Erro ao excluir fatura');
+            }
+        } catch (error) {
+            console.error('Erro ao excluir fatura:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: error.message || 'Não foi possível excluir a fatura.'
+            });
+        }
+    };
+
+    window.excluirItemFaturaGlobal = async (faturaId, itemId) => {
+        const result = await Swal.fire({
+            title: 'Excluir Item?',
+            html: `
+                <p>Você está prestes a excluir este item da fatura.</p>
+                <p style="color: #ef4444; font-weight: 500;">Esta ação não pode ser desfeita!</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                container: 'swal-above-modal'
+            }
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Item Excluído!',
+                    text: 'O item foi excluído com sucesso.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    }
+                });
+
+                // Recarregar detalhes da fatura
+                App.carregarParcelamentos();
+
+                // Se modal estiver aberto, recarregar detalhes
+                if (STATE.faturaAtual) {
+                    setTimeout(() => {
+                        UI.abrirDetalhes(faturaId);
+                    }, 500);
+                }
+            } else {
+                throw new Error(response.error || 'Erro ao excluir item');
+            }
+        } catch (error) {
+            console.error('Erro ao excluir item:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: error.message || 'Não foi possível excluir o item.',
+                customClass: {
+                    container: 'swal-above-modal'
+                }
+            });
+        }
+    };
+
+    // Função global para toggle de detalhes no card mobile
+    FaturasModule.toggleCardDetalhes = (cardId, btn) => {
+        const detalhesDiv = document.getElementById(`detalhes-${cardId}`);
+        if (!detalhesDiv) return;
+
+        const isVisible = detalhesDiv.style.display !== 'none';
+        detalhesDiv.style.display = isVisible ? 'none' : 'block';
+
+        // Atualizar ícone do botão
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
     };
 
 })();

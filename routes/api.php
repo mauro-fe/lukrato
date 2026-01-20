@@ -181,6 +181,7 @@ Router::add('POST',   '/api/faturas',              'Api\\FaturasController@store
 Router::add('GET',    '/api/faturas/{id}',         'Api\\FaturasController@show',        ['auth']);
 Router::add('DELETE', '/api/faturas/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
 Router::add('POST',   '/api/faturas/{id}/itens/{itemId}/toggle', 'Api\\FaturasController@toggleItemPago', ['auth', 'csrf']);
+Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}', 'Api\\FaturasController@destroyItem', ['auth', 'csrf']);
 
 // Rotas antigas para compatibilidade (DEPRECATED - usar /api/faturas)
 Router::add('GET',    '/api/parcelamentos',              'Api\\FaturasController@index',       ['auth']);

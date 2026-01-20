@@ -602,6 +602,7 @@ const lancamentoGlobalManager = {
                     confirmButtonColor: '#28a745',
                     allowOutsideClick: false,
                     customClass: {
+                        container: 'swal-above-modal',
                         popup: 'animated fadeInDown faster'
                     }
                 });
@@ -651,7 +652,10 @@ const lancamentoGlobalManager = {
                         title: 'Limite Insuficiente',
                         text: errorMessage,
                         confirmButtonText: 'Entendi',
-                        confirmButtonColor: '#d33'
+                        confirmButtonColor: '#d33',
+                        customClass: {
+                            container: 'swal-above-modal'
+                        }
                     });
                     this.salvando = false;
                     const btnSalvar = document.getElementById('globalBtnSalvar');
@@ -679,7 +683,10 @@ const lancamentoGlobalManager = {
                 icon: 'error',
                 title: 'Erro',
                 text: error.message,
-                confirmButtonText: 'OK'
+                confirmButtonText: 'OK',
+                customClass: {
+                    container: 'swal-above-modal'
+                }
             });
         }
     },
@@ -690,17 +697,32 @@ const lancamentoGlobalManager = {
         const data = document.getElementById('globalLancamentoData').value;
 
         if (!descricao) {
-            Swal.fire('Atenção', 'Informe a descrição', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Informe a descrição',
+                customClass: { container: 'swal-above-modal' }
+            });
             return false;
         }
 
         if (!valor || valor <= 0) {
-            Swal.fire('Atenção', 'Informe um valor válido', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Informe um valor válido',
+                customClass: { container: 'swal-above-modal' }
+            });
             return false;
         }
 
         if (!data) {
-            Swal.fire('Atenção', 'Informe a data', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Informe a data',
+                customClass: { container: 'swal-above-modal' }
+            });
             return false;
         }
 
@@ -719,7 +741,10 @@ const lancamentoGlobalManager = {
                                 <p>O valor da compra (${this.formatMoney(valor)}) excede o limite disponível do cartão.</p>
                                 <p><strong>Limite disponível:</strong> ${this.formatMoney(limiteDisponivel)}</p>
                             `,
-                            confirmButtonText: 'Entendi'
+                            confirmButtonText: 'Entendi',
+                            customClass: {
+                                container: 'swal-above-modal'
+                            }
                         });
                         return false;
                     }
@@ -730,7 +755,12 @@ const lancamentoGlobalManager = {
         if (this.tipoAtual === 'transferencia') {
             const contaDestino = document.getElementById('globalLancamentoContaDestino').value;
             if (!contaDestino) {
-                Swal.fire('Atenção', 'Selecione a conta de destino', 'warning');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Selecione a conta de destino',
+                    customClass: { container: 'swal-above-modal' }
+                });
                 return false;
             }
         }
