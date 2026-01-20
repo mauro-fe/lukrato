@@ -7,6 +7,318 @@
  * ============================================================================
  */
 
+/* =============================================================================
+   MODAL MODERNO - AGENDAMENTOS
+   ============================================================================= */
+
+/* Modal Container */
+.modern-modal .modal-content {
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+}
+
+/* Modal Header */
+.modern-header {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: white;
+  padding: var(--spacing-6);
+  border-bottom: none;
+}
+
+.modal-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.modal-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.modern-header .modal-title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  margin: 0;
+  margin-top: 4px;
+}
+
+.modern-header .btn-close {
+  filter: brightness(0) invert(1);
+  opacity: 0.8;
+  transition: var(--transition-base);
+}
+
+.modern-header .btn-close:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.modern-body {
+  padding: var(--spacing-6);
+  background: var(--color-surface);
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: var(--spacing-4);
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-2);
+}
+
+.form-label i {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.optional-badge {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: normal;
+  margin-left: auto;
+}
+
+/* Form Controls */
+.modern-body input.form-control,
+.modern-body select.form-control,
+.modern-body textarea.form-control {
+  width: 100%;
+  padding: var(--spacing-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  transition: var(--transition-base);
+}
+
+.modern-body input.form-control:focus,
+.modern-body select.form-control:focus,
+.modern-body textarea.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+}
+
+.modern-body input.form-control::placeholder,
+.modern-body textarea.form-control::placeholder {
+  color: var(--color-text-muted);
+}
+
+.modern-body textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Form Rows */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Toggle Button Modern */
+/* Toggle button styles moved to modal_agendamento.php */
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Notification Grid */
+.notification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-3);
+}
+
+@media (max-width: 576px) {
+  .notification-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.notification-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.notification-btn i {
+  font-size: 1rem;
+}
+
+.notification-btn:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.notification-btn.active {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: white;
+}
+
+.notification-btn.active i {
+  animation: ring 0.5s ease;
+}
+
+@keyframes ring {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+}
+
+/* Modern Buttons */
+.btn-modern {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+  text-decoration: none;
+}
+
+.btn-modern i {
+  font-size: 1rem;
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-modern:active {
+  transform: translateY(0);
+}
+
+.btn-primary-modern {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: white;
+}
+
+.btn-primary-modern:hover {
+  filter: brightness(1.1);
+  color: white;
+}
+
+.btn-secondary-modern {
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.btn-secondary-modern:hover {
+  background: var(--color-surface);
+  border-color: var(--color-text-muted);
+}
+
+/* Modal Footer */
+.modern-footer {
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--color-background);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .modern-modal .modal-content {
+    background: var(--color-surface-dark);
+  }
+
+  .modern-body input.form-control,
+  .modern-body select.form-control,
+  .modern-body textarea.form-control,
+  .toggle-btn-modern,
+  .notification-btn {
+    background: var(--color-background-dark);
+    border-color: var(--color-border-dark);
+    color: var(--color-text-dark);
+  }
+
+  .modern-body {
+    background: var(--color-surface-dark);
+  }
+
+  .modern-footer {
+    background: var(--color-background-dark);
+    border-top-color: var(--color-border-dark);
+  }
+}
+
 /* ============================================================================
    ESTRUTURA DE CARDS MODERNOS (PRÓPRIO)
    ============================================================================ */

@@ -1,4 +1,5 @@
 <!-- CSS Agendamentos -->
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-agendamentos-index.css">
 
 
@@ -388,130 +389,8 @@
     </div>
 </div>
 
-<!-- ==================== MODAL AGENDAMENTO ==================== -->
-<div class="modal fade" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalAgendamentoLabel">Novo Agendamento</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formAgendamento" novalidate>
-                    <input type="hidden" id="agId" name="id">
-
-                    <!-- Tipo -->
-                    <div class="mb-3">
-                        <label for="agTipo" class="form-label">
-                            <i class="fas fa-tag"></i> Tipo *
-                        </label>
-                        <select id="agTipo" name="tipo" class="form-select" required>
-                            <option value="despesa">Despesa</option>
-                            <option value="receita">Receita</option>
-                        </select>
-                    </div>
-
-                    <!-- Título -->
-                    <div class="mb-3">
-                        <label for="agTitulo" class="form-label">
-                            <i class="fas fa-heading"></i> Título *
-                        </label>
-                        <input type="text" id="agTitulo" name="titulo" class="form-control"
-                            placeholder="Ex: Aluguel, Salário..." required maxlength="100">
-                    </div>
-
-                    <!-- Categoria -->
-                    <div class="mb-3">
-                        <label for="agCategoria" class="form-label">
-                            <i class="fas fa-folder"></i> Categoria *
-                        </label>
-                        <select id="agCategoria" name="categoria_id" class="form-select" required>
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-
-                    <!-- Conta -->
-                    <div class="mb-3">
-                        <label for="agConta" class="form-label">
-                            <i class="fas fa-wallet"></i> Conta *
-                        </label>
-                        <select id="agConta" name="conta_id" class="form-select" required>
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-
-                    <!-- Valor -->
-                    <div class="mb-3">
-                        <label for="agValor" class="form-label">
-                            <i class="fas fa-dollar-sign"></i> Valor *
-                        </label>
-                        <input type="text" id="agValor" name="valor" class="form-control" placeholder="R$ 0,00"
-                            required>
-                    </div>
-
-                    <!-- Data de Pagamento -->
-                    <div class="mb-3">
-                        <label for="agDataPagamento" class="form-label">
-                            <i class="fas fa-calendar-alt"></i> Data de Execução *
-                        </label>
-                        <input type="datetime-local" id="agDataPagamento" name="data_pagamento" class="form-control"
-                            required>
-                    </div>
-
-                    <!-- Recorrente -->
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-sync-alt"></i> Recorrência
-                        </label>
-                        <input type="checkbox" id="agRecorrente" name="recorrente" value="1" hidden>
-                        <button type="button" class="toggle-btn" id="btnToggleRecorrente" data-target="agRecorrente">
-                            <i class="fas fa-calendar-check"></i>
-                            <span class="toggle-text">Não, agendamento único</span>
-                        </button>
-                    </div>
-
-                    <!-- Lembrar -->
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-bell"></i> Canais de notificação
-                        </label>
-                        <input type="checkbox" id="agLembrar" name="lembrar" value="1" hidden>
-                        <div class="notification-toggles">
-                            <button type="button" class="toggle-btn notification-toggle active" id="btnToggleSistema"
-                                data-notification="sistema">
-                                <i class="fas fa-desktop"></i>
-                                <span class="toggle-text">Aviso no sistema</span>
-                            </button>
-                            <button type="button" class="toggle-btn notification-toggle active" id="btnToggleEmail"
-                                data-notification="email">
-                                <i class="fas fa-envelope"></i>
-                                <span class="toggle-text">E-mail</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Descrição -->
-                    <div class="mb-3">
-                        <label for="agDescricao" class="form-label">
-                            <i class="fas fa-align-left"></i> Descrição
-                        </label>
-                        <textarea id="agDescricao" name="descricao" class="form-control" rows="3"
-                            placeholder="Informações adicionais..." maxlength="500"></textarea>
-                        <small class="text-muted">Opcional</small>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-                <button type="submit" form="formAgendamento" class="btn btn-primary" id="btnSubmitAgendamento">
-                    <i class="fas fa-save"></i> Salvar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modal de Agendamento -->
+<?php include BASE_PATH . '/views/admin/partials/modals/modal_agendamento.php'; ?>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
