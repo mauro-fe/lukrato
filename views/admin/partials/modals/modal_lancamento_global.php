@@ -85,7 +85,7 @@
                     </button>
 
                     <!-- Agendamento -->
-                    <!-- <button type="button" class="lk-tipo-card lk-tipo-agendamento"
+                    <button type="button" class="lk-tipo-card lk-tipo-agendamento"
                         onclick="lancamentoGlobalManager.mostrarFormulario('agendamento')">
                         <div class="lk-tipo-icon">
                             <i class="fas fa-calendar-plus"></i>
@@ -93,7 +93,7 @@
                         <h4>Agendamento</h4>
                         <p>Programar para depois</p>
                         <div class="lk-tipo-badge">📅 Agendar</div>
-                    </button> -->
+                    </button>
                 </div>
             </div>
 
