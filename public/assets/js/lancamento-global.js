@@ -183,10 +183,11 @@ const lancamentoGlobalManager = {
             });
         }
 
-        // Data padrão
+        // Data padrão (usando data local, não UTC)
         const dataInput = document.getElementById('globalLancamentoData');
         if (dataInput && !dataInput.value) {
-            dataInput.value = new Date().toISOString().split('T')[0];
+            const hoje = new Date();
+            dataInput.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
         }
     },
 
@@ -462,7 +463,9 @@ const lancamentoGlobalManager = {
         }
 
         document.getElementById('globalLancamentoValor').value = '0,00';
-        document.getElementById('globalLancamentoData').value = new Date().toISOString().split('T')[0];
+        // Usar data local, não UTC (evita pular um dia em fusos negativos)
+        const hoje = new Date();
+        document.getElementById('globalLancamentoData').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
         document.getElementById('globalParcelamentoGroup').style.display = 'none';
         document.getElementById('globalNumeroParcelasGroup').style.display = 'none';
 

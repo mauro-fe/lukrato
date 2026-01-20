@@ -1179,7 +1179,8 @@ class ContasManager {
         if (tipo === 'agendamento') {
             hoje.setDate(hoje.getDate() + 1); // Amanhã como padrão para agendamento
         }
-        document.getElementById('lancamentoData').value = hoje.toISOString().split('T')[0];
+        // Usar data local, não UTC (evita pular um dia em fusos negativos)
+        document.getElementById('lancamentoData').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
 
         // Grupos específicos
         const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
