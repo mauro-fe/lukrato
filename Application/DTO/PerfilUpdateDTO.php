@@ -11,7 +11,6 @@ class PerfilUpdateDTO
     public function __construct(
         public readonly string $nome,
         public readonly string $email,
-        public readonly string $username,
         public readonly string $cpf,
         public readonly string $telefone,
         public readonly string $sexo,
@@ -24,7 +23,6 @@ class PerfilUpdateDTO
         return new self(
             nome: trim($data['nome'] ?? ''),
             email: mb_strtolower(trim($data['email'] ?? '')),
-            username: trim($data['username'] ?? ''),
             cpf: $data['cpf'] ?? '',
             telefone: $data['telefone'] ?? '',
             sexo: $data['sexo'] ?? '',

@@ -63,11 +63,6 @@ class PerfilValidator
             $errors['email'] = 'E-mail inválido.';
         }
 
-        // Username
-        if ($dto->username !== '' && mb_strlen($dto->username) < 3) {
-            $errors['username'] = 'Username deve ter no mínimo 3 caracteres.';
-        }
-
         // CPF
         $cpf = $this->documentFormatter->digits($dto->cpf);
         if ($cpf !== '' && !$this->documentFormatter->isValidCpf($cpf)) {
@@ -92,7 +87,7 @@ class PerfilValidator
     }
 
     /**
-     * Valida unicidade de email, username e CPF.
+     * Valida unicidade de email e CPF.
      */
     private function validateUniqueness(PerfilUpdateDTO $dto, int $currentUserId): array
     {
@@ -101,11 +96,6 @@ class PerfilValidator
         // Email único
         if ($this->usuarioRepo->emailExists($dto->email, $currentUserId)) {
             $errors['email'] = 'Este e-mail já está em uso.';
-        }
-
-        // Username único
-        if ($dto->username !== '' && $this->usuarioRepo->usernameExists($dto->username, $currentUserId)) {
-            $errors['username'] = 'Este username já está em uso.';
         }
 
         // CPF único

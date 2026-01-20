@@ -666,7 +666,7 @@ class AchievementService
 
     /**
      * Verifica se o usuário completou todos os dados do perfil
-     * Campos necessários: nome, email, username, data_nascimento, id_sexo
+     * Campos necessários: nome, email, data_nascimento, id_sexo
      */
     private function checkProfileComplete(Usuario $user): bool
     {

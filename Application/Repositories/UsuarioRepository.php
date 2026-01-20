@@ -28,7 +28,6 @@ class UsuarioRepository
         // Dados básicos
         $user->nome = $data['nome'];
         $user->email = $data['email'];
-        $user->username = $data['username'];
         $user->data_nascimento = $data['data_nascimento'];
 
         // Sexo
@@ -53,16 +52,6 @@ class UsuarioRepository
     public function emailExists(string $email, int $exceptUserId): bool
     {
         return Usuario::whereRaw('LOWER(email) = ?', [mb_strtolower($email)])
-            ->where('id', '!=', $exceptUserId)
-            ->exists();
-    }
-
-    /**
-     * Verifica se username já existe (exceto para o usuário atual).
-     */
-    public function usernameExists(string $username, int $exceptUserId): bool
-    {
-        return Usuario::whereRaw('LOWER(username) = ?', [mb_strtolower($username)])
             ->where('id', '!=', $exceptUserId)
             ->exists();
     }

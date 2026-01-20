@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $nome
  * @property string|null $email
  * @property string|null $senha
- * @property string|null $username
  * @property \Carbon\Carbon|string|null $data_nascimento
  * @property int|null $id_sexo
  * @property string|null $theme_preference
@@ -38,7 +37,6 @@ class Usuario extends Model
         'nome',
         'email',
         'senha',
-        'username',
         'data_nascimento',
         'id_sexo',
         'theme_preference',

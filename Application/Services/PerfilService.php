@@ -52,7 +52,6 @@ class PerfilService
             $user = $this->usuarioRepo->update($userId, [
                 'nome' => $dto->nome,
                 'email' => $dto->email,
-                'username' => $dto->username !== '' ? $dto->username : null,
                 'data_nascimento' => $dto->dataNascimento,
                 'sexo' => $dto->sexo,
             ]);

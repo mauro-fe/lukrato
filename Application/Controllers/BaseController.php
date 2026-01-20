@@ -34,7 +34,7 @@ abstract class BaseController
 
         $this->userId = Auth::id();
         $user         = Auth::user();
-        $this->adminUsername = $user?->username ?? $user?->nome ?? null;
+        $this->adminUsername = $user?->nome ?? null;
 
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
@@ -52,7 +52,7 @@ abstract class BaseController
 
         $this->userId = Auth::id();
         $user         = Auth::user();
-        $this->adminUsername = $user?->username ?? $user?->nome ?? null;
+        $this->adminUsername = $user?->nome ?? null;
 
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
