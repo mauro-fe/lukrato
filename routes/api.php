@@ -195,4 +195,9 @@ Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController
 // ============================================
 
 Router::add('GET', '/api/sysadmin/users', 'Api\\SysAdminController@listUsers', ['auth']);
+Router::add('GET', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@getUser', ['auth']);
+Router::add('PUT', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@updateUser', ['auth', 'csrf']);
+Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@deleteUser', ['auth', 'csrf']);
 Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'csrf']);
+Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'csrf']);
+Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth']);

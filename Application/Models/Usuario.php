@@ -42,7 +42,8 @@ class Usuario extends Model
         'theme_preference',
         'external_customer_id',
         'gateway',
-        'google_id'
+        'google_id',
+        'is_admin'
     ];
 
     protected $hidden = ['senha', 'password'];
