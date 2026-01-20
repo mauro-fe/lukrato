@@ -562,11 +562,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-4) var(--spacing-5);
-  background: linear-gradient(
-    135deg,
-    var(--color-surface) 0%,
-    var(--color-surface-muted) 100%
-  );
+  background: var(--color-bg);
   border-bottom: 1px solid var(--glass-border);
   gap: var(--spacing-4);
   flex-wrap: wrap;
