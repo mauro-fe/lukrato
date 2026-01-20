@@ -271,7 +271,6 @@
                     </div>
                 </div>
 
-
                 <!-- Footer -->
                 <div class="lk-modal-footer">
                     <button type="button" class="lk-btn lk-btn-ghost" onclick="contasManager.closeLancamentoModal()">

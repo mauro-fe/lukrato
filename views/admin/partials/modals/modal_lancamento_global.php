@@ -240,31 +240,6 @@
                         </div>
                     </div>
 
-                    <!-- Observação -->
-                    <div class="lk-form-group">
-                        <label for="globalLancamentoObservacao" class="lk-label">
-                            <i class="fas fa-comment-alt"></i>
-                            Observação (opcional)
-                        </label>
-                        <textarea id="globalLancamentoObservacao" name="observacao" class="lk-textarea" rows="2"
-                            placeholder="Adicione detalhes sobre esta movimentação..." maxlength="500"></textarea>
-                    </div>
-
-                    <!-- Pago/Pendente -->
-                    <div class="lk-form-group" id="globalPagoGroup">
-                        <div class="lk-checkbox-wrapper">
-                            <label class="lk-checkbox-label">
-                                <input type="checkbox" id="globalLancamentoPago" name="pago" class="lk-checkbox"
-                                    checked>
-                                <span class="lk-checkbox-custom"></span>
-                                <span class="lk-checkbox-text">
-                                    <i class="fas fa-check-circle"></i>
-                                    Marcar como pago agora
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
                     <!-- Botões de Ação -->
                     <div class="lk-form-actions">
                         <button type="button" class="lk-btn lk-btn-secondary"
