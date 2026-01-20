@@ -148,64 +148,64 @@
                     </thead>
                     <tbody>
                         <?php if (!empty($recentUsers)): ?>
-                        <?php foreach ($recentUsers as $u): ?>
-                        <tr>
-                            <td>
-                                <span class="user-id">#<?= (int)($u->id ?? 0) ?></span>
-                            </td>
-                            <td>
-                                <div class="user-info">
-                                    <div class="user-avatar">
-                                        <?= strtoupper(substr($u->nome ?? 'U', 0, 1)) ?>
-                                    </div>
-                                    <span
-                                        class="user-name"><?= htmlspecialchars($u->nome ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
-                                </div>
-                            </td>
-                            <td>
-                                <span
-                                    class="user-email"><?= htmlspecialchars($u->email ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
-                            </td>
-                            <td>
-                                <?php if (($u->is_admin ?? 0) == 1): ?>
-                                <span class="badge-status admin">
-                                    <i class="fas fa-shield-alt"></i>
-                                    Admin
-                                </span>
-                                <?php else: ?>
-                                <span class="badge-status user">
-                                    <i class="fas fa-user"></i>
-                                    Usuario
-                                </span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <span class="user-date">
-                                    <?= $u->created_at ? date('d/m/Y H:i', strtotime((string)$u->created_at)) : '-' ?>
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <div class="action-buttons">
-                                    <button class="btn-action edit" title="Editar usuario"
-                                        onclick="editUser(<?= (int)($u->id ?? 0) ?>)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-action delete" title="Excluir usuario"
-                                        onclick="deleteUser(<?= (int)($u->id ?? 0) ?>)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                            <?php foreach ($recentUsers as $u): ?>
+                                <tr>
+                                    <td>
+                                        <span class="user-id">#<?= (int)($u->id ?? 0) ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="user-info">
+                                            <div class="user-avatar">
+                                                <?= strtoupper(substr($u->nome ?? 'U', 0, 1)) ?>
+                                            </div>
+                                            <span
+                                                class="user-name"><?= htmlspecialchars($u->nome ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="user-email"><?= htmlspecialchars($u->email ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if (($u->is_admin ?? 0) == 1): ?>
+                                            <span class="badge-status admin">
+                                                <i class="fas fa-shield-alt"></i>
+                                                Admin
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge-status user">
+                                                <i class="fas fa-user"></i>
+                                                Usuario
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="user-date">
+                                            <?= $u->created_at ? date('d/m/Y H:i', strtotime((string)$u->created_at)) : '-' ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <button class="btn-action edit" title="Editar usuario"
+                                                onclick="editUser(<?= (int)($u->id ?? 0) ?>)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-action delete" title="Excluir usuario"
+                                                onclick="deleteUser(<?= (int)($u->id ?? 0) ?>)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         <?php else: ?>
-                        <tr>
-                            <td colspan="6" class="text-center" style="padding: 2rem;">
-                                <i class="fas fa-inbox"
-                                    style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 1rem;"></i>
-                                <p style="color: var(--color-text-muted);">Nenhum usuario encontrado</p>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="6" class="text-center" style="padding: 2rem;">
+                                    <i class="fas fa-inbox"
+                                        style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 1rem;"></i>
+                                    <p style="color: var(--color-text-muted);">Nenhum usuario encontrado</p>
+                                </td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -215,144 +215,144 @@
 </div>
 
 <script>
-function limparCache() {
-    if (window.Swal) {
-        Swal.fire({
-            title: 'Limpar Cache?',
-            text: 'Isso ira remover todos os arquivos de cache do sistema.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#e67e22',
-            cancelButtonColor: '#95a5a6',
-            confirmButtonText: 'Sim, limpar!',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
+    function limparCache() {
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Limpar Cache?',
+                text: 'Isso ira remover todos os arquivos de cache do sistema.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sim, limpar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cache Limpo!',
+                        text: 'O cache do sistema foi limpo com sucesso.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        } else {
+            if (confirm('Tem certeza que deseja limpar o cache do sistema?')) {
+                alert('Cache limpo com sucesso!');
+            }
+        }
+    }
+
+    function toggleMaintenance() {
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Modo Manutencao',
+                text: 'Deseja ativar o modo manutencao? O site ficara indisponivel para usuarios.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sim, ativar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Modo Manutencao Ativado',
+                        text: 'O sistema esta agora em modo manutencao.',
+                        timer: 2000
+                    });
+                }
+            });
+        } else {
+            if (confirm('Deseja ativar o modo manutencao?')) {
+                alert('Modo manutencao ativado!');
+            }
+        }
+    }
+
+    function searchUser() {
+        const query = document.getElementById('userSearch');
+        if (!query) return;
+
+        const value = query.value.trim();
+        if (!value) {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campo vazio',
+                    text: 'Digite um e-mail ou ID para buscar.',
+                    timer: 2000
+                });
+            } else {
+                alert('Digite um e-mail ou ID para buscar.');
+            }
+            return;
+        }
+
+        console.log('Buscando:', value);
+        // Implementar logica de busca aqui
+    }
+
+    function loadRecentUsers() {
+        const btn = event.target.closest('.btn-refresh');
+        if (!btn) return;
+
+        const icon = btn.querySelector('i');
+        if (icon) icon.classList.add('fa-spin');
+
+        setTimeout(() => {
+            if (icon) icon.classList.remove('fa-spin');
+            if (window.Swal) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Cache Limpo!',
-                    text: 'O cache do sistema foi limpo com sucesso.',
-                    timer: 2000,
+                    title: 'Atualizado!',
+                    timer: 1000,
                     showConfirmButton: false
                 });
             }
-        });
-    } else {
-        if (confirm('Tem certeza que deseja limpar o cache do sistema?')) {
-            alert('Cache limpo com sucesso!');
-        }
+            location.reload();
+        }, 1000);
     }
-}
 
-function toggleMaintenance() {
-    if (window.Swal) {
-        Swal.fire({
-            title: 'Modo Manutencao',
-            text: 'Deseja ativar o modo manutencao? O site ficara indisponivel para usuarios.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            cancelButtonColor: '#95a5a6',
-            confirmButtonText: 'Sim, ativar!',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Modo Manutencao Ativado',
-                    text: 'O sistema esta agora em modo manutencao.',
-                    timer: 2000
-                });
-            }
-        });
-    } else {
-        if (confirm('Deseja ativar o modo manutencao?')) {
-            alert('Modo manutencao ativado!');
-        }
-    }
-}
-
-function searchUser() {
-    const query = document.getElementById('userSearch');
-    if (!query) return;
-
-    const value = query.value.trim();
-    if (!value) {
+    function editUser(userId) {
+        console.log('Editando usuario:', userId);
+        // Implementar logica de edicao
         if (window.Swal) {
             Swal.fire({
-                icon: 'warning',
-                title: 'Campo vazio',
-                text: 'Digite um e-mail ou ID para buscar.',
+                icon: 'info',
+                title: 'Em desenvolvimento',
+                text: 'Funcionalidade de edicao em breve.',
                 timer: 2000
             });
-        } else {
-            alert('Digite um e-mail ou ID para buscar.');
         }
-        return;
     }
 
-    console.log('Buscando:', value);
-    // Implementar logica de busca aqui
-}
-
-function loadRecentUsers() {
-    const btn = event.target.closest('.btn-refresh');
-    if (!btn) return;
-
-    const icon = btn.querySelector('i');
-    if (icon) icon.classList.add('fa-spin');
-
-    setTimeout(() => {
-        if (icon) icon.classList.remove('fa-spin');
+    function deleteUser(userId) {
         if (window.Swal) {
             Swal.fire({
-                icon: 'success',
-                title: 'Atualizado!',
-                timer: 1000,
-                showConfirmButton: false
+                title: 'Excluir Usuario?',
+                text: 'Esta acao nao podera ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log('Deletando usuario:', userId);
+                    Swal.fire('Deletado!', 'Usuario removido.', 'success');
+                }
             });
         }
-        location.reload();
-    }, 1000);
-}
-
-function editUser(userId) {
-    console.log('Editando usuario:', userId);
-    // Implementar logica de edicao
-    if (window.Swal) {
-        Swal.fire({
-            icon: 'info',
-            title: 'Em desenvolvimento',
-            text: 'Funcionalidade de edicao em breve.',
-            timer: 2000
-        });
     }
-}
 
-function deleteUser(userId) {
-    if (window.Swal) {
+    function openGrantAccessModal() {
         Swal.fire({
-            title: 'Excluir Usuario?',
-            text: 'Esta acao nao podera ser desfeita!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            cancelButtonColor: '#95a5a6',
-            confirmButtonText: 'Sim, excluir!',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                console.log('Deletando usuario:', userId);
-                Swal.fire('Deletado!', 'Usuario removido.', 'success');
-            }
-        });
-    }
-}
-
-function openGrantAccessModal() {
-    Swal.fire({
-        title: '<i class="fas fa-crown"></i> Liberar Acesso PRO',
-        html: `
+            title: '<i class="fas fa-crown"></i> Liberar Acesso PRO',
+            html: `
             <div style="text-align: left;">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
@@ -388,107 +388,107 @@ function openGrantAccessModal() {
                 </div>
             </div>
         `,
-        customClass: {
-            popup: 'sysadmin-swal'
-        },
-        showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-check"></i> Liberar Acesso',
-        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-        confirmButtonColor: '#f97316',
-        cancelButtonColor: '#94a3b8',
-        width: '500px',
-        didOpen: () => {
-            const periodSelect = document.getElementById('grantPeriod');
-            const customDiv = document.getElementById('customDaysDiv');
+            customClass: {
+                popup: 'sysadmin-swal'
+            },
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-check"></i> Liberar Acesso',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonColor: '#f97316',
+            cancelButtonColor: '#94a3b8',
+            width: '500px',
+            didOpen: () => {
+                const periodSelect = document.getElementById('grantPeriod');
+                const customDiv = document.getElementById('customDaysDiv');
 
-            periodSelect.addEventListener('change', function() {
-                customDiv.style.display = this.value === 'custom' ? 'block' : 'none';
-            });
-        },
-        preConfirm: () => {
-            const userId = document.getElementById('grantUserId').value.trim();
-            const period = document.getElementById('grantPeriod').value;
-            const customDays = document.getElementById('customDays').value;
+                periodSelect.addEventListener('change', function() {
+                    customDiv.style.display = this.value === 'custom' ? 'block' : 'none';
+                });
+            },
+            preConfirm: () => {
+                const userId = document.getElementById('grantUserId').value.trim();
+                const period = document.getElementById('grantPeriod').value;
+                const customDays = document.getElementById('customDays').value;
 
-            if (!userId) {
-                Swal.showValidationMessage('Por favor, informe o email ou ID do usuário');
-                return false;
-            }
-
-            let days = period;
-            if (period === 'custom') {
-                if (!customDays || customDays < 1) {
-                    Swal.showValidationMessage('Por favor, informe um número válido de dias');
+                if (!userId) {
+                    Swal.showValidationMessage('Por favor, informe o email ou ID do usuário');
                     return false;
                 }
-                days = customDays;
+
+                let days = period;
+                if (period === 'custom') {
+                    if (!customDays || customDays < 1) {
+                        Swal.showValidationMessage('Por favor, informe um número válido de dias');
+                        return false;
+                    }
+                    days = customDays;
+                }
+
+                return {
+                    userId,
+                    days
+                };
             }
-
-            return {
-                userId,
-                days
-            };
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            grantProAccess(result.value.userId, result.value.days);
-        }
-    });
-}
-
-async function grantProAccess(userId, days) {
-    try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        const response = await fetch('<?= BASE_URL ?>api/sysadmin/grant-access', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                userId,
-                days
-            })
+        }).then((result) => {
+            if (result.isConfirmed) {
+                grantProAccess(result.value.userId, result.value.days);
+            }
         });
+    }
 
-        const data = await response.json();
+    async function grantProAccess(userId, days) {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        console.log('🔍 Response status:', response.status);
-        console.log('🔍 Response ok:', response.ok);
-        console.log('🔍 Data received:', data);
+            const response = await fetch('<?= BASE_URL ?>api/sysadmin/grant-access', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    userId,
+                    days
+                })
+            });
 
-        if (response.ok && data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Acesso Liberado!',
-                html: `
+            const data = await response.json();
+
+            console.log('🔍 Response status:', response.status);
+            console.log('🔍 Response ok:', response.ok);
+            console.log('🔍 Data received:', data);
+
+            if (response.ok && data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Acesso Liberado!',
+                    html: `
                     <p><strong>${data.data.userName}</strong> agora tem acesso PRO por <strong>${days} dias</strong>.</p>
                     <p style="color: #64748b; font-size: 14px; margin-top: 10px;">
                         Válido até: <strong>${data.data.expiresAt}</strong>
                     </p>
                 `,
-                confirmButtonColor: '#f97316'
-            }).then(() => {
-                location.reload();
-            });
-        } else {
+                    confirmButtonColor: '#f97316'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: data.message || 'Não foi possível liberar o acesso',
+                    confirmButtonColor: '#f97316'
+                });
+            }
+        } catch (error) {
+            console.error('Erro:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: data.message || 'Não foi possível liberar o acesso',
+                text: 'Ocorreu um erro ao processar a solicitação',
                 confirmButtonColor: '#f97316'
             });
         }
-    } catch (error) {
-        console.error('Erro:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Erro',
-            text: 'Ocorreu um erro ao processar a solicitação',
-            confirmButtonColor: '#f97316'
-        });
     }
-}
 </script>

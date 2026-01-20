@@ -607,7 +607,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // Redirecionar para página de upgrade
-                window.location.href = `${BASE}premium`;
+                window.location.href = `${BASE}billing`;
             }
         });
     }

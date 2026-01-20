@@ -1205,7 +1205,7 @@
 
             const parts = [];
             const isXs = window.matchMedia('(max-width: 414px)').matches;
-            
+
             // Debug log
             if (isXs) {
                 console.log('Mobile mode (≤414px) - botões nos detalhes');
@@ -1287,9 +1287,9 @@
                 if (isXs) {
                     const canEdit = Utils.canEditLancamento(item);
                     const canDelete = !Utils.isSaldoInicial(item);
-                    
+
                     const buttonStyle = 'display: flex !important; visibility: visible !important; opacity: 1 !important; width: 30px !important; height: 36px !important; min-width: 30px !important; min-height: 36px !important; border-radius: 10px !important; padding: 0 !important; margin: 0 2px !important; align-items: center !important; justify-content: center !important; flex: 0 0 auto !important; position: relative !important; z-index: 999 !important;';
-                    
+
                     // Se tiver ao menos uma permissão, mostra os botões permitidos
                     if (canEdit || canDelete) {
                         mobileActionsHtml = `
@@ -1359,7 +1359,7 @@
             }
 
             DOM.lanCards.innerHTML = parts.join('');
-            
+
             // Debug: verificar se os botões foram inseridos no DOM
             if (isXs) {
                 const actionsRows = document.querySelectorAll('.actions-row');
@@ -1831,11 +1831,18 @@
                     limit: CONFIG.DATA_LIMIT
                 });
 
+                console.log('📊 [DataManager.load] Fetched items:', items.length, items);
+
                 // Armazenar no STATE para uso do ParcelamentoGrouper
                 STATE.lancamentos = items;
 
+                console.log('🔄 [DataManager.load] Rendering table...');
                 await TableManager.renderRows(items);
+
+                console.log('📱 [DataManager.load] Setting mobile cards...');
                 MobileCards.setItems(items);
+
+                console.log('✅ [DataManager.load] Complete!');
             }, CONFIG.DEBOUNCE_DELAY);
         },
 

@@ -28,6 +28,7 @@ class CartaoCreditoLancamentoService
             $cartaoId = $data['cartao_credito_id'] ?? null;
             $ehParcelado = (bool)($data['eh_parcelado'] ?? false);
             $totalParcelas = (int)($data['total_parcelas'] ?? 1);
+            $valorCompra = (float)($data['valor'] ?? 0);
 
             // Buscar cartão
             $cartao = CartaoCredito::where('id', $cartaoId)
@@ -38,6 +39,18 @@ class CartaoCreditoLancamentoService
                 return [
                     'success' => false,
                     'message' => 'Cartão de crédito não encontrado',
+                ];
+            }
+
+            // VALIDAR LIMITE DISPONÍVEL
+            if ($valorCompra > $cartao->limite_disponivel) {
+                return [
+                    'success' => false,
+                    'message' => sprintf(
+                        'Limite insuficiente. Disponível: R$ %.2f, Necessário: R$ %.2f',
+                        $cartao->limite_disponivel,
+                        $valorCompra
+                    ),
                 ];
             }
 
@@ -284,6 +297,8 @@ class CartaoCreditoLancamentoService
         $cartao = CartaoCredito::find($cartaoId);
         if (!$cartao) return;
 
+        $limiteAnterior = $cartao->limite_disponivel;
+
         if ($operacao === 'debito') {
             $cartao->limite_disponivel = max(0, $cartao->limite_disponivel - $valor);
         } else if ($operacao === 'credito') {
@@ -291,6 +306,14 @@ class CartaoCreditoLancamentoService
         }
 
         $cartao->save();
+
+        LogService::info("💳 [LIMITE] Limite atualizado", [
+            'cartao_id' => $cartaoId,
+            'operacao' => $operacao,
+            'valor' => $valor,
+            'limite_anterior' => $limiteAnterior,
+            'limite_novo' => $cartao->limite_disponivel,
+        ]);
     }
 
     /**

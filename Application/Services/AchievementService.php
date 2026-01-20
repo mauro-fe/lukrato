@@ -10,6 +10,7 @@ use Application\Models\Lancamento;
 use Application\Models\Categoria;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
+use Application\Models\PointsLog;
 
 use Application\Enums\AchievementType;
 use Carbon\Carbon;
@@ -231,6 +232,22 @@ class AchievementService
             if ($progress) {
                 $progress->total_points += $achievement->points_reward;
                 $progress->save();
+
+                // 🐛 FIX: Registrar pontos no log para evitar divergências
+                PointsLog::create([
+                    'user_id' => $userId,
+                    'action' => 'achievement_unlock',
+                    'points' => $achievement->points_reward,
+                    'description' => "Conquista desbloqueada: {$achievement->name}",
+                    'metadata' => [
+                        'achievement_code' => $achievement->code,
+                        'achievement_id' => $achievement->id,
+                    ],
+                    'related_id' => $achievementId,
+                    'related_type' => 'achievement',
+                ]);
+
+                error_log("🏆 [ACHIEVEMENT] User {$userId} desbloqueou '{$achievement->name}' (+{$achievement->points_reward} pts)");
             }
         }
 

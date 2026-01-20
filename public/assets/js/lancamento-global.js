@@ -39,13 +39,13 @@ const lancamentoGlobalManager = {
             } else {
                 const dataContas = await resContas.json();
                 const contasArray = dataContas.contas || dataContas || [];
-                
+
                 // Garantir que cada conta tem um saldo (usar saldoAtual se disponível, senão saldo_inicial)
                 this.contas = contasArray.map(conta => ({
                     ...conta,
                     saldo: conta.saldoAtual !== undefined ? conta.saldoAtual : (conta.saldo_inicial || 0)
                 }));
-                
+
                 console.log('Contas carregadas:', this.contas);
             }
             this.preencherSelectContas();
@@ -105,7 +105,7 @@ const lancamentoGlobalManager = {
             option.dataset.nome = conta.nome;
             select.appendChild(option);
         });
-        
+
         console.log('Select preenchido com', this.contas.length, 'contas');
     },
 
@@ -195,7 +195,7 @@ const lancamentoGlobalManager = {
         if (overlay) {
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
-            
+
             // Sempre recarregar dados para garantir saldos atualizados
             await this.carregarDados();
 
@@ -220,13 +220,13 @@ const lancamentoGlobalManager = {
         if (overlay) {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
-            
+
             // Resetar cor do header para o padrão (laranja)
             const headerGradient = overlay.querySelector('.lk-modal-header-gradient');
             if (headerGradient) {
                 headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
             }
-            
+
             this.resetarFormulario();
         }
     },
@@ -278,13 +278,13 @@ const lancamentoGlobalManager = {
     configurarCamposPorTipo(tipo) {
         console.log('Configurando campos para o tipo:', tipo);
         console.log('Categorias disponíveis:', this.categorias);
-        
+
         // Mudar cor do header conforme o tipo
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) {
             // Remover classes anteriores
             headerGradient.classList.remove('receita', 'despesa', 'transferencia', 'agendamento');
-            
+
             // Aplicar cor conforme o tipo
             if (tipo === 'receita') {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #28a745 0%, #20c997 100%)', 'important');
@@ -296,7 +296,7 @@ const lancamentoGlobalManager = {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)', 'important');
             }
         }
-        
+
         // Conta Destino (apenas transferência)
         const contaDestinoGroup = document.getElementById('globalContaDestinoGroup');
         contaDestinoGroup.style.display = tipo === 'transferencia' ? 'block' : 'none';
@@ -378,22 +378,22 @@ const lancamentoGlobalManager = {
         }
 
         const optionVazio = '<option value="">Não usar cartão (débito na conta)</option>';
-        
+
         // Garantir que cartoes seja um array
         if (!Array.isArray(this.cartoes)) {
             console.error('this.cartoes não é um array:', this.cartoes);
             this.cartoes = [];
         }
-        
+
         if (this.cartoes.length === 0) {
             console.warn('Nenhum cartão carregado');
             select.innerHTML = optionVazio;
             return;
         }
-        
+
         const cartoesAtivos = this.cartoes.filter(c => c.ativo);
         console.log('Cartões ativos:', cartoesAtivos);
-        
+
         const optionsCartoes = cartoesAtivos
             .map(cartao => `<option value="${cartao.id}">${cartao.nome_cartao || cartao.bandeira} •••• ${cartao.ultimos_digitos}</option>`)
             .join('');
@@ -426,7 +426,7 @@ const lancamentoGlobalManager = {
         console.log(`Preenchendo categorias do tipo "${tipo}":`, categoriasFiltradas);
 
         select.innerHTML = '<option value="">Sem categoria</option>';
-        
+
         if (categoriasFiltradas.length === 0) {
             console.warn(`Nenhuma categoria do tipo "${tipo}" encontrada`);
         } else {
@@ -437,7 +437,7 @@ const lancamentoGlobalManager = {
                 select.appendChild(option);
             });
         }
-        
+
         console.log('Select de categorias preenchido com', categoriasFiltradas.length, 'categorias');
     },
 
@@ -445,13 +445,13 @@ const lancamentoGlobalManager = {
         document.getElementById('globalFormSection').style.display = 'none';
         document.getElementById('globalTipoSection').style.display = 'block';
         document.getElementById('modalLancamentoGlobalTitulo').textContent = 'Nova Movimentação';
-        
+
         // Resetar cor do header para o padrão (laranja)
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) {
             headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
         }
-        
+
         this.resetarFormulario();
     },
 
@@ -465,7 +465,7 @@ const lancamentoGlobalManager = {
         document.getElementById('globalLancamentoData').value = new Date().toISOString().split('T')[0];
         document.getElementById('globalParcelamentoGroup').style.display = 'none';
         document.getElementById('globalNumeroParcelasGroup').style.display = 'none';
-        
+
         // Resetar tipo de agendamento
         const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
         if (tipoAgGroup) tipoAgGroup.style.display = 'none';
@@ -487,7 +487,7 @@ const lancamentoGlobalManager = {
         }
 
         this.salvando = true;
-        
+
         console.log('🚀 Iniciando salvarLancamento');
         console.log('📌 tipoAtual:', this.tipoAtual);
 
@@ -503,24 +503,24 @@ const lancamentoGlobalManager = {
             }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            
+
             // Determinar endpoint e dados baseado no tipo
             let apiUrl = `${this.baseUrl}api/lancamentos`;
             let requestData = dados;
-            
+
             console.log('🔍 Verificando tipo:', this.tipoAtual);
-            
+
             if (this.tipoAtual === 'agendamento') {
                 // Usar endpoint de agendamentos
                 apiUrl = `${this.baseUrl}api/agendamentos`;
                 const tipoAgendamento = document.getElementById('globalLancamentoTipoAgendamento')?.value || 'despesa';
-                
+
                 // Garantir que a data tenha hora (adicionar 12:00 se não tiver)
                 let dataPagamento = dados.data;
                 if (dataPagamento && !dataPagamento.includes(' ') && !dataPagamento.includes('T')) {
                     dataPagamento = dataPagamento + ' 12:00:00';
                 }
-                
+
                 requestData = {
                     titulo: dados.descricao,
                     tipo: tipoAgendamento,
@@ -543,7 +543,7 @@ const lancamentoGlobalManager = {
                     observacao: dados.observacao
                 };
             }
-            
+
             console.log('🌐 URL da API:', apiUrl);
             console.log('📤 Dados a enviar:', requestData);
 
@@ -557,27 +557,27 @@ const lancamentoGlobalManager = {
             });
 
             console.log('Response status:', response.status);
-            
+
             const result = await response.json();
             console.log('Response data:', result);
 
             // Verificar se foi sucesso (status 200/201 ou result.success/result.status === 'success')
             const isSuccess = response.ok && (
-                result.success === true || 
-                result.status === 'success' || 
+                result.success === true ||
+                result.status === 'success' ||
                 response.status === 201
             );
 
             if (isSuccess) {
                 // Guardar tipo atual ANTES de fechar o modal (pois closeModal reseta)
                 const tipoLancamento = this.tipoAtual;
-                
+
                 // Fechar modal ANTES de mostrar o Sweet Alert
                 this.closeModal();
-                
+
                 // Pequeno delay para garantir que o modal feche completamente
                 await new Promise(resolve => setTimeout(resolve, 100));
-                
+
                 // Determinar o título baseado no tipo de lançamento
                 const titulos = {
                     'receita': 'Receita Criada!',
@@ -586,7 +586,7 @@ const lancamentoGlobalManager = {
                     'agendamento': 'Agendamento Criado!'
                 };
                 const titulo = titulos[tipoLancamento] || 'Lançamento Criado!';
-                
+
                 await Swal.fire({
                     icon: 'success',
                     title: titulo,
@@ -608,27 +608,27 @@ const lancamentoGlobalManager = {
 
                 // Recarregar página se estiver em página relevante
                 const currentPath = window.location.pathname.toLowerCase();
-                
+
                 console.log('📍 Verificando reload - Path:', currentPath, 'Tipo:', tipoLancamento);
-                
+
                 // Sempre recarregar se criou agendamento
                 if (tipoLancamento === 'agendamento') {
                     console.log('🔄 Recarregando página após criar agendamento');
                     window.location.reload();
                     return;
                 }
-                
+
                 // Recarregar para contas ou lançamentos
                 if (currentPath.includes('contas') || currentPath.includes('lancamentos')) {
                     window.location.reload();
                     return;
                 }
-                
+
                 // Disparar eventos para atualizar outras partes da página
                 window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
-                
+
                 this.salvando = false;
-                
+
                 // Reabilitar botão
                 const btnSalvar = document.getElementById('globalBtnSalvar');
                 if (btnSalvar) {
@@ -638,25 +638,43 @@ const lancamentoGlobalManager = {
             } else {
                 // Mostrar erros específicos da validação
                 let errorMessage = result.message || 'Erro ao salvar lançamento';
-                
+
                 if (result.errors) {
                     const errorList = Object.values(result.errors).flat().join('\n');
                     errorMessage = errorList || errorMessage;
                 }
-                
+
+                // Se for erro de limite, mostrar com mais destaque
+                if (errorMessage.toLowerCase().includes('limite')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Limite Insuficiente',
+                        text: errorMessage,
+                        confirmButtonText: 'Entendi',
+                        confirmButtonColor: '#d33'
+                    });
+                    this.salvando = false;
+                    const btnSalvar = document.getElementById('globalBtnSalvar');
+                    if (btnSalvar) {
+                        btnSalvar.disabled = false;
+                        btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                    }
+                    return;
+                }
+
                 throw new Error(errorMessage);
             }
         } catch (error) {
             console.error('Erro ao salvar lançamento:', error);
             this.salvando = false;
-            
+
             // Reabilitar botão
             const btnSalvar = document.getElementById('globalBtnSalvar');
             if (btnSalvar) {
                 btnSalvar.disabled = false;
                 btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar';
             }
-            
+
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
@@ -686,6 +704,29 @@ const lancamentoGlobalManager = {
             return false;
         }
 
+        // Validar limite do cartão de crédito se houver
+        if (this.tipoAtual === 'despesa') {
+            const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
+            if (cartaoId) {
+                const cartao = this.cartoes.find(c => c.id == cartaoId);
+                if (cartao) {
+                    const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
+                    if (valor > limiteDisponivel) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Limite Insuficiente',
+                            html: `
+                                <p>O valor da compra (${this.formatMoney(valor)}) excede o limite disponível do cartão.</p>
+                                <p><strong>Limite disponível:</strong> ${this.formatMoney(limiteDisponivel)}</p>
+                            `,
+                            confirmButtonText: 'Entendi'
+                        });
+                        return false;
+                    }
+                }
+            }
+        }
+
         if (this.tipoAtual === 'transferencia') {
             const contaDestino = document.getElementById('globalLancamentoContaDestino').value;
             if (!contaDestino) {
@@ -699,7 +740,7 @@ const lancamentoGlobalManager = {
 
     coletarDadosFormulario() {
         const contaId = this.contaSelecionada?.id;
-        
+
         if (!contaId) {
             console.error('Conta não selecionada!');
             throw new Error('Conta não selecionada');

@@ -516,20 +516,18 @@ class FaturaService
         // Criar lançamento se não existir
         if (!$item->lancamento_id) {
             $valorFormatado = round((float) $item->valor, 2);
-            $dataVencimento = $item->data_vencimento ?
-                $item->data_vencimento->format('Y-m-d') :
-                now()->format('Y-m-d');
+            $dataPagamento = now()->format('Y-m-d');
 
             $lancamento = Lancamento::create([
                 'user_id' => $usuarioId,
                 'tipo' => 'despesa',
                 'valor' => $valorFormatado,
-                'data' => $dataVencimento,
+                'data' => $dataPagamento, // Usar data do pagamento, não do vencimento
                 'descricao' => $item->descricao ?: 'Pagamento de fatura',
                 'categoria_id' => $item->categoria_id,
                 'conta_id' => $item->cartaoCredito->conta_id,
                 'pago' => true,
-                'data_pagamento' => now()->format('Y-m-d'),
+                'data_pagamento' => $dataPagamento,
                 'observacao' => sprintf(
                     'Pagamento de fatura - %s (Parcela %d/%d)',
                     $item->cartaoCredito->nome ?? $item->cartaoCredito->bandeira ?? 'Cartão',

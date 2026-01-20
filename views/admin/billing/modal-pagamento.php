@@ -223,7 +223,7 @@ if (isset($user) && $user) {
     .payment-form__input:focus {
         border-color: var(--color-primary);
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent),
-                    0 4px 12px color-mix(in srgb, var(--color-primary) 15%, transparent);
+            0 4px 12px color-mix(in srgb, var(--color-primary) 15%, transparent);
         background: var(--color-surface);
         transform: translateY(-1px);
     }
@@ -633,20 +633,23 @@ if (isset($user) && $user) {
                         const basePrice = Number(proPriceElement.dataset.basePrice || 0);
                         const months = Number(b.dataset.months || 1);
                         const discount = Number(b.dataset.discount || 0);
-                        
+
                         const total = calcTotal(basePrice, months, discount);
                         const period = cycleLabel(months);
-                        
-                        const priceValueElement = proPriceElement.querySelector('.plan-card__price-value');
-                        const pricePeriodElement = proPriceElement.querySelector('.plan-card__price-period');
-                        
+
+                        const priceValueElement = proPriceElement.querySelector(
+                            '.plan-card__price-value');
+                        const pricePeriodElement = proPriceElement.querySelector(
+                            '.plan-card__price-period');
+
                         if (priceValueElement) {
                             // Adiciona animação de saída
                             priceValueElement.style.animation = 'none';
                             // Força reflow
                             void priceValueElement.offsetWidth;
                             // Atualiza o valor
-                            priceValueElement.textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            priceValueElement.textContent =
+                                `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                             // Adiciona animação de entrada
                             priceValueElement.style.animation = 'priceAppear 0.5s ease';
                         }

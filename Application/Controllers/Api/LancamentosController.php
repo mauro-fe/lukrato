@@ -140,13 +140,6 @@ class LancamentosController extends BaseController
             ->leftJoin('contas as a',     'a.id', '=', 'l.conta_id')
             ->where('l.user_id', $userId)
             ->whereBetween('l.data', [$from, $to])
-            // Excluir do resultado geral parcelas que já foram pagas (mantemos
-            // as parcelas no detalhe do parcelamento, mas não queremos duplicar
-            // o lançamento criado para o pagamento antecipado na listagem geral).
-            ->where(function ($w) {
-                $w->whereNull('l.parcelamento_id')
-                    ->orWhere('l.pago', 0);
-            })
             ->when($accId, fn($w) => $w->where(function (Builder $s) use ($accId) {
                 $s->where('l.conta_id', $accId)
                     ->orWhere('l.conta_id_destino', $accId);
@@ -161,6 +154,7 @@ class LancamentosController extends BaseController
         $rows = $q->selectRaw('
             l.id, l.data, l.tipo, l.valor, l.descricao, l.observacao, 
             l.categoria_id, l.conta_id, l.conta_id_destino, l.eh_transferencia, l.eh_saldo_inicial,
+            l.pago, l.parcelamento_id, l.cartao_credito_id,
             COALESCE(c.nome, "") as categoria,
             COALESCE(a.nome, "") as conta_nome,
             COALESCE(a.instituicao, "") as conta_instituicao,
@@ -179,6 +173,9 @@ class LancamentosController extends BaseController
             'conta_id_destino' => (int)$r->conta_id_destino ?: null,
             'eh_transferencia' => (bool) ($r->eh_transferencia ?? 0),
             'eh_saldo_inicial' => (bool)($r->eh_saldo_inicial ?? 0),
+            'pago'             => (bool)($r->pago ?? 0),
+            'parcelamento_id'  => (int)$r->parcelamento_id ?: null,
+            'cartao_credito_id' => (int)$r->cartao_credito_id ?: null,
             'categoria'        => (string)$r->categoria,
             'conta'            => (string)$r->conta,
             'conta_nome'       => (string)$r->conta_nome,

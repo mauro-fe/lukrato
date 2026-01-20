@@ -36,9 +36,9 @@
     justify-content: space-between;
     padding: 14px 16px;
     border-radius: 12px;
-    background: rgba(255, 193, 7, 0.12);
+    background: var(--color-bg) !important;
     border: 1px solid rgba(255, 193, 7, 0.30);
-    color: var(--color-text, #e8edf3);
+    color: var(--text-color) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
@@ -265,7 +265,7 @@
                         </div>
                     </div>
                     <div class="lk-usage-banner__actions">
-                        <a class="lk-usage-banner__link" href="<?= BASE_URL ?>planos" title="${escapeHtml(upgradeCta || 'Assinar plano Pro')}">
+                        <a class="lk-usage-banner__link" href="<?= BASE_URL ?>billing" title="${escapeHtml(upgradeCta || 'Assinar plano Pro')}">
                             <i class="fas fa-crown"></i>
                             <span>Assinar Pro</span>
                         </a>

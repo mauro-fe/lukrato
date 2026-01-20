@@ -1725,6 +1725,21 @@ class ContasManager {
             const ehParcelado = formData.get('eh_parcelado') === 'on' || formData.get('eh_parcelado') === true;
             const totalParcelas = formData.get('total_parcelas') ? parseInt(formData.get('total_parcelas')) : null;
 
+            // Validar limite do cartão de crédito se houver
+            if (cartaoCreditoId && tipo === 'despesa' && this.cartoes && Array.isArray(this.cartoes)) {
+                const cartao = this.cartoes.find(c => c.id == cartaoCreditoId);
+                if (cartao) {
+                    const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
+                    if (valor > limiteDisponivel) {
+                        this.showNotification(
+                            `Limite insuficiente! Disponível: ${this.formatCurrency(limiteDisponivel)}, Necessário: ${this.formatCurrency(valor)}`,
+                            'error'
+                        );
+                        throw new Error('Limite do cartão insuficiente');
+                    }
+                }
+            }
+
             const data = {
                 conta_id: contaId,
                 tipo: tipo,
@@ -1867,13 +1882,31 @@ class ContasManager {
         } catch (error) {
             console.error('❌ Erro ao criar lançamento:', error);
 
-            if (error.message !== 'Conta destino obrigatória para transferências' &&
-                error.message !== 'Selecione contas de origem e destino diferentes.' &&
-                error.message !== 'Valor inválido') {
-                this.showNotification(
-                    error.message || 'Erro ao criar lançamento. Tente novamente.',
-                    'error'
-                );
+            // Lista de erros que já foram mostrados ao usuário antes
+            const errosJaMostrados = [
+                'Conta destino obrigatória para transferências',
+                'Selecione contas de origem e destino diferentes.',
+                'Valor inválido',
+                'Limite do cartão insuficiente' // Já foi mostrado na validação
+            ];
+
+            // Mostrar erro se não foi mostrado anteriormente
+            if (!errosJaMostrados.includes(error.message)) {
+                // Para erros de limite do backend, mostrar com destaque
+                if (error.message && error.message.toLowerCase().includes('limite')) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Limite Insuficiente',
+                        text: error.message,
+                        confirmButtonText: 'Entendi',
+                        confirmButtonColor: '#d33'
+                    });
+                } else {
+                    this.showNotification(
+                        error.message || 'Erro ao criar lançamento. Tente novamente.',
+                        'error'
+                    );
+                }
             }
         } finally {
             // Reabilitar botão
