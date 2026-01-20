@@ -10,11 +10,13 @@ use Application\Models\AssinaturaUsuario;
 use Application\Services\AsaasService;
 use Application\Services\LogService;
 use Application\Services\CustomerService;
+use Application\Services\AchievementService;
 use Application\Validators\CheckoutValidator;
 use Application\DTO\CheckoutRequestDTO;
 use Application\Builders\AsaasPaymentBuilder;
 use Application\Builders\AsaasSubscriptionBuilder;
 use Application\Enums\SubscriptionCycle;
+use Application\Providers\PerfilControllerFactory;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -61,6 +63,9 @@ class PremiumController extends BaseController
             $customerData = $this->customerService->buildCustomerData($usuario, $dto->holderInfo);
 
             $result = $this->processCheckout($usuario, $plano, $dto, $customerData);
+
+            // Salvar dados do checkout no perfil (CPF, telefone, CEP)
+            $this->saveCheckoutDataToProfile($usuario, $dto);
 
             Response::success($result);
         } catch (\Throwable $e) {
@@ -324,5 +329,33 @@ class PremiumController extends BaseController
         }
 
         Response::error('Erro interno no servidor.', 500);
+    }
+
+    /**
+     * Salva dados do checkout (CPF, telefone, CEP) no perfil do usuário
+     * e verifica conquista de perfil completo
+     */
+    private function saveCheckoutDataToProfile(Usuario $usuario, CheckoutRequestDTO $dto): void
+    {
+        try {
+            $perfilService = PerfilControllerFactory::createService();
+
+            $dados = [
+                'cpf' => $dto->holderInfo['cpfCnpj'] ?? '',
+                'phone' => $dto->holderInfo['mobilePhone'] ?? '',
+                'cep' => $dto->holderInfo['postalCode'] ?? '',
+            ];
+
+            $perfilService->salvarDadosCheckout($usuario->id, $dados);
+
+            // Verificar conquista de perfil completo
+            $achievementService = new AchievementService();
+            $achievementService->checkAndUnlockAchievements($usuario->id, 'checkout_profile_save');
+
+            error_log("✅ [CHECKOUT] Dados salvos no perfil do usuário {$usuario->id}");
+        } catch (\Throwable $e) {
+            // Não falhar o checkout por causa disso
+            error_log("⚠️ [CHECKOUT] Erro ao salvar dados no perfil: " . $e->getMessage());
+        }
     }
 }

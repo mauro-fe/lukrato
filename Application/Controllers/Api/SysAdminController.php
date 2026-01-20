@@ -97,4 +97,65 @@ class SysAdminController extends BaseController
             Response::error('Erro ao processar solicitação: ' . $e->getMessage(), 500);
         }
     }
+
+    /**
+     * GET /api/sysadmin/users
+     * Listar usuários com filtros e paginação
+     */
+    public function listUsers(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $user = \Application\Lib\Auth::user();
+
+            // Verificar se é SysAdmin
+            if (!$user || $user->is_admin != 1) {
+                Response::error('Acesso negado', 403);
+                return;
+            }
+
+            $query = $_GET['query'] ?? '';
+            $status = $_GET['status'] ?? '';
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $perPage = min(100, max(1, (int)($_GET['perPage'] ?? 10)));
+            $offset = ($page - 1) * $perPage;
+
+            $usuarios = Usuario::query();
+
+            if ($query) {
+                $searchTerm = "%{$query}%";
+                $usuarios = $usuarios->where(function ($q) use ($query, $searchTerm) {
+                    $q->where('nome', 'LIKE', $searchTerm)
+                        ->orWhere('email', 'LIKE', $searchTerm);
+                    if (is_numeric($query)) {
+                        $q->orWhere('id', (int)$query);
+                    }
+                });
+            }
+
+            if ($status === 'admin') {
+                $usuarios = $usuarios->where('is_admin', 1);
+            } elseif ($status === 'user') {
+                $usuarios = $usuarios->where('is_admin', 0);
+            }
+
+            $total = $usuarios->count();
+            $usersList = $usuarios->orderByDesc('id')
+                ->limit($perPage)
+                ->offset($offset)
+                ->get(['id', 'nome', 'email', 'is_admin', 'created_at']);
+
+            Response::success([
+                'total' => $total,
+                'page' => $page,
+                'perPage' => $perPage,
+                'totalPages' => ceil($total / $perPage),
+                'users' => $usersList,
+            ]);
+        } catch (Exception $e) {
+            error_log("🚨 [SYSADMIN] Erro ao listar usuários: " . $e->getMessage());
+            Response::error('Erro ao buscar usuários: ' . $e->getMessage(), 500);
+        }
+    }
 }

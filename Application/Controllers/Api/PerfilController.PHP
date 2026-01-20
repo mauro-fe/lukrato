@@ -5,6 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\PerfilService;
+use Application\Services\AchievementService;
 use Application\DTO\PerfilUpdateDTO;
 use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
@@ -82,9 +83,14 @@ class PerfilController
 
             $perfilAtualizado = $this->perfilService->atualizarPerfil($user->id, $dto);
 
+            // Verificar conquista de perfil completo
+            $achievementService = new AchievementService();
+            $newAchievements = $achievementService->checkAndUnlockAchievements($user->id, 'profile_update');
+
             Response::success([
                 'message' => 'Perfil atualizado com sucesso',
                 'user' => $perfilAtualizado,
+                'new_achievements' => $newAchievements,
             ]);
         } catch (Throwable $e) {
             $statusCode = $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException

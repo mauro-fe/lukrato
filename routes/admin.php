@@ -46,6 +46,15 @@ Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);
 // Super Admin
 Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth']);
 
+// SysAdmin - Listagem de usuários com filtros
+Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth']);
+
+// SysAdmin - Listagem de usuários com filtros (rota alternativa)
+Router::add('GET', '/super_admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
+
+// SysAdmin - Listagem de usuários com filtros (rota alternativa com hífen)
+Router::add('GET', '/super-admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
+
 // Redirects legados
 Router::add('GET', '/admin', function () {
     header('Location: ' . BASE_URL . 'login');

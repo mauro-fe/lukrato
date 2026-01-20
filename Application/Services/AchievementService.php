@@ -191,6 +191,9 @@ class AchievementService
             AchievementType::WEEKEND_WARRIOR => $this->checkWeekendWarrior($userId),
             AchievementType::SPEED_DEMON => $this->checkSpeedDemon($userId),
 
+            // ===== PERFIL =====
+            AchievementType::PROFILE_COMPLETE => $this->checkProfileComplete($user),
+
             default => false,
         };
     }
@@ -659,5 +662,40 @@ class AchievementService
             ->first();
 
         return $result !== null;
+    }
+
+    /**
+     * Verifica se o usuário completou todos os dados do perfil
+     * Campos necessários: nome, email, username, data_nascimento, id_sexo
+     */
+    private function checkProfileComplete(Usuario $user): bool
+    {
+        // Verificar se todos os campos obrigatórios estão preenchidos
+        $nome = trim((string)$user->nome);
+        $email = trim((string)$user->email);
+        $dataNascimento = $user->data_nascimento;
+        $idSexo = $user->id_sexo;
+
+        // Nome deve ter pelo menos 3 caracteres
+        if (strlen($nome) < 3) {
+            return false;
+        }
+
+        // Email deve ser válido
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+
+        // Data de nascimento deve estar preenchida
+        if (empty($dataNascimento)) {
+            return false;
+        }
+
+        // Sexo deve estar selecionado (1 = masculino, 2 = feminino, etc.)
+        if (empty($idSexo) || $idSexo < 1) {
+            return false;
+        }
+
+        return true;
     }
 }

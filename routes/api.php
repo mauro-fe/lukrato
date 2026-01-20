@@ -194,4 +194,5 @@ Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController
 // SYSADMIN
 // ============================================
 
+Router::add('GET', '/api/sysadmin/users', 'Api\\SysAdminController@listUsers', ['auth']);
 Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'csrf']);

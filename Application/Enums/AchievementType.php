@@ -76,6 +76,9 @@ enum AchievementType: string
     case WEEKEND_WARRIOR = 'WEEKEND_WARRIOR';               // 10 lançamentos em fins de semana
     case SPEED_DEMON = 'SPEED_DEMON';                       // 5 lançamentos em um único dia
 
+        // ========== CONQUISTA DE PERFIL ==========
+    case PROFILE_COMPLETE = 'PROFILE_COMPLETE';             // Perfil completo
+
     /**
      * Retorna se a conquista é exclusiva Pro
      */

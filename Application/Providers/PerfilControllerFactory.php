@@ -87,4 +87,44 @@ class PerfilControllerFactory
         // --- 4. Retornar o array final ---
         return [$perfilService, $validator];
     }
+
+    /**
+     * Cria e retorna apenas o PerfilService.
+     * Útil quando só precisa do service sem o controller.
+     *
+     * @return PerfilService
+     */
+    public static function createService(): PerfilService
+    {
+        // Repositórios
+        $usuarioRepo = new UsuarioRepository();
+        $documentoRepo = new DocumentoRepository();
+        $telefoneRepo = new TelefoneRepository();
+        $enderecoRepo = new EnderecoRepository();
+
+        // Formatters
+        $documentFormatter = new DocumentFormatter();
+        $telefoneFormatter = new TelefoneFormatter($documentFormatter);
+        $dateFormatter = new DateFormatter();
+
+        // Builder
+        $payloadBuilder = new PerfilPayloadBuilder(
+            $documentoRepo,
+            $telefoneRepo,
+            $enderecoRepo,
+            $documentFormatter,
+            $telefoneFormatter,
+            $dateFormatter
+        );
+
+        return new PerfilService(
+            $usuarioRepo,
+            $documentoRepo,
+            $telefoneRepo,
+            $enderecoRepo,
+            $payloadBuilder,
+            $documentFormatter,
+            $telefoneFormatter
+        );
+    }
 }

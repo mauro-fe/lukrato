@@ -32,23 +32,22 @@ class GoogleLoginController extends BaseController
 
         try {
             $authUrl = $this->googleAuthService->getAuthUrl();
-            
-            LogService::info('Redirecionando para login do Google', [
-                'redirect_uri' => rtrim(BASE_URL, '/') . '/auth/google/callback',
+
+            LogService::info('Iniciando login com Google OAuth', [
+                'client_id'   => $_ENV['GOOGLE_CLIENT_ID'] ?? null,
+                'redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? null,
             ]);
 
-            header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
-            exit();
+            header('Location: ' . $authUrl);
+            exit;
         } catch (Exception $e) {
             LogService::error('Erro ao iniciar login com Google', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
-            $this->setError('Erro ao redirecionar para o Google: ' . $e->getMessage());
+            $this->setError('Não foi possível conectar ao Google. Tente novamente.');
             $this->redirect('login');
         }
     }
 }
-

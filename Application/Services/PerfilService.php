@@ -175,4 +175,63 @@ class PerfilService
             $this->usuarioRepo->delete($userId);
         });
     }
+
+    /**
+     * Salva dados do checkout no perfil (CPF, telefone, CEP) se estiverem faltando
+     * Usado após pagamento bem-sucedido para completar o perfil automaticamente
+     */
+    public function salvarDadosCheckout(int $userId, array $dados): void
+    {
+        DB::connection()->transaction(function () use ($userId, $dados) {
+            $cpf = $dados['cpf'] ?? '';
+            $phone = $dados['phone'] ?? '';
+            $cep = $dados['cep'] ?? '';
+
+            // CPF - só salva se não existe ainda
+            if ($cpf !== '') {
+                $cpfLimpo = preg_replace('/\D/', '', $cpf);
+                if (strlen($cpfLimpo) === 11) {
+                    $existeCpf = DB::table('documentos')
+                        ->where('id_usuario', $userId)
+                        ->where('id_tipo', 1)
+                        ->exists();
+
+                    if (!$existeCpf) {
+                        $this->documentoRepo->updateOrCreateCpf($userId, $cpfLimpo);
+                    }
+                }
+            }
+
+            // Telefone - só salva se não existe ainda
+            if ($phone !== '') {
+                $phoneLimpo = preg_replace('/\D/', '', $phone);
+                if (strlen($phoneLimpo) >= 10) {
+                    $existeTel = DB::table('telefones')
+                        ->where('id_usuario', $userId)
+                        ->exists();
+
+                    if (!$existeTel) {
+                        [$ddd, $numero] = $this->telefoneFormatter->split($phone);
+                        $this->telefoneRepo->updateOrCreate($userId, $ddd, $numero);
+                    }
+                }
+            }
+
+            // CEP - só salva se não existe endereço ainda
+            if ($cep !== '') {
+                $cepLimpo = preg_replace('/\D/', '', $cep);
+                if (strlen($cepLimpo) === 8) {
+                    $existeEndereco = DB::table('enderecos')
+                        ->where('user_id', $userId)
+                        ->exists();
+
+                    if (!$existeEndereco) {
+                        $this->enderecoRepo->updateOrCreatePrincipal($userId, [
+                            'cep' => $cepLimpo,
+                        ]);
+                    }
+                }
+            }
+        });
+    }
 }

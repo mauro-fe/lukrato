@@ -120,97 +120,28 @@
         </div>
     </div>
 
-    <!-- Recent Users Table -->
-    <div class="table-section" data-aos="fade-up" data-aos-delay="400">
-        <div class="table-header">
-            <h2 class="section-title">
-                <i class="fas fa-user-clock"></i>
-                Ultimos Cadastros
-            </h2>
-            <button class="btn-refresh" onclick="loadRecentUsers()">
-                <i class="fas fa-sync-alt"></i>
-                Atualizar
-            </button>
-        </div>
+    <!-- Filtros de Usuários -->
+    <div class="user-filters-card" data-aos="fade-up" data-aos-delay="350">
+        <form id="userFilters" class="user-filters-form">
+            <input type="text" name="query" class="filter-input" placeholder="Buscar por nome, email ou ID..." />
+            <select name="status" class="filter-select">
+                <option value="">Todos</option>
+                <option value="admin">Admin</option>
+                <option value="user">Usuário</option>
+            </select>
+            <select name="perPage" class="filter-select">
+                <option value="10">10 por página</option>
+                <option value="25">25 por página</option>
+                <option value="50">50 por página</option>
+                <option value="100">100 por página</option>
+            </select>
+            <button type="submit" class="btn-control primary"><i class="fas fa-filter"></i> Filtrar</button>
+        </form>
+    </div>
 
-        <div class="modern-table-card">
-            <div class="table-responsive">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Data de Cadastro</th>
-                            <th class="text-center">Acoes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($recentUsers)): ?>
-                            <?php foreach ($recentUsers as $u): ?>
-                                <tr>
-                                    <td>
-                                        <span class="user-id">#<?= (int)($u->id ?? 0) ?></span>
-                                    </td>
-                                    <td>
-                                        <div class="user-info">
-                                            <div class="user-avatar">
-                                                <?= strtoupper(substr($u->nome ?? 'U', 0, 1)) ?>
-                                            </div>
-                                            <span
-                                                class="user-name"><?= htmlspecialchars($u->nome ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="user-email"><?= htmlspecialchars($u->email ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
-                                    </td>
-                                    <td>
-                                        <?php if (($u->is_admin ?? 0) == 1): ?>
-                                            <span class="badge-status admin">
-                                                <i class="fas fa-shield-alt"></i>
-                                                Admin
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="badge-status user">
-                                                <i class="fas fa-user"></i>
-                                                Usuario
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="user-date">
-                                            <?= $u->created_at ? date('d/m/Y H:i', strtotime((string)$u->created_at)) : '-' ?>
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="action-buttons">
-                                            <button class="btn-action edit" title="Editar usuario"
-                                                onclick="editUser(<?= (int)($u->id ?? 0) ?>)">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn-action delete" title="Excluir usuario"
-                                                onclick="deleteUser(<?= (int)($u->id ?? 0) ?>)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6" class="text-center" style="padding: 2rem;">
-                                    <i class="fas fa-inbox"
-                                        style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 1rem;"></i>
-                                    <p style="color: var(--color-text-muted);">Nenhum usuario encontrado</p>
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- Tabela dinâmica de usuários -->
+    <div class="table-section" id="userTableSection" data-aos="fade-up" data-aos-delay="400">
+        <!-- Conteúdo da tabela será renderizado via JS -->
     </div>
 </div>
 
@@ -491,4 +422,104 @@
             });
         }
     }
+
+    // Modern user table rendering
+    const userTableSection = document.getElementById('userTableSection');
+    const userFiltersForm = document.getElementById('userFilters');
+    let currentPage = 1;
+
+    function fetchUsers(page = 1) {
+        const formData = new FormData(userFiltersForm);
+        const params = new URLSearchParams(formData);
+        params.set('page', page);
+        fetch(`<?= BASE_URL ?>api/sysadmin/users?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    userTableSection.innerHTML = `<div class='error-msg'>Erro ao buscar usuários</div>`;
+                    return;
+                }
+                renderUserTable(data.data.users, data.data.total, data.data.page, data.data.perPage);
+            })
+            .catch(err => {
+                console.error('Erro ao buscar usuários:', err);
+                userTableSection.innerHTML = `<div class='error-msg'>Erro ao carregar usuários</div>`;
+            });
+    }
+
+    function renderUserTable(users, total, page, perPage) {
+        let html = `<div class='modern-table-card'><div class='table-responsive'><table class='modern-table'>`;
+        html += `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
+        if (users.length === 0) {
+            html += `<tr><td colspan='6' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
+        } else {
+            users.forEach(u => {
+                html += `<tr>
+                    <td><span class='user-id'>#${u.id}</span></td>
+                    <td><div class='user-info'><div class='user-avatar'>${(u.nome||'U')[0].toUpperCase()}</div><span class='user-name'>${u.nome||'-'}</span></div></td>
+                    <td><span class='user-email'>${u.email||'-'}</span></td>
+                    <td>${u.is_admin==1?`<span class='badge-status admin'><i class='fas fa-shield-alt'></i>Admin</span>`:`<span class='badge-status user'><i class='fas fa-user'></i>Usuário</span>`}</td>
+                    <td><span class='user-date'>${u.created_at?formatDate(u.created_at):'-'}</span></td>
+                    <td class='text-center'><div class='action-buttons'><button class='btn-action edit' title='Editar usuário' onclick='editUser(${u.id})'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Excluir usuário' onclick='deleteUser(${u.id})'><i class='fas fa-trash'></i></button></div></td>
+                </tr>`;
+            });
+        }
+        html += `</tbody></table></div>`;
+        html += renderPagination(total, page, perPage);
+        html += `</div>`;
+        userTableSection.innerHTML = html;
+    }
+
+    function renderPagination(total, page, perPage) {
+        const totalPages = Math.ceil(total / perPage);
+        const startItem = ((page - 1) * perPage) + 1;
+        const endItem = Math.min(page * perPage, total);
+
+        let html = `<div class='pagination-wrapper'>`;
+
+        // Info de registros
+        html += `<div class='pagination-info'>
+            <span>Mostrando <strong>${startItem}</strong> - <strong>${endItem}</strong> de <strong>${total}</strong> usuários</span>
+        </div>`;
+
+        // Controles de navegação
+        html += `<div class='pagination-controls'>`;
+        html += `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(1)' title='Primeira página'><i class='fas fa-angle-double-left'></i></button>`;
+        html += `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(${page-1})' title='Anterior'><i class='fas fa-angle-left'></i></button>`;
+
+        // Números das páginas
+        for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+            html += `<button class='pagination-btn ${i===page?'active':''}' onclick='goToPage(${i})'>${i}</button>`;
+        }
+
+        html += `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${page+1})' title='Próxima'><i class='fas fa-angle-right'></i></button>`;
+        html += `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${totalPages})' title='Última página'><i class='fas fa-angle-double-right'></i></button>`;
+        html += `</div>`;
+
+        html += `</div>`;
+        return html;
+    }
+
+    function goToPage(p) {
+        currentPage = p;
+        fetchUsers(currentPage);
+    }
+
+    function formatDate(dt) {
+        const d = new Date(dt);
+        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR').slice(0, 5);
+    }
+
+    userFiltersForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        currentPage = 1;
+        fetchUsers(currentPage);
+    });
+
+    window.goToPage = goToPage;
+    window.editUser = editUser;
+    window.deleteUser = deleteUser;
+
+    // Inicializa tabela ao carregar
+    fetchUsers(1);
 </script>
