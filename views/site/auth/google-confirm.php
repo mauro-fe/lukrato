@@ -18,147 +18,147 @@ if (!$googleData) {
     <title>Confirmar Cadastro - <?= $_ENV['APP_NAME'] ?? 'Lukrato' ?></title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
     <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    .confirm-container {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 40px;
-        max-width: 450px;
-        width: 100%;
-        text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    }
+        .confirm-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
 
-    .logo {
-        width: 150px;
-        height: 150px;
-        margin-bottom: 20px;
-    }
+        .logo {
+            width: 100px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
 
-    h1 {
-        color: #fff;
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
+        h1 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
 
-    .subtitle {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 14px;
-        margin-bottom: 30px;
-    }
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
 
-    .user-info {
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 30px;
-    }
+        .user-info {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
 
-    .user-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        margin-bottom: 15px;
-        border: 3px solid #f5a623;
-    }
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 3px solid #f5a623;
+        }
 
-    .user-name {
-        color: #fff;
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
+        .user-name {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
 
-    .user-email {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 14px;
-    }
+        .user-email {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
 
-    .info-text {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 13px;
-        line-height: 1.6;
-        margin-bottom: 25px;
-        padding: 15px;
-        background: rgba(245, 166, 35, 0.1);
-        border-radius: 8px;
-        border-left: 3px solid #f5a623;
-        text-align: left;
-    }
+        .info-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(245, 166, 35, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #f5a623;
+            text-align: left;
+        }
 
-    .buttons {
-        display: flex;
-        gap: 15px;
-    }
+        .buttons {
+            display: flex;
+            gap: 15px;
+        }
 
-    .btn {
-        flex: 1;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
 
-    .btn-confirm {
-        background: linear-gradient(135deg, #f5a623 0%, #e6951d 100%);
-        color: #fff;
-        border: none;
-    }
+        .btn-confirm {
+            background: linear-gradient(135deg, #f5a623 0%, #e6951d 100%);
+            color: #fff;
+            border: none;
+        }
 
-    .btn-confirm:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(245, 166, 35, 0.3);
-    }
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 166, 35, 0.3);
+        }
 
-    .btn-cancel {
-        background: transparent;
-        color: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+        .btn-cancel {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-    .btn-cancel:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
-    }
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
 
-    .terms {
-        margin-top: 20px;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-    }
+        .terms {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
 
-    .terms a {
-        color: #f5a623;
-        text-decoration: none;
-    }
+        .terms a {
+            color: #f5a623;
+            text-decoration: none;
+        }
 
-    .terms a:hover {
-        text-decoration: underline;
-    }
+        .terms a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -171,7 +171,7 @@ if (!$googleData) {
 
         <div class="user-info">
             <?php if (!empty($googleData['picture'])): ?>
-            <img src="<?= htmlspecialchars($googleData['picture']) ?>" alt="Foto" class="user-avatar">
+                <img src="<?= htmlspecialchars($googleData['picture']) ?>" alt="Foto" class="user-avatar">
             <?php endif; ?>
             <div class="user-name"><?= htmlspecialchars($googleData['name']) ?></div>
             <div class="user-email"><?= htmlspecialchars($googleData['email']) ?></div>
