@@ -146,6 +146,25 @@ class GoogleAuthService
     }
 
     /**
+     * Realiza login do usuário após autenticação Google
+     */
+    public function loginUser(Usuario $usuario, array $userInfo): void
+    {
+        // Armazena foto do Google na sessão
+        if (!empty($userInfo['picture'])) {
+            $_SESSION['google_user_picture'] = $userInfo['picture'];
+        }
+
+        // Usa o AuthService para fazer o login
+        Auth::login($usuario);
+
+        LogService::info('Login via Google realizado com sucesso', [
+            'user_id' => $usuario->id,
+            'email' => $usuario->email,
+        ]);
+    }
+
+    /**
      * Cria cliente Google via ENV (produção-ready)
      */
     private function createGoogleClient(): Google_Client
