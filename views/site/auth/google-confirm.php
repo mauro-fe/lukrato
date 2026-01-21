@@ -164,7 +164,7 @@ if (!$googleData) {
 
 <body>
     <div class="confirm-container">
-        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato" class="logo">
+        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato" class="logo w-100">
 
         <h1>Criar sua conta</h1>
         <p class="subtitle">Você está a um passo de começar!</p>
