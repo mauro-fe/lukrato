@@ -47,7 +47,7 @@ if (!$googleData) {
         }
 
         .logo {
-            width: 100px;
+            width: 120px;
             height: 80px;
             margin-bottom: 20px;
         }
