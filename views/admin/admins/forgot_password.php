@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperar senha - Lukrato</title>
@@ -542,233 +544,231 @@
         }
     </style>
 
-        <!-- Partículas decorativas -->
-        <div class="particles" id="particles"></div>
+    <!-- Partículas decorativas -->
+    <div class="particles" id="particles"></div>
 
-        <main class="lukrato-auth">
-            <div class="login-wrapper">
-                <!-- LEFT: Branding & Welcome -->
-                <section class="login-left">
-                    <div class="brand">
-                        <div class="imagem-logo">
-                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%23e67e22'%3ELukrato%3C/text%3E%3C/svg%3E" alt="Lukrato">
+    <main class="lukrato-auth">
+        <div class="login-wrapper">
+            <!-- LEFT: Branding & Welcome -->
+            <section class="login-left">
+                <div class="brand">
+                    <div class="imagem-logo">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%23e67e22'%3ELukrato%3C/text%3E%3C/svg%3E"
+                            alt="Lukrato">
+                    </div>
+                </div>
+
+                <header class="welcome">
+                    <h2>Recuperar senha</h2>
+                    <p>Não se preocupe! Digite seu e-mail e enviaremos um link seguro para redefinir sua senha.</p>
+                </header>
+            </section>
+
+            <!-- RIGHT: Form Card -->
+            <section class="login-right">
+                <div class="card">
+                    <h3 class="card-title">Esqueceu sua senha?</h3>
+
+                    <div id="messageContainer"></div>
+
+                    <form action="<?= BASE_URL ?>recuperar-senha" method="POST" novalidate id="recoverForm">
+                        <?= csrf_input('forgot_form') ?>
+                        <div class="field">
+                            <input type="email" name="email" id="email" placeholder="Digite seu e-mail"
+                                autocomplete="email" required>
                         </div>
-                    </div>
 
-                    <header class="welcome">
-                        <h2>Recuperar senha</h2>
-                        <p>Não se preocupe! Digite seu e-mail e enviaremos um link seguro para redefinir sua senha.</p>
-                    </header>
-                </section>
+                        <button type="submit" class="btn-primary" id="submitBtn">
+                            <span>Enviar link de recuperação</span>
+                        </button>
 
-                <!-- RIGHT: Form Card -->
-                <section class="login-right">
-                    <div class="card">
-                        <h3 class="card-title">Esqueceu sua senha?</h3>
+                        <p class="extra-link">
+                            <a href="<?= BASE_URL ?>login"> <i class="fas fa-arrow-left"></i>
+                                Voltar para o login</a>
+                        </p>
 
-                        <div id="messageContainer"></div>
+                        <p class="extra-link">
+                            <small>
+                                <strong>Dica:</strong> Se você se cadastrou com o Google, use o botão "Entrar com
+                                Google" na página de login.
+                            </small>
+                        </p>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
 
-                        <form action="<?= BASE_URL ?>recuperar-senha" method="POST" novalidate id="recoverForm">
-                            <?= csrf_input('forgot_form') ?>
-                            <div class="field">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    id="email"
-                                    placeholder="Digite seu e-mail"
-                                    autocomplete="email"
-                                    required>
-                            </div>
+    <script>
+        // Criar partículas animadas
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 20;
 
-                            <button type="submit" class="btn-primary" id="submitBtn">
-                                <span>Enviar link de recuperação</span>
-                            </button>
-
-                            <p class="extra-link">
-                                <a href="<?= BASE_URL ?>login"> <i class="fas fa-arrow-left"></i>
-                                    Voltar para o login</a>
-                            </p>
-
-                            <p class="extra-link">
-                                <small>
-                                    <strong>Dica:</strong> Se você se cadastrou com o Google, use o botão "Entrar com Google" na página de login.
-                                </small>
-                            </p>
-                        </form>
-                    </div>
-                </section>
-            </div>
-        </main>
-
-        <script>
-            // Criar partículas animadas
-            function createParticles() {
-                const container = document.getElementById('particles');
-                const particleCount = 20;
-
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 8 + 's';
-                    particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
-                    container.appendChild(particle);
-                }
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                container.appendChild(particle);
             }
+        }
 
-            createParticles();
+        createParticles();
 
-            // Form handling
-            const form = document.getElementById('recoverForm');
-            const submitBtn = document.getElementById('submitBtn');
-            const emailInput = document.getElementById('email');
-            const messageContainer = document.getElementById('messageContainer');
+        // Form handling
+        const form = document.getElementById('recoverForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const emailInput = document.getElementById('email');
+        const messageContainer = document.getElementById('messageContainer');
 
-            function showMessage(type, text) {
-                messageContainer.innerHTML = `
+        function showMessage(type, text) {
+            messageContainer.innerHTML = `
                 <div class="msg msg-${type}">
                     ${text}
                 </div>
             `;
-            }
+        }
 
-            function clearMessage() {
-                messageContainer.innerHTML = '';
-            }
+        function clearMessage() {
+            messageContainer.innerHTML = '';
+        }
 
-            // Validação de email em tempo real
-            emailInput.addEventListener('blur', function() {
-                const email = this.value.trim();
-                if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                    this.style.borderColor = 'var(--error)';
-                    showMessage('error', 'Por favor, insira um e-mail válido');
-                } else {
-                    this.style.borderColor = 'transparent';
-                    clearMessage();
-                }
-            });
-
-            emailInput.addEventListener('input', function() {
+        // Validação de email em tempo real
+        emailInput.addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                this.style.borderColor = 'var(--error)';
+                showMessage('error', 'Por favor, insira um e-mail válido');
+            } else {
                 this.style.borderColor = 'transparent';
                 clearMessage();
-            });
+            }
+        });
 
-            // Submit form REAL (AJAX)
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                clearMessage();
+        emailInput.addEventListener('input', function() {
+            this.style.borderColor = 'transparent';
+            clearMessage();
+        });
 
-                const email = emailInput.value.trim();
+        // Submit form REAL (AJAX)
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearMessage();
 
-                // Validação
-                if (!email) {
-                    emailInput.focus();
-                    showMessage('error', 'Por favor, digite seu e-mail');
-                    return;
-                }
+            const email = emailInput.value.trim();
 
-                if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                    emailInput.focus();
-                    showMessage('error', 'Por favor, insira um e-mail válido');
-                    return;
-                }
+            // Validação
+            if (!email) {
+                emailInput.focus();
+                showMessage('error', 'Por favor, digite seu e-mail');
+                return;
+            }
 
-                // Loading state
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                const originalBtnHtml = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<span>Enviando...</span>';
+            if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                emailInput.focus();
+                showMessage('error', 'Por favor, insira um e-mail válido');
+                return;
+            }
 
+            // Loading state
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span>Enviando...</span>';
+
+            try {
+                const formData = new FormData(form);
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                let data = null;
                 try {
-                    const formData = new FormData(form);
+                    data = await response.json();
+                } catch (err) {
+                    // resposta não é JSON → trata genérico
+                }
 
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
+                const success = data && (data.success === true || data.status === 'success');
 
-                    let data = null;
-                    try {
-                        data = await response.json();
-                    } catch (err) {
-                        // resposta não é JSON → trata genérico
-                    }
-
-                    const success = data && (data.success === true || data.status === 'success');
-
-                    if (!response.ok || !success) {
-                        const message =
-                            (data && data.message) ||
-                            (response.status === 429 ?
-                                'Muitas tentativas. Aguarde um pouco e tente novamente.' :
-                                'Não foi possível enviar o link de recuperação. Verifique o e-mail e tente novamente.');
-
-                        showMessage('error', message);
-
-                        // Se vierem erros de campo (ex: { errors: { email: [...] } })
-                        if (data && data.errors && data.errors.email) {
-                            emailInput.style.borderColor = 'var(--error)';
-                        }
-
-                        submitBtn.classList.remove('loading');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnHtml;
-                        return;
-                    }
-
-                    // Sucesso
-                    const successMessage =
+                if (!response.ok || !success) {
+                    const message =
                         (data && data.message) ||
-                        'Link de recuperação enviado! Verifique seu e-mail.';
+                        (response.status === 429 ?
+                            'Muitas tentativas. Aguarde um pouco e tente novamente.' :
+                            'Não foi possível enviar o link de recuperação. Verifique o e-mail e tente novamente.'
+                        );
 
-                    showMessage('success', successMessage);
-                    form.reset();
-                    emailInput.style.borderColor = 'transparent';
+                    showMessage('error', message);
 
-                    // Confete de sucesso 🎉
-                    createConfetti();
+                    // Se vierem erros de campo (ex: { errors: { email: [...] } })
+                    if (data && data.errors && data.errors.email) {
+                        emailInput.style.borderColor = 'var(--error)';
+                    }
 
-                } catch (error) {
-                    console.error('Erro na requisição de recuperação de senha:', error);
-                    showMessage('error', 'Ocorreu um erro ao enviar o link. Tente novamente em instantes.');
-                } finally {
                     submitBtn.classList.remove('loading');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHtml;
+                    return;
                 }
-            });
 
-            // Efeito confete de sucesso
-            function createConfetti() {
-                const colors = ['#e67e22', '#f39c12', '#79e6a0', '#7aa7ff'];
-                const confettiCount = 30;
+                // Sucesso
+                const successMessage =
+                    (data && data.message) ||
+                    'Link de recuperação enviado! Verifique seu e-mail.';
 
-                for (let i = 0; i < confettiCount; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.style.position = 'fixed';
-                    confetti.style.width = '10px';
-                    confetti.style.height = '10px';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.left = Math.random() * 100 + '%';
-                    confetti.style.top = '-10px';
-                    confetti.style.borderRadius = '50%';
-                    confetti.style.pointerEvents = 'none';
-                    confetti.style.zIndex = '9999';
-                    confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s ease-out forwards`;
+                showMessage('success', successMessage);
+                form.reset();
+                emailInput.style.borderColor = 'transparent';
 
-                    document.body.appendChild(confetti);
+                // Confete de sucesso 🎉
+                createConfetti();
 
-                    setTimeout(() => confetti.remove(), 4000);
-                }
+            } catch (error) {
+                console.error('Erro na requisição de recuperação de senha:', error);
+                showMessage('error', 'Ocorreu um erro ao enviar o link. Tente novamente em instantes.');
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
             }
+        });
 
-            // Adicionar animação de confete
-            const style = document.createElement('style');
-            style.textContent = `
+        // Efeito confete de sucesso
+        function createConfetti() {
+            const colors = ['#e67e22', '#f39c12', '#79e6a0', '#7aa7ff'];
+            const confettiCount = 30;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.borderRadius = '50%';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '9999';
+                confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s ease-out forwards`;
+
+                document.body.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+
+        // Adicionar animação de confete
+        const style = document.createElement('style');
+        style.textContent = `
             @keyframes confettiFall {
                 to {
                     transform: translateY(100vh) rotate(${Math.random() * 360}deg);
@@ -776,36 +776,36 @@
                 }
             }
         `;
-            document.head.appendChild(style);
+        document.head.appendChild(style);
 
-            // Easter egg: Konami code
-            let konamiCode = [];
-            const konamiPattern = [
-                'ArrowUp', 'ArrowUp',
-                'ArrowDown', 'ArrowDown',
-                'ArrowLeft', 'ArrowRight',
-                'ArrowLeft', 'ArrowRight',
-                'b', 'a'
-            ];
+        // Easter egg: Konami code
+        let konamiCode = [];
+        const konamiPattern = [
+            'ArrowUp', 'ArrowUp',
+            'ArrowDown', 'ArrowDown',
+            'ArrowLeft', 'ArrowRight',
+            'ArrowLeft', 'ArrowRight',
+            'b', 'a'
+        ];
 
-            document.addEventListener('keydown', function(e) {
-                konamiCode.push(e.key);
-                konamiCode = konamiCode.slice(-10);
+        document.addEventListener('keydown', function(e) {
+            konamiCode.push(e.key);
+            konamiCode = konamiCode.slice(-10);
 
-                if (konamiCode.join(',') === konamiPattern.join(',')) {
-                    document.body.style.animation = 'rainbow 2s linear infinite';
-                    setTimeout(() => {
-                        document.body.style.animation = '';
-                    }, 5000);
-                }
-            });
+            if (konamiCode.join(',') === konamiPattern.join(',')) {
+                document.body.style.animation = 'rainbow 2s linear infinite';
+                setTimeout(() => {
+                    document.body.style.animation = '';
+                }, 5000);
+            }
+        });
 
-            const rainbowStyle = document.createElement('style');
-            rainbowStyle.textContent = `
+        const rainbowStyle = document.createElement('style');
+        rainbowStyle.textContent = `
             @keyframes rainbow {
                 0% { filter: hue-rotate(0deg); }
                 100% { filter: hue-rotate(360deg); }
             }
         `;
-            document.head.appendChild(rainbowStyle);
-        </script>
+        document.head.appendChild(rainbowStyle);
+    </script>

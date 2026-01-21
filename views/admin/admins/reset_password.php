@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redefinir Senha - Lukrato</title>
