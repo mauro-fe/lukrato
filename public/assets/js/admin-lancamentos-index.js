@@ -1344,10 +1344,10 @@
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}</span>
                         </div>
-                        ${isXs && mobileActionsHtml ? `<div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
+                        ${isXs ? `<div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
                                     <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
                                     <span class="lan-card-detail-value card-detail-value actions-slot" style="display: flex !important;">
-                                        ${mobileActionsHtml}
+                                        ${mobileActionsHtml || '<span style="color: var(--text-secondary); font-size: 0.75rem;">Nenhuma ação disponível</span>'}
                                     </span>
                                   </div>` : ``}
                     </div>
