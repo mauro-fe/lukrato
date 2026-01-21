@@ -75,7 +75,7 @@ class GoogleAuthService
     private function processUser(array $userInfo): array
     {
         $googleId = $userInfo['id'];
-        $email    = $userInfo['email'];
+        $email    = trim(strtolower($userInfo['email']));
         $name     = $userInfo['name'];
 
         LogService::info('Processando usuário Google', [
@@ -92,8 +92,17 @@ class GoogleAuthService
             return ['usuario' => $usuario, 'is_new' => false];
         }
 
-        // Busca por email (case-insensitive)
-        $usuario = Usuario::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
+        // Busca por email (case-insensitive e com trim)
+        $usuario = Usuario::whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
+        
+        // Debug: verificar quantos usuários existem com email similar
+        $countSimilar = Usuario::whereRaw('LOWER(email) LIKE ?', ['%' . $email . '%'])->count();
+        LogService::info('Busca por email', [
+            'email_buscado' => $email,
+            'encontrado' => $usuario ? 'SIM' : 'NÃO',
+            'usuarios_similares' => $countSimilar,
+        ]);
+
         if ($usuario) {
             LogService::info('Usuário encontrado por email, vinculando google_id', ['usuario_id' => $usuario->id]);
             $usuario->google_id = $googleId;
