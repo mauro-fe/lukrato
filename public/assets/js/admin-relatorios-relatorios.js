@@ -433,17 +433,18 @@
                 .filter(e => e.value > 0)
                 .sort((a, b) => b.value - a.value);
 
-            const shouldSplit = entries.length > 2;
+            const isMobile = window.innerWidth < 768;
+            const shouldSplit = !isMobile && entries.length > 2;
             const chunkSize = shouldSplit ? Math.ceil(entries.length / 2) : entries.length;
             const chunks = shouldSplit
                 ? [entries.slice(0, chunkSize), entries.slice(chunkSize)].filter(chunk => chunk.length)
                 : [entries];
 
             const html = `
-                <div class="chart-container">
+                <div class="chart-container chart-container-pie">
                     <div class="chart-dual">
                         ${chunks.map((_, idx) => `
-                            <div class="chart-wrapper">
+                            <div class="chart-wrapper chart-wrapper-pie">
                                 <canvas id="chart${idx}"></canvas>
                             </div>
                         `).join('')}
@@ -519,8 +520,8 @@
             if (!labels.length) return UI.showEmptyState();
 
             UI.setContent(`
-                <div class="chart-container">
-                    <div class="chart-wrapper">
+                <div class="chart-container chart-container-line">
+                    <div class="chart-wrapper chart-wrapper-line">
                         <canvas id="chart0"></canvas>
                     </div>
                 </div>
@@ -551,20 +552,49 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    aspectRatio: 1.8,
                     plugins: {
-                        legend: { position: 'bottom' },
-                        title: { display: true, text: 'Evolução do Saldo Mensal' },
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        title: { 
+                            display: true, 
+                            text: 'Evolução do Saldo Mensal',
+                            font: { size: 16, weight: 'bold' },
+                            padding: { top: 10, bottom: 20 }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: (context) => formatCurrency(context.parsed.y)
                             }
                         }
                     },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 10,
+                            right: 10
+                        }
+                    },
                     scales: {
                         y: {
+                            beginAtZero: true,
                             ticks: {
                                 color: yTickColor,
+                                font: { size: 11 },
+                                padding: 8,
                                 callback: (value) => formatCurrency(value)
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 11 },
+                                padding: 5
                             }
                         }
                     }
@@ -578,8 +608,8 @@
             if (!labels.length) return UI.showEmptyState();
 
             UI.setContent(`
-                <div class="chart-container">
-                    <div class="chart-wrapper">
+                <div class="chart-container chart-container-bar">
+                    <div class="chart-wrapper chart-wrapper-bar">
                         <canvas id="chart0"></canvas>
                     </div>
                 </div>
@@ -626,15 +656,24 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    aspectRatio: 1.5,
                     plugins: {
-                        legend: { position: 'bottom' },
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
                         title: {
                             display: true,
                             text: state.currentView === CONFIG.VIEWS.ACCOUNTS
                                 ? 'Receitas x Despesas por Conta'
                                 : state.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
                                     ? 'Resumo Anual por Mês'
-                                    : 'Receitas x Despesas'
+                                    : 'Receitas x Despesas',
+                            font: { size: 16, weight: 'bold' },
+                            padding: { top: 10, bottom: 20 }
                         },
                         tooltip: {
                             callbacks: {
@@ -646,20 +685,33 @@
                             }
                         }
                     },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 10,
+                            right: 10
+                        }
+                    },
                     scales: {
                         y: {
+                            beginAtZero: true,
                             grid: {
                                 color: gridColor,
                                 drawBorder: false
                             },
                             ticks: {
                                 color: yTickColor,
+                                font: { size: 11 },
+                                padding: 8,
                                 callback: (value) => formatCurrency(value)
                             }
                         },
                         x: {
                             ticks: {
-                                color: xTickColor
+                                color: xTickColor,
+                                font: { size: 11 },
+                                padding: 5
                             },
                             grid: {
                                 display: false
@@ -1225,7 +1277,7 @@
                             <!-- Header -->
                             <div class="card-header-gradient">
                                 <div class="card-brand">
-                                    <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}99);">">
+                                    <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}99);">
                                         <i class="fas fa-credit-card"></i>
                                     </div>
                                     <div class="card-info">

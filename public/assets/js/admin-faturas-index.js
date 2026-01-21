@@ -723,9 +723,7 @@
                     </div>
                     
                     <div class="parcela-card-footer">
-                        <button type="button" class="btn-ver-detalhes" onclick="FaturasModule.toggleCardDetalhes('${cardId}', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                      
                         ${this.renderParcelaButton(parcela, isPaga)}
                     </div>
                 </div>
