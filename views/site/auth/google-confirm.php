@@ -8,11 +8,15 @@ if (!$googleData) {
     header('Location: ' . BASE_URL . 'login');
     exit;
 }
+
+$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirmar Cadastro - <?= $_ENV['APP_NAME'] ?? 'Lukrato' ?></title>
