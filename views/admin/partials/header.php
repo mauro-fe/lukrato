@@ -9,7 +9,7 @@ use Application\Lib\Auth;
 $username       = $username     ?? 'usuario';
 $menu           = $menu         ?? '';
 $base           = BASE_URL;
-$favicon        = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1';
+$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 $pageTitle      = $pageTitle    ?? 'Lukrato';
 $currentUser    = $currentUser  ?? Auth::user();
 $isSysAdmin     = ($currentUser?->is_admin ?? 0) == 1;

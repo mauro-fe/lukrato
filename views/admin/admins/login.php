@@ -3,7 +3,7 @@
 <?php
 $activeTab = isset($activeTab) && $activeTab === 'register' ? 'register' : 'login';
 $registerErrorMessage = $registerErrorMessage ?? '';
-$favicon        = rtrim(BASE_URL, '/') . '/assets/img/logo.png?v=1';
+$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
 ?>
 
