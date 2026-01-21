@@ -1225,7 +1225,6 @@
                      <span>Valor</span>
                     <span class="lan-sort-indicator sort-indicator" data-field="valor"></span>
                 </button>
-                 <span>Ações</span>
              </div>
 `);
 
@@ -1322,10 +1321,6 @@
                         </span>
                     </div>
 
-                    <div class="lan-card-actions card-actions" data-slot="main">
-                        ${actionsHtml}
-                    </div>
-
                     <button class="lan-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
                         <span class="lan-card-toggle-icon card-toggle-icon"><i class="fas fa-chevron-right"></i></span>
                         <span class="detalhes"> Ver detalhes</span>
@@ -1344,12 +1339,12 @@
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}</span>
                         </div>
-                        ${isXs ? `<div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
-                                    <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
-                                    <span class="lan-card-detail-value card-detail-value actions-slot" style="display: flex !important;">
-                                        ${mobileActionsHtml || '<span style="color: var(--text-secondary); font-size: 0.75rem;">Nenhuma ação disponível</span>'}
-                                    </span>
-                                  </div>` : ``}
+                        <div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
+                            <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
+                            <span class="lan-card-detail-value card-detail-value actions-slot" style="display: flex !important; gap: 8px;">
+                                ${actionsHtml || '<span style="color: var(--text-secondary); font-size: 0.75rem;">Nenhuma ação disponível</span>'}
+                            </span>
+                        </div>
                     </div>
                 </article>
             `);
