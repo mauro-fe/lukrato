@@ -269,10 +269,13 @@
 
 /* Lista de Parcelas */
 .parcelas-titulo {
-  margin: var(--spacing-4) 0 var(--spacing-2) 0;
+  margin: var(--spacing-4) 0 var(--spacing-3) 0;
   font-size: var(--font-size-base);
   color: var(--color-primary);
-  font-weight: 600;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
 }
 
 .parcelas-container {
@@ -512,7 +515,6 @@
 }
 
 .parcela-card-paga {
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
   border-left: 4px solid var(--color-success);
 }
 
@@ -567,7 +569,7 @@
   border-top: 1px solid var(--color-card-border);
   display: flex;
   gap: 0.5rem;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
 }
 
@@ -805,29 +807,64 @@
   }
 
   .detalhes-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-3);
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
   }
 
   .detalhes-item {
     padding: var(--spacing-3);
+    border-left: 3px solid var(--color-primary);
+  }
+
+  .detalhes-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .detalhes-value {
+    font-size: var(--font-size-base);
+    font-weight: 700;
   }
 
   .detalhes-progresso {
-    padding: var(--spacing-3);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+  }
+
+  .progresso-info {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
+
+  .progresso-percent {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+  }
+
+  .progresso-barra {
+    height: 10px;
+    margin: var(--spacing-2) 0;
   }
 
   .progresso-valores {
-    flex-direction: column;
-    gap: var(--spacing-1);
-    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
   }
 
   /* Tabela de parcelas mobile */
   .parcelas-container {
-    overflow-x: hidden;
+    overflow-x: auto;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-height: 50vh;
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .parcelas-table {
@@ -897,7 +934,7 @@
 
   .parcelas-table th,
   .parcelas-table td {
-    padding: var(--spacing-1) var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-2);
     font-size: var(--font-size-xs);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1044,28 +1081,50 @@
   }
 
   .detalhes-item {
-    padding: var(--spacing-2);
+    padding: var(--spacing-3);
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
   }
 
   .detalhes-label {
-    font-size: 10px;
+    font-size: 11px;
+    margin-bottom: var(--spacing-1);
+    font-weight: 600;
   }
 
   .detalhes-value {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--color-text);
   }
 
   /* Progresso mobile otimizado */
   .detalhes-progresso {
-    padding: var(--spacing-2);
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
   }
 
   .progresso-info {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-1);
   }
 
   .progresso-percent {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+  }
+
+  .progresso-barra {
+    height: 8px;
+    margin: var(--spacing-2) 0;
+  }
+
+  .progresso-valores {
+    font-size: var(--font-size-sm);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-2);
   }
 
   /* Cards mobile - garantir visibilidade */
@@ -1136,6 +1195,7 @@
   .empty-icon {
     width: 80px;
     height: 80px;
+    margin-left: 150px !important;
   }
 
   .empty-icon i {
@@ -1412,81 +1472,131 @@
 
   /* Modal ultra compacto */
   .modern-modal .modal-header {
-    padding: 8px;
+    padding: var(--spacing-3);
+    position: sticky;
+    top: 0;
+    background: var(--color-card-bg);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .modern-modal .modal-title {
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 1.3;
   }
 
   .modern-modal .modal-title i {
-    font-size: 12px;
-  }
-
-  .modern-modal .modal-body {
-    padding: 8px;
-  }
-
-  .modern-modal .modal-footer {
-    padding: 8px;
-  }
-
-  .detalhes-title {
     font-size: 14px;
   }
 
+  .modern-modal .modal-body {
+    padding: var(--spacing-3);
+    overflow-y: auto;
+  }
+
+  .modern-modal .modal-footer {
+    padding: var(--spacing-3);
+    position: sticky;
+    bottom: 0;
+    background: var(--color-card-bg);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Botão de pagar fatura - garantir que apareça */
+  .btn-pagar-fatura-completa {
+    display: flex !important;
+    width: 100%;
+    justify-content: center;
+    padding: var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .btn-pagar-fatura-completa .btn-text-desktop {
+    display: none;
+  }
+
+  .btn-pagar-fatura-completa .btn-text-mobile {
+    display: inline;
+  }
+
+  .detalhes-header-content {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .detalhes-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-2);
+  }
+
   .detalhes-grid {
-    gap: 6px;
+    gap: var(--spacing-2);
+    grid-template-columns: 1fr;
   }
 
   .detalhes-item {
-    padding: 6px;
+    padding: var(--spacing-3);
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
   }
 
   .detalhes-label {
-    font-size: 9px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: var(--spacing-1);
   }
 
   .detalhes-value {
-    font-size: 11px;
+    font-size: var(--font-size-base);
+    font-weight: 700;
   }
 
   .detalhes-progresso {
-    padding: 6px;
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
   }
 
   .progresso-info {
-    font-size: 9px;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-1);
   }
 
   .progresso-percent {
-    font-size: 12px;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
   }
 
   .progresso-barra {
-    height: 6px;
+    height: 8px;
+    margin: var(--spacing-2) 0;
   }
 
   .progresso-valores {
-    font-size: 9px;
+    font-size: var(--font-size-sm);
+    display: flex;
+    justify-content: space-between;
   }
 
   .parcelas-titulo {
-    font-size: 12px;
-    margin: 8px 0;
+    font-size: var(--font-size-base);
+    margin: var(--spacing-3) 0;
+    font-weight: 700;
   }
 
   .parcelas-container {
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-height: 50vh;
+    border-radius: var(--radius-sm);
   }
 
   .parcelas-table {
     width: 100%;
-    font-size: 10px;
+    font-size: 11px;
     table-layout: fixed;
   }
 
@@ -1544,6 +1654,14 @@
   /* Ocultar botões desktop, mostrar botão mobile */
   .btn-toggle-parcela {
     display: none !important;
+  }
+
+  /* Exceção: mostrar botões de pagar */
+  .btn-toggle-parcela.btn-pagar {
+    display: inline-flex !important;
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
   }
 
   .mobile-only {
@@ -1703,6 +1821,7 @@
 
   .empty-icon i {
     font-size: 24px;
+    margin-left: 100px !important;
   }
 
   .empty-state h3 {
@@ -2168,6 +2287,7 @@
 .btn-toggle-parcela.btn-pagar {
   background: var(--color-success);
   color: white;
+  margin-top: auto;
 }
 
 .btn-toggle-parcela.btn-pagar:hover {
@@ -2882,11 +3002,7 @@
 
 .parc-progress-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--color-primary) 0%,
-    var(--color-secondary) 100%
-  );
+  background: var(--color-primary) !important;
   border-radius: var(--radius-sm);
   transition: width var(--transition-slow);
 }

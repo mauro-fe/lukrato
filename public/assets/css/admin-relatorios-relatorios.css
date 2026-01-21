@@ -446,7 +446,7 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-5);
-  overflow: hidden;
+  overflow: visible;
   margin: var(--spacing-4) var(--spacing-6);
   color: var(--color-text);
   backdrop-filter: var(--glass-backdrop);
@@ -456,6 +456,7 @@
 .lk-card:hover {
   border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
   box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
 }
 
 .lk-card + .lk-card {
@@ -463,42 +464,651 @@
 }
 
 .chart-container {
-  padding: var(--spacing-5);
+  padding: var(--spacing-6);
   background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px #00000014;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
   position: relative;
+  min-height: 500px;
+  max-height: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--glass-border);
+  transition: all var(--transition-smooth);
+  width: 100%;
+}
+
+.chart-container:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
 }
 
 .chart-container canvas {
-  display: flex;
-  margin: 0 auto;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 800px !important;
+  min-height: 400px !important;
   transition: transform 0.3s ease;
-  position: absolute;
 }
 
 /* Wrapper para garantir responsividade do Chart.js */
 .chart-wrapper {
   position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 650px;
+  max-height: 650px;
+  margin: 0 auto;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2);
 }
 
 .chart-container:hover canvas {
-  transform: scale(1.01);
+  transform: scale(1.02);
 }
 
-/* Grid de gráficos responsivo */
+/* Estilos específicos para gráficos de pizza/doughnut */
+.chart-container-pie {
+  min-height: 400px;
+  max-height: 650px;
+}
+
+.chart-container-pie canvas {
+  max-height: 600px !important;
+  min-height: 350px !important;
+}
+
+.chart-wrapper-pie {
+  max-width: 650px;
+  max-height: 650px;
+}
+
+/* Estilos específicos para gráficos de barras */
+.chart-container-bar {
+  min-height: 500px;
+  max-height: 900px;
+  padding: var(--spacing-4);
+}
+
+.chart-container-bar canvas {
+  max-height: 800px !important;
+  min-height: 400px !important;
+  width: 100% !important;
+}
+
+.chart-wrapper-bar {
+  max-width: none;
+  width: 100%;
+  max-height: none;
+  padding: 0;
+}
+
+/* Estilos específicos para gráficos de linha */
+.chart-container-line {
+  min-height: 500px;
+  max-height: 900px;
+  padding: var(--spacing-4);
+}
+
+.chart-container-line canvas {
+  max-height: 800px !important;
+  min-height: 400px !important;
+  width: 100% !important;
+}
+
+.chart-wrapper-line {
+  max-width: none;
+  width: 100%;
+  max-height: none;
+  padding: 0;
+}
+
+/* Grid de gráficos responsivo - Mobile First */
 .chart-dual {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--spacing-5);
-  margin-top: var(--spacing-4);
-  position: relative;
+  margin-top: var(--spacing-5);
+  width: 100%;
 }
 
-@media (max-width: 900px) {
+.chart-dual .chart-container {
+  min-height: 400px;
+  width: 100%;
+}
+
+/* ============================================================================
+   RESPONSIVIDADE - MOBILE FIRST APPROACH
+   ============================================================================ */
+
+/* ========== Mobile Pequeno (min-width: 360px) ========== */
+@media (min-width: 360px) {
+  .rel-page {
+    padding: var(--spacing-2);
+  }
+
+  .lk-card {
+    margin: var(--spacing-2) var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+
+  .chart-container {
+    padding: var(--spacing-3);
+    min-height: 280px;
+    max-height: 400px;
+  }
+
+  .chart-container canvas {
+    max-height: 320px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 350px;
+    max-height: 350px;
+  }
+
+  .chart-container-pie {
+    min-height: 280px;
+    max-height: 400px;
+  }
+
+  .chart-container-pie canvas {
+    max-height: 350px !important;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 350px;
+    max-height: 350px;
+  }
+
+  .chart-container-bar,
+  .chart-container-line {
+    min-height: 280px;
+    max-height: 420px;
+  }
+
+  .chart-container-bar canvas,
+  .chart-container-line canvas {
+    max-height: 350px !important;
+  }
+
   .chart-dual {
     grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+}
+
+/* ========== Mobile Grande (min-width: 480px) ========== */
+@media (min-width: 480px) {
+  .rel-page {
+    padding: var(--spacing-3);
+  }
+
+  .lk-card {
+    margin: var(--spacing-3) var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .chart-container {
+    padding: var(--spacing-4);
+    min-height: 320px;
+    max-height: 420px;
+  }
+
+  .chart-container canvas {
+    max-height: 350px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 400px;
+    max-height: 400px;
+  }
+
+  .chart-dual {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .export-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .tabs {
+    padding: var(--spacing-2);
+    gap: var(--spacing-2);
+  }
+}
+
+/* ========== Tablet (min-width: 768px) ========== */
+@media (min-width: 768px) {
+  .rel-page {
+    padding: var(--spacing-4);
+  }
+
+  .lk-titlebar {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: var(--spacing-5);
+  }
+
+  .lk-t {
+    font-size: var(--font-size-3xl);
+  }
+
+  .export-card {
+    padding: var(--spacing-5);
+  }
+
+  .lk-card {
+    margin: var(--spacing-4) var(--spacing-5);
+    padding: var(--spacing-5);
+  }
+
+  .chart-container {
+    padding: var(--spacing-5);
+    min-height: 360px;
+    max-height: 460px;
+  }
+
+  .chart-container canvas {
+    max-height: 380px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 450px;
+    max-height: 450px;
+  }
+
+  .chart-dual {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--spacing-5);
+  }
+
+  .chart-dual .chart-container {
+    min-height: 380px;
+  }
+
+  .tab-btn span {
+    display: inline;
+  }
+
+  .tab-btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    min-width: auto;
+  }
+
+  .month-label {
+    font-size: var(--font-size-lg);
+    min-width: 180px;
+  }
+}
+
+/* ========== Desktop Pequeno (min-width: 993px) - Gráficos de pizza lado a lado ========== */
+@media (min-width: 993px) {
+  .chart-dual {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-5);
+  }
+
+  .chart-container-pie {
+    min-height: 420px;
+    max-height: 550px;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 500px;
+    max-height: 500px;
+  }
+}
+
+/* ========== Notebook (min-width: 1024px) ========== */
+@media (min-width: 1024px) {
+  .lk-controls {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .controls-section {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .tabs {
+    width: auto;
+    overflow-x: visible;
+  }
+
+  .select-wrapper {
+    width: auto;
+    min-width: 200px;
+  }
+
+  .quick-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .chart-container {
+    min-height: 380px;
+    max-height: 480px;
+    padding: var(--spacing-5);
+  }
+
+  .chart-container canvas {
+    max-height: 420px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 500px;
+    max-height: 500px;
+  }
+
+  .chart-container-pie {
+    min-height: 400px;
+    max-height: 500px;
+  }
+
+  .chart-container-pie canvas {
+    max-height: 450px !important;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 500px;
+    max-height: 500px;
+  }
+
+  .chart-container-bar,
+  .chart-container-line {
+    min-height: 450px;
+    max-height: 550px;
+    padding: var(--spacing-4);
+  }
+
+  .chart-container-bar canvas,
+  .chart-container-line canvas {
+    max-height: 500px !important;
+    min-height: 400px !important;
+    width: 100% !important;
+  }
+
+  .chart-wrapper-bar,
+  .chart-wrapper-line {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .chart-dual {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-5);
+  }
+
+  .chart-dual .chart-container {
+    min-height: 360px;
+  }
+}
+
+/* ========== Desktop (min-width: 1280px) ========== */
+@media (min-width: 1280px) {
+  .rel-page {
+    max-width: 1200px;
+    padding: var(--spacing-6);
+  }
+
+  .lk-card {
+    margin: var(--spacing-6) var(--spacing-8);
+    padding: var(--spacing-7);
+  }
+
+  .chart-container {
+    padding: var(--spacing-7);
+    min-height: 600px;
+    max-height: 850px;
+  }
+
+  .chart-container canvas {
+    max-height: 750px !important;
+    min-height: 500px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 600px;
+    max-height: 600px;
+  }
+
+  .chart-container-pie {
+    min-height: 500px;
+    max-height: 650px;
+  }
+
+  .chart-container-pie canvas {
+    max-height: 580px !important;
+    min-height: 450px !important;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 580px;
+    max-height: 580px;
+  }
+
+  .chart-container-bar,
+  .chart-container-line {
+    min-height: 600px;
+    max-height: 850px;
+    padding: var(--spacing-5);
+  }
+
+  .chart-container-bar canvas,
+  .chart-container-line canvas {
+    max-height: 750px !important;
+    min-height: 500px !important;
+    width: 100% !important;
+  }
+
+  .chart-wrapper-bar,
+  .chart-wrapper-line {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .chart-dual {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-7);
+  }
+
+  .chart-dual .chart-container {
+    min-height: 580px;
+  }
+}
+
+/* ========== Telas Grandes (min-width: 1440px) ========== */
+@media (min-width: 1440px) {
+  .rel-page {
+    max-width: 1400px;
+    padding: var(--spacing-7);
+  }
+
+  .quick-stats-grid {
+    gap: var(--spacing-6);
+  }
+
+  .stat-card {
+    padding: var(--spacing-7);
+  }
+
+  .chart-container {
+    min-height: 650px;
+    max-height: 900px;
+    padding: var(--spacing-8);
+  }
+
+  .chart-container canvas {
+    max-height: 800px !important;
+    min-height: 550px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 550px;
+    max-height: 550px;
+  }
+
+  .chart-container-pie {
+    min-height: 550px;
+    max-height: 700px;
+  }
+
+  .chart-container-pie canvas {
+    max-height: 620px !important;
+    min-height: 480px !important;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 550px;
+    max-height: 550px;
+  }
+
+  .chart-container-bar,
+  .chart-container-line {
+    min-height: 650px;
+    max-height: 900px;
+    padding: var(--spacing-6);
+  }
+
+  .chart-container-bar canvas,
+  .chart-container-line canvas {
+    max-height: 800px !important;
+    min-height: 550px !important;
+    width: 100% !important;
+  }
+
+  .chart-wrapper-bar,
+  .chart-wrapper-line {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .chart-dual {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-8);
+  }
+
+  .chart-dual .chart-container {
+    min-height: 620px;
+  }
+}
+
+/* ========== Telas Muito Grandes (min-width: 1600px) ========== */
+@media (min-width: 1600px) {
+  .rel-page {
+    max-width: 1550px;
+  }
+
+  .chart-container {
+    min-height: 700px;
+    max-height: 950px;
+    padding: var(--spacing-8);
+  }
+
+  .chart-container canvas {
+    max-height: 850px !important;
+    min-height: 600px !important;
+  }
+
+  .chart-wrapper {
+    max-width: 580px;
+    max-height: 580px;
+  }
+
+  .chart-container-pie {
+    min-height: 600px;
+    max-height: 750px;
+  }
+
+  .chart-container-pie canvas {
+    max-height: 650px !important;
+    min-height: 500px !important;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 580px;
+    max-height: 580px;
+  }
+
+  .chart-container-bar,
+  .chart-container-line {
+    min-height: 700px;
+    max-height: 950px;
+    padding: var(--spacing-6);
+  }
+
+  .chart-container-bar canvas,
+  .chart-container-line canvas {
+    max-height: 850px !important;
+    min-height: 600px !important;
+    width: 100% !important;
+  }
+
+  .chart-wrapper-bar,
+  .chart-wrapper-line {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .chart-dual {
+    gap: var(--spacing-10);
+  }
+
+  .chart-dual .chart-container {
+    min-height: 650px;
+  }
+}
+
+/* ========== Ajustes específicos para Mobile ========== */
+@media (max-width: 767px) {
+  .lk-titlebar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chart-dual {
+    grid-template-columns: 1fr;
+  }
+
+  .tab-btn span {
+    display: none;
+  }
+
+  .tab-btn {
+    padding: var(--spacing-3);
+    justify-content: center;
+    min-width: 44px;
+  }
+}
+
+@media (max-width: 479px) {
+  .lk-t {
+    font-size: var(--font-size-xl);
+  }
+
+  .export-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .export-controls {
+    flex-direction: column;
+  }
+
+  .export-controls .select-wrapper,
+  .export-controls .btn {
+    width: 100%;
   }
 }
 
@@ -645,7 +1255,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .rel-page {
     padding: var(--spacing-2);
   }
@@ -676,7 +1286,7 @@
   }
 
   .chart-dual {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: var(--spacing-4);
   }
 
@@ -1629,7 +2239,6 @@ canvas {
 
 .chart-dual {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: var(--spacing-5);
   width: 100%;
   min-height: 360px;
