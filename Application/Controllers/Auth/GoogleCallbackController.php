@@ -49,9 +49,16 @@ class GoogleCallbackController extends BaseController
                 'code_received' => !empty($code),
             ]);
 
-            // Processa autenticação via Google
+            // Processa autenticação via Google (verifica se usuário existe)
             $result = $this->googleAuthService->handleCallback($code);
-            
+
+            // Se precisa confirmar criação de conta
+            if ($result['needs_confirmation'] ?? false) {
+                $_SESSION['google_pending_user'] = $result['user_info'];
+                $this->redirect('auth/google/confirm-page');
+                return;
+            }
+
             $usuario = $result['usuario'];
             $isNew = $result['is_new'];
 
@@ -67,7 +74,7 @@ class GoogleCallbackController extends BaseController
 
             // Redireciona
             if ($isNew) {
-                $this->redirect('login?new_google=1');
+                $this->redirect('dashboard?welcome=1');
             } else {
                 $this->redirect('dashboard');
             }
@@ -76,6 +83,81 @@ class GoogleCallbackController extends BaseController
         } catch (Throwable $e) {
             $this->handleCallbackError($e);
         }
+    }
+
+    /**
+     * Exibe página de confirmação para criar conta
+     */
+    public function confirmPage(): void
+    {
+        if ($this->isAuthenticated()) {
+            $this->redirect('dashboard');
+            return;
+        }
+
+        if (empty($_SESSION['google_pending_user'])) {
+            $this->redirect('login');
+            return;
+        }
+
+        require BASE_PATH . '/views/site/auth/google-confirm.php';
+    }
+
+    /**
+     * Confirma criação da conta via Google
+     */
+    public function confirm(): void
+    {
+        try {
+            if ($this->isAuthenticated()) {
+                $this->redirect('dashboard');
+                return;
+            }
+
+            $pendingUser = $_SESSION['google_pending_user'] ?? null;
+            if (!$pendingUser) {
+                $this->setError('Sessão expirada. Tente novamente.');
+                $this->redirect('login');
+                return;
+            }
+
+            // Cria o usuário
+            $usuario = $this->googleAuthService->createUserFromPending($pendingUser);
+
+            // Limpa dados pendentes
+            unset($_SESSION['google_pending_user']);
+
+            // Faz login
+            $userInfo = [
+                'id' => $usuario->google_id,
+                'email' => $usuario->email,
+                'picture' => $pendingUser['picture'] ?? null,
+            ];
+            $this->googleAuthService->loginUser($usuario, $userInfo);
+
+            LogService::info('Conta criada via Google após confirmação', [
+                'user_id' => $usuario->id,
+                'email' => $usuario->email,
+            ]);
+
+            $this->redirect('dashboard?welcome=1');
+        } catch (Exception $e) {
+            LogService::error('Erro ao confirmar criação de conta Google', [
+                'message' => $e->getMessage(),
+            ]);
+            $this->setError('Erro ao criar conta: ' . $e->getMessage());
+            $this->redirect('login');
+        }
+    }
+
+    /**
+     * Cancela criação da conta via Google
+     */
+    public function cancel(): void
+    {
+        unset($_SESSION['google_pending_user']);
+        $this->setError('Cadastro cancelado.');
+        $this->redirect('login');
     }
 
     /**
@@ -88,7 +170,7 @@ class GoogleCallbackController extends BaseController
 
         if ($error) {
             $errorDescription = $this->getQuery('error_description', 'Erro desconhecido');
-            
+
             LogService::error('Erro no callback do Google - OAuth error', [
                 'error' => $error,
                 'error_description' => $errorDescription,
@@ -120,4 +202,3 @@ class GoogleCallbackController extends BaseController
         $this->redirect('login');
     }
 }
-

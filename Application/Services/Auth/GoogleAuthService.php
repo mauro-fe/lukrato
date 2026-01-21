@@ -94,13 +94,10 @@ class GoogleAuthService
 
         // Busca por email (case-insensitive e com trim)
         $usuario = Usuario::whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
-        
-        // Debug: verificar quantos usuários existem com email similar
-        $countSimilar = Usuario::whereRaw('LOWER(email) LIKE ?', ['%' . $email . '%'])->count();
+
         LogService::info('Busca por email', [
             'email_buscado' => $email,
             'encontrado' => $usuario ? 'SIM' : 'NÃO',
-            'usuarios_similares' => $countSimilar,
         ]);
 
         if ($usuario) {
@@ -112,10 +109,21 @@ class GoogleAuthService
             return ['usuario' => $usuario, 'is_new' => false];
         }
 
-        LogService::info('Criando novo usuário via Google', ['email' => $email]);
-        $usuario = $this->createUserFromGoogle($userInfo);
+        // Usuário não existe - retorna para confirmação antes de criar
+        LogService::info('Usuário não encontrado, solicitando confirmação', ['email' => $email]);
 
-        return ['usuario' => $usuario, 'is_new' => true];
+        return [
+            'needs_confirmation' => true,
+            'user_info' => $userInfo,
+        ];
+    }
+
+    /**
+     * Cria usuário a partir dos dados pendentes (após confirmação)
+     */
+    public function createUserFromPending(array $userInfo): Usuario
+    {
+        return $this->createUserFromGoogle($userInfo);
     }
 
     private function createUserFromGoogle(array $userInfo): Usuario

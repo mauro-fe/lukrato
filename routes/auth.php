@@ -19,9 +19,12 @@ Router::add('GET',  '/logout',       'Auth\\LoginController@logout');
 Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
 
 // Login com Google
-Router::add('GET', '/auth/google/login',    'Auth\\GoogleLoginController@login');
-Router::add('GET', '/auth/google/register', 'Auth\\GoogleLoginController@login');
-Router::add('GET', '/auth/google/callback', 'Auth\\GoogleCallbackController@callback');
+Router::add('GET', '/auth/google/login',        'Auth\\GoogleLoginController@login');
+Router::add('GET', '/auth/google/register',     'Auth\\GoogleLoginController@login');
+Router::add('GET', '/auth/google/callback',     'Auth\\GoogleCallbackController@callback');
+Router::add('GET', '/auth/google/confirm-page', 'Auth\\GoogleCallbackController@confirmPage');
+Router::add('GET', '/auth/google/confirm',      'Auth\\GoogleCallbackController@confirm');
+Router::add('GET', '/auth/google/cancel',       'Auth\\GoogleCallbackController@cancel');
 
 // Recuperação de senha
 Router::add('GET',  '/recuperar-senha', 'Auth\\ForgotPasswordController@showRequestForm');
