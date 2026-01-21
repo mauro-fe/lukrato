@@ -34,8 +34,9 @@ class GoogleLoginController extends BaseController
             $authUrl = $this->googleAuthService->getAuthUrl();
 
             LogService::info('Iniciando login com Google OAuth', [
-                'client_id'   => $_ENV['GOOGLE_CLIENT_ID'] ?? null,
+                'client_id'    => $_ENV['GOOGLE_CLIENT_ID'] ?? null,
                 'redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? null,
+                'auth_url'     => $authUrl,
             ]);
 
             header('Location: ' . $authUrl);

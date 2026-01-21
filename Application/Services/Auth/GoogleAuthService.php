@@ -78,14 +78,24 @@ class GoogleAuthService
         $email    = $userInfo['email'];
         $name     = $userInfo['name'];
 
+        LogService::info('Processando usuário Google', [
+            'google_id' => $googleId,
+            'email' => $email,
+            'name' => $name,
+        ]);
+
+        // Busca por google_id
         $usuario = Usuario::where('google_id', $googleId)->first();
         if ($usuario) {
+            LogService::info('Usuário encontrado por google_id', ['usuario_id' => $usuario->id]);
             $this->updateUserName($usuario, $name);
             return ['usuario' => $usuario, 'is_new' => false];
         }
 
-        $usuario = Usuario::where('email', $email)->first();
+        // Busca por email (case-insensitive)
+        $usuario = Usuario::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
         if ($usuario) {
+            LogService::info('Usuário encontrado por email, vinculando google_id', ['usuario_id' => $usuario->id]);
             $usuario->google_id = $googleId;
             $usuario->nome = $usuario->nome ?: $name;
             $usuario->save();
@@ -93,6 +103,7 @@ class GoogleAuthService
             return ['usuario' => $usuario, 'is_new' => false];
         }
 
+        LogService::info('Criando novo usuário via Google', ['email' => $email]);
         $usuario = $this->createUserFromGoogle($userInfo);
 
         return ['usuario' => $usuario, 'is_new' => true];

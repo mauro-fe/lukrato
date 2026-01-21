@@ -26,6 +26,12 @@ class GoogleCallbackController extends BaseController
     public function callback(): void
     {
         try {
+            LogService::info('Google callback iniciado', [
+                'query_params' => $_GET,
+                'env_redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'NÃO DEFINIDO',
+                'base_url' => BASE_URL,
+            ]);
+
             // Se já estiver logado, redireciona para dashboard
             if ($this->isAuthenticated()) {
                 $this->redirect('dashboard');
@@ -40,6 +46,7 @@ class GoogleCallbackController extends BaseController
             LogService::info('Processando callback do Google', [
                 'redirect_uri' => rtrim(BASE_URL, '/') . '/auth/google/callback',
                 'base_url' => BASE_URL,
+                'code_received' => !empty($code),
             ]);
 
             // Processa autenticação via Google
