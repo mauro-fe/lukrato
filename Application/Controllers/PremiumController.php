@@ -172,9 +172,9 @@ class PremiumController extends BaseController
             $discount = $this->validator->getExpectedDiscount($dto->months);
             $total = $this->validator->calculateTotal($valorMensal, $dto->months, $discount);
 
-            $result = $dto->isSemestral()
-                ? $this->createPayment($usuario, $plano, $dto, $customerData, $total)
-                : $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $total);
+            // SEMPRE usar subscription para garantir cobrança recorrente automática
+            // O Asaas só cobra automaticamente quando é uma subscription
+            $result = $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $total);
 
             $this->saveAssinatura($usuario, $plano, $result);
 
@@ -226,16 +226,30 @@ class PremiumController extends BaseController
     private function createSubscription(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $valorMensal, float $total): array
     {
         $cycle = SubscriptionCycle::fromMonths($dto->months);
-        $desc = $plano->nome . ($dto->isAnual() ? ' (Anual -15%)' : '');
+
+        // Define descrição e valor baseado no período
+        $desc = match ($dto->months) {
+            6 => $plano->nome . ' (Semestral -10%)',
+            12 => $plano->nome . ' (Anual -15%)',
+            default => $plano->nome,
+        };
+
+        // Para semestral e anual, cobra o valor total do período
+        // Para mensal, cobra o valor mensal
+        $valorCobranca = $dto->isMensal() ? $valorMensal : $total;
 
         $builder = (new AsaasSubscriptionBuilder())
             ->forCustomer($usuario->external_customer_id)
-            ->withValue($dto->isAnual() ? $total : $valorMensal)
+            ->withValue($valorCobranca)
             ->withDescription($desc)
             ->withBillingType($dto->billingType)
             ->withCycle($cycle)
             ->withNextDueDate(date('Y-m-d'))
-            ->withExternalReference("sub:user:{$usuario->id}:plano:{$plano->id}:" . ($dto->isAnual() ? 'y1' : 'm1'));
+            ->withExternalReference("sub:user:{$usuario->id}:plano:{$plano->id}:" . match ($dto->months) {
+                6 => 'm6',
+                12 => 'y1',
+                default => 'm1',
+            });
 
         if ($dto->hasCreditCard()) {
             $builder->withCreditCard($dto->creditCard, $customerData);
@@ -243,6 +257,13 @@ class PremiumController extends BaseController
 
         $resp = $this->asaas->createSubscription($builder->build());
         $status = $resp['status'] ?? 'PENDING';
+
+        // Calcula próxima renovação baseada no ciclo
+        $renovaEm = $resp['nextDueDate'] ?? date('Y-m-d', strtotime(match ($dto->months) {
+            6 => '+6 months',
+            12 => '+1 year',
+            default => '+1 month',
+        }));
 
         return [
             'asaas_id' => $resp['id'] ?? null,
@@ -254,7 +275,7 @@ class PremiumController extends BaseController
                 'CANCELED' => AssinaturaUsuario::ST_CANCELED,
                 default => AssinaturaUsuario::ST_PENDING,
             },
-            'renova_em' => $resp['nextDueDate'] ?? date('Y-m-d', strtotime($dto->isAnual() ? '+1 year' : '+1 month')),
+            'renova_em' => $renovaEm,
             'message' => 'Assinatura criada. Aguarde confirmação.',
         ];
     }
