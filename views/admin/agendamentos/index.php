@@ -1,6 +1,6 @@
 <!-- CSS Agendamentos -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-agendamentos-index.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-agendamentos-index.css?v=<?= md5(uniqid(rand(), true)) ?>">
 
 
 <section class="lan-page">
@@ -394,4 +394,4 @@
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
-<script src="<?= BASE_URL ?>assets/js/admin-agendamentos-index.js"></script>
+<script src="<?= BASE_URL ?>assets/js/admin-agendamentos-index.js?v=<?= md5(uniqid(rand(), true)) ?>"></script>

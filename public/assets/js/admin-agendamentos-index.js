@@ -256,7 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
         agConta: document.getElementById('agConta'),
         agValor: document.getElementById('agValor'),
         agDataPagamento: document.getElementById('agDataPagamento'),
-        agRecorrente: document.getElementById('agRecorrente'),
+        agFrequencia: document.getElementById('agFrequencia'),
+        agRepeticoes: document.getElementById('agRepeticoes'),
         agLembrar: document.getElementById('agLembrar'),
         agDescricao: document.getElementById('agDescricao'),
 
@@ -837,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: [],
         pageSize: CONFIG.CARDS_PAGE_SIZE,
         currentPage: 1,
-        sortField: 'data_agendada',
+        sortField: 'data_pagamento',
         sortDir: 'desc',
 
         setData(list) {
@@ -867,8 +868,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return Number(value) || 0;
             }
 
-            if (field === 'data_agendada') {
-                const date = value ? new Date(String(value).replace(' ', 'T')) : null;
+            // Suportar tanto data_pagamento quanto data_agendada para ordenação
+            if (field === 'data_pagamento' || field === 'data_agendada') {
+                const dataStr = item?.data_pagamento || item?.data_agendada;
+                const date = dataStr ? new Date(String(dataStr).replace(' ', 'T')) : null;
                 return date ? date.getTime() : 0;
             }
 
@@ -933,9 +936,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const header = document.createElement('div');
             header.className = 'ag-card-header';
             header.innerHTML = `
-                <button type="button" class="cards-header-btn" data-sort="data_agendada">
+                <button type="button" class="cards-header-btn" data-sort="data_pagamento">
                     <span>Data</span>
-                    <span class="sort-indicator" data-field="data_agendada"></span>
+                    <span class="sort-indicator" data-field="data_pagamento"></span>
                 </button>
                 <button type="button" class="cards-header-btn" data-sort="tipo">
                     <span>Tipo</span>
@@ -971,7 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isRecorrente = item.recorrente === 1 || item.recorrente === true;
             const statusDinamico = item.status_dinamico ||
-                Format.calcularStatusDinamico(item.data_agendada, isRecorrente, status);
+                Format.calcularStatusDinamico(item.data_pagamento || item.data_agendada, isRecorrente, status);
 
             // Adicionar classe de destaque ao card
             if (statusDinamico === 'hoje') {
@@ -984,9 +987,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const tituloEl = clone.querySelector('.ag-card-title');
             tituloEl.innerHTML = `${Format.escapeHtml(item.titulo || '-')} ${Format.recorrenteIcon(isRecorrente)}`;
 
-            // Data
+            // Data - usar data_pagamento com fallback
             clone.querySelector('[data-field="data"]').textContent =
-                Format.dateTime(item.data_agendada || item.created_at);
+                Format.dateTime(item.data_pagamento || item.data_agendada || item.created_at);
 
             // Valor
             const valorEl = clone.querySelector('.ag-card-value');
@@ -1091,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const field = el?.dataset?.field;
 
                 if (field === this.sortField) {
-                    el.textContent = this.sortDir === 'asc' ? '?' : '?';
+                    el.textContent = this.sortDir === 'asc' ? ' ↑' : '↓';
                 } else {
                     el.textContent = '';
                 }
@@ -1602,12 +1605,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const descricao = (DOM.agDescricao?.value || '').trim();
             if (descricao) payload.append('descricao', descricao);
 
-            payload.append('recorrente', DOM.agRecorrente?.checked ? '1' : '0');
+            // Verificar se há recorrência selecionada
+            const frequencia = (DOM.agFrequencia?.value || '').trim();
+            const recorrente = frequencia !== '' ? '1' : '0';
+            payload.append('recorrente', recorrente);
 
-            // Enviar frequência apenas se recorrente (nome do campo: recorrencia_freq)
-            if (DOM.agRecorrente?.checked) {
-                const frequencia = document.getElementById('agFrequencia')?.value || 'mensal';
+            // Enviar frequência se houver recorrência
+            if (recorrente === '1' && frequencia) {
                 payload.append('recorrencia_freq', frequencia);
+                
+                // Enviar número de repetições se informado
+                const repeticoes = (DOM.agRepeticoes?.value || '').trim();
+                if (repeticoes) {
+                    payload.append('recorrencia_repeticoes', repeticoes);
+                }
             }
 
             // Campos de notificação
@@ -1635,7 +1646,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOM.agValor.value = MoneyMask.format(0);
             }
 
-            // Usar módulo profissional para reset da recorrência
+            // Resetar select de frequência e campo de repetições
+            if (DOM.agFrequencia) {
+                DOM.agFrequencia.value = '';
+            }
+            if (DOM.agRepeticoes) {
+                DOM.agRepeticoes.value = '';
+            }
+            const repeticoesGroup = document.getElementById('repeticoesGroup');
+            if (repeticoesGroup) {
+                repeticoesGroup.style.display = 'none';
+            }
+
+            // Usar módulo profissional para reset da recorrência (mantido para compatibilidade)
             RecurrenceToggle.reset();
 
             // Ativar todos os checkboxes de notificação por padrão
@@ -2002,8 +2025,10 @@ document.addEventListener('DOMContentLoaded', () => {
             switch (filterType) {
                 case 'hoje':
                     filtered = allData.filter(item => {
-                        if (!item.data_agendada) return false;
-                        const dataItem = new Date(item.data_agendada);
+                        // Usar data_pagamento (campo da API) com fallback para data_agendada
+                        const dataStr = item.data_pagamento || item.data_agendada;
+                        if (!dataStr) return false;
+                        const dataItem = new Date(dataStr);
                         dataItem.setHours(0, 0, 0, 0);
                         return dataItem.getTime() === hoje.getTime();
                     });
@@ -2013,19 +2038,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     const fimSemana = new Date(hoje);
                     fimSemana.setDate(hoje.getDate() + 7);
                     filtered = allData.filter(item => {
-                        if (!item.data_agendada) return false;
-                        const dataItem = new Date(item.data_agendada);
+                        // Usar data_pagamento (campo da API) com fallback para data_agendada
+                        const dataStr = item.data_pagamento || item.data_agendada;
+                        if (!dataStr) return false;
+                        const dataItem = new Date(dataStr);
+                        dataItem.setHours(0, 0, 0, 0);
                         return dataItem >= hoje && dataItem <= fimSemana;
                     });
                     break;
 
                 case 'vencidos':
                     filtered = allData.filter(item => {
-                        if (!item.data_agendada) return false;
-                        const dataItem = new Date(item.data_agendada);
+                        // Usar data_pagamento (campo da API) com fallback para data_agendada
+                        const dataStr = item.data_pagamento || item.data_agendada;
+                        if (!dataStr) return false;
+                        // Apenas itens pendentes podem estar vencidos
+                        if (item.status !== 'pendente') return false;
+                        const dataItem = new Date(dataStr);
                         dataItem.setHours(0, 0, 0, 0);
                         const isRecorrente = item.recorrente === 1 || item.recorrente === true;
-                        const statusDinamico = Format.calcularStatusDinamico(item.data_agendada, isRecorrente, item.status);
+                        const statusDinamico = Format.calcularStatusDinamico(dataStr, isRecorrente, item.status);
                         return statusDinamico === 'vencido';
                     });
                     break;
@@ -2258,6 +2290,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Configurar botões de toggle (precisa ser feito toda vez que o modal abre)
                     Events.setupToggleButtonsInModal();
 
+                    // Configurar evento de recorrência para mostrar/ocultar campo de repetições
+                    Events.setupRecurrenceToggle();
+
                     Modal.hideError();
                 } catch (error) {
                     Modal.showError(error?.message || 'Não foi possível carregar os dados do formulário.');
@@ -2281,6 +2316,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (success) {
             } else {
+            }
+        },
+
+        setupRecurrenceToggle() {
+            const selectFrequencia = document.getElementById('agFrequencia');
+            const repeticoesGroup = document.getElementById('repeticoesGroup');
+            const inputRepeticoes = document.getElementById('agRepeticoes');
+
+            if (!selectFrequencia || !repeticoesGroup) return;
+
+            // Mostrar/ocultar campo de repetições baseado no select de frequência
+            selectFrequencia.addEventListener('change', function() {
+                if (this.value && this.value !== '') {
+                    repeticoesGroup.style.display = 'block';
+                } else {
+                    repeticoesGroup.style.display = 'none';
+                    if (inputRepeticoes) inputRepeticoes.value = '';
+                }
+            });
+
+            // Inicializar estado correto ao abrir modal
+            if (selectFrequencia.value && selectFrequencia.value !== '') {
+                repeticoesGroup.style.display = 'block';
+            } else {
+                repeticoesGroup.style.display = 'none';
             }
         },
 

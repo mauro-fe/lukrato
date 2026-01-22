@@ -187,7 +187,6 @@ class LancamentoExportService
             'Conta Origem',
             'Conta Destino',
             'Descricao',
-            'Observacao',
             'Valor',
         ];
 
@@ -198,7 +197,6 @@ class LancamentoExportService
             $origem = $row->conta_origem ?: '-';
             $destino = $row->conta_destino ?: ($row->eh_transferencia ? '-' : '');
             $descricao = $row->descricao ?? '';
-            $observacao = $row->observacao ?? '';
             $valor = $this->resolveSignedValue($row);
 
             return [
@@ -208,7 +206,6 @@ class LancamentoExportService
                 $origem,
                 $destino,
                 $descricao,
-                $observacao,
                 $valor,
             ];
         })->values()->all();

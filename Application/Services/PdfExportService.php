@@ -158,6 +158,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     background: white;
+    table-layout: fixed;
 }
 
 thead {
@@ -166,7 +167,7 @@ thead {
 }
 
 th {
-    padding: 14px 16px;
+    padding: 14px 8px;
     text-align: left;
     font-size: 11px;
     font-weight: 700;
@@ -174,7 +175,19 @@ th {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-right: 1px solid rgba(30, 41, 59, 0.1);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
+
+/* Larguras específicas para cada coluna */
+th:nth-child(1) { width: 14%; } /* DATA */
+th:nth-child(2) { width: 11%; } /* TIPO */
+th:nth-child(3) { width: 17%; } /* CATEGORIA */
+th:nth-child(4) { width: 17%; } /* CONTA ORIGEM */
+th:nth-child(5) { width: 17%; } /* CONTA DESTINO */
+th:nth-child(6) { width: 18%; } /* DESCRICAO */
+th:nth-child(7) { width: 13%; } /* VALOR */
 
 th:last-child {
     border-right: none;
@@ -194,10 +207,12 @@ tbody tr:nth-child(even) {
 }
 
 td {
-    padding: 12px 16px;
+    padding: 12px 8px;
     font-size: 11px;
     color: black;
     border-right: 1px solid #d9e6f2;
+    word-wrap: break-word;
+    overflow: hidden;
 }
 
 td:last-child {

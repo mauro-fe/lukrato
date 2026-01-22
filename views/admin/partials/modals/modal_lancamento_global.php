@@ -240,6 +240,38 @@
                         </div>
                     </div>
 
+                    <!-- Recorrência (somente para agendamento) -->
+                    <div class="lk-form-group" id="globalRecorrenciaGroup" style="display: none;">
+                        <label for="globalLancamentoRecorrencia" class="lk-label">
+                            <i class="fas fa-sync-alt"></i>
+                            Recorrência
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="globalLancamentoRecorrencia" name="recorrencia_freq" class="lk-select">
+                                <option value="">Não repetir</option>
+                                <option value="diario">Diariamente</option>
+                                <option value="semanal">Semanalmente</option>
+                                <option value="mensal">Mensalmente</option>
+                                <option value="anual">Anualmente</option>
+                            </select>
+                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Quantas vezes repetir (somente quando recorrência selecionada) -->
+                    <div class="lk-form-group" id="globalRepeticoesGroup" style="display: none;">
+                        <label for="globalLancamentoRepeticoes" class="lk-label">
+                            <i class="fas fa-redo"></i>
+                            Quantas vezes repetir?
+                        </label>
+                        <div class="lk-input-group">
+                            <input type="number" id="globalLancamentoRepeticoes" name="recorrencia_repeticoes"
+                                class="lk-input" min="1" max="999" placeholder="12">
+                            <span class="lk-input-suffix">vezes</span>
+                        </div>
+                        <small class="lk-helper-text">Deixe em branco para indefinido</small>
+                    </div>
+
                     <!-- Botões de Ação -->
                     <div class="lk-form-actions">
                         <button type="button" class="lk-btn lk-btn-secondary"

@@ -1065,3 +1065,14 @@
     font-size: 1rem !important;
   }
 }
+/* ===== ANIMAÇÃO DE CONFETES ===== */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) translateX(var(--sway)) rotate(var(--rotate));
+    opacity: 0;
+  }
+}
