@@ -393,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
 
-
     } catch (err) {
       console.error(err);
       await Swal.fire({
