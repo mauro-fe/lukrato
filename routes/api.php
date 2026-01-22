@@ -18,6 +18,14 @@ use Application\Core\Router;
 Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
 
 // ============================================
+// GERENCIAMENTO DE SESSÃO
+// ============================================
+
+Router::add('GET',  '/api/session/status',    'Api\\SessionController@status',    ['auth']);
+Router::add('POST', '/api/session/renew',     'Api\\SessionController@renew',     ['auth']);
+Router::add('POST', '/api/session/heartbeat', 'Api\\SessionController@heartbeat', ['auth']);
+
+// ============================================
 // CONTATO / SUPORTE (Público)
 // ============================================
 

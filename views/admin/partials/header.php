@@ -83,6 +83,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
     <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
 
+    <!-- Sistema de Gerenciamento de Sessão -->
+    <script src="<?= BASE_URL ?>assets/js/session-manager.js?v=<?= time() ?>" defer></script>
+
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
     <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"
         defer></script>
