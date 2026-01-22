@@ -171,7 +171,8 @@ class Usuario extends Model
             return false;
         }
 
-        $renewsAt = \Carbon\Carbon::parse($assinatura->renova_em);
+        $renewsAt = \Carbon\Carbon::parse($assinatura->renova_em)->startOfDay();
+        $now = \Carbon\Carbon::now();
 
         // CANCELADA: Tem acesso até o fim do período pago
         if ($assinatura->status === AssinaturaUsuario::ST_CANCELED) {
@@ -186,11 +187,13 @@ class Usuario extends Model
             }
 
             // Se venceu, verifica período de carência (3 dias)
+            // O bloqueio acontece às 23:59:59 do último dia de carência
+            // Exemplo: venceu dia 19, carência = 3 dias, bloqueia dia 22 às 23:59:59
             $gracePeriodDays = 3;
-            $daysSinceExpiry = $renewsAt->diffInDays(\Carbon\Carbon::now());
+            $blockedAt = $renewsAt->copy()->addDays($gracePeriodDays)->endOfDay();
 
-            // Ainda está no período de carência
-            if ($daysSinceExpiry < $gracePeriodDays) {
+            // Ainda está no período de carência se a data atual é ANTES do momento de bloqueio
+            if ($now->isBefore($blockedAt)) {
                 return true;
             }
 

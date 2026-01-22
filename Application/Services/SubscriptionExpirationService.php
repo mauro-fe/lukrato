@@ -94,8 +94,14 @@ class SubscriptionExpirationService
             return;
         }
 
-        $expiredAt = Carbon::parse($subscription->renova_em);
-        $daysSinceExpiry = (int) $expiredAt->diffInDays(Carbon::now());
+        $expiredAt = Carbon::parse($subscription->renova_em)->startOfDay();
+        $now = Carbon::now();
+
+        // Calcula data/hora exata de bloqueio (fim do dia do último dia de carência)
+        // Exemplo: venceu 19/01, carência 3 dias = bloqueia 22/01 às 23:59:59
+        $blockedAt = $expiredAt->copy()->addDays(self::GRACE_PERIOD_DAYS)->endOfDay();
+
+        $daysSinceExpiry = (int) $expiredAt->diffInDays($now);
 
         // Verifica se já existe notificação de vencimento para esta assinatura
         $alreadyNotified = $this->hasExpirationNotification($usuario->id, $subscription->id);
@@ -111,8 +117,8 @@ class SubscriptionExpirationService
             }
         }
 
-        // Se passou do período de carência (3 dias), bloqueia
-        if ($daysSinceExpiry >= self::GRACE_PERIOD_DAYS) {
+        // Se passou do período de carência (após o horário de bloqueio), bloqueia
+        if ($now->isAfter($blockedAt)) {
             $this->blockSubscription($subscription);
             $stats['blocked']++;
 
@@ -366,5 +372,239 @@ class SubscriptionExpirationService
 
         $daysSinceExpiry = $renewsAt->diffInDays(Carbon::now());
         return max(0, self::GRACE_PERIOD_DAYS - (int)$daysSinceExpiry);
+    }
+
+    /**
+     * Calcula a data/hora exata em que o acesso será bloqueado.
+     * O bloqueio acontece às 23:59:59 do último dia de carência.
+     * 
+     * Exemplo: Se venceu dia 19/01, carência de 3 dias = bloqueia 22/01 às 23:59:59
+     */
+    public static function getBlockedAt(AssinaturaUsuario $subscription): ?Carbon
+    {
+        if (!$subscription->renova_em) {
+            return null;
+        }
+
+        $renewsAt = Carbon::parse($subscription->renova_em)->startOfDay();
+
+        // Bloqueia no final do dia após o período de carência
+        // Se venceu dia 19, adiciona 3 dias = dia 22 às 23:59:59
+        return $renewsAt->copy()->addDays(self::GRACE_PERIOD_DAYS)->endOfDay();
+    }
+
+    /**
+     * Verifica se o período de carência já expirou (deve bloquear).
+     * Considera o horário de expiração como 23:59:59 do último dia.
+     */
+    public static function isGracePeriodExpired(AssinaturaUsuario $subscription): bool
+    {
+        $blockedAt = self::getBlockedAt($subscription);
+        if (!$blockedAt) {
+            return true;
+        }
+
+        return Carbon::now()->isAfter($blockedAt);
+    }
+
+    /**
+     * Retorna informações completas do estado da assinatura para UI.
+     * Baseado em práticas de Stripe, Netflix, Spotify para gestão de grace period.
+     * 
+     * Estados possíveis:
+     * - active: Assinatura ativa e não vencida
+     * - grace_period: Vencida mas dentro do período de carência (pode renovar)
+     * - expired: Período de carência expirou (bloqueado)
+     * - canceled: Cancelada pelo usuário (acesso até fim do período pago)
+     * - pending: Aguardando confirmação de pagamento
+     * 
+     * @return array{
+     *     status: string,
+     *     is_active: bool,
+     *     is_in_grace: bool,
+     *     is_expired: bool,
+     *     is_canceled: bool,
+     *     can_access: bool,
+     *     should_show_renew: bool,
+     *     renews_at: string|null,
+     *     blocked_at: string|null,
+     *     grace_days_remaining: int,
+     *     grace_hours_remaining: int,
+     *     access_until: string|null,
+     *     status_label: string,
+     *     status_color: string,
+     *     action_label: string,
+     *     alert_message: string|null
+     * }
+     */
+    public static function getSubscriptionStatus(?AssinaturaUsuario $subscription): array
+    {
+        // Sem assinatura = plano free
+        if (!$subscription) {
+            return [
+                'status' => 'free',
+                'is_active' => false,
+                'is_in_grace' => false,
+                'is_expired' => false,
+                'is_canceled' => false,
+                'can_access' => false,
+                'should_show_renew' => false,
+                'renews_at' => null,
+                'blocked_at' => null,
+                'grace_days_remaining' => 0,
+                'grace_hours_remaining' => 0,
+                'access_until' => null,
+                'status_label' => 'Plano Gratuito',
+                'status_color' => 'gray',
+                'action_label' => 'Assinar Pro',
+                'alert_message' => null,
+            ];
+        }
+
+        $now = Carbon::now();
+        $renewsAt = $subscription->renova_em ? Carbon::parse($subscription->renova_em) : null;
+        $blockedAt = self::getBlockedAt($subscription);
+
+        // Estado base
+        $result = [
+            'status' => $subscription->status,
+            'is_active' => false,
+            'is_in_grace' => false,
+            'is_expired' => false,
+            'is_canceled' => false,
+            'can_access' => false,
+            'should_show_renew' => false,
+            'renews_at' => $renewsAt?->format('d/m/Y'),
+            'renews_at_full' => $renewsAt?->format('d/m/Y \à\s H:i'),
+            'blocked_at' => $blockedAt?->format('d/m/Y \à\s H:i'),
+            'grace_days_remaining' => 0,
+            'grace_hours_remaining' => 0,
+            'access_until' => null,
+            'status_label' => '',
+            'status_color' => 'gray',
+            'action_label' => '',
+            'alert_message' => null,
+        ];
+
+        // Status CANCELED - Cancelada pelo usuário
+        if ($subscription->status === AssinaturaUsuario::ST_CANCELED) {
+            $result['is_canceled'] = true;
+            $result['can_access'] = $renewsAt && $renewsAt->isFuture();
+            $result['access_until'] = $renewsAt?->format('d/m/Y');
+            $result['status_label'] = 'Cancelada';
+            $result['status_color'] = 'orange';
+            $result['action_label'] = 'Reativar assinatura';
+            $result['should_show_renew'] = true;
+            $result['alert_message'] = $renewsAt
+                ? "Assinatura cancelada. Acesso disponível até {$renewsAt->format('d/m/Y')}."
+                : 'Assinatura cancelada.';
+            return $result;
+        }
+
+        // Status EXPIRED - Bloqueado
+        if ($subscription->status === AssinaturaUsuario::ST_EXPIRED) {
+            $result['is_expired'] = true;
+            $result['can_access'] = false;
+            $result['status_label'] = 'Expirada';
+            $result['status_color'] = 'red';
+            $result['action_label'] = 'Renovar assinatura';
+            $result['should_show_renew'] = true;
+            $result['alert_message'] = 'Seu plano PRO expirou. Renove para recuperar o acesso.';
+            return $result;
+        }
+
+        // Status PENDING
+        if ($subscription->status === AssinaturaUsuario::ST_PENDING) {
+            $result['status_label'] = 'Aguardando pagamento';
+            $result['status_color'] = 'yellow';
+            $result['action_label'] = 'Concluir pagamento';
+            $result['alert_message'] = 'Pagamento pendente. Conclua para ativar seu plano.';
+            return $result;
+        }
+
+        // Status ACTIVE - Verificar se está no período normal ou carência
+        if ($subscription->status === AssinaturaUsuario::ST_ACTIVE) {
+            // Ainda não venceu - Ativo normalmente
+            if ($renewsAt && $renewsAt->isFuture()) {
+                $result['is_active'] = true;
+                $result['can_access'] = true;
+                $result['status_label'] = 'Ativo';
+                $result['status_color'] = 'green';
+                $result['action_label'] = 'Cancelar assinatura';
+                $result['access_until'] = $renewsAt->format('d/m/Y');
+                return $result;
+            }
+
+            // Venceu - Verificar período de carência
+            if ($blockedAt && $now->isBefore($blockedAt)) {
+                // Dentro do período de carência
+                $hoursRemaining = (int) $now->diffInHours($blockedAt, false);
+                $daysRemaining = (int) ceil($hoursRemaining / 24);
+
+                $result['is_in_grace'] = true;
+                $result['can_access'] = true;
+                $result['should_show_renew'] = true;
+                $result['grace_days_remaining'] = max(0, $daysRemaining);
+                $result['grace_hours_remaining'] = max(0, $hoursRemaining);
+                $result['access_until'] = $blockedAt->format('d/m/Y \à\s H:i');
+                $result['status_label'] = 'Vencido - Em carência';
+                $result['status_color'] = 'orange';
+                $result['action_label'] = 'Renovar agora';
+
+                // Mensagem baseada no tempo restante
+                if ($hoursRemaining <= 24) {
+                    $result['alert_message'] = "⚠️ Seu plano venceu! Restam menos de 24 horas para renovar. Bloqueio em {$blockedAt->format('d/m/Y \à\s H:i')}.";
+                } else {
+                    $result['alert_message'] = "⚠️ Seu plano venceu! Você tem {$daysRemaining} dia(s) para renovar antes do bloqueio em {$blockedAt->format('d/m/Y')}.";
+                }
+
+                return $result;
+            }
+
+            // Período de carência expirou - deveria estar bloqueado
+            // (O cron job ainda não rodou para mudar o status)
+            $result['is_expired'] = true;
+            $result['can_access'] = false;
+            $result['should_show_renew'] = true;
+            $result['status_label'] = 'Acesso suspenso';
+            $result['status_color'] = 'red';
+            $result['action_label'] = 'Renovar assinatura';
+            $result['alert_message'] = 'Período de carência expirou. Renove para recuperar o acesso.';
+            return $result;
+        }
+
+        // Status desconhecido ou PAST_DUE
+        $result['status_label'] = 'Pendente';
+        $result['status_color'] = 'yellow';
+        $result['action_label'] = 'Verificar status';
+        return $result;
+    }
+
+    /**
+     * Formata o tempo restante de carência de forma amigável.
+     */
+    public static function formatGraceTimeRemaining(AssinaturaUsuario $subscription): string
+    {
+        $blockedAt = self::getBlockedAt($subscription);
+        if (!$blockedAt) {
+            return '';
+        }
+
+        $now = Carbon::now();
+        if ($now->isAfter($blockedAt)) {
+            return 'Expirado';
+        }
+
+        $diff = $now->diff($blockedAt);
+
+        if ($diff->days > 0) {
+            return $diff->days . ' dia(s) e ' . $diff->h . ' hora(s)';
+        }
+
+        if ($diff->h > 0) {
+            return $diff->h . ' hora(s) e ' . $diff->i . ' minuto(s)';
+        }
+
+        return $diff->i . ' minuto(s)';
     }
 }

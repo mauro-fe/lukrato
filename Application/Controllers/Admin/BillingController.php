@@ -5,6 +5,7 @@ namespace Application\Controllers\Admin;
 use Application\Controllers\BaseController;
 use Application\Lib\Auth;
 use Application\Models\Plano;
+use Application\Services\SubscriptionExpirationService;
 
 class BillingController extends BaseController
 {
@@ -20,9 +21,8 @@ class BillingController extends BaseController
         $currentPlan = $user?->planoAtual();
         $assinatura = $user?->assinaturaAtiva()->first();
 
-        // Verificar se a assinatura foi cancelada mas ainda está ativa
-        $isCanceled = $assinatura && $assinatura->status === \Application\Models\AssinaturaUsuario::ST_CANCELED;
-        $accessUntil = $isCanceled && $assinatura->renova_em ? $assinatura->renova_em->format('d/m/Y') : null;
+        // Obter status completo da assinatura (inclui período de carência)
+        $subscriptionStatus = SubscriptionExpirationService::getSubscriptionStatus($assinatura);
 
         $this->render(
             'admin/billing/index',
@@ -31,8 +31,20 @@ class BillingController extends BaseController
                 'plans' => $plans,
                 'currentPlanCode' => $currentPlan?->code,
                 'assinatura' => $assinatura,
-                'isCanceled' => $isCanceled,
-                'accessUntil' => $accessUntil,
+                // Status detalhado da assinatura
+                'subscriptionStatus' => $subscriptionStatus,
+                // Atalhos para compatibilidade com view existente
+                'isCanceled' => $subscriptionStatus['is_canceled'],
+                'isInGrace' => $subscriptionStatus['is_in_grace'],
+                'isExpired' => $subscriptionStatus['is_expired'],
+                'accessUntil' => $subscriptionStatus['access_until'],
+                'graceDaysRemaining' => $subscriptionStatus['grace_days_remaining'],
+                'graceHoursRemaining' => $subscriptionStatus['grace_hours_remaining'],
+                'shouldShowRenew' => $subscriptionStatus['should_show_renew'],
+                'alertMessage' => $subscriptionStatus['alert_message'],
+                'statusLabel' => $subscriptionStatus['status_label'],
+                'statusColor' => $subscriptionStatus['status_color'],
+                'actionLabel' => $subscriptionStatus['action_label'],
                 'pageTitle' => 'Assinar Pro',
                 'subTitle' => 'Assine o pro e tenha acesso a todas as funcionalidades'
             ],

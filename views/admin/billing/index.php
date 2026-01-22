@@ -617,6 +617,136 @@
         font-size: 1rem;
     }
 
+    /* ==========================================================================
+       ALERTAS DE CARÊNCIA E EXPIRAÇÃO
+       ========================================================================== */
+
+    /* Alerta de período de carência */
+    .plan-card__grace-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-3);
+        padding: var(--spacing-3) var(--spacing-4);
+        margin-bottom: var(--spacing-3);
+        background: linear-gradient(135deg,
+                color-mix(in srgb, #ff9800 15%, transparent),
+                color-mix(in srgb, #ff6b00 10%, transparent));
+        border: 1px solid color-mix(in srgb, #ff9800 40%, transparent);
+        border-radius: var(--radius-md);
+        animation: grace-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes grace-pulse {
+
+        0%,
+        100% {
+            border-color: color-mix(in srgb, #ff9800 40%, transparent);
+            box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+        }
+
+        50% {
+            border-color: #ff9800;
+            box-shadow: 0 0 12px rgba(255, 152, 0, 0.3);
+        }
+    }
+
+    .plan-card__grace-alert-icon {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #ff9800, #ff6b00);
+        border-radius: 50%;
+        color: white;
+        font-size: 0.875rem;
+        animation: icon-bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes icon-bounce {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    .plan-card__grace-alert-content {
+        flex: 1;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--color-text);
+    }
+
+    .plan-card__grace-alert-content strong {
+        display: block;
+        margin-bottom: var(--spacing-1);
+        color: #ff6b00;
+        font-size: 0.875rem;
+    }
+
+    .plan-card__grace-alert-content p {
+        margin: 0;
+        color: var(--color-text-muted);
+    }
+
+    .plan-card__grace-alert-content small {
+        color: color-mix(in srgb, var(--color-text-muted) 80%, transparent);
+    }
+
+    /* Alerta de expirado/bloqueado */
+    .plan-card__expired-alert {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-2);
+        padding: var(--spacing-3) var(--spacing-4);
+        margin-bottom: var(--spacing-3);
+        background: linear-gradient(135deg,
+                color-mix(in srgb, var(--color-danger) 15%, transparent),
+                color-mix(in srgb, var(--color-danger) 10%, transparent));
+        border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-danger);
+    }
+
+    .plan-card__expired-alert i {
+        font-size: 1rem;
+    }
+
+    /* Botão de renovar com destaque */
+    .plan-card__button--renew {
+        background: linear-gradient(135deg, #ff9800, #ff6b00) !important;
+        color: white !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+        animation: renew-pulse 1.5s ease-in-out infinite;
+    }
+
+    .plan-card__button--renew:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 12px 32px rgba(255, 152, 0, 0.5);
+    }
+
+    @keyframes renew-pulse {
+
+        0%,
+        100% {
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+        }
+
+        50% {
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.7);
+        }
+    }
+
     /* Loading state */
     .plan-card__button--loading {
         pointer-events: none;
@@ -1083,7 +1213,37 @@ function formatInterval(string $interval): string
 
                     <!-- Botão de Ação -->
                     <?php if ($isCurrentPlan): ?>
-                        <?php if ($isCanceled ?? false): ?>
+                        <?php if ($isInGrace ?? false): ?>
+                            <!-- Status: Em período de carência - MOSTRAR RENOVAR -->
+                            <div class="plan-card__grace-alert" role="alert">
+                                <div class="plan-card__grace-alert-icon">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div class="plan-card__grace-alert-content">
+                                    <strong>⚠️ Plano vencido!</strong>
+                                    <p>
+                                        <?php if (($graceHoursRemaining ?? 0) <= 24): ?>
+                                            Restam menos de 24 horas para renovar.
+                                        <?php else: ?>
+                                            Você tem <?= $graceDaysRemaining ?? 0 ?> dia(s) para renovar.
+                                        <?php endif; ?>
+                                        <br>
+                                        <small>Bloqueio em: <?= htmlspecialchars($accessUntil ?? '') ?></small>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                class="plan-card__button plan-card__button--warning plan-card__button--renew"
+                                id="btn-renew-subscription"
+                                data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
+                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
+                                aria-label="Renovar assinatura do plano Pro">
+                                <i class="plan-card__button-icon fa-solid fa-sync-alt" aria-hidden="true"></i>
+                                <span>Renovar agora</span>
+                            </button>
+
+                        <?php elseif ($isCanceled ?? false): ?>
                             <!-- Status: Cancelado mas ainda tem acesso -->
                             <button class="plan-card__button plan-card__button--warning" disabled
                                 aria-label="Plano cancelado - acesso até <?= $accessUntil ?? '' ?>">
@@ -1092,6 +1252,35 @@ function formatInterval(string $interval): string
                                     Cancelado - Acesso até <?= htmlspecialchars($accessUntil ?? $renewDate ?? '') ?>
                                 </span>
                             </button>
+
+                            <!-- Botão para reativar -->
+                            <button type="button"
+                                class="plan-card__button plan-card__button--primary"
+                                id="btn-reactivate-subscription"
+                                data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
+                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
+                                aria-label="Reativar assinatura do plano Pro">
+                                <i class="plan-card__button-icon fa-solid fa-redo" aria-hidden="true"></i>
+                                <span>Reativar assinatura</span>
+                            </button>
+
+                        <?php elseif ($isExpired ?? false): ?>
+                            <!-- Status: Expirado/Bloqueado -->
+                            <div class="plan-card__expired-alert" role="alert">
+                                <i class="fa-solid fa-lock"></i>
+                                <span>Acesso suspenso - Renove para continuar</span>
+                            </div>
+
+                            <button type="button"
+                                class="plan-card__button plan-card__button--primary"
+                                id="btn-renew-subscription"
+                                data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
+                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
+                                aria-label="Renovar assinatura do plano Pro">
+                                <i class="plan-card__button-icon fa-solid fa-sync-alt" aria-hidden="true"></i>
+                                <span>Renovar assinatura</span>
+                            </button>
+
                         <?php else: ?>
                             <!-- Status: Ativo normalmente -->
                             <button class="plan-card__button plan-card__button--active" disabled
@@ -1339,5 +1528,73 @@ function formatInterval(string $interval): string
                 });
             }
         });
+    })();
+</script>
+
+<!-- ============================================================================
+     SCRIPT DE RENOVAÇÃO DE ASSINATURA (para período de carência/expirado)
+     ============================================================================ -->
+<script>
+    (function() {
+        'use strict';
+
+        // Botão de renovar (aparece quando em carência ou expirado)
+        const renewBtn = document.getElementById('btn-renew-subscription');
+        const reactivateBtn = document.getElementById('btn-reactivate-subscription');
+
+        // Handler comum para renovar/reativar - abre modal de pagamento
+        const handleRenewClick = async (btn, action) => {
+            if (!btn) return;
+
+            btn.addEventListener('click', async () => {
+                const planId = btn.dataset.planId;
+                const planCode = btn.dataset.planCode;
+
+                if (typeof Swal === 'undefined') {
+                    alert('Erro: SweetAlert não carregado');
+                    return;
+                }
+
+                const actionText = action === 'reactivate' ? 'reativar' : 'renovar';
+                const titleText = action === 'reactivate' ? 'Reativar' : 'Renovar';
+
+                // Confirmação
+                const result = await Swal.fire({
+                    title: `🔄 ${titleText} assinatura Pro?`,
+                    html: `
+                        <div style="text-align: left; padding: 1rem 0;">
+                            <p style="margin-bottom: 1rem;">Ao ${actionText} sua assinatura você terá acesso imediato a:</p>
+                            <ul style="margin: 0; padding-left: 1.5rem; color: var(--color-text-muted);">
+                                <li style="margin-bottom: 0.5rem;">✅ Lançamentos ilimitados</li>
+                                <li style="margin-bottom: 0.5rem;">✅ Importação automática de extratos</li>
+                                <li style="margin-bottom: 0.5rem;">✅ Relatórios avançados</li>
+                                <li>✅ Categorização inteligente com IA</li>
+                            </ul>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#27ae60',
+                    cancelButtonColor: '#95a5a6',
+                    confirmButtonText: `${titleText} agora`,
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (!result.isConfirmed) return;
+
+                // Simula clique no botão de assinar para abrir o modal de pagamento
+                const assinarBtn = document.getElementById('btnAssinar');
+                if (assinarBtn) {
+                    assinarBtn.click();
+                } else {
+                    // Fallback: redireciona para página de checkout
+                    window.location.href = `<?= BASE_URL ?>billing?action=renew&plan=${planCode}`;
+                }
+            });
+        };
+
+        // Configura handlers
+        handleRenewClick(renewBtn, 'renew');
+        handleRenewClick(reactivateBtn, 'reactivate');
     })();
 </script>
