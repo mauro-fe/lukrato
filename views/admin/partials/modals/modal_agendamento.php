@@ -1,6 +1,7 @@
 <style>
     /* =============================================================================
        MODAL MODERNO - AGENDAMENTOS
+       Version: <?= time() ?> 
        ============================================================================= */
 
     /* SweetAlert na frente do modal */
@@ -311,6 +312,113 @@
         user-select: none;
     }
 
+    /* Campo de Repetições - Input com Texto Integrado */
+    #modalAgendamento .form-text.text-muted {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        margin-top: var(--spacing-2);
+        font-style: italic;
+    }
+
+    #modalAgendamento #agRepeticoes {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--color-card-border);
+        border-radius: 12px;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--color-text);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--glass-bg);
+    }
+
+    #modalAgendamento #repeticoesGroup {
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Input Group (para campo de repetições) */
+    #modalAgendamento .lk-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    #modalAgendamento .lk-input-group .lk-input {
+        padding-right: 70px;
+    }
+
+    #modalAgendamento .lk-input {
+        width: 100%;
+        padding: var(--spacing-3) var(--spacing-4);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
+        color: var(--color-text);
+        font-size: var(--font-size-sm);
+        transition: var(--transition-normal);
+        font-family: var(--font-primary);
+        text-align: left;
+    }
+
+    /* Estilizar os botões de número (spinner) */
+    #modalAgendamento input[type="number"]::-webkit-inner-spin-button,
+    #modalAgendamento input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+        height: 30px;
+        margin-right: 360px !important;
+        cursor: pointer;
+    }
+
+    #modalAgendamento input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    #modalAgendamento input[type="number"]::-webkit-inner-spin-button:hover,
+    #modalAgendamento input[type="number"]::-webkit-outer-spin-button:hover {
+        background: var(--color-primary-muted);
+    }
+
+    #modalAgendamento .lk-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px var(--ring);
+        background: var(--color-surface);
+    }
+
+    #modalAgendamento .lk-input-suffix {
+        position: absolute;
+        right: var(--spacing-4);
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    #modalAgendamento .lk-helper-text {
+        display: block;
+        margin-top: var(--spacing-2);
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        font-style: italic;
+    }
+
+    :root[data-theme="dark"] #modalAgendamento .lk-input {
+        background: var(--color-background);
+        border-color: var(--glass-border);
+    }
+
     /* Modern Buttons */
     #modalAgendamento .btn-modern {
         display: inline-flex;
@@ -532,26 +640,29 @@
 
                     <!-- Recorrência -->
                     <div class="form-group">
-                        <label class="form-label">
+                        <label for="agFrequencia" class="form-label">
                             <i class="fas fa-sync-alt"></i> Recorrência
                         </label>
-                        <input type="checkbox" id="agRecorrente" name="recorrente" value="1" hidden>
-                        <button type="button" class="toggle-btn-modern" id="btnToggleRecorrente" data-active="false">
-                            <span id="recorrenteText">Não, agendamento único</span>
-                        </button>
+                        <select id="agFrequencia" name="recorrencia_freq" class="form-control modern-select">
+                            <option value="">Não repetir</option>
+                            <option value="diario">Diariamente</option>
+                            <option value="semanal">Semanalmente</option>
+                            <option value="mensal">Mensalmente</option>
+                            <option value="anual">Anualmente</option>
+                        </select>
                     </div>
 
-                    <!-- Frequência (aparece quando recorrente) -->
-                    <div class="form-group" id="frequenciaGroup" style="display: none;">
-                        <label for="agFrequencia" class="form-label">
-                            <i class="fas fa-calendar-week"></i> Frequência
+                    <!-- Quantas vezes repetir (aparece quando recorrência selecionada) -->
+                    <div class="form-group" id="repeticoesGroup" style="display: none;">
+                        <label for="agRepeticoes" class="form-label">
+                            <i class="fas fa-redo"></i> Quantas vezes repetir?
                         </label>
-                        <select id="agFrequencia" name="recorrencia_freq" class="form-control modern-select">
-                            <option value="mensal">📅 Mensal</option>
-                            <option value="semanal">📆 Semanal</option>
-                            <option value="diario">🗓️ Diário</option>
-                            <option value="anual">📌 Anual</option>
-                        </select>
+                        <div class="lk-input-group">
+                            <input type="number" id="agRepeticoes" name="recorrencia_repeticoes" class="lk-input"
+                                placeholder="12" min="1" max="999">
+                            <span class="lk-input-suffix">vezes</span>
+                        </div>
+                        <small class="lk-helper-text">Deixe em branco para indefinido</small>
                     </div>
 
                     <!-- Notificações -->

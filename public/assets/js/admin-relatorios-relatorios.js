@@ -3,6 +3,39 @@
  * SISTEMA DE RELATÓRIOS - JAVASCRIPT
  * ============================================================================
  * Gerencia visualização de relatórios financeiros com gráficos interativos
+ * 
+ * REFATORAÇÃO MOBILE-FIRST (Janeiro 2026)
+ * ============================================================================
+ * 
+ * 📱 MUDANÇAS IMPLEMENTADAS PARA MOBILE:
+ * 
+ * 1. AGRUPAMENTO "TOP 5 + OUTROS"
+ *    - Mobile (≤768px): Mostra apenas 5 maiores categorias + "Outros"
+ *    - Desktop (>768px): Mantém comportamento original (todas categorias)
+ *    - Evita poluição visual em telas pequenas
+ * 
+ * 2. CHART.JS ADAPTATIVO
+ *    - Mobile: Legendas escondidas (legend.display: false)
+ *    - Mobile: Percentuais removidos do gráfico (lkDoughnutLabels: false)
+ *    - Desktop: Legendas e percentuais visíveis
+ *    - Tooltips profissionais: Nome + Valor + Percentual em ambos
+ * 
+ * 3. LISTA DE CATEGORIAS MOBILE
+ *    - Renderizada automaticamente abaixo do gráfico (mobile only)
+ *    - Layout vertical: Indicador cor + Nome + Valor + Percentual
+ *    - Animação de entrada suave (fadeInUp)
+ *    - Interações micro: hover com scale e deslocamento
+ * 
+ * 4. RESPONSIVIDADE AUTOMÁTICA
+ *    - Breakpoint crítico: 768px
+ *    - window.innerWidth detecta contexto mobile/desktop
+ *    - CSS via media queries complementa lógica JavaScript
+ * 
+ * 🎯 RESULTADO:
+ *    Mobile: Visual limpo, profissional, padrão Nubank/Mobills
+ *    Desktop: Comportamento original preservado
+ * 
+ * 📄 Ver REFATORACAO_RELATORIOS_MOBILE.md para detalhes técnicos
  * ============================================================================
  */
 
@@ -424,7 +457,8 @@
                 return UI.showEmptyState();
             }
 
-            const entries = labels
+            // Preparar entradas com cores
+            let entries = labels
                 .map((label, idx) => ({
                     label,
                     value: Number(values[idx]) || 0,
@@ -434,11 +468,35 @@
                 .sort((a, b) => b.value - a.value);
 
             const isMobile = window.innerWidth < 768;
-            const shouldSplit = !isMobile && entries.length > 2;
-            const chunkSize = shouldSplit ? Math.ceil(entries.length / 2) : entries.length;
+            
+            // ===================================================================
+            // LÓGICA MOBILE: TOP 5 + OUTROS
+            // ===================================================================
+            // Aplicar agrupamento "Top 5 + Outros" APENAS no mobile
+            // Isso mantém o gráfico limpo e profissional em telas pequenas
+            let processedEntries = entries;
+            if (isMobile && entries.length > 5) {
+                const top5 = entries.slice(0, 5);
+                const others = entries.slice(5);
+                const othersTotal = others.reduce((sum, item) => sum + item.value, 0);
+                
+                processedEntries = [
+                    ...top5,
+                    {
+                        label: 'Outros',
+                        value: othersTotal,
+                        color: '#95a5a6', // Cor neutra para "Outros"
+                        isOthers: true
+                    }
+                ];
+            }
+            
+            // Desktop: dividir em duas colunas se houver muitas categorias
+            const shouldSplit = !isMobile && processedEntries.length > 2;
+            const chunkSize = shouldSplit ? Math.ceil(processedEntries.length / 2) : processedEntries.length;
             const chunks = shouldSplit
-                ? [entries.slice(0, chunkSize), entries.slice(chunkSize)].filter(chunk => chunk.length)
-                : [entries];
+                ? [processedEntries.slice(0, chunkSize), processedEntries.slice(chunkSize)].filter(chunk => chunk.length)
+                : [processedEntries];
 
             const html = `
                 <div class="chart-container chart-container-pie">
@@ -450,10 +508,14 @@
                         `).join('')}
                     </div>
                 </div>
+                ${isMobile ? '<div id="categoryListMobile" class="category-list-mobile"></div>' : ''}
             `;
 
             UI.setContent(html);
             this.destroy();
+            
+            // Armazenar as entradas processadas para renderizar a lista mobile
+            this._currentEntries = processedEntries;
 
             const type = getActiveCategoryType();
             const titleMap = {
@@ -488,29 +550,128 @@
                         maintainAspectRatio: false,
                         cutout: '60%',
                         plugins: {
-                            legend: { position: 'bottom' },
+                            // ===================================================================
+                            // MOBILE: Esconder legendas para visual limpo
+                            // Desktop: Mostrar legendas na parte inferior
+                            // ===================================================================
+                            legend: { 
+                                display: !isMobile,
+                                position: 'bottom'
+                            },
                             title: {
                                 display: true,
                                 text: chunks.length > 1 ? `${title} - Parte ${idx + 1}` : title
                             },
+                            // ===================================================================
+                            // TOOLTIP PROFISSIONAL
+                            // Exibe: Nome da categoria + Valor em R$ + Percentual
+                            // ===================================================================
                             tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                padding: 12,
+                                cornerRadius: 8,
+                                displayColors: true,
                                 callbacks: {
                                     label: (context) => {
                                         const label = context.label || '';
                                         const value = formatCurrency(context.parsed);
-                                        return `${label}: ${value}`;
+                                        const percentage = ((context.parsed / chunkTotal) * 100).toFixed(1);
+                                        return `${label}: ${value} (${percentage}%)`;
                                     }
                                 }
                             },
-                            lkDoughnutLabels: {
-                                color: labelColor,
-                                font: { size: 12, weight: 'bold', family: 'Arial, sans-serif' },
-                                minPercentage: 1,
-                                total: chunkTotal
-                            }
+                            // ===================================================================
+                            // PERCENTUAIS NO GRÁFICO
+                            // Desativados em mobile e desktop para visual limpo
+                            // ===================================================================
+                            lkDoughnutLabels: false
                         }
                     }
                 });
+            });
+            
+            // ===================================================================
+            // RENDERIZAR LISTA DE CATEGORIAS (MOBILE ONLY)
+            // Lista vertical profissional abaixo do gráfico
+            // ===================================================================
+            if (isMobile) {
+                this.renderMobileCategoryList(processedEntries);
+            }
+        },
+        
+        /**
+         * Renderiza a lista de categorias para mobile com expansão
+         * UX: Visual clean - apenas botão + lista expansível
+         */
+        renderMobileCategoryList(entries) {
+            const container = document.getElementById('categoryListMobile');
+            if (!container) return;
+            
+            const total = entries.reduce((sum, item) => sum + item.value, 0);
+            
+            // Todas as categorias dentro do card expansível
+            const allCategoriesHTML = entries.map(entry => {
+                const percentage = ((entry.value / total) * 100).toFixed(1);
+                return `
+                    <div class="category-item">
+                        <div class="category-indicator" style="background-color: ${entry.color}"></div>
+                        <div class="category-info">
+                            <span class="category-name">${entry.label}</span>
+                            <span class="category-value">${formatCurrency(entry.value)}</span>
+                        </div>
+                        <span class="category-percentage">${percentage}%</span>
+                    </div>
+                `;
+            }).join('');
+            
+            // HTML final: apenas botão + card expansível + texto informativo
+            container.innerHTML = `
+                <button class="category-expand-btn" id="expandCategoriesBtn" aria-expanded="false">
+                    <span>Ver todas as categorias</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-expandable-card" id="expandableCard" aria-hidden="true">
+                    ${allCategoriesHTML}
+                </div>
+                <p class="category-info-text">
+                    <i class="fas fa-info-circle"></i>
+                    Para visualizar todas as categorias detalhadamente, exporte este relatório em PDF.
+                </p>
+            `;
+            
+            // Adicionar listener ao botão de expansão
+            this.setupExpandToggle();
+        },
+        
+        /**
+         * Configura o comportamento de expandir/recolher lista de categorias
+         */
+        setupExpandToggle() {
+            const btn = document.getElementById('expandCategoriesBtn');
+            const card = document.getElementById('expandableCard');
+            
+            if (!btn || !card) return;
+            
+            btn.addEventListener('click', function() {
+                const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                
+                if (isExpanded) {
+                    // Recolher
+                    card.style.maxHeight = '0px';
+                    card.setAttribute('aria-hidden', 'true');
+                    btn.setAttribute('aria-expanded', 'false');
+                    btn.querySelector('span').textContent = 'Ver todas as categorias';
+                    btn.querySelector('i').style.transform = 'rotate(0deg)';
+                } else {
+                    // Expandir
+                    card.style.maxHeight = card.scrollHeight + 'px';
+                    card.setAttribute('aria-hidden', 'false');
+                    btn.setAttribute('aria-expanded', 'true');
+                    btn.querySelector('span').textContent = 'Ocultar categorias';
+                    btn.querySelector('i').style.transform = 'rotate(180deg)';
+                }
             });
         },
 

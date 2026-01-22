@@ -57,6 +57,9 @@ class ReportExportBuilder
             ReportType::RECEITAS_DESPESAS_POR_CONTA =>
             $this->processAccountReport($payload),
 
+            ReportType::CARTOES_CREDITO =>
+            $this->processCardsReport($payload),
+
             default => throw new InvalidArgumentException(
                 "Tipo de relatório '{$type->value}' não implementado no exportador."
             ),
@@ -108,6 +111,29 @@ class ReportExportBuilder
         return [
             ['Conta', 'Receitas', 'Despesas', 'Saldo'],
             $this->mapIncomeExpenseWithBalance($payload)
+        ];
+    }
+
+    private function processCardsReport(array $payload): array
+    {
+        $cards = $payload['cards'] ?? [];
+        $rows = [];
+
+        foreach ($cards as $card) {
+            $rows[] = [
+                $card['nome'] ?? 'Cartão',
+                strtoupper($card['bandeira'] ?? 'OUTROS'),
+                $this->formatMoney($card['limite'] ?? 0),
+                $this->formatMoney($card['fatura_atual'] ?? 0),
+                $this->formatMoney($card['disponivel'] ?? 0),
+                number_format($card['percentual'] ?? 0, 1, ',', '.') . '%',
+                $card['status_saude']['texto'] ?? 'N/A'
+            ];
+        }
+
+        return [
+            ['Cartão', 'Bandeira', 'Limite', 'Fatura Atual', 'Disponível', 'Uso %', 'Status'],
+            $rows
         ];
     }
 
@@ -165,6 +191,7 @@ class ReportExportBuilder
             ReportType::EVOLUCAO_12M => 'Evolução do Saldo (Últimos 12 Meses)',
             ReportType::RECEITAS_DESPESAS_POR_CONTA => "Receitas vs Despesas por Conta - {$monthYear}",
             ReportType::RESUMO_ANUAL => "Resumo Financeiro Anual - {$year}",
+            ReportType::CARTOES_CREDITO => "Relatório de Cartões de Crédito - {$monthYear}",
         };
     }
 
@@ -211,6 +238,9 @@ class ReportExportBuilder
             ReportType::EVOLUCAO_12M =>
             $this->buildBalanceTotals($payload),
 
+            ReportType::CARTOES_CREDITO =>
+            $this->buildCardsTotals($payload),
+
             default => [],
         };
     }
@@ -251,6 +281,23 @@ class ReportExportBuilder
         return [
             'Saldo Inicial' => $this->formatMoney((float) $saldoInicial),
             'Saldo Final' => $this->formatMoney((float) $saldoFinal),
+        ];
+    }
+
+    private function buildCardsTotals(array $payload): array
+    {
+        $resumo = $payload['resumo_consolidado'] ?? [];
+
+        if (empty($resumo)) {
+            return [];
+        }
+
+        return [
+            'Total de Cartões' => $payload['total'] ?? 0,
+            'Total em Faturas' => $this->formatMoney($resumo['total_faturas'] ?? 0),
+            'Limite Total' => $this->formatMoney($resumo['total_limites'] ?? 0),
+            'Disponível Total' => $this->formatMoney($resumo['total_disponivel'] ?? 0),
+            'Utilização Geral' => number_format($resumo['utilizacao_geral'] ?? 0, 1, ',', '.') . '%',
         ];
     }
 

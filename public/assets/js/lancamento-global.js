@@ -169,6 +169,21 @@ const lancamentoGlobalManager = {
             totalParcelasInput.addEventListener('input', () => this.atualizarPreviewParcelamento());
         }
 
+        // Recorrência - mostrar campo de repetições
+        const recorrenciaSelect = document.getElementById('globalLancamentoRecorrencia');
+        if (recorrenciaSelect) {
+            recorrenciaSelect.addEventListener('change', (e) => {
+                const repeticoesGroup = document.getElementById('globalRepeticoesGroup');
+                if (repeticoesGroup) {
+                    repeticoesGroup.style.display = e.target.value !== '' ? 'block' : 'none';
+                    if (e.target.value === '') {
+                        const repeticoesInput = document.getElementById('globalLancamentoRepeticoes');
+                        if (repeticoesInput) repeticoesInput.value = '';
+                    }
+                }
+            });
+        }
+
         // Submit do formulário
         const form = document.getElementById('globalFormLancamento');
         if (form) {
@@ -324,6 +339,12 @@ const lancamentoGlobalManager = {
         const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
         if (tipoAgGroup) {
             tipoAgGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        }
+
+        // Mostrar/ocultar campos de recorrência (apenas agendamento)
+        const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
+        if (recorrenciaGroup) {
+            recorrenciaGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
         }
     },
 

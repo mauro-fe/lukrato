@@ -256,7 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
         agConta: document.getElementById('agConta'),
         agValor: document.getElementById('agValor'),
         agDataPagamento: document.getElementById('agDataPagamento'),
-        agRecorrente: document.getElementById('agRecorrente'),
+        agFrequencia: document.getElementById('agFrequencia'),
+        agRepeticoes: document.getElementById('agRepeticoes'),
         agLembrar: document.getElementById('agLembrar'),
         agDescricao: document.getElementById('agDescricao'),
 
@@ -1093,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const field = el?.dataset?.field;
 
                 if (field === this.sortField) {
-                    el.textContent = this.sortDir === 'asc' ? '?' : '?';
+                    el.textContent = this.sortDir === 'asc' ? ' ↑' : '↓';
                 } else {
                     el.textContent = '';
                 }
@@ -1604,12 +1605,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const descricao = (DOM.agDescricao?.value || '').trim();
             if (descricao) payload.append('descricao', descricao);
 
-            payload.append('recorrente', DOM.agRecorrente?.checked ? '1' : '0');
+            // Verificar se há recorrência selecionada
+            const frequencia = (DOM.agFrequencia?.value || '').trim();
+            const recorrente = frequencia !== '' ? '1' : '0';
+            payload.append('recorrente', recorrente);
 
-            // Enviar frequência apenas se recorrente (nome do campo: recorrencia_freq)
-            if (DOM.agRecorrente?.checked) {
-                const frequencia = document.getElementById('agFrequencia')?.value || 'mensal';
+            // Enviar frequência se houver recorrência
+            if (recorrente === '1' && frequencia) {
                 payload.append('recorrencia_freq', frequencia);
+                
+                // Enviar número de repetições se informado
+                const repeticoes = (DOM.agRepeticoes?.value || '').trim();
+                if (repeticoes) {
+                    payload.append('recorrencia_repeticoes', repeticoes);
+                }
             }
 
             // Campos de notificação
@@ -1637,7 +1646,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOM.agValor.value = MoneyMask.format(0);
             }
 
-            // Usar módulo profissional para reset da recorrência
+            // Resetar select de frequência e campo de repetições
+            if (DOM.agFrequencia) {
+                DOM.agFrequencia.value = '';
+            }
+            if (DOM.agRepeticoes) {
+                DOM.agRepeticoes.value = '';
+            }
+            const repeticoesGroup = document.getElementById('repeticoesGroup');
+            if (repeticoesGroup) {
+                repeticoesGroup.style.display = 'none';
+            }
+
+            // Usar módulo profissional para reset da recorrência (mantido para compatibilidade)
             RecurrenceToggle.reset();
 
             // Ativar todos os checkboxes de notificação por padrão
@@ -2269,6 +2290,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Configurar botões de toggle (precisa ser feito toda vez que o modal abre)
                     Events.setupToggleButtonsInModal();
 
+                    // Configurar evento de recorrência para mostrar/ocultar campo de repetições
+                    Events.setupRecurrenceToggle();
+
                     Modal.hideError();
                 } catch (error) {
                     Modal.showError(error?.message || 'Não foi possível carregar os dados do formulário.');
@@ -2292,6 +2316,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (success) {
             } else {
+            }
+        },
+
+        setupRecurrenceToggle() {
+            const selectFrequencia = document.getElementById('agFrequencia');
+            const repeticoesGroup = document.getElementById('repeticoesGroup');
+            const inputRepeticoes = document.getElementById('agRepeticoes');
+
+            if (!selectFrequencia || !repeticoesGroup) return;
+
+            // Mostrar/ocultar campo de repetições baseado no select de frequência
+            selectFrequencia.addEventListener('change', function() {
+                if (this.value && this.value !== '') {
+                    repeticoesGroup.style.display = 'block';
+                } else {
+                    repeticoesGroup.style.display = 'none';
+                    if (inputRepeticoes) inputRepeticoes.value = '';
+                }
+            });
+
+            // Inicializar estado correto ao abrir modal
+            if (selectFrequencia.value && selectFrequencia.value !== '') {
+                repeticoesGroup.style.display = 'block';
+            } else {
+                repeticoesGroup.style.display = 'none';
             }
         },
 

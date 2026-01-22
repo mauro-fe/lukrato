@@ -3,6 +3,34 @@
  * SISTEMA DE RELATÓRIOS - ESTILOS
  * ============================================================================
  * Estilos para a página de relatórios e gráficos financeiros
+ * 
+ * REFATORAÇÃO MOBILE-FIRST (Janeiro 2026)
+ * ============================================================================
+ * 
+ * 📱 NOVAS SEÇÕES MOBILE:
+ * 
+ * 1. LISTA DE CATEGORIAS MOBILE (.category-list-mobile)
+ *    - Componente visual que substitui legendas em mobile
+ *    - Ativo: 360px - 767px
+ *    - Inativo: ≥768px (desktop)
+ *    - Animação: fadeInUp (entrada suave)
+ * 
+ * 2. ITEMS DA LISTA (.category-item)
+ *    - Layout flexbox: Indicador | Info | Percentual
+ *    - Hover: Borda laranja + deslocamento +4px
+ *    - Dark mode: Sombras e backgrounds adaptativos
+ * 
+ * 3. BREAKPOINTS CRÍTICOS:
+ *    - 360px: Mobile pequeno (ativa lista)
+ *    - 480px: Mobile grande
+ *    - 768px: Tablet/Desktop (desativa lista)
+ * 
+ * 🎨 PADRÃO VISUAL:
+ *    - Inspirado em apps financeiros premium (Nubank, Mobills)
+ *    - Variáveis CSS automáticas (--color-*, --spacing-*)
+ *    - Compatível com light/dark mode do Lukrato
+ * 
+ * 📄 Ver REFATORACAO_RELATORIOS_MOBILE.md para detalhes completos
  * ============================================================================
  */
 
@@ -583,6 +611,235 @@
 }
 
 /* ============================================================================
+   LISTA DE CATEGORIAS MOBILE
+   Padrão de apps financeiros profissionais (Nubank, Mobills, Organizze)
+   ============================================================================ */
+
+.category-list-mobile {
+  display: block; /* Visível no mobile por padrão */
+  margin-top: var(--spacing-5);
+  padding: 0 var(--spacing-4);
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Desktop: esconder lista mobile */
+@media (min-width: 769px) {
+  .category-list-mobile {
+    display: none;
+  }
+}
+
+/* Animação de entrada suave */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Item individual da lista */
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.category-item:last-child {
+  margin-bottom: 0;
+}
+
+.category-item:hover,
+.category-item:active {
+  border-color: var(--color-primary);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15);
+  background: color-mix(in srgb, var(--color-surface) 95%, var(--color-primary) 5%);
+}
+
+/* Indicador de cor (bola colorida com sombra sutil) */
+.category-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.category-item:hover .category-indicator {
+  transform: scale(1.15);
+}
+
+/* Informações da categoria (nome + valor) */
+.category-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0; /* Permite truncar texto se necessário */
+}
+
+.category-name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.category-value {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Percentual à direita com destaque visual */
+.category-percentage {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: right;
+  transition: transform 0.3s ease;
+}
+
+.category-item:hover .category-percentage {
+  transform: scale(1.08);
+}
+
+/* ============================================================================
+   BOTÃO DE EXPANSÃO - VER TODAS AS CATEGORIAS
+   ============================================================================ */
+
+.category-expand-btn {
+  width: 100%;
+  padding: var(--spacing-4) var(--spacing-4);
+  margin: 0;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
+}
+
+.category-expand-btn:hover,
+.category-expand-btn:active {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15);
+}
+
+.category-expand-btn i {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+   CARD EXPANSÍVEL - LISTA COMPLETA DE CATEGORIAS
+   ============================================================================ */
+
+.category-expandable-card {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              margin-top 0.3s ease;
+  opacity: 0;
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+}
+
+.category-expandable-card[aria-hidden="false"] {
+  opacity: 1;
+  margin-top: var(--spacing-4);
+  padding;
+  margin-top: var(--spacing-3);
+}
+
+/* Items dentro do card expansível têm valor visível */
+.category-expandable-card .category-value {
+  display: block;
+}
+
+/* ============================================================================
+   TEXTO INFORMATIVO - ABAIXO DO BOTÃO
+   ============================================================================ */
+
+.category-info-text {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.category-info-text i {
+  color: var(--color-primary);
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+/* Dark mode específico para lista mobile */
+[data-theme="dark"] .category-list-mobile,
+.dark-mode .category-list-mobile {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .category-item,
+.dark-mode .category-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .category-item:hover,
+.dark-mode .category-item:hover {
+  background: rgba(230, 126, 34, 0.08);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+}
+
+[data-theme="dark"] .category-expand-btn,
+.dark-mode .category-expand-btn {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .category-expand-btn:hover,
+.dark-mode .category-expand-btn:hover {
+  background: rgba(230, 126, 34, 0.08);
+}
+
+/* ============================================================================
    RESPONSIVIDADE - MOBILE FIRST APPROACH
    ============================================================================ */
 
@@ -609,17 +866,18 @@
 
   .chart-wrapper {
     max-width: 350px;
-    max-height: 350px;
-  }
-
-  .chart-container-pie {
-    min-height: 280px;
-    max-height: 400px;
+    max-height: 380px;
+    max-height: 480px;
   }
 
   .chart-container-pie canvas {
-    max-height: 350px !important;
+    max-height: 420px !important;
+    min-height: 350px !important;
   }
+
+  .chart-wrapper-pie {
+    max-width: 420px;
+    max-height: 42
 
   .chart-wrapper-pie {
     max-width: 350px;
@@ -715,6 +973,15 @@
     min-height: 360px;
     max-height: 460px;
   }
+  
+  /* ===================================================================
+     DESKTOP: Esconder lista mobile e mostrar legendas do Chart.js
+     A partir de 768px, voltamos ao comportamento desktop tradicional
+     =================================================================== */
+  .category-list-mobile {
+    display: none;
+  }
+}
 
   .chart-container canvas {
     max-height: 380px !important;

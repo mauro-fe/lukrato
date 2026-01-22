@@ -825,6 +825,11 @@
 }
 
 @media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+
   .cartoes-page {
     padding: var(--spacing-4);
   }
