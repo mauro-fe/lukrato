@@ -11,7 +11,8 @@ $extraJs = $extraJs ?? [];
 
             <!-- Marca -->
             <div class="space-y-4">
-                <a href="<?= BASE_URL ?>/" class="inline-block hover:opacity-90 transition-all duration-300 hover:scale-105">
+                <a href="<?= BASE_URL ?>/"
+                    class="inline-block hover:opacity-90 transition-all duration-300 hover:scale-105">
                     <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Lukrato" class="h-14" loading="lazy">
                 </a>
                 <p class="text-white/70 leading-relaxed">
@@ -72,16 +73,17 @@ $extraJs = $extraJs ?? [];
             <div class="lk-footer-links">
                 <h3 class="font-bold text-lg mb-5 text-white">Contato</h3>
                 <div class="flex flex-col gap-4">
-                    <a href="https://wa.me/5544999506302"
-                        class="inline-flex items-center gap-3 text-white/70 group">
-                        <span class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-green-500/20">
+                    <a href="https://wa.me/5544999506302" class="inline-flex items-center gap-3 text-white/70 group">
+                        <span
+                            class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-green-500/20">
                             <i class="fa-brands fa-whatsapp text-lg"></i>
                         </span>
                         <span>WhatsApp comercial</span>
                     </a>
                     <a href="mailto:lukratosistema@gmail.com"
                         class="inline-flex items-center gap-3 text-white/70 group">
-                        <span class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-orange-500/20">
+                        <span
+                            class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-orange-500/20">
                             <i class="fa-regular fa-envelope text-lg"></i>
                         </span>
                         <span class="break-all">lukratosistema@gmail.com</span>

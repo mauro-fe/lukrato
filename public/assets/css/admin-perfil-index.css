@@ -5,7 +5,6 @@
  */
 
 .profile-page {
-  max-width: 1400px;
   margin: 0 auto;
   padding: var(--spacing-6) var(--spacing-4);
 }
