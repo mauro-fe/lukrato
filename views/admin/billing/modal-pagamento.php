@@ -8,6 +8,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 $cpfValue      = '';
 $telefoneValue = '';
 $cepValue      = '';
+$enderecoValue = '';
 
 if (isset($user) && $user) {
     // CPF – documentos.id_tipo = 1 (CPF)
@@ -31,12 +32,24 @@ if (isset($user) && $user) {
         }
     }
 
-    // CEP – endereço principal
+    // CEP e Endereço – endereço principal
     $endereco = $user->enderecoPrincipal ?? null;
     if ($endereco && !empty($endereco->cep)) {
         $cepValue = $endereco->cep;
+        $enderecoValue = ($endereco->logradouro ?? '') . ($endereco->numero ? ', ' . $endereco->numero : '');
     }
 }
+
+// Verificar se os dados estão completos para cada método
+$cpfDigits = preg_replace('/\D/', '', $cpfValue);
+$phoneDigits = preg_replace('/\D/', '', $telefoneValue);
+$cepDigits = preg_replace('/\D/', '', $cepValue);
+
+// PIX precisa apenas de CPF (11 dígitos)
+$pixDataComplete = strlen($cpfDigits) === 11;
+
+// Boleto precisa de CPF + CEP
+$boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 ?>
 
 <style>
@@ -442,6 +455,28 @@ if (isset($user) && $user) {
         line-height: 1.5;
     }
 
+    .pix-boleto-area__description--auto {
+        color: var(--color-success, #10b981);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-2);
+        background: color-mix(in srgb, var(--color-success, #10b981) 10%, transparent);
+        padding: var(--spacing-3);
+        border-radius: var(--radius-lg);
+        animation: pulse-soft 2s infinite;
+    }
+
+    .pix-boleto-area__description--auto i {
+        font-size: 1.125rem;
+    }
+
+    @keyframes pulse-soft {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
     /* QR Code Container */
     .qr-code-container {
         display: none;
@@ -740,13 +775,20 @@ if (isset($user) && $user) {
                             <i class="fa-brands fa-pix"></i>
                         </div>
                         <h3 class="pix-boleto-area__title">Pagamento via PIX</h3>
+                        <?php if ($pixDataComplete): ?>
+                        <p class="pix-boleto-area__description pix-boleto-area__description--auto">
+                            <i class="fa-solid fa-check-circle"></i>
+                            Seus dados já estão cadastrados! Gerando PIX automaticamente...
+                        </p>
+                        <?php else: ?>
                         <p class="pix-boleto-area__description">
                             Pague instantaneamente usando o QR Code ou copie o código PIX.<br>
                             O plano será ativado automaticamente após a confirmação do pagamento.
                         </p>
+                        <?php endif; ?>
 
-                        <!-- Campos obrigatórios para PIX -->
-                        <div class="pix-boleto-fields">
+                        <!-- Campos obrigatórios para PIX (escondidos se dados completos) -->
+                        <div class="pix-boleto-fields" <?= $pixDataComplete ? 'style="display:none"' : '' ?>>
                             <div class="payment-form__row">
                                 <div class="payment-form__field">
                                     <label for="pix_cpf" class="payment-form__label">CPF</label>
@@ -792,13 +834,20 @@ if (isset($user) && $user) {
                             <i class="fa-solid fa-barcode"></i>
                         </div>
                         <h3 class="pix-boleto-area__title">Pagamento via Boleto</h3>
+                        <?php if ($boletoDataComplete): ?>
+                        <p class="pix-boleto-area__description pix-boleto-area__description--auto">
+                            <i class="fa-solid fa-check-circle"></i>
+                            Seus dados já estão cadastrados! Gerando boleto automaticamente...
+                        </p>
+                        <?php else: ?>
                         <p class="pix-boleto-area__description">
                             Gere o boleto bancário e pague em qualquer banco ou lotérica.<br>
                             O plano será ativado em até 3 dias úteis após a confirmação.
                         </p>
+                        <?php endif; ?>
 
-                        <!-- Campos obrigatórios para Boleto -->
-                        <div class="pix-boleto-fields">
+                        <!-- Campos obrigatórios para Boleto (escondidos se dados completos) -->
+                        <div class="pix-boleto-fields" <?= $boletoDataComplete ? 'style="display:none"' : '' ?>>
                             <div class="payment-form__row">
                                 <div class="payment-form__field">
                                     <label for="boleto_cpf" class="payment-form__label">CPF</label>
@@ -826,7 +875,7 @@ if (isset($user) && $user) {
                                     <label for="boleto_endereco" class="payment-form__label">Endereço</label>
                                     <input type="text" id="boleto_endereco" name="boleto_endereco" class="payment-form__input"
                                         placeholder="Rua, número"
-                                        value="<?= htmlspecialchars(($endereco->logradouro ?? '') . ($endereco->numero ? ', ' . $endereco->numero : ''), ENT_QUOTES, 'UTF-8') ?>">
+                                        value="<?= htmlspecialchars($enderecoValue, ENT_QUOTES, 'UTF-8') ?>">
                                 </div>
                             </div>
                         </div>
@@ -871,6 +920,17 @@ if (isset($user) && $user) {
         'use strict';
 
         const BASE_URL = '<?= BASE_URL ?>';
+        
+        // Dados pré-preenchidos do banco
+        const userDataComplete = {
+            pix: <?= $pixDataComplete ? 'true' : 'false' ?>,
+            boleto: <?= $boletoDataComplete ? 'true' : 'false' ?>,
+            cpf: '<?= htmlspecialchars($cpfDigits, ENT_QUOTES, 'UTF-8') ?>',
+            phone: '<?= htmlspecialchars($phoneDigits, ENT_QUOTES, 'UTF-8') ?>',
+            cep: '<?= htmlspecialchars($cepDigits, ENT_QUOTES, 'UTF-8') ?>',
+            endereco: '<?= htmlspecialchars($enderecoValue, ENT_QUOTES, 'UTF-8') ?>',
+            email: <?= json_encode($user->email ?? '') ?>
+        };
 
         // ===============================
         // ELEMENTOS DO DOM
@@ -1080,7 +1140,7 @@ if (isset($user) && $user) {
             }
         }
 
-        function switchPaymentMethod(method) {
+        function switchPaymentMethod(method, autoSubmit = false) {
             currentBillingType = method;
 
             // Atualizar botões
@@ -1099,6 +1159,17 @@ if (isset($user) && $user) {
             pixQrCodeContainer?.classList.remove('is-visible');
             boletoContainer?.classList.remove('is-visible');
 
+            // Esconder campos de formulário se dados já existem
+            const pixFieldsContainer = pixSection?.querySelector('.pix-boleto-fields');
+            const boletoFieldsContainer = boletoSection?.querySelector('.pix-boleto-fields');
+            
+            if (pixFieldsContainer) {
+                pixFieldsContainer.style.display = userDataComplete.pix ? 'none' : 'block';
+            }
+            if (boletoFieldsContainer) {
+                boletoFieldsContainer.style.display = userDataComplete.boleto ? 'none' : 'block';
+            }
+
             // Atualizar botão e texto
             updateSubmitButton();
             updateModalText();
@@ -1106,6 +1177,17 @@ if (isset($user) && $user) {
 
             // Habilitar submit
             if (submitBtn) submitBtn.disabled = false;
+            
+            // Auto-submit se os dados estão completos e foi solicitado
+            if (autoSubmit && currentPlanConfig) {
+                if ((method === 'PIX' && userDataComplete.pix) || 
+                    (method === 'BOLETO' && userDataComplete.boleto)) {
+                    // Pequeno delay para garantir que tudo está sincronizado
+                    setTimeout(() => {
+                        form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }, 100);
+                }
+            }
         }
 
         // ===============================
@@ -1213,7 +1295,8 @@ if (isset($user) && $user) {
         paymentMethodBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const method = btn.dataset.method;
-                if (method) switchPaymentMethod(method);
+                // Auto-submit quando os dados já estão completos (PIX/Boleto)
+                if (method) switchPaymentMethod(method, true);
             });
         });
 
@@ -1349,8 +1432,9 @@ if (isset($user) && $user) {
                 };
 
             } else if (currentBillingType === 'PIX') {
-                const cpf = onlyDigits(fd.get('pix_cpf')?.toString() || '');
-                const phone = onlyDigits(fd.get('pix_phone')?.toString() || '');
+                // Usar dados do banco se disponíveis, senão do formulário
+                const cpf = userDataComplete.pix ? userDataComplete.cpf : onlyDigits(fd.get('pix_cpf')?.toString() || '');
+                const phone = userDataComplete.pix ? userDataComplete.phone : onlyDigits(fd.get('pix_phone')?.toString() || '');
 
                 if (!cpf || cpf.length !== 11) {
                     window.Swal?.fire('CPF inválido', 'Informe um CPF válido para gerar o PIX.', 'warning');
@@ -1360,14 +1444,15 @@ if (isset($user) && $user) {
                 payload.holderInfo = {
                     cpfCnpj: cpf,
                     mobilePhone: phone,
-                    email: <?= json_encode($user->email ?? '') ?>
+                    email: userDataComplete.email
                 };
 
             } else if (currentBillingType === 'BOLETO') {
-                const cpf = onlyDigits(fd.get('boleto_cpf')?.toString() || '');
-                const phone = onlyDigits(fd.get('boleto_phone')?.toString() || '');
-                const cep = onlyDigits(fd.get('boleto_cep')?.toString() || '');
-                const endereco = fd.get('boleto_endereco')?.toString().trim() || '';
+                // Usar dados do banco se disponíveis, senão do formulário
+                const cpf = userDataComplete.boleto ? userDataComplete.cpf : onlyDigits(fd.get('boleto_cpf')?.toString() || '');
+                const phone = userDataComplete.boleto ? userDataComplete.phone : onlyDigits(fd.get('boleto_phone')?.toString() || '');
+                const cep = userDataComplete.boleto ? userDataComplete.cep : onlyDigits(fd.get('boleto_cep')?.toString() || '');
+                const endereco = userDataComplete.boleto ? userDataComplete.endereco : (fd.get('boleto_endereco')?.toString().trim() || '');
 
                 if (!cpf || cpf.length !== 11) {
                     window.Swal?.fire('CPF inválido', 'Informe um CPF válido para gerar o boleto.', 'warning');
@@ -1384,7 +1469,7 @@ if (isset($user) && $user) {
                     mobilePhone: phone,
                     postalCode: cep,
                     address: endereco,
-                    email: <?= json_encode($user->email ?? '') ?>
+                    email: userDataComplete.email
                 };
             }
 
