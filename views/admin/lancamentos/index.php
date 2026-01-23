@@ -5,13 +5,15 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lancamentos-modern.css">
 
+<?php $isPro = $isPro ?? false; ?>
+
 <section class="lan-page">
     <!-- ==================== HEADER MODERNIZADO ==================== -->
     <div class="lan-header-modern">
         <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 
         <!-- CARD DE EXPORTAÇÃO -->
-        <div class="modern-card export-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">
                 <div class="icon-wrapper export">
                     <i class="fas fa-file-export"></i>
@@ -20,8 +22,20 @@
                     <h3 class="card-title">Exportar Lançamentos</h3>
                     <p class="card-subtitle">Exporte seus dados em PDF ou Excel</p>
                 </div>
+                <?php if (!$isPro): ?>
+                <span class="pro-badge">
+                    <i class="fas fa-crown"></i> PRO
+                </span>
+                <?php endif; ?>
             </div>
 
+            <?php if (!$isPro): ?>
+            <div class="pro-overlay-inline">
+                <i class="fas fa-lock"></i>
+                <span>Recurso exclusivo PRO</span>
+                <a href="<?= BASE_URL ?>billing" class="btn-pro-small">Assinar</a>
+            </div>
+            <?php else: ?>
             <div class="export-controls">
                 <div class="date-range-group">
                     <div class="input-group">
@@ -55,6 +69,7 @@
                     </button>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- CARD DE FILTROS -->

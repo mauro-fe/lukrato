@@ -1,4 +1,5 @@
 <!-- Relatórios View -->
+<?php $isPro = $isPro ?? false; ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-relatorios-relatorios.css?v=<?= time() ?>">
 
 <div class="rel-page">
@@ -97,7 +98,7 @@
     </div>
 
     <!-- ==================== CARD DE EXPORTAÇÃO ==================== -->
-    <div class="modern-card export-card">
+    <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>">
         <div class="card-header">
             <div class="header-left">
                 <i class="fas fa-file-export"></i>
@@ -106,16 +107,33 @@
                     <p>Baixe seus dados em PDF ou Excel</p>
                 </div>
             </div>
+            <?php if (!$isPro): ?>
+                <span class="pro-badge">
+                    <i class="fas fa-crown"></i> PRO
+                </span>
+            <?php endif; ?>
         </div>
 
         <div class="card-body">
-            <div class="export-controls">
+            <?php if (!$isPro): ?>
+                <div class="pro-overlay">
+                    <div class="pro-message">
+                        <i class="fas fa-lock"></i>
+                        <h4>Recurso exclusivo PRO</h4>
+                        <p>Faça upgrade para exportar seus relatórios em PDF e Excel</p>
+                        <a href="<?= BASE_URL ?>billing" class="btn btn-pro">
+                            <i class="fas fa-crown"></i> Assinar PRO
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <div class="export-controls <?= !$isPro ? 'disabled-blur' : '' ?>">
                 <div class="form-group">
                     <label for="exportType">
                         <i class="fas fa-chart-bar"></i>
                         Tipo de Relatório
                     </label>
-                    <select id="exportType" class="form-select">
+                    <select id="exportType" class="form-select" <?= !$isPro ? 'disabled' : '' ?>>
                         <option value="despesas_por_categoria">Despesas por Categoria</option>
                         <option value="receitas_por_categoria">Receitas por Categoria</option>
                         <option value="saldo_mensal">Saldo Diário</option>
@@ -134,13 +152,13 @@
                         <i class="fas fa-file"></i>
                         Formato
                     </label>
-                    <select id="exportFormat" class="form-select">
+                    <select id="exportFormat" class="form-select" <?= !$isPro ? 'disabled' : '' ?>>
                         <option value="pdf">PDF</option>
                         <option value="excel">Excel (.xlsx)</option>
                     </select>
                 </div>
 
-                <button id="exportBtn" class="btn btn-primary btn-export">
+                <button id="exportBtn" class="btn btn-primary btn-export" <?= !$isPro ? 'disabled' : '' ?>>
                     <i class="fas fa-download"></i>
                     <span>Exportar</span>
                 </button>

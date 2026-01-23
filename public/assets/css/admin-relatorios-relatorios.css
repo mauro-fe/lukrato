@@ -6618,3 +6618,109 @@ canvas {
     animation: slideUp 0.3s ease;
   }
 }
+
+/* ============================================================================
+   BLOQUEIO PRO - EXPORTAÇÃO
+   ============================================================================ */
+
+.export-card.pro-locked {
+  position: relative;
+}
+
+.export-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.pro-badge i {
+  font-size: 0.7rem;
+}
+
+.export-card .card-body {
+  position: relative;
+}
+
+.pro-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-lg);
+  z-index: 10;
+}
+
+.pro-message {
+  text-align: center;
+  padding: var(--spacing-6);
+  max-width: 320px;
+}
+
+.pro-message i.fa-lock {
+  font-size: 2.5rem;
+  color: var(--color-warning);
+  margin-bottom: var(--spacing-4);
+}
+
+.pro-message h4 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-2);
+}
+
+.pro-message p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0 0 var(--spacing-4);
+  line-height: 1.5;
+}
+
+.btn-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-pro:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+  color: #fff;
+}
+
+.btn-pro i {
+  font-size: 0.9rem;
+}
+
+.disabled-blur {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
