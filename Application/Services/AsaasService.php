@@ -244,6 +244,44 @@ class AsaasService
     }
 
     /**
+     * Busca informações de um pagamento específico.
+     */
+    public function getPayment(string $paymentId): array
+    {
+        return $this->request('GET', "payments/{$paymentId}");
+    }
+
+    /**
+     * Obtém o QR Code PIX de um pagamento.
+     * 
+     * @param string $paymentId ID do pagamento no Asaas
+     * @return array [
+     *   'encodedImage' => string (base64 da imagem QR Code),
+     *   'payload' => string (código copia-e-cola),
+     *   'expirationDate' => string
+     * ]
+     */
+    public function getPixQrCode(string $paymentId): array
+    {
+        return $this->request('GET', "payments/{$paymentId}/pixQrCode");
+    }
+
+    /**
+     * Obtém a linha digitável e URL do boleto.
+     * 
+     * @param string $paymentId ID do pagamento no Asaas
+     * @return array [
+     *   'identificationField' => string (linha digitável),
+     *   'nossoNumero' => string,
+     *   'barCode' => string
+     * ]
+     */
+    public function getBoletoIdentificationField(string $paymentId): array
+    {
+        return $this->request('GET', "payments/{$paymentId}/identificationField");
+    }
+
+    /**
      * Valida o token do webhook enviado pelo Asaas.
      * 
      * SEGURANÇA MULTI-CAMADA:

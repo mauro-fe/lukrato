@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $gateway
  * @property string|null $external_customer_id
  * @property string|null $external_subscription_id
+ * @property string|null $external_payment_id
+ * @property string|null $billing_type
  * @property string $status
  * @property \Carbon\Carbon|null $renova_em
  * @property \Carbon\Carbon|null $cancelada_em
@@ -36,6 +38,8 @@ class AssinaturaUsuario extends Model
         'gateway',
         'external_customer_id',
         'external_subscription_id',
+        'external_payment_id',
+        'billing_type',
         'status',
         'renova_em',
         'cancelada_em'

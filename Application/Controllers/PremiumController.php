@@ -45,6 +45,7 @@ class PremiumController extends BaseController
 
     /**
      * Checkout do plano PRO
+     * Suporta: CREDIT_CARD, PIX, BOLETO
      */
     public function checkout(): void
     {
@@ -70,6 +71,54 @@ class PremiumController extends BaseController
             Response::success($result);
         } catch (\Throwable $e) {
             $this->handleCheckoutError($e);
+        }
+    }
+
+    /**
+     * Verificar status de um pagamento (para polling do frontend)
+     */
+    public function checkPayment(string $paymentId): void
+    {
+        $this->requireAuth();
+
+        try {
+            $usuario = $this->getAuthenticatedUser();
+
+            // Buscar assinatura do usuário com este payment
+            $assinatura = $usuario->assinaturas()
+                ->where('external_payment_id', $paymentId)
+                ->first();
+
+            if (!$assinatura) {
+                Response::error('Pagamento não encontrado.', 404);
+                return;
+            }
+
+            // Verificar status no Asaas
+            $paymentData = $this->asaas->getPayment($paymentId);
+            $status = $paymentData['status'] ?? 'PENDING';
+
+            $paid = in_array($status, ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH']);
+
+            if ($paid && $assinatura->status !== AssinaturaUsuario::ST_ACTIVE) {
+                $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
+                $assinatura->save();
+
+                if (class_exists(LogService::class)) {
+                    LogService::info('Pagamento confirmado via polling', [
+                        'user_id' => $usuario->id,
+                        'payment_id' => $paymentId,
+                        'status' => $status,
+                    ]);
+                }
+            }
+
+            Response::success([
+                'paid' => $paid,
+                'status' => $status,
+            ]);
+        } catch (\Throwable $e) {
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -172,15 +221,19 @@ class PremiumController extends BaseController
             $discount = $this->validator->getExpectedDiscount($dto->months);
             $total = $this->validator->calculateTotal($valorMensal, $dto->months, $discount);
 
-            // SEMPRE usar subscription para garantir cobrança recorrente automática
-            // O Asaas só cobra automaticamente quando é uma subscription
-            $result = $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $total);
+            // PIX e Boleto: criar pagamento avulso primeiro
+            // Cartão: criar subscription diretamente (cobrança recorrente automática)
+            if ($dto->isPix() || $dto->isBoleto()) {
+                $result = $this->createPixOrBoletoPayment($usuario, $plano, $dto, $total);
+            } else {
+                $result = $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $total);
+            }
 
-            $this->saveAssinatura($usuario, $plano, $result);
+            $this->saveAssinatura($usuario, $plano, $result, $dto->billingType);
 
             DB::commit();
 
-            return [
+            $response = [
                 'message' => $result['message'],
                 'asaas_id' => $result['asaas_id'],
                 'asaas_status' => $result['asaas_status'],
@@ -188,10 +241,113 @@ class PremiumController extends BaseController
                 'discount' => $discount,
                 'total' => $total,
             ];
+
+            // Adicionar dados específicos de PIX ou Boleto
+            if (isset($result['pix'])) {
+                $response['data'] = [
+                    'paymentId' => $result['asaas_id'],
+                    'pix' => $result['pix'],
+                ];
+            }
+
+            if (isset($result['boleto'])) {
+                $response['data'] = [
+                    'paymentId' => $result['asaas_id'],
+                    'boleto' => $result['boleto'],
+                ];
+            }
+
+            return $response;
         } catch (\Throwable $e) {
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Cria pagamento via PIX ou Boleto
+     */
+    private function createPixOrBoletoPayment(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, float $total): array
+    {
+        $desc = match ($dto->months) {
+            6 => $plano->nome . ' (Semestral -10%)',
+            12 => $plano->nome . ' (Anual -15%)',
+            default => $plano->nome,
+        };
+
+        // Criar pagamento avulso
+        $builder = (new AsaasPaymentBuilder())
+            ->forCustomer($usuario)
+            ->withValue($total)
+            ->withDescription($desc)
+            ->withBillingType($dto->billingType)
+            ->withDueDate(date('Y-m-d', strtotime('+3 days'))) // PIX/Boleto: vence em 3 dias
+            ->withExternalReference("pay:user:{$usuario->id}:plano:{$plano->id}:m{$dto->months}");
+
+        $resp = $this->asaas->createPayment($builder->build());
+        $paymentId = $resp['id'] ?? null;
+        $status = $resp['status'] ?? 'PENDING';
+
+        if (!$paymentId) {
+            throw new \RuntimeException('Erro ao criar pagamento no Asaas.');
+        }
+
+        $result = [
+            'asaas_id' => $paymentId,
+            'asaas_status' => $status,
+            'status' => AssinaturaUsuario::ST_PENDING,
+            'renova_em' => date('Y-m-d', strtotime(match ($dto->months) {
+                6 => '+6 months',
+                12 => '+1 year',
+                default => '+1 month',
+            })),
+            'message' => $dto->isPix() 
+                ? 'PIX gerado com sucesso! Aguardando pagamento.' 
+                : 'Boleto gerado com sucesso! Aguardando pagamento.',
+        ];
+
+        // Buscar dados específicos do PIX
+        if ($dto->isPix()) {
+            try {
+                $pixData = $this->asaas->getPixQrCode($paymentId);
+                $result['pix'] = [
+                    'qrCodeImage' => isset($pixData['encodedImage']) 
+                        ? 'data:image/png;base64,' . $pixData['encodedImage'] 
+                        : null,
+                    'payload' => $pixData['payload'] ?? null,
+                    'expirationDate' => $pixData['expirationDate'] ?? null,
+                ];
+            } catch (\Throwable $e) {
+                if (class_exists(LogService::class)) {
+                    LogService::error('Erro ao buscar QR Code PIX', [
+                        'payment_id' => $paymentId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // Buscar dados específicos do Boleto
+        if ($dto->isBoleto()) {
+            try {
+                $boletoData = $this->asaas->getBoletoIdentificationField($paymentId);
+                $result['boleto'] = [
+                    'identificationField' => $boletoData['identificationField'] ?? null,
+                    'nossoNumero' => $boletoData['nossoNumero'] ?? null,
+                    'barCode' => $boletoData['barCode'] ?? null,
+                    'bankSlipUrl' => $resp['bankSlipUrl'] ?? null,
+                ];
+            } catch (\Throwable $e) {
+                if (class_exists(LogService::class)) {
+                    LogService::error('Erro ao buscar linha digitável do boleto', [
+                        'payment_id' => $paymentId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        return $result;
     }
 
     private function createPayment(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $total): array
@@ -280,17 +436,27 @@ class PremiumController extends BaseController
         ];
     }
 
-    private function saveAssinatura(Usuario $usuario, Plano $plano, array $result): void
+    private function saveAssinatura(Usuario $usuario, Plano $plano, array $result, string $billingType = 'CREDIT_CARD'): void
     {
-        $assinatura = new AssinaturaUsuario([
+        $data = [
             'user_id' => $usuario->id,
             'plano_id' => $plano->id,
             'gateway' => 'asaas',
             'external_customer_id' => $usuario->external_customer_id,
-            'external_subscription_id' => $result['asaas_id'],
             'status' => $result['status'],
             'renova_em' => $result['renova_em'],
-        ]);
+            'billing_type' => $billingType,
+        ];
+
+        // Para cartão: external_subscription_id
+        // Para PIX/Boleto: external_payment_id (pagamento avulso)
+        if ($billingType === 'CREDIT_CARD') {
+            $data['external_subscription_id'] = $result['asaas_id'];
+        } else {
+            $data['external_payment_id'] = $result['asaas_id'];
+        }
+
+        $assinatura = new AssinaturaUsuario($data);
         $assinatura->save();
     }
 

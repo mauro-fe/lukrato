@@ -192,16 +192,33 @@ class AsaasWebhookController extends BaseController
             return;
         }
 
+        $paymentId      = $payment['id'];
         $subscriptionId = $payment['subscription'] ?? null;
         $status         = $payment['status'] ?? null;
         $paymentDate    = $payment['paymentDate'] ?? null;
+        $billingType    = $payment['billingType'] ?? null;
 
-        if ($subscriptionId && $status === 'RECEIVED') {
-            // ✅ LOCK para evitar dupla atualização
-            $assinatura = AssinaturaUsuario::where('external_subscription_id', $subscriptionId)
-                ->lockForUpdate()
-                ->latest('id')
-                ->first();
+        // Pagamento confirmado (PIX/Boleto/Cartão)
+        $paymentConfirmed = in_array($status, ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH']);
+
+        if ($paymentConfirmed) {
+            $assinatura = null;
+
+            // 1. Primeiro tentar encontrar por subscription_id (cartão recorrente)
+            if ($subscriptionId) {
+                $assinatura = AssinaturaUsuario::where('external_subscription_id', $subscriptionId)
+                    ->lockForUpdate()
+                    ->latest('id')
+                    ->first();
+            }
+
+            // 2. Se não encontrou, tentar por payment_id (PIX/Boleto avulso)
+            if (!$assinatura) {
+                $assinatura = AssinaturaUsuario::where('external_payment_id', $paymentId)
+                    ->lockForUpdate()
+                    ->latest('id')
+                    ->first();
+            }
 
             if ($assinatura) {
                 $statusAnterior = $assinatura->status;
@@ -213,10 +230,55 @@ class AsaasWebhookController extends BaseController
                     LogService::info('Pagamento confirmado via webhook', [
                         'assinatura_id' => $assinatura->id,
                         'user_id' => $assinatura->user_id,
-                        'payment_id' => $payment['id'],
+                        'payment_id' => $paymentId,
+                        'billing_type' => $billingType,
                         'status_anterior' => $statusAnterior,
                         'status_novo' => AssinaturaUsuario::ST_ACTIVE,
                         'payment_date' => $paymentDate,
+                    ]);
+                }
+            } else {
+                // Log de pagamento sem assinatura associada
+                if (class_exists(LogService::class)) {
+                    LogService::warning('Pagamento confirmado sem assinatura associada', [
+                        'payment_id' => $paymentId,
+                        'subscription_id' => $subscriptionId,
+                        'billing_type' => $billingType,
+                        'status' => $status,
+                    ]);
+                }
+            }
+        }
+
+        // Pagamento cancelado ou expirado
+        $paymentFailed = in_array($status, ['OVERDUE', 'REFUNDED', 'CHARGEBACK_REQUESTED', 'CHARGEBACK_DISPUTE', 'AWAITING_CHARGEBACK_REVERSAL', 'DUNNING_RECEIVED', 'DUNNING_REQUESTED']);
+
+        if ($paymentFailed) {
+            $assinatura = null;
+
+            if ($subscriptionId) {
+                $assinatura = AssinaturaUsuario::where('external_subscription_id', $subscriptionId)
+                    ->lockForUpdate()
+                    ->latest('id')
+                    ->first();
+            }
+
+            if (!$assinatura) {
+                $assinatura = AssinaturaUsuario::where('external_payment_id', $paymentId)
+                    ->lockForUpdate()
+                    ->latest('id')
+                    ->first();
+            }
+
+            if ($assinatura && $assinatura->status === AssinaturaUsuario::ST_PENDING) {
+                $assinatura->status = AssinaturaUsuario::ST_PAST_DUE;
+                $assinatura->save();
+
+                if (class_exists(LogService::class)) {
+                    LogService::info('Pagamento falhou/expirou via webhook', [
+                        'assinatura_id' => $assinatura->id,
+                        'payment_id' => $paymentId,
+                        'status' => $status,
                     ]);
                 }
             }
