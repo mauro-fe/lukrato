@@ -226,8 +226,15 @@ class AsaasService
      */
     public function createPayment(array $data): array
     {
+        // Aceita tanto 'customer' quanto 'customerId' para compatibilidade
+        $customerId = $data['customer'] ?? $data['customerId'] ?? null;
+        
+        if (empty($customerId)) {
+            throw new \RuntimeException('Customer inválido ou não informado.');
+        }
+
         $payload = [
-            'customer'          => $data['customerId'],
+            'customer'          => $customerId,
             'billingType'       => $data['billingType']       ?? 'PIX',
             'value'             => $data['value'],
             'dueDate'           => $data['dueDate']           ?? date('Y-m-d'),

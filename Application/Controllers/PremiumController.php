@@ -61,6 +61,14 @@ class PremiumController extends BaseController
             $this->validator->validate($dto, $plano);
 
             $this->customerService->ensureAsaasCustomer($usuario, $this->asaas);
+            
+            // Refresh para garantir que external_customer_id está atualizado
+            $usuario->refresh();
+            
+            if (empty($usuario->external_customer_id)) {
+                throw new \RuntimeException('Não foi possível criar o cliente no gateway de pagamento.');
+            }
+
             $customerData = $this->customerService->buildCustomerData($usuario, $dto->holderInfo);
 
             $result = $this->processCheckout($usuario, $plano, $dto, $customerData);
