@@ -49,14 +49,20 @@ class PremiumController extends BaseController
      */
     public function checkout(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
+
+        error_log("🔵 [CHECKOUT] Iniciando checkout para usuário: " . ($this->userId ?? 'N/A'));
 
         try {
             $usuario = $this->getAuthenticatedUser();
+            error_log("🔵 [CHECKOUT] Usuário autenticado: {$usuario->id} - {$usuario->email}");
+
             $this->validateNoActiveSubscription($usuario);
 
             $plano = $this->getPlanoPro();
             $dto = CheckoutRequestDTO::fromRequest($this->getRequestBody());
+
+            error_log("🔵 [CHECKOUT] Plano: {$plano->nome}, BillingType: {$dto->billingType}, Meses: {$dto->months}");
 
             $this->validator->validate($dto, $plano);
 
@@ -88,7 +94,7 @@ class PremiumController extends BaseController
      */
     public function checkPayment(string $paymentId): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $usuario = $this->getAuthenticatedUser();
@@ -136,7 +142,7 @@ class PremiumController extends BaseController
      */
     public function cancel(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         try {
             $usuario = $this->getAuthenticatedUser();
@@ -350,24 +356,36 @@ class PremiumController extends BaseController
                 : 'Boleto gerado com sucesso! Aguardando pagamento.',
         ];
 
+        error_log("✅ [CHECKOUT] Pagamento criado no Asaas: {$paymentId}, status: {$status}");
+
         // 🔥 PIX: buscar QR Code com retry (OBRIGATÓRIO)
         if ($dto->isPix()) {
+            error_log("🔄 [CHECKOUT] Buscando QR Code PIX para pagamento: {$paymentId}");
             $pixData = null;
 
-            for ($i = 0; $i < 5; $i++) {
-                usleep(400000); // 400ms
-                $pixData = $this->asaas->getPixQrCode($paymentId);
+            // Aumentado para 8 tentativas com 500ms = até 4 segundos de espera
+            for ($i = 0; $i < 8; $i++) {
+                usleep(500000); // 500ms
+                try {
+                    $pixData = $this->asaas->getPixQrCode($paymentId);
+                    error_log("🔄 [CHECKOUT] Tentativa " . ($i + 1) . " - encodedImage: " . (!empty($pixData['encodedImage']) ? 'OK' : 'VAZIO'));
 
-                if (!empty($pixData['encodedImage'])) {
-                    break;
+                    if (!empty($pixData['encodedImage'])) {
+                        break;
+                    }
+                } catch (\Throwable $e) {
+                    error_log("⚠️ [CHECKOUT] Tentativa " . ($i + 1) . " falhou: " . $e->getMessage());
                 }
             }
 
             if (empty($pixData['encodedImage'])) {
+                error_log("🔴 [CHECKOUT] QR Code não disponível após 8 tentativas");
                 throw new \RuntimeException(
-                    'PIX criado, mas o QR Code ainda não foi disponibilizado pelo gateway.'
+                    'PIX criado, mas o QR Code ainda não foi disponibilizado pelo gateway. Tente novamente em alguns segundos.'
                 );
             }
+
+            error_log("✅ [CHECKOUT] QR Code PIX obtido com sucesso!");
 
             $result['pix'] = [
                 'qrCodeImage' => 'data:image/png;base64,' . $pixData['encodedImage'],
@@ -537,10 +555,14 @@ class PremiumController extends BaseController
             DB::rollBack();
         }
 
+        error_log("🔴 [CHECKOUT] Erro: " . $e->getMessage());
+        error_log("🔴 [CHECKOUT] Stack trace: " . $e->getTraceAsString());
+
         if (class_exists(LogService::class)) {
             LogService::error('Erro no checkout', [
                 'userId' => $this->userId,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
         }
 
