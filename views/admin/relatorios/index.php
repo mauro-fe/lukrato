@@ -118,11 +118,11 @@
             <?php if (!$isPro): ?>
                 <div class="pro-overlay">
                     <div class="pro-message">
-                        <i class="fas fa-lock"></i>
-                        <h4>Recurso exclusivo PRO</h4>
-                        <p>Faça upgrade para exportar seus relatórios em PDF e Excel</p>
+                        <i class="fas fa-crown"></i>
+                        <h4>Recurso Premium</h4>
+                        <p>Relatórios são exclusivos do plano Pro.</p>
                         <a href="<?= BASE_URL ?>billing" class="btn btn-pro">
-                            <i class="fas fa-crown"></i> Assinar PRO
+                            <i class="fas fa-crown"></i> Fazer Upgrade para PRO
                         </a>
                     </div>
                 </div>

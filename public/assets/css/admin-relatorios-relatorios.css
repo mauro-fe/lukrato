@@ -6662,8 +6662,8 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(30, 58, 95, 0.97);
+  border: 2px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius-lg);
   z-index: 10;
 }
@@ -6674,10 +6674,11 @@ canvas {
   max-width: 320px;
 }
 
-.pro-message i.fa-lock {
-  font-size: 2.5rem;
-  color: var(--color-warning);
+.pro-message i.fa-crown {
+  font-size: 3rem;
+  color: #f59e0b;
   margin-bottom: var(--spacing-4);
+  display: block;
 }
 
 .pro-message h4 {
@@ -6723,4 +6724,61 @@ canvas {
   filter: blur(2px);
   pointer-events: none;
   user-select: none;
+}
+
+/* Responsivo - PRO Overlay */
+@media (max-width: 768px) {
+  .pro-overlay {
+    padding: var(--spacing-4);
+  }
+  
+  .pro-message {
+    padding: var(--spacing-4);
+    max-width: 280px;
+  }
+  
+  .pro-message i.fa-crown {
+    font-size: 2.5rem;
+  }
+  
+  .pro-message h4 {
+    font-size: 1.1rem;
+  }
+  
+  .pro-message p {
+    font-size: 0.85rem;
+  }
+  
+  .btn-pro {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pro-message {
+    padding: var(--spacing-3);
+    max-width: 240px;
+  }
+  
+  .pro-message i.fa-crown {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-3);
+  }
+  
+  .pro-message h4 {
+    font-size: 1rem;
+  }
+  
+  .pro-message p {
+    font-size: 0.8rem;
+    margin-bottom: var(--spacing-3);
+  }
+  
+  .btn-pro {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    width: 100%;
+    justify-content: center;
+  }
 }
