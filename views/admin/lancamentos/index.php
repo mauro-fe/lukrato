@@ -40,7 +40,7 @@
                             <p
                                 style="color:rgba(255,255,255,0.8);font-size:0.9rem;margin:0 0 var(--spacing-4);line-height:1.5;">
                                 Exportação de lançamentos é exclusiva do <a href="<?= BASE_URL ?>billing">
-                                    <i class="fas fa-crown"></i> plano Pro.
+                                    plano Pro.
                                 </a></p>
 
                         </div>
