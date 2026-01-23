@@ -914,6 +914,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         'use strict';
 
         const BASE_URL = '<?= BASE_URL ?>';
+        const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
         
         // Dados pré-preenchidos do banco
         const userDataComplete = {
@@ -1478,7 +1479,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-Token': window.CSRF || ''
+                        'X-CSRF-Token': CSRF_TOKEN
                     },
                     credentials: 'include',
                     body: JSON.stringify(payload)
