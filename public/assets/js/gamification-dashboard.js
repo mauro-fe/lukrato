@@ -1,56 +1,18 @@
 /**
  * Gamification System - Dashboard
  * Gerencia carregamento e exibição de dados de gamificação
+ * Usa funções globais de window.GAMIFICATION
  */
 
 (function () {
     'use strict';
 
-    // ========== UTILITÁRIOS (DEFINIDOS NO TOPO) ==========
-
-    /**
-     * Obter threshold de pontos para cada nível
-     * Níveis expandidos de 1 a 15 (sincronizado com backend)
-     */
-    function getLevelThreshold(level) {
-        const thresholds = {
-            1: 0,
-            2: 300,
-            3: 500,
-            4: 700,
-            5: 1000,
-            6: 1500,
-            7: 2200,
-            8: 3000,
-            9: 4000,
-            10: 5500,
-            11: 7500,
-            12: 10000,
-            13: 15000,
-            14: 25000,
-            15: 50000
-        };
-        return thresholds[level] !== undefined ? thresholds[level] : thresholds[15];
-    }
-
-    /**
-     * Nível máximo do sistema
-     */
-    const MAX_LEVEL = 15;
-
-    function formatNumber(num) {
-        return new Intl.NumberFormat('pt-BR').format(num);
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        }).format(date);
-    }
+    // Atalhos para funções globais
+    const GAM = window.GAMIFICATION;
+    const getLevelThreshold = GAM.getLevelThreshold.bind(GAM);
+    const MAX_LEVEL = GAM.MAX_LEVEL;
+    const formatNumber = GAM.formatNumber.bind(GAM);
+    const formatDate = GAM.formatDate.bind(GAM);
 
     // ========== VARIÁVEIS ==========
 
@@ -136,6 +98,7 @@
      * Atualizar UI com dados de progresso
      */
     function updateProgressUI(progress) {
+        console.log('📊 [GAMIFICATION] Atualizando UI com progresso:', progress);
 
         // Badge Pro
         const proBadge = document.getElementById('proBadge');
@@ -156,31 +119,32 @@
             if (span) span.textContent = `Nível ${progress.current_level}`;
         }
 
-        // Barra de progresso de nível
+        // Barra de progresso de nível usando funções globais
         const progressBar = document.getElementById('levelProgressBar');
         const progressPoints = document.getElementById('levelProgressPoints');
         const progressText = document.getElementById('levelProgressText');
 
         if (progressBar && progressPoints) {
-            const percentage = progress.progress_percentage || 0;
-            const nextLevelPoints = getLevelThreshold(progress.current_level + 1);
-            const currentLevelPoints = getLevelThreshold(progress.current_level);
-            const neededPoints = nextLevelPoints - currentLevelPoints;
-            let currentInLevel = progress.total_points - currentLevelPoints;
+            const progressData = GAM.calculateProgress(progress.current_level, progress.total_points);
+            const percentage = progressData.percentage;
+            const currentInLevel = progressData.current;
+            const neededPoints = progressData.needed;
+            const isMaxLevel = progressData.isMaxLevel;
 
-            if (currentInLevel < 0) {
-                currentInLevel = 0;
-            }
+            console.log('📈 [PROGRESS] Cálculo:', {
+                level: progress.current_level,
+                totalPoints: progress.total_points,
+                currentInLevel,
+                neededPoints,
+                percentage: percentage.toFixed(2) + '%',
+                isMaxLevel,
+                isPro: progress.is_pro
+            });
 
-            progressBar.style.width = `${Math.max(0, percentage)}%`;
-
-            // Verificar se está no nível máximo
-            const isMaxLevel = progress.current_level >= MAX_LEVEL;
+            progressBar.style.width = `${percentage}%`;
 
             if (isMaxLevel) {
-                // Nível máximo - mostrar pontos totais
                 progressPoints.textContent = `${formatNumber(progress.total_points)} pontos`;
-                progressBar.style.width = '100%';
             } else {
                 progressPoints.textContent = `${formatNumber(currentInLevel)} / ${formatNumber(neededPoints)} pontos`;
             }
@@ -751,69 +715,10 @@
     }
 
     /**
-     * Notificar conquista desbloqueada
+     * As funções de notificação são gerenciadas globalmente
+     * por gamification-global.js. Podemos adicionar listeners
+     * para recarregar dados quando necessário.
      */
-    window.notifyAchievementUnlocked = function (achievement) {
-        // Tocar som imediatamente
-        playAchievementSound();
-        
-        // Confetes estouram 100ms depois (sincronizado com o som)
-        setTimeout(() => {
-            createAchievementConfetti();
-        }, 100);
-        
-        Swal.fire({
-            title: '🎉 Conquista Desbloqueada!',
-            html: `
-                <div class="achievement-unlock-animation">
-                    <div class="achievement-icon-big">${achievement.icon}</div>
-                    <h2>${achievement.name}</h2>
-                    <p>${achievement.description}</p>
-                    <p class="achievement-points-reward">
-                        <i class="fas fa-star"></i> +${achievement.points_reward} pontos
-                    </p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: '🚀 Próxima conquista!',
-            customClass: {
-                popup: 'achievement-unlock-modal',
-                confirmButton: 'btn btn-primary'
-            }
-        });
-
-        // Recarregar conquistas e progresso
-        setTimeout(() => {
-            loadAchievements();
-            loadGamificationProgress();
-        }, 500);
-    };
-
-    /**
-     * Notificar subida de nível
-     */
-    window.notifyLevelUp = function (newLevel) {
-        Swal.fire({
-            title: '⭐ Subiu de Nível!',
-            html: `
-                <div class="level-up-animation">
-                    <div class="level-number">${newLevel}</div>
-                    <p>Parabéns! Você alcançou o nível ${newLevel}!</p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: 'Continuar',
-            customClass: {
-                popup: 'level-up-modal',
-                confirmButton: 'btn btn-primary'
-            }
-        });
-
-        // Recarregar progresso
-        setTimeout(() => {
-            loadGamificationProgress();
-        }, 500);
-    };
 
     // Inicializar quando o DOM estiver pronto
     if (document.readyState === 'loading') {

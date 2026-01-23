@@ -77,6 +77,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          SCRIPTS EXTERNOS
          ============================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
@@ -85,6 +86,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <!-- Sistema de Gerenciamento de Sessão -->
     <script src="<?= BASE_URL ?>assets/js/session-manager.js?v=<?= time() ?>" defer></script>
+
+    <!-- Sistema de Gamificação Global (conquistas e level up) -->
+    <script src="<?= BASE_URL ?>assets/js/gamification-global.js?v=<?= time() ?>"></script>
 
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
     <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"

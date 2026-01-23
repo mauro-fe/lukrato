@@ -665,6 +665,28 @@
                         <small class="lk-helper-text">Deixe em branco para indefinido</small>
                     </div>
 
+                    <!-- Tempo de Aviso -->
+                    <div class="form-group">
+                        <label for="agTempoAviso" class="form-label">
+                            <i class="fas fa-clock"></i> Avisar com antecedência
+                        </label>
+                        <select id="agTempoAviso" name="tempo_aviso" class="form-control modern-select">
+                            <option value="0">No momento da execução</option>
+                            <option value="5">5 minutos antes</option>
+                            <option value="15">15 minutos antes</option>
+                            <option value="30">30 minutos antes</option>
+                            <option value="60" selected>1 hora antes</option>
+                            <option value="120">2 horas antes</option>
+                            <option value="360">6 horas antes</option>
+                            <option value="720">12 horas antes</option>
+                            <option value="1440">1 dia antes</option>
+                            <option value="2880">2 dias antes</option>
+                            <option value="4320">3 dias antes</option>
+                            <option value="10080">1 semana antes</option>
+                        </select>
+                        <small class="lk-helper-text">Quando você será notificado sobre este agendamento</small>
+                    </div>
+
                     <!-- Notificações -->
                     <div class="form-group">
                         <label class="form-label d-block">

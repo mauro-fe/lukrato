@@ -1040,7 +1040,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
-            if (status === 'pendente' || statusDinamico !== 'executado') {
+            // Verificar cancelado PRIMEIRO
+            if (status === 'cancelado') {
+                actionsContainer.innerHTML = `
+                    ${viewBtn}
+                    <button class="lk-btn ghost ag-card-btn" data-ag-action="reativar" data-id="${itemId}" title="Reativar">
+                        <i class="fas fa-undo-alt"></i>
+                    </button>
+                `;
+            } else if (status === 'pendente' || statusDinamico !== 'executado') {
                 actionsContainer.innerHTML = `
                     ${viewBtn}
                     <button class="lk-btn ghost-pagar ag-card-btn" data-ag-action="pagar" data-id="${itemId}" title="Executar">
@@ -1051,13 +1059,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
                         <i class="fas fa-times"></i>
-                    </button>
-                `;
-            } else if (status === 'cancelado') {
-                actionsContainer.innerHTML = `
-                    ${viewBtn}
-                    <button class="lk-btn ghost ag-card-btn" data-ag-action="reativar" data-id="${itemId}" title="Reativar">
-                        <i class="fas fa-undo-alt"></i>
                     </button>
                 `;
             } else {
@@ -1178,6 +1179,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
+            // Verificar cancelado PRIMEIRO
+            if (status === 'cancelado') {
+                return `
+                    ${viewBtn}
+                    <button type="button" class="btn-action btn-restore" data-action="reativar" data-id="${itemId}" 
+                        title="🔄 Reativar agendamento">
+                        <i class="fas fa-undo-alt"></i>
+                    </button>
+                `;
+            }
+
             if (status === 'pendente' || statusDinamico !== 'executado') {
                 return `
                     ${viewBtn}
@@ -1192,16 +1204,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
                         title="❌ Cancelar agendamento">
                         <i class="fas fa-times"></i>
-                    </button>
-                `;
-            }
-
-            if (status === 'cancelado') {
-                return `
-                    ${viewBtn}
-                    <button type="button" class="btn-action btn-restore" data-action="reativar" data-id="${itemId}" 
-                        title="🔄 Reativar agendamento">
-                        <i class="fas fa-undo-alt"></i>
                     </button>
                 `;
             }

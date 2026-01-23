@@ -193,6 +193,41 @@ class OnboardingManager {
 
         localStorage.setItem('lukrato_onboarding_celebration_shown', 'true');
 
+        // Tocar som e confetes do sistema de gamificação
+        if (typeof window.GAMIFICATION !== 'undefined') {
+            try {
+                // Confetes
+                setTimeout(() => {
+                    if (typeof confetti === 'function') {
+                        const duration = 3 * 1000;
+                        const animationEnd = Date.now() + duration;
+                        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
+                        
+                        const interval = setInterval(function() {
+                            const timeLeft = animationEnd - Date.now();
+                            if (timeLeft <= 0) return clearInterval(interval);
+                            
+                            const particleCount = 50 * (timeLeft / duration);
+                            confetti(Object.assign({}, defaults, {
+                                particleCount,
+                                origin: { x: Math.random(), y: Math.random() - 0.2 }
+                            }));
+                        }, 250);
+                    }
+                }, 300);
+                
+                // Som
+                try {
+                    const baseUrl = window.BASE_URL || '/lukrato/public/';
+                    const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
+                    audio.volume = 0.5;
+                    audio.play().catch(() => {});
+                } catch (err) {}
+            } catch (error) {
+                console.log('Gamificação não disponível:', error);
+            }
+        }
+
         const celebrationHTML = `
             <div class="completion-celebration-overlay">
                 <div class="completion-celebration">

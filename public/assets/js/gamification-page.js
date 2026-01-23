@@ -1,47 +1,13 @@
 // 🎮 Gamification Page - Dashboard completo
+// Usa funções globais de window.GAMIFICATION
 (function () {
     'use strict';
 
-
-    // Configuração
-    const BASE_URL = document.querySelector('meta[name="base-url"]')?.content || window.BASE_URL || '/';
-    let currentFilter = 'all';
-
-    // Cache de elementos
-    const elements = {
-        userLevelLarge: document.getElementById('userLevelLarge'),
-        totalPointsCard: document.getElementById('totalPointsCard'),
-        currentLevelCard: document.getElementById('currentLevelCard'),
-        currentStreakCard: document.getElementById('currentStreakCard'),
-        achievementsCountCard: document.getElementById('achievementsCountCard'),
-        nextLevel: document.getElementById('nextLevel'),
-        progressPointsLarge: document.getElementById('progressPointsLarge'),
-        progressFillLarge: document.getElementById('progressFillLarge'),
-        achievementsGridPage: document.getElementById('achievementsGridPage'),
-        pointsHistory: document.getElementById('pointsHistory'),
-        leaderboardContainer: document.getElementById('leaderboardContainer')
-    };
-
-    // Mapa de níveis (expandido para 15)
-    const levelThresholds = {
-        1: 0,
-        2: 300,
-        3: 500,
-        4: 700,
-        5: 1000,
-        6: 1500,
-        7: 2200,
-        8: 3000,
-        9: 4000,
-        10: 5500,
-        11: 7500,
-        12: 10000,
-        13: 15000,
-        14: 25000,
-        15: 50000
-    };
-
-    const MAX_LEVEL = 15;
+    // Atalhos para funções globais
+    const GAM = window.GAMIFICATION;
+    const formatNumber = GAM.formatNumber.bind(GAM);
+    const formatDate = GAM.formatDate.bind(GAM);
+    const MAX_LEVEL = GAM.MAX_LEVEL;
 
     // Carregar todos os dados
     async function loadAllData() {
@@ -95,18 +61,13 @@
         if (elements.currentLevelCard) elements.currentLevelCard.textContent = level;
         if (elements.currentStreakCard) elements.currentStreakCard.textContent = streak;
 
-        // Calcular progresso para próximo nível
-        const isMaxLevel = level >= MAX_LEVEL;
+        // Calcular progresso usando função global
+        const progressData = GAM.calculateProgress(level, totalPoints);
+        const isMaxLevel = progressData.isMaxLevel;
         const nextLevel = level + 1;
-        const currentLevelPoints = levelThresholds[level] || 0;
-        const nextLevelPoints = levelThresholds[nextLevel] || levelThresholds[MAX_LEVEL];
-        const pointsInLevel = nextLevelPoints - currentLevelPoints;
-        let currentInLevel = totalPoints - currentLevelPoints;
-
-        // Proteção contra valores negativos
-        if (currentInLevel < 0) currentInLevel = 0;
-
-        const percentage = isMaxLevel ? 100 : Math.round((currentInLevel / pointsInLevel) * 100);
+        const percentage = progressData.percentage;
+        const currentInLevel = progressData.current;
+        const pointsInLevel = progressData.needed;
 
         // Atualizar barra de progresso
         if (elements.nextLevel) {
@@ -114,13 +75,13 @@
         }
         if (elements.progressPointsLarge) {
             if (isMaxLevel) {
-                elements.progressPointsLarge.textContent = `${totalPoints.toLocaleString('pt-BR')} pontos (Máximo!)`;
+                elements.progressPointsLarge.textContent = `${formatNumber(totalPoints)} pontos (Máximo!)`;
             } else {
-                elements.progressPointsLarge.textContent = `${currentInLevel.toLocaleString('pt-BR')} / ${pointsInLevel.toLocaleString('pt-BR')}`;
+                elements.progressPointsLarge.textContent = `${formatNumber(currentInLevel)} / ${formatNumber(pointsInLevel)}`;
             }
         }
         if (elements.progressFillLarge) {
-            elements.progressFillLarge.style.width = `${Math.max(0, percentage)}%`;
+            elements.progressFillLarge.style.width = `${percentage}%`;
         }
     }
 
@@ -408,174 +369,9 @@
         return icons[action] || '📌';
     }
 
-    /**
-     * Criar confetes na tela (versão profissional com duas ondas)
-     */
-    function createAchievementConfetti() {
-        const colors = ['#e67e22', '#f39c12', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6', '#f1c40f', '#1abc9c'];
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        
-        // Primeira onda: explosão forte e rápida (50 confetes)
-        createWave(50, 0, 3.5, 5.5);
-        
-        // Segunda onda: explosão suave e elegante (40 confetes, 150ms depois)
-        setTimeout(() => createWave(40, 0, 2.5, 4), 150);
-        
-        function createWave(count, delayOffset, minVelocity, maxVelocity) {
-            for (let i = 0; i < count; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    
-                    // 70% retângulos, 30% quadrados
-                    const isSquare = Math.random() > 0.7;
-                    const width = isSquare ? Math.random() * 8 + 5 : Math.random() * 6 + 4;
-                    const height = isSquare ? width : Math.random() * 12 + 8;
-                    
-                    confetti.style.position = 'fixed';
-                    confetti.style.width = width + 'px';
-                    confetti.style.height = height + 'px';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.left = centerX + 'px';
-                    confetti.style.top = centerY + 'px';
-                    confetti.style.borderRadius = isSquare ? '2px' : '1px';
-                    confetti.style.pointerEvents = 'none';
-                    confetti.style.zIndex = '999999';
-                    confetti.style.opacity = '0.95';
-                    confetti.style.transformStyle = 'preserve-3d';
-                    confetti.style.boxShadow = '0 0 3px rgba(0,0,0,0.2)';
-                    
-                    document.body.appendChild(confetti);
-                    
-                    // Física realista com variação
-                    const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.3 - 0.15);
-                    const velocity = Math.random() * (maxVelocity - minVelocity) + minVelocity;
-                    let vx = Math.cos(angle) * velocity;
-                    let vy = Math.sin(angle) * velocity - Math.random() * 1.5;
-                    let x = 0;
-                    let y = 0;
-                    let rotationX = Math.random() * 360;
-                    let rotationY = Math.random() * 360;
-                    let rotationZ = Math.random() * 360;
-                    let velocityRotX = Math.random() * 10 - 5;
-                    let velocityRotY = Math.random() * 10 - 5;
-                    let velocityRotZ = Math.random() * 10 - 5;
-                    
-                    // Alguns confetes mais pesados, outros mais leves
-                    const mass = Math.random() * 0.5 + 0.7;
-                    const gravity = 0.15 * mass;
-                    const friction = 0.985 + (Math.random() * 0.01);
-                    
-                    const animate = () => {
-                        vy += gravity;
-                        vx *= friction;
-                        vy *= friction;
-                        
-                        x += vx;
-                        y += vy;
-                        
-                        rotationX += velocityRotX * friction;
-                        rotationY += velocityRotY * friction;
-                        rotationZ += velocityRotZ * friction;
-                        
-                        confetti.style.transform = `
-                            translate(${x}px, ${y}px) 
-                            rotateX(${rotationX}deg) 
-                            rotateY(${rotationY}deg) 
-                            rotateZ(${rotationZ}deg)
-                        `;
-                        
-                        if (y < window.innerHeight + 100 && (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05)) {
-                            requestAnimationFrame(animate);
-                        } else {
-                            confetti.remove();
-                        }
-                    };
-                    
-                    requestAnimationFrame(animate);
-                }, i * 3 + delayOffset);
-            }
-        }
+    function getCategoryColor(category) {
+        return GAM.getCategoryColor(category);
     }
-
-    /**
-     * Tocar som de conquista (Success Fanfare Trumpets)
-     */
-    function playAchievementSound() {
-        try {
-            const audio = new Audio('/lukrato/public/assets/audio/success-fanfare-trumpets-6185.mp3');
-            audio.volume = 0.5; // 50% do volume
-            audio.play().catch(error => {
-                console.log('Não foi possível reproduzir o som:', error);
-            });
-        } catch (error) {
-            console.log('Erro ao carregar o áudio:', error);
-        }
-    }
-
-    /**
-     * Notificar conquista desbloqueada
-     */
-    window.notifyAchievementUnlocked = function (achievement) {
-        // Tocar som imediatamente
-        playAchievementSound();
-        
-        // Confetes estouram 100ms depois (sincronizado com o som)
-        setTimeout(() => {
-            createAchievementConfetti();
-        }, 100);
-        
-        Swal.fire({
-            title: '🎉 Conquista Desbloqueada!',
-            html: `
-                <div class="achievement-unlock-animation">
-                    <div class="achievement-icon-big">${achievement.icon}</div>
-                    <h2>${achievement.name}</h2>
-                    <p>${achievement.description}</p>
-                    <p class="achievement-points-reward">
-                        <i class="fas fa-star"></i> +${achievement.points_reward} pontos
-                    </p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: '🚀 Próxima conquista!',
-            customClass: {
-                popup: 'achievement-unlock-modal',
-                confirmButton: 'btn btn-primary'
-            }
-        });
-
-        // Recarregar conquistas e progresso
-        setTimeout(() => {
-            loadAllData();
-        }, 500);
-    };
-
-    /**
-     * Notificar subida de nível
-     */
-    window.notifyLevelUp = function (newLevel) {
-        Swal.fire({
-            title: '⭐ Subiu de Nível!',
-            html: `
-                <div class="level-up-animation">
-                    <div class="level-number">${newLevel}</div>
-                    <p>Parabéns! Você alcançou o nível ${newLevel}!</p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: 'Continuar',
-            customClass: {
-                popup: 'level-up-modal',
-                confirmButton: 'btn btn-primary'
-            }
-        });
-
-        // Recarregar progresso
-        setTimeout(() => {
-            loadAllData();
-        }, 500);
-    };
 
     // Event Listeners
     document.querySelectorAll('.filter-btn').forEach(btn => {

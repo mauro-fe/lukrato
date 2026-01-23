@@ -1034,8 +1034,8 @@
   }
 }
 
-/* ========== Notebook (min-width: 1024px) ========== */
-@media (min-width: 1024px) {
+/* ========== Desktop Grande (min-width: 1336px) ========== */
+@media (min-width: 1336px) {
   .lk-controls {
     flex-direction: row;
     align-items: center;
@@ -1191,6 +1191,47 @@
 
   .chart-dual .chart-container {
     min-height: 580px;
+  }
+}
+
+/* ========== Telas Médias/Pequenos Notebooks (1024px - 1335px) ========== */
+@media (min-width: 1024px) and (max-width: 1335px) {
+  .rel-page {
+    max-width: 100%;
+    padding: var(--spacing-4);
+  }
+
+  .quick-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-4);
+  }
+
+  .stat-card {
+    padding: var(--spacing-4);
+    min-height: 100px;
+  }
+
+  .stat-icon {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 24px !important;
+  }
+
+  .stat-content .stat-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .stat-content .stat-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .chart-container {
+    min-height: 350px;
+    max-height: 450px;
+  }
+
+  .chart-container canvas {
+    max-height: 400px !important;
   }
 }
 

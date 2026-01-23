@@ -1359,6 +1359,14 @@ class ContasManager {
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
             if (labelData) labelData.textContent = 'Data do Agendamento';
 
+            // Mostrar campo de tempo de aviso
+            const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
+            if (tempoAvisoGroup) tempoAvisoGroup.style.display = 'block';
+
+            // Mostrar canais de notificação
+            const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
+            if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'block';
+
             // Configurar evento de recorrência
             this.configurarEventosRecorrencia();
         }
@@ -1912,29 +1920,50 @@ class ContasManager {
 
             // Exibir dados de gamificação se disponíveis
             if (result.data?.gamification?.points) {
-                const gamif = result.data.gamification.points;
-                if (gamif.points_gained > 0) {
-                }
-                if (gamif.new_achievements && gamif.new_achievements.length > 0) {
-                    gamif.new_achievements.forEach(ach => {
-
-                        // Exibir modal grande de conquista desbloqueada
-                        if (typeof window.notifyAchievementUnlocked === 'function') {
-                            window.notifyAchievementUnlocked(ach);
-                        } else {
-                            // Fallback para notificação simples
-                            this.showNotification(`🏆 ${ach.name} desbloqueada!`, 'success');
-                        }
-                    });
-                }
-                if (gamif.level_up) {
-                    // Exibir modal grande de level up
-                    if (typeof window.notifyLevelUp === 'function') {
-                        window.notifyLevelUp(gamif.level);
-                    } else {
-                        // Fallback para notificação simples
-                        this.showNotification(`🎉 Subiu para o Nível ${gamif.level}!`, 'success');
+                try {
+                    const gamif = result.data.gamification.points;
+                    
+                    if (gamif.points_gained > 0) {
+                        // Pontos ganhos
                     }
+                    
+                    if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
+                        gamif.new_achievements.forEach(ach => {
+                            try {
+                                // Validar objeto de conquista
+                                if (!ach || typeof ach !== 'object') {
+                                    console.warn('Conquista inválida:', ach);
+                                    return;
+                                }
+
+                                // Exibir modal grande de conquista desbloqueada
+                                if (typeof window.notifyAchievementUnlocked === 'function') {
+                                    window.notifyAchievementUnlocked(ach);
+                                } else {
+                                    // Fallback para notificação simples
+                                    this.showNotification(`🏆 ${ach.name || 'Conquista'} desbloqueada!`, 'success');
+                                }
+                            } catch (error) {
+                                console.error('Erro ao exibir conquista:', error, ach);
+                            }
+                        });
+                    }
+                    
+                    if (gamif.level_up) {
+                        try {
+                            // Exibir modal grande de level up
+                            if (typeof window.notifyLevelUp === 'function') {
+                                window.notifyLevelUp(gamif.level);
+                            } else {
+                                // Fallback para notificação simples
+                                this.showNotification(`🎉 Subiu para o Nível ${gamif.level}!`, 'success');
+                            }
+                        } catch (error) {
+                            console.error('Erro ao exibir level up:', error);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao processar gamificação:', error, result.data.gamification);
                 }
             }
 

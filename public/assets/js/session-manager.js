@@ -27,6 +27,12 @@
 
         // Tempo de sessão total (em segundos) - fallback (1 hora como no Auth)
         sessionLifetime: 3600, // 1 hora
+
+        // Endpoints da API
+        endpoints: {
+            status: 'api/session/status',
+            renew: 'api/session/renew'
+        }
     };
 
     // ========================================================================
@@ -525,15 +531,15 @@
         async checkSession() {
             const result = await utils.apiRequest(CONFIG.endpoints.status);
 
-            if (!result.ok) {
-                if (result.status === 401) {
+            if (!result || !result.ok) {
+                if (result && result.status === 401) {
                     UI.showLoggedOutModal();
                     this.stopPeriodicCheck();
                 }
                 return;
             }
 
-            const data = result.data;
+            const data = result.data || {};
             state.remainingTime = data.remainingTime || 0;
             state.lastCheck = Date.now();
 
@@ -577,7 +583,7 @@
                 _token: utils.getCsrfToken()
             });
 
-            if (result.ok && result.data?.success) {
+            if (result && result.ok && result.data?.success) {
                 // Atualiza token CSRF se fornecido
                 if (result.data.newToken) {
                     const csrfMeta = document.querySelector('meta[name="csrf-token"]');

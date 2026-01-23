@@ -168,7 +168,7 @@
                         <small class="lk-helper-text">Para onde o dinheiro vai ser transferido</small>
                     </div>
 
-                    <!-- Cartão de Crédito (somente para despesa) -->
+
                     <div class="lk-form-group" id="globalCartaoCreditoGroup" style="display: none;">
                         <label for="globalLancamentoCartaoCredito" class="lk-label">
                             <i class="fas fa-credit-card"></i>
@@ -270,6 +270,62 @@
                             <span class="lk-input-suffix">vezes</span>
                         </div>
                         <small class="lk-helper-text">Deixe em branco para indefinido</small>
+                    </div>
+
+                    <!-- Tempo de Aviso (somente para agendamento) -->
+                    <div class="lk-form-group" id="globalTempoAvisoGroup" style="display: none;">
+                        <label for="globalLancamentoTempoAviso" class="lk-label">
+                            <i class="fas fa-clock"></i>
+                            Avisar com antecedência
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="globalLancamentoTempoAviso" name="tempo_aviso" class="lk-select">
+                                <option value="0">No momento da execução</option>
+                                <option value="5">5 minutos antes</option>
+                                <option value="15">15 minutos antes</option>
+                                <option value="30">30 minutos antes</option>
+                                <option value="60" selected>1 hora antes</option>
+                                <option value="120">2 horas antes</option>
+                                <option value="360">6 horas antes</option>
+                                <option value="720">12 horas antes</option>
+                                <option value="1440">1 dia antes</option>
+                                <option value="2880">2 dias antes</option>
+                                <option value="4320">3 dias antes</option>
+                                <option value="10080">1 semana antes</option>
+                            </select>
+                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                        </div>
+                        <small class="lk-helper-text">Quando você será notificado sobre este agendamento</small>
+                    </div>
+
+                    <!-- Canais de Notificação (somente para agendamento) -->
+                    <div class="lk-form-group" id="globalCanaisNotificacaoGroup" style="display: none;">
+                        <label class="lk-label">
+                            <i class="fas fa-bell"></i>
+                            Canais de Notificação
+                        </label>
+                        <div class="lk-checkbox-wrapper">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="globalCanalInapp" name="canal_inapp" value="1"
+                                    class="lk-checkbox" checked>
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i class="fas fa-desktop"></i>
+                                    Aviso no sistema
+                                </span>
+                            </label>
+                        </div>
+                        <div class="lk-checkbox-wrapper">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="globalCanalEmail" name="canal_email" value="1"
+                                    class="lk-checkbox" checked>
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i class="fas fa-envelope"></i>
+                                    E-mail
+                                </span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Botões de Ação -->

@@ -321,13 +321,13 @@ const lancamentoGlobalManager = {
             this.preencherContasDestino();
         }
 
-        // Cartão de crédito (apenas despesa/agendamento)
+        // Cartão de crédito (apenas despesa, NÃO para agendamento)
         const cartaoGroup = document.getElementById('globalCartaoCreditoGroup');
         if (cartaoGroup) {
-            cartaoGroup.style.display = (tipo === 'despesa' || tipo === 'agendamento') ? 'block' : 'none';
+            cartaoGroup.style.display = tipo === 'despesa' ? 'block' : 'none';
         }
 
-        if (tipo === 'despesa' || tipo === 'agendamento') {
+        if (tipo === 'despesa') {
             this.preencherCartoes();
         }
 
@@ -345,6 +345,18 @@ const lancamentoGlobalManager = {
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         if (recorrenciaGroup) {
             recorrenciaGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        }
+
+        // Mostrar/ocultar campo de tempo de aviso (apenas agendamento)
+        const tempoAvisoGroup = document.getElementById('globalTempoAvisoGroup');
+        if (tempoAvisoGroup) {
+            tempoAvisoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        }
+
+        // Mostrar/ocultar canais de notificação (apenas agendamento)
+        const canaisNotificacaoGroup = document.getElementById('globalCanaisNotificacaoGroup');
+        if (canaisNotificacaoGroup) {
+            canaisNotificacaoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
         }
     },
 
@@ -585,6 +597,42 @@ const lancamentoGlobalManager = {
             if (isSuccess) {
                 // Guardar tipo atual ANTES de fechar o modal (pois closeModal reseta)
                 const tipoLancamento = this.tipoAtual;
+
+                // Processar gamificação ANTES de fechar o modal
+                if (result.data?.gamification?.points) {
+                    try {
+                        const gamif = result.data.gamification.points;
+                        
+                        if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
+                            gamif.new_achievements.forEach(ach => {
+                                try {
+                                    if (!ach || typeof ach !== 'object') {
+                                        console.warn('Conquista inválida:', ach);
+                                        return;
+                                    }
+                                    
+                                    if (typeof window.notifyAchievementUnlocked === 'function') {
+                                        window.notifyAchievementUnlocked(ach);
+                                    }
+                                } catch (error) {
+                                    console.error('Erro ao exibir conquista:', error, ach);
+                                }
+                            });
+                        }
+                        
+                        if (gamif.level_up) {
+                            try {
+                                if (typeof window.notifyLevelUp === 'function') {
+                                    window.notifyLevelUp(gamif.level);
+                                }
+                            } catch (error) {
+                                console.error('Erro ao exibir level up:', error);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Erro ao processar gamificação:', error, result.data.gamification);
+                    }
+                }
 
                 // Fechar modal ANTES de mostrar o Sweet Alert
                 this.closeModal();

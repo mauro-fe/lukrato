@@ -40,7 +40,9 @@
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
@@ -75,7 +77,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at 20% 50%,
       rgba(255, 255, 255, 0.1) 0%,
       transparent 50%
@@ -260,7 +263,8 @@
 .lk-input:focus {
   outline: none;
   border-color: #e67e22;
-  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.1),
+  box-shadow:
+    0 0 0 4px rgba(230, 126, 34, 0.1),
     0 2px 8px rgba(230, 126, 34, 0.08);
   transform: translateY(-1px);
 }
@@ -293,7 +297,8 @@
 .lk-select:focus {
   outline: none;
   border-color: #e67e22;
-  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.1),
+  box-shadow:
+    0 0 0 4px rgba(230, 126, 34, 0.1),
     0 2px 8px rgba(230, 126, 34, 0.08);
 }
 
@@ -391,7 +396,9 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .lk-btn:active::before {
@@ -407,12 +414,16 @@
 .lk-btn-primary {
   background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 12px rgba(230, 126, 34, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .lk-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4), 0 3px 8px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 6px 20px rgba(230, 126, 34, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .lk-btn-primary:active {
@@ -532,7 +543,9 @@
 .context-menu {
   background: var(--color-card-bg);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--color-card-border);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.2),
+    0 0 0 1px var(--color-card-border);
   padding: 0.5rem;
   min-width: 180px;
   z-index: 10000;
@@ -923,7 +936,9 @@
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
@@ -957,7 +972,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at 20% 50%,
       rgba(255, 255, 255, 0.1) 0%,
       transparent 50%
@@ -1150,6 +1166,7 @@
     gap: 0.75rem !important;
     flex: 1 !important;
     min-width: 0 !important;
+    margin-top: 20px;
   }
 
   .lk-modal-icon-wrapper,
@@ -1188,6 +1205,7 @@
     width: 36px !important;
     height: 36px !important;
     font-size: 16px !important;
+    margin-top: 20px;
   }
 
   .lk-modal-body,

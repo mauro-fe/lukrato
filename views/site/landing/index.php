@@ -571,6 +571,9 @@
 </section>
 
 
+<?php include __DIR__ . '/gamification_section.php'; ?>
+
+
 <!-- Seção de Planos -->
 <section id="planos" class="relative py-20 md:py-32 bg-gray-50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
