@@ -21,68 +21,40 @@ class AsaasWebhookController extends BaseController
 
     public function test(): void
     {
-        echo 'Webhook OK (GET)';
+        echo 'Webhook OK';
         exit;
     }
-
 
     public function receive(): void
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
         $rawBody = file_get_contents('php://input');
 
-        // ✅ Validação com múltiplas camadas de segurança
+        // 🔐 Validação de segurança (NUNCA retornar erro externo)
         if (!$this->asaas->validateWebhookRequest($headers, $rawBody)) {
-            if (class_exists(LogService::class)) {
-                LogService::warning('Webhook Asaas com validação falhou', [
-                    'headers' => array_keys($headers),
-                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                ]);
-            }
-            http_response_code(401);
-            echo 'Unauthorized';
+            LogService::warning('Webhook Asaas rejeitado por validação', [
+                'headers' => array_keys($headers),
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
+
+            http_response_code(200);
+            echo 'OK';
             return;
         }
 
         $payload = json_decode($rawBody, true);
 
         if (!is_array($payload)) {
-            if (class_exists(LogService::class)) {
-                LogService::warning('Webhook Asaas com payload inválido', ['rawBody' => $rawBody]);
-            }
-            http_response_code(400);
-            echo 'Invalid payload';
+            LogService::warning('Webhook Asaas com payload inválido', [
+                'rawBody' => $rawBody,
+            ]);
+
+            http_response_code(200);
+            echo 'OK';
             return;
         }
 
         $event = $payload['event'] ?? null;
-
-        // ✅ IDEMPOTÊNCIA - Criar chave única baseada em event + ID + timestamp
-        $eventId = $payload['id'] ?? null;
-        $idempotencyKey = md5($event . '_' . $eventId . '_' . ($payload['payment']['id'] ?? $payload['subscription']['id'] ?? ''));
-
-        // ✅ Verificar se já processamos este webhook
-        $jaProcessado = DB::table('webhook_idempotencia')
-            ->where('idempotency_key', $idempotencyKey)
-            ->exists();
-
-        if ($jaProcessado) {
-            if (class_exists(LogService::class)) {
-                LogService::info('Webhook já processado (idempotência)', [
-                    'idempotency_key' => $idempotencyKey,
-                    'event' => $event,
-                ]);
-            }
-            http_response_code(200);
-            echo 'Already processed';
-            return;
-        }
-
-        LogWebhookCobranca::create([
-            'provedor'   => 'asaas',
-            'tipo_evento' => $event ?? 'unknown',
-            'payload'    => $payload,
-        ]);
 
         if (!$event) {
             http_response_code(200);
@@ -90,39 +62,63 @@ class AsaasWebhookController extends BaseController
             return;
         }
 
+        // 🔁 IDEMPOTÊNCIA
+        $eventId = $payload['id'] ?? uniqid();
+        $resourceId = $payload['payment']['id']
+            ?? $payload['subscription']['id']
+            ?? 'unknown';
+
+        $idempotencyKey = hash('sha256', "{$event}_{$eventId}_{$resourceId}");
+
+        if (DB::table('webhook_idempotencia')
+            ->where('idempotency_key', $idempotencyKey)
+            ->exists()
+        ) {
+            LogService::info('Webhook Asaas ignorado (idempotente)', [
+                'event' => $event,
+                'key' => $idempotencyKey,
+            ]);
+
+            http_response_code(200);
+            echo 'OK';
+            return;
+        }
+
+        // 📦 Log bruto
+        LogWebhookCobranca::create([
+            'provedor' => 'asaas',
+            'tipo_evento' => $event,
+            'payload' => $payload,
+        ]);
+
         try {
-            // ✅ TRANSAÇÃO para garantir atomicidade
             DB::beginTransaction();
 
-            try {
-                // ✅ Registrar na tabela de idempotência ANTES de processar
-                DB::table('webhook_idempotencia')->insert([
-                    'idempotency_key' => $idempotencyKey,
-                    'event_type' => $event,
-                    'payload_hash' => hash('sha256', $rawBody),
-                    'processed_at' => now(),
-                    'created_at' => now(),
-                ]);
+            DB::table('webhook_idempotencia')->insert([
+                'idempotency_key' => $idempotencyKey,
+                'event_type' => $event,
+                'payload_hash' => hash('sha256', $rawBody),
+                'processed_at' => now(),
+                'created_at' => now(),
+            ]);
 
-                if (str_starts_with($event, 'SUBSCRIPTION_')) {
-                    $this->handleSubscriptionEvent($event, $payload);
-                } elseif (str_starts_with($event, 'PAYMENT_')) {
-                    $this->handlePaymentEvent($event, $payload);
-                }
-
-                DB::commit();
-            } catch (\Throwable $txError) {
-                DB::rollBack();
-                throw $txError;
+            if (str_starts_with($event, 'SUBSCRIPTION_')) {
+                $this->handleSubscriptionEvent($event, $payload);
             }
+
+            if (str_starts_with($event, 'PAYMENT_')) {
+                $this->handlePaymentEvent($event, $payload);
+            }
+
+            DB::commit();
         } catch (\Throwable $e) {
-            if (class_exists(LogService::class)) {
-                LogService::error('Erro ao processar webhook Asaas', [
-                    'event'   => $event,
-                    'error'   => $e->getMessage(),
-                    'trace'   => $e->getTraceAsString(),
-                ]);
-            }
+            DB::rollBack();
+
+            LogService::error('Erro ao processar webhook Asaas', [
+                'event' => $event,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
 
         http_response_code(200);
@@ -131,40 +127,34 @@ class AsaasWebhookController extends BaseController
 
     private function handleSubscriptionEvent(string $event, array $payload): void
     {
-        $subscriptionData = $payload['subscription'] ?? null;
-        if (!$subscriptionData || empty($subscriptionData['id'])) {
+        $subscription = $payload['subscription'] ?? null;
+
+        if (!$subscription || empty($subscription['id'])) {
             return;
         }
 
-        $asaasId     = $subscriptionData['id'];
-        $externalRef = $subscriptionData['externalReference'] ?? null;
-        $asaasStatus = $subscriptionData['status'] ?? null;
-        $nextDueDate = $subscriptionData['nextDueDate'] ?? null;
+        $asaasId = $subscription['id'];
+        $statusAsaas = $subscription['status'] ?? null;
+        $nextDueDate = $subscription['nextDueDate'] ?? null;
 
-        $interno = $this->mapSubscriptionStatus($asaasStatus);
+        $novoStatus = $this->mapSubscriptionStatus($statusAsaas);
 
-        $query = AssinaturaUsuario::where('external_subscription_id', $asaasId);
-
-        if ($externalRef) {
-            $query->orWhere('external_customer_id', $externalRef);
-        }
-
-        // ✅ LOCK PESSIMISTA para evitar race condition
-        $assinatura = $query->lockForUpdate()->latest('id')->first();
+        $assinatura = AssinaturaUsuario::where('external_subscription_id', $asaasId)
+            ->lockForUpdate()
+            ->latest('id')
+            ->first();
 
         if (!$assinatura) {
-            if (class_exists(LogService::class)) {
-                LogService::warning('Assinatura Asaas não encontrada localmente', [
-                    'asaasId'     => $asaasId,
-                    'externalRef' => $externalRef,
-                    'status'      => $asaasStatus,
-                ]);
-            }
+            LogService::warning('Assinatura não encontrada para webhook', [
+                'asaas_id' => $asaasId,
+            ]);
             return;
         }
 
-        if ($interno) {
-            $assinatura->status = $interno;
+        $statusAnterior = $assinatura->status;
+
+        if ($novoStatus) {
+            $assinatura->status = $novoStatus;
         }
 
         if ($nextDueDate) {
@@ -173,126 +163,65 @@ class AsaasWebhookController extends BaseController
 
         $assinatura->save();
 
-        // ✅ Log de auditoria
-        if (class_exists(LogService::class)) {
-            LogService::info('Assinatura atualizada via webhook', [
-                'assinatura_id' => $assinatura->id,
-                'user_id' => $assinatura->user_id,
-                'status_anterior' => $assinatura->getOriginal('status'),
-                'status_novo' => $interno,
-                'event' => $event,
-            ]);
-        }
+        LogService::info('Assinatura atualizada via webhook', [
+            'assinatura_id' => $assinatura->id,
+            'user_id' => $assinatura->user_id,
+            'status_anterior' => $statusAnterior,
+            'status_novo' => $novoStatus,
+            'event' => $event,
+        ]);
     }
 
     private function handlePaymentEvent(string $event, array $payload): void
     {
         $payment = $payload['payment'] ?? null;
+
         if (!$payment || empty($payment['id'])) {
             return;
         }
 
-        $paymentId      = $payment['id'];
-        $subscriptionId = $payment['subscription'] ?? null;
-        $status         = $payment['status'] ?? null;
-        $paymentDate    = $payment['paymentDate'] ?? null;
-        $billingType    = $payment['billingType'] ?? null;
-
-        // Pagamento confirmado (PIX/Boleto/Cartão)
-        $paymentConfirmed = in_array($status, ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH']);
-
-        if ($paymentConfirmed) {
-            $assinatura = null;
-
-            // 1. Primeiro tentar encontrar por subscription_id (cartão recorrente)
-            if ($subscriptionId) {
-                $assinatura = AssinaturaUsuario::where('external_subscription_id', $subscriptionId)
-                    ->lockForUpdate()
-                    ->latest('id')
-                    ->first();
-            }
-
-            // 2. Se não encontrou, tentar por payment_id (PIX/Boleto avulso)
-            if (!$assinatura) {
-                $assinatura = AssinaturaUsuario::where('external_payment_id', $paymentId)
-                    ->lockForUpdate()
-                    ->latest('id')
-                    ->first();
-            }
-
-            if ($assinatura) {
-                $statusAnterior = $assinatura->status;
-                $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
-                $assinatura->save();
-
-                // ✅ Log de auditoria
-                if (class_exists(LogService::class)) {
-                    LogService::info('Pagamento confirmado via webhook', [
-                        'assinatura_id' => $assinatura->id,
-                        'user_id' => $assinatura->user_id,
-                        'payment_id' => $paymentId,
-                        'billing_type' => $billingType,
-                        'status_anterior' => $statusAnterior,
-                        'status_novo' => AssinaturaUsuario::ST_ACTIVE,
-                        'payment_date' => $paymentDate,
-                    ]);
-                }
-            } else {
-                // Log de pagamento sem assinatura associada
-                if (class_exists(LogService::class)) {
-                    LogService::warning('Pagamento confirmado sem assinatura associada', [
-                        'payment_id' => $paymentId,
-                        'subscription_id' => $subscriptionId,
-                        'billing_type' => $billingType,
-                        'status' => $status,
-                    ]);
-                }
-            }
+        // ⚠️ ATIVAR PLANO APENAS SE FOR PAGAMENTO DE ASSINATURA
+        if (
+            empty($payment['subscription']) ||
+            ($payment['status'] ?? null) !== 'RECEIVED'
+        ) {
+            return;
         }
 
-        // Pagamento cancelado ou expirado
-        $paymentFailed = in_array($status, ['OVERDUE', 'REFUNDED', 'CHARGEBACK_REQUESTED', 'CHARGEBACK_DISPUTE', 'AWAITING_CHARGEBACK_REVERSAL', 'DUNNING_RECEIVED', 'DUNNING_REQUESTED']);
+        $assinatura = AssinaturaUsuario::where(
+            'external_subscription_id',
+            $payment['subscription']
+        )
+            ->lockForUpdate()
+            ->latest('id')
+            ->first();
 
-        if ($paymentFailed) {
-            $assinatura = null;
-
-            if ($subscriptionId) {
-                $assinatura = AssinaturaUsuario::where('external_subscription_id', $subscriptionId)
-                    ->lockForUpdate()
-                    ->latest('id')
-                    ->first();
-            }
-
-            if (!$assinatura) {
-                $assinatura = AssinaturaUsuario::where('external_payment_id', $paymentId)
-                    ->lockForUpdate()
-                    ->latest('id')
-                    ->first();
-            }
-
-            if ($assinatura && $assinatura->status === AssinaturaUsuario::ST_PENDING) {
-                $assinatura->status = AssinaturaUsuario::ST_PAST_DUE;
-                $assinatura->save();
-
-                if (class_exists(LogService::class)) {
-                    LogService::info('Pagamento falhou/expirou via webhook', [
-                        'assinatura_id' => $assinatura->id,
-                        'payment_id' => $paymentId,
-                        'status' => $status,
-                    ]);
-                }
-            }
+        if (!$assinatura) {
+            return;
         }
+
+        $statusAnterior = $assinatura->status;
+
+        $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
+        $assinatura->save();
+
+        LogService::info('Pagamento confirmado via webhook', [
+            'assinatura_id' => $assinatura->id,
+            'user_id' => $assinatura->user_id,
+            'payment_id' => $payment['id'],
+            'status_anterior' => $statusAnterior,
+            'status_novo' => AssinaturaUsuario::ST_ACTIVE,
+            'payment_date' => $payment['paymentDate'] ?? null,
+        ]);
     }
 
-    private function mapSubscriptionStatus(?string $asaasStatus): ?string
+    private function mapSubscriptionStatus(?string $status): ?string
     {
-        return match ($asaasStatus) {
-            'ACTIVE'   => AssinaturaUsuario::ST_ACTIVE,
-            'EXPIRED',
-            'SUSPENDED' => AssinaturaUsuario::ST_PAST_DUE,
+        return match ($status) {
+            'ACTIVE' => AssinaturaUsuario::ST_ACTIVE,
+            'EXPIRED', 'SUSPENDED' => AssinaturaUsuario::ST_PAST_DUE,
             'CANCELED' => AssinaturaUsuario::ST_CANCELED,
-            default    => null,
+            default => null,
         };
     }
 }
