@@ -117,6 +117,7 @@ function registerAppRoutes(): void
     Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth']);
     Router::add('POST', '/premium/cancel', 'PremiumController@cancel', ['auth']);
     Router::add('GET', '/premium/check-payment/{paymentId}', 'PremiumController@checkPayment', ['auth']);
+    Router::add('GET', '/premium/pending-pix', 'PremiumController@getPendingPix', ['auth']);
     Router::add('POST', '/api/webhook/asaas', 'Api\\AsaasWebhookController@receive');
     Router::add('GET', '/api/webhook/asaas', 'Api\AsaasWebhookController@test');
 }

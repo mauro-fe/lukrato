@@ -90,6 +90,81 @@ class PremiumController extends BaseController
     }
 
     /**
+     * Verifica se existe PIX pendente não vencido para o usuário
+     * Se existir, retorna os dados do QR Code
+     */
+    public function getPendingPix(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $usuario = $this->getAuthenticatedUser();
+
+            // Buscar assinatura PENDING com PIX
+            $assinatura = $usuario->assinaturas()
+                ->where('gateway', 'asaas')
+                ->where('status', AssinaturaUsuario::ST_PENDING)
+                ->where('billing_type', 'PIX')
+                ->whereNotNull('external_payment_id')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$assinatura) {
+                Response::success(['hasPending' => false]);
+                return;
+            }
+
+            // Verificar status no Asaas
+            $paymentData = $this->asaas->getPayment($assinatura->external_payment_id);
+            $status = $paymentData['status'] ?? 'PENDING';
+
+            // Se já foi pago, atualiza e retorna
+            if (in_array($status, ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'])) {
+                $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
+                $assinatura->save();
+                Response::success(['hasPending' => false, 'paid' => true]);
+                return;
+            }
+
+            // Se foi cancelado ou expirou, limpa e retorna
+            if (in_array($status, ['OVERDUE', 'REFUNDED', 'DELETED', 'REFUND_REQUESTED'])) {
+                $assinatura->delete();
+                Response::success(['hasPending' => false, 'expired' => true]);
+                return;
+            }
+
+            // PIX ainda pendente - buscar QR Code
+            $pixData = $this->asaas->getPixQrCode($assinatura->external_payment_id);
+
+            if (empty($pixData['encodedImage'])) {
+                // QR Code não disponível, algo deu errado
+                Response::success(['hasPending' => false]);
+                return;
+            }
+
+            // Calcular informações do plano
+            $plano = $this->getPlanoPro();
+
+            Response::success([
+                'hasPending' => true,
+                'paymentId' => $assinatura->external_payment_id,
+                'pix' => [
+                    'qrCodeImage' => 'data:image/png;base64,' . $pixData['encodedImage'],
+                    'payload' => $pixData['payload'] ?? null,
+                    'expirationDate' => $pixData['expirationDate'] ?? null,
+                ],
+                'plan' => [
+                    'name' => $plano->nome,
+                    'price' => $plano->preco_centavos / 100,
+                ],
+                'createdAt' => $assinatura->created_at->format('d/m/Y H:i'),
+            ]);
+        } catch (\Throwable $e) {
+            Response::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Verificar status de um pagamento (para polling do frontend)
      */
     public function checkPayment(string $paymentId): void

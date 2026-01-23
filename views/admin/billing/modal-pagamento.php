@@ -1165,6 +1165,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             // Esconder containers de resultado se mudar de método
             pixQrCodeContainer?.classList.remove('is-visible');
             boletoContainer?.classList.remove('is-visible');
+            pixPendingStatus?.classList.remove('is-visible');
+            boletoPendingStatus?.classList.remove('is-visible');
 
             // Esconder campos de formulário se dados já existem
             const pixFieldsContainer = pixSection?.querySelector('.pix-boleto-fields');
@@ -1184,6 +1186,56 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
             // Habilitar submit
             if (submitBtn) submitBtn.disabled = false;
+            
+            // Se selecionou PIX, verificar se tem PIX pendente
+            if (method === 'PIX') {
+                checkPendingPix();
+            }
+        }
+        
+        // ===============================
+        // VERIFICAR PIX PENDENTE
+        // ===============================
+        async function checkPendingPix() {
+            try {
+                const resp = await fetch(`${BASE_URL}premium/pending-pix`, {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const json = await resp.json();
+                
+                if (json.status === 'success' && json.data?.hasPending && json.data?.pix) {
+                    // Tem PIX pendente! Mostrar automaticamente
+                    const pix = json.data.pix;
+                    
+                    if (pix.qrCodeImage) {
+                        pixQrCodeImg.src = pix.qrCodeImage;
+                    }
+                    if (pix.payload) {
+                        pixCopyPasteCode.value = pix.payload;
+                    }
+                    
+                    pixQrCodeContainer?.classList.add('is-visible');
+                    pixPendingStatus?.classList.add('is-visible');
+                    submitBtn.disabled = true;
+                    
+                    // Atualizar texto do botão
+                    const btnSpan = submitBtn?.querySelector('span');
+                    if (btnSpan) btnSpan.textContent = 'Aguardando pagamento';
+                    
+                    // Iniciar polling
+                    if (json.data.paymentId) {
+                        startPaymentPolling(json.data.paymentId);
+                    }
+                } else if (json.data?.paid) {
+                    // Já foi pago! Recarregar página
+                    window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado.', 'success')
+                        .then(() => window.location.reload());
+                }
+                // Se não tem pendente, não faz nada - usuário precisa clicar em Gerar PIX
+            } catch (err) {
+                // Silencioso - se falhar, usuário pode gerar novo PIX
+            }
         }
 
         // ===============================
