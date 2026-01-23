@@ -6654,6 +6654,12 @@ canvas {
 
 .export-card .card-body {
   position: relative;
+  min-height: 100px;
+}
+
+/* Quando bloqueado, o card-body precisa de altura mínima para o overlay */
+.export-card.pro-locked .card-body {
+  min-height: 140px;
 }
 
 .pro-overlay {
@@ -6666,43 +6672,48 @@ canvas {
   border: 2px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius-lg);
   z-index: 10;
+  padding: var(--spacing-4);
+  margin: 0;
 }
 
 .pro-message {
   text-align: center;
-  padding: var(--spacing-6);
-  max-width: 320px;
+  padding: var(--spacing-4);
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pro-message i.fa-crown {
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: #f59e0b;
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
   display: block;
 }
 
 .pro-message h4 {
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 var(--spacing-2);
 }
 
 .pro-message p {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  margin: 0 0 var(--spacing-4);
-  line-height: 1.5;
+  font-size: 0.85rem;
+  margin: 0 0 var(--spacing-3);
+  line-height: 1.4;
 }
 
 .btn-pro {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
+  gap: 6px;
+  padding: 10px 20px;
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #fff;
   font-weight: 600;
+  font-size: 0.9rem;
   border: none;
   border-radius: var(--radius-lg);
   text-decoration: none;
@@ -6728,42 +6739,21 @@ canvas {
 
 /* Responsivo - PRO Overlay */
 @media (max-width: 768px) {
-  .pro-overlay {
-    padding: var(--spacing-4);
+  .export-card.pro-locked .card-body {
+    min-height: 130px;
   }
-  
-  .pro-message {
-    padding: var(--spacing-4);
-    max-width: 280px;
-  }
-  
-  .pro-message i.fa-crown {
-    font-size: 2.5rem;
-  }
-  
-  .pro-message h4 {
-    font-size: 1.1rem;
-  }
-  
-  .pro-message p {
-    font-size: 0.85rem;
-  }
-  
-  .btn-pro {
-    padding: 10px 20px;
-    font-size: 0.9rem;
-  }
-}
 
-@media (max-width: 480px) {
+  .pro-overlay {
+    padding: var(--spacing-3);
+  }
+  
   .pro-message {
     padding: var(--spacing-3);
-    max-width: 240px;
   }
   
   .pro-message i.fa-crown {
     font-size: 2rem;
-    margin-bottom: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
   }
   
   .pro-message h4 {
@@ -6772,13 +6762,40 @@ canvas {
   
   .pro-message p {
     font-size: 0.8rem;
-    margin-bottom: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
   }
   
   .btn-pro {
     padding: 8px 16px;
     font-size: 0.85rem;
-    width: 100%;
-    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .export-card.pro-locked .card-body {
+    min-height: 120px;
+  }
+
+  .pro-message {
+    padding: var(--spacing-2);
+  }
+  
+  .pro-message i.fa-crown {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .pro-message h4 {
+    font-size: 0.95rem;
+  }
+  
+  .pro-message p {
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .btn-pro {
+    padding: 8px 14px;
+    font-size: 0.8rem;
   }
 }
