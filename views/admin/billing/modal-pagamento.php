@@ -465,16 +465,10 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         background: color-mix(in srgb, var(--color-success, #10b981) 10%, transparent);
         padding: var(--spacing-3);
         border-radius: var(--radius-lg);
-        animation: pulse-soft 2s infinite;
     }
 
     .pix-boleto-area__description--auto i {
         font-size: 1.125rem;
-    }
-
-    @keyframes pulse-soft {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
     }
 
     /* QR Code Container */
@@ -778,7 +772,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                         <?php if ($pixDataComplete): ?>
                         <p class="pix-boleto-area__description pix-boleto-area__description--auto">
                             <i class="fa-solid fa-check-circle"></i>
-                            Seus dados já estão cadastrados! Gerando PIX automaticamente...
+                            Seus dados já estão cadastrados! Clique em "Gerar PIX" para continuar.
                         </p>
                         <?php else: ?>
                         <p class="pix-boleto-area__description">
@@ -837,7 +831,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                         <?php if ($boletoDataComplete): ?>
                         <p class="pix-boleto-area__description pix-boleto-area__description--auto">
                             <i class="fa-solid fa-check-circle"></i>
-                            Seus dados já estão cadastrados! Gerando boleto automaticamente...
+                            Seus dados já estão cadastrados! Clique em "Gerar Boleto" para continuar.
                         </p>
                         <?php else: ?>
                         <p class="pix-boleto-area__description">
@@ -1140,7 +1134,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             }
         }
 
-        function switchPaymentMethod(method, autoSubmit = false) {
+        function switchPaymentMethod(method) {
             currentBillingType = method;
 
             // Atualizar botões
@@ -1177,17 +1171,6 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
             // Habilitar submit
             if (submitBtn) submitBtn.disabled = false;
-            
-            // Auto-submit se os dados estão completos e foi solicitado
-            if (autoSubmit && currentPlanConfig) {
-                if ((method === 'PIX' && userDataComplete.pix) || 
-                    (method === 'BOLETO' && userDataComplete.boleto)) {
-                    // Pequeno delay para garantir que tudo está sincronizado
-                    setTimeout(() => {
-                        form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                    }, 100);
-                }
-            }
         }
 
         // ===============================
@@ -1295,8 +1278,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         paymentMethodBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const method = btn.dataset.method;
-                // Auto-submit quando os dados já estão completos (PIX/Boleto)
-                if (method) switchPaymentMethod(method, true);
+                if (method) switchPaymentMethod(method);
             });
         });
 
