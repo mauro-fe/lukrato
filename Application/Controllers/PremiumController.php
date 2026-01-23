@@ -195,6 +195,14 @@ class PremiumController extends BaseController
 
     private function validateNoActiveSubscription(Usuario $usuario): void
     {
+        // Primeiro, limpar assinaturas PENDING sem pagamento (tentativas que falharam)
+        $usuario->assinaturas()
+            ->where('gateway', 'asaas')
+            ->where('status', AssinaturaUsuario::ST_PENDING)
+            ->whereNull('external_payment_id')
+            ->whereNull('external_subscription_id')
+            ->delete();
+
         $exists = $usuario->assinaturas()
             ->where('gateway', 'asaas')
             ->whereIn('status', [
