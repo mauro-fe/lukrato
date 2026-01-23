@@ -60,7 +60,8 @@ class PremiumController extends BaseController
 
             $this->validator->validate($dto, $plano);
 
-            $this->customerService->ensureAsaasCustomer($usuario, $this->asaas);
+            // Passa holderInfo do formulário para usar como fallback se não tiver dados no banco
+            $this->customerService->ensureAsaasCustomer($usuario, $this->asaas, $dto->holderInfo);
             
             // Refresh para garantir que external_customer_id está atualizado
             $usuario->refresh();

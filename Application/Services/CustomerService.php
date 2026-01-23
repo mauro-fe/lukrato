@@ -55,13 +55,42 @@ class CustomerService
         return $phone !== '' ? $phone : null;
     }
 
-    public function ensureAsaasCustomer(Usuario $usuario, AsaasService $asaas): void
+    public function ensureAsaasCustomer(Usuario $usuario, AsaasService $asaas, array $holderInfo = []): void
     {
+        $customerData = $this->buildCustomerData($usuario, $holderInfo);
+        
+        // Fallback: usar CPF do formulário se não tiver no banco
+        $cpf = $customerData->cpf ?: ($holderInfo['cpfCnpj'] ?? null);
+        $phone = $customerData->mobilePhone ?: ($holderInfo['mobilePhone'] ?? null);
+        $cep = $customerData->postalCode ?: ($holderInfo['postalCode'] ?? null);
+
+        // Se já tem cliente no Asaas, verifica se precisa atualizar o CPF
         if (!empty($usuario->external_customer_id) && $usuario->gateway === 'asaas') {
+            // Se temos CPF, garante que está atualizado no Asaas
+            if ($cpf) {
+                try {
+                    $existingCustomer = $asaas->getCustomer($usuario->external_customer_id);
+                    
+                    // Se o cliente no Asaas não tem CPF, atualiza
+                    if (empty($existingCustomer['cpfCnpj'])) {
+                        $updatePayload = ['cpfCnpj' => $cpf];
+                        
+                        if ($phone) {
+                            $updatePayload['mobilePhone'] = $phone;
+                        }
+                        if ($cep) {
+                            $updatePayload['postalCode'] = $cep;
+                            $updatePayload['addressNumber'] = $customerData->addressNumber ?? 'S/N';
+                        }
+                        
+                        $asaas->updateCustomer($usuario->external_customer_id, $updatePayload);
+                    }
+                } catch (\Throwable $e) {
+                    // Log mas não falha - cliente já existe
+                }
+            }
             return;
         }
-
-        $customerData = $this->buildCustomerData($usuario);
 
         $payload = [
             'name' => $usuario->nome,
@@ -69,11 +98,11 @@ class CustomerService
             'externalReference' => 'user:' . $usuario->id,
         ];
 
-        if ($customerData->cpf) $payload['cpfCnpj'] = $customerData->cpf;
-        if ($customerData->mobilePhone) $payload['mobilePhone'] = $customerData->mobilePhone;
+        if ($cpf) $payload['cpfCnpj'] = $cpf;
+        if ($phone) $payload['mobilePhone'] = $phone;
 
-        if ($customerData->postalCode) {
-            $payload['postalCode'] = $customerData->postalCode;
+        if ($cep) {
+            $payload['postalCode'] = $cep;
             $payload['addressNumber'] = $customerData->addressNumber ?? 'S/N';
             if ($customerData->addressComplement) {
                 $payload['addressComplement'] = $customerData->addressComplement;

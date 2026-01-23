@@ -155,6 +155,22 @@ class AsaasService
     }
 
     /**
+     * Atualiza um cliente existente no Asaas.
+     * 
+     * @param string $customerId ID do cliente no Asaas
+     * @param array $data Campos a atualizar
+     */
+    public function updateCustomer(string $customerId, array $data): array
+    {
+        $payload = array_filter(
+            $data,
+            static fn($value) => !is_null($value) && $value !== ''
+        );
+
+        return $this->request('POST', "customers/{$customerId}", $payload);
+    }
+
+    /**
      * Cria uma assinatura recorrente.
      * Aqui você vai usar para o plano Premium do Lukrato.
      *
