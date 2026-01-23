@@ -5,6 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Models\Usuario;
 use Application\Builders\ReportExportBuilder;
 use Application\Services\ExcelExportService;
 use Application\Services\LogService;
@@ -53,6 +54,13 @@ class RelatoriosController extends BaseController
     {
         try {
             $this->validateAccess();
+
+            // Verificar se usuário é PRO
+            $user = Usuario::find(Auth::id());
+            if (!$user || !$user->isPro()) {
+                Response::error('Exportação de relatórios é um recurso exclusivo do plano PRO.', 403);
+                return;
+            }
 
             $params = $this->buildReportParameters();
             $type = $this->resolveReportType();

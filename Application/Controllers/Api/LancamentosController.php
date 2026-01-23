@@ -5,6 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Models\Usuario;
 use Application\Services\LancamentoExportService;
 use Application\Services\GamificationService;
 use Application\Services\CartaoCreditoLancamentoService;
@@ -190,6 +191,13 @@ class LancamentosController extends BaseController
         $userId = Auth::id();
         if (!$userId) {
             Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        // Verificar se usuário é PRO
+        $user = Usuario::find($userId);
+        if (!$user || !$user->isPro()) {
+            Response::error('Exportação de lançamentos é um recurso exclusivo do plano PRO.', 403);
             return;
         }
 

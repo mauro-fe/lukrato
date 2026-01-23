@@ -1186,13 +1186,13 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
             // Habilitar submit
             if (submitBtn) submitBtn.disabled = false;
-            
+
             // Se selecionou PIX, verificar se tem PIX pendente
             if (method === 'PIX') {
                 checkPendingPix();
             }
         }
-        
+
         // ===============================
         // VERIFICAR PIX PENDENTE
         // ===============================
@@ -1200,29 +1200,31 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             try {
                 const resp = await fetch(`${BASE_URL}premium/pending-pix`, {
                     credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
                 const json = await resp.json();
-                
+
                 if (json.status === 'success' && json.data?.hasPending && json.data?.pix) {
                     // Tem PIX pendente! Mostrar automaticamente
                     const pix = json.data.pix;
-                    
+
                     if (pix.qrCodeImage) {
                         pixQrCodeImg.src = pix.qrCodeImage;
                     }
                     if (pix.payload) {
                         pixCopyPasteCode.value = pix.payload;
                     }
-                    
+
                     pixQrCodeContainer?.classList.add('is-visible');
                     pixPendingStatus?.classList.add('is-visible');
                     submitBtn.disabled = true;
-                    
+
                     // Atualizar texto do botão
                     const btnSpan = submitBtn?.querySelector('span');
                     if (btnSpan) btnSpan.textContent = 'Aguardando pagamento';
-                    
+
                     // Iniciar polling
                     if (json.data.paymentId) {
                         startPaymentPolling(json.data.paymentId);
