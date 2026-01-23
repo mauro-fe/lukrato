@@ -418,6 +418,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             opacity: 0;
             transform: translateY(10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -614,8 +615,15 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
     }
 
     @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
     }
 
     /* Campos obrigatórios para PIX/Boleto */
@@ -770,15 +778,15 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                         </div>
                         <h3 class="pix-boleto-area__title">Pagamento via PIX</h3>
                         <?php if ($pixDataComplete): ?>
-                        <p class="pix-boleto-area__description pix-boleto-area__description--auto">
-                            <i class="fa-solid fa-check-circle"></i>
-                            Seus dados já estão cadastrados! Clique em "Gerar PIX" para continuar.
-                        </p>
+                            <p class="pix-boleto-area__description pix-boleto-area__description--auto">
+                                <i class="fa-solid fa-check-circle"></i>
+                                Seus dados já estão cadastrados! Clique em "Gerar PIX" para continuar.
+                            </p>
                         <?php else: ?>
-                        <p class="pix-boleto-area__description">
-                            Pague instantaneamente usando o QR Code ou copie o código PIX.<br>
-                            O plano será ativado automaticamente após a confirmação do pagamento.
-                        </p>
+                            <p class="pix-boleto-area__description">
+                                Pague instantaneamente usando o QR Code ou copie o código PIX.<br>
+                                O plano será ativado automaticamente após a confirmação do pagamento.
+                            </p>
                         <?php endif; ?>
 
                         <!-- Campos obrigatórios para PIX (escondidos se dados completos) -->
@@ -829,15 +837,15 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                         </div>
                         <h3 class="pix-boleto-area__title">Pagamento via Boleto</h3>
                         <?php if ($boletoDataComplete): ?>
-                        <p class="pix-boleto-area__description pix-boleto-area__description--auto">
-                            <i class="fa-solid fa-check-circle"></i>
-                            Seus dados já estão cadastrados! Clique em "Gerar Boleto" para continuar.
-                        </p>
+                            <p class="pix-boleto-area__description pix-boleto-area__description--auto">
+                                <i class="fa-solid fa-check-circle"></i>
+                                Seus dados já estão cadastrados! Clique em "Gerar Boleto" para continuar.
+                            </p>
                         <?php else: ?>
-                        <p class="pix-boleto-area__description">
-                            Gere o boleto bancário e pague em qualquer banco ou lotérica.<br>
-                            O plano será ativado em até 3 dias úteis após a confirmação.
-                        </p>
+                            <p class="pix-boleto-area__description">
+                                Gere o boleto bancário e pague em qualquer banco ou lotérica.<br>
+                                O plano será ativado em até 3 dias úteis após a confirmação.
+                            </p>
                         <?php endif; ?>
 
                         <!-- Campos obrigatórios para Boleto (escondidos se dados completos) -->
@@ -915,7 +923,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
         const BASE_URL = '<?= BASE_URL ?>';
         const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        
+
         // Dados pré-preenchidos do banco
         const userDataComplete = {
             pix: <?= $pixDataComplete ? 'true' : 'false' ?>,
@@ -936,17 +944,17 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         const modalPrice = document.getElementById('billing-modal-price');
         const form = document.getElementById('asaasPaymentForm');
         const submitBtn = document.getElementById('asaasSubmitBtn');
-        
+
         // Inputs de cartão
         const cardNumberInput = document.getElementById('card_number');
         const cardExpiryInput = document.getElementById('card_expiry');
         const cardCpfInput = document.getElementById('card_cpf');
         const cardPhoneInput = document.getElementById('card_phone');
-        
+
         // Inputs PIX
         const pixCpfInput = document.getElementById('pix_cpf');
         const pixPhoneInput = document.getElementById('pix_phone');
-        
+
         // Inputs Boleto
         const boletoCpfInput = document.getElementById('boleto_cpf');
         const boletoPhoneInput = document.getElementById('boleto_phone');
@@ -1035,7 +1043,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         // Event listeners para formatação
         cardNumberInput?.addEventListener('input', (e) => e.target.value = formatCardNumber(e.target.value));
         cardExpiryInput?.addEventListener('input', (e) => e.target.value = formatExpiry(e.target.value));
-        
+
         // Formatação de CPF para todos os campos
         [cardCpfInput, pixCpfInput, boletoCpfInput].forEach(input => {
             input?.addEventListener('input', (e) => e.target.value = formatCpf(e.target.value));
@@ -1068,7 +1076,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
         function getActiveCycleFromUI() {
             const active = document.querySelector('.plan-billing-toggle__btn.is-active');
-            if (!active) return { cycle: 'monthly', months: 1, discount: 0 };
+            if (!active) return {
+                cycle: 'monthly',
+                months: 1,
+                discount: 0
+            };
             return {
                 cycle: active.dataset.cycle || 'monthly',
                 months: Number(active.dataset.months || '1'),
@@ -1100,7 +1112,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         function updateSubmitButton() {
             const btnSpan = submitBtn?.querySelector('span');
             const btnIcon = submitBtn?.querySelector('i');
-            
+
             if (!btnSpan || !btnIcon) return;
 
             switch (currentBillingType) {
@@ -1157,7 +1169,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             // Esconder campos de formulário se dados já existem
             const pixFieldsContainer = pixSection?.querySelector('.pix-boleto-fields');
             const boletoFieldsContainer = boletoSection?.querySelector('.pix-boleto-fields');
-            
+
             if (pixFieldsContainer) {
                 pixFieldsContainer.style.display = userDataComplete.pix ? 'none' : 'block';
             }
@@ -1182,10 +1194,10 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 await navigator.clipboard.writeText(text);
                 const span = button.querySelector('span');
                 const originalText = span?.textContent;
-                
+
                 button.classList.add('copied');
                 if (span) span.textContent = 'Copiado!';
-                
+
                 setTimeout(() => {
                     button.classList.remove('copied');
                     if (span) span.textContent = originalText;
@@ -1216,7 +1228,9 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 try {
                     const resp = await fetch(`${BASE_URL}premium/check-payment/${paymentId}`, {
                         credentials: 'include',
-                        headers: { 'Accept': 'application/json' }
+                        headers: {
+                            'Accept': 'application/json'
+                        }
                     });
                     const json = await resp.json();
 
@@ -1260,11 +1274,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             document.body.style.overflow = '';
             currentPlanConfig = null;
             stopPaymentPolling();
-            
+
             // Reset containers
             pixQrCodeContainer?.classList.remove('is-visible');
             boletoContainer?.classList.remove('is-visible');
-            
+
             if (form) form.reset();
         }
 
@@ -1463,8 +1477,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 submitBtn.querySelector('span').textContent = 'Processando...';
 
                 const loadingTitle = currentBillingType === 'PIX' ? 'Gerando PIX...' :
-                                    currentBillingType === 'BOLETO' ? 'Gerando Boleto...' :
-                                    'Processando pagamento...';
+                    currentBillingType === 'BOLETO' ? 'Gerando Boleto...' :
+                    'Processando pagamento...';
 
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
@@ -1493,6 +1507,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
                 Swal?.close();
 
+                console.log('[Checkout] Resposta:', json);
+
                 // Tratamento baseado no método de pagamento
                 if (currentBillingType === 'CREDIT_CARD') {
                     window.Swal?.fire('Sucesso! 🎉', json?.message || 'Pagamento realizado com sucesso.', 'success')
@@ -1501,22 +1517,22 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
                 } else if (currentBillingType === 'PIX') {
                     // Exibir QR Code
-                    if (json.data?.pix) {
-                        const pix = json.data.pix;
-                        
+                    const pix = json.data?.pix;
+                    console.log('[Checkout] PIX data:', pix);
+                    if (pix) {
                         if (pix.qrCodeImage) {
                             pixQrCodeImg.src = pix.qrCodeImage;
                         }
                         if (pix.payload) {
                             pixCopyPasteCode.value = pix.payload;
                         }
-                        
+
                         pixQrCodeContainer?.classList.add('is-visible');
                         pixPendingStatus?.classList.add('is-visible');
                         submitBtn.disabled = true;
 
                         // Iniciar polling
-                        if (json.data.paymentId) {
+                        if (json.data?.paymentId) {
                             startPaymentPolling(json.data.paymentId);
                         }
 
@@ -1526,20 +1542,23 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                             text: 'Escaneie o QR Code ou copie o código para pagar.',
                             confirmButtonText: 'Entendi'
                         });
+                    } else {
+                        console.error('[Checkout] PIX não recebido na resposta:', json);
+                        throw new Error('PIX gerado mas dados não recebidos. Tente novamente.');
                     }
 
                 } else if (currentBillingType === 'BOLETO') {
                     // Exibir boleto
                     if (json.data?.boleto) {
                         const boleto = json.data.boleto;
-                        
+
                         if (boleto.identificationField) {
                             boletoLinhaDigitavel.textContent = boleto.identificationField;
                         }
                         if (boleto.bankSlipUrl) {
                             boletoDownloadLink.href = boleto.bankSlipUrl;
                         }
-                        
+
                         boletoContainer?.classList.add('is-visible');
                         boletoPendingStatus?.classList.add('is-visible');
                         submitBtn.disabled = true;

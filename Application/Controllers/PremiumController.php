@@ -280,21 +280,16 @@ class PremiumController extends BaseController
                 'months' => $dto->months,
                 'discount' => $discount,
                 'total' => $total,
+                'paymentId' => $result['asaas_id'],
             ];
 
-            // Adicionar dados específicos de PIX ou Boleto
+            // Adicionar dados específicos de PIX ou Boleto diretamente na response
             if (isset($result['pix'])) {
-                $response['data'] = [
-                    'paymentId' => $result['asaas_id'],
-                    'pix' => $result['pix'],
-                ];
+                $response['pix'] = $result['pix'];
             }
 
             if (isset($result['boleto'])) {
-                $response['data'] = [
-                    'paymentId' => $result['asaas_id'],
-                    'boleto' => $result['boleto'],
-                ];
+                $response['boleto'] = $result['boleto'];
             }
 
             return $response;
