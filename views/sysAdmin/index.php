@@ -369,6 +369,55 @@
                 const dataNascimento = user.data_nascimento ? new Date(user.data_nascimento).toLocaleDateString(
                     'pt-BR') : 'Não informado';
 
+                // Montar HTML do endereço
+                let enderecoHtml = '';
+                if (user.endereco) {
+                    const end = user.endereco;
+                    const enderecoCompleto = [
+                        end.rua ? `${end.rua}${end.numero ? ', ' + end.numero : ''}` : null,
+                        end.complemento,
+                        end.bairro,
+                        end.cidade && end.estado ? `${end.cidade} - ${end.estado}` : (end.cidade || end.estado),
+                        end.cep ? `CEP: ${end.cep}` : null
+                    ].filter(Boolean).join(' | ');
+
+                    enderecoHtml = `
+                        <div class="detail-section">
+                            <h4><i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i> Endereço</h4>
+                            ${end.rua ? `<div class="detail-row">
+                                <span class="detail-label">Logradouro</span>
+                                <span class="detail-value">${end.rua}${end.numero ? ', ' + end.numero : ''}</span>
+                            </div>` : ''}
+                            ${end.complemento ? `<div class="detail-row">
+                                <span class="detail-label">Complemento</span>
+                                <span class="detail-value">${end.complemento}</span>
+                            </div>` : ''}
+                            ${end.bairro ? `<div class="detail-row">
+                                <span class="detail-label">Bairro</span>
+                                <span class="detail-value">${end.bairro}</span>
+                            </div>` : ''}
+                            ${end.cidade || end.estado ? `<div class="detail-row">
+                                <span class="detail-label">Cidade/UF</span>
+                                <span class="detail-value">${end.cidade || ''}${end.cidade && end.estado ? ' - ' : ''}${end.estado || ''}</span>
+                            </div>` : ''}
+                            ${end.cep ? `<div class="detail-row">
+                                <span class="detail-label">CEP</span>
+                                <span class="detail-value">${end.cep}</span>
+                            </div>` : ''}
+                        </div>
+                    `;
+                } else {
+                    enderecoHtml = `
+                        <div class="detail-section">
+                            <h4><i class="fas fa-map-marker-alt" style="color: #94a3b8;"></i> Endereço</h4>
+                            <p style="color: var(--color-text-muted); font-size: 14px;">
+                                <i class="fas fa-info-circle"></i> Endereço não cadastrado
+                            </p>
+                        </div>
+                    `;
+                }
+
+                // Montar HTML da assinatura
                 let subscriptionHtml = '';
                 if (user.subscription) {
                     const expiresAt = user.subscription.renova_em ? new Date(user.subscription.renova_em)
@@ -384,6 +433,15 @@
                     const statusText = user.subscription.status === 'active' ? 'Ativa' : (user.subscription.status ===
                         'canceled' ? 'Cancelada' : user.subscription.status);
 
+                    // Nome do plano - usar plano_nome ou mapear o ID
+                    const planoNome = user.subscription.plano_nome ||
+                        (user.subscription.plano_id == 1 ? 'Free' :
+                            (user.subscription.plano_id == 2 ? 'Pro' :
+                                'Plano ' + user.subscription.plano_id));
+
+                    // Badge do plano
+                    const planoBadgeClass = user.subscription.plano_id == 2 ? 'badge-pro' : 'badge-free';
+
                     subscriptionHtml = `
                         <div class="detail-section">
                             <h4><i class="fas fa-crown" style="color: #f59e0b;"></i> Assinatura</h4>
@@ -392,12 +450,12 @@
                                 <span class="detail-value badge-${statusClass}">${statusText}</span>
                             </div>
                             <div class="detail-row">
-                                <span class="detail-label">Plano ID</span>
-                                <span class="detail-value">${user.subscription.plano_id || 'N/A'}</span>
+                                <span class="detail-label">Plano</span>
+                                <span class="detail-value ${planoBadgeClass}">${planoNome}</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">Gateway</span>
-                                <span class="detail-value">${user.subscription.gateway || 'N/A'}</span>
+                                <span class="detail-value">${user.subscription.gateway || 'interno'}</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">Expira em</span>
@@ -441,7 +499,7 @@
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Email</span>
-                                    <span class="detail-value">${user.email || 'N/A'}</span>
+                                    <span class="detail-value detail-value-email">${user.email || 'N/A'}</span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Data de Nascimento</span>
@@ -453,6 +511,7 @@
                                 </div>
                             </div>
 
+                            ${enderecoHtml}
                             ${subscriptionHtml}
                         </div>
                     `,
@@ -461,7 +520,7 @@
                     },
                     showCloseButton: true,
                     showConfirmButton: false,
-                    width: '550px'
+                    width: '600px'
                 });
             })
             .catch(err => {

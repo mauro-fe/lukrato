@@ -6,6 +6,8 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Models\AssinaturaUsuario;
+use Application\Models\Endereco;
+use Application\Models\Plano;
 use Carbon\Carbon;
 use Exception;
 
@@ -258,6 +260,16 @@ class SysAdminController extends BaseController
                 ->orderByDesc('renova_em')
                 ->first();
 
+            // Buscar endereço principal do usuário
+            $endereco = Endereco::where('user_id', $targetUser->id)->first();
+
+            // Buscar nome do plano
+            $planoNome = null;
+            if ($subscription && $subscription->plano_id) {
+                $plano = Plano::find($subscription->plano_id);
+                $planoNome = $plano ? $plano->nome : ($subscription->plano_id == 1 ? 'Free' : ($subscription->plano_id == 2 ? 'Pro' : 'Plano ' . $subscription->plano_id));
+            }
+
             Response::success([
                 'id' => $targetUser->id,
                 'nome' => $targetUser->nome,
@@ -265,9 +277,19 @@ class SysAdminController extends BaseController
                 'is_admin' => $targetUser->is_admin,
                 'data_nascimento' => $targetUser->data_nascimento?->format('Y-m-d'),
                 'created_at' => $targetUser->created_at,
+                'endereco' => $endereco ? [
+                    'cep' => $endereco->cep,
+                    'rua' => $endereco->rua,
+                    'numero' => $endereco->numero,
+                    'complemento' => $endereco->complemento,
+                    'bairro' => $endereco->bairro,
+                    'cidade' => $endereco->cidade,
+                    'estado' => $endereco->estado,
+                ] : null,
                 'subscription' => $subscription ? [
                     'status' => $subscription->status,
                     'plano_id' => $subscription->plano_id,
+                    'plano_nome' => $planoNome,
                     'renova_em' => $subscription->renova_em,
                     'gateway' => $subscription->gateway,
                 ] : null,

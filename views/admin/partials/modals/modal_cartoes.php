@@ -371,10 +371,22 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .modal-overlay {
+        align-items: flex-start;
+        padding: 0;
+        overflow-y: auto;
+    }
+
     .modal-container {
         max-width: 100%;
-        max-height: 100vh;
+        min-height: 100vh;
+        max-height: none;
         border-radius: 0;
+        margin: 0;
+    }
+
+    .modal-body {
+        padding-bottom: calc(var(--spacing-6) + env(safe-area-inset-bottom, 20px));
     }
 
     .form-row {
@@ -429,6 +441,42 @@
     .modal-footer .btn-primary {
         background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%) !important;
         border: none !important;
+    }
+}
+
+/* Para telas muito pequenas */
+@media (max-width: 480px) {
+    .modal-header {
+        padding: 0.875rem 1rem;
+        padding-right: calc(1rem + 44px);
+    }
+
+    .modal-body {
+        padding: var(--spacing-4);
+    }
+
+    .modal-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modal-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+    }
+
+    .form-input,
+    .form-select {
+        padding: 0.75rem 1rem;
+        font-size: 16px; /* Previne zoom no iOS */
     }
 }
 </style>

@@ -1142,16 +1142,19 @@
     gap: 0.75rem;
   }
 
-  .lk-modal-overlay {
+  .lk-modal-overlay,
+  .modal-overlay {
     padding: 0 !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
   }
 
   .lk-modal-modern,
   .modal-container {
     max-width: 100% !important;
     width: 100% !important;
-    max-height: 100vh !important;
-    height: 100vh !important;
+    max-height: none !important;
+    min-height: 100vh !important;
     border-radius: 0 !important;
     margin: 0 !important;
   }
@@ -1211,8 +1214,9 @@
   .lk-modal-body,
   .modal-body {
     padding: 1.25rem !important;
-    overflow-y: auto !important;
-    max-height: calc(100vh - 140px) !important;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 20px)) !important;
+    overflow-y: visible !important;
+    max-height: none !important;
   }
 
   .form-group {
@@ -1231,7 +1235,7 @@
   .form-input,
   .form-select {
     padding: 12px 14px !important;
-    font-size: 14px !important;
+    font-size: 16px !important; /* Previne zoom no iOS */
     border-radius: 10px !important;
   }
 
@@ -1252,6 +1256,7 @@
   .lk-modal-footer,
   .modal-footer {
     padding: 1rem 1.25rem !important;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 20px)) !important;
     gap: 0.75rem !important;
     flex-direction: column-reverse !important;
   }
