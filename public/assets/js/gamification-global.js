@@ -3,7 +3,7 @@
  * Carregado em todas as páginas para exibir conquistas e level ups
  */
 
-(function() {
+(function () {
     'use strict';
 
     /**
@@ -24,7 +24,7 @@
             return Math.random() * (max - min) + min;
         }
 
-        const interval = setInterval(function() {
+        const interval = setInterval(function () {
             const timeLeft = animationEnd - Date.now();
 
             if (timeLeft <= 0) {
@@ -92,7 +92,7 @@
         }
 
         console.log('🎉 Conquista desbloqueada:', achievement);
-        
+
         // Garantir valores padrão e escapar HTML
         const ach = {
             name: escapeHtml(achievement.name || 'Conquista Desbloqueada'),
@@ -100,15 +100,15 @@
             icon: achievement.icon || '🏆',
             points_reward: parseInt(achievement.points_reward || achievement.points || 0)
         };
-        
+
         // Tocar som imediatamente
         playAchievementSound();
-        
+
         // Confetes estouram 100ms depois (sincronizado com o som)
         setTimeout(() => {
             createAchievementConfetti();
         }, 100);
-        
+
         // Verificar se SweetAlert2 está disponível
         if (typeof Swal !== 'undefined') {
             Swal.fire({
@@ -147,15 +147,15 @@
      */
     window.notifyLevelUp = function (newLevel) {
         console.log('⭐ Subiu de nível:', newLevel);
-        
+
         // Tocar som
         playAchievementSound();
-        
+
         // Confetes
         setTimeout(() => {
             createAchievementConfetti();
         }, 100);
-        
+
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: '⭐ Subiu de Nível!',
@@ -192,9 +192,9 @@
      */
     window.notifyPointsGained = function (points) {
         if (points <= 0) return;
-        
+
         console.log('✨ Ganhou pontos:', points);
-        
+
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 toast: true,
@@ -232,29 +232,29 @@
             14: 25000,
             15: 50000
         },
-        
+
         /**
          * Obter threshold de pontos para um nível
          */
-        getLevelThreshold: function(level) {
+        getLevelThreshold: function (level) {
             return this.levelThresholds[level] !== undefined ? this.levelThresholds[level] : this.levelThresholds[15];
         },
-        
+
         /**
          * Calcular progresso entre níveis
          */
-        calculateProgress: function(currentLevel, totalPoints) {
+        calculateProgress: function (currentLevel, totalPoints) {
             const isMaxLevel = currentLevel >= this.MAX_LEVEL;
             if (isMaxLevel) {
                 return { percentage: 100, current: totalPoints, needed: totalPoints, isMaxLevel: true };
             }
-            
+
             const currentLevelPoints = this.getLevelThreshold(currentLevel);
             const nextLevelPoints = this.getLevelThreshold(currentLevel + 1);
             const pointsInCurrentLevel = totalPoints - currentLevelPoints;
             const pointsNeededForNextLevel = nextLevelPoints - currentLevelPoints;
             const percentage = (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
-            
+
             return {
                 percentage: Math.min(100, Math.max(0, percentage)),
                 current: pointsInCurrentLevel,
@@ -262,18 +262,18 @@
                 isMaxLevel: false
             };
         },
-        
+
         /**
          * Formatar números
          */
-        formatNumber: function(num) {
+        formatNumber: function (num) {
             return new Intl.NumberFormat('pt-BR').format(num);
         },
-        
+
         /**
          * Formatar datas
          */
-        formatDate: function(dateString) {
+        formatDate: function (dateString) {
             if (!dateString) return '';
             const date = new Date(dateString);
             return new Intl.DateTimeFormat('pt-BR', {
@@ -282,11 +282,11 @@
                 year: 'numeric'
             }).format(date);
         },
-        
+
         /**
          * Obter cor para categoria
          */
-        getCategoryColor: function(category) {
+        getCategoryColor: function (category) {
             const categoryColors = {
                 'lancamentos': '#3498db',
                 'categorias': '#9b59b6',
@@ -299,6 +299,76 @@
             return categoryColors[category] || '#95a5a6';
         }
     };
+
+    /**
+     * Verificar conquistas pendentes de notificação
+     * Chamado ao carregar qualquer página
+     */
+    async function checkPendingAchievements() {
+        try {
+            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const response = await fetch(`${baseUrl}api/gamification/achievements/pending`, {
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
+                const pending = data.data.pending;
+                console.log(`🎮 [GLOBAL] ${pending.length} conquista(s) pendente(s) de notificação`);
+
+                // Mostrar cada conquista com um pequeno delay entre elas
+                for (let i = 0; i < pending.length; i++) {
+                    setTimeout(() => {
+                        window.notifyAchievementUnlocked(pending[i]);
+                    }, i * 3500); // 3.5 segundos entre cada uma
+                }
+
+                // Marcar como vistas após exibir
+                const achievementIds = pending.map(a => a.id);
+                markAchievementsSeen(achievementIds);
+            }
+        } catch (error) {
+            console.log('Não foi possível verificar conquistas pendentes:', error);
+        }
+    }
+
+    /**
+     * Marcar conquistas como vistas
+     */
+    async function markAchievementsSeen(achievementIds) {
+        try {
+            const baseUrl = window.BASE_URL || '/lukrato/public/';
+
+            // Obter CSRF token
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+            await fetch(`${baseUrl}api/gamification/achievements/mark-seen`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                body: JSON.stringify({ achievement_ids: achievementIds })
+            });
+        } catch (error) {
+            console.log('Erro ao marcar conquistas como vistas:', error);
+        }
+    }
+
+    // Verificar conquistas pendentes quando a página carregar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            // Pequeno delay para garantir que tudo carregou
+            setTimeout(checkPendingAchievements, 1000);
+        });
+    } else {
+        setTimeout(checkPendingAchievements, 1000);
+    }
 
     console.log('✅ Sistema de gamificação global carregado');
 

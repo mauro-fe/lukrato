@@ -123,6 +123,42 @@ class GamificationController extends BaseController
     }
 
     /**
+     * GET /api/gamification/achievements/pending
+     * Retorna conquistas desbloqueadas que ainda não foram vistas (para notificação global)
+     */
+    public function getPendingAchievements(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $pendingAchievements = UserAchievement::with('achievement')
+                ->where('user_id', $this->userId)
+                ->where('notification_seen', false)
+                ->get()
+                ->map(function ($userAchievement) {
+                    $achievement = $userAchievement->achievement;
+                    return [
+                        'id' => $achievement->id,
+                        'name' => $achievement->name,
+                        'description' => $achievement->description,
+                        'icon' => $achievement->icon,
+                        'points_reward' => $achievement->points_reward,
+                        'unlocked_at' => $userAchievement->unlocked_at?->toDateTimeString(),
+                    ];
+                })
+                ->toArray();
+
+            Response::success([
+                'pending' => $pendingAchievements,
+                'count' => count($pendingAchievements),
+            ], 'Conquistas pendentes de notificação');
+        } catch (Exception $e) {
+            error_log("🎮 [GAMIFICATION] Erro ao buscar conquistas pendentes: " . $e->getMessage());
+            Response::error('Erro ao buscar conquistas pendentes', 500);
+        }
+    }
+
+    /**
      * POST /api/gamification/achievements/mark-seen
      * Marca conquistas como vistas
      */

@@ -9,6 +9,24 @@
     const formatDate = GAM.formatDate.bind(GAM);
     const MAX_LEVEL = GAM.MAX_LEVEL;
 
+    // Cache de elementos DOM
+    const elements = {
+        userLevelLarge: document.getElementById('userLevelLarge'),
+        totalPointsCard: document.getElementById('totalPointsCard'),
+        currentLevelCard: document.getElementById('currentLevelCard'),
+        currentStreakCard: document.getElementById('currentStreakCard'),
+        achievementsCountCard: document.getElementById('achievementsCountCard'),
+        nextLevel: document.getElementById('nextLevel'),
+        progressPointsLarge: document.getElementById('progressPointsLarge'),
+        progressFillLarge: document.getElementById('progressFillLarge'),
+        achievementsGridPage: document.getElementById('achievementsGridPage'),
+        pointsHistory: document.getElementById('pointsHistory'),
+        leaderboardContainer: document.getElementById('leaderboardContainer')
+    };
+
+    // Filtro atual de conquistas
+    let currentFilter = 'all';
+
     // Carregar todos os dados
     async function loadAllData() {
         try {
@@ -251,19 +269,6 @@
                 </tbody>
             </table>
         `;
-    }
-
-    // Utilitários
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) return 'Hoje';
-        if (diffDays === 1) return 'Ontem';
-        if (diffDays < 7) return `${diffDays} dias atrás`;
-
-        return date.toLocaleDateString('pt-BR');
     }
 
     // Mostrar detalhes da conquista em modal
