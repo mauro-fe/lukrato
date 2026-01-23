@@ -195,7 +195,7 @@ class PremiumController extends BaseController
 
     private function validateNoActiveSubscription(Usuario $usuario): void
     {
-        // Primeiro, limpar assinaturas PENDING sem pagamento (tentativas que falharam)
+        // Primeiro, limpar assinaturas PENDING sem pagamento (tentativas que falharam antes de gerar pagamento)
         $usuario->assinaturas()
             ->where('gateway', 'asaas')
             ->where('status', AssinaturaUsuario::ST_PENDING)
@@ -203,7 +203,8 @@ class PremiumController extends BaseController
             ->whereNull('external_subscription_id')
             ->delete();
 
-        $exists = $usuario->assinaturas()
+        // Verificar se existe assinatura ativa ou em andamento
+        $existingSubscription = $usuario->assinaturas()
             ->where('gateway', 'asaas')
             ->whereIn('status', [
                 AssinaturaUsuario::ST_ACTIVE,
@@ -211,9 +212,23 @@ class PremiumController extends BaseController
                 AssinaturaUsuario::ST_PAST_DUE,
             ])
             ->lockForUpdate()
-            ->exists();
+            ->first();
 
-        if ($exists) {
+        if ($existingSubscription) {
+            // Se é uma assinatura ativa de verdade, bloqueia
+            if ($existingSubscription->status === AssinaturaUsuario::ST_ACTIVE) {
+                throw new \RuntimeException('Você já possui uma assinatura ativa.');
+            }
+            
+            // Se é PENDING com PIX/Boleto aguardando, permite deletar e recriar
+            // (usuário pode querer trocar método de pagamento)
+            if ($existingSubscription->status === AssinaturaUsuario::ST_PENDING 
+                && in_array($existingSubscription->billing_type, ['PIX', 'BOLETO'])) {
+                // Deleta a assinatura pendente para permitir nova tentativa
+                $existingSubscription->delete();
+                return;
+            }
+            
             throw new \RuntimeException('Você já possui uma assinatura em andamento.');
         }
     }
