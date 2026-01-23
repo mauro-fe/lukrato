@@ -120,10 +120,10 @@
                     <div class="pro-message">
                         <i class="fas fa-crown"></i>
                         <h4>Recurso Premium</h4>
-                        <p>Relatórios são exclusivos do plano Pro.</p>
-                        <a href="<?= BASE_URL ?>billing" class="btn btn-pro">
-                            <i class="fas fa-crown"></i> Fazer Upgrade para PRO
-                        </a>
+                        <p style="font-size:0.9rem;margin:0 0 var(--spacing-4);line-height:1.5;">
+                            Exportação de relatórios é exclusiva do <a href="<?= BASE_URL ?>billing">
+                                <i class="fas fa-crown"></i> plano Pro.
+                            </a></p>
                     </div>
                 </div>
             <?php endif; ?>

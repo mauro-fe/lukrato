@@ -33,12 +33,16 @@
                 <?php if (!$isPro): ?>
                     <div class="pro-overlay">
                         <div class="pro-message">
-                            <i class="fas fa-crown" style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
-                            <h4 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 var(--spacing-2);">Recurso Premium</h4>
-                            <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;margin:0 0 var(--spacing-4);line-height:1.5;">Exportação de lançamentos é exclusiva do plano Pro.</p>
-                            <a href="<?= BASE_URL ?>billing" class="btn-pro">
-                                <i class="fas fa-crown"></i> Fazer Upgrade para PRO
-                            </a>
+                            <i class="fas fa-crown"
+                                style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
+                            <h4 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 var(--spacing-2);">Recurso
+                                Premium</h4>
+                            <p
+                                style="color:rgba(255,255,255,0.8);font-size:0.9rem;margin:0 0 var(--spacing-4);line-height:1.5;">
+                                Exportação de lançamentos é exclusiva do <a href="<?= BASE_URL ?>billing">
+                                    <i class="fas fa-crown"></i> plano Pro.
+                                </a></p>
+
                         </div>
                     </div>
                 <?php endif; ?>
@@ -64,12 +68,14 @@
                     </div>
 
                     <div class="export-actions-group">
-                        <select id="exportFormat" class="modern-select" aria-label="Formato de exportação" <?= !$isPro ? 'disabled' : '' ?>>
+                        <select id="exportFormat" class="modern-select" aria-label="Formato de exportação"
+                            <?= !$isPro ? 'disabled' : '' ?>>
                             <option value="pdf">📄 PDF</option>
                             <option value="excel">📊 Excel (.xlsx)</option>
                         </select>
 
-                        <button id="btnExportar" type="button" class="modern-btn primary" aria-label="Exportar lançamentos" <?= !$isPro ? 'disabled' : '' ?>>
+                        <button id="btnExportar" type="button" class="modern-btn primary"
+                            aria-label="Exportar lançamentos" <?= !$isPro ? 'disabled' : '' ?>>
                             <i class="fas fa-download"></i>
                             <span>Exportar</span>
                         </button>
