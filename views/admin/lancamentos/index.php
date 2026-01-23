@@ -33,11 +33,11 @@
                 <?php if (!$isPro): ?>
                     <div class="pro-overlay">
                         <div class="pro-message">
-                            <i class="fas fa-lock"></i>
-                            <h4>Recurso exclusivo PRO</h4>
-                            <p>Faça upgrade para exportar seus lançamentos em PDF e Excel</p>
+                            <i class="fas fa-crown" style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
+                            <h4 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 var(--spacing-2);">Recurso Premium</h4>
+                            <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;margin:0 0 var(--spacing-4);line-height:1.5;">Exportação de lançamentos é exclusiva do plano Pro.</p>
                             <a href="<?= BASE_URL ?>billing" class="btn-pro">
-                                <i class="fas fa-crown"></i> Assinar PRO
+                                <i class="fas fa-crown"></i> Fazer Upgrade para PRO
                             </a>
                         </div>
                     </div>
