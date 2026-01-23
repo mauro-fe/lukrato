@@ -445,8 +445,6 @@
                 return;
             }
 
-            console.log('[SessionManager] Inicializando...');
-
             // Injeta CSS
             this.injectStyles();
 
@@ -466,7 +464,6 @@
             // Escuta atividade do usuário para resetar timer de inatividade
             this.setupActivityListeners();
 
-            console.log('[SessionManager] Inicializado com sucesso');
         },
 
         // Verifica se está em página autenticada

@@ -12,7 +12,6 @@
     function createAchievementConfetti() {
         // Verificar se a biblioteca confetti está disponível
         if (typeof confetti !== 'function') {
-            console.log('Biblioteca de confetes não carregada');
             return;
         }
 
@@ -44,7 +43,6 @@
                     origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
                 }));
             } catch (error) {
-                console.log('Erro ao criar confetes:', error);
                 clearInterval(interval);
             }
         }, 250);
@@ -60,10 +58,8 @@
             const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
             audio.volume = 0.5;
             audio.play().catch(err => {
-                console.log('Não foi possível tocar o som:', err);
             });
         } catch (error) {
-            console.log('Erro ao carregar o áudio:', error);
         }
     }
 
@@ -90,8 +86,6 @@
             console.error('Conquista inválida:', achievement);
             return;
         }
-
-        console.log('🎉 Conquista desbloqueada:', achievement);
 
         // Garantir valores padrão e escapar HTML
         const ach = {
@@ -146,7 +140,6 @@
      * Notificar subida de nível
      */
     window.notifyLevelUp = function (newLevel) {
-        console.log('⭐ Subiu de nível:', newLevel);
 
         // Tocar som
         playAchievementSound();
@@ -193,7 +186,6 @@
     window.notifyPointsGained = function (points) {
         if (points <= 0) return;
 
-        console.log('✨ Ganhou pontos:', points);
 
         if (typeof Swal !== 'undefined') {
             Swal.fire({
@@ -317,7 +309,6 @@
 
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
-                console.log(`🎮 [GLOBAL] ${pending.length} conquista(s) pendente(s) de notificação`);
 
                 // Mostrar cada conquista com um pequeno delay entre elas
                 for (let i = 0; i < pending.length; i++) {
@@ -331,7 +322,6 @@
                 markAchievementsSeen(achievementIds);
             }
         } catch (error) {
-            console.log('Não foi possível verificar conquistas pendentes:', error);
         }
     }
 
@@ -356,7 +346,6 @@
                 body: JSON.stringify({ achievement_ids: achievementIds })
             });
         } catch (error) {
-            console.log('Erro ao marcar conquistas como vistas:', error);
         }
     }
 
@@ -370,6 +359,5 @@
         setTimeout(checkPendingAchievements, 1000);
     }
 
-    console.log('✅ Sistema de gamificação global carregado');
 
 })();

@@ -98,7 +98,6 @@
      * Atualizar UI com dados de progresso
      */
     function updateProgressUI(progress) {
-        console.log('📊 [GAMIFICATION] Atualizando UI com progresso:', progress);
 
         // Badge Pro
         const proBadge = document.getElementById('proBadge');
@@ -131,15 +130,7 @@
             const neededPoints = progressData.needed;
             const isMaxLevel = progressData.isMaxLevel;
 
-            console.log('📈 [PROGRESS] Cálculo:', {
-                level: progress.current_level,
-                totalPoints: progress.total_points,
-                currentInLevel,
-                neededPoints,
-                percentage: percentage.toFixed(2) + '%',
-                isMaxLevel,
-                isPro: progress.is_pro
-            });
+
 
             progressBar.style.width = `${percentage}%`;
 
@@ -616,23 +607,23 @@
         const colors = ['#e67e22', '#f39c12', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6', '#f1c40f', '#1abc9c'];
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
-        
+
         // Primeira onda: explosão forte e rápida (50 confetes)
         createWave(50, 0, 3.5, 5.5);
-        
+
         // Segunda onda: explosão suave e elegante (40 confetes, 150ms depois)
         setTimeout(() => createWave(40, 0, 2.5, 4), 150);
-        
+
         function createWave(count, delayOffset, minVelocity, maxVelocity) {
             for (let i = 0; i < count; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
-                    
+
                     // 70% retângulos, 30% quadrados
                     const isSquare = Math.random() > 0.7;
                     const width = isSquare ? Math.random() * 8 + 5 : Math.random() * 6 + 4;
                     const height = isSquare ? width : Math.random() * 12 + 8;
-                    
+
                     confetti.style.position = 'fixed';
                     confetti.style.width = width + 'px';
                     confetti.style.height = height + 'px';
@@ -645,9 +636,9 @@
                     confetti.style.opacity = '0.95';
                     confetti.style.transformStyle = 'preserve-3d';
                     confetti.style.boxShadow = '0 0 3px rgba(0,0,0,0.2)';
-                    
+
                     document.body.appendChild(confetti);
-                    
+
                     // Física realista com variação
                     const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.3 - 0.15);
                     const velocity = Math.random() * (maxVelocity - minVelocity) + minVelocity;
@@ -661,38 +652,38 @@
                     let velocityRotX = Math.random() * 10 - 5;
                     let velocityRotY = Math.random() * 10 - 5;
                     let velocityRotZ = Math.random() * 10 - 5;
-                    
+
                     // Alguns confetes mais pesados, outros mais leves
                     const mass = Math.random() * 0.5 + 0.7;
                     const gravity = 0.15 * mass;
                     const friction = 0.985 + (Math.random() * 0.01);
-                    
+
                     const animate = () => {
                         vy += gravity;
                         vx *= friction;
                         vy *= friction;
-                        
+
                         x += vx;
                         y += vy;
-                        
+
                         rotationX += velocityRotX * friction;
                         rotationY += velocityRotY * friction;
                         rotationZ += velocityRotZ * friction;
-                        
+
                         confetti.style.transform = `
                             translate(${x}px, ${y}px) 
                             rotateX(${rotationX}deg) 
                             rotateY(${rotationY}deg) 
                             rotateZ(${rotationZ}deg)
                         `;
-                        
+
                         if (y < window.innerHeight + 100 && (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05)) {
                             requestAnimationFrame(animate);
                         } else {
                             confetti.remove();
                         }
                     };
-                    
+
                     requestAnimationFrame(animate);
                 }, i * 3 + delayOffset);
             }
@@ -707,10 +698,8 @@
             const audio = new Audio('/lukrato/public/assets/audio/success-fanfare-trumpets-6185.mp3');
             audio.volume = 0.5; // 50% do volume
             audio.play().catch(error => {
-                console.log('Não foi possível reproduzir o som:', error);
             });
         } catch (error) {
-            console.log('Erro ao carregar o áudio:', error);
         }
     }
 

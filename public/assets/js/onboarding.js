@@ -202,11 +202,11 @@ class OnboardingManager {
                         const duration = 3 * 1000;
                         const animationEnd = Date.now() + duration;
                         const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
-                        
-                        const interval = setInterval(function() {
+
+                        const interval = setInterval(function () {
                             const timeLeft = animationEnd - Date.now();
                             if (timeLeft <= 0) return clearInterval(interval);
-                            
+
                             const particleCount = 50 * (timeLeft / duration);
                             confetti(Object.assign({}, defaults, {
                                 particleCount,
@@ -215,16 +215,15 @@ class OnboardingManager {
                         }, 250);
                     }
                 }, 300);
-                
+
                 // Som
                 try {
                     const baseUrl = window.BASE_URL || '/lukrato/public/';
                     const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
                     audio.volume = 0.5;
-                    audio.play().catch(() => {});
-                } catch (err) {}
+                    audio.play().catch(() => { });
+                } catch (err) { }
             } catch (error) {
-                console.log('Gamificação não disponível:', error);
             }
         }
 

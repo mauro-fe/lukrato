@@ -1616,18 +1616,24 @@
         }
     };
 
-    // Função global para toggle de detalhes no card mobile
-    FaturasModule.toggleCardDetalhes = (cardId, btn) => {
-        const detalhesDiv = document.getElementById(`detalhes-${cardId}`);
-        if (!detalhesDiv) return;
+    // ============================================================================
+    // MÓDULO GLOBAL (exposto para uso no HTML)
+    // ============================================================================
 
-        const isVisible = detalhesDiv.style.display !== 'none';
-        detalhesDiv.style.display = isVisible ? 'none' : 'block';
+    window.FaturasModule = {
+        // Função global para toggle de detalhes no card mobile
+        toggleCardDetalhes: (cardId, btn) => {
+            const detalhesDiv = document.getElementById(`detalhes-${cardId}`);
+            if (!detalhesDiv) return;
 
-        // Atualizar ícone do botão
-        const icon = btn.querySelector('i');
-        if (icon) {
-            icon.className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+            const isVisible = detalhesDiv.style.display !== 'none';
+            detalhesDiv.style.display = isVisible ? 'none' : 'block';
+
+            // Atualizar ícone do botão
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+            }
         }
     };
 

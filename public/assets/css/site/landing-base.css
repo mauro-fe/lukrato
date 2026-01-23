@@ -229,7 +229,10 @@ svg {
   border: none;
   cursor: pointer;
   box-shadow: 0 10px 26px rgba(230, 124, 34, 0.28);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
   outline: none;
 }
 
@@ -315,10 +318,12 @@ svg {
   font-weight: 700;
 }
 
+/* Links modernos com animação */
 .lk-footer a {
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  position: relative;
 }
 
 .lk-footer a:focus-visible {
@@ -331,11 +336,99 @@ svg {
   color: #e67e22;
 }
 
+/* Links de navegação com underline animado */
+.lk-footer-links a {
+  display: inline-block;
+  position: relative;
+  padding: 2px 0;
+}
+
+.lk-footer-links a::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e67e22, #f39c12);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+}
+
+.lk-footer-links a:hover::after {
+  width: 100%;
+}
+
+.lk-footer-links a:hover {
+  transform: translateX(4px);
+}
+
+/* Ícones de redes sociais modernos */
+.lk-footer-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.lk-footer-icons a {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lk-footer-icons a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.lk-footer-icons a:hover {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 25px rgba(230, 126, 34, 0.4);
+}
+
+.lk-footer-icons a:hover::before {
+  opacity: 1;
+}
+
 .lk-footer-icons i {
   color: #092741;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
 }
-.lk-footer-icons i:hover {
+
+.lk-footer-icons a:hover i {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* Links de contato com ícone animado */
+.lk-footer div a[href^="https://wa.me"],
+.lk-footer div a[href^="mailto:"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.lk-footer div a[href^="https://wa.me"] i,
+.lk-footer div a[href^="mailto:"] i {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lk-footer div a[href^="https://wa.me"]:hover i {
+  color: #25d366;
+  transform: scale(1.2) rotate(-10deg);
+}
+
+.lk-footer div a[href^="mailto:"]:hover i {
   color: #e67e22;
+  transform: scale(1.2) rotate(10deg);
 }
 
 .lk-footer-muted {
@@ -629,7 +722,9 @@ svg {
   color: var(--color-text);
   font-size: 0.98rem;
 
-  transition: transform 0.18s ease, box-shadow 0.18s ease,
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
     border-color 0.18s ease;
 }
 
@@ -701,7 +796,10 @@ svg {
   border: none;
   cursor: pointer;
   box-shadow: 0 10px 26px rgba(230, 124, 34, 0.28);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
   outline: none;
   min-height: 44px;
   font-size: 1rem;
@@ -731,7 +829,10 @@ svg {
   font-weight: 600;
   font-size: 0.95rem;
   gap: 8px;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
   outline: none;
   min-height: 44px;
   border: none;
@@ -927,7 +1028,9 @@ svg {
   visibility: hidden !important;
   pointer-events: none !important;
   z-index: 999;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 }
 
 .lk-modal.is-open {
@@ -1271,7 +1374,8 @@ svg {
   box-shadow: var(--shadow-sm, 0 10px 28px rgba(15, 23, 42, 0.08));
   padding: 18px 18px 16px;
 
-  transition: transform var(--transition-fast, 0.15s ease),
+  transition:
+    transform var(--transition-fast, 0.15s ease),
     box-shadow var(--transition-fast, 0.15s ease),
     border-color var(--transition-fast, 0.15s ease);
 }
@@ -1470,7 +1574,10 @@ svg {
   border: 1px solid #dbe7f3;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   outline: none;
 }
 
@@ -1568,7 +1675,10 @@ svg {
   font-weight: 600;
   text-decoration: none;
   font-size: 1rem;
-  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    box-shadow 0.15s ease;
   border: none;
   cursor: pointer;
   outline: none;
@@ -1739,7 +1849,9 @@ svg {
   border-radius: 999px;
   font-weight: 600;
   text-decoration: none;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .plan-btn:hover {
@@ -1938,7 +2050,9 @@ svg {
   font-weight: 600;
   font-size: 1rem;
   text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .lk-btn-primary:hover {
@@ -2012,7 +2126,10 @@ svg {
   font-size: 0.95rem;
   color: #1f2937;
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
   outline: none;
   min-height: 44px;
 }
@@ -2079,7 +2196,10 @@ svg {
   font-weight: 800;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: transform 0.12s ease, filter 0.12s ease, background 0.12s ease,
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    background 0.12s ease,
     border-color 0.12s ease;
   user-select: none;
   white-space: nowrap;
@@ -2169,7 +2289,9 @@ svg {
   font-size: 1rem;
   color: #0f172a;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   font-family: inherit;
 }
 
