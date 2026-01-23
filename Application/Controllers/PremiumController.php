@@ -62,10 +62,10 @@ class PremiumController extends BaseController
 
             // Passa holderInfo do formulário para usar como fallback se não tiver dados no banco
             $this->customerService->ensureAsaasCustomer($usuario, $this->asaas, $dto->holderInfo);
-            
+
             // Refresh para garantir que external_customer_id está atualizado
             $usuario->refresh();
-            
+
             if (empty($usuario->external_customer_id)) {
                 throw new \RuntimeException('Não foi possível criar o cliente no gateway de pagamento.');
             }
@@ -219,16 +219,18 @@ class PremiumController extends BaseController
             if ($existingSubscription->status === AssinaturaUsuario::ST_ACTIVE) {
                 throw new \RuntimeException('Você já possui uma assinatura ativa.');
             }
-            
+
             // Se é PENDING com PIX/Boleto aguardando, permite deletar e recriar
             // (usuário pode querer trocar método de pagamento)
-            if ($existingSubscription->status === AssinaturaUsuario::ST_PENDING 
-                && in_array($existingSubscription->billing_type, ['PIX', 'BOLETO'])) {
+            if (
+                $existingSubscription->status === AssinaturaUsuario::ST_PENDING
+                && in_array($existingSubscription->billing_type, ['PIX', 'BOLETO'])
+            ) {
                 // Deleta a assinatura pendente para permitir nova tentativa
                 $existingSubscription->delete();
                 return;
             }
-            
+
             throw new \RuntimeException('Você já possui uma assinatura em andamento.');
         }
     }
@@ -299,13 +301,22 @@ class PremiumController extends BaseController
     /**
      * Cria pagamento via PIX ou Boleto
      */
-    private function createPixOrBoletoPayment(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, float $total): array
-    {
+    private function createPixOrBoletoPayment(
+        Usuario $usuario,
+        Plano $plano,
+        CheckoutRequestDTO $dto,
+        float $total
+    ): array {
         $desc = match ($dto->months) {
             6 => $plano->nome . ' (Semestral -10%)',
             12 => $plano->nome . ' (Anual -15%)',
             default => $plano->nome,
         };
+
+        // 📌 PIX = hoje | Boleto = +3 dias
+        $dueDate = $dto->isPix()
+            ? date('Y-m-d')
+            : date('Y-m-d', strtotime('+3 days'));
 
         // Criar pagamento avulso
         $builder = (new AsaasPaymentBuilder())
@@ -313,53 +324,59 @@ class PremiumController extends BaseController
             ->withValue($total)
             ->withDescription($desc)
             ->withBillingType($dto->billingType)
-            ->withDueDate(date('Y-m-d', strtotime('+3 days'))) // PIX/Boleto: vence em 3 dias
+            ->withDueDate($dueDate)
             ->withExternalReference("pay:user:{$usuario->id}:plano:{$plano->id}:m{$dto->months}");
 
         $resp = $this->asaas->createPayment($builder->build());
+
         $paymentId = $resp['id'] ?? null;
-        $status = $resp['status'] ?? 'PENDING';
+        $status    = $resp['status'] ?? 'PENDING';
 
         if (!$paymentId) {
             throw new \RuntimeException('Erro ao criar pagamento no Asaas.');
         }
 
         $result = [
-            'asaas_id' => $paymentId,
+            'asaas_id'     => $paymentId,
             'asaas_status' => $status,
-            'status' => AssinaturaUsuario::ST_PENDING,
-            'renova_em' => date('Y-m-d', strtotime(match ($dto->months) {
+            'status'       => AssinaturaUsuario::ST_PENDING,
+            'renova_em'    => date('Y-m-d', strtotime(match ($dto->months) {
                 6 => '+6 months',
                 12 => '+1 year',
                 default => '+1 month',
             })),
-            'message' => $dto->isPix() 
-                ? 'PIX gerado com sucesso! Aguardando pagamento.' 
+            'message' => $dto->isPix()
+                ? 'PIX gerado com sucesso! Aguardando pagamento.'
                 : 'Boleto gerado com sucesso! Aguardando pagamento.',
         ];
 
-        // Buscar dados específicos do PIX
+        // 🔥 PIX: buscar QR Code com retry (OBRIGATÓRIO)
         if ($dto->isPix()) {
-            try {
+            $pixData = null;
+
+            for ($i = 0; $i < 5; $i++) {
+                usleep(400000); // 400ms
                 $pixData = $this->asaas->getPixQrCode($paymentId);
-                $result['pix'] = [
-                    'qrCodeImage' => isset($pixData['encodedImage']) 
-                        ? 'data:image/png;base64,' . $pixData['encodedImage'] 
-                        : null,
-                    'payload' => $pixData['payload'] ?? null,
-                    'expirationDate' => $pixData['expirationDate'] ?? null,
-                ];
-            } catch (\Throwable $e) {
-                if (class_exists(LogService::class)) {
-                    LogService::error('Erro ao buscar QR Code PIX', [
-                        'payment_id' => $paymentId,
-                        'error' => $e->getMessage(),
-                    ]);
+
+                if (!empty($pixData['encodedImage'])) {
+                    break;
                 }
             }
+
+            if (empty($pixData['encodedImage'])) {
+                throw new \RuntimeException(
+                    'PIX criado, mas o QR Code ainda não foi disponibilizado pelo gateway.'
+                );
+            }
+
+            $result['pix'] = [
+                'qrCodeImage' => 'data:image/png;base64,' . $pixData['encodedImage'],
+                'payload' => $pixData['payload'] ?? null,
+                'expirationDate' => $pixData['expirationDate'] ?? null,
+            ];
         }
 
-        // Buscar dados específicos do Boleto
+        // 🧾 Boleto
         if ($dto->isBoleto()) {
             try {
                 $boletoData = $this->asaas->getBoletoIdentificationField($paymentId);
@@ -370,17 +387,16 @@ class PremiumController extends BaseController
                     'bankSlipUrl' => $resp['bankSlipUrl'] ?? null,
                 ];
             } catch (\Throwable $e) {
-                if (class_exists(LogService::class)) {
-                    LogService::error('Erro ao buscar linha digitável do boleto', [
-                        'payment_id' => $paymentId,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+                LogService::error('Erro ao buscar dados do boleto', [
+                    'payment_id' => $paymentId,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
         return $result;
     }
+
 
     private function createPayment(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $total): array
     {
