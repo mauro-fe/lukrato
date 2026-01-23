@@ -12,14 +12,14 @@ class LancamentoController extends BaseController
     public function index(): void
     {
         $this->requireAuth();
-        
+
         $user = Usuario::find(Auth::id());
         $isPro = $user ? $user->isPro() : false;
 
         $this->render(
             'admin/lancamentos/index',
             [
-                'pageTitle' => 'Lançamentos', 
+                'pageTitle' => 'Lançamentos',
                 'subTitle' => 'Gerencie seus lançamentos',
                 'isPro' => $isPro,
             ],

@@ -23,53 +23,59 @@
                     <p class="card-subtitle">Exporte seus dados em PDF ou Excel</p>
                 </div>
                 <?php if (!$isPro): ?>
-                <span class="pro-badge">
-                    <i class="fas fa-crown"></i> PRO
-                </span>
+                    <span class="pro-badge">
+                        <i class="fas fa-crown"></i> PRO
+                    </span>
                 <?php endif; ?>
             </div>
 
-            <?php if (!$isPro): ?>
-            <div class="pro-overlay-inline">
-                <i class="fas fa-lock"></i>
-                <span>Recurso exclusivo PRO</span>
-                <a href="<?= BASE_URL ?>billing" class="btn-pro-small">Assinar</a>
-            </div>
-            <?php else: ?>
-            <div class="export-controls">
-                <div class="date-range-group">
-                    <div class="input-group">
-                        <label for="exportStart" class="input-label">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Data Inicial</span>
-                        </label>
-                        <input type="date" id="exportStart" class="modern-input" data-default-today="1"
-                            aria-label="Data inicial">
+            <div class="export-card-body">
+                <?php if (!$isPro): ?>
+                    <div class="pro-overlay">
+                        <div class="pro-message">
+                            <i class="fas fa-lock"></i>
+                            <h4>Recurso exclusivo PRO</h4>
+                            <p>Faça upgrade para exportar seus lançamentos em PDF e Excel</p>
+                            <a href="<?= BASE_URL ?>billing" class="btn-pro">
+                                <i class="fas fa-crown"></i> Assinar PRO
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <div class="export-controls <?= !$isPro ? 'disabled-blur' : '' ?>">
+                    <div class="date-range-group">
+                        <div class="input-group">
+                            <label for="exportStart" class="input-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Data Inicial</span>
+                            </label>
+                            <input type="date" id="exportStart" class="modern-input" data-default-today="1"
+                                aria-label="Data inicial" <?= !$isPro ? 'disabled' : '' ?>>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="exportEnd" class="input-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Data Final</span>
+                            </label>
+                            <input type="date" id="exportEnd" class="modern-input" data-default-today="1"
+                                aria-label="Data final" <?= !$isPro ? 'disabled' : '' ?>>
+                        </div>
                     </div>
 
-                    <div class="input-group">
-                        <label for="exportEnd" class="input-label">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Data Final</span>
-                        </label>
-                        <input type="date" id="exportEnd" class="modern-input" data-default-today="1"
-                            aria-label="Data final">
+                    <div class="export-actions-group">
+                        <select id="exportFormat" class="modern-select" aria-label="Formato de exportação" <?= !$isPro ? 'disabled' : '' ?>>
+                            <option value="pdf">📄 PDF</option>
+                            <option value="excel">📊 Excel (.xlsx)</option>
+                        </select>
+
+                        <button id="btnExportar" type="button" class="modern-btn primary" aria-label="Exportar lançamentos" <?= !$isPro ? 'disabled' : '' ?>>
+                            <i class="fas fa-download"></i>
+                            <span>Exportar</span>
+                        </button>
                     </div>
                 </div>
-
-                <div class="export-actions-group">
-                    <select id="exportFormat" class="modern-select" aria-label="Formato de exportação">
-                        <option value="pdf">📄 PDF</option>
-                        <option value="excel">📊 Excel (.xlsx)</option>
-                    </select>
-
-                    <button id="btnExportar" type="button" class="modern-btn primary" aria-label="Exportar lançamentos">
-                        <i class="fas fa-download"></i>
-                        <span>Exportar</span>
-                    </button>
-                </div>
             </div>
-            <?php endif; ?>
         </div>
 
         <!-- CARD DE FILTROS -->
