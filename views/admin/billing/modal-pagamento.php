@@ -1507,8 +1507,6 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
                 Swal?.close();
 
-                console.log('[Checkout] Resposta:', json);
-
                 // Tratamento baseado no método de pagamento
                 if (currentBillingType === 'CREDIT_CARD') {
                     window.Swal?.fire('Sucesso! 🎉', json?.message || 'Pagamento realizado com sucesso.', 'success')
@@ -1518,7 +1516,6 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 } else if (currentBillingType === 'PIX') {
                     // Exibir QR Code
                     const pix = json.data?.pix;
-                    console.log('[Checkout] PIX data:', pix);
                     if (pix) {
                         if (pix.qrCodeImage) {
                             pixQrCodeImg.src = pix.qrCodeImage;
@@ -1543,7 +1540,6 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                             confirmButtonText: 'Entendi'
                         });
                     } else {
-                        console.error('[Checkout] PIX não recebido na resposta:', json);
                         throw new Error('PIX gerado mas dados não recebidos. Tente novamente.');
                     }
 
