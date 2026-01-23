@@ -508,7 +508,8 @@
         .form-input,
         .form-select {
             padding: 0.75rem 1rem;
-            font-size: 16px; /* Previne zoom no iOS */
+            font-size: 16px;
+            /* Previne zoom no iOS */
         }
     }
 </style>

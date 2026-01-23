@@ -1214,7 +1214,9 @@
   .lk-modal-body,
   .modal-body {
     padding: 1.25rem !important;
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 20px)) !important;
+    padding-bottom: calc(
+      1.25rem + env(safe-area-inset-bottom, 20px)
+    ) !important;
     overflow-y: visible !important;
     max-height: none !important;
   }

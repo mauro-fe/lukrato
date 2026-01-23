@@ -339,7 +339,7 @@
 }
 
 .parcelas-table tbody tr.tr-paga {
-  background: #d4edda;
+  background: var(--color-surface);
   border-left: 3px solid var(--color-success);
 }
 
@@ -2084,7 +2084,7 @@
 
   .parcelas-table tbody tr.tr-paga {
     border-color: var(--color-success);
-    background: #d4edda;
+    background: var(--color-surface);
     border-left-width: 3px;
   }
 

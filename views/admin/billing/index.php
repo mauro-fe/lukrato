@@ -1582,10 +1582,29 @@ function formatInterval(string $interval): string
 
                 if (!result.isConfirmed) return;
 
-                // Simula clique no botão de assinar para abrir o modal de pagamento
+                // Buscar dados do plano PRO para abrir o modal de pagamento
+                // Primeiro tenta o botão btnAssinar (para quem não tem o plano)
                 const assinarBtn = document.getElementById('btnAssinar');
+
                 if (assinarBtn) {
+                    // Se existe o botão de assinar, simula clique
                     assinarBtn.click();
+                } else if (typeof window.openBillingModal === 'function') {
+                    // Para renovação/reativação: abrir modal diretamente
+                    // Buscar o preço base do plano PRO do card
+                    const proPriceEl = document.getElementById('planProPrice');
+                    const monthlyBase = proPriceEl ? Number(proPriceEl.dataset.basePrice || 0) : 14.90;
+
+                    // Configuração padrão: mensal
+                    window.openBillingModal({
+                        planId: planId,
+                        planCode: planCode,
+                        planName: 'Lukrato PRO',
+                        monthlyBase: monthlyBase,
+                        cycle: 'monthly',
+                        months: 1,
+                        discount: 0
+                    });
                 } else {
                     // Fallback: redireciona para página de checkout
                     window.location.href = `<?= BASE_URL ?>billing?action=renew&plan=${planCode}`;
