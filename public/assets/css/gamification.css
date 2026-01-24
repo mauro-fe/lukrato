@@ -850,16 +850,18 @@
   background: var(--color-bg) !important;
   border: 2px solid var(--color-primary) !important;
   border-radius: 20px !important;
-  padding: 2.5rem !important;
-  max-width: 500px !important;
+  padding: 2rem 3rem !important;
+  max-width: 650px !important;
   width: 90% !important;
   overflow: visible !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
 }
 
 .achievement-unlock-modal .swal2-title {
   color: var(--color-text) !important;
   font-size: 1.75rem !important;
   margin-bottom: 1rem !important;
+  font-weight: 800 !important;
 }
 
 .achievement-unlock-modal .swal2-html-container {
@@ -872,13 +874,19 @@
 
 .achievement-unlock-animation {
   text-align: center;
-  padding: 1rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .achievement-icon-big {
-  font-size: 5rem !important;
-  margin-bottom: 1.5rem;
+  font-size: 4rem !important;
+  margin-bottom: 0.75rem;
   animation: bounceIn 0.6s ease-out;
+  line-height: 1 !important;
+  display: block !important;
 }
 
 @keyframes bounceIn {
@@ -899,33 +907,38 @@
   color: var(--color-text) !important;
   font-size: 1.5rem !important;
   font-weight: 700 !important;
-  margin: 1rem 0 0.75rem 0 !important;
+  margin: 0.5rem 0 0.5rem 0 !important;
+  line-height: 1.2 !important;
 }
 
 .achievement-unlock-animation p {
   color: var(--color-text-muted) !important;
-  font-size: 1rem !important;
-  margin: 0.5rem 0 !important;
+  font-size: 0.95rem !important;
+  margin: 0.25rem auto !important;
+  line-height: 1.4 !important;
+  max-width: 500px !important;
 }
 
 .achievement-points-reward {
   color: var(--color-primary) !important;
-  font-size: 1.25rem !important;
+  font-size: 1.15rem !important;
   font-weight: 700 !important;
-  margin-top: 1.5rem !important;
-  padding: 0.75rem !important;
+  margin: 1rem auto 0 auto !important;
+  padding: 0.65rem 1.25rem !important;
   background: var(--glass-bg) !important;
   border-radius: 12px !important;
   display: inline-block !important;
+  border: 1px solid rgba(249, 115, 22, 0.2) !important;
 }
 
 .achievement-points-reward i {
   color: #fbbf24 !important;
   margin-right: 0.5rem !important;
+  font-size: 1.2rem !important;
 }
 
 .achievement-unlock-modal .swal2-actions {
-  margin-top: 2rem !important;
+  margin-top: 1.5rem !important;
   padding: 0 !important;
   display: flex !important;
   justify-content: center !important;
@@ -935,14 +948,15 @@
   background: var(--color-primary) !important;
   color: white !important;
   border: none !important;
-  padding: 1rem 2.5rem !important;
+  padding: 0.85rem 2.25rem !important;
   border-radius: 30px !important;
-  font-size: 1.1rem !important;
+  font-size: 1.05rem !important;
   font-weight: 700 !important;
   cursor: pointer !important;
   transition: all 0.3s ease !important;
   margin: 0 !important;
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
+  min-width: 170px !important;
 }
 
 .achievement-unlock-modal .swal2-confirm:hover {
@@ -970,27 +984,50 @@
   background: var(--color-bg) !important;
   border: 2px solid var(--color-secondary) !important;
   border-radius: 20px !important;
-  padding: 2.5rem !important;
-  max-width: 500px !important;
+  padding: 2rem 3rem !important;
+  max-width: 650px !important;
   width: 90% !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
 }
 
 .level-up-modal .swal2-title {
   color: var(--color-text) !important;
   font-size: 1.75rem !important;
+  font-weight: 800 !important;
 }
 
 .level-up-animation {
   text-align: center;
-  padding: 2rem 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.level-badge-big {
+  width: 120px !important;
+  height: 120px !important;
+  margin: 0 auto 0.75rem auto !important;
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary),
+    #6366f1
+  ) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 8px 30px rgba(129, 140, 248, 0.4) !important;
+  animation: levelPulse 0.8s ease-out !important;
 }
 
 .level-number {
-  font-size: 6rem !important;
+  font-size: 3.5rem !important;
   font-weight: 900 !important;
-  color: var(--color-secondary) !important;
-  text-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
-  animation: levelPulse 0.8s ease-out;
+  color: white !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  line-height: 1 !important;
 }
 
 @keyframes levelPulse {
@@ -999,7 +1036,7 @@
     opacity: 0;
   }
   50% {
-    transform: scale(1.2) rotate(10deg);
+    transform: scale(1.1) rotate(10deg);
   }
   100% {
     transform: scale(1) rotate(0deg);
@@ -1007,25 +1044,48 @@
   }
 }
 
-.level-up-animation p {
+.level-up-animation h2 {
   color: var(--color-text) !important;
-  font-size: 1.1rem !important;
-  margin-top: 1.5rem !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  margin: 0.5rem 0 0.5rem 0 !important;
+  line-height: 1.2 !important;
+}
+
+.level-up-animation p {
+  color: var(--color-text-muted) !important;
+  font-size: 0.95rem !important;
+  margin: 0.25rem 0 !important;
+  line-height: 1.4 !important;
+}
+
+.level-up-message {
+  color: var(--color-text) !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  margin-top: 1rem !important;
+  padding: 0.65rem 1rem !important;
+  background: var(--glass-bg) !important;
+  border-radius: 12px !important;
+  display: inline-block !important;
+  border: 1px solid rgba(129, 140, 248, 0.2) !important;
 }
 
 .level-up-modal .swal2-actions {
-  margin-top: 2rem !important;
+  margin-top: 1.5rem !important;
 }
 
 .level-up-modal .swal2-confirm {
   background: var(--color-secondary) !important;
   color: white !important;
   border: none !important;
-  padding: 1rem 2.5rem !important;
+  padding: 0.85rem 2.25rem !important;
   border-radius: 30px !important;
-  font-size: 1.1rem !important;
+  font-size: 1.05rem !important;
   font-weight: 700 !important;
   box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3) !important;
+  min-width: 170px !important;
+  transition: all 0.3s ease !important;
 }
 
 .level-up-modal .swal2-confirm:hover {
@@ -1035,34 +1095,118 @@
 }
 
 /* Responsivo para modais */
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .achievement-unlock-modal.swal2-popup,
   .level-up-modal.swal2-popup {
     width: 95% !important;
-    padding: 1.5rem !important;
+    padding: 2rem 1.5rem !important;
+    max-width: 420px !important;
   }
 
   .achievement-icon-big {
-    font-size: 4rem !important;
+    font-size: 4.5rem !important;
   }
 
   .achievement-unlock-animation h2 {
-    font-size: 1.25rem !important;
+    font-size: 1.35rem !important;
+  }
+
+  .achievement-unlock-animation p {
+    font-size: 0.95rem !important;
   }
 
   .achievement-points-reward {
-    font-size: 1rem !important;
-    padding: 0.5rem !important;
+    font-size: 1.1rem !important;
+    padding: 0.65rem 1.25rem !important;
+  }
+
+  .level-badge-big {
+    width: 130px !important;
+    height: 130px !important;
   }
 
   .level-number {
-    font-size: 4rem !important;
+    font-size: 3.5rem !important;
+  }
+
+  .level-up-animation h2 {
+    font-size: 1.35rem !important;
+  }
+
+  .level-up-animation p {
+    font-size: 1rem !important;
   }
 
   .achievement-unlock-modal .swal2-confirm,
   .level-up-modal .swal2-confirm {
-    padding: 0.75rem 2rem !important;
+    padding: 0.9rem 2rem !important;
     font-size: 1rem !important;
+    min-width: 160px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .achievement-unlock-modal.swal2-popup,
+  .level-up-modal.swal2-popup {
+    width: 92% !important;
+    padding: 1.5rem 1rem !important;
+  }
+
+  .achievement-icon-big {
+    font-size: 3.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .achievement-unlock-animation h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .achievement-unlock-animation p {
+    font-size: 0.9rem !important;
+  }
+
+  .achievement-points-reward {
+    font-size: 1rem !important;
+    padding: 0.6rem 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .achievement-points-reward i {
+    font-size: 1rem !important;
+  }
+
+  .level-badge-big {
+    width: 110px !important;
+    height: 110px !important;
+  }
+
+  .level-number {
+    font-size: 3rem !important;
+  }
+
+  .level-up-animation h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .level-up-animation p {
+    font-size: 0.95rem !important;
+  }
+
+  .level-up-message {
+    font-size: 0.9rem !important;
+    padding: 0.6rem !important;
+  }
+
+  .achievement-unlock-modal .swal2-confirm,
+  .level-up-modal .swal2-confirm {
+    padding: 0.8rem 1.75rem !important;
+    font-size: 0.95rem !important;
+    min-width: 140px !important;
+  }
+
+  .achievement-unlock-modal .swal2-title,
+  .level-up-modal .swal2-title {
+    font-size: 1.5rem !important;
   }
 }
 /* ===== ANIMAÇÃO DE CONFETES ===== */

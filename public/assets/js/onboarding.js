@@ -24,17 +24,31 @@ class OnboardingManager {
     setupEventListeners() {
         // Escuta eventos de mudança de dados para atualizar onboarding automaticamente
         window.addEventListener('lukrato:data-changed', () => {
+            console.log('🎯 [Onboarding] Evento lukrato:data-changed detectado');
             setTimeout(() => this.checkEmptyState(), 1500);
+        });
+
+        // Escutar criação de lançamentos diretamente
+        window.addEventListener('lancamento-created', () => {
+            console.log('🎯 [Onboarding] Lançamento criado detectado');
+            setTimeout(() => this.checkEmptyState(), 1000);
         });
     }
 
     init() {
+        console.log('🎯 [Onboarding] Inicializando...');
+        
         // Verificar se já completou o onboarding
         if (this.isCompleted()) {
-            this.checkEmptyState();
+            console.log('🎯 [Onboarding] Já completado anteriormente');
+            // Se já completou, apenas verificar estado para mostrar cards se necessário
+            setTimeout(() => this.checkEmptyState(), 1000);
             return;
         }
 
+        // Para novo usuário, mostrar modal de boas-vindas primeiro
+        console.log('🎯 [Onboarding] Novo usuário detectado');
+        
         // Aguardar carregamento do DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.start());
@@ -53,6 +67,8 @@ class OnboardingManager {
 
     async checkEmptyState() {
         try {
+            console.log('🎯 [Onboarding] Verificando estado...');
+            
             // Verificar se há contas
             const contasResponse = await fetch(`${this.baseUrl}api/contas`);
             const contas = await contasResponse.json();
@@ -63,6 +79,8 @@ class OnboardingManager {
             const lancamentos = await lancamentosResponse.json();
             const hasLancamentos = Array.isArray(lancamentos) ? lancamentos.length > 0 : (lancamentos.data?.length > 0 || false);
 
+            console.log('🎯 [Onboarding] Estado:', { hasContas, hasLancamentos });
+
             // Salvar progresso
             this.updateProgress({
                 hasContas,
@@ -71,18 +89,21 @@ class OnboardingManager {
 
             // Se não tem nada, mostrar empty state melhorado
             if (!hasContas && !hasLancamentos) {
+                console.log('🎯 [Onboarding] Mostrando empty state cards');
                 this.showEmptyStateCards();
             }
             // Se tem conta mas não tem lançamento
             else if (hasContas && !hasLancamentos) {
+                console.log('🎯 [Onboarding] Mostrando guia próximo passo');
                 this.showNextStepGuide('lancamento');
             }
             // Se completou tudo, mostrar celebração
             else if (hasContas && hasLancamentos) {
+                console.log('🎯 [Onboarding] SETUP COMPLETO! Mostrando celebração...');
                 this.showCompletionCelebration();
             }
         } catch (error) {
-            console.error('Erro ao verificar empty state:', error);
+            console.error('❌ [Onboarding] Erro ao verificar empty state:', error);
         }
     }
 
@@ -188,16 +209,111 @@ class OnboardingManager {
     async showCompletionCelebration() {
         // Verificar se já mostrou celebração
         if (localStorage.getItem('lukrato_onboarding_celebration_shown') === 'true') {
+            // Marcar como completado mesmo se já mostrou antes
+            this.markCompleted();
             return;
         }
 
         localStorage.setItem('lukrato_onboarding_celebration_shown', 'true');
-
-        // O modal de conquista já é exibido automaticamente pelo sistema de gamificação
-        // quando o primeiro lançamento é criado (conquista FIRST_LAUNCH)
-        // Não precisamos fazer nada aqui, pois o lancamento-global.js já cuida disso
         
-        // Apenas remover os cards de onboarding da tela
+        // Marcar onboarding como completado
+        this.markCompleted();
+
+        // Aguardar um pouco para processar o lançamento
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Tocar som IMEDIATAMENTE
+        try {
+            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
+            audio.volume = 0.5;
+            audio.play()
+                .then(() => console.log('🔊 Som de celebração tocando!'))
+                .catch(err => console.warn('⚠️ Não foi possível tocar o som:', err.message));
+        } catch (err) {
+            console.warn('⚠️ Erro ao criar áudio:', err);
+        }
+
+        // Confetes logo após o som
+        try {
+            if (typeof confetti === 'function') {
+                setTimeout(() => {
+                    const duration = 3 * 1000;
+                    const animationEnd = Date.now() + duration;
+                    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
+
+                    const interval = setInterval(function () {
+                        const timeLeft = animationEnd - Date.now();
+                        if (timeLeft <= 0) return clearInterval(interval);
+
+                        const particleCount = 50 * (timeLeft / duration);
+                        confetti(Object.assign({}, defaults, {
+                            particleCount,
+                            origin: { x: Math.random(), y: Math.random() - 0.2 }
+                        }));
+                    }, 250);
+                }, 100);
+            }
+        } catch (error) {
+            console.error('❌ Erro ao executar confetes:', error);
+        }
+
+        // Criar modal de celebração de setup completo
+        const celebrationHTML = `
+            <div class="completion-celebration-overlay">
+                <div class="completion-celebration">
+                    <div class="cc-confetti">🎉🎊✨🎈🎁</div>
+                    <div class="cc-icon">🏆</div>
+                    <h2>Parabéns! Você completou o setup inicial!</h2>
+                    <p>Agora você está pronto para controlar suas finanças como um profissional</p>
+                    
+                    <div class="cc-achievements">
+                        <div class="cc-achievement">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Conta criada</span>
+                        </div>
+                        <div class="cc-achievement">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Categorias padrão já configuradas</span>
+                        </div>
+                        <div class="cc-achievement">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Primeiro lançamento registrado</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-rewards">
+                        <div class="cc-reward">
+                            <i class="fas fa-star"></i>
+                            <strong>+50 Pontos</strong>
+                            <small>Bônus de início</small>
+                        </div>
+                        <div class="cc-reward">
+                            <i class="fas fa-trophy"></i>
+                            <strong>Conquista Desbloqueada</strong>
+                            <small>Primeiro Passo</small>
+                        </div>
+                    </div>
+
+                    <div class="cc-next-steps">
+                        <h3>Próximos Passos:</h3>
+                        <ul>
+                            <li><i class="fas fa-chart-line"></i> Explore os relatórios financeiros</li>
+                            <li><i class="fas fa-calendar-alt"></i> Configure lembretes de contas</li>
+                            <li><i class="fas fa-target"></i> Defina suas metas financeiras</li>
+                        </ul>
+                    </div>
+
+                    <button class="cc-close-btn" onclick="this.closest('.completion-celebration-overlay').remove(); document.querySelector('.onboarding-welcome')?.remove();">
+                        Começar a usar!
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', celebrationHTML);
+
+        // Remover os cards de onboarding após 2 segundos do modal aparecer
         setTimeout(() => {
             const onboardingWelcome = document.querySelector('.onboarding-welcome');
             if (onboardingWelcome) {
@@ -359,11 +475,14 @@ class OnboardingManager {
     }
 
     start() {
+        console.log('🎯 [Onboarding] Iniciando tour de boas-vindas...');
         // Mostrar modal de boas-vindas
         this.showWelcomeModal();
     }
 
     showWelcomeModal() {
+        console.log('🎯 [Onboarding] Exibindo modal de boas-vindas');
+        
         const modalHTML = `
             <div class="onboarding-modal-overlay" id="onboardingModalOverlay">
                 <div class="onboarding-modal">

@@ -375,55 +375,57 @@
 .onboarding-modal {
   background: var(--color-surface);
   border-radius: 24px;
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: none;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.4s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .onboarding-modal-header {
   text-align: center;
-  padding: 40px 40px 32px;
+  padding: 32px 40px 24px;
   border-bottom: 1px solid var(--glass-border);
 }
 
 .modal-icon {
-  font-size: 72px;
-  margin-bottom: 16px;
-}
-
-.onboarding-modal-header h2 {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-text);
+  font-size: 56px;
   margin-bottom: 12px;
 }
 
+.onboarding-modal-header h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
 .onboarding-modal-header p {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--color-text-muted);
 }
 
 .onboarding-modal-body {
-  padding: 32px 40px;
+  padding: 24px 40px;
 }
 
 .benefit-list {
   display: grid;
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .benefit-item {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
 }
 
 .benefit-item i {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -433,35 +435,36 @@
     var(--color-primary-dark, #d35400)
   );
   color: white;
-  border-radius: 12px;
-  font-size: 20px;
+  border-radius: 10px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
 .benefit-item strong {
   display: block;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .benefit-item p {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .onboarding-modal-footer {
-  padding: 24px 40px;
+  padding: 20px 40px 28px;
   border-top: 1px solid var(--glass-border);
   display: flex;
   gap: 12px;
+  justify-content: center;
 }
 
 .btn-secondary,
 .btn-primary {
-  padding: 12px 24px;
+  padding: 11px 24px;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
@@ -474,6 +477,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   border: 2px solid var(--glass-border);
+  flex: 1;
 }
 
 .btn-secondary:hover {
@@ -489,12 +493,46 @@
   color: white;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  flex: 1;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+/* Responsivo para modal de boas-vindas */
+@media (max-width: 768px) {
+  .onboarding-modal {
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .benefit-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .onboarding-modal-header {
+    padding: 28px 24px 20px;
+  }
+
+  .onboarding-modal-body {
+    padding: 20px 24px;
+  }
+
+  .onboarding-modal-footer {
+    padding: 16px 24px 24px;
+    flex-direction: column;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    width: 100%;
+  }
 }
 
 /* Next Step Banner */
