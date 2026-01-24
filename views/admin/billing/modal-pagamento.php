@@ -2097,17 +2097,31 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                             // Travar abas de pagamento
                             lockPaymentMethods();
 
-                        } catch (error) {
-                            console.error('[Checkout] Erro:', error);
-                            Swal?.close();
-                            window.Swal?.fire('Erro', error.message || 'Erro ao processar. Tente novamente.',
-                                'error');
-                        } finally {
-                            if (currentBillingType === 'CREDIT_CARD') {
-                                submitBtn.disabled = false;
-                                updateSubmitButton();
+                            // Iniciar polling
+                            if (json.data.paymentId) {
+                                startPaymentPolling(json.data.paymentId);
                             }
+
+                            window.Swal?.fire({
+                                icon: 'success',
+                                title: 'Boleto gerado!',
+                                text: 'Copie o código ou baixe o PDF para pagar.',
+                                confirmButtonText: 'Entendi'
+                            });
                         }
-                    });
-            })();
+                    }
+
+                } catch (error) {
+                    console.error('[Checkout] Erro:', error);
+                    Swal?.close();
+                    window.Swal?.fire('Erro', error.message || 'Erro ao processar. Tente novamente.',
+                        'error');
+                } finally {
+                    if (currentBillingType === 'CREDIT_CARD') {
+                        submitBtn.disabled = false;
+                        updateSubmitButton();
+                    }
+                }
+            });
+        })();
 </script>
