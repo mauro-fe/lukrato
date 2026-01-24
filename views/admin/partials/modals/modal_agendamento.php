@@ -593,10 +593,10 @@
                         </div>
                         <div class="form-group col-titulo">
                             <label for="agTitulo" class="form-label">
-                                <i class="fas fa-heading"></i> Título
+                                <i class="fas fa-align-left"></i> Descrição
                             </label>
                             <input type="text" id="agTitulo" name="titulo" class="form-control"
-                                placeholder="Ex: Aluguel, Salário..." required maxlength="100">
+                                placeholder="Ex: Aluguel, Salário, Netflix..." required maxlength="160">
                         </div>
                     </div>
 

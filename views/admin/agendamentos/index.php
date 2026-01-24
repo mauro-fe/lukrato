@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-agendamentos-index.css?v=<?= md5(uniqid(rand(), true)) ?>">
 
 
-<section class="lan-page container">
+<section class="">
     <!-- ==================== HEADER MODERNIZADO ==================== -->
     <div class="lan-header-modern">
         <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
