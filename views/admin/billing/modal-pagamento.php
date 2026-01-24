@@ -32,8 +32,18 @@ if (isset($user) && $user) {
         }
     }
 
-    // CEP e Endereço – endereço principal
+    // CEP e Endereço – endereço principal ou primeiro endereço disponível
     $endereco = $user->enderecoPrincipal ?? null;
+
+    // Se não tem endereço principal, tentar buscar qualquer endereço
+    if (!$endereco || empty($endereco->cep)) {
+        $endereco = DB::table('enderecos')
+            ->where('user_id', $user->id)
+            ->whereNotNull('cep')
+            ->where('cep', '!=', '')
+            ->first();
+    }
+
     if ($endereco && !empty($endereco->cep)) {
         $cepValue = $endereco->cep;
         $enderecoValue = ($endereco->logradouro ?? '') . ($endereco->numero ? ', ' . $endereco->numero : '');

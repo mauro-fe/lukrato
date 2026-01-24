@@ -185,6 +185,7 @@ class PerfilService
             $cpf = $dados['cpf'] ?? '';
             $phone = $dados['phone'] ?? '';
             $cep = $dados['cep'] ?? '';
+            $endereco = $dados['endereco'] ?? '';
 
             // CPF - só salva se não existe ainda
             if ($cpf !== '') {
@@ -216,7 +217,7 @@ class PerfilService
                 }
             }
 
-            // CEP - só salva se não existe endereço ainda
+            // CEP e Endereço - só salva se não existe endereço ainda
             if ($cep !== '') {
                 $cepLimpo = preg_replace('/\D/', '', $cep);
                 if (strlen($cepLimpo) === 8) {
@@ -225,8 +226,19 @@ class PerfilService
                         ->exists();
 
                     if (!$existeEndereco) {
+                        // Tentar separar logradouro e número do endereço
+                        $logradouro = $endereco;
+                        $numero = null;
+
+                        if (!empty($endereco) && preg_match('/^(.+?),\s*(\d+.*)$/', $endereco, $matches)) {
+                            $logradouro = trim($matches[1]);
+                            $numero = trim($matches[2]);
+                        }
+
                         $this->enderecoRepo->updateOrCreatePrincipal($userId, [
                             'cep' => $cepLimpo,
+                            'logradouro' => $logradouro ?: null,
+                            'numero' => $numero,
                         ]);
                     }
                 }

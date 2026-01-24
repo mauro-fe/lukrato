@@ -809,6 +809,7 @@ class PremiumController extends BaseController
                 'cpf' => $dto->holderInfo['cpfCnpj'] ?? '',
                 'phone' => $dto->holderInfo['mobilePhone'] ?? '',
                 'cep' => $dto->holderInfo['postalCode'] ?? '',
+                'endereco' => $dto->holderInfo['address'] ?? '',
             ];
 
             $perfilService->salvarDadosCheckout($usuario->id, $dados);
