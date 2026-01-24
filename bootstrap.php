@@ -8,9 +8,9 @@ define('BASE_PATH', __DIR__);
 // Composer
 require BASE_PATH . '/vendor/autoload.php';
 
-// Dotenv
+// Dotenv - usar createUnsafeImmutable para popular $_ENV, $_SERVER e putenv()
 if (file_exists(BASE_PATH . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
+    $dotenv = Dotenv\Dotenv::createUnsafeImmutable(BASE_PATH);
     $dotenv->safeLoad(); // não explode se faltar algo
 }
 
