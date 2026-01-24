@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { button } = this.elements;
 
             if (!button) {
-                console.warn('[RecurrenceToggle] Botão não encontrado');
+                // Botão não existe mais - o modal agora usa select dropdown para recorrência
                 return false;
             }
 
@@ -1539,15 +1539,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (DOM.agDescricao) DOM.agDescricao.value = record.descricao || '';
 
-            // Usar módulo profissional para recorrência
-            const recorrenteValor = record.recorrente === 1 || record.recorrente === '1';
-            RecurrenceToggle.clearElementsCache();
-            RecurrenceToggle.setState(recorrenteValor);
-
             // Preencher frequência se recorrente (campo: recorrencia_freq)
-            if (recorrenteValor && record.recorrencia_freq) {
-                const agFrequencia = document.getElementById('agFrequencia');
-                if (agFrequencia) agFrequencia.value = record.recorrencia_freq;
+            // O campo agFrequencia define automaticamente se é recorrente ou não
+            const recorrenteValor = record.recorrente === 1 || record.recorrente === '1';
+            const agFrequencia = document.getElementById('agFrequencia');
+
+            if (recorrenteValor && record.recorrencia_freq && agFrequencia) {
+                agFrequencia.value = record.recorrencia_freq;
+                // Mostrar campo de repetições se tiver frequência
+                const repeticoesGroup = document.getElementById('repeticoesGroup');
+                if (repeticoesGroup) repeticoesGroup.style.display = 'block';
+            } else if (agFrequencia) {
+                agFrequencia.value = '';
+            }
+
+            // Preencher repetições se existir
+            if (record.recorrencia_repeticoes) {
+                const agRepeticoes = document.getElementById('agRepeticoes');
+                if (agRepeticoes) agRepeticoes.value = record.recorrencia_repeticoes;
             }
 
             // Atualizar checkboxes de notificação com valores do registro
@@ -1660,8 +1669,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 repeticoesGroup.style.display = 'none';
             }
 
-            // Usar módulo profissional para reset da recorrência (mantido para compatibilidade)
-            RecurrenceToggle.reset();
+            // Reset da recorrência agora é feito via select dropdown (já tratado acima)
 
             // Ativar todos os checkboxes de notificação por padrão
             const checkboxSistema = document.getElementById('agCanalInapp');
@@ -2312,13 +2320,9 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupToggleButtonsInModal() {
-
-            // Usar módulo profissional centralizado
-            const success = RecurrenceToggle.init();
-
-            if (success) {
-            } else {
-            }
+            // O modal agora usa select dropdown (agFrequencia) em vez de toggle button
+            // Mantido para compatibilidade, mas o RecurrenceToggle não é mais utilizado
+            // RecurrenceToggle.init() - comentado pois não há mais botão toggle
         },
 
         setupRecurrenceToggle() {
