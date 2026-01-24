@@ -185,7 +185,7 @@ class OnboardingManager {
         });
     }
 
-    showCompletionCelebration() {
+    async showCompletionCelebration() {
         // Verificar se já mostrou celebração
         if (localStorage.getItem('lukrato_onboarding_celebration_shown') === 'true') {
             return;
@@ -193,93 +193,20 @@ class OnboardingManager {
 
         localStorage.setItem('lukrato_onboarding_celebration_shown', 'true');
 
-        // Tocar som e confetes do sistema de gamificação
-        if (typeof window.GAMIFICATION !== 'undefined') {
-            try {
-                // Confetes
-                setTimeout(() => {
-                    if (typeof confetti === 'function') {
-                        const duration = 3 * 1000;
-                        const animationEnd = Date.now() + duration;
-                        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
-
-                        const interval = setInterval(function () {
-                            const timeLeft = animationEnd - Date.now();
-                            if (timeLeft <= 0) return clearInterval(interval);
-
-                            const particleCount = 50 * (timeLeft / duration);
-                            confetti(Object.assign({}, defaults, {
-                                particleCount,
-                                origin: { x: Math.random(), y: Math.random() - 0.2 }
-                            }));
-                        }, 250);
-                    }
-                }, 300);
-
-                // Som
-                try {
-                    const baseUrl = window.BASE_URL || '/lukrato/public/';
-                    const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
-                    audio.volume = 0.5;
-                    audio.play().catch(() => { });
-                } catch (err) { }
-            } catch (error) {
+        // O modal de conquista já é exibido automaticamente pelo sistema de gamificação
+        // quando o primeiro lançamento é criado (conquista FIRST_LAUNCH)
+        // Não precisamos fazer nada aqui, pois o lancamento-global.js já cuida disso
+        
+        // Apenas remover os cards de onboarding da tela
+        setTimeout(() => {
+            const onboardingWelcome = document.querySelector('.onboarding-welcome');
+            if (onboardingWelcome) {
+                onboardingWelcome.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                onboardingWelcome.style.opacity = '0';
+                onboardingWelcome.style.transform = 'translateY(-20px)';
+                setTimeout(() => onboardingWelcome.remove(), 500);
             }
-        }
-
-        const celebrationHTML = `
-            <div class="completion-celebration-overlay">
-                <div class="completion-celebration">
-                    <div class="cc-confetti">🎉🎊✨🎈🎁</div>
-                    <div class="cc-icon">🏆</div>
-                    <h2>Parabéns! Você completou o setup inicial!</h2>
-                    <p>Agora você está pronto para controlar suas finanças como um profissional</p>
-                    
-                    <div class="cc-achievements">
-                        <div class="cc-achievement">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Conta criada</span>
-                        </div>
-                        <div class="cc-achievement">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Categorias padrão já configuradas</span>
-                        </div>
-                        <div class="cc-achievement">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Primeiro lançamento registrado</span>
-                        </div>
-                    </div>
-
-                    <div class="cc-rewards">
-                        <div class="cc-reward">
-                            <i class="fas fa-star"></i>
-                            <strong>+50 Pontos</strong>
-                            <small>Bônus de início</small>
-                        </div>
-                        <div class="cc-reward">
-                            <i class="fas fa-trophy"></i>
-                            <strong>Conquista Desbloqueada</strong>
-                            <small>Primeiro Passo</small>
-                        </div>
-                    </div>
-
-                    <div class="cc-next-steps">
-                        <h3>Próximos Passos:</h3>
-                        <ul>
-                            <li><i class="fas fa-chart-line"></i> Explore os relatórios financeiros</li>
-                            <li><i class="fas fa-calendar-alt"></i> Configure lembretes de contas</li>
-                            <li><i class="fas fa-target"></i> Defina suas metas financeiras</li>
-                        </ul>
-                    </div>
-
-                    <button class="cc-close-btn" onclick="document.querySelector('.completion-celebration-overlay').remove()">
-                        Começar a usar!
-                    </button>
-                </div>
-            </div>
-        `;
-
-        document.body.insertAdjacentHTML('beforeend', celebrationHTML);
+        }, 2000);
     }
 
     showEmptyStateCards() {
