@@ -295,6 +295,8 @@ document.addEventListener('DOMContentLoaded', () => {
         apply(token) {
             if (!token) return;
 
+            console.log('[CSRF.apply] Aplicando novo token:', token.substring(0, 10) + '...');
+
             STATE.csrfToken = token;
 
             document.querySelectorAll(`[data-csrf-id="${CONFIG.TOKEN_ID}"]`).forEach(el => {
@@ -312,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async refresh() {
+            console.log('[CSRF.refresh] Iniciando refresh do token...');
             const res = await fetch(`${CONFIG.BASE_URL}api/csrf/refresh`, {
                 method: 'POST',
                 credentials: 'include',
@@ -323,12 +326,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await res.json().catch(() => null);
+            console.log('[CSRF.refresh] Resposta:', data);
 
             if (data?.token) {
                 this.apply(data.token);
+                console.log('[CSRF.refresh] Token atualizado com sucesso');
                 return data.token;
             }
 
+            console.error('[CSRF.refresh] Falha ao obter novo token');
             throw new Error('Falha ao renovar CSRF');
         }
     };
@@ -369,13 +375,16 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async fetchWithCSRF(url, options = {}, retry = true) {
+            const currentToken = STATE.csrfToken || CSRF.get();
+            console.log('[fetchWithCSRF] URL:', url, 'Token header:', currentToken ? currentToken.substring(0, 10) + '...' : 'VAZIO');
+
             const res = await fetch(url, {
                 credentials: options.credentials || 'include',
                 ...options,
                 headers: {
                     'Accept': 'application/json',
                     ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-                    'X-CSRF-TOKEN': STATE.csrfToken || CSRF.get(),
+                    'X-CSRF-TOKEN': currentToken,
                     'X-Requested-With': 'XMLHttpRequest',
                     ...(options.headers || {})
                 }
@@ -390,12 +399,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Resposta vazia
             }
 
+            console.log('[fetchWithCSRF] Response status:', res.status, 'json:', json);
+
             const isCsrfError = (res.status === 403 || res.status === 419 || res.status === 422) && (
                 (json?.errors && json.errors.csrf_token) ||
                 String(json?.message || '').toLowerCase().includes('csrf')
             );
 
             if (isCsrfError && retry) {
+                console.log('[fetchWithCSRF] Erro CSRF detectado, tentando refresh e retry...');
                 try {
                     await CSRF.refresh();
                     return this.fetchWithCSRF(url, options, false);
@@ -1714,7 +1726,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getData(valorCentavos) {
             const payload = new FormData();
-            const token = CSRF.get();
+            // Usar STATE.csrfToken primeiro (atualizado pelo refresh), depois fallback para meta tag
+            const token = STATE.csrfToken || CSRF.get();
+
+            console.log('[getData] CSRF token usado:', token ? token.substring(0, 10) + '...' : 'VAZIO');
 
             if (token) {
                 payload.append('_token', token);
