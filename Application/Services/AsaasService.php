@@ -244,7 +244,7 @@ class AsaasService
     {
         // Aceita tanto 'customer' quanto 'customerId' para compatibilidade
         $customerId = $data['customer'] ?? $data['customerId'] ?? null;
-        
+
         if (empty($customerId)) {
             throw new \RuntimeException('Customer inválido ou não informado.');
         }
@@ -272,6 +272,17 @@ class AsaasService
     public function getPayment(string $paymentId): array
     {
         return $this->request('GET', "payments/{$paymentId}");
+    }
+
+    /**
+     * Cancela/exclui um pagamento pendente.
+     * 
+     * @param string $paymentId ID do pagamento no Asaas
+     * @return array Resposta da API
+     */
+    public function cancelPayment(string $paymentId): array
+    {
+        return $this->request('DELETE', "payments/{$paymentId}");
     }
 
     /**

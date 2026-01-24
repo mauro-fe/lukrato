@@ -181,6 +181,8 @@ Router::add('POST', '/api/user/theme', 'Api\\PreferenciaUsuarioController@update
 Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth', 'csrf']);
 Router::add('POST', '/premium/cancel',   'PremiumController@cancel',   ['auth', 'csrf']);
 Router::add('GET',  '/premium/check-payment/{paymentId}', 'PremiumController@checkPayment', ['auth']);
+Router::add('GET',  '/premium/pending-payment', 'PremiumController@getPendingPayment', ['auth']);
+Router::add('POST', '/premium/cancel-pending', 'PremiumController@cancelPendingPayment', ['auth', 'csrf']);
 
 // ============================================
 // FATURAS DE CARTÃO (REST)

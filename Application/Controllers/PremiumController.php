@@ -90,8 +90,146 @@ class PremiumController extends BaseController
     }
 
     /**
+     * Verifica se existe pagamento pendente (PIX ou Boleto) não vencido para o usuário
+     * Retorna dados do pagamento pendente (QR Code PIX ou linha digitável do Boleto)
+     */
+    public function getPendingPayment(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $usuario = $this->getAuthenticatedUser();
+
+            // Buscar assinatura PENDING com PIX ou Boleto
+            $assinatura = $usuario->assinaturas()
+                ->where('gateway', 'asaas')
+                ->where('status', AssinaturaUsuario::ST_PENDING)
+                ->whereIn('billing_type', ['PIX', 'BOLETO'])
+                ->whereNotNull('external_payment_id')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$assinatura) {
+                Response::success(['hasPending' => false]);
+                return;
+            }
+
+            // Verificar status no Asaas
+            $paymentData = $this->asaas->getPayment($assinatura->external_payment_id);
+            $status = $paymentData['status'] ?? 'PENDING';
+
+            // Se já foi pago, atualiza e retorna
+            if (in_array($status, ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'])) {
+                $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
+                $assinatura->save();
+                Response::success(['hasPending' => false, 'paid' => true]);
+                return;
+            }
+
+            // Se foi cancelado ou expirou, limpa e retorna
+            if (in_array($status, ['OVERDUE', 'REFUNDED', 'DELETED', 'REFUND_REQUESTED'])) {
+                $assinatura->delete();
+                Response::success(['hasPending' => false, 'expired' => true]);
+                return;
+            }
+
+            // Calcular informações do plano
+            $plano = $this->getPlanoPro();
+            $billingType = $assinatura->billing_type;
+
+            $responseData = [
+                'hasPending' => true,
+                'paymentId' => $assinatura->external_payment_id,
+                'billingType' => $billingType,
+                'plan' => [
+                    'name' => $plano->nome,
+                    'price' => $plano->preco_centavos / 100,
+                ],
+                'createdAt' => $assinatura->created_at->format('d/m/Y H:i'),
+            ];
+
+            // Buscar dados específicos do método de pagamento
+            if ($billingType === 'PIX') {
+                $pixData = $this->asaas->getPixQrCode($assinatura->external_payment_id);
+                if (!empty($pixData['encodedImage'])) {
+                    $responseData['pix'] = [
+                        'qrCodeImage' => 'data:image/png;base64,' . $pixData['encodedImage'],
+                        'payload' => $pixData['payload'] ?? null,
+                        'expirationDate' => $pixData['expirationDate'] ?? null,
+                    ];
+                }
+            } elseif ($billingType === 'BOLETO') {
+                $boletoData = $this->asaas->getBoletoIdentificationField($assinatura->external_payment_id);
+                $responseData['boleto'] = [
+                    'identificationField' => $boletoData['identificationField'] ?? null,
+                    'nossoNumero' => $boletoData['nossoNumero'] ?? null,
+                    'barCode' => $boletoData['barCode'] ?? null,
+                    'bankSlipUrl' => $paymentData['bankSlipUrl'] ?? null,
+                ];
+            }
+
+            Response::success($responseData);
+        } catch (\Throwable $e) {
+            Response::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Cancela o pagamento pendente atual (PIX ou Boleto)
+     * Permite que o usuário escolha outro método de pagamento
+     */
+    public function cancelPendingPayment(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $usuario = $this->getAuthenticatedUser();
+
+            // Buscar assinatura PENDING com PIX ou Boleto
+            $assinatura = $usuario->assinaturas()
+                ->where('gateway', 'asaas')
+                ->where('status', AssinaturaUsuario::ST_PENDING)
+                ->whereIn('billing_type', ['PIX', 'BOLETO'])
+                ->whereNotNull('external_payment_id')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$assinatura) {
+                Response::error('Nenhum pagamento pendente encontrado.', 404);
+                return;
+            }
+
+            // Tentar cancelar no Asaas
+            try {
+                $this->asaas->cancelPayment($assinatura->external_payment_id);
+            } catch (\Throwable $e) {
+                // Se falhar no Asaas, continua (pode já estar expirado)
+                error_log("⚠️ [CANCEL_PENDING] Erro ao cancelar no Asaas: " . $e->getMessage());
+            }
+
+            // Deletar assinatura local
+            $billingType = $assinatura->billing_type;
+            $assinatura->delete();
+
+            if (class_exists(LogService::class)) {
+                LogService::info('Pagamento pendente cancelado', [
+                    'user_id' => $usuario->id,
+                    'billing_type' => $billingType,
+                ]);
+            }
+
+            Response::success([
+                'message' => 'Pagamento cancelado com sucesso. Você pode escolher outro método.',
+            ]);
+        } catch (\Throwable $e) {
+            Response::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Verifica se existe PIX pendente não vencido para o usuário
      * Se existir, retorna os dados do QR Code
+     * @deprecated Use getPendingPayment() instead
      */
     public function getPendingPix(): void
     {

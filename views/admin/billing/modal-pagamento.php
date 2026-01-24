@@ -662,6 +662,140 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             grid-template-columns: 1fr;
         }
     }
+
+    /* ========================================================================== 
+     SEÇÃO DE PAGAMENTO PENDENTE (BLOQUEIO)
+     ========================================================================== */
+    .pending-payment-section {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: var(--spacing-6);
+        gap: var(--spacing-4);
+    }
+
+    .pending-payment-section.is-visible {
+        display: flex;
+    }
+
+    .pending-payment-section__icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--color-warning) 0%, color-mix(in srgb, var(--color-warning) 80%, var(--color-primary)) 100%);
+        border-radius: 50%;
+        font-size: 2rem;
+        color: #fff;
+        box-shadow: 0 8px 25px color-mix(in srgb, var(--color-warning) 40%, transparent);
+    }
+
+    .pending-payment-section__title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-text);
+        margin: 0;
+    }
+
+    .pending-payment-section__description {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+        margin: 0;
+        max-width: 400px;
+        line-height: 1.6;
+    }
+
+    .pending-payment-section__info {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-2);
+        padding: var(--spacing-4);
+        background: var(--color-surface-muted);
+        border-radius: var(--radius-md);
+        width: 100%;
+        max-width: 350px;
+    }
+
+    .pending-payment-section__info-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .pending-payment-section__info-label {
+        color: var(--color-text-muted);
+    }
+
+    .pending-payment-section__info-value {
+        color: var(--color-text);
+        font-weight: 600;
+    }
+
+    .pending-payment-section__info-value.pending-type-pix {
+        color: #32bcad;
+    }
+
+    .pending-payment-section__info-value.pending-type-boleto {
+        color: #f59e0b;
+    }
+
+    .pending-payment-section__qrcode {
+        max-width: 200px;
+        border-radius: var(--radius-md);
+        border: 2px solid var(--glass-border);
+    }
+
+    .pending-payment-section__boleto-code {
+        font-family: monospace;
+        font-size: 0.75rem;
+        word-break: break-all;
+        padding: var(--spacing-3);
+        background: var(--color-surface-muted);
+        border-radius: var(--radius-md);
+        color: var(--color-text);
+        max-width: 100%;
+    }
+
+    .pending-payment-section__actions {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-3);
+        width: 100%;
+        max-width: 350px;
+        margin-top: var(--spacing-2);
+    }
+
+    .pending-payment-section__actions .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pending-payment-section__cancel-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-2);
+        padding: var(--spacing-3) var(--spacing-4);
+        background: transparent;
+        border: 1px solid var(--color-danger);
+        color: var(--color-danger);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .pending-payment-section__cancel-btn:hover {
+        background: var(--color-danger);
+        color: #fff;
+    }
+
+    .pending-payment-section__cancel-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 </style>
 
 <div id="billing-modal" class="payment-modal" role="dialog" aria-labelledby="billing-modal-title" aria-modal="true">
@@ -682,6 +816,63 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
             <div id="billing-modal-price" class="payment-modal__price" role="status" aria-live="polite">
                 Selecione um plano para continuar
+            </div>
+        </div>
+
+        <!-- ========== SEÇÃO DE PAGAMENTO PENDENTE (BLOQUEIO) ========== -->
+        <div id="pending-payment-section" class="pending-payment-section">
+            <div class="pending-payment-section__icon">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <h3 class="pending-payment-section__title">
+                Você tem um pagamento pendente
+            </h3>
+            <p class="pending-payment-section__description">
+                Você já gerou um pagamento que ainda está aguardando confirmação.
+                Para escolher outro método, cancele o atual primeiro.
+            </p>
+
+            <div class="pending-payment-section__info">
+                <div class="pending-payment-section__info-row">
+                    <span class="pending-payment-section__info-label">Método:</span>
+                    <span id="pending-billing-type" class="pending-payment-section__info-value">-</span>
+                </div>
+                <div class="pending-payment-section__info-row">
+                    <span class="pending-payment-section__info-label">Criado em:</span>
+                    <span id="pending-created-at" class="pending-payment-section__info-value">-</span>
+                </div>
+            </div>
+
+            <!-- QR Code PIX (aparece apenas se for PIX) -->
+            <img id="pending-pix-qrcode" class="pending-payment-section__qrcode" src="" alt="QR Code PIX" style="display:none">
+
+            <!-- Código PIX para copiar -->
+            <div id="pending-pix-copy-area" style="display:none; width: 100%; max-width: 350px;">
+                <div class="pix-copy-paste__wrapper" style="margin-top: var(--spacing-2);">
+                    <input type="text" id="pending-pix-code" class="pix-copy-paste__input" readonly>
+                    <button type="button" id="pending-pix-copy-btn" class="pix-copy-paste__btn">
+                        <i class="fa-solid fa-copy"></i>
+                        <span>Copiar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Linha digitável do boleto (aparece apenas se for BOLETO) -->
+            <div id="pending-boleto-code" class="pending-payment-section__boleto-code" style="display:none"></div>
+
+            <div class="pending-payment-section__actions">
+                <a id="pending-boleto-download" href="#" target="_blank" class="btn-primary" style="display:none">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Baixar Boleto</span>
+                </a>
+                <button type="button" id="pending-copy-btn" class="btn-primary" style="display:none">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Copiar código do boleto</span>
+                </button>
+                <button type="button" id="cancel-pending-btn" class="pending-payment-section__cancel-btn">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>Cancelar e escolher outro método</span>
+                </button>
             </div>
         </div>
 
@@ -992,6 +1183,20 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         const boletoDownloadLink = document.getElementById('boleto-download-link');
         const boletoPendingStatus = document.getElementById('boleto-pending-status');
 
+        // Pending payment elements
+        const pendingPaymentSection = document.getElementById('pending-payment-section');
+        const pendingBillingType = document.getElementById('pending-billing-type');
+        const pendingCreatedAt = document.getElementById('pending-created-at');
+        const pendingPixQrcode = document.getElementById('pending-pix-qrcode');
+        const pendingPixCopyArea = document.getElementById('pending-pix-copy-area');
+        const pendingPixCode = document.getElementById('pending-pix-code');
+        const pendingPixCopyBtn = document.getElementById('pending-pix-copy-btn');
+        const pendingBoletoCode = document.getElementById('pending-boleto-code');
+        const pendingBoletoDownload = document.getElementById('pending-boleto-download');
+        const pendingCopyBtn = document.getElementById('pending-copy-btn');
+        const cancelPendingBtn = document.getElementById('cancel-pending-btn');
+        const modalBody = document.querySelector('.payment-modal__body');
+
         const planButtons = document.querySelectorAll('[data-plan-button]');
 
         const currencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -1002,6 +1207,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         let currentPlanConfig = null;
         let currentBillingType = 'CREDIT_CARD';
         let paymentPollingInterval = null;
+        let hasPendingPayment = false;
+        let pendingPaymentData = null;
 
         // ===============================
         // FORMATADORES
@@ -1307,20 +1514,195 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         }
 
         // ===============================
+        // VERIFICAR PAGAMENTO PENDENTE (QUALQUER TIPO)
+        // ===============================
+        async function checkPendingPayment() {
+            try {
+                const resp = await fetch(`${BASE_URL}premium/pending-payment`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const json = await resp.json();
+
+                if (json.status === 'success' && json.data?.hasPending) {
+                    hasPendingPayment = true;
+                    pendingPaymentData = json.data;
+                    showPendingPaymentSection(json.data);
+                    return true;
+                } else if (json.data?.paid) {
+                    // Já foi pago! Recarregar página
+                    window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado.', 'success')
+                        .then(() => window.location.reload());
+                    return true;
+                }
+
+                hasPendingPayment = false;
+                pendingPaymentData = null;
+                hidePendingPaymentSection();
+                return false;
+            } catch (err) {
+                console.error('[checkPendingPayment] Erro:', err);
+                hasPendingPayment = false;
+                hidePendingPaymentSection();
+                return false;
+            }
+        }
+
+        function showPendingPaymentSection(data) {
+            // Esconder o body normal do modal (métodos de pagamento)
+            if (modalBody) modalBody.style.display = 'none';
+
+            // Mostrar seção de pagamento pendente
+            pendingPaymentSection?.classList.add('is-visible');
+
+            // Preencher informações
+            const billingTypeLabel = data.billingType === 'PIX' ? 'PIX' : 'Boleto';
+            const typeClass = data.billingType === 'PIX' ? 'pending-type-pix' : 'pending-type-boleto';
+
+            if (pendingBillingType) {
+                pendingBillingType.textContent = billingTypeLabel;
+                pendingBillingType.className = 'pending-payment-section__info-value ' + typeClass;
+            }
+            if (pendingCreatedAt) pendingCreatedAt.textContent = data.createdAt || '-';
+
+            // Esconder todos os elementos específicos primeiro
+            if (pendingPixQrcode) pendingPixQrcode.style.display = 'none';
+            if (pendingPixCopyArea) pendingPixCopyArea.style.display = 'none';
+            if (pendingBoletoCode) pendingBoletoCode.style.display = 'none';
+            if (pendingBoletoDownload) pendingBoletoDownload.style.display = 'none';
+            if (pendingCopyBtn) pendingCopyBtn.style.display = 'none';
+
+            if (data.billingType === 'PIX' && data.pix) {
+                // Mostrar QR Code PIX
+                if (pendingPixQrcode && data.pix.qrCodeImage) {
+                    pendingPixQrcode.src = data.pix.qrCodeImage;
+                    pendingPixQrcode.style.display = 'block';
+                }
+                if (pendingPixCode && data.pix.payload) {
+                    pendingPixCode.value = data.pix.payload;
+                    if (pendingPixCopyArea) pendingPixCopyArea.style.display = 'block';
+                }
+
+                // Iniciar polling para PIX
+                if (data.paymentId) {
+                    startPaymentPolling(data.paymentId);
+                }
+            } else if (data.billingType === 'BOLETO' && data.boleto) {
+                // Mostrar linha digitável do boleto
+                if (pendingBoletoCode && data.boleto.identificationField) {
+                    pendingBoletoCode.textContent = data.boleto.identificationField;
+                    pendingBoletoCode.style.display = 'block';
+                    if (pendingCopyBtn) pendingCopyBtn.style.display = 'flex';
+                }
+                if (pendingBoletoDownload && data.boleto.bankSlipUrl) {
+                    pendingBoletoDownload.href = data.boleto.bankSlipUrl;
+                    pendingBoletoDownload.style.display = 'flex';
+                }
+
+                // Iniciar polling para Boleto também
+                if (data.paymentId) {
+                    startPaymentPolling(data.paymentId);
+                }
+            }
+        }
+
+        function hidePendingPaymentSection() {
+            pendingPaymentSection?.classList.remove('is-visible');
+            if (modalBody) modalBody.style.display = '';
+        }
+
+        // Cancelar pagamento pendente
+        async function cancelPendingPayment() {
+            const result = await window.Swal?.fire({
+                title: 'Cancelar pagamento?',
+                text: 'Você poderá escolher outro método de pagamento após cancelar.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sim, cancelar',
+                cancelButtonText: 'Não, manter'
+            });
+
+            if (!result?.isConfirmed) return;
+
+            try {
+                cancelPendingBtn.disabled = true;
+                cancelPendingBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Cancelando...</span>';
+
+                const resp = await fetch(`${BASE_URL}premium/cancel-pending`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN
+                    }
+                });
+                const json = await resp.json();
+
+                if (json.status === 'success') {
+                    hasPendingPayment = false;
+                    pendingPaymentData = null;
+                    stopPaymentPolling();
+                    hidePendingPaymentSection();
+
+                    window.Swal?.fire({
+                        icon: 'success',
+                        title: 'Pagamento cancelado!',
+                        text: 'Agora você pode escolher outro método.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(json.message || 'Erro ao cancelar pagamento');
+                }
+            } catch (err) {
+                console.error('[cancelPendingPayment] Erro:', err);
+                window.Swal?.fire('Erro', err.message || 'Não foi possível cancelar o pagamento.', 'error');
+            } finally {
+                cancelPendingBtn.disabled = false;
+                cancelPendingBtn.innerHTML = '<i class="fa-solid fa-times-circle"></i> <span>Cancelar e escolher outro método</span>';
+            }
+        }
+
+        // Event listeners para seção de pagamento pendente
+        cancelPendingBtn?.addEventListener('click', cancelPendingPayment);
+
+        pendingPixCopyBtn?.addEventListener('click', () => {
+            const code = pendingPixCode?.value;
+            if (code) copyToClipboard(code, pendingPixCopyBtn);
+        });
+
+        pendingCopyBtn?.addEventListener('click', () => {
+            const code = pendingBoletoCode?.textContent;
+            if (code) copyToClipboard(code, pendingCopyBtn);
+        });
+
+        // ===============================
         // MODAL OPEN/CLOSE
         // ===============================
-        function openBillingModal(planConfig) {
+        async function openBillingModal(planConfig) {
             currentPlanConfig = planConfig;
             currentBillingType = 'CREDIT_CARD';
 
             if (modalTitle) modalTitle.textContent = 'Pagamento Seguro';
 
-            // Reset para estado inicial
-            switchPaymentMethod('CREDIT_CARD');
-            syncPlanHiddenFields();
-
+            // Primeiro, abrir o modal
             modal.classList.add('payment-modal--open');
             document.body.style.overflow = 'hidden';
+
+            // Verificar se tem pagamento pendente
+            const hasPending = await checkPendingPayment();
+
+            if (!hasPending) {
+                // Se não tem pendente, mostrar métodos normalmente
+                hidePendingPaymentSection();
+                switchPaymentMethod('CREDIT_CARD');
+                syncPlanHiddenFields();
+            }
         }
 
         function closeBillingModal() {
@@ -1328,6 +1710,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             document.body.style.overflow = '';
             currentPlanConfig = null;
             stopPaymentPolling();
+
+            // Reset estado de pagamento pendente
+            hasPendingPayment = false;
+            pendingPaymentData = null;
+            hidePendingPaymentSection();
 
             // Reset containers
             pixQrCodeContainer?.classList.remove('is-visible');
