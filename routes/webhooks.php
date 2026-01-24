@@ -35,3 +35,7 @@ Router::add('GET',  '/api/scheduler/dispatch-reminders', 'Api\\SchedulerControll
 Router::add('POST', '/api/scheduler/dispatch-reminders', 'Api\\SchedulerController@dispatchReminders');
 Router::add('GET',  '/api/scheduler/process-expired-subscriptions', 'Api\\SchedulerController@processExpiredSubscriptions');
 Router::add('POST', '/api/scheduler/process-expired-subscriptions', 'Api\\SchedulerController@processExpiredSubscriptions');
+
+// Rota única para executar todas as tarefas do cron
+Router::add('GET',  '/api/rota-do-cron', 'Api\\SchedulerController@runAll');
+Router::add('POST', '/api/rota-do-cron', 'Api\\SchedulerController@runAll');

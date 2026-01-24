@@ -386,4 +386,166 @@ class SchedulerController extends BaseController
         }
         return 'em_' . round($diff / 86400) . '_dias';
     }
+
+    /**
+     * Executa todas as tarefas do cron em uma única chamada
+     * 
+     * GET /api/rota-do-cron
+     * 
+     * Ideal para serviços de cron externos que fazem uma única requisição.
+     */
+    public function runAll(): void
+    {
+        if (!$this->validateSchedulerToken()) {
+            LogService::warning('[Scheduler] Tentativa de acesso não autorizada em runAll', [
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            ]);
+            Response::json(['error' => 'Unauthorized'], 401);
+            return;
+        }
+
+        LogService::info('=== [Scheduler] Início da execução de todas as tarefas ===');
+
+        $results = [
+            'success' => true,
+            'timestamp' => date('Y-m-d H:i:s'),
+            'timezone' => date_default_timezone_get(),
+            'tasks' => [],
+        ];
+
+        // 1. Processar lembretes de agendamentos
+        try {
+            ob_start();
+            $this->dispatchRemindersInternal();
+            $output = ob_get_clean();
+            $results['tasks']['dispatch_reminders'] = [
+                'status' => 'success',
+                'message' => 'Lembretes processados',
+            ];
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            $results['tasks']['dispatch_reminders'] = [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+            LogService::error('[Scheduler] Erro em dispatch_reminders', [
+                'erro' => $e->getMessage(),
+            ]);
+        }
+
+        // 2. Processar assinaturas expiradas
+        try {
+            $service = new \Application\Services\SubscriptionExpirationService();
+            $expResult = $service->processExpiredSubscriptions();
+            $results['tasks']['process_expired_subscriptions'] = [
+                'status' => 'success',
+                'result' => $expResult,
+            ];
+        } catch (\Throwable $e) {
+            $results['tasks']['process_expired_subscriptions'] = [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+            LogService::error('[Scheduler] Erro em process_expired_subscriptions', [
+                'erro' => $e->getMessage(),
+            ]);
+        }
+
+        // Verifica se houve algum erro
+        foreach ($results['tasks'] as $task) {
+            if ($task['status'] === 'error') {
+                $results['success'] = false;
+                break;
+            }
+        }
+
+        LogService::info('=== [Scheduler] Execução de todas as tarefas finalizada ===', $results);
+
+        Response::json($results);
+    }
+
+    /**
+     * Versão interna do dispatchReminders para uso em runAll
+     * (não envia Response, apenas processa)
+     */
+    private function dispatchRemindersInternal(): array
+    {
+        $now = new \DateTimeImmutable('now');
+        $windowLimit = $now->modify('+10 minutes');
+        $stats = [
+            'processados' => 0,
+            'enviados_inapp' => 0,
+            'enviados_email' => 0,
+            'ignorados' => 0,
+            'erros' => [],
+        ];
+
+        $baseUrl = defined('BASE_URL')
+            ? rtrim(BASE_URL, '/')
+            : rtrim($_ENV['APP_URL'] ?? '', '/');
+        $linkAgendamentos = $baseUrl ? $baseUrl . '/agendamentos' : null;
+
+        $mailService = new MailService();
+
+        $agendamentos = Agendamento::with(['usuario:id,nome,email'])
+            ->where('status', 'pendente')
+            ->get();
+
+        foreach ($agendamentos as $agendamento) {
+            $stats['processados']++;
+
+            $pagamento = $agendamento->data_pagamento instanceof \DateTimeInterface
+                ? \DateTimeImmutable::createFromInterface($agendamento->data_pagamento)
+                : new \DateTimeImmutable((string) $agendamento->data_pagamento);
+
+            $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
+            $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
+
+            if ($reminderTimestamp > $windowLimit->getTimestamp() || $reminderTimestamp < $now->getTimestamp()) {
+                $stats['ignorados']++;
+                continue;
+            }
+
+            // Notificação in-app
+            if ($agendamento->canal_inapp) {
+                try {
+                    Notificacao::create([
+                        'user_id' => $agendamento->user_id,
+                        'tipo' => 'agendamento',
+                        'titulo' => 'Lembrete de pagamento',
+                        'mensagem' => sprintf(
+                            '%s agendado para %s.',
+                            $agendamento->titulo,
+                            $pagamento->format('d/m/Y H:i')
+                        ),
+                        'link' => $linkAgendamentos,
+                        'lida' => 0,
+                    ]);
+                    $stats['enviados_inapp']++;
+                } catch (\Throwable $e) {
+                    $stats['erros'][] = ['tipo' => 'inapp', 'agendamento_id' => $agendamento->id, 'erro' => $e->getMessage()];
+                }
+            }
+
+            // Notificação por email
+            if ($agendamento->canal_email && $mailService->isConfigured()) {
+                $usuario = $agendamento->usuario;
+                if ($usuario && !empty($usuario->email)) {
+                    try {
+                        $mailService->sendAgendamentoReminder($agendamento, $usuario);
+                        $stats['enviados_email']++;
+                    } catch (\Throwable $e) {
+                        $stats['erros'][] = ['tipo' => 'email', 'agendamento_id' => $agendamento->id, 'erro' => $e->getMessage()];
+                    }
+                }
+            }
+
+            $agendamento->status = 'enviado';
+            $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
+            $agendamento->save();
+        }
+
+        return $stats;
+    }
 }
