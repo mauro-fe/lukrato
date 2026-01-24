@@ -1,7 +1,7 @@
 /* Gamification Page Styles */
 .gamification-page {
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-3);
   background: var(--color-bg);
   min-height: 100vh;
 }

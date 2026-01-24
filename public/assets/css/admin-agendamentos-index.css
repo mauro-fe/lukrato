@@ -11,6 +11,10 @@
    MODAL MODERNO - AGENDAMENTOS
    ============================================================================= */
 
+.ag-page {
+  padding: var(--spacing-3);
+}
+
 /* Modal Container */
 .modern-modal .modal-content {
   border: none;
