@@ -295,8 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
         apply(token) {
             if (!token) return;
 
-            console.log('[CSRF.apply] Aplicando novo token:', token.substring(0, 10) + '...');
-
             STATE.csrfToken = token;
 
             document.querySelectorAll(`[data-csrf-id="${CONFIG.TOKEN_ID}"]`).forEach(el => {
@@ -314,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async refresh() {
-            console.log('[CSRF.refresh] Iniciando refresh do token...');
             const res = await fetch(`${CONFIG.BASE_URL}api/csrf/refresh`, {
                 method: 'POST',
                 credentials: 'include',
@@ -326,15 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await res.json().catch(() => null);
-            console.log('[CSRF.refresh] Resposta:', data);
 
             if (data?.token) {
                 this.apply(data.token);
-                console.log('[CSRF.refresh] Token atualizado com sucesso');
                 return data.token;
             }
 
-            console.error('[CSRF.refresh] Falha ao obter novo token');
             throw new Error('Falha ao renovar CSRF');
         }
     };
@@ -376,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async fetchWithCSRF(url, options = {}, retry = true) {
             const currentToken = STATE.csrfToken || CSRF.get();
-            console.log('[fetchWithCSRF] URL:', url, 'Token header:', currentToken ? currentToken.substring(0, 10) + '...' : 'VAZIO');
 
             const res = await fetch(url, {
                 credentials: options.credentials || 'include',
@@ -399,15 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Resposta vazia
             }
 
-            console.log('[fetchWithCSRF] Response status:', res.status, 'json:', json);
-
             const isCsrfError = (res.status === 403 || res.status === 419 || res.status === 422) && (
                 (json?.errors && json.errors.csrf_token) ||
                 String(json?.message || '').toLowerCase().includes('csrf')
             );
 
             if (isCsrfError && retry) {
-                console.log('[fetchWithCSRF] Erro CSRF detectado, tentando refresh e retry...');
                 try {
                     await CSRF.refresh();
                     return this.fetchWithCSRF(url, options, false);
@@ -1557,23 +1547,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const recorrenteValor = record.recorrente === true || record.recorrente === 1 || record.recorrente === '1';
             const agFrequencia = document.getElementById('agFrequencia');
 
-            console.log('[FormManager.fill] recorrente:', record.recorrente, 'tipo:', typeof record.recorrente);
-            console.log('[FormManager.fill] recorrenteValor:', recorrenteValor);
-            console.log('[FormManager.fill] recorrencia_freq:', record.recorrencia_freq);
-            console.log('[FormManager.fill] agFrequencia element:', agFrequencia);
-
             if (recorrenteValor && record.recorrencia_freq && agFrequencia) {
-                // Garantir que o select tem as opções carregadas
-                console.log('[FormManager.fill] Opções do select:', Array.from(agFrequencia.options).map(o => o.value));
                 agFrequencia.value = record.recorrencia_freq;
-                console.log('[FormManager.fill] Definido agFrequencia.value =', agFrequencia.value, '(esperado:', record.recorrencia_freq, ')');
-
-                // Mostrar campo de repetições se tiver frequência
                 const repeticoesGroup = document.getElementById('repeticoesGroup');
                 if (repeticoesGroup) repeticoesGroup.style.display = 'block';
             } else if (agFrequencia) {
                 agFrequencia.value = '';
-                console.log('[FormManager.fill] Limpou agFrequencia.value - recorrenteValor:', recorrenteValor, 'recorrencia_freq:', record.recorrencia_freq);
             }
 
             // Preencher repetições calculando a partir de recorrencia_fim
@@ -1625,16 +1604,13 @@ document.addEventListener('DOMContentLoaded', () => {
          * @returns {string|null} - Data de fim no formato 'YYYY-MM-DD' ou null
          */
         calcularRecorrenciaFim(dataInicio, frequencia, repeticoes) {
-            console.log('[calcularRecorrenciaFim] dataInicio:', dataInicio, 'frequencia:', frequencia, 'repeticoes:', repeticoes);
             if (!dataInicio || !frequencia || !repeticoes || repeticoes < 1) {
-                console.log('[calcularRecorrenciaFim] Parâmetros inválidos, retornando null');
                 return null;
             }
 
             try {
                 const dt = luxon.DateTime.fromISO(dataInicio.replace(' ', 'T'));
                 if (!dt.isValid) {
-                    console.log('[calcularRecorrenciaFim] Data inválida:', dataInicio);
                     return null;
                 }
 
@@ -1653,13 +1629,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         dataFim = dt.plus({ years: repeticoes });
                         break;
                     default:
-                        console.log('[calcularRecorrenciaFim] Frequência não reconhecida:', frequencia);
                         return null;
                 }
 
-                const resultado = dataFim.toFormat('yyyy-MM-dd');
-                console.log('[calcularRecorrenciaFim] Resultado:', resultado);
-                return resultado;
+                return dataFim.toFormat('yyyy-MM-dd');
             } catch (e) {
                 console.error('[FormManager.calcularRecorrenciaFim] Erro:', e);
                 return null;
@@ -1726,10 +1699,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getData(valorCentavos) {
             const payload = new FormData();
-            // Usar STATE.csrfToken primeiro (atualizado pelo refresh), depois fallback para meta tag
             const token = STATE.csrfToken || CSRF.get();
-
-            console.log('[getData] CSRF token usado:', token ? token.substring(0, 10) + '...' : 'VAZIO');
 
             if (token) {
                 payload.append('_token', token);
@@ -1755,25 +1725,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const recorrente = frequencia !== '' ? '1' : '0';
             payload.append('recorrente', recorrente);
 
-            console.log('[getData] frequencia:', frequencia, 'recorrente:', recorrente);
-
-            // Enviar frequência se houver recorrência
             if (recorrente === '1' && frequencia) {
                 payload.append('recorrencia_freq', frequencia);
-                console.log('[getData] recorrencia_freq:', frequencia);
-
-                // Sempre enviar recorrencia_intervalo = 1 (a cada 1 período)
                 payload.append('recorrencia_intervalo', '1');
 
-                // Calcular recorrencia_fim baseado no número de repetições
                 const repeticoes = (DOM.agRepeticoes?.value || '').trim();
-                console.log('[getData] repeticoes:', repeticoes);
-
                 if (repeticoes && parseInt(repeticoes) > 0) {
                     const dataPagamento = (DOM.agDataPagamento?.value || '').trim();
                     if (dataPagamento) {
                         const recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, frequencia, parseInt(repeticoes));
-                        console.log('[getData] recorrenciaFim calculada:', recorrenciaFim);
                         if (recorrenciaFim) {
                             payload.append('recorrencia_fim', recorrenciaFim);
                         }
@@ -2527,7 +2487,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             Swal.fire('Erro', 'Agendamento não encontrado para edição.', 'error');
                             return;
                         }
-                        console.log('[Event: editar] Record completo:', JSON.stringify(record, null, 2));
                         await Actions.edit(record);
                         break;
 
