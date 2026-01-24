@@ -468,7 +468,7 @@
                 .sort((a, b) => b.value - a.value);
 
             const isMobile = window.innerWidth < 768;
-            
+
             // ===================================================================
             // LÓGICA MOBILE: TOP 5 + OUTROS
             // ===================================================================
@@ -479,7 +479,7 @@
                 const top5 = entries.slice(0, 5);
                 const others = entries.slice(5);
                 const othersTotal = others.reduce((sum, item) => sum + item.value, 0);
-                
+
                 processedEntries = [
                     ...top5,
                     {
@@ -490,7 +490,7 @@
                     }
                 ];
             }
-            
+
             // Desktop: dividir em duas colunas se houver muitas categorias
             const shouldSplit = !isMobile && processedEntries.length > 2;
             const chunkSize = shouldSplit ? Math.ceil(processedEntries.length / 2) : processedEntries.length;
@@ -513,7 +513,7 @@
 
             UI.setContent(html);
             this.destroy();
-            
+
             // Armazenar as entradas processadas para renderizar a lista mobile
             this._currentEntries = processedEntries;
 
@@ -554,7 +554,7 @@
                             // MOBILE: Esconder legendas para visual limpo
                             // Desktop: Mostrar legendas na parte inferior
                             // ===================================================================
-                            legend: { 
+                            legend: {
                                 display: !isMobile,
                                 position: 'bottom'
                             },
@@ -591,7 +591,7 @@
                     }
                 });
             });
-            
+
             // ===================================================================
             // RENDERIZAR LISTA DE CATEGORIAS (MOBILE ONLY)
             // Lista vertical profissional abaixo do gráfico
@@ -600,7 +600,7 @@
                 this.renderMobileCategoryList(processedEntries);
             }
         },
-        
+
         /**
          * Renderiza a lista de categorias para mobile com expansão
          * UX: Visual clean - apenas botão + lista expansível
@@ -608,9 +608,9 @@
         renderMobileCategoryList(entries) {
             const container = document.getElementById('categoryListMobile');
             if (!container) return;
-            
+
             const total = entries.reduce((sum, item) => sum + item.value, 0);
-            
+
             // Todas as categorias dentro do card expansível
             const allCategoriesHTML = entries.map(entry => {
                 const percentage = ((entry.value / total) * 100).toFixed(1);
@@ -625,7 +625,7 @@
                     </div>
                 `;
             }).join('');
-            
+
             // HTML final: apenas botão + card expansível + texto informativo
             container.innerHTML = `
                 <button class="category-expand-btn" id="expandCategoriesBtn" aria-expanded="false">
@@ -640,23 +640,23 @@
                     Para visualizar todas as categorias detalhadamente, exporte este relatório em PDF.
                 </p>
             `;
-            
+
             // Adicionar listener ao botão de expansão
             this.setupExpandToggle();
         },
-        
+
         /**
          * Configura o comportamento de expandir/recolher lista de categorias
          */
         setupExpandToggle() {
             const btn = document.getElementById('expandCategoriesBtn');
             const card = document.getElementById('expandableCard');
-            
+
             if (!btn || !card) return;
-            
-            btn.addEventListener('click', function() {
+
+            btn.addEventListener('click', function () {
                 const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                
+
                 if (isExpanded) {
                     // Recolher
                     card.style.maxHeight = '0px';
@@ -715,15 +715,15 @@
                     maintainAspectRatio: false,
                     aspectRatio: 1.8,
                     plugins: {
-                        legend: { 
+                        legend: {
                             position: 'bottom',
                             labels: {
                                 padding: 15,
                                 font: { size: 12 }
                             }
                         },
-                        title: { 
-                            display: true, 
+                        title: {
+                            display: true,
                             text: 'Evolução do Saldo Mensal',
                             font: { size: 16, weight: 'bold' },
                             padding: { top: 10, bottom: 20 }
@@ -819,7 +819,7 @@
                     maintainAspectRatio: false,
                     aspectRatio: 1.5,
                     plugins: {
-                        legend: { 
+                        legend: {
                             position: 'bottom',
                             labels: {
                                 padding: 15,
@@ -938,7 +938,6 @@
                     <h3>Recurso Premium</h3>
                     <p>${safeMessage}</p>
                     <button type="button" class="btn-upgrade" data-action="go-pro">
-                        <i class="fas fa-crown"></i>
                         Fazer Upgrade para PRO
                     </button>
                 </div>
