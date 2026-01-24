@@ -3,8 +3,6 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-relatorios-relatorios.css?v=<?= time() ?>">
 
 <div class="rel-page">
-
-
     <!-- ==================== NAVEGAÇÃO DE MÊS ==================== -->
     <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 

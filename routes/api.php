@@ -21,8 +21,9 @@ Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
 // GERENCIAMENTO DE SESSÃO
 // ============================================
 
-Router::add('GET',  '/api/session/status',    'Api\\SessionController@status',    ['auth']);
-Router::add('POST', '/api/session/renew',     'Api\\SessionController@renew',     ['auth']);
+// Status e Renew sem middleware auth para permitir verificação/renovação mesmo com sessão expirada
+Router::add('GET',  '/api/session/status',    'Api\\SessionController@status');
+Router::add('POST', '/api/session/renew',     'Api\\SessionController@renew');
 Router::add('POST', '/api/session/heartbeat', 'Api\\SessionController@heartbeat', ['auth']);
 
 // ============================================

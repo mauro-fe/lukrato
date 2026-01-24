@@ -201,6 +201,61 @@
             return modal;
         },
 
+        // Cria o modal de sessão expirada MAS que ainda pode renovar
+        createExpiredWarningModal() {
+            const modal = document.createElement('div');
+            modal.id = 'lk-session-expired-warning-modal';
+            modal.className = 'lk-session-modal';
+            modal.innerHTML = `
+                <div class="lk-session-backdrop"></div>
+                <div class="lk-session-dialog" role="dialog" aria-modal="true" aria-labelledby="session-expired-warning-title">
+                    <div class="lk-session-content">
+                        <div class="lk-session-icon warning">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4"/>
+                                <path d="M12 16h.01"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 id="session-expired-warning-title" class="lk-session-title">
+                            Sua sessão expirou
+                        </h2>
+                        
+                        <p class="lk-session-message">
+                            Você ficou inativo por muito tempo.
+                        </p>
+                        
+                        <p class="lk-session-submessage">
+                            Deseja continuar sua sessão ou prefere sair?
+                        </p>
+                        
+                        <div class="lk-session-actions">
+                            <button type="button" class="lk-session-btn lk-session-btn-secondary" id="lk-session-expired-logout-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16,17 21,12 16,7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Sair
+                            </button>
+                            <button type="button" class="lk-session-btn lk-session-btn-primary" id="lk-session-expired-renew-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                    <path d="M3 3v5h5"/>
+                                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                                    <path d="M16 21h5v-5"/>
+                                </svg>
+                                Continuar Sessão
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return modal;
+        },
+
         // Cria o modal de sessão expirada
         createLoggedOutModal() {
             const modal = document.createElement('div');
@@ -298,6 +353,47 @@
                 state.isWarningShown = false;
                 this.stopCountdown();
             }
+            // Também esconde o modal de expirado se estiver aberto
+            const expiredModal = document.getElementById('lk-session-expired-warning-modal');
+            if (expiredModal) {
+                expiredModal.classList.remove('active');
+            }
+        },
+
+        // Mostra o modal de sessão expirada mas que ainda pode renovar
+        showExpiredWarningModal() {
+            if (state.isWarningShown) return;
+
+            // Esconde outros modais
+            this.hideWarningModal();
+
+            const container = this.getContainer();
+            let modal = document.getElementById('lk-session-expired-warning-modal');
+
+            if (!modal) {
+                modal = this.createExpiredWarningModal();
+                container.appendChild(modal);
+
+                // Event listeners
+                document.getElementById('lk-session-expired-renew-btn')?.addEventListener('click', () => {
+                    SessionManager.renewSession();
+                });
+
+                document.getElementById('lk-session-expired-logout-btn')?.addEventListener('click', () => {
+                    SessionManager.logout();
+                });
+            }
+
+            // Mostra modal com animação
+            requestAnimationFrame(() => {
+                modal.classList.add('active');
+                state.isWarningShown = true;
+            });
+
+            // Foca no botão de renovar para acessibilidade
+            setTimeout(() => {
+                document.getElementById('lk-session-expired-renew-btn')?.focus();
+            }, CONFIG.animationDuration);
         },
 
         // Mostra o modal de desconectado
@@ -528,11 +624,8 @@
         async checkSession() {
             const result = await utils.apiRequest(CONFIG.endpoints.status);
 
-            if (!result || !result.ok) {
-                if (result && result.status === 401) {
-                    UI.showLoggedOutModal();
-                    this.stopPeriodicCheck();
-                }
+            // Se não conseguiu conectar, não faz nada (pode ser problema de rede)
+            if (!result) {
                 return;
             }
 
@@ -548,7 +641,25 @@
                 CONFIG.sessionLifetime = data.sessionLifetime;
             }
 
-            // Verifica se deve mostrar aviso
+            // Verifica o status da sessão
+            // Caso 1: Usuário não tem sessão alguma (nunca logou ou sessão completamente inválida)
+            if (result.status === 401 && !data.canRenew) {
+                UI.showLoggedOutModal();
+                this.stopPeriodicCheck();
+                return;
+            }
+
+            // Caso 2: Sessão expirada mas ainda pode renovar (grace period)
+            if (data.expired && data.canRenew) {
+                // Mostra o modal de aviso para dar chance de renovar
+                if (!state.isWarningShown && !state.isLoggedOutShown) {
+                    state.remainingTime = 0; // Já expirou
+                    UI.showExpiredWarningModal();
+                }
+                return;
+            }
+
+            // Caso 3: Sessão ativa, verifica se deve mostrar aviso
             if (data.showWarning && !state.isWarningShown && !state.isLoggedOutShown) {
                 UI.showWarningModal();
             } else if (!data.showWarning && state.isWarningShown) {
@@ -556,8 +667,8 @@
                 UI.hideWarningModal();
             }
 
-            // Verifica se expirou
-            if (state.remainingTime <= 0) {
+            // Caso 4: Sessão completamente expirada e sem possibilidade de renovar
+            if (data.expired && !data.canRenew) {
                 UI.showLoggedOutModal();
                 this.stopPeriodicCheck();
             }
@@ -565,16 +676,39 @@
 
         // Renova a sessão
         async renewSession() {
+            // Obtém os botões de renovação (pode ser do modal de aviso OU do modal de expirado)
             const renewBtn = document.getElementById('lk-session-renew-btn');
-            if (renewBtn) {
-                renewBtn.disabled = true;
-                renewBtn.innerHTML = `
-                    <svg class="lk-session-spinner" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="60 30"/>
-                    </svg>
-                    Renovando...
-                `;
-            }
+            const expiredRenewBtn = document.getElementById('lk-session-expired-renew-btn');
+
+            const setButtonLoading = (btn) => {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = `
+                        <svg class="lk-session-spinner" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="60 30"/>
+                        </svg>
+                        Renovando...
+                    `;
+                }
+            };
+
+            const restoreButton = (btn) => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                            <path d="M16 21h5v-5"/>
+                        </svg>
+                        Continuar Conectado
+                    `;
+                }
+            };
+
+            setButtonLoading(renewBtn);
+            setButtonLoading(expiredRenewBtn);
 
             const result = await utils.apiRequest(CONFIG.endpoints.renew, 'POST', {
                 _token: utils.getCsrfToken()
@@ -606,19 +740,9 @@
                 this.stopPeriodicCheck();
             }
 
-            // Restaura botão
-            if (renewBtn) {
-                renewBtn.disabled = false;
-                renewBtn.innerHTML = `
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-                        <path d="M16 21h5v-5"/>
-                    </svg>
-                    Continuar Conectado
-                `;
-            }
+            // Restaura botões
+            restoreButton(renewBtn);
+            restoreButton(expiredRenewBtn);
         },
 
         // Faz logout

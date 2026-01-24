@@ -33,6 +33,10 @@ class SessionController
      * - Se o usuário está autenticado
      * - Tempo restante da sessão
      * - Se deve exibir aviso de expiração
+     * - Se a sessão está expirada (permite renovação)
+     * 
+     * NOTA: Esta rota NÃO usa middleware auth para permitir
+     * verificação mesmo quando a sessão está próxima de expirar
      */
     public function status(): void
     {
@@ -40,15 +44,17 @@ class SessionController
             session_start();
         }
 
-        // Verifica se usuário está logado
-        $user = Auth::user();
+        // Verifica se usuário está logado (apenas pela sessão, sem validar timeout)
+        $userId = $_SESSION['user_id'] ?? null;
 
-        if (!$user) {
+        if (!$userId) {
             Response::json([
                 'authenticated' => false,
-                'message' => 'Sessão expirada ou usuário não autenticado',
+                'expired' => true,
+                'message' => 'Usuário não autenticado',
                 'remainingTime' => 0,
                 'showWarning' => false,
+                'canRenew' => false,
             ], 401);
             return;
         }
@@ -57,15 +63,36 @@ class SessionController
         $lastActivity = $_SESSION['last_activity'] ?? time();
         $sessionAge = time() - $lastActivity;
         $remainingTime = max(0, self::SESSION_LIFETIME - $sessionAge);
-        $showWarning = $remainingTime > 0 && $remainingTime <= self::WARNING_THRESHOLD;
+
+        // Verifica se a sessão está expirada
+        $isExpired = $remainingTime <= 0;
+
+        // Permite renovação se expirou há menos de 30 minutos (grace period)
+        $gracePeriod = 1800; // 30 minutos
+        $canRenew = !$isExpired || ($sessionAge <= self::SESSION_LIFETIME + $gracePeriod);
+
+        // Mostra aviso se está nos últimos 5 minutos OU se acabou de expirar mas pode renovar
+        $showWarning = ($remainingTime > 0 && $remainingTime <= self::WARNING_THRESHOLD)
+            || ($isExpired && $canRenew);
+
+        // Busca dados do usuário apenas se a sessão ainda é válida ou pode renovar
+        $userName = 'Usuário';
+        if ($canRenew) {
+            $user = Auth::user();
+            if ($user) {
+                $userName = $user->nome ?? $user->email ?? 'Usuário';
+            }
+        }
 
         Response::json([
-            'authenticated' => true,
+            'authenticated' => !$isExpired,
+            'expired' => $isExpired,
             'remainingTime' => $remainingTime,
             'showWarning' => $showWarning,
+            'canRenew' => $canRenew,
             'warningThreshold' => self::WARNING_THRESHOLD,
             'sessionLifetime' => self::SESSION_LIFETIME,
-            'userName' => $user->nome ?? $user->email ?? 'Usuário',
+            'userName' => $userName,
         ]);
     }
 
@@ -75,6 +102,9 @@ class SessionController
      * Atualiza o timestamp de última atividade,
      * regenera o ID da sessão por segurança e
      * retorna um novo token CSRF.
+     * 
+     * NOTA: Esta rota NÃO usa middleware auth para permitir
+     * renovação durante o grace period (30 minutos após expirar)
      */
     public function renew(): void
     {
@@ -82,13 +112,27 @@ class SessionController
             session_start();
         }
 
-        // Verifica se usuário está logado
-        $user = Auth::user();
+        // Verifica se há um user_id na sessão (mesmo que expirada)
+        $userId = $_SESSION['user_id'] ?? null;
 
-        if (!$user) {
+        if (!$userId) {
             Response::json([
                 'success' => false,
-                'message' => 'Sessão expirada. Por favor, faça login novamente.',
+                'message' => 'Sessão inválida. Por favor, faça login novamente.',
+            ], 401);
+            return;
+        }
+
+        // Verifica se ainda está dentro do grace period
+        $lastActivity = $_SESSION['last_activity'] ?? 0;
+        $sessionAge = time() - $lastActivity;
+        $gracePeriod = 1800; // 30 minutos após expirar
+
+        if ($sessionAge > self::SESSION_LIFETIME + $gracePeriod) {
+            // Passou do grace period, não pode mais renovar
+            Response::json([
+                'success' => false,
+                'message' => 'Sessão expirada há muito tempo. Por favor, faça login novamente.',
             ], 401);
             return;
         }
