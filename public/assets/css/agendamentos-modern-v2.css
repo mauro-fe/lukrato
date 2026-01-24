@@ -12,7 +12,6 @@
 
 .ag-page {
   padding: 1.5rem;
-  max-width: 1600px;
   margin: 0 auto;
   min-height: calc(100vh - 80px);
 }

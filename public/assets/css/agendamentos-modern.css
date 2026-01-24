@@ -13,7 +13,6 @@
 
 .ag-page {
   padding: var(--spacing-4);
-  max-width: 1600px;
   margin: 0 auto;
   min-height: calc(100vh - var(--header-height, 80px));
 }

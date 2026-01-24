@@ -393,7 +393,6 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <?php include __DIR__ . '/botao_suporte.php'; ?>
 
     <!-- ==================== MODAIS ==================== -->
-    <?php include __DIR__ . '/modals/modal_agendamento.php'; ?>
     <?php include __DIR__ . '/modals/modal_lancamento_global.php'; ?>
     <?php include __DIR__ . '/modals/modal_meses.php'; ?>
     <?php include __DIR__ . '/modals/aviso-lancamentos.php'; ?>
