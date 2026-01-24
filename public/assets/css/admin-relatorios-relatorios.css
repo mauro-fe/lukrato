@@ -665,7 +665,11 @@
   border-color: var(--color-primary);
   transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15);
-  background: color-mix(in srgb, var(--color-surface) 95%, var(--color-primary) 5%);
+  background: color-mix(
+    in srgb,
+    var(--color-surface) 95%,
+    var(--color-primary) 5%
+  );
 }
 
 /* Indicador de cor (bola colorida com sombra sutil) */
@@ -749,7 +753,11 @@
 
 .category-expand-btn:hover,
 .category-expand-btn:active {
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface)
+  );
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15);
@@ -767,9 +775,10 @@
 .category-expandable-card {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.3s ease,
-              margin-top 0.3s ease;
+  transition:
+    max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease,
+    margin-top 0.3s ease;
   opacity: 0;
   background: var(--glass-bg);
   border-radius: var(--radius-lg);
@@ -779,7 +788,7 @@
 .category-expandable-card[aria-hidden="false"] {
   opacity: 1;
   margin-top: var(--spacing-4);
-  padding;
+  padding: var(--spacing-4);
   margin-top: var(--spacing-3);
 }
 
@@ -877,10 +886,6 @@
 
   .chart-wrapper-pie {
     max-width: 420px;
-    max-height: 42
-
-  .chart-wrapper-pie {
-    max-width: 350px;
     max-height: 350px;
   }
 
@@ -900,6 +905,7 @@
     gap: var(--spacing-3);
   }
 }
+/* Removido chave extra que não fecha nenhum bloco válido */
 
 /* ========== Mobile Grande (min-width: 480px) ========== */
 @media (min-width: 480px) {
@@ -941,47 +947,47 @@
     padding: var(--spacing-2);
     gap: var(--spacing-2);
   }
-}
+  /* Removido chave extra que não fecha nenhum bloco válido */
 
-/* ========== Tablet (min-width: 768px) ========== */
-@media (min-width: 768px) {
-  .rel-page {
-    padding: var(--spacing-4);
-  }
+  /* ========== Tablet (min-width: 768px) ========== */
+  @media (min-width: 768px) {
+    .rel-page {
+      padding: var(--spacing-4);
+    }
 
-  .lk-titlebar {
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: var(--spacing-5);
-  }
+    .lk-titlebar {
+      flex-direction: row;
+      align-items: center;
+      margin-bottom: var(--spacing-5);
+    }
 
-  .lk-t {
-    font-size: var(--font-size-3xl);
-  }
+    .lk-t {
+      font-size: var(--font-size-3xl);
+    }
 
-  .export-card {
-    padding: var(--spacing-5);
-  }
+    .export-card {
+      padding: var(--spacing-5);
+    }
 
-  .lk-card {
-    margin: var(--spacing-4) var(--spacing-5);
-    padding: var(--spacing-5);
-  }
+    .lk-card {
+      margin: var(--spacing-4) var(--spacing-5);
+      padding: var(--spacing-5);
+    }
 
-  .chart-container {
-    padding: var(--spacing-5);
-    min-height: 360px;
-    max-height: 460px;
-  }
-  
-  /* ===================================================================
+    .chart-container {
+      padding: var(--spacing-5);
+      min-height: 360px;
+      max-height: 460px;
+    }
+
+    /* ===================================================================
      DESKTOP: Esconder lista mobile e mostrar legendas do Chart.js
      A partir de 768px, voltamos ao comportamento desktop tradicional
      =================================================================== */
-  .category-list-mobile {
-    display: none;
+    .category-list-mobile {
+      display: none;
+    }
   }
-}
 
   .chart-container canvas {
     max-height: 380px !important;
@@ -1123,7 +1129,6 @@
 /* ========== Desktop (min-width: 1280px) ========== */
 @media (min-width: 1280px) {
   .rel-page {
-    max-width: 1200px;
     padding: var(--spacing-6);
   }
 
@@ -1238,7 +1243,6 @@
 /* ========== Telas Grandes (min-width: 1440px) ========== */
 @media (min-width: 1440px) {
   .rel-page {
-    max-width: 1400px;
     padding: var(--spacing-7);
   }
 
@@ -1314,10 +1318,6 @@
 
 /* ========== Telas Muito Grandes (min-width: 1600px) ========== */
 @media (min-width: 1600px) {
-  .rel-page {
-    max-width: 1550px;
-  }
-
   .chart-container {
     min-height: 700px;
     max-height: 950px;
@@ -6746,25 +6746,25 @@ canvas {
   .pro-overlay {
     padding: var(--spacing-3);
   }
-  
+
   .pro-message {
     padding: var(--spacing-3);
   }
-  
+
   .pro-message i.fa-crown {
     font-size: 2rem;
     margin-bottom: var(--spacing-2);
   }
-  
+
   .pro-message h4 {
     font-size: 1rem;
   }
-  
+
   .pro-message p {
     font-size: 0.8rem;
     margin-bottom: var(--spacing-2);
   }
-  
+
   .btn-pro {
     padding: 8px 16px;
     font-size: 0.85rem;
@@ -6779,21 +6779,21 @@ canvas {
   .pro-message {
     padding: var(--spacing-2);
   }
-  
+
   .pro-message i.fa-crown {
     font-size: 1.75rem;
     margin-bottom: var(--spacing-2);
   }
-  
+
   .pro-message h4 {
     font-size: 0.95rem;
   }
-  
+
   .pro-message p {
     font-size: 0.75rem;
     margin-bottom: var(--spacing-2);
   }
-  
+
   .btn-pro {
     padding: 8px 14px;
     font-size: 0.8rem;
