@@ -1553,10 +1553,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 agFrequencia.value = '';
             }
 
-            // Preencher repetições se existir
-            if (record.recorrencia_repeticoes) {
-                const agRepeticoes = document.getElementById('agRepeticoes');
-                if (agRepeticoes) agRepeticoes.value = record.recorrencia_repeticoes;
+            // Preencher repetições calculando a partir de recorrencia_fim
+            const agRepeticoes = document.getElementById('agRepeticoes');
+            if (agRepeticoes) {
+                if (record.recorrencia_fim && record.recorrencia_freq && record.data_pagamento) {
+                    // Calcular número de repetições baseado na data de fim
+                    const repeticoes = this.calcularRepeticoesFromFim(
+                        record.data_pagamento,
+                        record.recorrencia_freq,
+                        record.recorrencia_fim
+                    );
+                    if (repeticoes && repeticoes > 0) {
+                        agRepeticoes.value = repeticoes;
+                    } else {
+                        agRepeticoes.value = '';
+                    }
+                } else {
+                    agRepeticoes.value = '';
+                }
             }
 
             // Atualizar checkboxes de notificação com valores do registro
@@ -1570,7 +1584,93 @@ document.addEventListener('DOMContentLoaded', () => {
             if (checkboxSistema) checkboxSistema.checked = canalInappValor;
             if (checkboxEmail) checkboxEmail.checked = canalEmailValor;
 
+            // Preencher tempo de aviso (converter de segundos para minutos)
+            const agTempoAviso = document.getElementById('agTempoAviso');
+            if (agTempoAviso && record.lembrar_antes_segundos !== undefined) {
+                const minutos = Math.round((parseInt(record.lembrar_antes_segundos) || 0) / 60);
+                agTempoAviso.value = String(minutos);
+            }
+
             Modal.hideError();
+        },
+
+        /**
+         * Calcula a data de fim da recorrência baseado no número de repetições.
+         * @param {string} dataInicio - Data de início no formato 'YYYY-MM-DDTHH:mm' ou 'YYYY-MM-DD HH:mm:ss'
+         * @param {string} frequencia - Frequência: 'diario', 'semanal', 'mensal', 'anual'
+         * @param {number} repeticoes - Número de repetições
+         * @returns {string|null} - Data de fim no formato 'YYYY-MM-DD' ou null
+         */
+        calcularRecorrenciaFim(dataInicio, frequencia, repeticoes) {
+            if (!dataInicio || !frequencia || !repeticoes || repeticoes < 1) {
+                return null;
+            }
+
+            try {
+                const dt = luxon.DateTime.fromISO(dataInicio.replace(' ', 'T'));
+                if (!dt.isValid) return null;
+
+                let dataFim;
+                switch (frequencia.toLowerCase()) {
+                    case 'diario':
+                        dataFim = dt.plus({ days: repeticoes });
+                        break;
+                    case 'semanal':
+                        dataFim = dt.plus({ weeks: repeticoes });
+                        break;
+                    case 'mensal':
+                        dataFim = dt.plus({ months: repeticoes });
+                        break;
+                    case 'anual':
+                        dataFim = dt.plus({ years: repeticoes });
+                        break;
+                    default:
+                        return null;
+                }
+
+                return dataFim.toFormat('yyyy-MM-dd');
+            } catch (e) {
+                console.error('[FormManager.calcularRecorrenciaFim] Erro:', e);
+                return null;
+            }
+        },
+
+        /**
+         * Calcula o número de repetições baseado na data de fim.
+         * @param {string} dataInicio - Data de início
+         * @param {string} frequencia - Frequência: 'diario', 'semanal', 'mensal', 'anual'
+         * @param {string} dataFim - Data de fim
+         * @returns {number|null} - Número de repetições ou null
+         */
+        calcularRepeticoesFromFim(dataInicio, frequencia, dataFim) {
+            if (!dataInicio || !frequencia || !dataFim) {
+                return null;
+            }
+
+            try {
+                const dtInicio = luxon.DateTime.fromISO(dataInicio.replace(' ', 'T').substring(0, 10));
+                const dtFim = luxon.DateTime.fromISO(dataFim.replace(' ', 'T').substring(0, 10));
+
+                if (!dtInicio.isValid || !dtFim.isValid) return null;
+
+                const diff = dtFim.diff(dtInicio);
+
+                switch (frequencia.toLowerCase()) {
+                    case 'diario':
+                        return Math.round(diff.as('days'));
+                    case 'semanal':
+                        return Math.round(diff.as('weeks'));
+                    case 'mensal':
+                        return Math.round(diff.as('months'));
+                    case 'anual':
+                        return Math.round(diff.as('years'));
+                    default:
+                        return null;
+                }
+            } catch (e) {
+                console.error('[FormManager.calcularRepeticoesFromFim] Erro:', e);
+                return null;
+            }
         },
 
         validate() {
@@ -1625,10 +1725,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (recorrente === '1' && frequencia) {
                 payload.append('recorrencia_freq', frequencia);
 
-                // Enviar número de repetições se informado
+                // Sempre enviar recorrencia_intervalo = 1 (a cada 1 período)
+                payload.append('recorrencia_intervalo', '1');
+
+                // Calcular recorrencia_fim baseado no número de repetições
                 const repeticoes = (DOM.agRepeticoes?.value || '').trim();
-                if (repeticoes) {
-                    payload.append('recorrencia_repeticoes', repeticoes);
+                if (repeticoes && parseInt(repeticoes) > 0) {
+                    const dataPagamento = (DOM.agDataPagamento?.value || '').trim();
+                    if (dataPagamento) {
+                        const recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, frequencia, parseInt(repeticoes));
+                        if (recorrenciaFim) {
+                            payload.append('recorrencia_fim', recorrenciaFim);
+                        }
+                    }
                 }
             }
 
@@ -1640,6 +1749,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Lembrar (compatível com campo antigo)
             payload.append('lembrar', (canalInapp?.checked || canalEmail?.checked) ? '1' : '0');
+
+            // Tempo de aviso (converter de minutos para segundos)
+            const agTempoAviso = document.getElementById('agTempoAviso');
+            if (agTempoAviso) {
+                const minutos = parseInt(agTempoAviso.value) || 0;
+                payload.append('lembrar_antes_segundos', String(minutos * 60));
+            }
 
             return payload;
         },

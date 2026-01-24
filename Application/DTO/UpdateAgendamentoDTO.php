@@ -56,6 +56,17 @@ readonly class UpdateAgendamentoDTO
             $proximaExecucao = $data['proxima_execucao'] ?? null;
         }
 
+        // Tratar campos de recorrência - strings vazias devem ser null
+        $recorrenciaFreq = isset($data['recorrencia_freq']) && $data['recorrencia_freq'] !== ''
+            ? $data['recorrencia_freq']
+            : null;
+        $recorrenciaIntervalo = isset($data['recorrencia_intervalo']) && $data['recorrencia_intervalo'] !== ''
+            ? (int) $data['recorrencia_intervalo']
+            : null;
+        $recorrenciaFim = isset($data['recorrencia_fim']) && $data['recorrencia_fim'] !== ''
+            ? $data['recorrencia_fim']
+            : null;
+
         return new self(
             titulo: isset($data['titulo']) ? $data['titulo'] : null,
             tipo: isset($data['tipo']) ? strtolower(trim($data['tipo'])) : null,
@@ -70,14 +81,15 @@ readonly class UpdateAgendamentoDTO
             conta_id: isset($data['conta_id']) && $data['conta_id'] !== '' ? (int) $data['conta_id'] : null,
             moeda: isset($data['moeda']) ? strtoupper(trim($data['moeda'])) : null,
             recorrente: isset($data['recorrente']) ? filter_var($data['recorrente'], FILTER_VALIDATE_BOOLEAN) : null,
-            recorrencia_freq: isset($data['recorrencia_freq']) ? $data['recorrencia_freq'] : null,
-            recorrencia_intervalo: isset($data['recorrencia_intervalo']) ? (int) $data['recorrencia_intervalo'] : null,
-            recorrencia_fim: isset($data['recorrencia_fim']) ? $data['recorrencia_fim'] : null,
+            recorrencia_freq: $recorrenciaFreq,
+            recorrencia_intervalo: $recorrenciaIntervalo,
+            recorrencia_fim: $recorrenciaFim,
         );
     }
 
     /**
      * Converte para array apenas com campos não nulos.
+     * Quando recorrente é false, limpa os campos de recorrência.
      */
     public function toArray(): array
     {
@@ -95,10 +107,28 @@ readonly class UpdateAgendamentoDTO
         if ($this->categoria_id !== null) $data['categoria_id'] = $this->categoria_id;
         if ($this->conta_id !== null) $data['conta_id'] = $this->conta_id;
         if ($this->moeda !== null) $data['moeda'] = $this->moeda;
-        if ($this->recorrente !== null) $data['recorrente'] = $this->recorrente;
-        if ($this->recorrencia_freq !== null) $data['recorrencia_freq'] = $this->recorrencia_freq;
-        if ($this->recorrencia_intervalo !== null) $data['recorrencia_intervalo'] = $this->recorrencia_intervalo;
-        if ($this->recorrencia_fim !== null) $data['recorrencia_fim'] = $this->recorrencia_fim;
+
+        // Tratamento especial para campos de recorrência
+        if ($this->recorrente !== null) {
+            $data['recorrente'] = $this->recorrente;
+
+            // Se recorrente é false, limpar campos de recorrência
+            if ($this->recorrente === false) {
+                $data['recorrencia_freq'] = null;
+                $data['recorrencia_intervalo'] = null;
+                $data['recorrencia_fim'] = null;
+            } else {
+                // Se recorrente é true, incluir campos de recorrência se fornecidos
+                if ($this->recorrencia_freq !== null) $data['recorrencia_freq'] = $this->recorrencia_freq;
+                if ($this->recorrencia_intervalo !== null) $data['recorrencia_intervalo'] = $this->recorrencia_intervalo;
+                if ($this->recorrencia_fim !== null) $data['recorrencia_fim'] = $this->recorrencia_fim;
+            }
+        } else {
+            // Se recorrente não foi enviado, incluir campos de recorrência se fornecidos
+            if ($this->recorrencia_freq !== null) $data['recorrencia_freq'] = $this->recorrencia_freq;
+            if ($this->recorrencia_intervalo !== null) $data['recorrencia_intervalo'] = $this->recorrencia_intervalo;
+            if ($this->recorrencia_fim !== null) $data['recorrencia_fim'] = $this->recorrencia_fim;
+        }
 
         return $data;
     }
