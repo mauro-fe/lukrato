@@ -530,11 +530,28 @@
     }
 
     function editUser(userId) {
+        // Fechar qualquer modal aberto antes de abrir novo
+        Swal.close();
+
+        // Mostrar loading
+        Swal.fire({
+            title: 'Carregando...',
+            text: 'Buscando dados do usuário',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
         // Buscar dados do usuário
         fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`)
             .then(res => res.json())
             .then(response => {
+                // Fechar loading
+                Swal.close();
+
                 if (!response.success) {
                     Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
                     return;
@@ -542,58 +559,62 @@
 
                 const user = response.data;
 
+                // Criar HTML do formulário
+                const formHtml = `
+                <div style="text-align: left;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <i class="fas fa-user"></i> Nome
+                        </label>
+                        <input type="text" id="editNome" class="swal2-input" value="${user.nome || ''}" 
+                            style="margin: 0; width: 100%;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="editEmail" class="swal2-input" value="${user.email || ''}" 
+                            style="margin: 0; width: 100%;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <i class="fas fa-lock"></i> Nova Senha (deixe em branco para manter)
+                        </label>
+                        <input type="password" id="editSenha" class="swal2-input" placeholder="••••••" 
+                            style="margin: 0; width: 100%;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <i class="fas fa-shield-alt"></i> Status de Admin
+                        </label>
+                        <select id="editIsAdmin" class="swal2-select" style="margin: 0; width: 100%;">
+                            <option value="0" ${user.is_admin == 0 ? 'selected' : ''}>Usuário Normal</option>
+                            <option value="1" ${user.is_admin == 1 ? 'selected' : ''}>Administrador</option>
+                        </select>
+                    </div>
+                    
+                    ${user.subscription ? `
+                    <div class="subscription-info-box">
+                        <h4 style="margin: 0 0 8px 0; font-size: 14px;">
+                            <i class="fas fa-crown" style="color: #f59e0b;"></i> Assinatura Atual
+                        </h4>
+                        <p style="margin: 0; font-size: 13px;">
+                            <strong>Status:</strong> ${user.subscription.status}<br>
+                            <strong>Gateway:</strong> ${user.subscription.gateway || 'N/A'}<br>
+                            <strong>Expira em:</strong> ${user.subscription.renova_em ? new Date(user.subscription.renova_em).toLocaleDateString('pt-BR') : 'N/A'}
+                        </p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+                // Abrir modal de edição
                 Swal.fire({
                     title: '<i class="fas fa-user-edit"></i> Editar Usuário',
-                    html: `
-                        <div style="text-align: left;">
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                    <i class="fas fa-user"></i> Nome
-                                </label>
-                                <input type="text" id="editNome" class="swal2-input" value="${user.nome || ''}" 
-                                    style="margin: 0; width: 100%;">
-                            </div>
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                    <i class="fas fa-envelope"></i> Email
-                                </label>
-                                <input type="email" id="editEmail" class="swal2-input" value="${user.email || ''}" 
-                                    style="margin: 0; width: 100%;">
-                            </div>
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                    <i class="fas fa-lock"></i> Nova Senha (deixe em branco para manter)
-                                </label>
-                                <input type="password" id="editSenha" class="swal2-input" placeholder="••••••" 
-                                    style="margin: 0; width: 100%;">
-                            </div>
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                    <i class="fas fa-shield-alt"></i> Status de Admin
-                                </label>
-                                <select id="editIsAdmin" class="swal2-select" style="margin: 0; width: 100%;">
-                                    <option value="0" ${user.is_admin == 0 ? 'selected' : ''}>Usuário Normal</option>
-                                    <option value="1" ${user.is_admin == 1 ? 'selected' : ''}>Administrador</option>
-                                </select>
-                            </div>
-                            
-                            ${user.subscription ? `
-                            <div class="subscription-info-box">
-                                <h4 style="margin: 0 0 8px 0; font-size: 14px;">
-                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Assinatura Atual
-                                </h4>
-                                <p style="margin: 0; font-size: 13px;">
-                                    <strong>Status:</strong> ${user.subscription.status}<br>
-                                    <strong>Gateway:</strong> ${user.subscription.gateway || 'N/A'}<br>
-                                    <strong>Expira em:</strong> ${user.subscription.renova_em ? new Date(user.subscription.renova_em).toLocaleDateString('pt-BR') : 'N/A'}
-                                </p>
-                            </div>
-                            ` : ''}
-                        </div>
-                    `,
+                    html: formHtml,
                     customClass: {
                         popup: 'sysadmin-swal'
                     },
@@ -603,11 +624,17 @@
                     confirmButtonColor: '#10b981',
                     cancelButtonColor: '#94a3b8',
                     width: '500px',
+                    focusConfirm: false,
+                    didOpen: () => {
+                        // Focar no campo nome após abrir
+                        const nomeInput = document.getElementById('editNome');
+                        if (nomeInput) nomeInput.focus();
+                    },
                     preConfirm: () => {
-                        const nome = document.getElementById('editNome').value.trim();
-                        const email = document.getElementById('editEmail').value.trim();
-                        const senha = document.getElementById('editSenha').value;
-                        const is_admin = document.getElementById('editIsAdmin').value;
+                        const nome = document.getElementById('editNome')?.value?.trim() || '';
+                        const email = document.getElementById('editEmail')?.value?.trim() || '';
+                        const senha = document.getElementById('editSenha')?.value || '';
+                        const is_admin = document.getElementById('editIsAdmin')?.value || '0';
 
                         if (!nome) {
                             Swal.showValidationMessage('Nome é obrigatório');
@@ -630,7 +657,7 @@
                         };
                     }
                 }).then((result) => {
-                    if (result.isConfirmed) {
+                    if (result.isConfirmed && result.value) {
                         const data = result.value;
 
                         // Preparar payload
@@ -644,9 +671,19 @@
                             payload.senha = data.senha;
                         }
 
+                        // Mostrar loading enquanto salva
+                        Swal.fire({
+                            title: 'Salvando...',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
                         // Salvar alterações
-                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
-                            'content');
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                         fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`, {
                                 method: 'PUT',
                                 headers: {
@@ -661,16 +698,14 @@
                                     Swal.fire({
                                         icon: 'success',
                                         title: 'Sucesso!',
-                                        text: saveResponse.message ||
-                                            'Usuário atualizado com sucesso',
+                                        text: saveResponse.message || 'Usuário atualizado com sucesso',
                                         timer: 2000,
                                         showConfirmButton: false
                                     });
                                     // Recarregar lista de usuários
                                     fetchUsers(currentPage);
                                 } else {
-                                    Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário',
-                                        'error');
+                                    Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário', 'error');
                                 }
                             })
                             .catch(err => {
