@@ -225,6 +225,16 @@
                         <input type="date" id="globalLancamentoData" name="data" class="lk-input" required>
                     </div>
 
+                    <!-- Hora (somente para agendamento) -->
+                    <div class="lk-form-group" id="globalHoraGroup" style="display: none;">
+                        <label for="globalLancamentoHora" class="lk-label">
+                            <i class="fas fa-clock"></i>
+                            Hora
+                        </label>
+                        <input type="time" id="globalLancamentoHora" name="hora" class="lk-input" value="12:00">
+                        <small class="lk-helper-text">Horário de execução do agendamento</small>
+                    </div>
+
                     <!-- Categoria -->
                     <div class="lk-form-group" id="globalCategoriaGroup">
                         <label for="globalLancamentoCategoria" class="lk-label">

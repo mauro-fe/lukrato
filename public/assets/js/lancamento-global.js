@@ -341,6 +341,12 @@ const lancamentoGlobalManager = {
             tipoAgGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
         }
 
+        // Mostrar/ocultar campo de hora (apenas agendamento)
+        const horaGroup = document.getElementById('globalHoraGroup');
+        if (horaGroup) {
+            horaGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        }
+
         // Mostrar/ocultar campos de recorrência (apenas agendamento)
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         if (recorrenciaGroup) {
@@ -546,21 +552,49 @@ const lancamentoGlobalManager = {
                 apiUrl = `${this.baseUrl}api/agendamentos`;
                 const tipoAgendamento = document.getElementById('globalLancamentoTipoAgendamento')?.value || 'despesa';
 
-                // Garantir que a data tenha hora (adicionar 12:00 se não tiver)
+                // Montar data com hora do campo de hora
                 let dataPagamento = dados.data;
+                const horaInput = document.getElementById('globalLancamentoHora');
+                const hora = horaInput?.value || '12:00';
                 if (dataPagamento && !dataPagamento.includes(' ') && !dataPagamento.includes('T')) {
-                    dataPagamento = dataPagamento + ' 12:00:00';
+                    dataPagamento = dataPagamento + ' ' + hora + ':00';
                 }
+
+                // Coletar campos de recorrência
+                const recorrenciaFreq = document.getElementById('globalLancamentoRecorrencia')?.value || '';
+                const repeticoes = document.getElementById('globalLancamentoRepeticoes')?.value || '';
+                const recorrente = recorrenciaFreq !== '' ? '1' : '0';
+
+                // Calcular recorrencia_fim se tiver repetições
+                let recorrenciaFim = null;
+                if (recorrente === '1' && repeticoes && parseInt(repeticoes) > 0) {
+                    recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, recorrenciaFreq, parseInt(repeticoes));
+                }
+
+                // Coletar tempo de aviso (converter de minutos para segundos)
+                const tempoAvisoMinutos = parseInt(document.getElementById('globalLancamentoTempoAviso')?.value || '0');
+                const lembrarAntesSegundos = tempoAvisoMinutos * 60;
+
+                // Coletar canais de notificação
+                const canalInapp = document.getElementById('globalCanalInapp')?.checked ? '1' : '0';
+                const canalEmail = document.getElementById('globalCanalEmail')?.checked ? '1' : '0';
 
                 requestData = {
                     titulo: dados.descricao,
                     tipo: tipoAgendamento,
                     valor: dados.valor,
+                    valor_centavos: Math.round(dados.valor * 100),
                     data_pagamento: dataPagamento,
                     categoria_id: dados.categoria_id,
                     conta_id: dados.conta_id,
-                    descricao: dados.observacao,
-                    canal_inapp: true
+                    descricao: dados.observacao || '',
+                    recorrente: recorrente,
+                    recorrencia_freq: recorrenciaFreq || null,
+                    recorrencia_intervalo: recorrente === '1' ? 1 : null,
+                    recorrencia_fim: recorrenciaFim,
+                    lembrar_antes_segundos: lembrarAntesSegundos,
+                    canal_inapp: canalInapp,
+                    canal_email: canalEmail
                 };
             } else if (this.tipoAtual === 'transferencia') {
                 apiUrl = `${this.baseUrl}api/transfers`;
@@ -602,7 +636,7 @@ const lancamentoGlobalManager = {
                 if (result.data?.gamification?.points) {
                     try {
                         const gamif = result.data.gamification.points;
-                        
+
                         if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
                             gamif.new_achievements.forEach(ach => {
                                 try {
@@ -610,7 +644,7 @@ const lancamentoGlobalManager = {
                                         console.warn('Conquista inválida:', ach);
                                         return;
                                     }
-                                    
+
                                     if (typeof window.notifyAchievementUnlocked === 'function') {
                                         window.notifyAchievementUnlocked(ach);
                                     }
@@ -619,7 +653,7 @@ const lancamentoGlobalManager = {
                                 }
                             });
                         }
-                        
+
                         if (gamif.level_up) {
                             try {
                                 if (typeof window.notifyLevelUp === 'function') {
@@ -911,6 +945,46 @@ const lancamentoGlobalManager = {
             preview.style.display = 'block';
         } else {
             preview.style.display = 'none';
+        }
+    },
+
+    calcularRecorrenciaFim(dataInicio, frequencia, repeticoes) {
+        if (!dataInicio || !frequencia || !repeticoes || repeticoes < 1) {
+            return null;
+        }
+
+        try {
+            // Parse date - handle both formats: "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS"
+            const datePart = dataInicio.split(' ')[0].split('T')[0];
+            const [year, month, day] = datePart.split('-').map(Number);
+            
+            let dataFim = new Date(year, month - 1, day);
+            
+            switch (frequencia) {
+                case 'diario':
+                    dataFim.setDate(dataFim.getDate() + repeticoes);
+                    break;
+                case 'semanal':
+                    dataFim.setDate(dataFim.getDate() + (repeticoes * 7));
+                    break;
+                case 'mensal':
+                    dataFim.setMonth(dataFim.getMonth() + repeticoes);
+                    break;
+                case 'anual':
+                    dataFim.setFullYear(dataFim.getFullYear() + repeticoes);
+                    break;
+                default:
+                    return null;
+            }
+
+            // Format as YYYY-MM-DD
+            const yyyy = dataFim.getFullYear();
+            const mm = String(dataFim.getMonth() + 1).padStart(2, '0');
+            const dd = String(dataFim.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        } catch (e) {
+            console.error('Erro ao calcular recorrencia_fim:', e);
+            return null;
         }
     }
 };
