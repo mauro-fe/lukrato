@@ -99,22 +99,9 @@ class AgendamentoController extends BaseController
         }
 
         try {
-            // Usar $_POST diretamente assim como o update() faz, pois o JS envia FormData
-            $data = $this->validator->sanitize($_POST);
+            // Usar getRequestData() para suportar tanto JSON quanto FormData
+            $data = $this->validator->sanitize($this->getRequestData());
             $data = $this->normalizeDataPagamento($data);
-
-            // Log para debug de criação (temporário)
-            LogService::info('Dados recebidos para criação de agendamento', [
-                'recorrente' => $data['recorrente'] ?? 'não enviado',
-                'recorrencia_freq' => $data['recorrencia_freq'] ?? 'não enviado',
-                'recorrencia_intervalo' => $data['recorrencia_intervalo'] ?? 'não enviado',
-                'recorrencia_fim' => $data['recorrencia_fim'] ?? 'não enviado',
-                'valor_centavos' => $data['valor_centavos'] ?? 'não enviado',
-                'categoria_id' => $data['categoria_id'] ?? 'não enviado',
-                'lembrar_antes_segundos' => $data['lembrar_antes_segundos'] ?? 'não enviado',
-                'canal_email' => $data['canal_email'] ?? 'não enviado',
-                'canal_inapp' => $data['canal_inapp'] ?? 'não enviado',
-            ]);
 
             // Validar com AgendamentoValidator
             $errors = AgendamentoValidator::validateCreate($data);
@@ -210,15 +197,6 @@ class AgendamentoController extends BaseController
             $data = $this->validator->sanitize($_POST);
             $data = $this->normalizeDataPagamento($data);
 
-            // Log para debug de recorrência
-            LogService::info('Dados recebidos para atualização de agendamento', [
-                'agendamento_id' => $id,
-                'recorrente' => $data['recorrente'] ?? 'não enviado',
-                'recorrencia_freq' => $data['recorrencia_freq'] ?? 'não enviado',
-                'recorrencia_intervalo' => $data['recorrencia_intervalo'] ?? 'não enviado',
-                'recorrencia_fim' => $data['recorrencia_fim'] ?? 'não enviado',
-            ]);
-
             // Validar com AgendamentoValidator
             $errors = AgendamentoValidator::validateUpdate($data);
             if (!empty($errors)) {
@@ -234,12 +212,6 @@ class AgendamentoController extends BaseController
 
             // Criar DTO
             $dto = UpdateAgendamentoDTO::fromRequest($data);
-
-            // Log do DTO criado
-            LogService::info('DTO criado para atualização', [
-                'agendamento_id' => $id,
-                'dto_array' => $dto->toArray(),
-            ]);
 
             // Recalcular próxima execução se necessário
             $dataPagamento = $dto->data_pagamento ?? $agendamento->data_pagamento;

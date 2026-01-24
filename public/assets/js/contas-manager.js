@@ -491,6 +491,49 @@ class ContasManager {
     }
 
     /**
+     * Calcular data de fim da recorrência baseado em repetições
+     */
+    calcularRecorrenciaFim(dataInicio, frequencia, repeticoes) {
+        if (!dataInicio || !frequencia || !repeticoes || repeticoes < 1) {
+            return null;
+        }
+
+        try {
+            // Parse date - handle formats: "YYYY-MM-DD", "YYYY-MM-DD HH:MM:SS"
+            const datePart = dataInicio.split(' ')[0].split('T')[0];
+            const [year, month, day] = datePart.split('-').map(Number);
+
+            let dataFim = new Date(year, month - 1, day);
+
+            switch (frequencia) {
+                case 'diario':
+                    dataFim.setDate(dataFim.getDate() + repeticoes);
+                    break;
+                case 'semanal':
+                    dataFim.setDate(dataFim.getDate() + (repeticoes * 7));
+                    break;
+                case 'mensal':
+                    dataFim.setMonth(dataFim.getMonth() + repeticoes);
+                    break;
+                case 'anual':
+                    dataFim.setFullYear(dataFim.getFullYear() + repeticoes);
+                    break;
+                default:
+                    return null;
+            }
+
+            // Format as YYYY-MM-DD
+            const yyyy = dataFim.getFullYear();
+            const mm = String(dataFim.getMonth() + 1).padStart(2, '0');
+            const dd = String(dataFim.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        } catch (e) {
+            console.error('Erro ao calcular recorrencia_fim:', e);
+            return null;
+        }
+    }
+
+    /**
      * Criar nova conta
      */
     async createConta(data) {
@@ -1282,12 +1325,18 @@ class ContasManager {
         const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
         const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
+        const horaAgendamentoGroup = document.getElementById('horaAgendamentoGroup');
+        const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
+        const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
         const labelData = document.getElementById('labelDataLancamento');
 
         // Ocultar grupos de agendamento por padrão
         if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
         if (numeroRepeticoesGroup) numeroRepeticoesGroup.style.display = 'none';
+        if (horaAgendamentoGroup) horaAgendamentoGroup.style.display = 'none';
+        if (tempoAvisoGroup) tempoAvisoGroup.style.display = 'none';
+        if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'none';
         if (labelData) labelData.textContent = 'Data';
 
         // Carregar categorias (exceto para transferência)
@@ -1358,6 +1407,10 @@ class ContasManager {
             if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'block';
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
             if (labelData) labelData.textContent = 'Data do Agendamento';
+
+            // Mostrar campo de hora
+            const horaAgendamentoGroup = document.getElementById('horaAgendamentoGroup');
+            if (horaAgendamentoGroup) horaAgendamentoGroup.style.display = 'block';
 
             // Mostrar campo de tempo de aviso
             const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
@@ -1849,18 +1902,45 @@ class ContasManager {
                 apiUrl = `${this.baseUrl}/agendamentos`;
                 const tipoAgendamento = formData.get('tipo_agendamento') || 'despesa';
                 const recorrencia = formData.get('recorrencia') || null;
+                const repeticoes = formData.get('numero_repeticoes') || null;
+
+                // Montar data com hora
+                let dataPagamento = formData.get('data');
+                const hora = formData.get('hora') || '12:00';
+                if (dataPagamento && !dataPagamento.includes(' ') && !dataPagamento.includes('T')) {
+                    dataPagamento = dataPagamento + ' ' + hora + ':00';
+                }
+
+                // Calcular recorrencia_fim se tiver repetições
+                let recorrenciaFim = null;
+                if (recorrencia && repeticoes && parseInt(repeticoes) > 0) {
+                    recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, recorrencia, parseInt(repeticoes));
+                }
+
+                // Tempo de aviso (minutos -> segundos)
+                const tempoAvisoMinutos = parseInt(formData.get('tempo_aviso') || '0');
+                const lembrarAntesSegundos = tempoAvisoMinutos * 60;
+
+                // Canais de notificação
+                const canalInapp = document.getElementById('lancamentoCanalInapp')?.checked ? '1' : '0';
+                const canalEmail = document.getElementById('lancamentoCanalEmail')?.checked ? '1' : '0';
 
                 requestData = {
                     titulo: formData.get('descricao'),
                     tipo: tipoAgendamento,
                     valor: valor,
-                    data_pagamento: formData.get('data'),
+                    valor_centavos: Math.round(valor * 100),
+                    data_pagamento: dataPagamento,
                     categoria_id: formData.get('categoria_id') || null,
                     conta_id: contaId,
                     descricao: formData.get('observacoes') || null,
-                    recorrente: recorrencia ? true : false,
-                    recorrencia_freq: recorrencia,
-                    canal_inapp: true
+                    recorrente: recorrencia ? '1' : '0',
+                    recorrencia_freq: recorrencia || null,
+                    recorrencia_intervalo: recorrencia ? 1 : null,
+                    recorrencia_fim: recorrenciaFim,
+                    lembrar_antes_segundos: lembrarAntesSegundos,
+                    canal_inapp: canalInapp,
+                    canal_email: canalEmail
                 };
             }
             // Se for PARCELAMENTO SEM CARTÃO (conta bancária), usar endpoint de parcelamentos
@@ -1922,11 +2002,11 @@ class ContasManager {
             if (result.data?.gamification?.points) {
                 try {
                     const gamif = result.data.gamification.points;
-                    
+
                     if (gamif.points_gained > 0) {
                         // Pontos ganhos
                     }
-                    
+
                     if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
                         gamif.new_achievements.forEach(ach => {
                             try {
@@ -1948,7 +2028,7 @@ class ContasManager {
                             }
                         });
                     }
-                    
+
                     if (gamif.level_up) {
                         try {
                             // Exibir modal grande de level up

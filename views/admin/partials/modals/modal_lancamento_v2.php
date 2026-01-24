@@ -221,6 +221,16 @@
                     <input type="hidden" id="lancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
                 </div>
 
+                <!-- Hora (somente para agendamento) -->
+                <div class="lk-form-group" id="horaAgendamentoGroup" style="display: none;">
+                    <label for="lancamentoHora" class="lk-label">
+                        <i class="fas fa-clock"></i>
+                        Hora
+                    </label>
+                    <input type="time" id="lancamentoHora" name="hora" class="lk-input" value="12:00">
+                    <small class="lk-helper-text">Horário de execução do agendamento</small>
+                </div>
+
                 <!-- Recorrência (somente para agendamento) -->
                 <div class="lk-form-group" id="recorrenciaGroup" style="display: none;">
                     <label class="lk-label">
@@ -229,14 +239,11 @@
                     </label>
                     <div class="lk-select-wrapper">
                         <select id="lancamentoRecorrencia" name="recorrencia" class="lk-select">
-                            <option value="">Não repetir (único)</option>
-                            <option value="semanal">Semanal</option>
-                            <option value="quinzenal">Quinzenal</option>
-                            <option value="mensal">Mensal</option>
-                            <option value="bimestral">Bimestral</option>
-                            <option value="trimestral">Trimestral</option>
-                            <option value="semestral">Semestral</option>
-                            <option value="anual">Anual</option>
+                            <option value="">Não repetir</option>
+                            <option value="diario">Diariamente</option>
+                            <option value="semanal">Semanalmente</option>
+                            <option value="mensal">Mensalmente</option>
+                            <option value="anual">Anualmente</option>
                         </select>
                         <i class="fas fa-chevron-down lk-select-icon"></i>
                     </div>
@@ -250,7 +257,7 @@
                     </label>
                     <div class="lk-input-group">
                         <input type="number" id="lancamentoNumeroRepeticoes" name="numero_repeticoes" class="lk-input"
-                            min="2" max="60" value="12" placeholder="12">
+                            min="1" max="999" placeholder="12">
                         <span class="lk-input-suffix">vezes</span>
                     </div>
                     <small class="lk-helper-text">Deixe em branco para indefinido</small>
@@ -259,7 +266,7 @@
                 <!-- Tempo de Aviso (somente para agendamento) -->
                 <div class="lk-form-group" id="tempoAvisoGroup" style="display: none;">
                     <label for="lancamentoTempoAviso" class="lk-label">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-bell"></i>
                         Avisar com antecedência
                     </label>
                     <div class="lk-select-wrapper">
@@ -285,12 +292,13 @@
                 <!-- Canais de Notificação (somente para agendamento) -->
                 <div class="lk-form-group" id="canaisNotificacaoGroup" style="display: none;">
                     <label class="lk-label">
-                        <i class="fas fa-bell"></i>
+                        <i class="fas fa-envelope"></i>
                         Canais de Notificação
                     </label>
                     <div class="lk-checkbox-wrapper">
                         <label class="lk-checkbox-label">
-                            <input type="checkbox" id="canalInapp" name="canal_inapp" value="1" class="lk-checkbox" checked>
+                            <input type="checkbox" id="lancamentoCanalInapp" name="canal_inapp" value="1"
+                                class="lk-checkbox" checked>
                             <span class="lk-checkbox-custom"></span>
                             <span class="lk-checkbox-text">
                                 <i class="fas fa-desktop"></i>
@@ -300,7 +308,8 @@
                     </div>
                     <div class="lk-checkbox-wrapper">
                         <label class="lk-checkbox-label">
-                            <input type="checkbox" id="canalEmail" name="canal_email" value="1" class="lk-checkbox" checked>
+                            <input type="checkbox" id="lancamentoCanalEmail" name="canal_email" value="1"
+                                class="lk-checkbox" checked>
                             <span class="lk-checkbox-custom"></span>
                             <span class="lk-checkbox-text">
                                 <i class="fas fa-envelope"></i>

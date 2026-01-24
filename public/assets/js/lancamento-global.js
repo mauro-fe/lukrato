@@ -957,9 +957,9 @@ const lancamentoGlobalManager = {
             // Parse date - handle both formats: "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS"
             const datePart = dataInicio.split(' ')[0].split('T')[0];
             const [year, month, day] = datePart.split('-').map(Number);
-            
+
             let dataFim = new Date(year, month - 1, day);
-            
+
             switch (frequencia) {
                 case 'diario':
                     dataFim.setDate(dataFim.getDate() + repeticoes);
