@@ -6,6 +6,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\CartaoCreditoService;
 use Application\Services\CartaoFaturaService;
+use Application\Services\PlanLimitService;
 use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 
@@ -74,6 +75,25 @@ class CartoesController
     {
         $userId = Auth::id();
         $data = $this->getRequestPayload();
+
+        // 🔒 VERIFICAR LIMITE DO PLANO
+        $planLimitService = new PlanLimitService();
+        $limitCheck = $planLimitService->canCreateCartao($userId);
+
+        if (!$limitCheck['allowed']) {
+            Response::json([
+                'status' => 'error',
+                'message' => $limitCheck['message'],
+                'limit_reached' => true,
+                'upgrade_url' => $limitCheck['upgrade_url'],
+                'limit_info' => [
+                    'limit' => $limitCheck['limit'],
+                    'used' => $limitCheck['used'],
+                    'remaining' => $limitCheck['remaining']
+                ]
+            ], 403);
+            return;
+        }
 
         $dto = CreateCartaoCreditoDTO::fromArray($data, $userId);
         $resultado = $this->service->criarCartao($dto);

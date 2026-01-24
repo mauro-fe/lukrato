@@ -1,0 +1,348 @@
+/**
+ * ============================================
+ * PLAN LIMITS - ESTILOS
+ * ============================================
+ * Estilos para avisos e bloqueios de limite do plano
+ */
+
+/* ============================================
+   ALERTAS DE LIMITE
+   ============================================ */
+
+.plan-limit-alert {
+  border-radius: var(--radius-md);
+  border: none;
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.plan-limit-alert.alert-warning {
+  background: linear-gradient(
+    135deg,
+    rgba(243, 156, 18, 0.15) 0%,
+    rgba(243, 156, 18, 0.1) 100%
+  );
+  border-left: 4px solid var(--color-warning);
+}
+
+.plan-limit-alert.alert-danger {
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.15) 0%,
+    rgba(231, 76, 60, 0.1) 100%
+  );
+  border-left: 4px solid var(--color-danger);
+}
+
+.plan-limit-alert.alert-info {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.15) 0%,
+    rgba(52, 152, 219, 0.1) 100%
+  );
+  border-left: 4px solid var(--color-secondary);
+}
+
+/* ============================================
+   BADGES DE LIMITE
+   ============================================ */
+
+.limit-badge {
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-sm);
+  animation: pulse 2s infinite;
+}
+
+.limit-badge.bg-danger {
+  background: var(--color-danger) !important;
+  animation: none;
+}
+
+.limit-badge.bg-warning {
+  background: var(--color-warning) !important;
+  color: var(--color-secondary) !important;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================
+   BOTÕES BLOQUEADOS
+   ============================================ */
+
+button[data-limit-blocked="true"],
+a[data-limit-blocked="true"] {
+  position: relative;
+  opacity: 0.7;
+  cursor: not-allowed !important;
+}
+
+button[data-limit-blocked="true"]::after,
+a[data-limit-blocked="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--glass-bg);
+  border-radius: inherit;
+}
+
+/* ============================================
+   MODAL DE UPGRADE
+   ============================================ */
+
+#planUpgradeModal .modal-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+#planUpgradeModal .modal-header.bg-gradient-primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    #c0392b 100%
+  ) !important;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+#planUpgradeModal .modal-body {
+  color: var(--color-text);
+}
+
+#planUpgradeModal .fa-crown {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+#planUpgradeModal ul li {
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--color-card-border);
+  color: var(--color-text);
+}
+
+#planUpgradeModal ul li:last-child {
+  border-bottom: none;
+}
+
+#planUpgradeModal h6 {
+  color: var(--color-text-muted);
+}
+
+#planUpgradeModal .btn-primary.btn-lg {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
+  border: none;
+  padding: var(--spacing-3) var(--spacing-8);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+}
+
+#planUpgradeModal .btn-primary.btn-lg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(230, 126, 34, 0.4);
+}
+
+#planUpgradeModal .btn-secondary {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-card-border);
+}
+
+/* ============================================
+   BANNER DE UPGRADE (INLINE)
+   ============================================ */
+
+.upgrade-banner {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
+  color: white;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-4) 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  box-shadow: 0 4px 20px rgba(230, 126, 34, 0.3);
+}
+
+.upgrade-banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.upgrade-banner-icon {
+  font-size: var(--font-size-2xl);
+}
+
+.upgrade-banner-text h5 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.upgrade-banner-text p {
+  margin: var(--spacing-1) 0 0;
+  opacity: 0.9;
+  font-size: var(--font-size-sm);
+}
+
+.upgrade-banner .btn {
+  background: white;
+  color: var(--color-primary);
+  font-weight: 600;
+  padding: var(--spacing-2) var(--spacing-6);
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+}
+
+.upgrade-banner .btn:hover {
+  transform: scale(1.05);
+}
+
+/* ============================================
+   INDICADOR DE USO
+   ============================================ */
+
+.usage-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-4) 0;
+  border: 1px solid var(--color-card-border);
+}
+
+.usage-indicator-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-card-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.usage-indicator-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width var(--transition-normal);
+}
+
+.usage-indicator-fill.usage-low {
+  background: var(--color-success);
+}
+
+.usage-indicator-fill.usage-medium {
+  background: var(--color-warning);
+}
+
+.usage-indicator-fill.usage-high {
+  background: var(--color-primary);
+}
+
+.usage-indicator-fill.usage-critical {
+  background: var(--color-danger);
+}
+
+.usage-indicator-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ============================================
+   HISTÓRICO BLOQUEADO
+   ============================================ */
+
+.history-restriction-info {
+  color: var(--color-text);
+  background: rgba(243, 156, 18, 0.15);
+  border: 1px solid rgba(243, 156, 18, 0.3);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+option:disabled {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ============================================
+   ANIMAÇÕES
+   ============================================ */
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+
+@media (max-width: 768px) {
+  .upgrade-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .upgrade-banner-content {
+    flex-direction: column;
+  }
+
+  .plan-limit-alert .d-flex {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .plan-limit-alert .btn {
+    width: 100%;
+  }
+}

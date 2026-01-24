@@ -11,6 +11,7 @@ use Application\DTO\Requests\CreateCategoriaDTO;
 use Application\DTO\Requests\UpdateCategoriaDTO;
 use Application\Validators\CategoriaValidator;
 use Application\Services\GamificationService;
+use Application\Services\PlanLimitService;
 use GUMP;
 use Exception;
 use ValueError;
@@ -122,6 +123,27 @@ class CategoriaController extends BaseController
         $payload = $this->getRequestPayload();
 
         error_log("📦 [CATEGORIA CREATE] Payload recebido: " . json_encode($payload));
+
+        // 🔒 VERIFICAR LIMITE DO PLANO (apenas para categorias personalizadas, não seeds)
+        $isAutoSeed = $payload['is_auto_seed'] ?? false;
+        if (!$isAutoSeed) {
+            $planLimitService = new PlanLimitService();
+            $limitCheck = $planLimitService->canCreateCategoria($this->userId);
+
+            if (!$limitCheck['allowed']) {
+                error_log("🚫 [CATEGORIA CREATE] Limite de categorias atingido para user {$this->userId}");
+                Response::error($limitCheck['message'], 403, [
+                    'limit_reached' => true,
+                    'upgrade_url' => $limitCheck['upgrade_url'],
+                    'limit_info' => [
+                        'limit' => $limitCheck['limit'],
+                        'used' => $limitCheck['used'],
+                        'remaining' => $limitCheck['remaining']
+                    ]
+                ]);
+                return;
+            }
+        }
 
         // Validar dados
         $errors = CategoriaValidator::validateCreate($payload);

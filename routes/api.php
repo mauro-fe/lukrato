@@ -215,3 +215,12 @@ Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@delet
 Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'csrf']);
 Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'csrf']);
 Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth']);
+
+// ============================================
+// PLANO / LIMITES
+// ============================================
+
+Router::add('GET', '/api/plan/limits',              'Api\\PlanController@limits',             ['auth']);
+Router::add('GET', '/api/plan/features',            'Api\\PlanController@features',           ['auth']);
+Router::add('GET', '/api/plan/can-create/{resource}', 'Api\\PlanController@canCreate',        ['auth']);
+Router::add('GET', '/api/plan/history-restriction', 'Api\\PlanController@historyRestriction', ['auth']);

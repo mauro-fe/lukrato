@@ -233,7 +233,7 @@
             <h3>Recurso Premium</h3>
             <p id="agPaywallMessage">Agendamentos são exclusivos do plano Pro.</p>
             <button type="button" class="btn-upgrade" id="agPaywallCta">
-                <i class="fas fa-crown"></i> Fazer Upgrade para PRO
+                Fazer Upgrade para PRO
             </button>
         </div>
     </div>

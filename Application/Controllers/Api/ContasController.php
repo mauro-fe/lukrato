@@ -10,6 +10,7 @@ use Application\DTO\CreateContaDTO;
 use Application\DTO\UpdateContaDTO;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\LogService;
+use Application\Services\PlanLimitService;
 
 
 class ContasController
@@ -77,6 +78,31 @@ class ContasController
     {
         $userId = Auth::id();
         $data = $this->getRequestPayload();
+
+        // 🔒 VERIFICAR LIMITE DO PLANO
+        $planLimitService = new PlanLimitService();
+        $limitCheck = $planLimitService->canCreateConta($userId);
+
+        if (!$limitCheck['allowed']) {
+            LogService::warning('🚫 LIMITE - Tentativa de criar conta bloqueada', [
+                'user_id' => $userId,
+                'limite' => $limitCheck['limit'],
+                'usado' => $limitCheck['used']
+            ]);
+
+            Response::json([
+                'status' => 'error',
+                'message' => $limitCheck['message'],
+                'limit_reached' => true,
+                'upgrade_url' => $limitCheck['upgrade_url'],
+                'limit_info' => [
+                    'limit' => $limitCheck['limit'],
+                    'used' => $limitCheck['used'],
+                    'remaining' => $limitCheck['remaining']
+                ]
+            ], 403);
+            return;
+        }
 
         // LOG: Início da criação
         LogService::info('📥 INÍCIO - Criação de conta', [

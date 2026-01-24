@@ -67,6 +67,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/onboarding.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/plan-limits.css?v=<?= time() ?>">
 
     <?php loadPageCss(); ?>
 
@@ -89,6 +90,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <!-- Sistema de Gamificação Global (conquistas e level up) -->
     <script src="<?= BASE_URL ?>assets/js/gamification-global.js?v=<?= time() ?>"></script>
+
+    <!-- Sistema de Limites do Plano (avisos de upgrade) -->
+    <script src="<?= BASE_URL ?>assets/js/plan-limits.js?v=<?= time() ?>" defer></script>
 
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
     <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"

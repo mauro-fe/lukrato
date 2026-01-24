@@ -11,8 +11,12 @@ use Application\Models\Usuario;
  */
 class UserPlanService
 {
-    private const FREE_LANCAMENTOS_LIMIT = 50;
-    private const FREE_LANCAMENTOS_WARNING = 40;
+    private array $config;
+
+    public function __construct()
+    {
+        $this->config = require __DIR__ . '/../Config/Billing.php';
+    }
 
     /**
      * Verifica se o usuário tem plano Pro.
@@ -56,7 +60,7 @@ class UserPlanService
      */
     public function getFreeLancamentosLimit(): int
     {
-        return self::FREE_LANCAMENTOS_LIMIT;
+        return (int) ($this->config['limits']['free']['lancamentos_per_month'] ?? 30);
     }
 
     /**
@@ -64,7 +68,7 @@ class UserPlanService
      */
     public function getFreeLancamentosWarningAt(): int
     {
-        return self::FREE_LANCAMENTOS_WARNING;
+        return (int) ($this->config['limits']['free']['warning_at'] ?? 20);
     }
 
     /**
@@ -85,6 +89,7 @@ class UserPlanService
             'warning_at' => $warn,
             'should_warn' => (!$isPro && $usedCount >= $warn && $usedCount < $limit),
             'blocked' => (!$isPro && $usedCount >= $limit),
+            'percentage' => $isPro ? null : (int) (($usedCount / $limit) * 100),
         ];
     }
 
@@ -97,7 +102,8 @@ class UserPlanService
             return null;
         }
 
-        return "⚠️ Atenção: você já usou {$usage['used']} de 50 lançamentos do plano gratuito. " .
-               "Faltam {$usage['remaining']} este mês.";
+        $limit = $this->getFreeLancamentosLimit();
+        return "⚠️ Atenção: você já usou {$usage['used']} de {$limit} lançamentos do plano gratuito. " .
+            "Faltam {$usage['remaining']} este mês.";
     }
 }
