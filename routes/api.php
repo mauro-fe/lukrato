@@ -126,6 +126,7 @@ Router::add('DELETE', '/api/categorias/{id}', 'Api\\CategoriaController@delete',
 // ============================================
 
 Router::add('GET',  '/api/agendamentos',                  'Api\\AgendamentoController@index',        ['auth']);
+Router::add('GET',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@show',         ['auth']);
 Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoController@store',        ['auth', 'csrf']);
 Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
 Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']); // Compat

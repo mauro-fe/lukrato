@@ -175,6 +175,43 @@ class AgendamentoController extends BaseController
         }
     }
 
+    /**
+     * Buscar um agendamento específico por ID
+     */
+    public function show(int $id): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->ensureSchedulingAccess()) {
+            return;
+        }
+
+        try {
+            $agendamento = Agendamento::with(['categoria:id,nome', 'conta:id,nome'])
+                ->where('user_id', $this->getUserId())
+                ->where('id', $id)
+                ->first();
+
+            if (!$agendamento) {
+                Response::notFound('Agendamento não encontrado.');
+                return;
+            }
+
+            $agendamentoArray = $agendamento->toArray();
+            $agendamentoArray['status_dinamico'] = $this->service->calcularStatusDinamico($agendamento);
+
+            Response::success($agendamentoArray);
+        } catch (Throwable $e) {
+            LogService::error('Erro ao buscar agendamento.', [
+                'error' => $e->getMessage(),
+                'agendamento_id' => $id,
+                'user_id' => $this->getUserId()
+            ]);
+
+            Response::error('Erro ao buscar agendamento.', 500);
+        }
+    }
+
     public function update(int $id): void
     {
         $this->requireAuthApi();
