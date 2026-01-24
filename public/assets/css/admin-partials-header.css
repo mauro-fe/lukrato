@@ -569,8 +569,7 @@ body.sidebar-collapsed .content-wrapper {
    ============================================================================ */
 .lk-header,
 .lk-main {
-  padding-left: var(--content-px);
-  padding-right: var(--content-px);
+  padding-left: var(--spacing-3);
 }
 
 .lk-main {
