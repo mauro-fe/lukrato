@@ -188,8 +188,8 @@ class Response
         self::error($message, 403);
     }
 
-    public static function validationError(array $errors): void
+    public static function validationError(array $errors, int $code = 422): void
     {
-        self::error('Validation failed', 422, $errors);
+        self::error('Validation failed', $code, $errors);
     }
 }

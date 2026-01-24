@@ -126,7 +126,7 @@ class Router
             return;
         }
         if ($e instanceof ValidationException) {
-            Response::validationError($e->getErrors());
+            Response::validationError($e->getErrors(), $e->getCode());
             return;
         }
     }

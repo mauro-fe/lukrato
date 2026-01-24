@@ -944,7 +944,7 @@
 .table-container .tabulator .tabulator-footer {
   background: var(--color-surface-muted);
   border-top: 2px solid var(--glass-border);
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-size: var(--font-size-xs);
   padding: var(--spacing-4) var(--spacing-5);
   display: flex;
@@ -952,6 +952,11 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-4);
+}
+
+.table-container .tabulator .tabulator-footer label {
+  color: var(--color-text);
+  font-weight: 500;
 }
 
 .table-container .tabulator .tabulator-footer .tabulator-page-size,
@@ -992,8 +997,21 @@
   .tabulator-footer
   .tabulator-page:not(.disabled):hover,
 .table-container .tabulator .tabulator-footer .tabulator-page-size:hover {
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 15%,
+    var(--color-surface)
+  );
   border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.table-container
+  .tabulator
+  .tabulator-footer
+  .tabulator-page-size:hover
+  select {
+  color: var(--color-text);
 }
 
 .table-container .tabulator .tabulator-footer .tabulator-page.disabled {

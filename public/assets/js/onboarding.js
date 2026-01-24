@@ -24,31 +24,23 @@ class OnboardingManager {
     setupEventListeners() {
         // Escuta eventos de mudança de dados para atualizar onboarding automaticamente
         window.addEventListener('lukrato:data-changed', () => {
-            console.log('🎯 [Onboarding] Evento lukrato:data-changed detectado');
             setTimeout(() => this.checkEmptyState(), 1500);
         });
 
         // Escutar criação de lançamentos diretamente
         window.addEventListener('lancamento-created', () => {
-            console.log('🎯 [Onboarding] Lançamento criado detectado');
             setTimeout(() => this.checkEmptyState(), 1000);
         });
     }
 
     init() {
-        console.log('🎯 [Onboarding] Inicializando...');
-        
+
         // Verificar se já completou o onboarding
         if (this.isCompleted()) {
-            console.log('🎯 [Onboarding] Já completado anteriormente');
             // Se já completou, apenas verificar estado para mostrar cards se necessário
             setTimeout(() => this.checkEmptyState(), 1000);
             return;
         }
-
-        // Para novo usuário, mostrar modal de boas-vindas primeiro
-        console.log('🎯 [Onboarding] Novo usuário detectado');
-        
         // Aguardar carregamento do DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.start());
@@ -67,8 +59,6 @@ class OnboardingManager {
 
     async checkEmptyState() {
         try {
-            console.log('🎯 [Onboarding] Verificando estado...');
-            
             // Verificar se há contas
             const contasResponse = await fetch(`${this.baseUrl}api/contas`);
             const contas = await contasResponse.json();
@@ -79,8 +69,6 @@ class OnboardingManager {
             const lancamentos = await lancamentosResponse.json();
             const hasLancamentos = Array.isArray(lancamentos) ? lancamentos.length > 0 : (lancamentos.data?.length > 0 || false);
 
-            console.log('🎯 [Onboarding] Estado:', { hasContas, hasLancamentos });
-
             // Salvar progresso
             this.updateProgress({
                 hasContas,
@@ -89,17 +77,14 @@ class OnboardingManager {
 
             // Se não tem nada, mostrar empty state melhorado
             if (!hasContas && !hasLancamentos) {
-                console.log('🎯 [Onboarding] Mostrando empty state cards');
                 this.showEmptyStateCards();
             }
             // Se tem conta mas não tem lançamento
             else if (hasContas && !hasLancamentos) {
-                console.log('🎯 [Onboarding] Mostrando guia próximo passo');
                 this.showNextStepGuide('lancamento');
             }
             // Se completou tudo, mostrar celebração
             else if (hasContas && hasLancamentos) {
-                console.log('🎯 [Onboarding] SETUP COMPLETO! Mostrando celebração...');
                 this.showCompletionCelebration();
             }
         } catch (error) {
@@ -215,7 +200,7 @@ class OnboardingManager {
         }
 
         localStorage.setItem('lukrato_onboarding_celebration_shown', 'true');
-        
+
         // Marcar onboarding como completado
         this.markCompleted();
 
@@ -475,14 +460,11 @@ class OnboardingManager {
     }
 
     start() {
-        console.log('🎯 [Onboarding] Iniciando tour de boas-vindas...');
         // Mostrar modal de boas-vindas
         this.showWelcomeModal();
     }
 
     showWelcomeModal() {
-        console.log('🎯 [Onboarding] Exibindo modal de boas-vindas');
-        
         const modalHTML = `
             <div class="onboarding-modal-overlay" id="onboardingModalOverlay">
                 <div class="onboarding-modal">

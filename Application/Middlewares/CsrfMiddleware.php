@@ -138,26 +138,27 @@ class CsrfMiddleware
         ]);
 
         $remainingTtl = self::getTokenRemainingTtl($tokenId);
-        
-        throw new ValidationException([
-            'csrf_token' => "Token CSRF invalido ou expirado (tokenId: {$tokenId}). Recarregue a pagina.",
-            'csrf_expired' => true,
-            'remaining_ttl' => $remainingTtl
-        ], 419); // 419 = Session Expired (Laravel convention)
+
+        throw new ValidationException(
+            errors: [
+                'csrf_token' => "Token CSRF invalido ou expirado (tokenId: {$tokenId}). Recarregue a pagina.",
+                'csrf_expired' => true,
+                'remaining_ttl' => $remainingTtl
+            ],
+            message: 'CSRF token invalid or expired',
+            code: 419 // 419 = Session Expired (Laravel convention)
+        );
     }
 
     /**
-     * Tries to extract the token from form/query, headers or JSON body.
+     * Tries to extract the token from headers, form/query, or JSON body.
+     * Header is checked first for better retry support.
      *
      * @return array{0: string, 1: string}
      */
     private static function extractToken(Request $request): array
     {
-        $token = (string) ($request->get('csrf_token') ?? $request->get('_token') ?? '');
-        if ($token !== '') {
-            return [$token, 'body'];
-        }
-
+        // Check headers FIRST - better for retry scenarios where body may have stale token
         $headersToCheck = [
             'X-CSRF-TOKEN',
             'X-CSRF-Token',
@@ -175,6 +176,13 @@ class CsrfMiddleware
             return [$hv, 'header'];
         }
 
+        // Then check form/query body
+        $token = (string) ($request->get('csrf_token') ?? $request->get('_token') ?? '');
+        if ($token !== '') {
+            return [$token, 'body'];
+        }
+
+        // Finally check JSON body
         $raw = file_get_contents('php://input');
         if (is_string($raw) && $raw !== '') {
             $json = json_decode($raw, true);

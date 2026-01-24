@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Resposta vazia
             }
 
-            const isCsrfError = res.status === 403 && (
+            const isCsrfError = (res.status === 403 || res.status === 419 || res.status === 422) && (
                 (json?.errors && json.errors.csrf_token) ||
                 String(json?.message || '').toLowerCase().includes('csrf')
             );
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!res.ok || (json && json.status === 'error')) {
-                if (res.status === 422 && json?.errors) {
+                if (res.status === 422 && json?.errors && !isCsrfError) {
                     const detalhes = Object.values(json.errors).flat().join('\n');
                     throw new Error(detalhes || json?.message || 'Erros de validação.');
                 }
@@ -1615,7 +1615,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Enviar frequência se houver recorrência
             if (recorrente === '1' && frequencia) {
                 payload.append('recorrencia_freq', frequencia);
-                
+
                 // Enviar número de repetições se informado
                 const repeticoes = (DOM.agRepeticoes?.value || '').trim();
                 if (repeticoes) {
@@ -2329,7 +2329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!selectFrequencia || !repeticoesGroup) return;
 
             // Mostrar/ocultar campo de repetições baseado no select de frequência
-            selectFrequencia.addEventListener('change', function() {
+            selectFrequencia.addEventListener('change', function () {
                 if (this.value && this.value !== '') {
                     repeticoesGroup.style.display = 'block';
                 } else {
