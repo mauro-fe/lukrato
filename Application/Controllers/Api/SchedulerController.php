@@ -31,11 +31,17 @@ class SchedulerController extends BaseController
         // Tenta $_ENV primeiro, depois getenv() como fallback
         $expectedToken = $_ENV['SCHEDULER_TOKEN'] ?? getenv('SCHEDULER_TOKEN') ?: null;
 
+        // Loga os valores para debug (mascara para não expor tudo)
+        LogService::warning('[Scheduler][DEBUG] Token recebido e esperado', [
+            'token_recebido' => $token ? substr($token, 0, 6) . '...' . substr($token, -6) : null,
+            'token_esperado' => $expectedToken ? substr($expectedToken, 0, 6) . '...' . substr($expectedToken, -6) : null,
+            'token_igual' => $expectedToken && $token ? hash_equals($expectedToken, (string) $token) : false,
+            'env_keys' => array_keys($_ENV),
+            'getenv_result' => getenv('SCHEDULER_TOKEN') !== false,
+        ]);
+
         if (empty($expectedToken)) {
-            LogService::warning('[Scheduler] SCHEDULER_TOKEN não configurado no .env', [
-                'env_keys' => array_keys($_ENV),
-                'getenv_result' => getenv('SCHEDULER_TOKEN') !== false,
-            ]);
+            LogService::warning('[Scheduler] SCHEDULER_TOKEN não configurado no .env');
             return false;
         }
 
