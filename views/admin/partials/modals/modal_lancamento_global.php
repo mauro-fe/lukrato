@@ -173,6 +173,11 @@
                         <label for="globalLancamentoCartaoCredito" class="lk-label">
                             <i class="fas fa-credit-card"></i>
                             Pagar com Cartão de Crédito
+                            <button type="button" class="lk-info"
+                                data-lk-tooltip="Ative esta opção quando a despesa foi paga no cartão de crédito. O Lukrato poderá organizar parcelas e relatórios corretamente."
+                                aria-label="Ajuda: Pagar com Cartão de Crédito">
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                            </button>
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select">
@@ -240,15 +245,11 @@
                         <label for="globalLancamentoCategoria" class="lk-label">
                             <i class="fas fa-tag"></i>
                             Categoria
-                            <label class="lk-label">
-                                Categoria
-                                <button type="button" class="lk-info"
-                                    data-lk-tooltip="A categoria ajuda a organizar seus gastos. Escolha a que melhor representa essa despesa."
-                                    aria-label="Ajuda: Categoria">
-                                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                                </button>
-                            </label>
-
+                            <button type="button" class="lk-info"
+                                data-lk-tooltip="A categoria ajuda a organizar seus gastos. Escolha a que melhor representa essa despesa."
+                                aria-label="Ajuda: Categoria">
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                            </button>
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select">

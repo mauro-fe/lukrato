@@ -510,24 +510,60 @@ class CartoesManager {
                         Fatura Pendente
                     </div>
                 ` : ''}
-                <div class="card-header">
-                    <div class="card-brand">
-                        <img src="${brandIcon}" alt="${cartao.bandeira}" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                        <i class="brand-icon-fallback fas fa-credit-card" style="display: none;"></i>
-                        <span class="card-name">${this.escapeHtml(cartao.nome_cartao || cartao.nome)}</span>
-                    </div>
-                    <div class="card-actions">
-                        <button class="card-action-btn" onclick="cartoesManager.verFatura(${cartao.id})" title="Ver Fatura">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </button>
-                        <button class="card-action-btn" onclick="cartoesManager.editCartao(${cartao.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="card-action-btn" onclick="cartoesManager.arquivarCartao(${cartao.id})" title="Arquivar">
-                            <i class="fas fa-archive"></i>
-                        </button>
-                    </div>
-                </div>
+               <div class="card-header">
+    <div class="card-brand">
+        <img
+            src="${brandIcon}"
+            alt="${cartao.bandeira}"
+            class="brand-logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+        >
+        <i class="brand-icon-fallback fas fa-credit-card" style="display: none;" aria-hidden="true"></i>
+        <span class="card-name">
+            ${this.escapeHtml(cartao.nome_cartao || cartao.nome)}
+        </span>
+    </div>
+
+    <div class="card-actions">
+
+        <!-- Tooltip de regra de exclusão -->
+        <button
+            type="button"
+            class="lk-info"
+            data-lk-tooltip-title="Exclusão de cartões"
+            data-lk-tooltip="Para evitar perda de histórico e faturas, cartões só podem ser excluídos após serem arquivados. Arquive o cartão primeiro e depois realize a exclusão."
+            aria-label="Ajuda: Exclusão de cartões"
+        >
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        </button>
+
+        <button
+            class="card-action-btn"
+            onclick="cartoesManager.verFatura(${cartao.id})"
+            title="Ver Fatura"
+        >
+            <i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>
+        </button>
+
+        <button
+            class="card-action-btn"
+            onclick="cartoesManager.editCartao(${cartao.id})"
+            title="Editar"
+        >
+            <i class="fas fa-edit" aria-hidden="true"></i>
+        </button>
+
+        <button
+            class="card-action-btn"
+            onclick="cartoesManager.arquivarCartao(${cartao.id})"
+            title="Arquivar"
+        >
+            <i class="fas fa-archive" aria-hidden="true"></i>
+        </button>
+
+    </div>
+</div>
+
 
                 <div class="card-number">
                     •••• •••• •••• ${cartao.ultimos_digitos || '0000'}

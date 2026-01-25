@@ -92,10 +92,17 @@
                 <div class="form-row">
                     <!-- Dia Fechamento -->
                     <div class="form-group">
-                        <label for="diaFechamento" class="form-label">
-                            <i class="fas fa-calendar-check"></i>
-                            Dia Fechamento
+                        <label for="diaFechamento" class="form-label lk-label">
+                            <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                            <span>Dia de fechamento</span>
+
+                            <button type="button" class="lk-info" data-lk-tooltip-title="Dia de fechamento"
+                                data-lk-tooltip="Compras realizadas a partir deste dia serão lançadas na fatura do mês seguinte. Use esta data conforme a regra do seu cartão."
+                                aria-label="Ajuda: Dia de fechamento">
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                            </button>
                         </label>
+
                         <input type="number" id="diaFechamento" name="dia_fechamento" class="form-input" min="1"
                             max="31" placeholder="Ex: 10" required>
                         <small class="form-help">Dia que a fatura fecha</small>

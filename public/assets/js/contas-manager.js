@@ -260,20 +260,45 @@ class ContasManager {
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
 
         return `
-            <div class="account-card" data-account-id="${conta.id}">
-                <div class="account-header" style="background: ${corPrimaria};">
-                    <div class="account-logo">
-                        <img src="${logoUrl}" alt="${conta.nome}" />
-                    </div>
-                    <div class="account-actions">
-                        <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais opções">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                    </div>
-                </div>
+           <div class="account-card" data-account-id="${conta.id}">
+    <div class="account-header" style="background: ${corPrimaria};">
+        <div class="account-logo">
+            <img src="${logoUrl}" alt="${conta.nome}" />
+        </div>
+
+        <div class="account-actions">
+
+            <!-- Tooltip de regra de exclusão -->
+            <button
+                type="button"
+                class="lk-info"
+                data-lk-tooltip-title="Exclusão de contas"
+                data-lk-tooltip="Para manter a integridade dos seus dados, contas só podem ser excluídas após serem arquivadas. Arquive a conta primeiro e depois realize a exclusão."
+                aria-label="Ajuda: Exclusão de contas"
+            >
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            </button>
+
+            <button
+                class="btn-icon"
+                onclick="contasManager.editConta(${conta.id})"
+                title="Editar"
+            >
+                <i class="fas fa-edit" aria-hidden="true"></i>
+            </button>
+
+            <button
+                class="btn-icon"
+                onclick="contasManager.moreConta(${conta.id}, event)"
+                title="Mais opções"
+            >
+                <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+            </button>
+
+        </div>
+    </div>
+</div>
+
                 <div class="account-body">
                     <h3 class="account-name">${conta.nome}</h3>
                     <div class="account-institution">${instituicao ? instituicao.nome : 'Instituição não definida'}</div>

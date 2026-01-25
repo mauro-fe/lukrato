@@ -2,9 +2,21 @@
 
 <div class="profile-page">
     <div class="profile-header">
-        <h1 class="profile-title">Meu Perfil</h1>
-        <p class="profile-subtitle">Gerencie suas informações pessoais e configurações de conta</p>
+        <div class="profile-header-top">
+            <h1 class="profile-title">Meu Perfil</h1>
+
+            <button type="button" class="lk-info" data-lk-tooltip-title="Perfil completo"
+                data-lk-tooltip="Manter seus dados sempre completos ajuda na segurança da conta, recuperação de acesso, faturamento e melhor funcionamento do Lukrato."
+                aria-label="Ajuda: Perfil completo">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <p class="profile-subtitle">
+            Gerencie suas informações pessoais e configurações de conta
+        </p>
     </div>
+
 
     <form id="profileForm">
         <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
