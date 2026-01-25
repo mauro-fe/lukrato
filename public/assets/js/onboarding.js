@@ -28,25 +28,53 @@ class OnboardingManager {
     setupEventListeners() {
         // Escuta eventos de mudança de dados para atualizar onboarding automaticamente
         window.addEventListener('lukrato:data-changed', () => {
-            setTimeout(() => this.checkEmptyState(), 1500);
+            setTimeout(() => this.checkEmptyState(), 500);
         });
 
-        // Escutar criação de lançamentos diretamente
+        // Escutar criação de lançamentos diretamente - verificar IMEDIATAMENTE
         window.addEventListener('lancamento-created', () => {
-            setTimeout(() => this.checkEmptyState(), 1000);
+            console.log('🎯 [Onboarding] Evento lancamento-created detectado');
+            setTimeout(() => this.checkEmptyState(), 300);
+        });
+
+        // Escutar criação de contas
+        window.addEventListener('conta-created', () => {
+            console.log('🎯 [Onboarding] Evento conta-created detectado');
+            setTimeout(() => this.checkEmptyState(), 300);
         });
     }
 
-    async init() {
-        // Primeiro, sincronizar status com o servidor
-        await this.syncWithServer();
+    init() {
+        const completed = this.isCompleted();
+        const inProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
 
-        // Verificar se já completou o onboarding
-        if (this.isCompleted()) {
-            // Se já completou, apenas verificar estado para mostrar cards se necessário
+        console.log('🎯 [Onboarding] init - completed:', completed, 'inProgress:', inProgress);
+
+        // Se marcado como completo, FORÇAR despausar gamificação
+        if (completed) {
+            window.gamificationPaused = false;
+            localStorage.removeItem('lukrato_onboarding_in_progress'); // Limpar flag de progresso
+            console.log('✅ [Onboarding] Onboarding completo - gamificação ATIVA');
+            console.log('✅ [Onboarding] window.gamificationPaused =', window.gamificationPaused);
             setTimeout(() => this.checkEmptyState(), 1000);
             return;
         }
+
+        // PAUSAR GAMIFICAÇÃO SE ESTIVER EM PROGRESSO (em qualquer página)
+        if (inProgress) {
+            window.gamificationPaused = true;
+            console.log('🎯 [Onboarding] Gamificação pausada - onboarding em progresso');
+        }
+
+        // Se está em progresso, mostrar cards mas não o modal
+        if (inProgress) {
+            setTimeout(() => this.checkEmptyState(), 1000);
+            return;
+        }
+
+        // Se NÃO está completo E NÃO está em progresso = NOVO USUÁRIO
+        console.log('🎯 [Onboarding] Novo usuário detectado - mostrando modal de boas-vindas');
+
         // Aguardar carregamento do DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.start());
@@ -120,6 +148,8 @@ class OnboardingManager {
 
     async checkEmptyState() {
         try {
+            console.log('🎯 [Onboarding] Verificando estado...');
+
             // Verificar se há contas
             const contasResponse = await fetch(`${this.baseUrl}api/contas`);
             const contas = await contasResponse.json();
@@ -130,22 +160,40 @@ class OnboardingManager {
             const lancamentos = await lancamentosResponse.json();
             const hasLancamentos = Array.isArray(lancamentos) ? lancamentos.length > 0 : (lancamentos.data?.length > 0 || false);
 
+            console.log('🎯 [Onboarding] Estado:', { hasContas, hasLancamentos });
+
             // Salvar progresso
             this.updateProgress({
                 hasContas,
                 hasLancamentos
             });
 
+            // NOVO USUÁRIO: Se não tem nada E onboarding está marcado como completo, 
+            // significa que o localStorage está "sujo" de outra conta - resetar!
+            if (!hasContas && !hasLancamentos && this.isCompleted()) {
+                console.log('🎯 [Onboarding] Detectado novo usuário real - resetando onboarding...');
+                localStorage.removeItem(this.storageKey);
+                localStorage.removeItem('lukrato_onboarding_celebration_shown');
+                localStorage.removeItem('lukrato_onboarding_progress');
+                localStorage.removeItem('lukrato_onboarding_in_progress');
+                // Mostrar modal de boas-vindas
+                this.showWelcomeModal();
+                return;
+            }
+
             // Se não tem nada, mostrar empty state melhorado
             if (!hasContas && !hasLancamentos) {
+                console.log('🎯 [Onboarding] Mostrando empty state cards');
                 this.showEmptyStateCards();
             }
             // Se tem conta mas não tem lançamento
             else if (hasContas && !hasLancamentos) {
+                console.log('🎯 [Onboarding] Mostrando guia próximo passo');
                 this.showNextStepGuide('lancamento');
             }
             // Se completou tudo, mostrar celebração
             else if (hasContas && hasLancamentos) {
+                console.log('🎯 [Onboarding] SETUP COMPLETO! Mostrando celebração...');
                 this.showCompletionCelebration();
             }
         } catch (error) {
@@ -265,8 +313,18 @@ class OnboardingManager {
         // Marcar onboarding como completado
         await this.markCompleted();
 
+        // BLOQUEAR conquistas temporariamente para não atropelarem o modal de setup
+        window.gamificationPaused = true;
+        console.log('🎯 [Onboarding] Pausando gamificação para mostrar celebração de setup primeiro');
+
+        // FECHAR QUALQUER MODAL EXISTENTE DO SWEETALERT2
+        if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+            console.log('🎯 [Onboarding] Fechando modal de conquista existente');
+            Swal.close();
+        }
+
         // Aguardar um pouco para processar o lançamento
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // Tocar som IMEDIATAMENTE
         try {
@@ -283,10 +341,11 @@ class OnboardingManager {
         // Confetes logo após o som
         try {
             if (typeof confetti === 'function') {
+                console.log('🎊 Disparando confetes de celebração!');
                 setTimeout(() => {
                     const duration = 3 * 1000;
                     const animationEnd = Date.now() + duration;
-                    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
+                    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100000 };
 
                     const interval = setInterval(function () {
                         const timeLeft = animationEnd - Date.now();
@@ -299,6 +358,8 @@ class OnboardingManager {
                         }));
                     }, 250);
                 }, 100);
+            } else {
+                console.warn('⚠️ Biblioteca confetti não está carregada');
             }
         } catch (error) {
             console.error('❌ Erro ao executar confetes:', error);
@@ -350,7 +411,7 @@ class OnboardingManager {
                         </ul>
                     </div>
 
-                    <button class="cc-close-btn" onclick="this.closest('.completion-celebration-overlay').remove(); document.querySelector('.onboarding-welcome')?.remove();">
+                    <button class="cc-close-btn" onclick="this.closest('.completion-celebration-overlay').remove(); document.querySelector('.onboarding-welcome')?.remove(); window.gamificationPaused = false; if(typeof window.showPendingAchievements === 'function') { window.showPendingAchievements(); }">
                         Começar a usar!
                     </button>
                 </div>
@@ -588,13 +649,16 @@ class OnboardingManager {
         // Fechar modal de boas-vindas
         document.getElementById('onboardingModalOverlay')?.remove();
 
-        // Marcar como completado e mostrar cards de ação
-        await this.markCompleted();
+        // Marcar como EM PROGRESSO (não completo ainda)
+        localStorage.setItem('lukrato_onboarding_in_progress', 'true');
+
+        // Mostrar cards de ação
         this.showEmptyStateCards();
     }
 
-    async skip() {
-        await this.markCompleted();
+    skip() {
+        this.markCompleted();
+        localStorage.setItem('lukrato_onboarding_in_progress', 'true'); // Também marcar como em progresso
         document.getElementById('onboardingModalOverlay')?.remove();
         document.querySelector('.onboarding-welcome')?.remove();
 

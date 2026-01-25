@@ -107,10 +107,32 @@ class CartoesController
             return;
         }
 
+        // 🎮 GAMIFICAÇÃO: Verificar conquistas após criar cartão
+        $gamificationResult = [];
+        try {
+            error_log("🎮 [GAMIFICATION] Verificando conquistas para user_id: {$userId}");
+            $achievementService = new \Application\Services\AchievementService();
+            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'card_created');
+            
+            error_log("🎮 [GAMIFICATION] Conquistas encontradas: " . count($newAchievements));
+            
+            if (!empty($newAchievements)) {
+                $gamificationResult['achievements'] = $newAchievements;
+                error_log("🎮 [GAMIFICATION] " . count($newAchievements) . " conquistas desbloqueadas após criar cartão");
+                error_log("🎮 [GAMIFICATION] Conquistas: " . json_encode($newAchievements));
+            } else {
+                error_log("ℹ️ [GAMIFICATION] Nenhuma conquista nova para desbloquear");
+            }
+        } catch (\Exception $e) {
+            error_log("❌ [GAMIFICATION] Erro ao verificar conquistas: " . $e->getMessage());
+            error_log("❌ [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
+        }
+
         Response::json([
             'ok' => true,
             'id' => $resultado['id'],
             'data' => $resultado['data'],
+            'gamification' => $gamificationResult,
         ], 201);
     }
 
@@ -316,6 +338,29 @@ class CartoesController
 
         try {
             $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId);
+            
+            // 🎮 GAMIFICAÇÃO: Verificar conquistas após pagar fatura
+            $gamificationResult = [];
+            try {
+                error_log("🎮 [GAMIFICATION] Verificando conquistas para user_id: {$userId}");
+                $achievementService = new \Application\Services\AchievementService();
+                $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'invoice_paid');
+                
+                error_log("🎮 [GAMIFICATION] Conquistas encontradas: " . count($newAchievements));
+                
+                if (!empty($newAchievements)) {
+                    $gamificationResult['achievements'] = $newAchievements;
+                    $resultado['gamification'] = $gamificationResult;
+                    error_log("🎮 [GAMIFICATION] " . count($newAchievements) . " conquistas desbloqueadas após pagar fatura");
+                    error_log("🎮 [GAMIFICATION] Conquistas: " . json_encode($newAchievements));
+                } else {
+                    error_log("ℹ️ [GAMIFICATION] Nenhuma conquista nova para desbloquear");
+                }
+            } catch (\Exception $e) {
+                error_log("❌ [GAMIFICATION] Erro ao verificar conquistas: " . $e->getMessage());
+                error_log("❌ [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
+            }
+            
             Response::json($resultado);
         } catch (\Exception $e) {
             Response::json([

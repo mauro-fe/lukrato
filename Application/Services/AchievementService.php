@@ -39,8 +39,11 @@ class AchievementService
      */
     public function checkAndUnlockAchievements(int $userId, ?string $context = null): array
     {
+        error_log("🔍 [ACHIEVEMENT] Iniciando verificação para user_id: {$userId}, context: {$context}");
+        
         $user = Usuario::find($userId);
         if (!$user) {
+            error_log("❌ [ACHIEVEMENT] Usuário não encontrado: {$userId}");
             return [];
         }
 
@@ -50,6 +53,7 @@ class AchievementService
         // Pro: pode desbloquear todas (free + pro + all)
         // Free: pode desbloquear apenas free + all
         $isPro = $user->isPro();
+        error_log("👤 [ACHIEVEMENT] Usuário é Pro? " . ($isPro ? 'Sim' : 'Não'));
 
         $availableQuery = Achievement::active();
 
@@ -63,6 +67,7 @@ class AchievementService
         // Usuário Pro: não filtra, pode desbloquear todas
 
         $availableAchievements = $availableQuery->get();
+        error_log("📋 [ACHIEVEMENT] Total de conquistas disponíveis: " . $availableAchievements->count());
 
         foreach ($availableAchievements as $achievement) {
             // Pular se já desbloqueou
@@ -71,14 +76,18 @@ class AchievementService
             }
 
             // Verificar se pode desbloquear
-            if ($this->canUnlock($userId, $achievement->code, $user)) {
+            $canUnlock = $this->canUnlock($userId, $achievement->code, $user);
+            if ($canUnlock) {
+                error_log("✅ [ACHIEVEMENT] Pode desbloquear: {$achievement->code}");
                 $result = $this->unlockAchievement($userId, $achievement->id);
                 if ($result['success']) {
                     $unlockedNow[] = $result['achievement'];
+                    error_log("🎉 [ACHIEVEMENT] Desbloqueada: {$achievement->code}");
                 }
             }
         }
 
+        error_log("🏆 [ACHIEVEMENT] Total desbloqueadas: " . count($unlockedNow));
         return $unlockedNow;
     }
 
@@ -250,6 +259,10 @@ class AchievementService
                     'related_type' => 'achievement',
                 ]);
 
+                // 🔄 RECALCULAR NÍVEL após adicionar pontos da conquista
+                $gamificationService = new GamificationService();
+                $gamificationService->recalculateLevel($userId);
+
                 error_log("🏆 [ACHIEVEMENT] User {$userId} desbloqueou '{$achievement->name}' (+{$achievement->points_reward} pts)");
             }
         }
@@ -394,8 +407,21 @@ class AchievementService
 
     private function checkTotalCategories(int $userId, int $total): bool
     {
-        // Contar todas as categorias do usuário
-        return Categoria::where('user_id', $userId)->count() >= $total;
+        // Lista de categorias padrão que são criadas automaticamente no registro
+        $categoriaPadrao = [
+            '🏠 Moradia', '🍔 Alimentação', '🚗 Transporte', '💡 Contas e Serviços',
+            '🏥 Saúde', '🎓 Educação', '👕 Vestuário', '🎬 Lazer', '💳 Cartão de Crédito',
+            '📱 Assinaturas', '🛒 Compras', '💰 Outros Gastos',
+            '💼 Salário', '💰 Freelance', '📈 Investimentos', '🎁 Bônus',
+            '💸 Vendas', '🏆 Prêmios', '💵 Outras Receitas'
+        ];
+
+        // Contar apenas categorias PERSONALIZADAS (não padrão) do usuário
+        $count = Categoria::where('user_id', $userId)
+            ->whereNotIn('nome', $categoriaPadrao)
+            ->count();
+
+        return $count >= $total;
     }
 
     private function checkMasterOrganization(int $userId, Usuario $user): bool
@@ -630,13 +656,21 @@ class AchievementService
     {
         $userCards = CartaoCredito::where('user_id', $userId)->pluck('id');
 
+        error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - userId: {$userId}");
+        error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - cartões do usuário: " . $userCards->count());
+
         if ($userCards->isEmpty()) {
+            error_log("❌ [ACHIEVEMENT] checkFirstInvoicePaid - Usuário não tem cartões");
             return false;
         }
 
-        return Fatura::whereIn('cartao_credito_id', $userCards)
+        $faturaPaga = Fatura::whereIn('cartao_credito_id', $userCards)
             ->where('status', 'paga')
-            ->count() >= 1;
+            ->count();
+
+        error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - faturas pagas: {$faturaPaga}");
+        
+        return $faturaPaga >= 1;
     }
 
     /**

@@ -213,6 +213,13 @@ class CategoriasManager {
 
             const result = await response.json();
 
+            // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
+            if (result.data?.gamification?.achievements && Array.isArray(result.data.gamification.achievements)) {
+                if (typeof window.notifyMultipleAchievements === 'function') {
+                    window.notifyMultipleAchievements(result.data.gamification.achievements);
+                }
+            }
+
             this.showSuccess('Categoria criada com sucesso!');
             form.reset();
 
