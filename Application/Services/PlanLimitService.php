@@ -98,12 +98,12 @@ class PlanLimitService
     // ============================================================
 
     /**
-     * Conta quantas contas bancárias o usuário possui (não arquivadas)
+     * Conta quantas contas bancárias ativas o usuário possui
      */
     public function countContas(int $userId): int
     {
         return Conta::where('user_id', $userId)
-            ->where('arquivada', 0)
+            ->where('ativo', 1)
             ->count();
     }
 

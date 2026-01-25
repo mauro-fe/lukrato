@@ -33,12 +33,33 @@ class PlanController
             return;
         }
 
-        $summary = $this->limitService->getLimitsSummary($userId);
+        try {
+            $summary = $this->limitService->getLimitsSummary($userId);
 
-        Response::json([
-            'success' => true,
-            'data' => $summary,
-        ]);
+            Response::json([
+                'success' => true,
+                'data' => $summary,
+            ]);
+        } catch (\Throwable $e) {
+            // Log do erro para debug
+            error_log("[PlanController] Erro ao buscar limites: " . $e->getMessage());
+
+            // Retornar resposta padrão sem bloquear o usuário
+            Response::json([
+                'success' => true,
+                'data' => [
+                    'plan' => 'free',
+                    'is_pro' => false,
+                    'contas' => ['allowed' => true, 'limit' => null, 'used' => 0],
+                    'cartoes' => ['allowed' => true, 'limit' => null, 'used' => 0],
+                    'categorias' => ['allowed' => true, 'limit' => null, 'used' => 0],
+                    'metas' => ['allowed' => true, 'limit' => null, 'used' => 0],
+                    'historico' => ['restricted' => false],
+                    'features' => [],
+                    'upgrade_url' => '/assinatura',
+                ],
+            ]);
+        }
     }
 
     /**
