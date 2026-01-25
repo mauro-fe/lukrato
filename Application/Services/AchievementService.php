@@ -432,41 +432,77 @@ class AchievementService
         return $progress && $progress->current_level >= $level;
     }
 
+    /**
+     * Verifica se o usuário terminou algum mês com saldo positivo
+     * IMPORTANTE: Só verifica meses FECHADOS (anteriores ao atual)
+     * Critério: saldo final do mês > saldo inicial do mês
+     */
     private function checkPositiveMonth(int $userId): bool
     {
-        $currentMonth = Carbon::now()->format('Y-m');
+        // Verificar os últimos 12 meses FECHADOS (excluindo o mês atual)
+        for ($i = 1; $i <= 12; $i++) {
+            $month = Carbon::now()->subMonths($i);
+            $monthStr = $month->format('Y-m');
+            $startOfMonth = $month->copy()->startOfMonth()->format('Y-m-d');
+            $endOfMonth = $month->copy()->endOfMonth()->format('Y-m-d');
 
-        // Precisa ter pelo menos 3 lançamentos no mês para validar
-        $totalLancamentos = Lancamento::where('user_id', $userId)
-            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
-            ->count();
+            // Precisa ter pelo menos 3 lançamentos no mês para validar
+            $totalLancamentos = Lancamento::where('user_id', $userId)
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$monthStr])
+                ->count();
 
-        if ($totalLancamentos < 3) {
-            return false;
+            if ($totalLancamentos < 3) {
+                continue;
+            }
+
+            // Calcular saldo inicial do mês (saldo acumulado até o dia anterior ao início)
+            $dayBeforeMonth = $month->copy()->startOfMonth()->subDay()->format('Y-m-d');
+
+            $saldoInicialReceitas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'receita')
+                ->where('data', '<=', $dayBeforeMonth)
+                ->sum('valor');
+
+            $saldoInicialDespesas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'despesa')
+                ->where('data', '<=', $dayBeforeMonth)
+                ->sum('valor');
+
+            $saldoInicial = $saldoInicialReceitas - $saldoInicialDespesas;
+
+            // Calcular saldo final do mês (saldo acumulado até o fim do mês)
+            $saldoFinalReceitas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'receita')
+                ->where('data', '<=', $endOfMonth)
+                ->sum('valor');
+
+            $saldoFinalDespesas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'despesa')
+                ->where('data', '<=', $endOfMonth)
+                ->sum('valor');
+
+            $saldoFinal = $saldoFinalReceitas - $saldoFinalDespesas;
+
+            // Mês vitorioso: saldo final > saldo inicial
+            if ($saldoFinal > $saldoInicial) {
+                return true;
+            }
         }
 
-        $receitas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'receita')
-            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
-            ->sum('valor');
-
-        $despesas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
-            ->sum('valor');
-
-        return $receitas > 0 && $despesas > 0 && $receitas > $despesas;
+        return false;
     }
 
     // ===== NOVAS VERIFICAÇÕES - ECONOMIA =====
 
     /**
-     * Verifica se o usuário economizou X% da receita em algum mês
+     * Verifica se o usuário economizou X% da receita em algum mês FECHADO
+     * IMPORTANTE: Só verifica meses FECHADOS (anteriores ao atual)
+     * Economia = (receitas - despesas) / receitas * 100
      */
     private function checkSavingsPercentage(int $userId, int $percentage): bool
     {
-        // Verificar os últimos 12 meses
-        for ($i = 0; $i < 12; $i++) {
+        // Verificar os últimos 12 meses FECHADOS (começando do mês anterior, excluindo atual)
+        for ($i = 1; $i <= 12; $i++) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
 
             // Precisa ter pelo menos 5 lançamentos no mês para validar economia
@@ -538,27 +574,42 @@ class AchievementService
     // ===== NOVAS VERIFICAÇÕES - ORGANIZAÇÃO =====
 
     /**
-     * Verifica se todas as despesas do mês atual estão categorizadas
+     * Verifica se todas as despesas de um mês FECHADO estão categorizadas
+     * IMPORTANTE: Só verifica meses FECHADOS (anteriores ao atual)
+     * Critério: TODAS as despesas do mês devem ter categoria_id válido
      */
     private function checkPerfectionist(int $userId): bool
     {
-        $currentMonth = Carbon::now()->format('Y-m');
+        // Verificar os últimos 12 meses FECHADOS (excluindo o mês atual)
+        for ($i = 1; $i <= 12; $i++) {
+            $month = Carbon::now()->subMonths($i)->format('Y-m');
 
-        $despesasSemCategoria = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
-            ->where(function ($q) {
-                $q->whereNull('categoria_id')
-                    ->orWhere('categoria_id', 0);
-            })
-            ->count();
+            $totalDespesas = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'despesa')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->count();
 
-        $totalDespesas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$currentMonth])
-            ->count();
+            // Precisa ter pelo menos 5 despesas no mês para validar
+            if ($totalDespesas < 5) {
+                continue;
+            }
 
-        return $totalDespesas > 0 && $despesasSemCategoria === 0;
+            $despesasSemCategoria = Lancamento::where('user_id', $userId)
+                ->where('tipo', 'despesa')
+                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->where(function ($q) {
+                    $q->whereNull('categoria_id')
+                        ->orWhere('categoria_id', 0);
+                })
+                ->count();
+
+            // Se todas as despesas estão categorizadas neste mês
+            if ($despesasSemCategoria === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ===== NOVAS VERIFICAÇÕES - CARTÕES =====

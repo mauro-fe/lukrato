@@ -60,6 +60,9 @@ Se seu servidor suporta cron jobs nativos, configure assim:
 
 # Assinaturas expiradas a cada hora
 0 * * * * curl -s "https://seudominio.com.br/api/scheduler/process-expired-subscriptions?token=SEU_TOKEN" > /dev/null
+
+# Verificação mensal de conquistas (1º dia do mês às 01:00)
+0 1 1 * * php /path/to/cli/check_monthly_achievements.php > /dev/null
 ```
 
 ### Opção 2: Cron URL (Hostinger, cPanel, etc)

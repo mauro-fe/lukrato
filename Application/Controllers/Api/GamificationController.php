@@ -32,6 +32,7 @@ class GamificationController extends BaseController
     /**
      * GET /api/gamification/progress
      * Retorna o progresso completo do usuário
+     * Também verifica e desbloqueia conquistas pendentes (perfil completo, etc)
      */
     public function getProgress(): void
     {
@@ -40,6 +41,10 @@ class GamificationController extends BaseController
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
             $user = \Application\Lib\Auth::user();
+
+            // Verificar conquistas que não dependem de lançamentos (perfil completo, etc)
+            // Isso garante que conquistas sejam verificadas ao entrar no dashboard
+            $this->achievementService->checkAndUnlockAchievements($this->userId, 'dashboard_load');
 
             if (!$progress) {
                 Response::success([
