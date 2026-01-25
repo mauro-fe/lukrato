@@ -85,12 +85,34 @@ const lancamentoGlobalManager = {
             return;
         }
 
-        select.innerHTML = '<option value="">Escolha uma conta...</option>';
+        // Limpar container de aviso se existir
+        const selectContainer = select.closest('.lk-select-container') || select.parentElement;
+        const avisoExistente = selectContainer?.querySelector('.no-accounts-warning');
+        if (avisoExistente) avisoExistente.remove();
 
         if (this.contas.length === 0) {
             console.warn('Nenhuma conta disponível para preencher');
+            select.innerHTML = '<option value="">Nenhuma conta disponível</option>';
+            select.disabled = true;
+
+            // Mostrar aviso visual abaixo do select
+            const aviso = document.createElement('div');
+            aviso.className = 'no-accounts-warning';
+            aviso.innerHTML = `
+                <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem; border-radius: 8px;">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Você não possui contas cadastradas.</span>
+                    <a href="${this.baseUrl}contas" class="btn btn-sm btn-primary ms-auto" style="font-size: 0.75rem;">
+                        <i class="fas fa-plus me-1"></i>Criar Conta
+                    </a>
+                </div>
+            `;
+            selectContainer?.appendChild(aviso);
             return;
         }
+
+        select.disabled = false;
+        select.innerHTML = '<option value="">Escolha uma conta...</option>';
 
         this.contas.forEach(conta => {
             const option = document.createElement('option');
@@ -243,6 +265,42 @@ const lancamentoGlobalManager = {
     },
 
     async mostrarFormulario(tipo) {
+        // Verificar se não há nenhuma conta criada
+        if (this.contas.length === 0) {
+            const result = await Swal.fire({
+                icon: 'info',
+                title: 'Nenhuma conta cadastrada',
+                html: `
+                    <p>Você ainda não possui nenhuma conta bancária cadastrada.</p>
+                    <p class="text-muted mt-2">É necessário criar pelo menos uma conta para registrar lançamentos.</p>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-plus me-2"></i>Criar Conta',
+                cancelButtonText: 'Agora não',
+                confirmButtonColor: 'var(--color-primary)',
+                customClass: {
+                    container: 'swal-above-modal',
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                }
+            });
+
+            if (result.isConfirmed) {
+                // Fechar modal de lançamento
+                this.closeModal();
+
+                // Redirecionar para página de contas ou abrir modal de criar conta
+                if (typeof window.ContasManager !== 'undefined' && typeof window.ContasManager.abrirModalNovaConta === 'function') {
+                    window.ContasManager.abrirModalNovaConta();
+                } else {
+                    // Redirecionar para página de contas
+                    window.location.href = this.baseUrl + 'contas';
+                }
+            }
+            return;
+        }
+
+        // Verificar se há conta selecionada
         if (!this.contaSelecionada) {
             Swal.fire({
                 icon: 'warning',

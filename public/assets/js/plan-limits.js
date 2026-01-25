@@ -17,7 +17,7 @@
         apiBase: window.getBaseUrl?.() || '/',
         cacheKey: 'lukrato_plan_limits',
         cacheTTL: 5 * 60 * 1000, // 5 minutos
-        upgradeUrl: '/assinatura',
+        upgradeUrl: '/billing',
     };
 
     // ============================================
