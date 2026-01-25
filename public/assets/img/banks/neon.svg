@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+    <rect width="48" height="48" rx="8" fill="#0C2C6D" />
+    <circle cx="24" cy="22" r="10" fill="#00D6D6" />
+    <text x="24" y="40" font-family="Arial, sans-serif" font-size="8" font-weight="bold"
+        fill="#00D6D6" text-anchor="middle">neon</text>
+</svg>

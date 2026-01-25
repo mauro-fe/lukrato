@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+    <rect width="48" height="48" rx="8" fill="#0055A5" />
+    <rect x="14" y="16" width="20" height="16" rx="2" fill="#FFFFFF" />
+    <text x="24" y="27" font-family="Arial, sans-serif" font-size="7" font-weight="bold"
+        fill="#0055A5" text-anchor="middle">BAN</text>
+</svg>

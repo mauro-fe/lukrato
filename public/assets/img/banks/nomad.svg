@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
-    <rect width="200" height="200" rx="20" fill="#6366f1" />
+    <rect width="200" height="200" rx="20" fill="#F5A623" />
     <g transform="translate(40, 60)">
         <path d="M10 80V20L40 0L70 20V80H60V30L40 16L20 30V80H10Z" fill="white" />
         <circle cx="95" cy="65" r="15" fill="white" />

@@ -415,11 +415,8 @@
 
         // Se for Pro, não precisa fazer nada
         if (limitsData.is_pro) {
-            console.log('[PlanLimits] Usuário Pro - sem restrições');
             return;
         }
-
-        console.log('[PlanLimits] Usuário Free - aplicando restrições', limitsData);
 
         // Configurar interceptor de API
         setupApiInterceptor();
