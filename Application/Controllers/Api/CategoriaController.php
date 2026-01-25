@@ -204,7 +204,17 @@ class CategoriaController extends BaseController
                     $categoria->id,
                     'categoria'
                 );
+
+                // Verificar e desbloquear conquistas automaticamente
+                $achievementService = new \Application\Services\AchievementService();
+                $newAchievements = $achievementService->checkAndUnlockAchievements($this->userId, 'categoria_created');
+
                 $gamificationResult = ['points' => $pointsResult];
+
+                if (!empty($newAchievements)) {
+                    $gamificationResult['achievements'] = $newAchievements;
+                }
+
                 error_log("🎮 [GAMIFICATION] Pontos adicionados para categoria ID: {$categoria->id}");
             } catch (\Exception $e) {
                 error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());

@@ -369,6 +369,13 @@
                     throw new Error(extractApiError(j, 'Falha ao salvar.'));
                 }
 
+                // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
+                if (j?.data?.new_achievements && Array.isArray(j.data.new_achievements)) {
+                    if (typeof window.notifyMultipleAchievements === 'function') {
+                        window.notifyMultipleAchievements(j.data.new_achievements);
+                    }
+                }
+
                 if (window.Swal) {
                     Swal.fire({
                         icon: 'success',

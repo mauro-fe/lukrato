@@ -979,6 +979,21 @@
   z-index: 100000 !important;
 }
 
+/* Container e backdrop do SweetAlert2 para conquistas */
+.swal2-achievement-container {
+  z-index: 99999 !important;
+}
+
+.swal2-container.swal2-backdrop-show {
+  z-index: 99998 !important;
+}
+
+/* Garantir que o backdrop apareça */
+.swal2-container .swal2-backdrop {
+  z-index: 99997 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
 /* ===== MODAL DE LEVEL UP ===== */
 .level-up-modal.swal2-popup {
   background: var(--color-bg) !important;

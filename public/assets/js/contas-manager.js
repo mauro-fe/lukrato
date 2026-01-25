@@ -1919,34 +1919,27 @@ class ContasManager {
             });
 
             // Exibir dados de gamificação se disponíveis
-            if (result.data?.gamification?.points) {
+            if (result.data?.gamification) {
                 try {
-                    const gamif = result.data.gamification.points;
+                    const gamif = result.data.gamification;
                     
-                    if (gamif.points_gained > 0) {
-                        // Pontos ganhos
+                    // Verificar conquistas desbloqueadas
+                    if (gamif.achievements && Array.isArray(gamif.achievements) && gamif.achievements.length > 0) {
+                        console.log('🎮 [CONTAS] Conquistas encontradas:', gamif.achievements.length);
+                        if (typeof window.notifyMultipleAchievements === 'function') {
+                            window.notifyMultipleAchievements(gamif.achievements);
+                        } else {
+                            console.error('❌ notifyMultipleAchievements não disponível');
+                        }
                     }
                     
-                    if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
-                        gamif.new_achievements.forEach(ach => {
-                            try {
-                                // Validar objeto de conquista
-                                if (!ach || typeof ach !== 'object') {
-                                    console.warn('Conquista inválida:', ach);
-                                    return;
-                                }
-
-                                // Exibir modal grande de conquista desbloqueada
-                                if (typeof window.notifyAchievementUnlocked === 'function') {
-                                    window.notifyAchievementUnlocked(ach);
-                                } else {
-                                    // Fallback para notificação simples
-                                    this.showNotification(`🏆 ${ach.name || 'Conquista'} desbloqueada!`, 'success');
-                                }
-                            } catch (error) {
-                                console.error('Erro ao exibir conquista:', error, ach);
-                            }
-                        });
+                    // Processar pontos se houver
+                    if (gamif.points) {
+                        const points = gamif.points;
+                        
+                        if (points.points_gained > 0) {
+                            // Pontos ganhos
+                        }
                     }
                     
                     if (gamif.level_up) {
@@ -1977,8 +1970,13 @@ class ContasManager {
                 window.LK.refreshDashboard();
             }
 
-            // Disparar evento customizado para outros componentes
+            // Disparar eventos customizados para outros componentes
             document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
+            
+            // Disparar evento específico de lançamento criado para onboarding
+            if (tipo !== 'agendamento') {
+                window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
+            }
 
         } catch (error) {
             console.error('❌ Erro ao criar lançamento:', error);
