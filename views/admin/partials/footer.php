@@ -32,6 +32,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/just-validate@4.3.0/dist/just-validate.production.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/lancamento-global.js?v=<?= time() ?>"></script>
+<script src="<?= BASE_URL ?>assets/js/tooltips.js?v=<?= time() ?>"></script>
 <script src="<?= BASE_URL ?>assets/js/core/popper.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/core/bootstrap.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/plugins/perfect-scrollbar.min.js"></script>

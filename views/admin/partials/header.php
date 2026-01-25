@@ -68,6 +68,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/onboarding.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/plan-limits.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tooltips.css?v=<?= time() ?>">
 
     <?php loadPageCss(); ?>
 

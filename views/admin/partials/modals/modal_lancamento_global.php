@@ -240,6 +240,15 @@
                         <label for="globalLancamentoCategoria" class="lk-label">
                             <i class="fas fa-tag"></i>
                             Categoria
+                            <label class="lk-label">
+                                Categoria
+                                <button type="button" class="lk-info"
+                                    data-lk-tooltip="A categoria ajuda a organizar seus gastos. Escolha a que melhor representa essa despesa."
+                                    aria-label="Ajuda: Categoria">
+                                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                </button>
+                            </label>
+
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select">

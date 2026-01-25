@@ -1,0 +1,146 @@
+/* ===== Lukrato Tooltip / Popover ===== */
+
+.lk-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lk-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lk-info {
+  --lk-info-size: 30px;
+
+  width: var(--lk-info-size);
+  height: var(--lk-info-size);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid
+    color-mix(in srgb, var(--color-text-muted, #8a94a6) 25%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-surface, #10151d) 70%,
+    transparent
+  );
+  border-radius: 999px;
+
+  color: var(--color-text-muted, #8a94a6);
+  cursor: pointer;
+
+  transition:
+    transform var(--transition-fast, 0.15s),
+    border-color var(--transition-fast, 0.15s),
+    color var(--transition-fast, 0.15s);
+}
+
+.lk-info:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary, #4ea1ff) 35%,
+    transparent
+  );
+  color: color-mix(
+    in srgb,
+    var(--color-primary, #4ea1ff) 70%,
+    var(--color-text-muted, #8a94a6)
+  );
+}
+
+.lk-info:focus {
+  outline: none;
+}
+
+.lk-info:focus-visible {
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary, #4ea1ff) 25%, transparent);
+}
+
+/* Tooltip container (criado via JS) */
+.lk-tooltip {
+  position: fixed;
+  z-index: 9999;
+
+  max-width: 280px;
+  padding: 10px 12px;
+
+  border-radius: var(--radius-lg, 14px);
+  background: color-mix(in srgb, var(--color-surface, #10151d) 92%, #000);
+  border: 1px solid
+    color-mix(in srgb, var(--color-text-muted, #8a94a6) 18%, transparent);
+
+  color: var(--color-text, #eaf0ff);
+  font-size: 12.5px;
+  line-height: 1.35;
+
+  box-shadow: var(--shadow-lg, 0 12px 30px rgba(0, 0, 0, 0.25));
+  backdrop-filter: blur(10px);
+
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+
+  transition:
+    opacity var(--transition-fast, 0.15s),
+    transform var(--transition-fast, 0.15s);
+}
+
+.lk-tooltip[data-open="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.lk-tooltip__title {
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  font-size: 12.5px;
+  color: var(--color-text, #eaf0ff);
+}
+
+.lk-tooltip__text {
+  margin: 0;
+  color: color-mix(
+    in srgb,
+    var(--color-text, #eaf0ff) 90%,
+    var(--color-text-muted, #8a94a6)
+  );
+}
+
+/* Setinha */
+.lk-tooltip::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border-left: 1px solid
+    color-mix(in srgb, var(--color-text-muted, #8a94a6) 18%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--color-text-muted, #8a94a6) 18%, transparent);
+  transform: rotate(45deg);
+}
+
+/* Modo "popover" (texto maior) */
+.lk-tooltip[data-variant="popover"] {
+  max-width: 340px;
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 12px 14px;
+}
+
+/* Respeitar usuários com redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .lk-info,
+  .lk-tooltip {
+    transition: none;
+  }
+}
