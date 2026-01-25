@@ -43,6 +43,14 @@ Router::add('POST', '/api/perfil/tema', 'Api\\PerfilController@updateTheme', ['a
 Router::add('DELETE', '/api/perfil/delete', 'Api\\PerfilController@delete', ['auth', 'csrf']);
 
 // ============================================
+// ONBOARDING
+// ============================================
+
+Router::add('GET',  '/api/onboarding/status',   'Api\\OnboardingController@status',   ['auth']);
+Router::add('POST', '/api/onboarding/complete', 'Api\\OnboardingController@complete', ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/reset',    'Api\\OnboardingController@reset',    ['auth', 'csrf']);
+
+// ============================================
 // DASHBOARD
 // ============================================
 

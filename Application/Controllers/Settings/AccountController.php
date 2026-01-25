@@ -48,14 +48,24 @@ class AccountController extends BaseController
                 return;
             }
 
-            // Remove definitivamente e encerra a sessão ativa para evitar uso de dados apagados
-            $result = method_exists($user, 'forceDelete') ? $user->forceDelete() : $user->delete();
+            // Guarda email original para log
+            $originalEmail = $user->email;
+
+            // Anonimiza email para liberar para novo cadastro (mantém histórico)
+            $anonymizedEmail = 'deleted_' . time() . '_' . substr(md5((string) $user->id), 0, 8) . '@anonimizado.local';
+            $user->email = $anonymizedEmail;
+            $user->nome = 'Usuário Removido';
+            $user->google_id = null; // Remove vinculação com Google
+            $user->save();
+
+            // Soft delete - mantém histórico
+            $result = $user->delete();
 
             if (!$result) {
                 LogService::error('Falha ao excluir conta', [
                     'request_id' => $requestId,
                     'user_id'    => $this->userId,
-                    'email'      => $user->email,
+                    'email'      => $originalEmail,
                     'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
                 ]);
 
@@ -67,7 +77,8 @@ class AccountController extends BaseController
             LogService::info('Conta excluída com sucesso', [
                 'request_id' => $requestId,
                 'user_id'    => $this->userId,
-                'email'      => $user->email,
+                'email_original' => $originalEmail,
+                'email_anonimizado' => $anonymizedEmail,
                 'delete_result' => $result,
                 'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
             ]);

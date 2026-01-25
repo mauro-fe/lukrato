@@ -1,6 +1,9 @@
 /**
  * Sistema de Onboarding - Lukrato
  * Guia interativo para novos usuários
+ * 
+ * O status do onboarding é sincronizado com o servidor para
+ * funcionar corretamente em múltiplos dispositivos.
  */
 
 class OnboardingManager {
@@ -16,6 +19,7 @@ class OnboardingManager {
         this.storageKey = 'lukrato_onboarding_completed';
         this.currentStep = 0;
         this.totalSteps = 2;
+        this.serverStatusLoaded = false;
 
         this.init();
         this.setupEventListeners();
@@ -33,7 +37,9 @@ class OnboardingManager {
         });
     }
 
-    init() {
+    async init() {
+        // Primeiro, sincronizar status com o servidor
+        await this.syncWithServer();
 
         // Verificar se já completou o onboarding
         if (this.isCompleted()) {
@@ -49,12 +55,67 @@ class OnboardingManager {
         }
     }
 
+    /**
+     * Sincroniza o status do onboarding com o servidor
+     * Isso garante que o onboarding não apareça em outros dispositivos
+     */
+    async syncWithServer() {
+        try {
+            const response = await fetch(`${this.baseUrl}api/onboarding/status`, {
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                console.warn('[Onboarding] Não foi possível verificar status no servidor');
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.data?.completed) {
+                // Servidor diz que já completou - sincronizar localStorage
+                localStorage.setItem(this.storageKey, 'true');
+                this.serverStatusLoaded = true;
+            } else if (data.success && !data.data?.completed) {
+                // Servidor diz que NÃO completou - limpar localStorage se existir
+                // (pode ter sido um reset ou novo dispositivo)
+                if (localStorage.getItem(this.storageKey) === 'true') {
+                    // localStorage diz sim, servidor diz não
+                    // Neste caso, confiamos no servidor
+                    localStorage.removeItem(this.storageKey);
+                }
+                this.serverStatusLoaded = true;
+            }
+        } catch (error) {
+            console.warn('[Onboarding] Erro ao sincronizar com servidor:', error);
+            // Em caso de erro, usa o localStorage como fallback
+        }
+    }
+
     isCompleted() {
         return localStorage.getItem(this.storageKey) === 'true';
     }
 
-    markCompleted() {
+    async markCompleted() {
+        // Marcar localmente
         localStorage.setItem(this.storageKey, 'true');
+
+        // Sincronizar com o servidor
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            await fetch(`${this.baseUrl}api/onboarding/complete`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || ''
+                }
+            });
+        } catch (error) {
+            console.warn('[Onboarding] Erro ao marcar completo no servidor:', error);
+            // Não é crítico - o localStorage já foi atualizado
+        }
     }
 
     async checkEmptyState() {
@@ -195,14 +256,14 @@ class OnboardingManager {
         // Verificar se já mostrou celebração
         if (localStorage.getItem('lukrato_onboarding_celebration_shown') === 'true') {
             // Marcar como completado mesmo se já mostrou antes
-            this.markCompleted();
+            await this.markCompleted();
             return;
         }
 
         localStorage.setItem('lukrato_onboarding_celebration_shown', 'true');
 
         // Marcar onboarding como completado
-        this.markCompleted();
+        await this.markCompleted();
 
         // Aguardar um pouco para processar o lançamento
         await new Promise(resolve => setTimeout(resolve, 800));
@@ -523,17 +584,17 @@ class OnboardingManager {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
-    startGuide() {
+    async startGuide() {
         // Fechar modal de boas-vindas
         document.getElementById('onboardingModalOverlay')?.remove();
 
         // Marcar como completado e mostrar cards de ação
-        this.markCompleted();
+        await this.markCompleted();
         this.showEmptyStateCards();
     }
 
-    skip() {
-        this.markCompleted();
+    async skip() {
+        await this.markCompleted();
         document.getElementById('onboardingModalOverlay')?.remove();
         document.querySelector('.onboarding-welcome')?.remove();
 

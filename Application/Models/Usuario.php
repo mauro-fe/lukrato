@@ -40,6 +40,7 @@ class Usuario extends Model
         'data_nascimento',
         'id_sexo',
         'theme_preference',
+        'onboarding_completed_at',
         'external_customer_id',
         'gateway',
         'google_id',
@@ -50,8 +51,9 @@ class Usuario extends Model
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
         'is_admin' => 'integer',
+        'onboarding_completed_at' => 'datetime',
     ];
-    protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito'];
+    protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'onboarding_completed'];
 
     use SoftDeletes;
 
@@ -90,6 +92,17 @@ class Usuario extends Model
     public function getIsGratuitoAttribute(): bool
     {
         return $this->isGratuito();
+    }
+
+    public function getOnboardingCompletedAttribute(): bool
+    {
+        return $this->onboarding_completed_at !== null;
+    }
+
+    public function markOnboardingComplete(): bool
+    {
+        $this->onboarding_completed_at = now();
+        return $this->save();
     }
 
     public function assinaturas()
