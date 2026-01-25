@@ -432,10 +432,18 @@ class LancamentosController extends BaseController
             // Atualizar streak diária
             $streakResult = $this->gamificationService->updateStreak($userId);
 
+            // Verificar e desbloquear conquistas automaticamente
+            $achievementService = new \Application\Services\AchievementService();
+            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'lancamento_created');
+
             $gamificationResult = [
                 'points' => $pointsResult,
                 'streak' => $streakResult,
             ];
+
+            if (!empty($newAchievements)) {
+                $gamificationResult['achievements'] = $newAchievements;
+            }
         } catch (\Exception $e) {
             error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
             // Não falhar a requisição por erro na gamificação

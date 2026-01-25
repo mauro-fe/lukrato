@@ -691,8 +691,9 @@ const lancamentoGlobalManager = {
                 const tipoLancamento = this.tipoAtual;
 
                 // Processar gamificação ANTES de fechar o modal
-                if (result.data?.gamification?.points) {
+                if (result.data?.gamification) {
                     try {
+<<<<<<< HEAD
                         const gamif = result.data.gamification.points;
 
                         if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
@@ -710,6 +711,22 @@ const lancamentoGlobalManager = {
                                     console.error('Erro ao exibir conquista:', error, ach);
                                 }
                             });
+=======
+                        const gamif = result.data.gamification;
+                        
+                        // Verificar conquistas desbloqueadas
+                        if (gamif.achievements && Array.isArray(gamif.achievements) && gamif.achievements.length > 0) {
+                            console.log('🎮 [LANCAMENTO] Conquistas encontradas:', gamif.achievements.length);
+                            if (typeof window.notifyMultipleAchievements === 'function') {
+                                window.notifyMultipleAchievements(gamif.achievements);
+                            }
+                        }
+                        
+                        // Processar pontos se houver
+                        if (gamif.points) {
+                            const points = gamif.points;
+                            // Processar pontos aqui se necessário
+>>>>>>> jose
                         }
 
                         if (gamif.level_up) {
