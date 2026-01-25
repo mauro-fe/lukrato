@@ -1,4 +1,4 @@
-/**
+git /**
  * Gerenciador de Lançamento Global (Header FAB)
  */
 const lancamentoGlobalManager = {
@@ -693,25 +693,6 @@ const lancamentoGlobalManager = {
                 // Processar gamificação ANTES de fechar o modal
                 if (result.data?.gamification) {
                     try {
-<<<<<<< HEAD
-                        const gamif = result.data.gamification.points;
-
-                        if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
-                            gamif.new_achievements.forEach(ach => {
-                                try {
-                                    if (!ach || typeof ach !== 'object') {
-                                        console.warn('Conquista inválida:', ach);
-                                        return;
-                                    }
-
-                                    if (typeof window.notifyAchievementUnlocked === 'function') {
-                                        window.notifyAchievementUnlocked(ach);
-                                    }
-                                } catch (error) {
-                                    console.error('Erro ao exibir conquista:', error, ach);
-                                }
-                            });
-=======
                         const gamif = result.data.gamification;
                         
                         // Verificar conquistas desbloqueadas
@@ -726,7 +707,6 @@ const lancamentoGlobalManager = {
                         if (gamif.points) {
                             const points = gamif.points;
                             // Processar pontos aqui se necessário
->>>>>>> jose
                         }
 
                         if (gamif.level_up) {
