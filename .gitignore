@@ -7,6 +7,9 @@ node_modules/
 .idea/
 .DS_Store
 
+/storage/cache/*.json
+
+
 *client_secret*.json
 
 # Database config (example)

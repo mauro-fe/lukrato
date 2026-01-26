@@ -105,13 +105,9 @@ class OnboardingManager {
                 localStorage.setItem(this.storageKey, 'true');
                 this.serverStatusLoaded = true;
             } else if (data.success && !data.data?.completed) {
-                // Servidor diz que NÃO completou - limpar localStorage se existir
-                // (pode ter sido um reset ou novo dispositivo)
-                if (localStorage.getItem(this.storageKey) === 'true') {
-                    // localStorage diz sim, servidor diz não
-                    // Neste caso, confiamos no servidor
-                    localStorage.removeItem(this.storageKey);
-                }
+                // Servidor diz que NÃO completou
+                // NÃO apagar localStorage - confiar no local como fonte primária
+                // Isso evita loops onde o servidor não salvou mas o usuário já escolheu
                 this.serverStatusLoaded = true;
             }
         } catch (error) {
