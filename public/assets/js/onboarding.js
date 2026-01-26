@@ -33,13 +33,11 @@ class OnboardingManager {
 
         // Escutar criação de lançamentos diretamente - verificar IMEDIATAMENTE
         window.addEventListener('lancamento-created', () => {
-            console.log('🎯 [Onboarding] Evento lancamento-created detectado');
             setTimeout(() => this.checkEmptyState(), 300);
         });
 
         // Escutar criação de contas
         window.addEventListener('conta-created', () => {
-            console.log('🎯 [Onboarding] Evento conta-created detectado');
             setTimeout(() => this.checkEmptyState(), 300);
         });
     }
@@ -51,14 +49,11 @@ class OnboardingManager {
         const completed = this.isCompleted();
         const inProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
 
-        console.log('🎯 [Onboarding] init - completed:', completed, 'inProgress:', inProgress, 'serverLoaded:', this.serverStatusLoaded);
 
         // Se marcado como completo, FORÇAR despausar gamificação
         if (completed) {
             window.gamificationPaused = false;
             localStorage.removeItem('lukrato_onboarding_in_progress'); // Limpar flag de progresso
-            console.log('✅ [Onboarding] Onboarding completo - gamificação ATIVA');
-            console.log('✅ [Onboarding] window.gamificationPaused =', window.gamificationPaused);
             // NÃO chamar checkEmptyState() aqui para evitar reset
             return;
         }
@@ -66,7 +61,6 @@ class OnboardingManager {
         // PAUSAR GAMIFICAÇÃO SE ESTIVER EM PROGRESSO (em qualquer página)
         if (inProgress) {
             window.gamificationPaused = true;
-            console.log('🎯 [Onboarding] Gamificação pausada - onboarding em progresso');
         }
 
         // Se está em progresso, mostrar cards mas não o modal
@@ -75,8 +69,6 @@ class OnboardingManager {
             return;
         }
 
-        // Se NÃO está completo E NÃO está em progresso = NOVO USUÁRIO
-        console.log('🎯 [Onboarding] Novo usuário detectado - mostrando modal de boas-vindas');
 
         // Aguardar carregamento do DOM
         if (document.readyState === 'loading') {
@@ -131,10 +123,7 @@ class OnboardingManager {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-            console.log('[Onboarding] Enviando requisição para marcar completo...', {
-                url: `${this.baseUrl}api/onboarding/complete`,
-                csrfToken: csrfToken ? 'presente' : 'AUSENTE'
-            });
+
 
             const response = await fetch(`${this.baseUrl}api/onboarding/complete`, {
                 method: 'POST',
@@ -155,7 +144,6 @@ class OnboardingManager {
                     data: data
                 });
             } else {
-                console.log('[Onboarding] Onboarding marcado como completo no servidor:', data);
             }
         } catch (error) {
             console.error('[Onboarding] Erro ao marcar completo no servidor:', error);
@@ -165,7 +153,6 @@ class OnboardingManager {
 
     async checkEmptyState() {
         try {
-            console.log('🎯 [Onboarding] Verificando estado...');
 
             // Verificar se há contas
             const contasResponse = await fetch(`${this.baseUrl}api/contas`);
@@ -176,8 +163,6 @@ class OnboardingManager {
             const lancamentosResponse = await fetch(`${this.baseUrl}api/lancamentos?limit=10`);
             const lancamentos = await lancamentosResponse.json();
             const hasLancamentos = Array.isArray(lancamentos) ? lancamentos.length > 0 : (lancamentos.data?.length > 0 || false);
-
-            console.log('🎯 [Onboarding] Estado:', { hasContas, hasLancamentos });
 
             // Salvar progresso
             this.updateProgress({
@@ -197,12 +182,10 @@ class OnboardingManager {
 
                     // Se servidor confirma que completou, NÃO resetar
                     if (serverData.success && serverData.data?.completed) {
-                        console.log('✅ [Onboarding] Servidor confirma onboarding completo - não resetar');
                         return;
                     }
 
                     // Servidor diz que NÃO completou - aí sim resetar
-                    console.log('🎯 [Onboarding] Servidor confirma: novo usuário - resetando onboarding...');
                 } catch (error) {
                     // Em caso de erro de rede, NÃO resetar (seguro)
                     console.warn('⚠️ [Onboarding] Erro ao verificar servidor, mantendo estado atual:', error);
@@ -220,17 +203,14 @@ class OnboardingManager {
 
             // Se não tem nada, mostrar empty state melhorado
             if (!hasContas && !hasLancamentos) {
-                console.log('🎯 [Onboarding] Mostrando empty state cards');
                 this.showEmptyStateCards();
             }
             // Se tem conta mas não tem lançamento
             else if (hasContas && !hasLancamentos) {
-                console.log('🎯 [Onboarding] Mostrando guia próximo passo');
                 this.showNextStepGuide('lancamento');
             }
             // Se completou tudo, mostrar celebração
             else if (hasContas && hasLancamentos) {
-                console.log('🎯 [Onboarding] SETUP COMPLETO! Mostrando celebração...');
                 this.showCompletionCelebration();
             }
         } catch (error) {
@@ -352,11 +332,9 @@ class OnboardingManager {
 
         // BLOQUEAR conquistas temporariamente para não atropelarem o modal de setup
         window.gamificationPaused = true;
-        console.log('🎯 [Onboarding] Pausando gamificação para mostrar celebração de setup primeiro');
 
         // FECHAR QUALQUER MODAL EXISTENTE DO SWEETALERT2
         if (typeof Swal !== 'undefined' && Swal.isVisible()) {
-            console.log('🎯 [Onboarding] Fechando modal de conquista existente');
             Swal.close();
         }
 
@@ -378,7 +356,6 @@ class OnboardingManager {
         // Confetes logo após o som
         try {
             if (typeof confetti === 'function') {
-                console.log('🎊 Disparando confetes de celebração!');
                 setTimeout(() => {
                     const duration = 3 * 1000;
                     const animationEnd = Date.now() + duration;
