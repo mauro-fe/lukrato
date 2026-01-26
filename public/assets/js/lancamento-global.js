@@ -1,4 +1,4 @@
-git /**
+/**
  * Gerenciador de Lançamento Global (Header FAB)
  */
 const lancamentoGlobalManager = {
@@ -694,7 +694,7 @@ const lancamentoGlobalManager = {
                 if (result.data?.gamification) {
                     try {
                         const gamif = result.data.gamification;
-                        
+
                         // Verificar conquistas desbloqueadas
                         if (gamif.achievements && Array.isArray(gamif.achievements) && gamif.achievements.length > 0) {
                             console.log('🎮 [LANCAMENTO] Conquistas encontradas:', gamif.achievements.length);
@@ -702,7 +702,7 @@ const lancamentoGlobalManager = {
                                 window.notifyMultipleAchievements(gamif.achievements);
                             }
                         }
-                        
+
                         // Processar pontos se houver
                         if (gamif.points) {
                             const points = gamif.points;

@@ -679,11 +679,13 @@
   backdrop-filter: blur(8px);
   z-index: 99999 !important; /* Prioridade máxima - acima de tudo */
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   animation: fadeIn 0.4s ease;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .completion-celebration {
@@ -699,6 +701,9 @@
   animation: celebrationPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   margin: auto;
   box-sizing: border-box;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .cc-confetti {
@@ -842,7 +847,26 @@
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
 }
 
-/* Responsive */
+/* Responsive - telas médias (tablets e laptops pequenos) */
+@media (max-width: 900px) {
+  .completion-celebration-overlay {
+    padding: 16px;
+    align-items: flex-start;
+  }
+
+  .completion-celebration {
+    max-width: 95%;
+    max-height: calc(100vh - 32px);
+    padding: 24px;
+  }
+
+  .cc-rewards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+/* Responsive - telas pequenas (mobile) */
 @media (max-width: 640px) {
   .onboarding-modal {
     border-radius: 16px;
@@ -911,14 +935,21 @@
     margin-top: 4px;
   }
 
+  .completion-celebration-overlay {
+    padding: 10px;
+    align-items: flex-start;
+  }
+
   .cc-rewards {
     grid-template-columns: 1fr;
   }
 
   .completion-celebration {
-    padding: 24px 20px;
-    max-height: calc(100vh - 20px);
-    overflow-y: auto;
+    padding: 20px 16px;
+    max-height: none;
+    max-width: 100%;
+    border-radius: 16px;
+    overflow-y: visible;
   }
 
   .cc-icon {

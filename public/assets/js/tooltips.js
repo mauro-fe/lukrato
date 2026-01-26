@@ -138,6 +138,7 @@
     }
 
     function onEnter(e) {
+        if (!e.target || typeof e.target.closest !== 'function') return;
         const el = e.target.closest(SELECTOR);
         if (!el) return;
         if (isTouchDevice()) return; // no touch, não abre por hover
@@ -155,6 +156,7 @@
     }
 
     function onClick(e) {
+        if (!e.target || typeof e.target.closest !== 'function') return;
         const el = e.target.closest(SELECTOR);
 
         // click fora fecha (quando abriu por click)

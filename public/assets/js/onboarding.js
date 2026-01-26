@@ -132,16 +132,34 @@ class OnboardingManager {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-            await fetch(`${this.baseUrl}api/onboarding/complete`, {
+            console.log('[Onboarding] Enviando requisição para marcar completo...', {
+                url: `${this.baseUrl}api/onboarding/complete`,
+                csrfToken: csrfToken ? 'presente' : 'AUSENTE'
+            });
+
+            const response = await fetch(`${this.baseUrl}api/onboarding/complete`, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || ''
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'Accept': 'application/json'
                 }
             });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error('[Onboarding] Erro ao marcar completo no servidor:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } else {
+                console.log('[Onboarding] Onboarding marcado como completo no servidor:', data);
+            }
         } catch (error) {
-            console.warn('[Onboarding] Erro ao marcar completo no servidor:', error);
+            console.error('[Onboarding] Erro ao marcar completo no servidor:', error);
             // Não é crítico - o localStorage já foi atualizado
         }
     }
@@ -649,7 +667,10 @@ class OnboardingManager {
         // Fechar modal de boas-vindas
         document.getElementById('onboardingModalOverlay')?.remove();
 
-        // Marcar como EM PROGRESSO (não completo ainda)
+        // Marcar como completo no servidor para não aparecer novamente
+        await this.markCompleted();
+
+        // Marcar como EM PROGRESSO para mostrar os cards de ação
         localStorage.setItem('lukrato_onboarding_in_progress', 'true');
 
         // Mostrar cards de ação

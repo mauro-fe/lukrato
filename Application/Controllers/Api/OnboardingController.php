@@ -62,7 +62,15 @@ class OnboardingController
             }
 
             // Marca como completo
-            $user->markOnboardingComplete();
+            $saved = $user->markOnboardingComplete();
+            if (!$saved) {
+                LogService::error('Falha ao salvar onboarding_completed_at', [
+                    'user_id' => $user->id,
+                    'attributes' => $user->getAttributes(),
+                ]);
+                Response::error('Erro ao salvar status do onboarding.', 500);
+                return;
+            }
 
             LogService::info('Onboarding completado', [
                 'user_id' => $user->id,
@@ -74,7 +82,8 @@ class OnboardingController
             ], 'Onboarding completado com sucesso');
         } catch (Throwable $e) {
             LogService::error('Erro ao completar onboarding', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             Response::error('Erro interno', 500);
         }
