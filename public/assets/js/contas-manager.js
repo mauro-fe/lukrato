@@ -2010,54 +2010,37 @@ class ContasManager {
             // Exibir dados de gamificação se disponíveis
             if (result.data?.gamification) {
                 try {
-<<<<<<< HEAD
-                    const gamif = result.data.gamification.points;
-
-                    if (gamif.points_gained > 0) {
-                        // Pontos ganhos
-                    }
-
-                    if (gamif.new_achievements && Array.isArray(gamif.new_achievements) && gamif.new_achievements.length > 0) {
-                        gamif.new_achievements.forEach(ach => {
-                            try {
-                                // Validar objeto de conquista
-                                if (!ach || typeof ach !== 'object') {
-                                    console.warn('Conquista inválida:', ach);
-                                    return;
-                                }
-
-                                // Exibir modal grande de conquista desbloqueada
-                                if (typeof window.notifyAchievementUnlocked === 'function') {
-                                    window.notifyAchievementUnlocked(ach);
-                                } else {
-                                    // Fallback para notificação simples
-                                    this.showNotification(`🏆 ${ach.name || 'Conquista'} desbloqueada!`, 'success');
-                                }
-                            } catch (error) {
-                                console.error('Erro ao exibir conquista:', error, ach);
-                            }
-                        });
-=======
                     const gamif = result.data.gamification;
-                    
-                    // Verificar conquistas desbloqueadas
-                    if (gamif.achievements && Array.isArray(gamif.achievements) && gamif.achievements.length > 0) {
-                        console.log('🎮 [CONTAS] Conquistas encontradas:', gamif.achievements.length);
+
+                    // Verificar conquistas desbloqueadas (suporta ambos formatos)
+                    const achievements = gamif.achievements || gamif.new_achievements || [];
+                    if (Array.isArray(achievements) && achievements.length > 0) {
                         if (typeof window.notifyMultipleAchievements === 'function') {
-                            window.notifyMultipleAchievements(gamif.achievements);
+                            window.notifyMultipleAchievements(achievements);
                         } else {
-                            console.error('❌ notifyMultipleAchievements não disponível');
+                            // Fallback para notificação individual
+                            achievements.forEach(ach => {
+                                try {
+                                    if (!ach || typeof ach !== 'object') {
+                                        console.warn('Conquista inválida:', ach);
+                                        return;
+                                    }
+                                    if (typeof window.notifyAchievementUnlocked === 'function') {
+                                        window.notifyAchievementUnlocked(ach);
+                                    } else {
+                                        this.showNotification(`🏆 ${ach.name || 'Conquista'} desbloqueada!`, 'success');
+                                    }
+                                } catch (error) {
+                                    console.error('Erro ao exibir conquista:', error, ach);
+                                }
+                            });
                         }
                     }
-                    
+
                     // Processar pontos se houver
-                    if (gamif.points) {
-                        const points = gamif.points;
-                        
-                        if (points.points_gained > 0) {
-                            // Pontos ganhos
-                        }
->>>>>>> jose
+                    const points = gamif.points || gamif;
+                    if (points.points_gained > 0) {
+                        // Pontos ganhos
                     }
 
                     if (gamif.level_up) {
@@ -2090,7 +2073,7 @@ class ContasManager {
 
             // Disparar eventos customizados para outros componentes
             document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
-            
+
             // Disparar evento específico de lançamento criado para onboarding
             if (tipo !== 'agendamento') {
                 window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));

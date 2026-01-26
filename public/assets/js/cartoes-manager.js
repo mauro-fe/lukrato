@@ -841,18 +841,14 @@ class CartoesManager {
 
             const result = await response.json();
 
-            console.log('📦 [CARTÃO] Response completo:', result);
-
             // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
             if (result.gamification?.achievements && Array.isArray(result.gamification.achievements)) {
-                console.log('🎮 [GAMIFICATION] Conquistas encontradas:', result.gamification.achievements.length);
                 if (typeof window.notifyMultipleAchievements === 'function') {
                     window.notifyMultipleAchievements(result.gamification.achievements);
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
             } else {
-                console.log('ℹ️ [GAMIFICATION] Nenhuma conquista nova');
             }
 
             this.showToast('success', isEdit ? 'Cartão atualizado com sucesso!' : 'Cartão criado com sucesso!');
@@ -1778,18 +1774,14 @@ class CartoesManager {
 
             const resultado = await response.json();
 
-            console.log('💳 [FATURA] Response completo:', resultado);
-
             // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
             if (resultado.gamification?.achievements && Array.isArray(resultado.gamification.achievements)) {
-                console.log('🎮 [GAMIFICATION] Conquistas encontradas:', resultado.gamification.achievements.length);
                 if (typeof window.notifyMultipleAchievements === 'function') {
                     window.notifyMultipleAchievements(resultado.gamification.achievements);
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
             } else {
-                console.log('ℹ️ [GAMIFICATION] Nenhuma conquista nova');
             }
 
             this.showToast('success', `Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`);

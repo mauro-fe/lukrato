@@ -80,30 +80,26 @@
     /**
      * Processar múltiplas conquistas (usa sistema de fila se houver mais de uma)
      */
-    window.notifyMultipleAchievements = function(achievements) {
+    window.notifyMultipleAchievements = function (achievements) {
         if (!achievements || !Array.isArray(achievements) || achievements.length === 0) {
             return;
         }
 
-        console.log('🎯 [notifyMultipleAchievements] Recebeu', achievements.length, 'conquista(s)');
+        ('🎯 [notifyMultipleAchievements] Recebeu', achievements.length, 'conquista(s)');
 
         if (achievements.length === 1) {
             // Apenas uma conquista - exibir diretamente
-            console.log('📌 [notifyMultipleAchievements] Uma conquista - exibição direta');
             window.notifyAchievementUnlocked(achievements[0]);
         } else {
             // Múltiplas conquistas - usar sistema de fila
-            console.log('📋 [notifyMultipleAchievements] Múltiplas conquistas - usando fila sequencial');
-            
+
             if (window.gamificationPaused === true) {
                 // Se pausada, adicionar à fila pendente
                 if (!window.pendingAchievements) window.pendingAchievements = [];
                 achievements.forEach(ach => window.pendingAchievements.push(ach));
-                console.log('🎯 [notifyMultipleAchievements] Adicionadas à fila pendente');
             } else {
                 // Criar fila combinada e mostrar sequencialmente
                 window.combinedQueue = achievements.map(ach => ({ type: 'achievement', data: ach }));
-                console.log('🎯 [notifyMultipleAchievements] Iniciando exibição sequencial de', window.combinedQueue.length, 'itens');
                 showNextQueuedItem();
             }
         }
@@ -113,19 +109,13 @@
      * Notificar conquista desbloqueada
      */
     window.notifyAchievementUnlocked = function (achievement) {
-        console.log('🎮 [notifyAchievementUnlocked] Chamada recebida:', achievement);
-        console.log('🎮 [notifyAchievementUnlocked] gamificationPaused?', window.gamificationPaused);
-        
+
         // VERIFICAR SE GAMIFICAÇÃO ESTÁ PAUSADA (onboarding em andamento)
         if (window.gamificationPaused === true) {
-            console.log('🎯 [Gamification] Conquista pausada, adicionando à fila:', achievement.name || achievement);
             if (!window.pendingAchievements) window.pendingAchievements = [];
             window.pendingAchievements.push(achievement);
-            console.log('🎯 [Gamification] Total de conquistas na fila:', window.pendingAchievements.length);
             return;
         }
-        
-        console.log('✅ [notifyAchievementUnlocked] Gamificação ATIVA - exibindo imediatamente!');
 
         // Validar se achievement existe e tem os campos necessários
         if (!achievement || typeof achievement !== 'object') {
@@ -141,24 +131,17 @@
             points_reward: parseInt(achievement.points_reward || achievement.points || 0)
         };
 
-        console.log('📦 [notifyAchievementUnlocked] Dados processados:', ach);
-
         // Tocar som imediatamente
-        console.log('🔊 [notifyAchievementUnlocked] Tocando som...');
         playAchievementSound();
 
         // Confetes estouram 100ms depois (sincronizado com o som)
         setTimeout(() => {
-            console.log('🎉 [notifyAchievementUnlocked] Criando confetes...');
             createAchievementConfetti();
         }, 100);
 
-        // Verificar se SweetAlert2 está disponível
-        console.log('🔍 [notifyAchievementUnlocked] Verificando Swal...', typeof Swal);
-        
+
         if (typeof Swal !== 'undefined') {
-            console.log('✅ [notifyAchievementUnlocked] Swal disponível, exibindo modal...');
-            
+
             try {
                 // Fechar qualquer modal Bootstrap que possa estar aberto
                 const bootstrapModals = document.querySelectorAll('.modal.show');
@@ -204,7 +187,6 @@
                             markAchievementsSeen([achievement.id]);
                         }
                     });
-                    console.log('✅ [notifyAchievementUnlocked] Swal.fire() executado!');
                 }, 300);
             } catch (error) {
                 console.error('❌ [notifyAchievementUnlocked] Erro ao exibir Swal:', error);
@@ -215,7 +197,6 @@
             // Tentar novamente após 500ms
             setTimeout(() => {
                 if (typeof Swal !== 'undefined') {
-                    console.log('✅ [notifyAchievementUnlocked] Swal carregado na segunda tentativa!');
                     Swal.fire({
                         title: '🎉 Conquista Desbloqueada!',
                         html: `
@@ -264,10 +245,8 @@
     window.notifyLevelUp = function (newLevel) {
         // VERIFICAR SE GAMIFICAÇÃO ESTÁ PAUSADA (onboarding em andamento)
         if (window.gamificationPaused) {
-            console.log('🎯 [Gamification] Level up pausado, adicionando à fila. Nível:', newLevel);
             if (!window.pendingLevelUps) window.pendingLevelUps = [];
             window.pendingLevelUps.push(newLevel);
-            console.log('🎯 [Gamification] Total de level ups na fila:', window.pendingLevelUps.length);
             return;
         }
 
@@ -543,42 +522,36 @@
     /**
      * Mostrar conquistas que foram pausadas pelo onboarding
      */
-    window.showPendingAchievements = function() {
-        console.log('🎯 [Gamification] Chamou showPendingAchievements');
-        console.log('🎯 [Gamification] Conquistas na fila:', window.pendingAchievements);
-        console.log('🎯 [Gamification] Level ups na fila:', window.pendingLevelUps);
-        
+    window.showPendingAchievements = function () {
+
         // Fazer cópias e limpar arrays IMEDIATAMENTE para evitar duplicação
         const achievementsCopy = window.pendingAchievements ? [...window.pendingAchievements] : [];
         const levelUpsCopy = window.pendingLevelUps ? [...window.pendingLevelUps] : [];
         window.pendingAchievements = [];
         window.pendingLevelUps = [];
-        console.log('✅ [Gamification] Arrays limpos, processando cópias...');
-        
+
         // Criar uma fila combinada de conquistas e level ups
         window.combinedQueue = [];
-        
+
         // Adicionar conquistas
         if (achievementsCopy.length > 0) {
             achievementsCopy.forEach(achievement => {
                 window.combinedQueue.push({ type: 'achievement', data: achievement });
             });
         }
-        
+
         // Adicionar level ups
         if (levelUpsCopy.length > 0) {
             levelUpsCopy.forEach(level => {
                 window.combinedQueue.push({ type: 'levelup', data: level });
             });
         }
-        
+
         if (window.combinedQueue.length === 0) {
-            console.log('🎯 [Gamification] Nenhuma conquista ou level up pendente para mostrar');
             return;
         }
 
-        console.log('🎯 [Gamification] Total de itens para mostrar:', window.combinedQueue.length);
-        
+
         // Mostrar o primeiro item da fila combinada
         showNextQueuedItem();
     };
@@ -588,14 +561,12 @@
      */
     function showNextPendingAchievement() {
         if (!window.pendingAchievements || window.pendingAchievements.length === 0) {
-            console.log('🎯 [Gamification] Todas as conquistas foram mostradas!');
             return;
         }
 
         // Pegar a primeira conquista da fila
         const achievement = window.pendingAchievements.shift();
-        console.log('🎯 [Gamification] Mostrando conquista:', achievement.name || achievement, '| Restam:', window.pendingAchievements.length);
-        
+
         // Mostrar a conquista com callback para mostrar a próxima
         notifyAchievementWithCallback(achievement, showNextPendingAchievement);
     }
@@ -605,14 +576,12 @@
      */
     function showNextQueuedItem() {
         if (!window.combinedQueue || window.combinedQueue.length === 0) {
-            console.log('🎯 [Gamification] Todos os itens foram mostrados!');
             return;
         }
 
         // Pegar o primeiro item da fila
         const item = window.combinedQueue.shift();
-        console.log('🎯 [Gamification] Mostrando item tipo:', item.type, '| Restam:', window.combinedQueue.length);
-        
+
         if (item.type === 'achievement') {
             // Mostrar conquista com callback
             notifyAchievementWithCallback(item.data, showNextQueuedItem);
@@ -692,28 +661,18 @@
     // ====================================================================
     // INICIALIZAÇÃO AUTOMÁTICA - Verificar conquistas pendentes ao carregar
     // ====================================================================
-    console.log('🎮 [Gamification Global] Script carregado');
-    console.log('🎮 [Gamification Global] gamificationPaused inicial:', window.gamificationPaused);
-    console.log('🎮 [Gamification Global] pendingAchievements inicial:', window.pendingAchievements?.length || 0);
-    
     // Verificar se onboarding está completo ao carregar a página
-    window.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('DOMContentLoaded', function () {
         const onboardingCompleted = localStorage.getItem('lukrato_onboarding_completed') === 'true';
         const onboardingInProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
-        
-        console.log('🎮 [Gamification] DOMContentLoaded - Onboarding completo?', onboardingCompleted);
-        console.log('🎮 [Gamification] DOMContentLoaded - Onboarding em progresso?', onboardingInProgress);
-        console.log('🎮 [Gamification] DOMContentLoaded - gamificationPaused?', window.gamificationPaused);
-        
+
+
         if (onboardingCompleted && !onboardingInProgress) {
             // Garantir que gamificação não está pausada
             window.gamificationPaused = false;
-            console.log('✅ [Gamification] Gamificação FORÇADA como ATIVA');
-            console.log('✅ [Gamification] window.gamificationPaused =', window.gamificationPaused);
-            
+
             // Se houver conquistas pendentes, exibir após 1 segundo
             if (window.pendingAchievements && window.pendingAchievements.length > 0) {
-                console.log('🎯 [Gamification] Conquistas pendentes encontradas:', window.pendingAchievements.length);
                 setTimeout(() => {
                     if (typeof window.showPendingAchievements === 'function') {
                         window.showPendingAchievements();

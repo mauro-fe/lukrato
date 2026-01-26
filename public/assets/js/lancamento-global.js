@@ -697,7 +697,6 @@ const lancamentoGlobalManager = {
 
                         // Verificar conquistas desbloqueadas
                         if (gamif.achievements && Array.isArray(gamif.achievements) && gamif.achievements.length > 0) {
-                            console.log('🎮 [LANCAMENTO] Conquistas encontradas:', gamif.achievements.length);
                             if (typeof window.notifyMultipleAchievements === 'function') {
                                 window.notifyMultipleAchievements(gamif.achievements);
                             }

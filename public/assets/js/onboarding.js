@@ -44,11 +44,14 @@ class OnboardingManager {
         });
     }
 
-    init() {
+    async init() {
+        // SEMPRE sincronizar com servidor primeiro
+        await this.syncWithServer();
+
         const completed = this.isCompleted();
         const inProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
 
-        console.log('🎯 [Onboarding] init - completed:', completed, 'inProgress:', inProgress);
+        console.log('🎯 [Onboarding] init - completed:', completed, 'inProgress:', inProgress, 'serverLoaded:', this.serverStatusLoaded);
 
         // Se marcado como completo, FORÇAR despausar gamificação
         if (completed) {
@@ -56,7 +59,7 @@ class OnboardingManager {
             localStorage.removeItem('lukrato_onboarding_in_progress'); // Limpar flag de progresso
             console.log('✅ [Onboarding] Onboarding completo - gamificação ATIVA');
             console.log('✅ [Onboarding] window.gamificationPaused =', window.gamificationPaused);
-            setTimeout(() => this.checkEmptyState(), 1000);
+            // NÃO chamar checkEmptyState() aqui para evitar reset
             return;
         }
 
@@ -183,9 +186,29 @@ class OnboardingManager {
             });
 
             // NOVO USUÁRIO: Se não tem nada E onboarding está marcado como completo, 
-            // significa que o localStorage está "sujo" de outra conta - resetar!
+            // verificar com SERVIDOR se realmente completou - localStorage pode estar sujo
             if (!hasContas && !hasLancamentos && this.isCompleted()) {
-                console.log('🎯 [Onboarding] Detectado novo usuário real - resetando onboarding...');
+                // Verificar com servidor antes de resetar
+                try {
+                    const response = await fetch(`${this.baseUrl}api/onboarding/status`, {
+                        credentials: 'same-origin'
+                    });
+                    const serverData = await response.json();
+
+                    // Se servidor confirma que completou, NÃO resetar
+                    if (serverData.success && serverData.data?.completed) {
+                        console.log('✅ [Onboarding] Servidor confirma onboarding completo - não resetar');
+                        return;
+                    }
+
+                    // Servidor diz que NÃO completou - aí sim resetar
+                    console.log('🎯 [Onboarding] Servidor confirma: novo usuário - resetando onboarding...');
+                } catch (error) {
+                    // Em caso de erro de rede, NÃO resetar (seguro)
+                    console.warn('⚠️ [Onboarding] Erro ao verificar servidor, mantendo estado atual:', error);
+                    return;
+                }
+
                 localStorage.removeItem(this.storageKey);
                 localStorage.removeItem('lukrato_onboarding_celebration_shown');
                 localStorage.removeItem('lukrato_onboarding_progress');
