@@ -101,12 +101,20 @@ class UsuarioRepository
     }
 
     /**
-     * Deleta o usuário.
+     * Deleta o usuário (soft delete) e anonimiza email para liberar para novo cadastro.
      */
     public function delete(int $id): void
     {
         $user = Usuario::find($id);
         if ($user) {
+            // Anonimiza email para liberar para novo cadastro (mantém histórico)
+            $anonymizedEmail = 'deleted_' . time() . '_' . substr(md5((string) $id), 0, 8) . '@excluido.local';
+            $user->email = $anonymizedEmail;
+            $user->nome = 'Usuário Removido';
+            $user->google_id = null; // Remove vinculação com Google
+            $user->save();
+
+            // Soft delete
             $user->delete();
         }
     }
