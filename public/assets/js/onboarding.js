@@ -2,8 +2,13 @@
  * Sistema de Onboarding - Lukrato
  * Guia interativo para novos usuários
  * 
- * O status do onboarding é sincronizado com o servidor para
- * funcionar corretamente em múltiplos dispositivos.
+ * FONTE DE VERDADE: SERVIDOR (banco de dados)
+ * 
+ * Estados do onboarding:
+ * - Não iniciado: completed = false
+ * - Tour guiado em andamento: completed = true, mode = 'guided', tour_skipped = false
+ * - Tour guiado pulado: completed = true, mode = 'guided', tour_skipped = true
+ * - Explorar por conta própria: completed = true, mode = 'self'
  */
 
 class OnboardingManager {
@@ -16,10 +21,20 @@ class OnboardingManager {
             const meta = document.querySelector('meta[name="base-url"]');
             this.baseUrl = meta?.content || window.BASE_URL || '/lukrato/public/';
         }
-        this.storageKey = 'lukrato_onboarding_completed';
+
+        // Estado do onboarding (vindo do servidor)
+        this.status = {
+            completed: false,
+            completed_at: null,
+            mode: null,
+            tour_skipped: false,
+            tour_skipped_at: null,
+            should_show_tour: false
+        };
+
+        this.isLoading = true;
         this.currentStep = 0;
         this.totalSteps = 2;
-        this.serverStatusLoaded = false;
 
         this.init();
         this.setupEventListeners();
@@ -28,104 +43,126 @@ class OnboardingManager {
     setupEventListeners() {
         // Escuta eventos de mudança de dados para atualizar onboarding automaticamente
         window.addEventListener('lukrato:data-changed', () => {
-            setTimeout(() => this.checkEmptyState(), 500);
+            setTimeout(() => this.checkProgress(), 500);
         });
 
-        // Escutar criação de lançamentos diretamente - verificar IMEDIATAMENTE
+        // Escutar criação de lançamentos
         window.addEventListener('lancamento-created', () => {
-            setTimeout(() => this.checkEmptyState(), 300);
+            setTimeout(() => this.checkProgress(), 300);
         });
 
         // Escutar criação de contas
         window.addEventListener('conta-created', () => {
-            setTimeout(() => this.checkEmptyState(), 300);
+            setTimeout(() => this.checkProgress(), 300);
         });
     }
 
     async init() {
-        // SEMPRE sincronizar com servidor primeiro
-        await this.syncWithServer();
+        try {
+            // Carregar status do servidor (única fonte de verdade)
+            await this.loadStatusFromServer();
 
-        const completed = this.isCompleted();
-        const inProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
+            // Se onboarding não foi iniciado (usuário novo), mostrar modal de boas-vindas
+            if (!this.status.completed) {
+                window.gamificationPaused = true;
+                this.showWelcomeModal();
+                return;
+            }
 
+            // Se usuário escolheu explorar por conta própria, não fazer nada
+            if (this.status.mode === 'self') {
+                window.gamificationPaused = false;
+                return;
+            }
 
-        // Se marcado como completo, FORÇAR despausar gamificação
-        if (completed) {
+            // Se o tour foi pulado, não mostrar mais nada
+            if (this.status.tour_skipped) {
+                window.gamificationPaused = false;
+                return;
+            }
+
+            // Se deve mostrar tour guiado, verificar progresso
+            if (this.status.should_show_tour) {
+                window.gamificationPaused = true;
+                await this.checkProgress();
+            } else {
+                window.gamificationPaused = false;
+            }
+        } catch (error) {
+            console.error('[Onboarding] Erro na inicialização:', error);
+            // Em caso de erro, não mostrar nada para não bloquear o usuário
             window.gamificationPaused = false;
-            localStorage.removeItem('lukrato_onboarding_in_progress'); // Limpar flag de progresso
-            // NÃO chamar checkEmptyState() aqui para evitar reset
-            return;
-        }
-
-        // PAUSAR GAMIFICAÇÃO SE ESTIVER EM PROGRESSO (em qualquer página)
-        if (inProgress) {
-            window.gamificationPaused = true;
-        }
-
-        // Se está em progresso, mostrar cards mas não o modal
-        if (inProgress) {
-            setTimeout(() => this.checkEmptyState(), 1000);
-            return;
-        }
-
-
-        // Aguardar carregamento do DOM
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.start());
-        } else {
-            this.start();
         }
     }
 
     /**
-     * Sincroniza o status do onboarding com o servidor
-     * Isso garante que o onboarding não apareça em outros dispositivos
+     * Carrega o status do onboarding do servidor
      */
-    async syncWithServer() {
+    async loadStatusFromServer() {
         try {
             const response = await fetch(`${this.baseUrl}api/onboarding/status`, {
                 credentials: 'same-origin'
             });
 
             if (!response.ok) {
-                console.warn('[Onboarding] Não foi possível verificar status no servidor');
-                return;
+                throw new Error(`HTTP ${response.status}`);
             }
 
             const data = await response.json();
 
-            if (data.success && data.data?.completed) {
-                // Servidor diz que já completou - sincronizar localStorage
-                localStorage.setItem(this.storageKey, 'true');
-                this.serverStatusLoaded = true;
-            } else if (data.success && !data.data?.completed) {
-                // Servidor diz que NÃO completou
-                // NÃO apagar localStorage - confiar no local como fonte primária
-                // Isso evita loops onde o servidor não salvou mas o usuário já escolheu
-                this.serverStatusLoaded = true;
+            if (data.success && data.data) {
+                this.status = data.data;
             }
         } catch (error) {
-            console.warn('[Onboarding] Erro ao sincronizar com servidor:', error);
-            // Em caso de erro, usa o localStorage como fallback
+            console.warn('[Onboarding] Erro ao carregar status do servidor:', error);
+            throw error;
+        } finally {
+            this.isLoading = false;
         }
     }
 
-    isCompleted() {
-        return localStorage.getItem(this.storageKey) === 'true';
-    }
-
-    async markCompleted() {
-        // Marcar localmente
-        localStorage.setItem(this.storageKey, 'true');
-
-        // Sincronizar com o servidor
+    /**
+     * Marca o onboarding como completo com o modo escolhido
+     * @param {string} mode - 'guided' ou 'self'
+     */
+    async markComplete(mode) {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-
-
             const response = await fetch(`${this.baseUrl}api/onboarding/complete`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ mode })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                this.status = data.data;
+                return true;
+            }
+
+            console.error('[Onboarding] Erro ao marcar completo:', data);
+            return false;
+        } catch (error) {
+            console.error('[Onboarding] Erro ao marcar completo:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Marca o tour como pulado
+     */
+    async skipTour() {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            const response = await fetch(`${this.baseUrl}api/onboarding/skip-tour`, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -137,22 +174,28 @@ class OnboardingManager {
 
             const data = await response.json();
 
-            if (!response.ok) {
-                console.error('[Onboarding] Erro ao marcar completo no servidor:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    data: data
-                });
-            } else {
+            if (data.success && data.data) {
+                this.status = data.data;
+                return true;
             }
+
+            console.error('[Onboarding] Erro ao pular tour:', data);
+            return false;
         } catch (error) {
-            console.error('[Onboarding] Erro ao marcar completo no servidor:', error);
-            // Não é crítico - o localStorage já foi atualizado
+            console.error('[Onboarding] Erro ao pular tour:', error);
+            return false;
         }
     }
 
-    async checkEmptyState() {
+    /**
+     * Verifica o progresso do usuário (contas e lançamentos)
+     */
+    async checkProgress() {
         try {
+            // Se não deve mostrar tour, não verificar
+            if (!this.status.should_show_tour) {
+                return;
+            }
 
             // Verificar se há contas
             const contasResponse = await fetch(`${this.baseUrl}api/contas`);
@@ -164,67 +207,23 @@ class OnboardingManager {
             const lancamentos = await lancamentosResponse.json();
             const hasLancamentos = Array.isArray(lancamentos) ? lancamentos.length > 0 : (lancamentos.data?.length > 0 || false);
 
-            // Salvar progresso
-            this.updateProgress({
-                hasContas,
-                hasLancamentos
-            });
+            const progress = { hasContas, hasLancamentos };
 
-            // NOVO USUÁRIO: Se não tem nada E onboarding está marcado como completo, 
-            // verificar com SERVIDOR se realmente completou - localStorage pode estar sujo
-            if (!hasContas && !hasLancamentos && this.isCompleted()) {
-                // Verificar com servidor antes de resetar
-                try {
-                    const response = await fetch(`${this.baseUrl}api/onboarding/status`, {
-                        credentials: 'same-origin'
-                    });
-                    const serverData = await response.json();
-
-                    // Se servidor confirma que completou, NÃO resetar
-                    if (serverData.success && serverData.data?.completed) {
-                        return;
-                    }
-
-                    // Servidor diz que NÃO completou - aí sim resetar
-                } catch (error) {
-                    // Em caso de erro de rede, NÃO resetar (seguro)
-                    console.warn('⚠️ [Onboarding] Erro ao verificar servidor, mantendo estado atual:', error);
-                    return;
-                }
-
-                localStorage.removeItem(this.storageKey);
-                localStorage.removeItem('lukrato_onboarding_celebration_shown');
-                localStorage.removeItem('lukrato_onboarding_progress');
-                localStorage.removeItem('lukrato_onboarding_in_progress');
-                // Mostrar modal de boas-vindas
-                this.showWelcomeModal();
-                return;
-            }
-
-            // Se não tem nada, mostrar empty state melhorado
+            // Se não tem nada, mostrar empty state cards
             if (!hasContas && !hasLancamentos) {
-                this.showEmptyStateCards();
+                this.showEmptyStateCards(progress);
             }
             // Se tem conta mas não tem lançamento
             else if (hasContas && !hasLancamentos) {
-                this.showNextStepGuide('lancamento');
+                this.showNextStepGuide('lancamento', progress);
             }
-            // Se completou tudo, mostrar celebração
+            // Se completou tudo, mostrar celebração e finalizar
             else if (hasContas && hasLancamentos) {
-                this.showCompletionCelebration();
+                await this.showCompletionCelebration();
             }
         } catch (error) {
-            console.error('❌ [Onboarding] Erro ao verificar empty state:', error);
+            console.error('[Onboarding] Erro ao verificar progresso:', error);
         }
-    }
-
-    updateProgress(progress) {
-        localStorage.setItem('lukrato_onboarding_progress', JSON.stringify(progress));
-    }
-
-    getProgress() {
-        const saved = localStorage.getItem('lukrato_onboarding_progress');
-        return saved ? JSON.parse(saved) : { hasContas: false, hasLancamentos: false };
     }
 
     getCurrentPage() {
@@ -236,7 +235,7 @@ class OnboardingManager {
         return 'other';
     }
 
-    showNextStepGuide(nextStep) {
+    showNextStepGuide(nextStep, progress) {
         // Verificar página atual
         const currentPage = this.getCurrentPage();
 
@@ -245,17 +244,14 @@ class OnboardingManager {
             return;
         }
 
-        // Buscar container - funciona em qualquer página
+        // Buscar container
         let container = document.querySelector('.lk-main') ||
             document.querySelector('.content-wrapper') ||
             document.querySelector('main');
 
         if (!container) {
-            console.warn('🎯 Onboarding: Container não encontrado para banner');
             return;
         }
-
-        const progress = this.getProgress();
 
         let stepInfo = {};
         if (nextStep === 'lancamento') {
@@ -296,14 +292,12 @@ class OnboardingManager {
         `;
 
         // Remover cards de boas-vindas se existirem
-        const existingCards = document.querySelector('.onboarding-welcome');
-        if (existingCards) existingCards.remove();
+        document.querySelector('.onboarding-welcome')?.remove();
 
         // Remover banner anterior se existir
-        const existingBanner = document.querySelector('.next-step-banner');
-        if (existingBanner) existingBanner.remove();
+        document.querySelector('.next-step-banner')?.remove();
 
-        // Inserir SEMPRE no topo do container (antes de qualquer coisa)
+        // Inserir no topo do container
         container.insertAdjacentHTML('afterbegin', nextStepHTML);
 
         // Adicionar evento ao botão
@@ -318,19 +312,10 @@ class OnboardingManager {
     }
 
     async showCompletionCelebration() {
-        // Verificar se já mostrou celebração
-        if (localStorage.getItem('lukrato_onboarding_celebration_shown') === 'true') {
-            // Marcar como completado mesmo se já mostrou antes
-            await this.markCompleted();
-            return;
-        }
+        // Marcar tour como pulado (já completou tudo)
+        await this.skipTour();
 
-        localStorage.setItem('lukrato_onboarding_celebration_shown', 'true');
-
-        // Marcar onboarding como completado
-        await this.markCompleted();
-
-        // BLOQUEAR conquistas temporariamente para não atropelarem o modal de setup
+        // BLOQUEAR conquistas temporariamente
         window.gamificationPaused = true;
 
         // FECHAR QUALQUER MODAL EXISTENTE DO SWEETALERT2
@@ -338,22 +323,20 @@ class OnboardingManager {
             Swal.close();
         }
 
-        // Aguardar um pouco para processar o lançamento
+        // Aguardar um pouco para processar
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Tocar som IMEDIATAMENTE
+        // Tocar som
         try {
             const baseUrl = window.BASE_URL || '/lukrato/public/';
             const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
             audio.volume = 0.5;
-            audio.play()
-                .then(() => console.log('🔊 Som de celebração tocando!'))
-                .catch(err => console.warn('⚠️ Não foi possível tocar o som:', err.message));
+            audio.play().catch(() => {});
         } catch (err) {
-            console.warn('⚠️ Erro ao criar áudio:', err);
+            // Ignorar erro de áudio
         }
 
-        // Confetes logo após o som
+        // Confetes
         try {
             if (typeof confetti === 'function') {
                 setTimeout(() => {
@@ -372,14 +355,12 @@ class OnboardingManager {
                         }));
                     }, 250);
                 }, 100);
-            } else {
-                console.warn('⚠️ Biblioteca confetti não está carregada');
             }
         } catch (error) {
-            console.error('❌ Erro ao executar confetes:', error);
+            // Ignorar erro de confetti
         }
 
-        // Criar modal de celebração de setup completo
+        // Criar modal de celebração
         const celebrationHTML = `
             <div class="completion-celebration-overlay">
                 <div class="completion-celebration">
@@ -425,7 +406,7 @@ class OnboardingManager {
                         </ul>
                     </div>
 
-                    <button class="cc-close-btn" onclick="this.closest('.completion-celebration-overlay').remove(); document.querySelector('.onboarding-welcome')?.remove(); window.gamificationPaused = false; if(typeof window.showPendingAchievements === 'function') { window.showPendingAchievements(); }">
+                    <button class="cc-close-btn" onclick="window.onboardingManager.closeCelebration()">
                         Começar a usar!
                     </button>
                 </div>
@@ -434,7 +415,7 @@ class OnboardingManager {
 
         document.body.insertAdjacentHTML('beforeend', celebrationHTML);
 
-        // Remover os cards de onboarding após 2 segundos do modal aparecer
+        // Remover os cards de onboarding
         setTimeout(() => {
             const onboardingWelcome = document.querySelector('.onboarding-welcome');
             if (onboardingWelcome) {
@@ -446,21 +427,28 @@ class OnboardingManager {
         }, 2000);
     }
 
-    showEmptyStateCards() {
+    closeCelebration() {
+        document.querySelector('.completion-celebration-overlay')?.remove();
+        document.querySelector('.onboarding-welcome')?.remove();
+        document.querySelector('.next-step-banner')?.remove();
+        window.gamificationPaused = false;
+        if (typeof window.showPendingAchievements === 'function') {
+            window.showPendingAchievements();
+        }
+    }
+
+    showEmptyStateCards(progress = { hasContas: false, hasLancamentos: false }) {
         // Verificar página atual - NÃO mostrar cards se já estiver em página específica
         const currentPage = this.getCurrentPage();
         if (currentPage !== 'dashboard' && currentPage !== 'other') {
             return;
         }
 
-        // Buscar container - funciona em qualquer página
+        // Buscar container
         let container = document.querySelector('.lk-main');
-
         if (!container) {
-            console.warn('🎯 Onboarding: Container não encontrado para cards');
             return;
         }
-
 
         // Criar cards de ação rápida
         const quickStartHTML = `
@@ -505,7 +493,7 @@ class OnboardingManager {
                 </div>
 
                 <div class="welcome-footer">
-                    <button class="skip-onboarding" onclick="window.onboardingManager.skip()">
+                    <button class="skip-onboarding" onclick="window.onboardingManager.skipTutorial()">
                         Pular tutorial
                     </button>
                     <div class="welcome-features">
@@ -527,44 +515,18 @@ class OnboardingManager {
         `;
 
         // Remover banner de próximo passo se existir
-        const existingBanner = document.querySelector('.next-step-banner');
-        if (existingBanner) existingBanner.remove();
+        document.querySelector('.next-step-banner')?.remove();
+        document.querySelector('.onboarding-welcome')?.remove();
 
         // Inserir antes do conteúdo
         const firstSection = container.querySelector('section') || container.firstElementChild;
         if (firstSection) {
             firstSection.insertAdjacentHTML('beforebegin', quickStartHTML);
-            this.attachQuickStartEvents();
         } else {
             container.insertAdjacentHTML('afterbegin', quickStartHTML);
-            this.attachQuickStartEvents();
         }
-    }
 
-    showQuickActionsBar() {
-        const header = document.querySelector('.page-header') || document.querySelector('.modern-dashboard');
-        if (!header) return;
-
-        const quickActionsHTML = `
-            <div class="quick-actions-bar" style="animation: slideDown 0.5s ease;">
-                <div class="qab-content">
-                    <div class="qab-icon">💡</div>
-                    <div class="qab-text">
-                        <strong>Dica rápida:</strong> 
-                        Adicione seus primeiros lançamentos para ver suas finanças ganharem vida!
-                    </div>
-                    <button class="qab-btn" onclick="window.onboardingManager.openLancamentoModal()">
-                        <i class="fas fa-plus"></i>
-                        Adicionar Lançamento
-                    </button>
-                    <button class="qab-close" onclick="this.parentElement.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        header.insertAdjacentHTML('afterend', quickActionsHTML);
+        this.attachQuickStartEvents();
     }
 
     attachQuickStartEvents() {
@@ -595,12 +557,12 @@ class OnboardingManager {
         }
     }
 
-    start() {
-        // Mostrar modal de boas-vindas
-        this.showWelcomeModal();
-    }
-
     showWelcomeModal() {
+        // Verificar se modal já existe
+        if (document.getElementById('onboardingModalOverlay')) {
+            return;
+        }
+
         const modalHTML = `
             <div class="onboarding-modal-overlay" id="onboardingModalOverlay">
                 <div class="onboarding-modal">
@@ -644,7 +606,7 @@ class OnboardingManager {
                     </div>
 
                     <div class="onboarding-modal-footer">
-                        <button class="btn-secondary" onclick="window.onboardingManager.skip()">
+                        <button class="btn-secondary" onclick="window.onboardingManager.exploreSelf()">
                             Explorar por conta própria
                         </button>
                         <button class="btn-primary" onclick="window.onboardingManager.startGuide()">
@@ -659,30 +621,81 @@ class OnboardingManager {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
+    /**
+     * Usuário escolheu "Começar Tour Guiado"
+     */
     async startGuide() {
         // Fechar modal de boas-vindas
         document.getElementById('onboardingModalOverlay')?.remove();
 
-        // Marcar como completo no servidor para não aparecer novamente
-        await this.markCompleted();
-
-        // Marcar como EM PROGRESSO para mostrar os cards de ação
-        localStorage.setItem('lukrato_onboarding_in_progress', 'true');
+        // Marcar como completo com modo 'guided'
+        const success = await this.markComplete('guided');
+        if (!success) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Erro ao iniciar o tour. Tente novamente.', 'error');
+            }
+            return;
+        }
 
         // Mostrar cards de ação
-        this.showEmptyStateCards();
+        await this.checkProgress();
     }
 
-    skip() {
-        this.markCompleted();
-        localStorage.setItem('lukrato_onboarding_in_progress', 'true'); // Também marcar como em progresso
+    /**
+     * Usuário escolheu "Explorar por conta própria"
+     */
+    async exploreSelf() {
+        // Fechar modal de boas-vindas
         document.getElementById('onboardingModalOverlay')?.remove();
-        document.querySelector('.onboarding-welcome')?.remove();
+
+        // Marcar como completo com modo 'self'
+        const success = await this.markComplete('self');
+        if (!success) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Erro ao salvar preferência. Tente novamente.', 'error');
+            }
+            return;
+        }
+
+        // Despausar gamificação
+        window.gamificationPaused = false;
 
         // Mostrar mensagem de incentivo
         if (typeof window.showNotification === 'function') {
-            window.showNotification('Você pode acessar o tutorial a qualquer momento! 👋', 'info');
+            window.showNotification('Explore à vontade! Estamos aqui se precisar de ajuda. 👋', 'info');
         }
+    }
+
+    /**
+     * Usuário clicou em "Pular tutorial"
+     */
+    async skipTutorial() {
+        // Marcar tour como pulado no servidor
+        const success = await this.skipTour();
+        if (!success) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Erro ao pular tutorial. Tente novamente.', 'error');
+            }
+            return;
+        }
+
+        // Remover elementos visuais
+        document.getElementById('onboardingModalOverlay')?.remove();
+        document.querySelector('.onboarding-welcome')?.remove();
+        document.querySelector('.next-step-banner')?.remove();
+
+        // Despausar gamificação
+        window.gamificationPaused = false;
+
+        // Mostrar mensagem
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('Tutorial pulado. Você pode acessar a ajuda a qualquer momento! 👋', 'info');
+        }
+    }
+
+    // Método legado para compatibilidade
+    skip() {
+        this.skipTutorial();
     }
 }
 

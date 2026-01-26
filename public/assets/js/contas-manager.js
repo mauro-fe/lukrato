@@ -1840,13 +1840,23 @@ class ContasManager {
 
             // Validações
             if (tipo === 'transferencia' && !contaDestinoId) {
-                this.showNotification('Selecione a conta de destino', 'error');
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Selecione a conta de destino',
+                    customClass: { container: 'swal-above-modal' }
+                });
                 throw new Error('Conta destino obrigatória para transferências');
             }
 
             // Validação extra: garantir que as contas são diferentes
             if (tipo === 'transferencia' && String(contaId) === String(contaDestinoId)) {
-                this.showNotification('Conta de origem e destino devem ser diferentes', 'error');
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Conta de origem e destino devem ser diferentes',
+                    customClass: { container: 'swal-above-modal' }
+                });
                 throw new Error('Selecione contas de origem e destino diferentes.');
             }
 
@@ -1854,7 +1864,12 @@ class ContasManager {
             const valor = this.parseMoneyInput(valorFormatado);
 
             if (valor <= 0) {
-                this.showNotification('O valor deve ser maior que zero', 'error');
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Informe um valor válido',
+                    customClass: { container: 'swal-above-modal' }
+                });
                 throw new Error('Valor inválido');
             }
 
@@ -1868,10 +1883,16 @@ class ContasManager {
                 if (cartao) {
                     const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
                     if (valor > limiteDisponivel) {
-                        this.showNotification(
-                            `Limite insuficiente! Disponível: ${this.formatCurrency(limiteDisponivel)}, Necessário: ${this.formatCurrency(valor)}`,
-                            'error'
-                        );
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Limite Insuficiente',
+                            html: `
+                                <p>O valor da compra (${this.formatCurrency(valor)}) excede o limite disponível do cartão.</p>
+                                <p><strong>Limite disponível:</strong> ${this.formatCurrency(limiteDisponivel)}</p>
+                            `,
+                            confirmButtonText: 'Entendi',
+                            customClass: { container: 'swal-above-modal' }
+                        });
                         throw new Error('Limite do cartão insuficiente');
                     }
                 }

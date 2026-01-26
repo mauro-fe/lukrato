@@ -46,9 +46,10 @@ Router::add('DELETE', '/api/perfil/delete', 'Api\\PerfilController@delete', ['au
 // ONBOARDING
 // ============================================
 
-Router::add('GET',  '/api/onboarding/status',   'Api\\OnboardingController@status',   ['auth']);
-Router::add('POST', '/api/onboarding/complete', 'Api\\OnboardingController@complete', ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/reset',    'Api\\OnboardingController@reset',    ['auth', 'csrf']);
+Router::add('GET',  '/api/onboarding/status',    'Api\\OnboardingController@status',   ['auth']);
+Router::add('POST', '/api/onboarding/complete',  'Api\\OnboardingController@complete', ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/skip-tour', 'Api\\OnboardingController@skipTour', ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/reset',     'Api\\OnboardingController@reset',    ['auth', 'csrf']);
 
 // ============================================
 // DASHBOARD

@@ -41,6 +41,8 @@ class Usuario extends Model
         'id_sexo',
         'theme_preference',
         'onboarding_completed_at',
+        'onboarding_mode',
+        'onboarding_tour_skipped_at',
         'external_customer_id',
         'gateway',
         'google_id',
@@ -52,6 +54,7 @@ class Usuario extends Model
         'data_nascimento' => 'date:Y-m-d',
         'is_admin' => 'integer',
         'onboarding_completed_at' => 'datetime',
+        'onboarding_tour_skipped_at' => 'datetime',
     ];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'onboarding_completed'];
 
@@ -99,10 +102,53 @@ class Usuario extends Model
         return $this->onboarding_completed_at !== null;
     }
 
-    public function markOnboardingComplete(): bool
+    /**
+     * Marca o onboarding como completo com o modo escolhido
+     * @param string $mode 'guided' ou 'self'
+     */
+    public function markOnboardingComplete(string $mode = 'guided'): bool
     {
         $this->onboarding_completed_at = now();
+        $this->onboarding_mode = $mode;
         return $this->save();
+    }
+
+    /**
+     * Marca que o tour foi pulado (usuário clicou em "Pular Tutorial")
+     */
+    public function skipOnboardingTour(): bool
+    {
+        $this->onboarding_tour_skipped_at = now();
+        return $this->save();
+    }
+
+    /**
+     * Verifica se o tour guiado deve ser exibido
+     * Retorna true apenas se:
+     * - Onboarding foi completado (escolheu uma opção)
+     * - Modo é 'guided'
+     * - Tour não foi pulado
+     */
+    public function shouldShowGuidedTour(): bool
+    {
+        return $this->onboarding_completed_at !== null
+            && $this->onboarding_mode === 'guided'
+            && $this->onboarding_tour_skipped_at === null;
+    }
+
+    /**
+     * Retorna o status completo do onboarding
+     */
+    public function getOnboardingStatus(): array
+    {
+        return [
+            'completed' => $this->onboarding_completed_at !== null,
+            'completed_at' => $this->onboarding_completed_at,
+            'mode' => $this->onboarding_mode,
+            'tour_skipped' => $this->onboarding_tour_skipped_at !== null,
+            'tour_skipped_at' => $this->onboarding_tour_skipped_at,
+            'should_show_tour' => $this->shouldShowGuidedTour(),
+        ];
     }
 
     public function assinaturas()
