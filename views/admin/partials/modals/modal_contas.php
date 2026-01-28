@@ -42,7 +42,8 @@
                         <select id="instituicaoFinanceiraSelect" name="instituicao_financeira_id" class="form-select">
                             <option value="">Selecione uma instituição</option>
                         </select>
-                        <button type="button" class="btn-add-instituicao" id="btnAddInstituicao" title="Adicionar nova instituição">
+                        <button type="button" class="btn-add-instituicao" id="btnAddInstituicao"
+                            title="Adicionar nova instituição">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -74,8 +75,8 @@
                         </label>
                         <select id="moedaSelect" name="moeda" class="form-select" required>
                             <option value="BRL" selected>Real (BRL)</option>
-                            <option value="USD">Dólar (USD)</option>
-                            <option value="EUR">Euro (EUR)</option>
+                            <!-- <option value="USD">Dólar (USD)</option>
+                            <option value="EUR">Euro (EUR)</option> -->
                         </select>
                     </div>
                 </div>
@@ -528,7 +529,8 @@
                     <p class="modal-subtitle">Adicione um banco que não está na lista</p>
                 </div>
             </div>
-            <button class="modal-close modal-close-btn" type="button" onclick="contasManager.closeNovaInstituicaoModal()" aria-label="Fechar modal">
+            <button class="modal-close modal-close-btn" type="button"
+                onclick="contasManager.closeNovaInstituicaoModal()" aria-label="Fechar modal">
                 <i class="fas fa-times"></i>
             </button>
         </div>
