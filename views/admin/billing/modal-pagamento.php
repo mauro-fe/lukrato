@@ -858,6 +858,38 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             <div id="billing-modal-price" class="payment-modal__price" role="status" aria-live="polite">
                 Selecione um plano para continuar
             </div>
+
+            <!-- ========== SEÇÃO DE CUPOM DE DESCONTO ========== -->
+            <div class="coupon-section" style="margin-top: var(--spacing-4); max-width: 400px; margin-left: auto; margin-right: auto;">
+                <div style="display: flex; gap: var(--spacing-2); align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <label for="coupon-input" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--color-text); margin-bottom: 6px;">
+                            <i class="fas fa-ticket-alt"></i> Cupom de Desconto
+                        </label>
+                        <input 
+                            type="text" 
+                            id="coupon-input" 
+                            placeholder="Digite seu cupom"
+                            style="width: 100%; padding: 12px 14px; border: 2px solid var(--glass-border); border-radius: var(--radius-md); background: var(--color-surface-muted); color: var(--color-text); font-size: 1rem; text-transform: uppercase; outline: none; transition: all 0.3s ease;"
+                        >
+                    </div>
+                    <button 
+                        type="button" 
+                        id="apply-coupon-btn"
+                        style="padding: 12px 20px; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; transition: all 0.3s ease; white-space: nowrap;"
+                    >
+                        Aplicar
+                    </button>
+                </div>
+                <div id="coupon-feedback" style="margin-top: 8px; font-size: 0.875rem; display: none;"></div>
+                <div id="coupon-discount-display" style="margin-top: 8px; padding: 12px; background: rgba(34, 197, 94, 0.1); border-radius: var(--radius-md); color: #22c55e; font-weight: 600; display: none;">
+                    <i class="fas fa-check-circle"></i> 
+                    <span id="coupon-discount-text"></span>
+                    <button type="button" id="remove-coupon-btn" style="float: right; background: transparent; border: none; color: #22c55e; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-times"></i> Remover
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- ========== SEÇÃO DE PAGAMENTO PENDENTE (BLOQUEIO) ========== -->
@@ -1254,6 +1286,121 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         let hasPendingPayment = false;
         let pendingPaymentData = null;
         let paymentMethodsLocked = false;
+        
+        // ===============================
+        // GERENCIAMENTO DE CUPOM DE DESCONTO
+        // ===============================
+        let appliedCoupon = null;
+        const couponInput = document.getElementById('coupon-input');
+        const applyCouponBtn = document.getElementById('apply-coupon-btn');
+        const removeCouponBtn = document.getElementById('remove-coupon-btn');
+        const couponFeedback = document.getElementById('coupon-feedback');
+        const couponDiscountDisplay = document.getElementById('coupon-discount-display');
+        const couponDiscountText = document.getElementById('coupon-discount-text');
+
+        async function applyCoupon() {
+            const codigo = couponInput.value.trim().toUpperCase();
+            
+            if (!codigo) {
+                showCouponFeedback('Digite um código de cupom', 'error');
+                return;
+            }
+
+            applyCouponBtn.disabled = true;
+            applyCouponBtn.textContent = 'Validando...';
+
+            try {
+                const response = await fetch(`${BASE_URL}api/cupons/validar?codigo=${encodeURIComponent(codigo)}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': CSRF_TOKEN
+                    },
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    appliedCoupon = data.data.cupom;
+                    showCouponSuccess();
+                    updatePriceWithDiscount();
+                    couponInput.value = '';
+                    couponInput.disabled = true;
+                    applyCouponBtn.style.display = 'none';
+                } else {
+                    showCouponFeedback(data.message || 'Cupom inválido', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao validar cupom:', error);
+                showCouponFeedback('Erro ao validar cupom', 'error');
+            } finally {
+                applyCouponBtn.disabled = false;
+                applyCouponBtn.textContent = 'Aplicar';
+            }
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            couponInput.value = '';
+            couponInput.disabled = false;
+            applyCouponBtn.style.display = 'inline-block';
+            couponDiscountDisplay.style.display = 'none';
+            couponFeedback.style.display = 'none';
+            updatePriceWithDiscount();
+        }
+
+        function showCouponFeedback(message, type) {
+            couponFeedback.textContent = message;
+            couponFeedback.style.display = 'block';
+            couponFeedback.style.color = type === 'error' ? '#ef4444' : '#22c55e';
+            setTimeout(() => {
+                couponFeedback.style.display = 'none';
+            }, 3000);
+        }
+
+        function showCouponSuccess() {
+            couponDiscountDisplay.style.display = 'block';
+            couponDiscountText.textContent = `Cupom "${appliedCoupon.codigo}" aplicado! Desconto: ${appliedCoupon.desconto_formatado}`;
+        }
+
+        function calculateFinalPrice(basePrice) {
+            if (!appliedCoupon) return basePrice;
+
+            if (appliedCoupon.tipo_desconto === 'percentual') {
+                return basePrice * (1 - appliedCoupon.valor_desconto / 100);
+            } else {
+                return Math.max(0, basePrice - appliedCoupon.valor_desconto);
+            }
+        }
+
+        function updatePriceWithDiscount() {
+            if (!currentPlanConfig || !modalPrice) return;
+
+            const baseTotal = calcTotal(currentPlanConfig.monthlyBase, currentPlanConfig.months, currentPlanConfig.discount);
+            const finalTotal = calculateFinalPrice(baseTotal);
+            
+            if (appliedCoupon) {
+                const discount = baseTotal - finalTotal;
+                modalPrice.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <span style="text-decoration: line-through; opacity: 0.6; font-size: 0.9rem;">${currencyFormatter.format(baseTotal)}</span>
+                        <span>${currencyFormatter.format(finalTotal)}/${cycleLabel(currentPlanConfig.months)}</span>
+                        <small style="font-size: 0.75rem; opacity: 0.9;">Economia: ${currencyFormatter.format(discount)}</small>
+                    </div>
+                `;
+            } else {
+                modalPrice.textContent = `${currentPlanConfig.planName} - ${currencyFormatter.format(baseTotal)}/${cycleLabel(currentPlanConfig.months)}`;
+            }
+        }
+
+        applyCouponBtn?.addEventListener('click', applyCoupon);
+        removeCouponBtn?.addEventListener('click', removeCoupon);
+        couponInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyCoupon();
+            }
+        });
 
         // ===============================
         // TRAVAR/DESTRAVAR TABS DE PAGAMENTO
@@ -1909,6 +2056,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 amount: Number(inputPlanAmount.value || 0),
                 billingType: currentBillingType
             };
+            
+            // Adicionar cupom ao payload se aplicado
+            if (appliedCoupon) {
+                payload.couponCode = appliedCoupon.codigo;
+            }
 
             // Validar e montar payload baseado no método
             if (currentBillingType === 'CREDIT_CARD') {

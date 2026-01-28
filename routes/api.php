@@ -196,6 +196,17 @@ Router::add('GET',  '/premium/pending-payment', 'PremiumController@getPendingPay
 Router::add('POST', '/premium/cancel-pending', 'PremiumController@cancelPendingPayment', ['auth', 'csrf']);
 
 // ============================================
+// CUPONS DE DESCONTO
+// ============================================
+
+Router::add('GET',    '/api/cupons',           'SysAdmin\\CupomController@index',        ['auth']);
+Router::add('POST',   '/api/cupons',           'SysAdmin\\CupomController@store',        ['auth', 'csrf']);
+Router::add('PUT',    '/api/cupons',           'SysAdmin\\CupomController@update',       ['auth', 'csrf']);
+Router::add('DELETE', '/api/cupons',           'SysAdmin\\CupomController@destroy',      ['auth', 'csrf']);
+Router::add('GET',    '/api/cupons/validar',   'SysAdmin\\CupomController@validar',      ['auth']);
+Router::add('GET',    '/api/cupons/estatisticas', 'SysAdmin\\CupomController@estatisticas', ['auth']);
+
+// ============================================
 // FATURAS DE CARTÃO (REST)
 // ============================================
 

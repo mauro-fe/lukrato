@@ -473,6 +473,37 @@ class PremiumController extends BaseController
             $valorMensal = $plano->preco_centavos / 100;
             $discount = $this->validator->getExpectedDiscount($dto->months);
             $total = $this->validator->calculateTotal($valorMensal, $dto->months, $discount);
+            
+            // ========================================================================
+            // APLICAR CUPOM DE DESCONTO
+            // ========================================================================
+            $cupomAplicado = null;
+            $valorOriginal = $total;
+            
+            if ($dto->couponCode) {
+                $cupom = \Application\Models\Cupom::findByCodigo($dto->couponCode);
+                
+                if (!$cupom) {
+                    throw new \RuntimeException('Cupom não encontrado.');
+                }
+                
+                if (!$cupom->isValid()) {
+                    throw new \RuntimeException('Cupom inválido ou expirado.');
+                }
+                
+                // Calcular desconto do cupom
+                $descontoCupom = $cupom->calcularDesconto($total);
+                $total = $cupom->aplicarDesconto($total);
+                
+                $cupomAplicado = [
+                    'cupom' => $cupom,
+                    'desconto' => $descontoCupom,
+                    'valor_original' => $valorOriginal,
+                    'valor_final' => $total
+                ];
+                
+                error_log("✨ [CHECKOUT] Cupom aplicado: {$cupom->codigo} - Desconto: R$ {$descontoCupom}");
+            }
 
             // PIX e Boleto: criar pagamento avulso primeiro
             // Cartão: criar subscription diretamente (cobrança recorrente automática)
@@ -482,7 +513,30 @@ class PremiumController extends BaseController
                 $result = $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $total);
             }
 
-            $this->saveAssinatura($usuario, $plano, $result, $dto->billingType);
+            $assinatura = $this->saveAssinatura($usuario, $plano, $result, $dto->billingType);
+            
+            // ========================================================================
+            // REGISTRAR USO DO CUPOM
+            // ========================================================================
+            if ($cupomAplicado) {
+                $cupom = $cupomAplicado['cupom'];
+                
+                // Incrementar uso do cupom
+                $cupom->incrementarUso();
+                
+                // Registrar no histórico
+                \Application\Models\CupomUsado::create([
+                    'cupom_id' => $cupom->id,
+                    'usuario_id' => $usuario->id,
+                    'assinatura_id' => $assinatura->id,
+                    'desconto_aplicado' => $cupomAplicado['desconto'],
+                    'valor_original' => $cupomAplicado['valor_original'],
+                    'valor_final' => $cupomAplicado['valor_final'],
+                    'usado_em' => now()
+                ]);
+                
+                error_log("✅ [CHECKOUT] Uso do cupom registrado no histórico");
+            }
 
             DB::commit();
 
@@ -495,6 +549,15 @@ class PremiumController extends BaseController
                 'total' => $total,
                 'paymentId' => $result['asaas_id'],
             ];
+            
+            // Adicionar informações do cupom na resposta
+            if ($cupomAplicado) {
+                $response['coupon_applied'] = [
+                    'codigo' => $cupomAplicado['cupom']->codigo,
+                    'desconto' => $cupomAplicado['desconto'],
+                    'valor_original' => $cupomAplicado['valor_original']
+                ];
+            }
 
             // Adicionar dados específicos de PIX ou Boleto diretamente na response
             if (isset($result['pix'])) {
@@ -710,7 +773,7 @@ class PremiumController extends BaseController
         ];
     }
 
-    private function saveAssinatura(Usuario $usuario, Plano $plano, array $result, string $billingType = 'CREDIT_CARD'): void
+    private function saveAssinatura(Usuario $usuario, Plano $plano, array $result, string $billingType = 'CREDIT_CARD'): AssinaturaUsuario
     {
         $data = [
             'user_id' => $usuario->id,
@@ -732,6 +795,8 @@ class PremiumController extends BaseController
 
         $assinatura = new AssinaturaUsuario($data);
         $assinatura->save();
+        
+        return $assinatura;
     }
 
     private function getActiveSubscription(Usuario $usuario): ?AssinaturaUsuario

@@ -46,6 +46,11 @@ Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);
 // Super Admin
 Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth']);
 
+// SysAdmin - Gerenciamento de cupons
+Router::add('GET', '/sysadmin/cupons', function () {
+    require_once __DIR__ . '/../views/sysAdmin/cupons.php';
+}, ['auth']);
+
 // SysAdmin - Listagem de usuários com filtros
 Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth']);
 

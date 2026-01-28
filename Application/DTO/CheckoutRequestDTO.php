@@ -13,7 +13,8 @@ class CheckoutRequestDTO
         public readonly ?array $creditCard,
         public readonly array $holderInfo,
         public readonly int $months,
-        public readonly int $discount
+        public readonly int $discount,
+        public readonly ?string $couponCode = null
     ) {}
 
     public static function fromRequest(array $body): self
@@ -26,7 +27,8 @@ class CheckoutRequestDTO
             creditCard: $body['creditCard'] ?? null,
             holderInfo: $holderInfo,
             months: (int)($body['months'] ?? 1),
-            discount: (int)($body['discount'] ?? 0)
+            discount: (int)($body['discount'] ?? 0),
+            couponCode: !empty($body['couponCode']) ? trim($body['couponCode']) : null
         );
     }
 
