@@ -480,14 +480,15 @@ class SysAdminController extends BaseController
             // Total de usuários
             $totalUsers = Usuario::count();
 
-            // Usuários PRO ativos
+            // Usuários PRO ativos (plano_id = 2)
             $proUsers = AssinaturaUsuario::where('status', AssinaturaUsuario::ST_ACTIVE)
                 ->where('renova_em', '>', $now)
+                ->where('plano_id', 2) // Apenas plano PRO
                 ->distinct('user_id')
                 ->count('user_id');
 
             // Usuários gratuitos
-            $freeUsers = $totalUsers - $proUsers;
+            $freeUsers = max(0, $totalUsers - $proUsers);
 
             // Taxa de conversão
             $conversionRate = $totalUsers > 0 ? round(($proUsers / $totalUsers) * 100, 1) : 0;
@@ -526,6 +527,11 @@ class SysAdminController extends BaseController
                 ->pluck('count', 'gateway')
                 ->toArray();
 
+            // Se não houver dados, adicionar valor padrão
+            if (empty($subscriptionsByGateway)) {
+                $subscriptionsByGateway = ['Interno' => $proUsers];
+            }
+
             // Assinaturas por status
             $subscriptionsByStatus = AssinaturaUsuario::selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
@@ -534,7 +540,6 @@ class SysAdminController extends BaseController
                 ->toArray();
 
             // Usuários ativos (logaram nos últimos 30 dias)
-            // Se você tiver campo de last_login, pode usar aqui
             $activeUsers = Usuario::where('updated_at', '>=', $thirtyDaysAgo)->count();
 
             // Crescimento percentual (comparado ao mês anterior)
@@ -547,32 +552,37 @@ class SysAdminController extends BaseController
                 ? round((($newThisMonth - $previousMonthUsers) / $previousMonthUsers) * 100, 1)
                 : ($newThisMonth > 0 ? 100 : 0);
 
-            Response::success([
+            $responseData = [
                 'overview' => [
-                    'totalUsers' => $totalUsers,
-                    'proUsers' => $proUsers,
-                    'freeUsers' => $freeUsers,
-                    'conversionRate' => $conversionRate,
-                    'activeUsers' => $activeUsers,
+                    'totalUsers' => (int)$totalUsers,
+                    'proUsers' => (int)$proUsers,
+                    'freeUsers' => (int)$freeUsers,
+                    'conversionRate' => (float)$conversionRate,
+                    'activeUsers' => (int)$activeUsers,
                 ],
                 'newUsers' => [
-                    'today' => $newToday,
-                    'thisWeek' => $newThisWeek,
-                    'thisMonth' => $newThisMonth,
-                    'growthRate' => $growthRate,
+                    'today' => (int)$newToday,
+                    'thisWeek' => (int)$newThisWeek,
+                    'thisMonth' => (int)$newThisMonth,
+                    'growthRate' => (float)$growthRate,
                 ],
                 'charts' => [
                     'usersByDay' => $usersByDayFilled,
                     'subscriptionsByGateway' => $subscriptionsByGateway,
                     'subscriptionsByStatus' => $subscriptionsByStatus,
                     'userDistribution' => [
-                        'PRO' => $proUsers,
-                        'Gratuito' => $freeUsers,
+                        'PRO' => (int)$proUsers,
+                        'Gratuito' => (int)$freeUsers,
                     ],
                 ],
-            ]);
+            ];
+
+            error_log("✅ [SYSADMIN] Stats gerados: PRO={$proUsers}, Free={$freeUsers}, Total={$totalUsers}");
+
+            Response::success($responseData);
         } catch (Exception $e) {
             error_log("🚨 [SYSADMIN] Erro ao buscar estatísticas: " . $e->getMessage());
+            error_log($e->getTraceAsString());
             Response::error('Erro ao buscar estatísticas: ' . $e->getMessage(), 500);
         }
     }

@@ -8,7 +8,7 @@ use DateTime;
 class Cupom extends Model
 {
     protected $table = 'cupons';
-    
+
     protected $fillable = [
         'codigo',
         'tipo_desconto',
@@ -63,7 +63,7 @@ class Cupom extends Model
         if ($this->tipo_desconto === 'percentual') {
             return round(($valor * $this->valor_desconto) / 100, 2);
         }
-        
+
         // Desconto fixo
         return min($this->valor_desconto, $valor);
     }

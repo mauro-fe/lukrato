@@ -186,6 +186,23 @@
             <!-- User Search Card -->
 
 
+            <!-- Cupons de Desconto Card -->
+            <div class="control-card">
+                <div class="control-header">
+                    <i class="fas fa-ticket-alt"></i>
+                    <div>
+                        <h3>Cupons de Desconto</h3>
+                        <p>Gerenciar cupons promocionais</p>
+                    </div>
+                </div>
+                <div class="control-actions">
+                    <button class="btn-control primary" onclick="window.location.href='<?= BASE_URL ?>sysadmin/cupons'">
+                        <i class="fas fa-ticket-alt"></i>
+                        Gerenciar Cupons
+                    </button>
+                </div>
+            </div>
+
             <!-- Grant Access Card -->
             <div class="control-card">
                 <div class="control-header">
@@ -1125,24 +1142,58 @@
         const refreshBtn = document.querySelector('.btn-refresh-stats i');
         if (refreshBtn) refreshBtn.classList.add('fa-spin');
 
-        fetch(`<?= BASE_URL ?>api/sysadmin/stats`)
-            .then(res => res.json())
+        fetch(`<?= BASE_URL ?>api/sysadmin/stats`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            credentials: 'include'
+        })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(response => {
                 if (refreshBtn) refreshBtn.classList.remove('fa-spin');
 
+                console.log('📊 Estatísticas recebidas:', response);
+
                 if (!response.success) {
                     console.error('Erro ao carregar estatísticas:', response.message);
+                    showStatsError(response.message || 'Erro ao carregar estatísticas');
                     return;
                 }
 
                 const data = response.data;
+                if (!data || !data.overview || !data.charts) {
+                    console.error('Dados de estatísticas inválidos:', data);
+                    showStatsError('Dados de estatísticas inválidos');
+                    return;
+                }
+
                 updateStatsOverview(data);
                 renderCharts(data.charts);
             })
             .catch(err => {
                 if (refreshBtn) refreshBtn.classList.remove('fa-spin');
                 console.error('Erro ao carregar estatísticas:', err);
+                showStatsError('Erro ao conectar com o servidor');
             });
+    }
+
+    function showStatsError(message) {
+        // Exibir valores padrão em caso de erro
+        document.getElementById('statProUsers').textContent = 'Erro';
+        document.getElementById('statFreeUsers').textContent = 'Erro';
+        document.getElementById('statConversionRate').textContent = '-';
+        document.getElementById('statGrowthRate').textContent = '-';
+        document.getElementById('statNewToday').textContent = '-';
+        document.getElementById('statNewWeek').textContent = '-';
+        document.getElementById('statNewMonth').textContent = '-';
+        
+        console.error('Stats Error:', message);
     }
 
     function updateStatsOverview(data) {

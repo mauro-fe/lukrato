@@ -6,6 +6,7 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Cupom;
 use Application\Models\CupomUsado;
+use Application\Lib\Auth;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class CupomController extends BaseController
@@ -16,12 +17,54 @@ class CupomController extends BaseController
     }
 
     /**
+     * Verifica se o usuário é admin
+     */
+    private function isAdmin(): bool
+    {
+        $user = Auth::user();
+        return $user && $user->is_admin == 1;
+    }
+
+    /**
+     * Obtém o corpo da requisição
+     */
+    private function getRequestBody(): array
+    {
+        return $this->getJson() ?? [];
+    }
+
+    /**
+     * Atualiza cupons expirados para inativo
+     */
+    private function atualizarCuponsExpirados(): void
+    {
+        try {
+            $hoje = date('Y-m-d');
+            
+            // Atualizar cupons que venceram (data menor que hoje e ainda ativos)
+            Cupom::where('ativo', 1)
+                ->whereNotNull('valido_ate')
+                ->where('valido_ate', '<', $hoje)
+                ->update(['ativo' => 0]);
+                
+            // Atualizar cupons que atingiram o limite de uso
+            Cupom::where('ativo', 1)
+                ->where('limite_uso', '>', 0)
+                ->whereRaw('uso_atual >= limite_uso')
+                ->update(['ativo' => 0]);
+                
+        } catch (\Exception $e) {
+            error_log("Erro ao atualizar cupons expirados: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Lista todos os cupons
      */
     public function index(): void
     {
         $this->requireAuthApi();
-        
+
         // Verificar se é admin
         if (!$this->isAdmin()) {
             Response::error('Acesso negado', 403);
@@ -29,8 +72,11 @@ class CupomController extends BaseController
         }
 
         try {
-            $cupons = Cupom::orderBy('created_at', 'desc')->get();
+            // Atualizar cupons expirados antes de listar
+            $this->atualizarCuponsExpirados();
             
+            $cupons = Cupom::orderBy('created_at', 'desc')->get();
+
             $cuponsFormatados = $cupons->map(function ($cupom) {
                 return [
                     'id' => $cupom->id,
@@ -61,7 +107,7 @@ class CupomController extends BaseController
     public function store(): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->isAdmin()) {
             Response::error('Acesso negado', 403);
             return;
@@ -140,7 +186,7 @@ class CupomController extends BaseController
     public function destroy(): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->isAdmin()) {
             Response::error('Acesso negado', 403);
             return;
@@ -148,14 +194,14 @@ class CupomController extends BaseController
 
         try {
             $data = $this->getRequestBody();
-            
+
             if (empty($data['id'])) {
                 Response::error('ID do cupom é obrigatório', 400);
                 return;
             }
 
             $cupom = Cupom::find($data['id']);
-            
+
             if (!$cupom) {
                 Response::error('Cupom não encontrado', 404);
                 return;
@@ -163,7 +209,7 @@ class CupomController extends BaseController
 
             // Verificar se o cupom foi usado
             $foiUsado = CupomUsado::where('cupom_id', $cupom->id)->exists();
-            
+
             if ($foiUsado) {
                 // Se foi usado, apenas desativa
                 $cupom->ativo = false;
@@ -188,8 +234,11 @@ class CupomController extends BaseController
         $this->requireAuthApi();
 
         try {
-            $codigo = $_GET['codigo'] ?? '';
+            // Atualizar cupons expirados antes de validar
+            $this->atualizarCuponsExpirados();
             
+            $codigo = $_GET['codigo'] ?? '';
+
             if (empty($codigo)) {
                 Response::error('Código do cupom é obrigatório', 400);
                 return;
@@ -202,9 +251,20 @@ class CupomController extends BaseController
                 return;
             }
 
+            // Verificar se o usuário já usou este cupom
+            $user = Auth::user();
+            $jaUsou = CupomUsado::where('cupom_id', $cupom->id)
+                ->where('usuario_id', $user->id)
+                ->exists();
+
+            if ($jaUsou) {
+                Response::error('Você já utilizou este cupom anteriormente', 400);
+                return;
+            }
+
             if (!$cupom->isValid()) {
                 $motivo = 'Cupom inválido';
-                
+
                 if (!$cupom->ativo) {
                     $motivo = 'Cupom inativo';
                 } elseif ($cupom->valido_ate && now() > $cupom->valido_ate) {
@@ -212,7 +272,7 @@ class CupomController extends BaseController
                 } elseif ($cupom->limite_uso > 0 && $cupom->uso_atual >= $cupom->limite_uso) {
                     $motivo = 'Cupom esgotado';
                 }
-                
+
                 Response::error($motivo, 400);
                 return;
             }
@@ -240,7 +300,7 @@ class CupomController extends BaseController
     public function update(): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->isAdmin()) {
             Response::error('Acesso negado', 403);
             return;
@@ -248,14 +308,14 @@ class CupomController extends BaseController
 
         try {
             $data = $this->getRequestBody();
-            
+
             if (empty($data['id'])) {
                 Response::error('ID do cupom é obrigatório', 400);
                 return;
             }
 
             $cupom = Cupom::find($data['id']);
-            
+
             if (!$cupom) {
                 Response::error('Cupom não encontrado', 404);
                 return;
@@ -265,15 +325,15 @@ class CupomController extends BaseController
             if (isset($data['ativo'])) {
                 $cupom->ativo = (bool)$data['ativo'];
             }
-            
+
             if (isset($data['descricao'])) {
                 $cupom->descricao = $data['descricao'];
             }
-            
+
             if (isset($data['valido_ate'])) {
                 $cupom->valido_ate = $data['valido_ate'];
             }
-            
+
             if (isset($data['limite_uso'])) {
                 $cupom->limite_uso = $data['limite_uso'];
             }
@@ -308,7 +368,7 @@ class CupomController extends BaseController
     public function estatisticas(): void
     {
         $this->requireAuthApi();
-        
+
         if (!$this->isAdmin()) {
             Response::error('Acesso negado', 403);
             return;
@@ -316,14 +376,14 @@ class CupomController extends BaseController
 
         try {
             $cupomId = $_GET['id'] ?? null;
-            
+
             if (!$cupomId) {
                 Response::error('ID do cupom é obrigatório', 400);
                 return;
             }
 
             $cupom = Cupom::find($cupomId);
-            
+
             if (!$cupom) {
                 Response::error('Cupom não encontrado', 404);
                 return;

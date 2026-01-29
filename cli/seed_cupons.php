@@ -39,12 +39,12 @@ $cupons = [
 foreach ($cupons as $cupomData) {
     // Verificar se já existe
     $existe = Cupom::where('codigo', $cupomData['codigo'])->first();
-    
+
     if ($existe) {
         echo "⏭️  Cupom {$cupomData['codigo']} já existe\n";
         continue;
     }
-    
+
     $cupom = Cupom::create($cupomData);
     echo "✅ Cupom {$cupom->codigo} criado: {$cupom->getDescontoFormatado()} - Válido até {$cupom->valido_ate->format('d/m/Y')}\n";
 }

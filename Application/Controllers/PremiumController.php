@@ -473,35 +473,44 @@ class PremiumController extends BaseController
             $valorMensal = $plano->preco_centavos / 100;
             $discount = $this->validator->getExpectedDiscount($dto->months);
             $total = $this->validator->calculateTotal($valorMensal, $dto->months, $discount);
-            
+
             // ========================================================================
             // APLICAR CUPOM DE DESCONTO
             // ========================================================================
             $cupomAplicado = null;
             $valorOriginal = $total;
-            
+
             if ($dto->couponCode) {
                 $cupom = \Application\Models\Cupom::findByCodigo($dto->couponCode);
-                
+
                 if (!$cupom) {
                     throw new \RuntimeException('Cupom não encontrado.');
                 }
-                
+
                 if (!$cupom->isValid()) {
                     throw new \RuntimeException('Cupom inválido ou expirado.');
                 }
-                
+
+                // Verificar se o usuário já usou este cupom
+                $jaUsou = \Application\Models\CupomUsado::where('cupom_id', $cupom->id)
+                    ->where('usuario_id', $usuario->id)
+                    ->exists();
+
+                if ($jaUsou) {
+                    throw new \RuntimeException('Você já utilizou este cupom anteriormente.');
+                }
+
                 // Calcular desconto do cupom
                 $descontoCupom = $cupom->calcularDesconto($total);
                 $total = $cupom->aplicarDesconto($total);
-                
+
                 $cupomAplicado = [
                     'cupom' => $cupom,
                     'desconto' => $descontoCupom,
                     'valor_original' => $valorOriginal,
                     'valor_final' => $total
                 ];
-                
+
                 error_log("✨ [CHECKOUT] Cupom aplicado: {$cupom->codigo} - Desconto: R$ {$descontoCupom}");
             }
 
@@ -514,16 +523,16 @@ class PremiumController extends BaseController
             }
 
             $assinatura = $this->saveAssinatura($usuario, $plano, $result, $dto->billingType);
-            
+
             // ========================================================================
             // REGISTRAR USO DO CUPOM
             // ========================================================================
             if ($cupomAplicado) {
                 $cupom = $cupomAplicado['cupom'];
-                
+
                 // Incrementar uso do cupom
                 $cupom->incrementarUso();
-                
+
                 // Registrar no histórico
                 \Application\Models\CupomUsado::create([
                     'cupom_id' => $cupom->id,
@@ -534,7 +543,7 @@ class PremiumController extends BaseController
                     'valor_final' => $cupomAplicado['valor_final'],
                     'usado_em' => now()
                 ]);
-                
+
                 error_log("✅ [CHECKOUT] Uso do cupom registrado no histórico");
             }
 
@@ -549,7 +558,7 @@ class PremiumController extends BaseController
                 'total' => $total,
                 'paymentId' => $result['asaas_id'],
             ];
-            
+
             // Adicionar informações do cupom na resposta
             if ($cupomAplicado) {
                 $response['coupon_applied'] = [
@@ -795,7 +804,7 @@ class PremiumController extends BaseController
 
         $assinatura = new AssinaturaUsuario($data);
         $assinatura->save();
-        
+
         return $assinatura;
     }
 

@@ -31,6 +31,7 @@ class SuperAdminController extends BaseController
             [
                 'pageTitle' => 'Area Restrita do Dono',
                 'subTitle' => 'Conteudo exclusivo para administradores',
+                'skipPlanLimits' => true,
                 'metrics' => [
                     'totalUsers'  => $totalUsers,
                     'totalAdmins' => $totalAdmins,

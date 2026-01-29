@@ -93,7 +93,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <script src="<?= BASE_URL ?>assets/js/gamification-global.js?v=<?= time() ?>"></script>
 
     <!-- Sistema de Limites do Plano (avisos de upgrade) -->
-    <script src="<?= BASE_URL ?>assets/js/plan-limits.js?v=<?= time() ?>" defer></script>
+    <?php if (!isset($skipPlanLimits) || !$skipPlanLimits): ?>
+        <script src="<?= BASE_URL ?>assets/js/plan-limits.js?v=<?= time() ?>" defer></script>
+    <?php endif; ?>
 
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
     <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"></script>

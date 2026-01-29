@@ -27,7 +27,7 @@ return new class
                 $table->boolean('ativo')->default(true)->comment('Cupom ativo/inativo');
                 $table->text('descricao')->nullable()->comment('Descrição do cupom');
                 $table->timestamps();
-                
+
                 $table->index('codigo');
                 $table->index('ativo');
                 $table->index('valido_ate');
@@ -47,11 +47,11 @@ return new class
                 $table->decimal('valor_original', 10, 2)->comment('Valor original antes do desconto');
                 $table->decimal('valor_final', 10, 2)->comment('Valor final após o desconto');
                 $table->timestamp('usado_em')->useCurrent();
-                
+
                 $table->foreign('cupom_id')->references('id')->on('cupons')->onDelete('cascade');
                 $table->foreign('usuario_id')->references('id')->on('usuarios')->onDelete('cascade');
                 $table->foreign('assinatura_id')->references('id')->on('assinatura_usuarios')->onDelete('set null');
-                
+
                 $table->index('cupom_id');
                 $table->index('usuario_id');
                 $table->index('usado_em');
@@ -64,10 +64,10 @@ return new class
     public function down(): void
     {
         $schema = Capsule::schema();
-        
+
         $schema->dropIfExists('cupons_usados');
         $schema->dropIfExists('cupons');
-        
+
         echo "✅ Tabelas de cupons removidas.\n";
     }
 };

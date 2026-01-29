@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class CupomUsado extends Model
 {
     protected $table = 'cupons_usados';
-    
+
     public $timestamps = false;
-    
+
     protected $fillable = [
         'cupom_id',
         'usuario_id',

@@ -705,6 +705,190 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
     }
 
     /* ========================================================================== 
+     SEÇÃO DE CUPOM DE DESCONTO
+     ========================================================================== */
+    .coupon-section {
+        margin-top: var(--spacing-4);
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 var(--spacing-2);
+    }
+
+    .coupon-section__input-group {
+        display: flex;
+        gap: var(--spacing-2);
+        align-items: flex-end;
+    }
+
+    .coupon-section__field {
+        flex: 1;
+    }
+
+    .coupon-section__label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: 6px;
+    }
+
+    .coupon-section__label i {
+        color: var(--color-primary);
+    }
+
+    .coupon-section__input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
+        color: var(--color-text);
+        font-size: 1rem;
+        text-transform: uppercase;
+        outline: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+    .coupon-section__input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+        background: var(--color-surface);
+    }
+
+    .coupon-section__apply-btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
+    }
+
+    .coupon-section__apply-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
+    }
+
+    .coupon-section__apply-btn:active {
+        transform: translateY(0);
+    }
+
+    .coupon-section__feedback {
+        margin-top: 8px;
+        font-size: 0.875rem;
+        display: none;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+    }
+
+    .coupon-section__discount-display {
+        margin-top: 12px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+        border: 2px solid rgba(34, 197, 94, 0.3);
+        border-radius: var(--radius-lg);
+        color: #16a34a;
+        font-weight: 600;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-3);
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .coupon-section__discount-display.show {
+        display: flex;
+    }
+
+    .coupon-section__discount-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .coupon-section__discount-text i {
+        font-size: 1.1rem;
+    }
+
+    .coupon-section__remove-btn {
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        color: #dc2626;
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .coupon-section__remove-btn:hover {
+        background: rgba(220, 38, 38, 0.15);
+        border-color: rgba(220, 38, 38, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .coupon-section__remove-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Responsivo Mobile */
+    @media (max-width: 640px) {
+        .coupon-section {
+            max-width: 100%;
+            padding: 0 var(--spacing-3);
+        }
+
+        .coupon-section__input-group {
+            flex-direction: column;
+            align-items: stretch;
+            gap: var(--spacing-3);
+        }
+
+        .coupon-section__apply-btn {
+            width: 100%;
+            padding: 14px;
+        }
+
+        .coupon-section__discount-display {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-2);
+            padding: 12px;
+        }
+
+        .coupon-section__remove-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* ========================================================================== 
      SEÇÃO DE PAGAMENTO PENDENTE (BLOQUEIO)
      ========================================================================== */
     .pending-payment-section {
@@ -860,32 +1044,33 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             </div>
 
             <!-- ========== SEÇÃO DE CUPOM DE DESCONTO ========== -->
-            <div class="coupon-section" style="margin-top: var(--spacing-4); max-width: 400px; margin-left: auto; margin-right: auto;">
-                <div style="display: flex; gap: var(--spacing-2); align-items: flex-end;">
-                    <div style="flex: 1;">
-                        <label for="coupon-input" style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--color-text); margin-bottom: 6px;">
+            <div class="coupon-section">
+                <div class="coupon-section__input-group">
+                    <div class="coupon-section__field">
+                        <label for="coupon-input" class="coupon-section__label">
                             <i class="fas fa-ticket-alt"></i> Cupom de Desconto
                         </label>
-                        <input 
-                            type="text" 
-                            id="coupon-input" 
+                        <input
+                            type="text"
+                            id="coupon-input"
+                            class="coupon-section__input"
                             placeholder="Digite seu cupom"
-                            style="width: 100%; padding: 12px 14px; border: 2px solid var(--glass-border); border-radius: var(--radius-md); background: var(--color-surface-muted); color: var(--color-text); font-size: 1rem; text-transform: uppercase; outline: none; transition: all 0.3s ease;"
-                        >
+                            maxlength="20">
                     </div>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         id="apply-coupon-btn"
-                        style="padding: 12px 20px; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; transition: all 0.3s ease; white-space: nowrap;"
-                    >
-                        Aplicar
+                        class="coupon-section__apply-btn">
+                        <i class="fas fa-check"></i> Aplicar
                     </button>
                 </div>
-                <div id="coupon-feedback" style="margin-top: 8px; font-size: 0.875rem; display: none;"></div>
-                <div id="coupon-discount-display" style="margin-top: 8px; padding: 12px; background: rgba(34, 197, 94, 0.1); border-radius: var(--radius-md); color: #22c55e; font-weight: 600; display: none;">
-                    <i class="fas fa-check-circle"></i> 
-                    <span id="coupon-discount-text"></span>
-                    <button type="button" id="remove-coupon-btn" style="float: right; background: transparent; border: none; color: #22c55e; cursor: pointer; font-weight: 600;">
+                <div id="coupon-feedback" class="coupon-section__feedback"></div>
+                <div id="coupon-discount-display" class="coupon-section__discount-display">
+                    <span id="coupon-discount-text" class="coupon-section__discount-text">
+                        <i class="fas fa-check-circle"></i>
+                        <span></span>
+                    </span>
+                    <button type="button" id="remove-coupon-btn" class="coupon-section__remove-btn">
                         <i class="fas fa-times"></i> Remover
                     </button>
                 </div>
@@ -1286,7 +1471,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         let hasPendingPayment = false;
         let pendingPaymentData = null;
         let paymentMethodsLocked = false;
-        
+
         // ===============================
         // GERENCIAMENTO DE CUPOM DE DESCONTO
         // ===============================
@@ -1300,14 +1485,14 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
         async function applyCoupon() {
             const codigo = couponInput.value.trim().toUpperCase();
-            
+
             if (!codigo) {
                 showCouponFeedback('Digite um código de cupom', 'error');
                 return;
             }
 
             applyCouponBtn.disabled = true;
-            applyCouponBtn.textContent = 'Validando...';
+            applyCouponBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
 
             try {
                 const response = await fetch(`${BASE_URL}api/cupons/validar?codigo=${encodeURIComponent(codigo)}`, {
@@ -1335,7 +1520,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 showCouponFeedback('Erro ao validar cupom', 'error');
             } finally {
                 applyCouponBtn.disabled = false;
-                applyCouponBtn.textContent = 'Aplicar';
+                applyCouponBtn.innerHTML = '<i class="fas fa-check"></i> Aplicar';
             }
         }
 
@@ -1343,8 +1528,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             appliedCoupon = null;
             couponInput.value = '';
             couponInput.disabled = false;
-            applyCouponBtn.style.display = 'inline-block';
-            couponDiscountDisplay.style.display = 'none';
+            applyCouponBtn.style.display = 'flex';
+            couponDiscountDisplay.classList.remove('show');
             couponFeedback.style.display = 'none';
             updatePriceWithDiscount();
         }
@@ -1353,14 +1538,21 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             couponFeedback.textContent = message;
             couponFeedback.style.display = 'block';
             couponFeedback.style.color = type === 'error' ? '#ef4444' : '#22c55e';
+            couponFeedback.style.background = type === 'error' ?
+                'rgba(239, 68, 68, 0.1)' :
+                'rgba(34, 197, 94, 0.1)';
+            couponFeedback.style.border = type === 'error' ?
+                '1px solid rgba(239, 68, 68, 0.3)' :
+                '1px solid rgba(34, 197, 94, 0.3)';
             setTimeout(() => {
                 couponFeedback.style.display = 'none';
             }, 3000);
         }
 
         function showCouponSuccess() {
-            couponDiscountDisplay.style.display = 'block';
-            couponDiscountText.textContent = `Cupom "${appliedCoupon.codigo}" aplicado! Desconto: ${appliedCoupon.desconto_formatado}`;
+            const textSpan = couponDiscountText.querySelector('span');
+            textSpan.textContent = `Cupom "${appliedCoupon.codigo}" aplicado! Desconto: ${appliedCoupon.desconto_formatado}`;
+            couponDiscountDisplay.classList.add('show');
         }
 
         function calculateFinalPrice(basePrice) {
@@ -1378,7 +1570,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
             const baseTotal = calcTotal(currentPlanConfig.monthlyBase, currentPlanConfig.months, currentPlanConfig.discount);
             const finalTotal = calculateFinalPrice(baseTotal);
-            
+
             if (appliedCoupon) {
                 const discount = baseTotal - finalTotal;
                 modalPrice.innerHTML = `
@@ -2056,7 +2248,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 amount: Number(inputPlanAmount.value || 0),
                 billingType: currentBillingType
             };
-            
+
             // Adicionar cupom ao payload se aplicado
             if (appliedCoupon) {
                 payload.couponCode = appliedCoupon.codigo;
