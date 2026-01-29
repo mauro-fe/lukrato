@@ -993,72 +993,61 @@
         },
 
         async editarItemFatura(faturaId, itemId, descricaoAtual, valorAtual) {
+            // Usar modal Bootstrap ao invés de SweetAlert2
+            const modalEl = document.getElementById('modalEditarItemFatura');
+            if (!modalEl) {
+                console.error('Modal de edição não encontrado');
+                return;
+            }
+
+            // Preencher os campos do formulário
+            document.getElementById('editItemFaturaId').value = faturaId;
+            document.getElementById('editItemId').value = itemId;
+            document.getElementById('editItemDescricao').value = descricaoAtual;
+            document.getElementById('editItemValor').value = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // Abrir o modal
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        },
+
+        async salvarItemFatura() {
+            const faturaId = document.getElementById('editItemFaturaId').value;
+            const itemId = document.getElementById('editItemId').value;
+            const novaDescricao = document.getElementById('editItemDescricao').value.trim();
+            const novoValorStr = document.getElementById('editItemValor').value;
+
+            // Validações
+            if (!novaDescricao) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Informe a descrição do item.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            const novoValor = parseFloat(novoValorStr.replace(/\./g, '').replace(',', '.')) || 0;
+            if (novoValor <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Informe um valor válido.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
             try {
-                const valorFormatado = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                // Fechar o modal de edição
+                const modalEl = document.getElementById('modalEditarItemFatura');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
 
-                // Primeiro passo: editar descrição
-                const { value: novaDescricao } = await Swal.fire({
-                    title: 'Editar Descrição',
-                    input: 'text',
-                    inputLabel: 'Descrição do item',
-                    inputValue: descricaoAtual,
-                    inputPlaceholder: 'Digite a descrição',
-                    showCancelButton: true,
-                    confirmButtonColor: '#f59e0b',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Próximo',
-                    cancelButtonText: 'Cancelar',
-                    heightAuto: false,
-                    customClass: {
-                        container: 'swal-above-modal',
-                        popup: 'swal-dark-popup'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-container');
-                        if (container) container.style.zIndex = '99999';
-                    },
-                    inputValidator: (value) => {
-                        if (!value || !value.trim()) {
-                            return 'Informe a descrição do item';
-                        }
-                    }
-                });
-
-                if (novaDescricao === undefined) return; // Cancelou
-
-                // Segundo passo: editar valor
-                const { value: novoValorStr } = await Swal.fire({
-                    title: 'Editar Valor',
-                    input: 'text',
-                    inputLabel: 'Valor (R$)',
-                    inputValue: valorFormatado,
-                    inputPlaceholder: '0,00',
-                    showCancelButton: true,
-                    confirmButtonColor: '#f59e0b',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: '<i class="fas fa-save"></i> Salvar',
-                    cancelButtonText: 'Cancelar',
-                    heightAuto: false,
-                    customClass: {
-                        container: 'swal-above-modal',
-                        popup: 'swal-dark-popup'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-container');
-                        if (container) container.style.zIndex = '99999';
-                    },
-                    inputValidator: (value) => {
-                        const valor = parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
-                        if (valor <= 0) {
-                            return 'Informe um valor válido';
-                        }
-                    }
-                });
-
-                if (novoValorStr === undefined) return; // Cancelou
-
-                const novoValor = parseFloat(novoValorStr.replace(/\./g, '').replace(',', '.')) || 0;
-
+                // Mostrar loading
                 Swal.fire({
                     title: 'Atualizando item...',
                     html: 'Aguarde enquanto salvamos as alterações.',
@@ -1066,11 +1055,6 @@
                     heightAuto: false,
                     didOpen: () => {
                         Swal.showLoading();
-                        const container = document.querySelector('.swal2-container');
-                        if (container) container.style.zIndex = '99999';
-                    },
-                    customClass: {
-                        container: 'swal-above-modal'
                     }
                 });
 
@@ -1078,7 +1062,7 @@
                 await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
                     method: 'PUT',
                     body: JSON.stringify({
-                        descricao: novaDescricao.trim(),
+                        descricao: novaDescricao,
                         valor: novoValor
                     })
                 });
@@ -1089,14 +1073,7 @@
                     text: 'O item foi atualizado com sucesso.',
                     timer: CONFIG.TIMEOUTS.successMessage,
                     showConfirmButton: false,
-                    heightAuto: false,
-                    customClass: {
-                        container: 'swal-above-modal'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-container');
-                        if (container) container.style.zIndex = '99999';
-                    }
+                    heightAuto: false
                 });
 
                 // Recarregar parcelamentos e reabrir modal atualizado
@@ -1113,14 +1090,7 @@
                     icon: 'error',
                     title: 'Erro',
                     text: error.message || 'Não foi possível atualizar o item.',
-                    heightAuto: false,
-                    customClass: {
-                        container: 'swal-above-modal'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-container');
-                        if (container) container.style.zIndex = '99999';
-                    }
+                    heightAuto: false
                 });
             }
         },
@@ -1509,6 +1479,23 @@
                     });
                 }
             });
+
+            // Botão Salvar do Modal de Edição de Item
+            const btnSalvarItem = document.getElementById('btnSalvarItemFatura');
+            if (btnSalvarItem) {
+                btnSalvarItem.addEventListener('click', () => {
+                    UI.salvarItemFatura();
+                });
+            }
+
+            // Submit do formulário de edição (Enter)
+            const formEditarItem = document.getElementById('formEditarItemFatura');
+            if (formEditarItem) {
+                formEditarItem.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    UI.salvarItemFatura();
+                });
+            }
         },
 
         toggleFilters() {
