@@ -767,16 +767,16 @@
                     <td data-label="#">
                         <span class="parcela-numero">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
                     </td>
-                    <td data-label="Descrição">
+                    <td data-label="Descrição" class="td-descricao">
                         <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}</div>
                     </td>
                     <td data-label="Valor">
                         <span class="parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
                     </td>
-                    <td data-label="Status">
-                        <span class="${statusClass}">${statusText}</span>
+                    <td data-label="Status" class="td-status">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
-                    <td data-label="Ação">
+                    <td data-label="Ação" class="td-acoes">
                         ${this.renderParcelaButton(parcela, isPaga)}
                     </td>
                 </tr>
@@ -790,20 +790,10 @@
         },
 
         renderParcelaButton(parcela, isPaga) {
-            const btnEditar = `
-                <button class="btn-editar-item" 
-                    data-item-id="${parcela.id}"
-                    data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
-                    data-valor="${parcela.valor_parcela || parcela.valor || 0}"
-                    title="Editar item">
-                    <i class="fas fa-edit"></i>
-                </button>
-            `;
-
             if (isPaga) {
+                // Item pago: apenas botão de desfazer
                 return `
                     <div class="btn-group-parcela">
-                        ${btnEditar}
                         <button class="btn-toggle-parcela btn-desfazer" 
                             data-lancamento-id="${parcela.id}" 
                             data-pago="true"
@@ -813,9 +803,16 @@
                     </div>
                 `;
             } else {
+                // Item pendente: editar, pagar e excluir
                 return `
                     <div class="btn-group-parcela">
-                        ${btnEditar}
+                        <button class="btn-editar-item" 
+                            data-item-id="${parcela.id}"
+                            data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
+                            data-valor="${parcela.valor_parcela || parcela.valor || 0}"
+                            title="Editar item">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         <button class="btn-toggle-parcela btn-pagar" 
                             data-lancamento-id="${parcela.id}" 
                             data-pago="false"
@@ -999,21 +996,43 @@
             try {
                 const valorFormatado = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                const { value: formValues } = await Swal.fire({
-                    title: '<i class="fas fa-edit" style="color: #f59e0b; margin-right: 8px;"></i> Editar Item',
-                    html: `
-                        <div style="text-align: left;">
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0;">Descrição</label>
-                                <input id="swal-descricao" class="swal2-input" placeholder="Descrição do item" value="${Utils.escapeHtml(descricaoAtual)}" style="margin: 0; width: 100%;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0;">Valor (R$)</label>
-                                <input id="swal-valor" class="swal2-input" placeholder="0,00" value="${valorFormatado}" style="margin: 0; width: 100%;">
-                            </div>
-                        </div>
-                    `,
-                    focusConfirm: false,
+                // Primeiro passo: editar descrição
+                const { value: novaDescricao } = await Swal.fire({
+                    title: 'Editar Descrição',
+                    input: 'text',
+                    inputLabel: 'Descrição do item',
+                    inputValue: descricaoAtual,
+                    inputPlaceholder: 'Digite a descrição',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f59e0b',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Próximo',
+                    cancelButtonText: 'Cancelar',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal',
+                        popup: 'swal-dark-popup'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    },
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Informe a descrição do item';
+                        }
+                    }
+                });
+
+                if (novaDescricao === undefined) return; // Cancelou
+
+                // Segundo passo: editar valor
+                const { value: novoValorStr } = await Swal.fire({
+                    title: 'Editar Valor',
+                    input: 'text',
+                    inputLabel: 'Valor (R$)',
+                    inputValue: valorFormatado,
+                    inputPlaceholder: '0,00',
                     showCancelButton: true,
                     confirmButtonColor: '#f59e0b',
                     cancelButtonColor: '#6b7280',
@@ -1027,34 +1046,18 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
-
-                        // Aplicar máscara de valor
-                        const valorInput = document.getElementById('swal-valor');
-                        valorInput.addEventListener('input', (e) => {
-                            let value = e.target.value.replace(/\D/g, '');
-                            value = (parseInt(value) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            e.target.value = value === 'NaN' ? '0,00' : value;
-                        });
                     },
-                    preConfirm: () => {
-                        const descricao = document.getElementById('swal-descricao').value.trim();
-                        const valorStr = document.getElementById('swal-valor').value;
-                        const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-
-                        if (!descricao) {
-                            Swal.showValidationMessage('Informe a descrição do item');
-                            return false;
-                        }
+                    inputValidator: (value) => {
+                        const valor = parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
                         if (valor <= 0) {
-                            Swal.showValidationMessage('Informe um valor válido');
-                            return false;
+                            return 'Informe um valor válido';
                         }
-
-                        return { descricao, valor };
                     }
                 });
 
-                if (!formValues) return;
+                if (novoValorStr === undefined) return; // Cancelou
+
+                const novoValor = parseFloat(novoValorStr.replace(/\./g, '').replace(',', '.')) || 0;
 
                 Swal.fire({
                     title: 'Atualizando item...',
@@ -1075,8 +1078,8 @@
                 await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
                     method: 'PUT',
                     body: JSON.stringify({
-                        descricao: formValues.descricao,
-                        valor: formValues.valor
+                        descricao: novaDescricao.trim(),
+                        valor: novoValor
                     })
                 });
 
