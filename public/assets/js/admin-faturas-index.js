@@ -1071,8 +1071,8 @@
                     }
                 });
 
-                // Chamar API para atualizar o lançamento
-                await Utils.apiRequest(`api/lancamentos/${itemId}`, {
+                // Chamar API para atualizar o item da fatura
+                await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
                     method: 'PUT',
                     body: JSON.stringify({
                         descricao: formValues.descricao,
