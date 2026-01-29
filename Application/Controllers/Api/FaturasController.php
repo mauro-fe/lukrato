@@ -235,6 +235,76 @@ class FaturasController
     }
 
     /**
+     * Atualizar item individual da fatura (descrição e valor)
+     */
+    public function updateItem(int $faturaId, int $itemId): void
+    {
+        try {
+            $usuarioId = $this->getAuthenticatedUserId();
+
+            // Validar IDs
+            if ($faturaId <= 0 || $itemId <= 0) {
+                Response::json(['error' => 'IDs inválidos'], 400);
+                return;
+            }
+
+            $data = $this->getJsonInput();
+
+            // Validar dados
+            if (empty($data['descricao']) && !isset($data['valor'])) {
+                Response::json(['error' => 'Informe a descrição ou valor para atualizar'], 400);
+                return;
+            }
+
+            if (isset($data['valor']) && (!is_numeric($data['valor']) || $data['valor'] <= 0)) {
+                Response::json(['error' => 'Valor deve ser maior que zero'], 400);
+                return;
+            }
+
+            // Verificar se fatura existe e pertence ao usuário
+            $fatura = $this->faturaService->buscar($faturaId, $usuarioId);
+            if (!$fatura) {
+                Response::json(['error' => 'Fatura não encontrada'], 404);
+                return;
+            }
+
+            // Verificar se fatura está cancelada
+            if (isset($fatura['status']) && $fatura['status'] === 'cancelado') {
+                Response::json(['error' => 'Não é possível modificar uma fatura cancelada'], 400);
+                return;
+            }
+
+            $success = $this->faturaService->atualizarItem($faturaId, $itemId, $usuarioId, $data);
+
+            if (!$success) {
+                Response::json(['error' => 'Item não encontrado ou não pertence a esta fatura'], 404);
+                return;
+            }
+
+            Response::json([
+                'success' => true,
+                'message' => 'Item atualizado com sucesso',
+            ]);
+        } catch (InvalidArgumentException $e) {
+            LogService::error("Erro de validação ao atualizar item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage()
+            ]);
+            Response::json(['error' => $e->getMessage()], 400);
+        } catch (Exception $e) {
+            $this->logError("Erro ao atualizar item {$itemId} da fatura {$faturaId}", $e);
+            LogService::error("Erro geral ao atualizar item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            Response::json(['error' => 'Erro ao atualizar item: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Marcar item da fatura como pago/pendente
      */
     public function toggleItemPago(int $faturaId, int $itemId): void

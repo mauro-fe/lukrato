@@ -475,6 +475,17 @@
                     await window.excluirItemFaturaGlobal(faturaId, itemId);
                 });
             });
+
+            // Botões de editar item
+            const btnEditarItem = DOM.detalhesContent.querySelectorAll('.btn-editar-item');
+            btnEditarItem.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const itemId = parseInt(e.currentTarget.dataset.itemId, 10);
+                    const descricao = e.currentTarget.dataset.descricao || '';
+                    const valor = parseFloat(e.currentTarget.dataset.valor) || 0;
+                    await this.editarItemFatura(faturaId, itemId, descricao, valor);
+                });
+            });
         },
 
         renderDetalhes(parc) {
@@ -779,9 +790,20 @@
         },
 
         renderParcelaButton(parcela, isPaga) {
+            const btnEditar = `
+                <button class="btn-editar-item" 
+                    data-item-id="${parcela.id}"
+                    data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
+                    data-valor="${parcela.valor_parcela || parcela.valor || 0}"
+                    title="Editar item">
+                    <i class="fas fa-edit"></i>
+                </button>
+            `;
+
             if (isPaga) {
                 return `
                     <div class="btn-group-parcela">
+                        ${btnEditar}
                         <button class="btn-toggle-parcela btn-desfazer" 
                             data-lancamento-id="${parcela.id}" 
                             data-pago="true"
@@ -793,6 +815,7 @@
             } else {
                 return `
                     <div class="btn-group-parcela">
+                        ${btnEditar}
                         <button class="btn-toggle-parcela btn-pagar" 
                             data-lancamento-id="${parcela.id}" 
                             data-pago="false"
@@ -960,6 +983,133 @@
                     icon: 'error',
                     title: 'Erro',
                     text: error.message || 'Erro ao processar operação',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
+                });
+            }
+        },
+
+        async editarItemFatura(faturaId, itemId, descricaoAtual, valorAtual) {
+            try {
+                const valorFormatado = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                const { value: formValues } = await Swal.fire({
+                    title: '<i class="fas fa-edit" style="color: #f59e0b; margin-right: 8px;"></i> Editar Item',
+                    html: `
+                        <div style="text-align: left;">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0;">Descrição</label>
+                                <input id="swal-descricao" class="swal2-input" placeholder="Descrição do item" value="${Utils.escapeHtml(descricaoAtual)}" style="margin: 0; width: 100%;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0;">Valor (R$)</label>
+                                <input id="swal-valor" class="swal2-input" placeholder="0,00" value="${valorFormatado}" style="margin: 0; width: 100%;">
+                            </div>
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonColor: '#f59e0b',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: '<i class="fas fa-save"></i> Salvar',
+                    cancelButtonText: 'Cancelar',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal',
+                        popup: 'swal-dark-popup'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+
+                        // Aplicar máscara de valor
+                        const valorInput = document.getElementById('swal-valor');
+                        valorInput.addEventListener('input', (e) => {
+                            let value = e.target.value.replace(/\D/g, '');
+                            value = (parseInt(value) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            e.target.value = value === 'NaN' ? '0,00' : value;
+                        });
+                    },
+                    preConfirm: () => {
+                        const descricao = document.getElementById('swal-descricao').value.trim();
+                        const valorStr = document.getElementById('swal-valor').value;
+                        const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+
+                        if (!descricao) {
+                            Swal.showValidationMessage('Informe a descrição do item');
+                            return false;
+                        }
+                        if (valor <= 0) {
+                            Swal.showValidationMessage('Informe um valor válido');
+                            return false;
+                        }
+
+                        return { descricao, valor };
+                    }
+                });
+
+                if (!formValues) return;
+
+                Swal.fire({
+                    title: 'Atualizando item...',
+                    html: 'Aguarde enquanto salvamos as alterações.',
+                    allowOutsideClick: false,
+                    heightAuto: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    },
+                    customClass: {
+                        container: 'swal-above-modal'
+                    }
+                });
+
+                // Chamar API para atualizar o lançamento
+                await Utils.apiRequest(`api/lancamentos/${itemId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        descricao: formValues.descricao,
+                        valor: formValues.valor
+                    })
+                });
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Item Atualizado!',
+                    text: 'O item foi atualizado com sucesso.',
+                    timer: CONFIG.TIMEOUTS.successMessage,
+                    showConfirmButton: false,
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
+                });
+
+                // Recarregar parcelamentos e reabrir modal atualizado
+                await App.carregarParcelamentos();
+
+                // Reabrir o modal com dados atualizados
+                setTimeout(() => {
+                    UI.showDetalhes(faturaId);
+                }, 100);
+
+            } catch (error) {
+                console.error('Erro ao editar item:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message || 'Não foi possível atualizar o item.',
                     heightAuto: false,
                     customClass: {
                         container: 'swal-above-modal'

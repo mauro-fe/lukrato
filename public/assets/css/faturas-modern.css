@@ -27,6 +27,44 @@
   z-index: 999999 !important;
 }
 
+/* Estilo escuro para o popup de edição */
+.swal-dark-popup {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.swal-dark-popup .swal2-title {
+  color: #e2e8f0 !important;
+}
+
+.swal-dark-popup .swal2-html-container {
+  color: #cbd5e1 !important;
+}
+
+.swal-dark-popup .swal2-input {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #e2e8f0 !important;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.swal-dark-popup .swal2-input:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+.swal-dark-popup .swal2-input::placeholder {
+  color: #64748b !important;
+}
+
+.swal-dark-popup .swal2-validation-message {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border: none !important;
+}
+
 /* ==================== CONTAINER PRINCIPAL ==================== */
 .parc-page {
   margin: 0 auto;
@@ -182,6 +220,29 @@
   background: #dc2626;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Botão Editar Item */
+.btn-editar-item {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.btn-editar-item:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
 }
 
 .detalhes-grid {

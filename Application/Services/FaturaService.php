@@ -282,6 +282,77 @@ class FaturaService
     }
 
     /**
+     * Atualizar item individual da fatura (descrição e valor)
+     */
+    public function atualizarItem(int $faturaId, int $itemId, int $usuarioId, array $dados): bool
+    {
+        DB::beginTransaction();
+
+        try {
+            $item = FaturaCartaoItem::where('id', $itemId)
+                ->where('fatura_id', $faturaId)
+                ->where('user_id', $usuarioId)
+                ->with(['cartaoCredito', 'fatura'])
+                ->first();
+
+            if (!$item) {
+                throw new Exception("Item não encontrado");
+            }
+
+            $valorAntigo = $item->valor;
+            $diferencaValor = 0;
+
+            // Atualizar descrição se fornecida
+            if (isset($dados['descricao']) && !empty(trim($dados['descricao']))) {
+                $item->descricao = trim($dados['descricao']);
+            }
+
+            // Atualizar valor se fornecido
+            if (isset($dados['valor']) && is_numeric($dados['valor']) && $dados['valor'] > 0) {
+                $novoValor = (float) $dados['valor'];
+                $diferencaValor = $novoValor - $valorAntigo;
+                $item->valor = $novoValor;
+            }
+
+            $item->save();
+
+            // Atualizar valor total da fatura
+            if ($diferencaValor !== 0 && $item->fatura) {
+                $item->fatura->valor_total = FaturaCartaoItem::where('fatura_id', $faturaId)->sum('valor');
+                $item->fatura->save();
+            }
+
+            // Atualizar limite do cartão se valor mudou
+            if ($diferencaValor !== 0 && $item->cartaoCredito) {
+                $item->cartaoCredito->atualizarLimiteDisponivel();
+            }
+
+            DB::commit();
+
+            LogService::info("Item de fatura atualizado", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'usuario_id' => $usuarioId,
+                'descricao' => $dados['descricao'] ?? null,
+                'valor_antigo' => $valorAntigo,
+                'valor_novo' => $dados['valor'] ?? null
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            LogService::error("Erro ao atualizar item da fatura", [
+                'item_id' => $itemId,
+                'fatura_id' => $faturaId,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
      * Excluir item individual da fatura
      */
     public function excluirItem(int $faturaId, int $itemId, int $usuarioId): bool
