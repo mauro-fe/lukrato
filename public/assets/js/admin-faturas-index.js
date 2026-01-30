@@ -475,6 +475,17 @@
                     await window.excluirItemFaturaGlobal(faturaId, itemId);
                 });
             });
+
+            // Botões de editar item
+            const btnEditarItem = DOM.detalhesContent.querySelectorAll('.btn-editar-item');
+            btnEditarItem.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const itemId = parseInt(e.currentTarget.dataset.itemId, 10);
+                    const descricao = e.currentTarget.dataset.descricao || '';
+                    const valor = parseFloat(e.currentTarget.dataset.valor) || 0;
+                    await this.editarItemFatura(faturaId, itemId, descricao, valor);
+                });
+            });
         },
 
         renderDetalhes(parc) {
@@ -756,16 +767,16 @@
                     <td data-label="#">
                         <span class="parcela-numero">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
                     </td>
-                    <td data-label="Descrição">
+                    <td data-label="Descrição" class="td-descricao">
                         <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}</div>
                     </td>
                     <td data-label="Valor">
                         <span class="parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
                     </td>
-                    <td data-label="Status">
-                        <span class="${statusClass}">${statusText}</span>
+                    <td data-label="Status" class="td-status">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
-                    <td data-label="Ação">
+                    <td data-label="Ação" class="td-acoes">
                         ${this.renderParcelaButton(parcela, isPaga)}
                     </td>
                 </tr>
@@ -780,6 +791,7 @@
 
         renderParcelaButton(parcela, isPaga) {
             if (isPaga) {
+                // Item pago: apenas botão de desfazer
                 return `
                     <div class="btn-group-parcela">
                         <button class="btn-toggle-parcela btn-desfazer" 
@@ -791,8 +803,16 @@
                     </div>
                 `;
             } else {
+                // Item pendente: editar, pagar e excluir
                 return `
                     <div class="btn-group-parcela">
+                        <button class="btn-editar-item" 
+                            data-item-id="${parcela.id}"
+                            data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
+                            data-valor="${parcela.valor_parcela || parcela.valor || 0}"
+                            title="Editar item">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         <button class="btn-toggle-parcela btn-pagar" 
                             data-lancamento-id="${parcela.id}" 
                             data-pago="false"
@@ -968,6 +988,109 @@
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
                     }
+                });
+            }
+        },
+
+        async editarItemFatura(faturaId, itemId, descricaoAtual, valorAtual) {
+            // Usar modal Bootstrap ao invés de SweetAlert2
+            const modalEl = document.getElementById('modalEditarItemFatura');
+            if (!modalEl) {
+                console.error('Modal de edição não encontrado');
+                return;
+            }
+
+            // Preencher os campos do formulário
+            document.getElementById('editItemFaturaId').value = faturaId;
+            document.getElementById('editItemId').value = itemId;
+            document.getElementById('editItemDescricao').value = descricaoAtual;
+            document.getElementById('editItemValor').value = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // Abrir o modal
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        },
+
+        async salvarItemFatura() {
+            const faturaId = document.getElementById('editItemFaturaId').value;
+            const itemId = document.getElementById('editItemId').value;
+            const novaDescricao = document.getElementById('editItemDescricao').value.trim();
+            const novoValorStr = document.getElementById('editItemValor').value;
+
+            // Validações
+            if (!novaDescricao) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Informe a descrição do item.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            const novoValor = parseFloat(novoValorStr.replace(/\./g, '').replace(',', '.')) || 0;
+            if (novoValor <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Informe um valor válido.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            try {
+                // Fechar o modal de edição
+                const modalEl = document.getElementById('modalEditarItemFatura');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Atualizando item...',
+                    html: 'Aguarde enquanto salvamos as alterações.',
+                    allowOutsideClick: false,
+                    heightAuto: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Chamar API para atualizar o item da fatura
+                await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        descricao: novaDescricao,
+                        valor: novoValor
+                    })
+                });
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Item Atualizado!',
+                    text: 'O item foi atualizado com sucesso.',
+                    timer: CONFIG.TIMEOUTS.successMessage,
+                    showConfirmButton: false,
+                    heightAuto: false
+                });
+
+                // Recarregar parcelamentos e reabrir modal atualizado
+                await App.carregarParcelamentos();
+
+                // Reabrir o modal com dados atualizados
+                setTimeout(() => {
+                    UI.showDetalhes(faturaId);
+                }, 100);
+
+            } catch (error) {
+                console.error('Erro ao editar item:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message || 'Não foi possível atualizar o item.',
+                    heightAuto: false
                 });
             }
         },
@@ -1356,6 +1479,23 @@
                     });
                 }
             });
+
+            // Botão Salvar do Modal de Edição de Item
+            const btnSalvarItem = document.getElementById('btnSalvarItemFatura');
+            if (btnSalvarItem) {
+                btnSalvarItem.addEventListener('click', () => {
+                    UI.salvarItemFatura();
+                });
+            }
+
+            // Submit do formulário de edição (Enter)
+            const formEditarItem = document.getElementById('formEditarItemFatura');
+            if (formEditarItem) {
+                formEditarItem.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    UI.salvarItemFatura();
+                });
+            }
         },
 
         toggleFilters() {

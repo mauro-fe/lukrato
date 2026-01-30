@@ -215,6 +215,7 @@ Router::add('GET',    '/api/faturas',              'Api\\FaturasController@index
 Router::add('POST',   '/api/faturas',              'Api\\FaturasController@store',       ['auth', 'csrf']);
 Router::add('GET',    '/api/faturas/{id}',         'Api\\FaturasController@show',        ['auth']);
 Router::add('DELETE', '/api/faturas/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
+Router::add('PUT',    '/api/faturas/{id}/itens/{itemId}', 'Api\\FaturasController@updateItem', ['auth', 'csrf']);
 Router::add('POST',   '/api/faturas/{id}/itens/{itemId}/toggle', 'Api\\FaturasController@toggleItemPago', ['auth', 'csrf']);
 Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}', 'Api\\FaturasController@destroyItem', ['auth', 'csrf']);
 

@@ -27,6 +27,93 @@
   z-index: 999999 !important;
 }
 
+/* Estilo escuro para o popup de edição */
+.swal-dark-popup {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.swal-dark-popup .swal2-title {
+  color: #e2e8f0 !important;
+}
+
+.swal-dark-popup .swal2-html-container {
+  color: #cbd5e1 !important;
+  overflow: visible !important;
+}
+
+.swal-html-container-visible {
+  overflow: visible !important;
+}
+
+/* Formulário de edição customizado */
+.swal-edit-form {
+  text-align: left;
+  padding: 0.5rem 0;
+}
+
+.swal-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.swal-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.swal-form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.swal-form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px;
+  color: #e2e8f0 !important;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.swal-form-input:focus {
+  outline: none;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+.swal-form-input::placeholder {
+  color: #64748b;
+}
+
+.swal-dark-popup .swal2-input {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #e2e8f0 !important;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.swal-dark-popup .swal2-input:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+.swal-dark-popup .swal2-input::placeholder {
+  color: #64748b !important;
+}
+
+.swal-dark-popup .swal2-validation-message {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border: none !important;
+}
+
 /* ==================== CONTAINER PRINCIPAL ==================== */
 .parc-page {
   margin: 0 auto;
@@ -155,10 +242,46 @@
 
 /* Grupo de botões de ação do item */
 .btn-group-parcela {
-  display: flex;
-  gap: 0.5rem;
+  display: inline-flex;
+  gap: 4px;
   align-items: center;
   justify-content: center;
+  flex-wrap: nowrap;
+}
+
+/* Botões de ação da tabela */
+.btn-toggle-parcela {
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.btn-toggle-parcela.btn-pagar {
+  background: #10b981;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-pagar:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-desfazer {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-desfazer:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
 }
 
 /* Botão Excluir Item Individual */
@@ -166,22 +289,45 @@
   background: #ef4444;
   color: white;
   border: none;
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
 .btn-excluir-item:hover {
   background: #dc2626;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Botão Editar Item */
+.btn-editar-item {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.btn-editar-item:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
 }
 
 .detalhes-grid {
@@ -322,16 +468,53 @@
 } /* # */
 .parcelas-table th:nth-child(2) {
   width: auto;
+  min-width: 150px;
 } /* Descrição */
 .parcelas-table th:nth-child(3) {
-  width: 110px;
+  width: 100px;
 } /* Valor */
 .parcelas-table th:nth-child(4) {
-  width: 100px;
+  width: 90px;
 } /* Status */
 .parcelas-table th:nth-child(5) {
-  width: 120px;
+  width: 140px;
 } /* Ação */
+
+/* Célula de descrição */
+.parcelas-table .td-descricao {
+  text-align: left;
+  padding-left: var(--spacing-4);
+}
+
+/* Célula de status */
+.parcelas-table .td-status {
+  white-space: nowrap;
+}
+
+/* Badge de status */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.parcela-paga {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.status-badge.parcela-pendente {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+/* Célula de ações */
+.parcelas-table .td-acoes {
+  white-space: nowrap;
+}
 
 .parcelas-table tbody tr {
   border-bottom: 1px solid var(--color-card-border);
