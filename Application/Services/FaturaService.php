@@ -571,7 +571,11 @@ class FaturaService
     // ============================================================================
 
     /**
-     * Marcar item como pago e criar lançamento
+     * Marcar item como pago e ATUALIZAR lançamento existente
+     * 
+     * CORREÇÃO FINAL: Não cria mais lançamentos aqui!
+     * - Lançamentos já foram criados no momento da COMPRA (CartaoCreditoLancamentoService)
+     * - Aqui apenas: atualiza lançamentos existentes (pago=true, afeta_caixa=true)
      */
     private function marcarItemComoPago(FaturaCartaoItem $item, int $usuarioId): void
     {
@@ -591,27 +595,53 @@ class FaturaService
             );
         }
 
-        // Criar lançamento se não existir
-        if (!$item->lancamento_id) {
+        $dataPagamento = now()->format('Y-m-d');
+
+        // Verificar se o item já tem lançamento vinculado
+        if ($item->lancamento_id) {
+            // ATUALIZAR lançamento existente (não criar novo!)
+            $lancamento = Lancamento::find($item->lancamento_id);
+            if ($lancamento) {
+                $lancamento->update([
+                    'pago' => true,
+                    'data_pagamento' => $dataPagamento,
+                    'afeta_caixa' => true,  // Agora sim afeta o saldo!
+                    'observacao' => sprintf(
+                        'Pagamento de fatura - %s (Parcela %d/%d) - pago em %s',
+                        $item->cartaoCredito->nome ?? $item->cartaoCredito->bandeira ?? 'Cartão',
+                        $item->parcela_atual ?? 1,
+                        $item->total_parcelas ?? 1,
+                        date('d/m/Y', strtotime($dataPagamento))
+                    ),
+                ]);
+            }
+        } else {
+            // Fallback: criar lançamento se não existir (dados antigos migrados)
             $valorFormatado = round((float) $item->valor, 2);
-            $dataPagamento = now()->format('Y-m-d');
+            $dataCompra = $item->data_compra ? $item->data_compra->format('Y-m-d') : $dataPagamento;
 
             $lancamento = Lancamento::create([
                 'user_id' => $usuarioId,
                 'tipo' => 'despesa',
                 'valor' => $valorFormatado,
-                'data' => $dataPagamento, // Usar data do pagamento, não do vencimento
+                'data' => $dataCompra,                     // Data da compra original
+                'data_competencia' => $dataCompra,         // Competência: mês da compra
                 'descricao' => $item->descricao ?: 'Pagamento de fatura',
                 'categoria_id' => $item->categoria_id,
                 'conta_id' => $item->cartaoCredito->conta_id,
+                'cartao_credito_id' => $item->cartao_credito_id,
                 'pago' => true,
                 'data_pagamento' => $dataPagamento,
                 'observacao' => sprintf(
-                    'Pagamento de fatura - %s (Parcela %d/%d)',
+                    'Pagamento de fatura - %s (Parcela %d/%d) (migrado)',
                     $item->cartaoCredito->nome ?? $item->cartaoCredito->bandeira ?? 'Cartão',
                     $item->parcela_atual ?? 1,
                     $item->total_parcelas ?? 1
-                )
+                ),
+                // Campos de controle
+                'afeta_competencia' => true,
+                'afeta_caixa' => true,
+                'origem_tipo' => 'cartao_credito',
             ]);
 
             $item->lancamento_id = $lancamento->id;

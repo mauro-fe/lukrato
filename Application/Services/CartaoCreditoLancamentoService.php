@@ -102,13 +102,22 @@ class CartaoCreditoLancamentoService
     /**
      * Criar lançamento à vista no cartão
      * ATUALIZADO: Busca ou cria fatura mensal (1 fatura por mês por cartão)
+     * REFATORAÇÃO: mes_referencia agora usa mês da COMPRA (competência), não do vencimento
+     * 
+     * CORREÇÃO FINAL: Agora cria o Lancamento IMEDIATAMENTE no momento da compra:
+     * - afeta_saldo = false (não afeta saldo da conta - só vai afetar no pagamento da fatura)
+     * - afeta_competencia = true (conta como despesa do mês da compra)
+     * - pago = false (pendente até pagar fatura)
      */
     private function criarLancamentoVista(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): FaturaCartaoItem
     {
         $dataCompra = $data['data'] ?? date('Y-m-d');
         $vencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
 
-        // Buscar ou criar fatura do mês
+        // Extrair mês/ano da COMPRA para competência (não do vencimento)
+        [$anoCompra, $mesCompra] = explode('-', $dataCompra);
+
+        // Buscar ou criar fatura do mês de VENCIMENTO (onde a parcela será cobrada)
         $fatura = $this->buscarOuCriarFatura(
             $userId,
             $cartao->id,
@@ -116,20 +125,57 @@ class CartaoCreditoLancamentoService
             $vencimento['ano']
         );
 
-        // Criar item de fatura vinculado à fatura mensal
+        // ===============================================================
+        // CORREÇÃO: Criar LANÇAMENTO no momento da COMPRA (não no pagamento)
+        // ===============================================================
+        $lancamento = Lancamento::create([
+            'user_id' => $userId,
+            'conta_id' => $contaId,
+            'categoria_id' => $data['categoria_id'] ?? null,
+            'cartao_credito_id' => $cartao->id,
+            'tipo' => 'despesa',
+            'valor' => $data['valor'],
+            'descricao' => $data['descricao'],
+            'data' => $dataCompra,                     // Data da compra
+            'data_competencia' => $dataCompra,         // Competência = mês da compra
+            'observacao' => sprintf(
+                'Compra cartão %s •••• %s',
+                $cartao->nome_cartao,
+                $cartao->ultimos_digitos
+            ),
+            'pago' => false,                           // PENDENTE (não pago ainda)
+            'data_pagamento' => null,
+            // Campos de controle
+            'afeta_competencia' => true,               // ✅ Conta nas despesas do mês da compra
+            'afeta_caixa' => false,                    // ❌ NÃO afeta saldo (só quando pagar fatura)
+            'origem_tipo' => 'cartao_credito',
+        ]);
+
+        LogService::info("[CARTAO] Lançamento criado no momento da compra (à vista)", [
+            'lancamento_id' => $lancamento->id,
+            'valor' => $data['valor'],
+            'data_competencia' => $dataCompra,
+            'afeta_competencia' => true,
+            'afeta_caixa' => false,
+            'pago' => false,
+        ]);
+
+        // Criar item de fatura vinculado à fatura mensal E ao lançamento
         $item = FaturaCartaoItem::create([
             'user_id' => $userId,
             'cartao_credito_id' => $cartao->id,
             'fatura_id' => $fatura->id,
+            'lancamento_id' => $lancamento->id,        // NOVO: Vincular ao lançamento
             'descricao' => $data['descricao'],
             'valor' => $data['valor'],
             'data_compra' => $dataCompra,
             'data_vencimento' => $vencimento['data'],
-            'categoria_id' => $data['categoria_id'],
+            'categoria_id' => $data['categoria_id'] ?? null,
             'parcela_atual' => 1,
             'total_parcelas' => 1,
-            'mes_referencia' => $vencimento['mes'],
-            'ano_referencia' => $vencimento['ano'],
+            // CORREÇÃO: mes_referencia = mês da COMPRA (competência), não do vencimento
+            'mes_referencia' => (int) $mesCompra,
+            'ano_referencia' => (int) $anoCompra,
             'pago' => false,
         ]);
 
@@ -146,6 +192,15 @@ class CartaoCreditoLancamentoService
     /**
      * Criar lançamento parcelado
      * ATUALIZADO: Cada parcela vai para a fatura mensal correspondente
+     * 
+     * CORREÇÃO FINAL: Agora cria o Lancamento IMEDIATAMENTE para CADA parcela:
+     * - afeta_saldo = false (não afeta saldo da conta - só vai afetar no pagamento da fatura)
+     * - afeta_competencia = true (conta como despesa do mês da PARCELA)
+     * - pago = false (pendente até pagar fatura)
+     * 
+     * IMPORTANTE: Cada parcela tem sua própria data de competência (mês do vencimento da parcela)
+     * - Parcela 1 comprada em janeiro → competência janeiro
+     * - Parcela 2 vence em fevereiro → competência fevereiro
      */
     private function criarLancamentoParcelado(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): array
     {
@@ -165,7 +220,7 @@ class CartaoCreditoLancamentoService
             $vencimento = $this->calcularDataParcelaMes($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento, $i - 1);
             $valorDessaParcela = ($i === $totalParcelas) ? $valorUltimaParcela : $valorParcela;
 
-            // Buscar ou criar fatura do mês da parcela
+            // Buscar ou criar fatura do mês de VENCIMENTO da parcela
             $fatura = $this->buscarOuCriarFatura(
                 $userId,
                 $cartao->id,
@@ -173,26 +228,67 @@ class CartaoCreditoLancamentoService
                 $vencimento['ano']
             );
 
-            LogService::info("[CARTAO] Criando item de fatura {$i}/{$totalParcelas}", [
-                'fatura_id' => $fatura->id,
-                'mes_ano' => "{$vencimento['mes']}/{$vencimento['ano']}",
-                'cartao_id' => $cartao->id,
+            // ===============================================================
+            // CORREÇÃO: Cada parcela tem:
+            // - data = data de vencimento da parcela (fluxo de caixa)
+            // - data_competencia = data da COMPRA original (quando a despesa aconteceu)
+            // ===============================================================
+            $descricaoParcela = $data['descricao'] . " ({$i}/{$totalParcelas})";
+            $dataVencimentoParcela = $vencimento['data'];  // Data de vencimento desta parcela
+
+            $lancamento = Lancamento::create([
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'categoria_id' => $data['categoria_id'] ?? null,
+                'cartao_credito_id' => $cartao->id,
+                'tipo' => 'despesa',
                 'valor' => $valorDessaParcela,
-                'data_vencimento' => $vencimento['data'],
+                'descricao' => $descricaoParcela,
+                'data' => $dataVencimentoParcela,          // Vencimento: quando vai para a fatura
+                'data_competencia' => $dataCompra,         // Competência: data da COMPRA original
+                'observacao' => sprintf(
+                    'Compra parcelada cartão %s •••• %s - Parcela %d/%d - Compra em %s',
+                    $cartao->nome_cartao,
+                    $cartao->ultimos_digitos,
+                    $i,
+                    $totalParcelas,
+                    date('d/m/Y', strtotime($dataCompra))
+                ),
+                'pago' => false,                           // PENDENTE (não pago ainda)
+                'data_pagamento' => null,
+                // Campos de controle
+                'afeta_competencia' => true,               // ✅ Conta nas despesas do mês da COMPRA
+                'afeta_caixa' => false,                    // ❌ NÃO afeta saldo (só quando pagar fatura)
+                'origem_tipo' => 'cartao_credito',
             ]);
 
-            // Criar item de fatura vinculado à fatura mensal
+            LogService::info("[CARTAO] Lançamento criado no momento da compra (parcelado {$i}/{$totalParcelas})", [
+                'lancamento_id' => $lancamento->id,
+                'fatura_id' => $fatura->id,
+                'mes_ano_vencimento' => "{$vencimento['mes']}/{$vencimento['ano']}",
+                'data_competencia' => $dataVencimentoParcela,
+                'data_compra_original' => $dataCompra,
+                'cartao_id' => $cartao->id,
+                'valor' => $valorDessaParcela,
+                'afeta_competencia' => true,
+                'afeta_caixa' => false,
+                'pago' => false,
+            ]);
+
+            // Criar item de fatura vinculado à fatura mensal E ao lançamento
             $item = FaturaCartaoItem::create([
                 'user_id' => $userId,
                 'cartao_credito_id' => $cartao->id,
                 'fatura_id' => $fatura->id,
-                'descricao' => $data['descricao'] . " ({$i}/{$totalParcelas})",
+                'lancamento_id' => $lancamento->id,        // NOVO: Vincular ao lançamento
+                'descricao' => $descricaoParcela,
                 'valor' => $valorDessaParcela,
-                'data_compra' => $dataCompra,
-                'data_vencimento' => $vencimento['data'],
+                'data_compra' => $dataCompra,              // Data original da compra
+                'data_vencimento' => $dataVencimentoParcela,
                 'categoria_id' => $data['categoria_id'] ?? null,
                 'parcela_atual' => $i,
                 'total_parcelas' => $totalParcelas,
+                // mes_referencia = mês do VENCIMENTO da parcela (competência)
                 'mes_referencia' => $vencimento['mes'],
                 'ano_referencia' => $vencimento['ano'],
                 'pago' => false,
@@ -201,12 +297,6 @@ class CartaoCreditoLancamentoService
             // Atualizar valor total da fatura
             $fatura->valor_total += $valorDessaParcela;
             $fatura->save();
-
-            LogService::info("[CARTAO] Item de fatura criado", [
-                'item_id' => $item->id,
-                'fatura_id' => $fatura->id,
-                'fatura_valor_total' => $fatura->valor_total,
-            ]);
 
             $itens[] = $item;
 

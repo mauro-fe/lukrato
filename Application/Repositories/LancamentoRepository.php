@@ -405,4 +405,202 @@ class LancamentoRepository extends BaseRepository
             ->where('eh_transferencia', 0)
             ->exists();
     }
+
+    // ============================================================================
+    // MÉTODOS DE COMPETÊNCIA (Refatoração Cartão de Crédito)
+    // ============================================================================
+
+    /**
+     * Buscar lançamentos por mês usando competência ou caixa.
+     * 
+     * @param int $userId
+     * @param string $month Formato: Y-m (ex: 2025-12)
+     * @param string $tipo 'competencia' ou 'caixa'
+     * @return Collection
+     */
+    public function findByMonthAndViewType(int $userId, string $month, string $tipo = 'caixa'): Collection
+    {
+        $query = $this->query()
+            ->where('user_id', $userId)
+            ->where('eh_transferencia', 0);
+
+        if ($tipo === 'competencia') {
+            // Usar data_competencia se disponível, senão fallback para data
+            $query->where(function ($q) use ($month) {
+                $q->where('data_competencia', 'like', "$month%")
+                    ->orWhere(function ($q2) use ($month) {
+                        $q2->whereNull('data_competencia')
+                            ->where('data', 'like', "$month%");
+                    });
+            });
+        } else {
+            // Comportamento original: fluxo de caixa (usa campo data)
+            $query->where('data', 'like', "$month%");
+        }
+
+        return $query->orderBy('data', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+    }
+
+    /**
+     * Calcular soma de receitas por competência.
+     * Usa data_competencia se disponível, senão usa data.
+     * 
+     * @param int $userId
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @return float
+     */
+    public function sumReceitasCompetencia(int $userId, string $start, string $end): float
+    {
+        return (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) {
+                $q->where('afeta_competencia', true)
+                    ->orWhereNull('afeta_competencia'); // Backward compatibility
+            })
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('data_competencia', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->whereNull('data_competencia')
+                            ->whereBetween('data', [$start, $end]);
+                    });
+            })
+            ->sum('valor');
+    }
+
+    /**
+     * Calcular soma de despesas por competência.
+     * Usa data_competencia se disponível, senão usa data.
+     * 
+     * @param int $userId
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @return float
+     */
+    public function sumDespesasCompetencia(int $userId, string $start, string $end): float
+    {
+        return (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) {
+                $q->where('afeta_competencia', true)
+                    ->orWhereNull('afeta_competencia'); // Backward compatibility
+            })
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('data_competencia', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->whereNull('data_competencia')
+                            ->whereBetween('data', [$start, $end]);
+                    });
+            })
+            ->sum('valor');
+    }
+
+    /**
+     * Calcular soma de receitas por caixa (fluxo de caixa).
+     * Sempre usa campo data.
+     * 
+     * @param int $userId
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @return float
+     */
+    public function sumReceitasCaixa(int $userId, string $start, string $end): float
+    {
+        return (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) {
+                $q->where('afeta_caixa', true)
+                    ->orWhereNull('afeta_caixa'); // Backward compatibility
+            })
+            ->whereBetween('data', [$start, $end])
+            ->sum('valor');
+    }
+
+    /**
+     * Calcular soma de despesas por caixa (fluxo de caixa).
+     * Sempre usa campo data.
+     * 
+     * @param int $userId
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @return float
+     */
+    public function sumDespesasCaixa(int $userId, string $start, string $end): float
+    {
+        return (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) {
+                $q->where('afeta_caixa', true)
+                    ->orWhereNull('afeta_caixa'); // Backward compatibility
+            })
+            ->whereBetween('data', [$start, $end])
+            ->sum('valor');
+    }
+
+    /**
+     * Buscar lançamentos de cartão de crédito de um usuário.
+     * 
+     * @param int $userId
+     * @param string|null $month Formato: Y-m (opcional)
+     * @return Collection
+     */
+    public function findCartaoCredito(int $userId, ?string $month = null): Collection
+    {
+        $query = $this->query()
+            ->where('user_id', $userId)
+            ->where(function ($q) {
+                $q->where('origem_tipo', Lancamento::ORIGEM_CARTAO_CREDITO)
+                    ->orWhereNotNull('cartao_credito_id');
+            });
+
+        if ($month) {
+            $query->where(function ($q) use ($month) {
+                $q->where('data_competencia', 'like', "$month%")
+                    ->orWhere(function ($q2) use ($month) {
+                        $q2->whereNull('data_competencia')
+                            ->where('data', 'like', "$month%");
+                    });
+            });
+        }
+
+        return $query->orderBy('data', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+    }
+
+    /**
+     * Obter resumo mensal por competência vs caixa.
+     * Útil para comparar os dois métodos de visualização.
+     * 
+     * @param int $userId
+     * @param string $month Formato: Y-m
+     * @return array
+     */
+    public function getResumoCompetenciaVsCaixa(int $userId, string $month): array
+    {
+        [$year, $monthNum] = explode('-', $month);
+        $start = "{$year}-{$monthNum}-01";
+        $end = date('Y-m-t', strtotime($start));
+
+        return [
+            'competencia' => [
+                'receitas' => $this->sumReceitasCompetencia($userId, $start, $end),
+                'despesas' => $this->sumDespesasCompetencia($userId, $start, $end),
+            ],
+            'caixa' => [
+                'receitas' => $this->sumReceitasCaixa($userId, $start, $end),
+                'despesas' => $this->sumDespesasCaixa($userId, $start, $end),
+            ],
+        ];
+    }
 }

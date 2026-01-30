@@ -40,19 +40,18 @@ class CupomController extends BaseController
     {
         try {
             $hoje = date('Y-m-d');
-            
+
             // Atualizar cupons que venceram (data menor que hoje e ainda ativos)
             Cupom::where('ativo', 1)
                 ->whereNotNull('valido_ate')
                 ->where('valido_ate', '<', $hoje)
                 ->update(['ativo' => 0]);
-                
+
             // Atualizar cupons que atingiram o limite de uso
             Cupom::where('ativo', 1)
                 ->where('limite_uso', '>', 0)
                 ->whereRaw('uso_atual >= limite_uso')
                 ->update(['ativo' => 0]);
-                
         } catch (\Exception $e) {
             error_log("Erro ao atualizar cupons expirados: " . $e->getMessage());
         }
@@ -74,7 +73,7 @@ class CupomController extends BaseController
         try {
             // Atualizar cupons expirados antes de listar
             $this->atualizarCuponsExpirados();
-            
+
             $cupons = Cupom::orderBy('created_at', 'desc')->get();
 
             $cuponsFormatados = $cupons->map(function ($cupom) {
@@ -236,7 +235,7 @@ class CupomController extends BaseController
         try {
             // Atualizar cupons expirados antes de validar
             $this->atualizarCuponsExpirados();
-            
+
             $codigo = $_GET['codigo'] ?? '';
 
             if (empty($codigo)) {

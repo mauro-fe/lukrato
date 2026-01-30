@@ -47,6 +47,14 @@ class FinanceiroController extends BaseController
         $this->contaRepo = $contaRepo ?? new ContaRepository();
     }
 
+    /**
+     * GET /api/dashboard/metrics
+     * 
+     * REFATORAÇÃO: Suporta visualização por competência ou caixa
+     * Parâmetros:
+     * - month: Mês no formato Y-m (ex: 2026-01)
+     * - view: 'caixa' ou 'competencia' (padrão: 'caixa')
+     */
     public function metrics(): void
     {
         $uid = Auth::id();
@@ -54,6 +62,7 @@ class FinanceiroController extends BaseController
         try {
             $req = new Request();
             $month = $req->get('month') ?? $_GET['month'] ?? date('Y-m');
+            $viewType = $req->get('view') ?? $_GET['view'] ?? 'caixa'; // 'caixa' ou 'competencia'
 
             if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
                 throw new ValueError('Formato de mês inválido (YYYY-MM).');
@@ -63,19 +72,25 @@ class FinanceiroController extends BaseController
             $start = Carbon::createMidnightDate($y, $m, 1);
             $end   = (clone $start)->endOfMonth();
 
+            $startStr = $start->format('Y-m-d');
+            $endStr = $end->format('Y-m-d');
+
+            if ($viewType === 'competencia') {
+                // Visão de COMPETÊNCIA: usa data_competencia quando disponível
+                $receitas = $this->lancamentoRepo->sumReceitasCompetencia($uid, $startStr, $endStr);
+                $despesas = $this->lancamentoRepo->sumDespesasCompetencia($uid, $startStr, $endStr);
+            } else {
+                // Visão de CAIXA: comportamento original
+                $receitas = $this->lancamentoRepo->sumReceitasCaixa($uid, $startStr, $endStr);
+                $despesas = $this->lancamentoRepo->sumDespesasCaixa($uid, $startStr, $endStr);
+            }
+
+            $resultado = $receitas - $despesas;
+
+            // Saldo acumulado sempre usa CAIXA (saldo real nas contas)
             $baseQuery = fn(string $tipo) => Lancamento::where('tipo', $tipo)
                 ->where('eh_transferencia', 0)
                 ->when($uid, fn(Builder $q) => $q->where('user_id', $uid));
-
-            $receitas = (float)$baseQuery(LancamentoTipo::RECEITA->value)
-                ->whereBetween('data', [$start, $end])
-                ->sum('valor');
-
-            $despesas = (float)$baseQuery(LancamentoTipo::DESPESA->value)
-                ->whereBetween('data', [$start, $end])
-                ->sum('valor');
-
-            $resultado = $receitas - $despesas;
 
             $acumRec = (float)$baseQuery(LancamentoTipo::RECEITA->value)
                 ->where('data', '<=', $end)
@@ -91,6 +106,7 @@ class FinanceiroController extends BaseController
                 'despesas'       => $despesas,
                 'resultado'      => $resultado,
                 'saldoAcumulado' => ($acumRec - $acumDes),
+                'view'           => $viewType, // Informar qual visão está sendo usada
             ]);
         } catch (Throwable $e) {
             Response::json(['error' => $e->getMessage()], 500);

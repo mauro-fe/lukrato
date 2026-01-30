@@ -389,7 +389,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
             });
 
             console.log('📡 Status da resposta:', response.status);
-            
+
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
             }

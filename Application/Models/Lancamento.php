@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Model;
  * - Parcelas de cartão de crédito (cada parcela = 1 lançamento)
  * - Lançamentos oriundos de agendamentos pagos
  * 
+ * REFATORAÇÃO - Separação Competência vs Caixa:
+ * - data: Data do fluxo de caixa (quando afeta saldo)
+ * - data_competencia: Data da despesa real (quando ocorreu)
+ * - afeta_competencia: Se conta nos relatórios do mês de competência
+ * - afeta_caixa: Se afeta saldo disponível
+ * - origem_tipo: Tipo de origem (normal, cartao_credito, etc)
+ * 
  * Relacionamentos:
  * - parcelamento: opcional, para agrupar parcelas visualmente
  * - cartaoCredito: opcional, para lançamentos de cartão
@@ -22,6 +29,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $user_id
  * @property string $tipo
  * @property \Carbon\Carbon|string $data
+ * @property \Carbon\Carbon|string|null $data_competencia
  * @property int|null $categoria_id
  * @property int|null $conta_id
  * @property int|null $conta_id_destino
@@ -38,6 +46,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon|string|null $data_pagamento
  * @property int|null $parcelamento_id
  * @property int|null $numero_parcela
+ * @property bool $afeta_competencia
+ * @property bool $afeta_caixa
+ * @property string|null $origem_tipo
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
@@ -54,6 +65,13 @@ class Lancamento extends Model
     public const TIPO_RECEITA        = 'receita';
     public const TIPO_DESPESA        = 'despesa';
     public const TIPO_TRANSFERENCIA  = 'transferencia';
+
+    // Constantes para origem_tipo
+    public const ORIGEM_NORMAL         = 'normal';
+    public const ORIGEM_CARTAO_CREDITO = 'cartao_credito';
+    public const ORIGEM_PARCELAMENTO   = 'parcelamento';
+    public const ORIGEM_AGENDAMENTO    = 'agendamento';
+    public const ORIGEM_TRANSFERENCIA  = 'transferencia';
 
     protected $fillable = [
         'user_id',
@@ -77,6 +95,11 @@ class Lancamento extends Model
         // Campos de parcelamento
         'parcelamento_id',
         'numero_parcela',
+        // Campos de competência (novos)
+        'data_competencia',
+        'afeta_competencia',
+        'afeta_caixa',
+        'origem_tipo',
     ];
 
     protected $casts = [
@@ -86,6 +109,7 @@ class Lancamento extends Model
         'conta_id_destino'  => 'int',
         'data'              => 'date:Y-m-d',
         'data_pagamento'    => 'date:Y-m-d',
+        'data_competencia'  => 'date:Y-m-d',
         'valor'             => 'float',
         'eh_transferencia'  => 'bool',
         'eh_saldo_inicial'  => 'bool',
@@ -96,6 +120,8 @@ class Lancamento extends Model
         'pago'              => 'bool',
         'parcelamento_id'   => 'int',
         'numero_parcela'    => 'int',
+        'afeta_competencia' => 'bool',
+        'afeta_caixa'       => 'bool',
     ];
 
 
@@ -147,14 +173,6 @@ class Lancamento extends Model
     public function isParcela(): bool
     {
         return !empty($this->parcelamento_id);
-    }
-
-    /**
-     * Verifica se este lançamento é de cartão de crédito
-     */
-    public function isCartaoCredito(): bool
-    {
-        return !empty($this->cartao_credito_id);
     }
 
 
@@ -258,5 +276,119 @@ class Lancamento extends Model
             return $conta->nome ?: ($conta->instituicao ?: '—');
         }
         return '—';
+    }
+
+    // ============================================================================
+    // MÉTODOS DE COMPETÊNCIA (Refatoração Cartão de Crédito)
+    // ============================================================================
+
+    /**
+     * Retorna a data de competência efetiva do lançamento
+     * Se data_competencia estiver preenchida, usa ela; senão, usa data
+     * 
+     * @return \Carbon\Carbon|string
+     */
+    public function getDataCompetenciaEfetivaAttribute()
+    {
+        return $this->data_competencia ?? $this->data;
+    }
+
+    /**
+     * Verifica se este lançamento é de cartão de crédito
+     * 
+     * @return bool
+     */
+    public function isCartaoCredito(): bool
+    {
+        return $this->origem_tipo === self::ORIGEM_CARTAO_CREDITO || !empty($this->cartao_credito_id);
+    }
+
+    /**
+     * Verifica se o lançamento tem competência diferente do caixa
+     * (Ex: compra em janeiro, pagamento em fevereiro)
+     * 
+     * @return bool
+     */
+    public function temCompetenciaDiferente(): bool
+    {
+        if (!$this->data_competencia) {
+            return false;
+        }
+
+        $dataCompetencia = $this->data_competencia instanceof \Carbon\Carbon
+            ? $this->data_competencia->format('Y-m')
+            : substr($this->data_competencia, 0, 7);
+
+        $dataCaixa = $this->data instanceof \Carbon\Carbon
+            ? $this->data->format('Y-m')
+            : substr($this->data, 0, 7);
+
+        return $dataCompetencia !== $dataCaixa;
+    }
+
+    /**
+     * Scope para filtrar por mês de competência
+     * Usa data_competencia se disponível, senão usa data
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCompetenciaEntre($query, string $start, string $end)
+    {
+        return $query->where(function ($q) use ($start, $end) {
+            // Se tem data_competencia, usa ela
+            $q->whereBetween('data_competencia', [$start, $end])
+                // Senão, fallback para data
+                ->orWhere(function ($q2) use ($start, $end) {
+                    $q2->whereNull('data_competencia')
+                        ->whereBetween('data', [$start, $end]);
+                });
+        });
+    }
+
+    /**
+     * Scope para filtrar por mês de caixa (fluxo de caixa)
+     * Sempre usa campo data
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCaixaEntre($query, string $start, string $end)
+    {
+        return $query->whereBetween('data', [$start, $end]);
+    }
+
+    /**
+     * Scope para filtrar apenas lançamentos que afetam competência
+     */
+    public function scopeAfetaCompetencia($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('afeta_competencia', true)
+                ->orWhereNull('afeta_competencia'); // Backward compatibility
+        });
+    }
+
+    /**
+     * Scope para filtrar apenas lançamentos que afetam caixa
+     */
+    public function scopeAfetaCaixa($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('afeta_caixa', true)
+                ->orWhereNull('afeta_caixa'); // Backward compatibility
+        });
+    }
+
+    /**
+     * Scope para filtrar por origem
+     */
+    public function scopeOrigem($query, string $tipo)
+    {
+        return $query->where('origem_tipo', $tipo);
     }
 }

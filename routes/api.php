@@ -57,6 +57,7 @@ Router::add('POST', '/api/onboarding/reset',     'Api\\OnboardingController@rese
 
 Router::add('GET', '/api/dashboard/metrics',      'Api\\FinanceiroController@metrics',      ['auth']);
 Router::add('GET', '/api/dashboard/transactions', 'Api\\DashboardController@transactions',  ['auth']);
+Router::add('GET', '/api/dashboard/comparativo-competencia', 'Api\\DashboardController@comparativoCompetenciaCaixa', ['auth']);
 Router::add('GET', '/api/options',                'Api\\FinanceiroController@options',      ['auth']);
 
 // ============================================

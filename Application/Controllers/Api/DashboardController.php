@@ -7,12 +7,19 @@ use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Application\Enums\LancamentoTipo;
+use Application\Repositories\LancamentoRepository;
 use Illuminate\Database\Eloquent\Builder;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController
 {
+    private LancamentoRepository $lancamentoRepo;
+
+    public function __construct()
+    {
+        $this->lancamentoRepo = new LancamentoRepository();
+    }
 
     private function normalizeMonth(string $monthInput): array
     {
@@ -39,11 +46,22 @@ class DashboardController
     }
 
 
+    /**
+     * GET /api/dashboard/metrics
+     * 
+     * Parâmetros:
+     * - month: Mês no formato Y-m (ex: 2026-01)
+     * - account_id: ID da conta (opcional)
+     * - view: 'caixa' ou 'competencia' (padrão: 'caixa')
+     * 
+     * REFATORAÇÃO: Suporta visualização por competência ou caixa
+     */
     public function metrics(): void
     {
         $userId = Auth::id();
         $monthInput = trim($_GET['month'] ?? date('Y-m'));
         $accId = isset($_GET['account_id']) ? (int)$_GET['account_id'] : null;
+        $viewType = trim($_GET['view'] ?? 'caixa'); // 'caixa' ou 'competencia'
 
         $normalizedDate = $this->normalizeMonth($monthInput);
         $y = $normalizedDate['year'];
@@ -55,25 +73,39 @@ class DashboardController
             return;
         }
 
-        $monthlyBase = $this->createBaseQuery($userId)
-            ->whereYear('data', $y)
-            ->whereMonth('data', $m);
+        // Calcular início e fim do mês
+        $start = "{$month}-01";
+        $end = date('Y-m-t', strtotime($start));
 
-        if ($accId) {
-            $monthlyBase->where('conta_id', $accId);
+        // REFATORAÇÃO: Usar repository com suporte a competência
+        if ($viewType === 'competencia') {
+            // Visão de COMPETÊNCIA (mês da despesa real)
+            $sumReceitas = $this->lancamentoRepo->sumReceitasCompetencia($userId, $start, $end);
+            $sumDespesas = $this->lancamentoRepo->sumDespesasCompetencia($userId, $start, $end);
+        } else {
+            // Visão de CAIXA (comportamento original)
+            if ($accId) {
+                // Filtro por conta específica (mantém comportamento original)
+                $monthlyBase = $this->createBaseQuery($userId)
+                    ->whereYear('data', $y)
+                    ->whereMonth('data', $m)
+                    ->where('conta_id', $accId);
+
+                $sumReceitas = (float)(clone $monthlyBase)->where('tipo', LancamentoTipo::RECEITA->value)->sum('valor');
+                $sumDespesas = (float)(clone $monthlyBase)->where('tipo', LancamentoTipo::DESPESA->value)->sum('valor');
+            } else {
+                $sumReceitas = $this->lancamentoRepo->sumReceitasCaixa($userId, $start, $end);
+                $sumDespesas = $this->lancamentoRepo->sumDespesasCaixa($userId, $start, $end);
+            }
         }
 
-        $receitasQuery = (clone $monthlyBase)->where('tipo', LancamentoTipo::RECEITA->value);
-        $despesasQuery = (clone $monthlyBase)->where('tipo', LancamentoTipo::DESPESA->value);
-
-        $sumReceitas = (float)$receitasQuery->sum('valor');
-        $sumDespesas = (float)$despesasQuery->sum('valor');
         $resultado = $sumReceitas - $sumDespesas;
 
         $ate = (new DateTimeImmutable("$month-01"))
             ->modify('last day of this month')
             ->format('Y-m-d');
 
+        // Saldo sempre é calculado por CAIXA (saldo real na conta)
         $saldoAcumulado = $accId
             ? $this->calcularSaldoConta($userId, $accId, $ate)
             : $this->calcularSaldoGlobal($userId, $ate);
@@ -84,6 +116,52 @@ class DashboardController
             'despesas' => $sumDespesas,
             'resultado' => $resultado,
             'saldoAcumulado' => $saldoAcumulado,
+            'view' => $viewType, // Informar qual visão está sendo usada
+        ]);
+    }
+
+    /**
+     * GET /api/dashboard/comparativo-competencia-caixa
+     * 
+     * Retorna comparativo entre visão de competência e caixa para o mês
+     * Útil para mostrar diferença entre os dois métodos
+     */
+    public function comparativoCompetenciaCaixa(): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::json(['status' => 'error', 'message' => 'Não autenticado'], 401);
+            return;
+        }
+
+        $monthInput = trim($_GET['month'] ?? date('Y-m'));
+        $normalizedDate = $this->normalizeMonth($monthInput);
+        $month = $normalizedDate['month'];
+
+        $comparativo = $this->lancamentoRepo->getResumoCompetenciaVsCaixa($userId, $month);
+
+        // Calcular diferenças
+        $difReceitas = $comparativo['competencia']['receitas'] - $comparativo['caixa']['receitas'];
+        $difDespesas = $comparativo['competencia']['despesas'] - $comparativo['caixa']['despesas'];
+
+        Response::json([
+            'month' => $month,
+            'competencia' => [
+                'receitas' => $comparativo['competencia']['receitas'],
+                'despesas' => $comparativo['competencia']['despesas'],
+                'resultado' => $comparativo['competencia']['receitas'] - $comparativo['competencia']['despesas'],
+            ],
+            'caixa' => [
+                'receitas' => $comparativo['caixa']['receitas'],
+                'despesas' => $comparativo['caixa']['despesas'],
+                'resultado' => $comparativo['caixa']['receitas'] - $comparativo['caixa']['despesas'],
+            ],
+            'diferenca' => [
+                'receitas' => $difReceitas,
+                'despesas' => $difDespesas,
+                'resultado' => ($comparativo['competencia']['receitas'] - $comparativo['competencia']['despesas']) -
+                    ($comparativo['caixa']['receitas'] - $comparativo['caixa']['despesas']),
+            ],
         ]);
     }
 
