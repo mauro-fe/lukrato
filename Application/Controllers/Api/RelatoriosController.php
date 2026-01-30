@@ -100,9 +100,14 @@ class RelatoriosController extends BaseController
             $startDate = Carbon::create($year, $month, 1)->startOfMonth();
             $endDate = Carbon::create($year, $month, 1)->endOfMonth();
 
-            // Buscar totais de lançamentos (sem filtrar por pago)
+            // Buscar totais de lançamentos (sem filtrar por pago, respeitando afeta_caixa)
             $lancamentos = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$startDate->toDateString(), $endDate->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa'); // Backward compatibility
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as total_receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as total_despesas
@@ -331,9 +336,14 @@ class RelatoriosController extends BaseController
 
             $insights = [];
 
-            // Análise do mês atual vs anterior
+            // Análise do mês atual vs anterior (respeitando afeta_caixa)
             $currentData = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$currentStart->toDateString(), $currentEnd->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa');
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -342,6 +352,11 @@ class RelatoriosController extends BaseController
 
             $previousData = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$previousStart->toDateString(), $previousEnd->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa');
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -496,9 +511,14 @@ class RelatoriosController extends BaseController
             $previousYearStart = Carbon::create($year - 1, 1, 1)->startOfDay();
             $previousYearEnd = Carbon::create($year - 1, 12, 31)->endOfDay();
 
-            // Dados mês atual
+            // Dados mês atual (respeitando afeta_caixa)
             $currentMonth = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$currentStart->toDateString(), $currentEnd->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa');
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -508,6 +528,11 @@ class RelatoriosController extends BaseController
             // Dados mês anterior
             $previousMonth = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$previousMonthStart->toDateString(), $previousMonthEnd->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa');
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -517,6 +542,11 @@ class RelatoriosController extends BaseController
             // Dados ano atual
             $currentYear = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$currentYearStart->toDateString(), $currentYearEnd->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa');
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -526,6 +556,11 @@ class RelatoriosController extends BaseController
             // Dados ano anterior
             $previousYear = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$previousYearStart->toDateString(), $previousYearEnd->toDateString()])
+                ->where('eh_transferencia', 0)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)
+                        ->orWhereNull('afeta_caixa');
+                })
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas

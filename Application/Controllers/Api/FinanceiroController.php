@@ -88,29 +88,63 @@ class FinanceiroController extends BaseController
             $resultado = $receitas - $despesas;
 
             // Saldo acumulado sempre usa CAIXA (saldo real nas contas)
-            $baseQuery = fn(string $tipo) => Lancamento::where('tipo', $tipo)
-                ->where('eh_transferencia', 0)
-                ->when($uid, fn(Builder $q) => $q->where('user_id', $uid));
-
-            $acumRec = (float)$baseQuery(LancamentoTipo::RECEITA->value)
-                ->where('data', '<=', $end)
-                ->sum('valor');
-
-            $acumDes = (float)$baseQuery(LancamentoTipo::DESPESA->value)
-                ->where('data', '<=', $end)
-                ->sum('valor');
+            // Inclui: saldo inicial das contas + receitas - despesas + transferências
+            $saldoAcumulado = $this->calcularSaldoAcumulado($uid, $endStr);
 
             Response::json([
                 'saldo'          => $resultado,
                 'receitas'       => $receitas,
                 'despesas'       => $despesas,
                 'resultado'      => $resultado,
-                'saldoAcumulado' => ($acumRec - $acumDes),
+                'saldoAcumulado' => $saldoAcumulado,
                 'view'           => $viewType, // Informar qual visão está sendo usada
             ]);
         } catch (Throwable $e) {
             Response::json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Calcula o saldo acumulado real do usuário até uma data.
+     * Inclui: saldo inicial das contas + receitas - despesas ± transferências
+     * 
+     * @param int $userId
+     * @param string $ate Data limite no formato Y-m-d
+     * @return float
+     */
+    private function calcularSaldoAcumulado(int $userId, string $ate): float
+    {
+        // 1. Soma dos saldos iniciais de todas as contas ativas
+        $saldosIniciais = (float) Conta::forUser($userId)
+            ->ativas()
+            ->sum('saldo_inicial');
+
+        // 2. Soma das receitas (respeitando afeta_caixa)
+        $receitas = (float) Lancamento::where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->where('eh_transferencia', 0)
+            ->where('data', '<=', $ate)
+            ->where(function ($q) {
+                $q->where('afeta_caixa', true)
+                    ->orWhereNull('afeta_caixa'); // Backward compatibility
+            })
+            ->sum('valor');
+
+        // 3. Soma das despesas (respeitando afeta_caixa)
+        $despesas = (float) Lancamento::where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where('data', '<=', $ate)
+            ->where(function ($q) {
+                $q->where('afeta_caixa', true)
+                    ->orWhereNull('afeta_caixa'); // Backward compatibility
+            })
+            ->sum('valor');
+
+        // Nota: Transferências não afetam o saldo global (entrada em uma conta = saída de outra)
+        // Por isso não precisamos somar/subtrair transferências aqui
+
+        return $saldosIniciais + $receitas - $despesas;
     }
 
     public function transactions(): void

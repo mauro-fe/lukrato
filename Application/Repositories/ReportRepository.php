@@ -89,8 +89,13 @@ class ReportRepository
 
     public function saldoAte(Carbon $ate, ReportParameters $params, bool $useTransfers): float
     {
+        // 1. Calcular delta dos lançamentos (respeitando afeta_caixa)
         $query = DB::table('lancamentos')
             ->where('lancamentos.data', '<=', $ate)
+            ->where(function ($q) {
+                $q->where('lancamentos.afeta_caixa', true)
+                    ->orWhereNull('lancamentos.afeta_caixa'); // Backward compatibility
+            })
             ->selectRaw(...$this->deltaExpression($params->accountId, 'saldo'));
 
         if (!$useTransfers) {
@@ -100,7 +105,32 @@ class ReportRepository
         $this->applyUserScope($query, $params->userId);
         $this->applyAccountFilter($query, $params->accountId, $useTransfers);
 
-        return (float)($query->value('saldo') ?? 0.0);
+        $deltaLancamentos = (float)($query->value('saldo') ?? 0.0);
+
+        // 2. Adicionar saldo inicial das contas (apenas para visão global ou conta específica)
+        $saldoInicial = $this->getSaldoInicialContas($params);
+
+        return $saldoInicial + $deltaLancamentos;
+    }
+
+    /**
+     * Obtém a soma dos saldos iniciais das contas do usuário.
+     * Se accountId for especificado, retorna apenas o saldo inicial dessa conta.
+     */
+    private function getSaldoInicialContas(ReportParameters $params): float
+    {
+        $query = DB::table('contas')
+            ->where('ativo', true);
+
+        if ($params->userId) {
+            $query->where('user_id', $params->userId);
+        }
+
+        if ($params->accountId) {
+            $query->where('id', $params->accountId);
+        }
+
+        return (float)($query->sum('saldo_inicial') ?? 0.0);
     }
 
     // --- Builders de Query Específicos ---
@@ -189,7 +219,8 @@ class ReportRepository
         Carbon $end,
         ReportParameters $params,
         bool $useTransfers,
-        bool $includeSaldoInicial = false
+        bool $includeSaldoInicial = false,
+        bool $respectAfetaCaixa = true
     ): QueryBuilder {
         $query = DB::table('lancamentos')
             ->whereBetween('lancamentos.data', [$start, $end]);
@@ -200,6 +231,14 @@ class ReportRepository
 
         if (!$useTransfers) {
             $query->where('lancamentos.eh_transferencia', 0);
+        }
+
+        // Respeitar campo afeta_caixa para cálculos de saldo
+        if ($respectAfetaCaixa) {
+            $query->where(function ($q) {
+                $q->where('lancamentos.afeta_caixa', true)
+                    ->orWhereNull('lancamentos.afeta_caixa'); // Backward compatibility
+            });
         }
 
         $this->applyUserScope($query, $params->userId);
