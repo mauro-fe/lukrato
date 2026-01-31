@@ -9,23 +9,24 @@ class LandingController extends BaseController
 {
     public function index(): void
     {
-        // Busca os planos ativos do banco de dados
         $planos = Plano::where('ativo', true)
-                       ->orderBy('preco_centavos', 'asc')
-                       ->get();
+            ->orderBy('preco_centavos', 'asc')
+            ->get();
 
-        // Organiza os planos por tipo (gratuito e pagos)
         $planoGratuito = $planos->firstWhere('preco_centavos', 0);
-        $planosPagos = $planos->where('preco_centavos', '>', 0);
+        $planosPagos   = $planos->where('preco_centavos', '>', 0);
 
         $this->render(
             'site/landing/index',
             [
-                'pageTitle' => 'Lukrato - Organize suas finanças',
-                'extraCss'  => [],
-                'extraJs'   => [],
-                'planoGratuito' => $planoGratuito,
-                'planosPagos' => $planosPagos,
+                'pageTitle'       => 'Lukrato - Controle Financeiro Pessoal Grátis e Profissional',
+                'pageDescription' => 'Controle suas finanças pessoais de forma simples. Plano gratuito disponível e planos pagos para quem quer ir além.',
+                'extraCss'        => [],
+                'extraJs'         => [],
+                'planoGratuito'   => $planoGratuito,
+                'planosPagos'     => $planosPagos,
+                'temPlanoGratuito' => !is_null($planoGratuito),
+                'temPlanosPagos'  => $planosPagos->isNotEmpty(),
             ],
             'site/partials/header',
             'site/partials/footer'
