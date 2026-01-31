@@ -82,19 +82,19 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#e67e22',
-                        secondary: '#2c3e50',
-                        success: '#2ecc71',
-                        warning: '#f39c12',
-                        danger: '#e74c3c',
-                    }
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#e67e22',
+                    secondary: '#2c3e50',
+                    success: '#2ecc71',
+                    warning: '#f39c12',
+                    danger: '#e74c3c',
                 }
             }
         }
+    }
     </script>
 
     <!-- Alpine.js -->
@@ -102,16 +102,16 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
 
     <!-- Style para Alpine.js x-cloak -->
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
+    [x-cloak] {
+        display: none !important;
+    }
 
-        html,
-        body {
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 100vw;
-        }
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
     </style>
 
     <!-- AOS (Animate On Scroll) -->
@@ -123,7 +123,7 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">
 
     <?php foreach ($extraCss as $css): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
     <?php endforeach; ?>
 
     <!-- Font Awesome -->
@@ -132,101 +132,99 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
 
     <!-- Schema.org Markup (JSON-LD) -->
     <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            "name": "Lukrato",
-            "applicationCategory": "FinanceApplication",
-            "applicationSubCategory": "PersonalFinance",
-            "operatingSystem": "Web-based",
-            "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "BRL",
-                "availability": "https://schema.org/InStock",
-                "priceValidUntil": "2025-12-31"
-            },
-            "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": "4.8",
-                "ratingCount": "342"
-            },
-            "description": "<?= htmlspecialchars($pageDescription) ?>",
-            "url": "<?= htmlspecialchars(BASE_URL) ?>",
-            "image": "<?= htmlspecialchars($pageImage) ?>",
-            "provider": {
-                "@type": "Organization",
-                "name": "Lukrato",
-                "url": "<?= htmlspecialchars(BASE_URL) ?>",
-                "logo": "<?= BASE_URL ?>assets/img/logo.png",
-                "contactPoint": {
-                    "@type": "ContactPoint",
-                    "contactType": "Customer Service",
-                    "availableLanguage": ["Portuguese"]
-                },
-                "address": {
-                    "@type": "PostalAddress",
-                    "addressLocality": "Nova Aurora",
-                    "addressRegion": "PR",
-                    "addressCountry": "BR"
-                }
-            },
-            "featureList": [
-                "Controle de gastos mensais",
-                "Planejamento de orçamento pessoal",
-                "Acompanhamento de despesas",
-                "Metas financeiras",
-                "Relatórios de gastos",
-                "Lembretes de contas a pagar"
-            ]
-        }
-    </script>
-
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Lukrato",
+        "applicationCategory": "FinanceApplication",
+        "applicationSubCategory": "PersonalFinance",
+        "operatingSystem": "Web-based",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "BRL",
+            "availability": "https://schema.org/InStock",
+            "priceValidUntil": "2025-12-31"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "342"
+        },
+        "description": "<?= htmlspecialchars($pageDescription) ?>",
+        "url": "<?= htmlspecialchars(BASE_URL) ?>",
+        "image": "<?= htmlspecialchars($pageImage) ?>",
+        "provider": {
             "@type": "Organization",
             "name": "Lukrato",
             "url": "<?= htmlspecialchars(BASE_URL) ?>",
             "logo": "<?= BASE_URL ?>assets/img/logo.png",
-            "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
-            "sameAs": [
-                "https://www.facebook.com/lukrato",
-                "https://www.instagram.com/lukrato",
-                "https://www.linkedin.com/company/lukrato"
-            ],
             "contactPoint": {
                 "@type": "ContactPoint",
                 "contactType": "Customer Service",
-                "availableLanguage": ["Portuguese"],
-                "areaServed": "BR"
+                "availableLanguage": ["Portuguese"]
+            },
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Nova Aurora",
+                "addressRegion": "PR",
+                "addressCountry": "BR"
             }
-        }
+        },
+        "featureList": [
+            "Controle de gastos mensais",
+            "Planejamento de orçamento pessoal",
+            "Acompanhamento de despesas",
+            "Metas financeiras",
+            "Relatórios de gastos",
+            "Lembretes de contas a pagar"
+        ]
+    }
     </script>
 
     <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": "Lukrato",
-            "url": "<?= htmlspecialchars(BASE_URL) ?>",
-            "potentialAction": {
-                "@type": "SearchAction",
-                "target": "<?= htmlspecialchars(BASE_URL) ?>busca?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-            }
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Lukrato",
+        "url": "<?= htmlspecialchars(BASE_URL) ?>",
+        "logo": "<?= BASE_URL ?>assets/img/logo.png",
+        "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
+        "sameAs": [
+            "https://www.instagram.com/lukrato.oficial/",
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "Customer Service",
+            "availableLanguage": ["Portuguese"],
+            "areaServed": "BR"
         }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Lukrato",
+        "url": "<?= htmlspecialchars(BASE_URL) ?>",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "<?= htmlspecialchars(BASE_URL) ?>busca?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
     </script>
 
     <script>
-        // Inicializar AOS quando a página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            AOS.init({
-                duration: 800,
-                once: true,
-                offset: 100
-            });
+    // Inicializar AOS quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
         });
+    });
     </script>
 
 </head>
