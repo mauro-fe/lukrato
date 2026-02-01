@@ -380,20 +380,6 @@ class FaturaService
             $cartao = $item->cartaoCredito;
             $faturaId = $item->fatura_id;
 
-            // CORREÇÃO: Excluir lançamento vinculado ANTES de excluir o item
-            // Evita lançamentos órfãos que ainda contariam nas despesas de competência
-            if ($item->lancamento_id) {
-                $lancamentoVinculado = Lancamento::find($item->lancamento_id);
-                if ($lancamentoVinculado) {
-                    LogService::info("Excluindo lançamento vinculado ao item de fatura", [
-                        'lancamento_id' => $lancamentoVinculado->id,
-                        'item_id' => $item->id,
-                        'valor' => $lancamentoVinculado->valor
-                    ]);
-                    $lancamentoVinculado->delete();
-                }
-            }
-
             // Excluir o item
             $item->delete();
 

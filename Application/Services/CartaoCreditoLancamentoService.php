@@ -266,8 +266,8 @@ class CartaoCreditoLancamentoService
                 'lancamento_id' => $lancamento->id,
                 'fatura_id' => $fatura->id,
                 'mes_ano_vencimento' => "{$vencimento['mes']}/{$vencimento['ano']}",
-                'data_competencia' => $dataCompra,           // CORREÇÃO: Competência = data da compra original
-                'data_vencimento_parcela' => $dataVencimentoParcela,
+                'data_competencia' => $dataVencimentoParcela,
+                'data_compra_original' => $dataCompra,
                 'cartao_id' => $cartao->id,
                 'valor' => $valorDessaParcela,
                 'afeta_competencia' => true,

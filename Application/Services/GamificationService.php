@@ -428,18 +428,12 @@ class GamificationService
             ->where('tipo', 'receita')
             ->whereYear('data', $lastMonth->year)
             ->whereMonth('data', $lastMonth->month)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-            })
             ->sum('valor');
 
         $despesas = Lancamento::where('user_id', $userId)
             ->where('tipo', 'despesa')
             ->whereYear('data', $lastMonth->year)
             ->whereMonth('data', $lastMonth->month)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-            })
             ->sum('valor');
 
         return ($receitas - $despesas) > 0;
@@ -452,16 +446,10 @@ class GamificationService
     {
         $receitas = Lancamento::where('user_id', $userId)
             ->where('tipo', 'receita')
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-            })
             ->sum('valor');
 
         $despesas = Lancamento::where('user_id', $userId)
             ->where('tipo', 'despesa')
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-            })
             ->sum('valor');
 
         return ($receitas - $despesas) > 0;

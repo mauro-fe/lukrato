@@ -289,33 +289,23 @@ class ContaService
             ->pluck('saldo_inicial', 'id')
             ->all();
 
-        // Receitas - APENAS lançamentos que afetam caixa (afeta_caixa = true)
-        // Lançamentos de cartão pendentes têm afeta_caixa = false e não devem ser contados
+        // Receitas (não precisa mais filtrar eh_saldo_inicial)
         $receitas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'receita')
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                  ->orWhereNull('afeta_caixa'); // Backward compatibility
-            })
             ->selectRaw('conta_id, SUM(valor) as total')
             ->groupBy('conta_id')
             ->pluck('total', 'conta_id')
             ->all();
 
-        // Despesas - APENAS lançamentos que afetam caixa (afeta_caixa = true)
-        // Lançamentos de cartão pendentes têm afeta_caixa = false e não devem ser contados
+        // Despesas (não precisa mais filtrar eh_saldo_inicial)
         $despesas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'despesa')
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                  ->orWhereNull('afeta_caixa'); // Backward compatibility
-            })
             ->selectRaw('conta_id, SUM(valor) as total')
             ->groupBy('conta_id')
             ->pluck('total', 'conta_id')

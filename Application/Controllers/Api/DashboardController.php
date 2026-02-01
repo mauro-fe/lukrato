@@ -85,15 +85,11 @@ class DashboardController
         } else {
             // Visão de CAIXA (comportamento original)
             if ($accId) {
-                // Filtro por conta específica - CORREÇÃO: adicionar filtro afeta_caixa
+                // Filtro por conta específica (mantém comportamento original)
                 $monthlyBase = $this->createBaseQuery($userId)
                     ->whereYear('data', $y)
                     ->whereMonth('data', $m)
-                    ->where('conta_id', $accId)
-                    ->where(function ($q) {
-                        $q->where('afeta_caixa', true)
-                            ->orWhereNull('afeta_caixa'); // Backward compatibility
-                    });
+                    ->where('conta_id', $accId);
 
                 $sumReceitas = (float)(clone $monthlyBase)->where('tipo', LancamentoTipo::RECEITA->value)->sum('valor');
                 $sumDespesas = (float)(clone $monthlyBase)->where('tipo', LancamentoTipo::DESPESA->value)->sum('valor');
@@ -171,15 +167,9 @@ class DashboardController
 
     private function calcularSaldoConta(int $userId, int $contaId, string $ate): float
     {
-        // CORREÇÃO: Filtrar apenas lançamentos que afetam caixa (afeta_caixa = true)
-        // Lançamentos de cartão pendentes têm afeta_caixa = false e não devem afetar saldo
         $movBaseAcumulado = Lancamento::where('user_id', $userId)
             ->where('data', '<=', $ate)
-            ->where('conta_id', $contaId)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                    ->orWhereNull('afeta_caixa'); // Backward compatibility
-            });
+            ->where('conta_id', $contaId);
 
         $movReceitas = (float)(clone $movBaseAcumulado)
             ->where('eh_transferencia', 0)
@@ -208,15 +198,9 @@ class DashboardController
 
     private function calcularSaldoGlobal(int $userId, string $ate): float
     {
-        // CORREÇÃO: Filtrar apenas lançamentos que afetam caixa (afeta_caixa = true)
-        // Lançamentos de cartão pendentes têm afeta_caixa = false e não devem afetar saldo
         $movGlobal = Lancamento::where('user_id', $userId)
             ->where('data', '<=', $ate)
-            ->where('eh_transferencia', 0)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                    ->orWhereNull('afeta_caixa'); // Backward compatibility
-            });
+            ->where('eh_transferencia', 0);
 
         $r = (float)(clone $movGlobal)
             ->where('tipo', LancamentoTipo::RECEITA->value)
