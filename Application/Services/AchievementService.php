@@ -40,7 +40,7 @@ class AchievementService
     public function checkAndUnlockAchievements(int $userId, ?string $context = null): array
     {
         error_log("🔍 [ACHIEVEMENT] Iniciando verificação para user_id: {$userId}, context: {$context}");
-        
+
         $user = Usuario::find($userId);
         if (!$user) {
             error_log("❌ [ACHIEVEMENT] Usuário não encontrado: {$userId}");
@@ -409,11 +409,25 @@ class AchievementService
     {
         // Lista de categorias padrão que são criadas automaticamente no registro
         $categoriaPadrao = [
-            '🏠 Moradia', '🍔 Alimentação', '🚗 Transporte', '💡 Contas e Serviços',
-            '🏥 Saúde', '🎓 Educação', '👕 Vestuário', '🎬 Lazer', '💳 Cartão de Crédito',
-            '📱 Assinaturas', '🛒 Compras', '💰 Outros Gastos',
-            '💼 Salário', '💰 Freelance', '📈 Investimentos', '🎁 Bônus',
-            '💸 Vendas', '🏆 Prêmios', '💵 Outras Receitas'
+            '🏠 Moradia',
+            '🍔 Alimentação',
+            '🚗 Transporte',
+            '💡 Contas e Serviços',
+            '🏥 Saúde',
+            '🎓 Educação',
+            '👕 Vestuário',
+            '🎬 Lazer',
+            '💳 Cartão de Crédito',
+            '📱 Assinaturas',
+            '🛒 Compras',
+            '💰 Outros Gastos',
+            '💼 Salário',
+            '💰 Freelance',
+            '📈 Investimentos',
+            '🎁 Bônus',
+            '💸 Vendas',
+            '🏆 Prêmios',
+            '💵 Outras Receitas'
         ];
 
         // Contar apenas categorias PERSONALIZADAS (não padrão) do usuário
@@ -487,11 +501,17 @@ class AchievementService
             $saldoInicialReceitas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'receita')
                 ->where('data', '<=', $dayBeforeMonth)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             $saldoInicialDespesas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'despesa')
                 ->where('data', '<=', $dayBeforeMonth)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             $saldoInicial = $saldoInicialReceitas - $saldoInicialDespesas;
@@ -500,11 +520,17 @@ class AchievementService
             $saldoFinalReceitas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'receita')
                 ->where('data', '<=', $endOfMonth)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             $saldoFinalDespesas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'despesa')
                 ->where('data', '<=', $endOfMonth)
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             $saldoFinal = $saldoFinalReceitas - $saldoFinalDespesas;
@@ -541,6 +567,9 @@ class AchievementService
             $receitas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'receita')
                 ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             if ($receitas <= 0) continue;
@@ -548,6 +577,9 @@ class AchievementService
             $despesas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'despesa')
                 ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             // Precisa ter despesas registradas para validar economia
@@ -579,11 +611,17 @@ class AchievementService
             $receitas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'receita')
                 ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             $despesas = Lancamento::where('user_id', $userId)
                 ->where('tipo', 'despesa')
                 ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
+                ->where(function ($q) {
+                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
+                })
                 ->sum('valor');
 
             if ($receitas > $despesas) {
@@ -669,7 +707,7 @@ class AchievementService
             ->count();
 
         error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - faturas pagas: {$faturaPaga}");
-        
+
         return $faturaPaga >= 1;
     }
 

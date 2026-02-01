@@ -397,6 +397,10 @@ class CartaoFaturaService
 
     /**
      * Desfazer pagamento de uma parcela individual
+     * 
+     * REFATORAÇÃO: Agora usa lancamento_id vinculado ao item
+     * - Se item tem lancamento_id: atualiza lançamento (pago=false, afeta_caixa=false)
+     * - Fallback para dados antigos: busca por descrição (compatibilidade)
      */
     public function desfazerPagamentoParcela(int $parcelaId, int $userId): array
     {
@@ -415,33 +419,56 @@ class CartaoFaturaService
 
             $mes = (int) date('n', strtotime($item->data_vencimento));
             $ano = (int) date('Y', strtotime($item->data_vencimento));
-            $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
 
-            $lancamentosPagamento = Lancamento::where('user_id', $userId)
-                ->whereNull('cartao_credito_id')
-                ->where('tipo', 'despesa')
-                ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
-                ->get();
+            // NOVA LÓGICA: Verificar se o item tem lançamento vinculado
+            if ($item->lancamento_id) {
+                // Modelo novo: atualizar lançamento vinculado
+                $lancamento = Lancamento::find($item->lancamento_id);
+                if ($lancamento) {
+                    $lancamento->update([
+                        'pago' => false,
+                        'data_pagamento' => null,
+                        'afeta_caixa' => false,  // Volta a não afetar saldo
+                        'observacao' => sprintf(
+                            'Compra cartão %s •••• %s - Pagamento desfeito em %s',
+                            $cartao->nome_cartao,
+                            $cartao->ultimos_digitos,
+                            date('d/m/Y')
+                        ),
+                    ]);
 
-            if ($lancamentosPagamento->isEmpty()) {
-                throw new \Exception('Pagamento não encontrado para esta parcela.');
-            }
-
-            $itensPagosNoMes = FaturaCartaoItem::where('user_id', $userId)
-                ->where('cartao_credito_id', $cartao->id)
-                ->whereYear('data_vencimento', $ano)
-                ->whereMonth('data_vencimento', $mes)
-                ->where('pago', true)
-                ->count();
-
-            if ($itensPagosNoMes === 1) {
-                foreach ($lancamentosPagamento as $pagamento) {
-                    $pagamento->delete();
+                    error_log("✅ [DESFAZER] Lançamento {$lancamento->id} atualizado: pago=false, afeta_caixa=false");
                 }
             } else {
-                $lancamentoPagamento = $lancamentosPagamento->first();
-                $lancamentoPagamento->valor -= $item->valor;
-                $lancamentoPagamento->save();
+                // Fallback: modelo antigo - buscar por descrição
+                $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+
+                $lancamentosPagamento = Lancamento::where('user_id', $userId)
+                    ->whereNull('cartao_credito_id')
+                    ->where('tipo', 'despesa')
+                    ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+                    ->get();
+
+                if ($lancamentosPagamento->isNotEmpty()) {
+                    $itensPagosNoMes = FaturaCartaoItem::where('user_id', $userId)
+                        ->where('cartao_credito_id', $cartao->id)
+                        ->whereYear('data_vencimento', $ano)
+                        ->whereMonth('data_vencimento', $mes)
+                        ->where('pago', true)
+                        ->count();
+
+                    if ($itensPagosNoMes === 1) {
+                        foreach ($lancamentosPagamento as $pagamento) {
+                            $pagamento->delete();
+                        }
+                    } else {
+                        $lancamentoPagamento = $lancamentosPagamento->first();
+                        $lancamentoPagamento->valor -= $item->valor;
+                        $lancamentoPagamento->save();
+                    }
+                }
+
+                error_log("⚠️ [DESFAZER] Fallback: Item sem lancamento_id, usando busca por descrição");
             }
 
             $faturaId = $item->fatura_id;
@@ -490,6 +517,8 @@ class CartaoFaturaService
 
     /**
      * Verificar se fatura do mês está paga
+     * 
+     * REFATORAÇÃO: Agora busca informações dos lançamentos vinculados aos itens
      */
     public function faturaEstaPaga(int $cartaoId, int $mes, int $ano, int $userId): ?array
     {
@@ -516,12 +545,28 @@ class CartaoFaturaService
             ->whereYear('data_vencimento', $ano)
             ->whereMonth('data_vencimento', $mes)
             ->where('pago', true)
-            ->count();
+            ->get();
 
-        if ($itensPagos < $totalItens) {
+        if ($itensPagos->count() < $totalItens) {
             return null;
         }
 
+        // NOVA LÓGICA: Buscar dados do primeiro item pago com lancamento_id
+        $itemComLancamento = $itensPagos->whereNotNull('lancamento_id')->first();
+
+        if ($itemComLancamento && $itemComLancamento->lancamento_id) {
+            // Modelo novo: buscar lançamento vinculado
+            $lancamento = Lancamento::find($itemComLancamento->lancamento_id);
+
+            return [
+                'pago' => true,
+                'data_pagamento' => $lancamento?->data_pagamento ?? $itemComLancamento->data_pagamento,
+                'valor' => (float) $itensPagos->sum('valor'),
+                'lancamento_id' => $lancamento?->id,
+            ];
+        }
+
+        // Fallback: modelo antigo - buscar por descrição
         $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
         $lancamentoPagamento = Lancamento::where('user_id', $userId)
             ->whereNull('cartao_credito_id')
@@ -532,14 +577,18 @@ class CartaoFaturaService
 
         return [
             'pago' => true,
-            'data_pagamento' => $lancamentoPagamento?->data,
-            'valor' => $lancamentoPagamento ? (float) $lancamentoPagamento->valor : 0,
+            'data_pagamento' => $lancamentoPagamento?->data ?? $itensPagos->first()?->data_pagamento,
+            'valor' => $lancamentoPagamento ? (float) $lancamentoPagamento->valor : (float) $itensPagos->sum('valor'),
             'lancamento_id' => $lancamentoPagamento?->id,
         ];
     }
 
     /**
      * Desfazer pagamento de uma fatura completa
+     * 
+     * REFATORAÇÃO: Agora usa lancamento_id vinculado aos itens
+     * - Se item tem lancamento_id: atualiza lançamento (pago=false, afeta_caixa=false)
+     * - Fallback para dados antigos: busca por descrição (compatibilidade)
      */
     public function desfazerPagamentoFatura(int $cartaoId, int $mes, int $ano, int $userId): array
     {
@@ -550,53 +599,87 @@ class CartaoFaturaService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
-
-            $lancamentosPagamento = Lancamento::where('user_id', $userId)
-                ->whereNull('cartao_credito_id')
-                ->where('tipo', 'despesa')
-                ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
-                ->get();
-
-            if ($lancamentosPagamento->isEmpty()) {
-                throw new \Exception('Nenhum pagamento encontrado para esta fatura.');
-            }
-
-            $totalPagamentos = $lancamentosPagamento->sum('valor');
-
-            // Coletar faturas afetadas
-            $faturasAfetadas = FaturaCartaoItem::where('user_id', $userId)
+            // Buscar itens pagos deste mês
+            $itensPagos = FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cartao->id)
                 ->whereYear('data_vencimento', $ano)
                 ->whereMonth('data_vencimento', $mes)
                 ->where('pago', true)
+                ->get();
+
+            if ($itensPagos->isEmpty()) {
+                throw new \Exception('Nenhum pagamento encontrado para esta fatura.');
+            }
+
+            // Coletar faturas afetadas
+            $faturasAfetadas = $itensPagos
                 ->whereNotNull('fatura_id')
                 ->pluck('fatura_id')
                 ->unique()
                 ->toArray();
 
-            // Desmarcar parcelas
-            FaturaCartaoItem::where('user_id', $userId)
-                ->where('cartao_credito_id', $cartao->id)
-                ->whereYear('data_vencimento', $ano)
-                ->whereMonth('data_vencimento', $mes)
-                ->where('pago', true)
-                ->update(['pago' => false, 'data_pagamento' => null]);
+            $lancamentosAtualizados = [];
+            $usouFallback = false;
+
+            // NOVA LÓGICA: Atualizar lançamentos vinculados
+            foreach ($itensPagos as $item) {
+                if ($item->lancamento_id) {
+                    // Modelo novo: atualizar lançamento vinculado
+                    $lancamento = Lancamento::find($item->lancamento_id);
+                    if ($lancamento) {
+                        $lancamento->update([
+                            'pago' => false,
+                            'data_pagamento' => null,
+                            'afeta_caixa' => false,  // Volta a não afetar saldo
+                            'observacao' => sprintf(
+                                'Compra cartão %s •••• %s - Pagamento desfeito em %s',
+                                $cartao->nome_cartao,
+                                $cartao->ultimos_digitos,
+                                date('d/m/Y')
+                            ),
+                        ]);
+                        $lancamentosAtualizados[] = $lancamento->id;
+                    }
+                } else {
+                    $usouFallback = true;
+                }
+
+                // Desmarcar item como não pago
+                $item->pago = false;
+                $item->data_pagamento = null;
+                $item->save();
+            }
+
+            // Fallback: se algum item não tinha lancamento_id, buscar por descrição
+            if ($usouFallback) {
+                $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+
+                $lancamentosPagamento = Lancamento::where('user_id', $userId)
+                    ->whereNull('cartao_credito_id')
+                    ->where('tipo', 'despesa')
+                    ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+                    ->get();
+
+                foreach ($lancamentosPagamento as $pagamento) {
+                    $pagamento->delete();
+                }
+
+                error_log("⚠️ [DESFAZER FATURA] Fallback: alguns itens sem lancamento_id, usando busca por descrição");
+            }
 
             $this->atualizarStatusFaturas($faturasAfetadas);
-
-            foreach ($lancamentosPagamento as $pagamento) {
-                $pagamento->delete();
-            }
 
             // Recalcular limite do cartão baseado nos itens não pagos
             $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
 
+            error_log("✅ [DESFAZER FATURA] Concluído - " . count($lancamentosAtualizados) . " lançamentos atualizados");
+
             return [
                 'success' => true,
                 'message' => 'Pagamento desfeito com sucesso!',
+                'lancamentos_atualizados' => $lancamentosAtualizados,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
@@ -725,7 +808,9 @@ class CartaoFaturaService
     // ========================================================================
 
     /**
-     * Calcular saldo da conta (exclui lançamentos de cartão)
+     * Calcular saldo da conta
+     * CORREÇÃO: Usa afeta_caixa para consistência com o resto do sistema
+     * Lançamentos de cartão pendentes têm afeta_caixa = false e não afetam saldo
      */
     private function calcularSaldoConta(int $contaId, int $userId): float
     {
@@ -737,7 +822,10 @@ class CartaoFaturaService
         return $conta->saldo_inicial +
             Lancamento::where('conta_id', $contaId)
             ->where('user_id', $userId)
-            ->whereNull('cartao_credito_id')
+            ->where(function ($q) {
+                $q->where('afeta_caixa', true)
+                    ->orWhereNull('afeta_caixa'); // Backward compatibility
+            })
             ->sum(DB::raw("CASE WHEN tipo = 'receita' THEN valor ELSE -valor END"));
     }
 
