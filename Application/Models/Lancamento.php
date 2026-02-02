@@ -87,6 +87,7 @@ class Lancamento extends Model
         'eh_saldo_inicial',
         // Campos de cartão de crédito
         'cartao_credito_id',
+        'forma_pagamento',  // pix, cartao_credito, cartao_debito, dinheiro, boleto, deposito, transferencia, estorno_cartao
         'eh_parcelado',
         'parcela_atual',
         'total_parcelas',

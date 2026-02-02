@@ -169,25 +169,97 @@
                     </div>
 
 
-                    <div class="lk-form-group" id="globalCartaoCreditoGroup" style="display: none;">
+                    <!-- Forma de Pagamento (para despesas) -->
+                    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaPagamentoGroup" style="display: none;">
+                        <input type="hidden" id="globalFormaPagamento" name="forma_pagamento" value="">
+                        <label class="lk-forma-pagamento-label">
+                            <i class="fas fa-wallet"></i>
+                            Como você vai pagar?
+                        </label>
+                        <div class="lk-forma-pagamento-grid" id="globalFormaPagamentoGrid">
+                            <button type="button" class="lk-forma-btn" data-forma="pix" onclick="lancamentoGlobalManager.selecionarFormaPagamento('pix')">
+                                <i class="fa-brands fa-pix lk-forma-icon"></i>
+                                <span class="lk-forma-label">PIX</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="cartao_credito" onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_credito')">
+                                <i class="fa-solid fa-credit-card lk-forma-icon"></i>
+                                <span class="lk-forma-label">Crédito</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="cartao_debito" onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_debito')">
+                                <i class="fa-solid fa-credit-card lk-forma-icon"></i>
+                                <span class="lk-forma-label">Débito</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="dinheiro" onclick="lancamentoGlobalManager.selecionarFormaPagamento('dinheiro')">
+                                <i class="fa-solid fa-money-bill-wave lk-forma-icon"></i>
+                                <span class="lk-forma-label">Dinheiro</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="boleto" onclick="lancamentoGlobalManager.selecionarFormaPagamento('boleto')">
+                                <i class="fa-solid fa-barcode lk-forma-icon"></i>
+                                <span class="lk-forma-label">Boleto</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Forma de Recebimento (para receitas) -->
+                    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaRecebimentoGroup" style="display: none;">
+                        <input type="hidden" id="globalFormaRecebimento" name="forma_pagamento" value="">
+                        <label class="lk-forma-pagamento-label">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            Como você vai receber?
+                        </label>
+                        <div class="lk-forma-pagamento-grid" id="globalFormaRecebimentoGrid">
+                            <button type="button" class="lk-forma-btn" data-forma="pix" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('pix')">
+                                <i class="fa-brands fa-pix lk-forma-icon"></i>
+                                <span class="lk-forma-label">PIX</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="deposito" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('deposito')">
+                                <i class="fa-solid fa-building-columns lk-forma-icon"></i>
+                                <span class="lk-forma-label">Depósito</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="dinheiro" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('dinheiro')">
+                                <i class="fa-solid fa-money-bill-wave lk-forma-icon"></i>
+                                <span class="lk-forma-label">Dinheiro</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="transferencia" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('transferencia')">
+                                <i class="fa-solid fa-arrow-right-arrow-left lk-forma-icon"></i>
+                                <span class="lk-forma-label">Transf.</span>
+                            </button>
+                            <button type="button" class="lk-forma-btn" data-forma="estorno_cartao" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('estorno_cartao')">
+                                <i class="fa-solid fa-rotate-left lk-forma-icon"></i>
+                                <span class="lk-forma-label">Estorno</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Seleção de Cartão (quando forma é cartão de crédito) -->
+                    <div class="lk-form-group lk-forma-cartao-info" id="globalCartaoCreditoGroup">
                         <label for="globalLancamentoCartaoCredito" class="lk-label">
                             <i class="fas fa-credit-card"></i>
-                            Pagar com Cartão de Crédito
-                            <button type="button" class="lk-info"
-                                data-lk-tooltip="Ative esta opção quando a despesa foi paga no cartão de crédito. O Lukrato poderá organizar parcelas e relatórios corretamente."
-                                aria-label="Ajuda: Pagar com Cartão de Crédito">
-                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                            </button>
+                            Qual cartão?
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select">
-                                <option value="">Não usar cartão (débito na conta)</option>
+                            <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select" onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
+                                <option value="">Selecione o cartão</option>
                                 <!-- Preenchido via JS -->
                             </select>
                             <i class="fas fa-chevron-down lk-select-icon"></i>
                         </div>
-                        <small class="lk-helper-text">Se usar cartão, o débito será na data de vencimento da
-                            fatura</small>
+                        <small class="lk-helper-text">O débito será na data de vencimento da fatura</small>
+                    </div>
+
+                    <!-- Seleção de Fatura para Estorno -->
+                    <div class="lk-form-group" id="globalFaturaEstornoGroup" style="display: none;">
+                        <label for="globalLancamentoFaturaEstorno" class="lk-label">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            Em qual fatura aplicar o estorno?
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="globalLancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select">
+                                <option value="">Carregando faturas...</option>
+                            </select>
+                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                        </div>
+                        <small class="lk-helper-text">O estorno será creditado na fatura selecionada</small>
                     </div>
 
                     <!-- Parcelamento (somente se cartão selecionado) -->

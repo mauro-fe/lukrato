@@ -391,16 +391,16 @@ class FaturasController
                 return;
             }
 
-            $success = $this->faturaService->excluirItem($faturaId, $itemId, $usuarioId);
+            $resultado = $this->faturaService->excluirItem($faturaId, $itemId, $usuarioId);
 
-            if (!$success) {
-                Response::json(['error' => 'Item não encontrado ou não pertence a esta fatura'], 404);
+            if (!$resultado['success']) {
+                Response::json(['error' => $resultado['message']], 400);
                 return;
             }
 
             Response::json([
                 'success' => true,
-                'message' => 'Item excluído com sucesso',
+                'message' => $resultado['message'],
             ]);
         } catch (InvalidArgumentException $e) {
             LogService::error("Erro de validação ao excluir item da fatura", [
@@ -472,6 +472,97 @@ class FaturasController
         $intValue = (int)$value;
 
         return $intValue > 0 ? $intValue : null;
+    }
+
+    /**
+     * Excluir item individual da fatura
+     */
+    public function deleteItem(int $faturaId, int $itemId): void
+    {
+        try {
+            $usuarioId = $this->getAuthenticatedUserId();
+
+            if ($faturaId <= 0 || $itemId <= 0) {
+                Response::json(['error' => 'IDs inválidos'], 400);
+                return;
+            }
+
+            // Verificar se fatura existe e pertence ao usuário
+            $fatura = $this->faturaService->buscar($faturaId, $usuarioId);
+            if (!$fatura) {
+                Response::json(['error' => 'Fatura não encontrada'], 404);
+                return;
+            }
+
+            // Verificar se item já foi pago
+            $item = $this->faturaService->buscarItem($itemId, $usuarioId);
+            if (!$item) {
+                Response::json(['error' => 'Item não encontrado'], 404);
+                return;
+            }
+
+            if ($item['pago']) {
+                Response::json(['error' => 'Não é possível excluir um item já pago'], 400);
+                return;
+            }
+
+            $resultado = $this->faturaService->excluirItem($faturaId, $itemId, $usuarioId);
+
+            if (!$resultado['success']) {
+                Response::json(['error' => $resultado['message']], 400);
+                return;
+            }
+
+            Response::json([
+                'success' => true,
+                'message' => $resultado['message'],
+            ]);
+        } catch (InvalidArgumentException $e) {
+            Response::json(['error' => $e->getMessage()], 400);
+        } catch (Exception $e) {
+            $this->logError("Erro ao excluir item {$itemId} da fatura {$faturaId}", $e);
+            Response::json(['error' => 'Erro ao excluir item'], 500);
+        }
+    }
+
+    /**
+     * Excluir parcelamento completo (todas as parcelas)
+     */
+    public function deleteParcelamento(int $faturaId, int $itemId): void
+    {
+        try {
+            $usuarioId = $this->getAuthenticatedUserId();
+
+            if ($faturaId <= 0 || $itemId <= 0) {
+                Response::json(['error' => 'IDs inválidos'], 400);
+                return;
+            }
+
+            // Verificar se fatura existe e pertence ao usuário
+            $fatura = $this->faturaService->buscar($faturaId, $usuarioId);
+            if (!$fatura) {
+                Response::json(['error' => 'Fatura não encontrada'], 404);
+                return;
+            }
+
+            $resultado = $this->faturaService->excluirParcelamento($itemId, $usuarioId);
+
+            if (!$resultado['success']) {
+                Response::json(['error' => $resultado['message']], 400);
+                return;
+            }
+
+            Response::json([
+                'success' => true,
+                'message' => $resultado['message'],
+                'itens_excluidos' => $resultado['itens_excluidos'] ?? 0,
+            ]);
+        } catch (InvalidArgumentException $e) {
+            Response::json(['error' => $e->getMessage()], 400);
+        } catch (Exception $e) {
+            $this->logError("Erro ao excluir parcelamento do item {$itemId}", $e);
+            Response::json(['error' => 'Erro ao excluir parcelamento'], 500);
+        }
     }
 
     /**

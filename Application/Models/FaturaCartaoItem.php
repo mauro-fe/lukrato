@@ -21,6 +21,7 @@ class FaturaCartaoItem extends Model
         'lancamento_id',
         'descricao',
         'valor',
+        'tipo', // 'despesa' ou 'estorno'
         'data_compra',
         'data_vencimento',
         'mes_referencia',

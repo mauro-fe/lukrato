@@ -1369,6 +1369,14 @@ class ContasManager {
         const contaDestinoGroup = document.getElementById('contaDestinoGroup');
         const cartaoCreditoGroup = document.getElementById('cartaoCreditoGroup');
 
+        // Ocultar formas de pagamento por padrão
+        const formaPagamentoGroup = document.getElementById('formaPagamentoGroup');
+        const formaRecebimentoGroup = document.getElementById('formaRecebimentoGroup');
+        if (formaPagamentoGroup) formaPagamentoGroup.style.display = 'none';
+        if (formaRecebimentoGroup) formaRecebimentoGroup.style.display = 'none';
+        if (cartaoCreditoGroup) cartaoCreditoGroup.classList.remove('active');
+        this.resetarFormaPagamento();
+
         if (tipo === 'receita') {
             titulo.textContent = '💰 Nova Receita';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Receita';
@@ -1378,7 +1386,8 @@ class ContasManager {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #28a745 0%, #20c997 100%)', 'important');
             }
             contaDestinoGroup.style.display = 'none';
-            cartaoCreditoGroup.style.display = 'none';
+            // Mostrar forma de recebimento
+            if (formaRecebimentoGroup) formaRecebimentoGroup.style.display = 'block';
         } else if (tipo === 'despesa') {
             titulo.textContent = '💸 Nova Despesa';
             btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Despesa';
@@ -1388,7 +1397,8 @@ class ContasManager {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)', 'important');
             }
             contaDestinoGroup.style.display = 'none';
-            cartaoCreditoGroup.style.display = 'block';
+            // Mostrar forma de pagamento
+            if (formaPagamentoGroup) formaPagamentoGroup.style.display = 'block';
 
             // Carregar cartões de crédito
             this.carregarCartoesCredito();
@@ -1480,6 +1490,209 @@ class ContasManager {
         }
 
         if (inputTipo) inputTipo.value = tipo;
+    }
+
+    /**
+     * Resetar seleção de forma de pagamento/recebimento
+     */
+    resetarFormaPagamento() {
+        // Limpar seleção dos botões de pagamento
+        document.querySelectorAll('#formaPagamentoGrid .lk-forma-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelectorAll('#formaRecebimentoGrid .lk-forma-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Limpar inputs hidden
+        const formaPagInput = document.getElementById('formaPagamento');
+        if (formaPagInput) formaPagInput.value = '';
+        const formaRecInput = document.getElementById('formaRecebimento');
+        if (formaRecInput) formaRecInput.value = '';
+
+        // Ocultar seleção de cartão
+        const cartaoGroup = document.getElementById('cartaoCreditoGroup');
+        if (cartaoGroup) cartaoGroup.classList.remove('active');
+
+        // Ocultar parcelamento
+        const parcelamentoGroup = document.getElementById('parcelamentoGroup');
+        if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
+        const numParcelasGroup = document.getElementById('numeroParcelasGroup');
+        if (numParcelasGroup) numParcelasGroup.style.display = 'none';
+    }
+
+    /**
+     * Selecionar forma de pagamento (despesas)
+     */
+    selecionarFormaPagamento(forma) {
+        // Atualizar visual
+        document.querySelectorAll('#formaPagamentoGrid .lk-forma-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const btnSelecionado = document.querySelector(`#formaPagamentoGrid .lk-forma-btn[data-forma="${forma}"]`);
+        if (btnSelecionado) btnSelecionado.classList.add('active');
+
+        // Atualizar input hidden
+        const formaPagInput = document.getElementById('formaPagamento');
+        if (formaPagInput) formaPagInput.value = forma;
+
+        // Mostrar/ocultar seleção de cartão
+        const cartaoGroup = document.getElementById('cartaoCreditoGroup');
+        const parcelamentoGroup = document.getElementById('parcelamentoGroup');
+
+        if (forma === 'cartao_credito') {
+            if (cartaoGroup) {
+                cartaoGroup.classList.add('active');
+                cartaoGroup.style.display = 'block';
+            }
+            // Carregar cartões disponíveis
+            this.carregarCartoesCredito();
+            // Verificar se tem cartão selecionado para mostrar parcelamento
+            const cartaoSelect = document.getElementById('lancamentoCartaoCredito');
+            if (cartaoSelect && cartaoSelect.value) {
+                if (parcelamentoGroup) parcelamentoGroup.style.display = 'block';
+            }
+        } else {
+            if (cartaoGroup) {
+                cartaoGroup.classList.remove('active');
+                cartaoGroup.style.display = 'none';
+            }
+            if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
+            const numParcelasGroup = document.getElementById('numeroParcelasGroup');
+            if (numParcelasGroup) numParcelasGroup.style.display = 'none';
+            // Limpar seleção de cartão
+            const cartaoSelect = document.getElementById('lancamentoCartaoCredito');
+            if (cartaoSelect) cartaoSelect.value = '';
+        }
+    }
+
+    /**
+     * Selecionar forma de recebimento (receitas)
+     */
+    selecionarFormaRecebimento(forma) {
+        // Atualizar visual
+        document.querySelectorAll('#formaRecebimentoGrid .lk-forma-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const btnSelecionado = document.querySelector(`#formaRecebimentoGrid .lk-forma-btn[data-forma="${forma}"]`);
+        if (btnSelecionado) btnSelecionado.classList.add('active');
+
+        // Atualizar input hidden
+        const formaRecInput = document.getElementById('formaRecebimento');
+        if (formaRecInput) formaRecInput.value = forma;
+
+        // Guardar se é estorno
+        this.isEstornoCartao = (forma === 'estorno_cartao');
+
+        // Se for estorno de cartão, mostrar seleção de cartão
+        const cartaoGroup = document.getElementById('cartaoCreditoGroup');
+        const faturaEstornoGroup = document.getElementById('faturaEstornoGroup');
+
+        if (forma === 'estorno_cartao') {
+            if (cartaoGroup) {
+                cartaoGroup.classList.add('active');
+                cartaoGroup.style.display = 'block';
+            }
+            this.carregarCartoesCredito();
+        } else {
+            if (cartaoGroup) {
+                cartaoGroup.classList.remove('active');
+                cartaoGroup.style.display = 'none';
+            }
+            if (faturaEstornoGroup) {
+                faturaEstornoGroup.style.display = 'none';
+            }
+            const cartaoSelect = document.getElementById('lancamentoCartaoCredito');
+            if (cartaoSelect) cartaoSelect.value = '';
+        }
+    }
+
+    /**
+     * Callback quando o cartão é alterado
+     */
+    onCartaoChange() {
+        console.log('[ESTORNO] onCartaoChange chamado');
+        const cartaoSelect = document.getElementById('lancamentoCartaoCredito');
+        const cartaoId = cartaoSelect?.value;
+        const faturaEstornoGroup = document.getElementById('faturaEstornoGroup');
+
+        console.log('[ESTORNO] isEstornoCartao:', this.isEstornoCartao, 'cartaoId:', cartaoId);
+
+        if (this.isEstornoCartao && cartaoId) {
+            // Carregar faturas do cartão selecionado
+            this.carregarFaturasCartao(cartaoId);
+            if (faturaEstornoGroup) {
+                faturaEstornoGroup.style.display = 'block';
+                console.log('[ESTORNO] Mostrando grupo de fatura');
+            }
+        } else {
+            if (faturaEstornoGroup) {
+                faturaEstornoGroup.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Carregar faturas disponíveis de um cartão
+     */
+    async carregarFaturasCartao(cartaoId) {
+        const select = document.getElementById('lancamentoFaturaEstorno');
+        if (!select) {
+            console.error('[ESTORNO] Select lancamentoFaturaEstorno não encontrado');
+            return;
+        }
+
+        console.log('[ESTORNO] Carregando faturas para cartão:', cartaoId);
+
+        // Gerar lista de meses diretamente (sem depender da API)
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth() + 1;
+        const anoAtual = hoje.getFullYear();
+
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        select.innerHTML = '';
+
+        // Gerar opções: mês atual e próximos 5 meses
+        for (let i = 0; i < 6; i++) {
+            let mes = mesAtual + i;
+            let ano = anoAtual;
+            if (mes > 12) {
+                mes -= 12;
+                ano++;
+            }
+
+            const option = document.createElement('option');
+            option.value = `${ano}-${String(mes).padStart(2, '0')}`;
+            option.textContent = i === 0
+                ? `${meses[mes - 1]} / ${ano} (atual)`
+                : `${meses[mes - 1]} / ${ano}`;
+
+            // Marcar fatura atual como selecionada
+            if (i === 0) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        }
+
+        // Adicionar meses anteriores (últimos 3)
+        for (let i = 1; i <= 3; i++) {
+            let mes = mesAtual - i;
+            let ano = anoAtual;
+            if (mes < 1) {
+                mes += 12;
+                ano--;
+            }
+
+            const option = document.createElement('option');
+            option.value = `${ano}-${String(mes).padStart(2, '0')}`;
+            option.textContent = `${meses[mes - 1]} / ${ano} (anterior)`;
+            select.appendChild(option);
+        }
+
+        console.log('[ESTORNO] Faturas carregadas:', select.options.length);
     }
 
     /**
@@ -1902,6 +2115,24 @@ class ContasManager {
                 }
             }
 
+            // Coletar forma de pagamento/recebimento
+            let formaPagamento = null;
+            let faturaEstornoMesAno = null;
+
+            if (tipo === 'receita') {
+                const formaRecEl = document.getElementById('formaRecebimento');
+                formaPagamento = formaRecEl?.value || null;
+
+                // Se for estorno de cartão, pegar o mês/ano da fatura
+                if (formaPagamento === 'estorno_cartao') {
+                    const faturaEstornoEl = document.getElementById('lancamentoFaturaEstorno');
+                    faturaEstornoMesAno = faturaEstornoEl?.value || null;
+                }
+            } else if (tipo === 'despesa') {
+                const formaPagEl = document.getElementById('formaPagamento');
+                formaPagamento = formaPagEl?.value || null;
+            }
+
             const data = {
                 conta_id: contaId,
                 tipo: tipo,
@@ -1910,6 +2141,8 @@ class ContasManager {
                 data: formData.get('data'),
                 categoria_id: formData.get('categoria_id') || null,
                 observacao: formData.get('observacoes') || null,
+                forma_pagamento: formaPagamento,
+                fatura_mes_ano: faturaEstornoMesAno,
                 // Campos de cartão de crédito
                 cartao_credito_id: cartaoCreditoId,
                 eh_parcelado: ehParcelado,

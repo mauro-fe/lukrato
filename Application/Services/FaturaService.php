@@ -355,9 +355,43 @@ class FaturaService
     }
 
     /**
+     * Buscar item individual da fatura
+     */
+    public function buscarItem(int $itemId, int $usuarioId): ?array
+    {
+        try {
+            $item = FaturaCartaoItem::where('id', $itemId)
+                ->where('user_id', $usuarioId)
+                ->first();
+
+            if (!$item) {
+                return null;
+            }
+
+            return [
+                'id' => $item->id,
+                'fatura_id' => $item->fatura_id,
+                'descricao' => $item->descricao,
+                'valor' => $item->valor,
+                'pago' => (bool) $item->pago,
+                'parcela_atual' => $item->parcela_atual,
+                'total_parcelas' => $item->total_parcelas,
+                'mes_referencia' => $item->mes_referencia,
+                'ano_referencia' => $item->ano_referencia,
+            ];
+        } catch (Exception $e) {
+            LogService::error("Erro ao buscar item", [
+                'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
      * Excluir item individual da fatura
      */
-    public function excluirItem(int $faturaId, int $itemId, int $usuarioId): bool
+    public function excluirItem(int $faturaId, int $itemId, int $usuarioId): array
     {
         DB::beginTransaction();
 
@@ -418,7 +452,10 @@ class FaturaService
                 'usuario_id' => $usuarioId
             ]);
 
-            return true;
+            return ['success' => true, 'message' => 'Item excluído com sucesso'];
+        } catch (InvalidArgumentException $e) {
+            DB::rollBack();
+            return ['success' => false, 'message' => $e->getMessage()];
         } catch (Exception $e) {
             DB::rollBack();
 
@@ -428,7 +465,117 @@ class FaturaService
                 'error' => $e->getMessage()
             ]);
 
-            throw $e;
+            return ['success' => false, 'message' => 'Erro ao excluir item'];
+        }
+    }
+
+    /**
+     * Excluir parcelamento completo (todas as parcelas de uma compra)
+     */
+    public function excluirParcelamento(int $itemId, int $usuarioId): array
+    {
+        DB::beginTransaction();
+
+        try {
+            // Buscar o item para descobrir a fatura relacionada
+            $item = FaturaCartaoItem::where('id', $itemId)
+                ->where('user_id', $usuarioId)
+                ->with('cartaoCredito')
+                ->first();
+
+            if (!$item) {
+                return ['success' => false, 'message' => 'Item não encontrado'];
+            }
+
+            // Buscar todos os itens do mesmo parcelamento
+            // Identificamos pelo mesmo item_pai_id ou pela mesma descrição + fatura + total_parcelas
+            $itensParcelamento = FaturaCartaoItem::where('user_id', $usuarioId);
+
+            if ($item->item_pai_id) {
+                // Se tem item_pai_id, buscar todos com mesmo pai ou o próprio pai
+                $itensParcelamento->where(function ($q) use ($item) {
+                    $q->where('item_pai_id', $item->item_pai_id)
+                        ->orWhere('id', $item->item_pai_id);
+                });
+            } else {
+                // Se não tem item_pai_id, é item avulso ou primeira parcela
+                // Buscar filhos se for pai, ou só o item se for avulso
+                $filhos = FaturaCartaoItem::where('item_pai_id', $item->id)->count();
+                if ($filhos > 0) {
+                    // É um pai, buscar todos os filhos + ele mesmo
+                    $itensParcelamento->where(function ($q) use ($item) {
+                        $q->where('item_pai_id', $item->id)
+                            ->orWhere('id', $item->id);
+                    });
+                } else {
+                    // Item avulso, só ele
+                    $itensParcelamento->where('id', $item->id);
+                }
+            }
+
+            $itens = $itensParcelamento->get();
+
+            // Verificar se algum item já foi pago
+            $itensPagos = $itens->where('pago', true)->count();
+            if ($itensPagos > 0) {
+                return [
+                    'success' => false,
+                    'message' => "Não é possível excluir: {$itensPagos} parcela(s) já foi(foram) paga(s). Desfaça o pagamento primeiro."
+                ];
+            }
+
+            $totalExcluidos = $itens->count();
+            $faturasAfetadas = $itens->pluck('fatura_id')->unique()->filter()->toArray();
+            $cartao = $item->cartaoCredito;
+
+            // Excluir todos os itens
+            FaturaCartaoItem::whereIn('id', $itens->pluck('id'))->delete();
+
+            // Atualizar limite do cartão
+            if ($cartao) {
+                $cartao->atualizarLimiteDisponivel();
+            }
+
+            // Atualizar faturas afetadas
+            foreach ($faturasAfetadas as $faturaId) {
+                $fatura = Fatura::find($faturaId);
+                if ($fatura) {
+                    $itensRestantes = FaturaCartaoItem::where('fatura_id', $faturaId)->count();
+                    if ($itensRestantes === 0) {
+                        $fatura->delete();
+                    } else {
+                        $novoTotal = FaturaCartaoItem::where('fatura_id', $faturaId)->sum('valor');
+                        $fatura->valor_total = $novoTotal;
+                        $fatura->save();
+                        $fatura->atualizarStatus();
+                    }
+                }
+            }
+
+            DB::commit();
+
+            LogService::info("Parcelamento excluído", [
+                'item_inicial_id' => $itemId,
+                'total_excluidos' => $totalExcluidos,
+                'usuario_id' => $usuarioId
+            ]);
+
+            return [
+                'success' => true,
+                'message' => $totalExcluidos > 1
+                    ? "Parcelamento excluído ({$totalExcluidos} parcelas)"
+                    : 'Item excluído com sucesso',
+                'itens_excluidos' => $totalExcluidos
+            ];
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            LogService::error("Erro ao excluir parcelamento", [
+                'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+
+            return ['success' => false, 'message' => 'Erro ao excluir parcelamento'];
         }
     }
 
@@ -829,7 +976,20 @@ class FaturaService
 
         // Calcular valor pendente (apenas itens não pagos)
         // Nota: usa 'valor' que é o campo real na tabela faturas_cartao_itens
-        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+        $valorPendenteItens = $fatura->itens->where('pago', 0)->sum('valor');
+
+        // Estornos têm valor negativo e já estão pagos
+        // Precisamos somar o valor dos estornos para abater do total
+        $valorEstornos = $fatura->itens->where('tipo', 'estorno')->sum('valor'); // Já é negativo
+
+        // Valor total a pagar = itens pendentes + estornos (que são negativos, então abate)
+        $valorPendente = $valorPendenteItens + $valorEstornos;
+        // Garantir que não fique negativo
+        $valorPendente = max(0, $valorPendente);
+
+        // Separar despesas de estornos para o resumo
+        $totalDespesas = $fatura->itens->where('tipo', '!=', 'estorno')->sum('valor');
+        $totalEstornos = abs($fatura->itens->where('tipo', 'estorno')->sum('valor'));
 
         // Próxima parcela pendente (por mês/ano)
         $primeiroItemPendente = $fatura->itens->where('pago', 0)
@@ -880,6 +1040,8 @@ class FaturaService
             'cartao' => $this->formatarCartao($fatura->cartaoCredito),
             'parcelas_pagas' => $itensPagos,
             'parcelas_pendentes' => $totalItens - $itensPagos,
+            'total_despesas' => round((float) $totalDespesas, 2),
+            'total_estornos' => round((float) $totalEstornos, 2),
             'progresso' => round($progresso, 2),
             'status' => $fatura->status ?? $this->determinarStatus($progresso),
         ];
@@ -901,20 +1063,38 @@ class FaturaService
                 'ano_referencia' => $item->ano_referencia,
                 'pago' => (bool) $item->pago,
                 'data_pagamento' => $item->data_pagamento?->format('Y-m-d'),
+                'tipo' => $item->tipo ?? 'despesa', // 'despesa' ou 'estorno'
             ];
         })->values()->toArray();
 
         $itensPagos = $fatura->itens->where('pago', 1)->count();
         $totalItens = $fatura->itens->count();
-        // Nota: usa 'valor' que é o campo real na tabela faturas_cartao_itens
-        $valorPendente = $fatura->itens->where('pago', 0)->sum('valor');
+
+        // Calcular valor pendente (apenas itens não pagos)
+        $valorPendenteItens = $fatura->itens->where('pago', 0)->sum('valor');
+
+        // Estornos têm valor negativo e já estão pagos
+        // Precisamos somar o valor dos estornos para abater do total
+        $valorEstornos = $fatura->itens->where('tipo', 'estorno')->sum('valor'); // Já é negativo
+
+        // Valor total a pagar = itens pendentes + estornos (que são negativos, então abate)
+        $valorPendente = $valorPendenteItens + $valorEstornos;
+        // Garantir que não fique negativo
+        $valorPendente = max(0, $valorPendente);
+
         $progresso = $fatura->progresso;
+
+        // Separar despesas de estornos para o resumo
+        $totalDespesas = $fatura->itens->where('tipo', '!=', 'estorno')->sum('valor');
+        $totalEstornos = abs($fatura->itens->where('tipo', 'estorno')->sum('valor'));
 
         return [
             'id' => $fatura->id,
             'descricao' => $fatura->descricao,
             'valor_total' => round((float) $valorPendente, 2),
             'valor_original' => round((float) $fatura->valor_total, 2),
+            'total_despesas' => round((float) $totalDespesas, 2),
+            'total_estornos' => round((float) $totalEstornos, 2),
             'numero_parcelas' => $fatura->numero_parcelas,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
             'cartao' => $this->formatarCartao($fatura->cartaoCredito),

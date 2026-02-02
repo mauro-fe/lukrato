@@ -21,6 +21,7 @@ use Application\Repositories\ContaRepository;
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Validators\LancamentoValidator;
+use Application\Services\LogService;
 use InvalidArgumentException;
 use ValueError;
 
@@ -243,13 +244,27 @@ class LancamentosController extends BaseController
 
         $payload = $this->getRequestPayload();
 
+        // Verificar se é estorno de cartão ANTES de validar conta
+        $formaPagamento = $payload['forma_pagamento'] ?? null;
+        $formaPagamento = is_string($formaPagamento) && !empty($formaPagamento) ? $formaPagamento : null;
+        $tipoLancamento = strtolower(trim($payload['tipo'] ?? ''));
+        $cartaoCreditoId = $payload['cartao_credito_id'] ?? null;
+        $cartaoCreditoId = is_scalar($cartaoCreditoId) ? (int)$cartaoCreditoId : null;
+
+        $ehEstornoCartao = ($cartaoCreditoId && $cartaoCreditoId > 0 && $tipoLancamento === 'receita' && $formaPagamento === 'estorno_cartao');
+
         // Validar com o validator
         $errors = LancamentoValidator::validateCreate($payload);
 
         // Validar conta e categoria (regras de negócio)
+        // NOTA: Conta NÃO é obrigatória para estorno de cartão
         $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
         $contaId = is_scalar($contaId) ? (int)$contaId : null;
-        $contaId = $this->validateConta($contaId, $userId, $errors);
+
+        if (!$ehEstornoCartao) {
+            // Só valida conta se NÃO for estorno de cartão
+            $contaId = $this->validateConta($contaId, $userId, $errors);
+        }
 
         $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
         $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
@@ -257,6 +272,58 @@ class LancamentosController extends BaseController
 
         if (!empty($errors)) {
             Response::validationError($errors);
+            return;
+        }
+
+        // ============================================================
+        // ESTORNO DE CARTÃO DE CRÉDITO (receita + estorno_cartao)
+        // Processar ANTES de criar DTO para evitar criação de lançamento
+        // ============================================================
+        if ($ehEstornoCartao) {
+            // Verificar limite antes de criar
+            try {
+                $usage = $this->limitService->assertCanCreate($userId, $payload['data']);
+            } catch (\DomainException $e) {
+                Response::error($e->getMessage(), 402);
+                return;
+            }
+
+            // Extrair mês/ano da fatura se fornecido (formato: "2026-02")
+            $faturaMesAno = $payload['fatura_mes_ano'] ?? null;
+            $mesReferencia = null;
+            $anoReferencia = null;
+
+            if ($faturaMesAno && preg_match('/^(\d{4})-(\d{2})$/', $faturaMesAno, $matches)) {
+                $anoReferencia = (int)$matches[1];
+                $mesReferencia = (int)$matches[2];
+            }
+
+            // Usar serviço especializado para criar estorno na fatura
+            $resultado = $this->cartaoService->criarEstornoCartao($userId, [
+                'cartao_credito_id' => $cartaoCreditoId,
+                'categoria_id' => $categoriaId,
+                'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
+                'data' => $payload['data'],
+                'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
+                'mes_referencia' => $mesReferencia,
+                'ano_referencia' => $anoReferencia,
+            ]);
+
+            if (!$resultado['success']) {
+                Response::error($resultado['message'], 422);
+                return;
+            }
+
+            Response::success([
+                'item' => [
+                    'id' => $resultado['item']->id ?? null,
+                    'descricao' => $resultado['item']->descricao ?? '',
+                    'valor' => $resultado['item']->valor ?? 0,
+                ],
+                'tipo' => 'estorno_cartao',
+                'usage' => $usage,
+                'ui_message' => $this->planService->getUsageMessage($usage),
+            ], $resultado['message'], 201);
             return;
         }
 
@@ -268,7 +335,7 @@ class LancamentosController extends BaseController
 
         // Criar DTO
         $dto = CreateLancamentoDTO::fromRequest($userId, [
-            'tipo' => strtolower(trim($payload['tipo'])),
+            'tipo' => $tipoLancamento,
             'data' => $payload['data'],
             'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
             'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
@@ -276,6 +343,7 @@ class LancamentosController extends BaseController
             'categoria_id' => $categoriaId,
             'conta_id' => $contaId,
             'pago' => $pago,
+            'forma_pagamento' => $formaPagamento,
         ]);
 
         // Verificar limite antes de criar
@@ -287,11 +355,8 @@ class LancamentosController extends BaseController
         }
 
         // ============================================================
-        // VERIFICAR SE É LANÇAMENTO COM CARTÃO DE CRÉDITO
+        // COMPRA COM CARTÃO DE CRÉDITO (despesa)
         // ============================================================
-        $cartaoCreditoId = $payload['cartao_credito_id'] ?? null;
-        $cartaoCreditoId = is_scalar($cartaoCreditoId) ? (int)$cartaoCreditoId : null;
-
         if ($cartaoCreditoId && $cartaoCreditoId > 0 && $dto->tipo === 'despesa') {
             // Usar serviço especializado para cartão de crédito
             // IMPORTANTE: Agora cria FaturaCartaoItem, não Lancamento direto

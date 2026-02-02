@@ -96,9 +96,9 @@ class CartaoFaturaService
     /**
      * Pagar fatura completa do mês
      * 
-     * CORREÇÃO FINAL: Não cria mais lançamentos aqui!
-     * - Lançamentos já foram criados no momento da COMPRA (CartaoCreditoLancamentoService)
-     * - Aqui apenas: atualiza lançamentos existentes (pago=true, afeta_caixa=true)
+     * REFATORADO: Agora cria UM ÚNICO lançamento para o pagamento da fatura inteira
+     * - Não cria mais lançamento por item
+     * - O lançamento representa o débito na conta = "Pagamento Fatura Cartão X - Jan/2026"
      */
     public function pagarFatura(int $cartaoId, int $mes, int $ano, int $userId): array
     {
@@ -150,67 +150,50 @@ class CartaoFaturaService
 
             $dataPagamento = now()->format('Y-m-d');
             $itensIds = [];
-            $lancamentosAtualizados = [];
             $faturasAfetadas = [];
 
-            error_log("💳 [FATURA] Atualizando " . count($itensNaoPagos) . " lançamentos existentes para pago=true na data {$dataPagamento}");
+            // ===============================================================
+            // REFATORADO: Criar UM ÚNICO lançamento para o pagamento da fatura
+            // ===============================================================
+            $nomeMes = $this->getNomeMes($mes);
+            $descricaoFatura = sprintf(
+                'Pagamento Fatura %s •••• %s - %s/%04d',
+                $cartao->nome_cartao,
+                $cartao->ultimos_digitos,
+                $nomeMes,
+                $ano
+            );
 
-            // Para cada item não pago, ATUALIZAR o lançamento existente (não criar novo!)
+            $lancamento = Lancamento::create([
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'categoria_id' => null,                    // Fatura não tem categoria específica
+                'cartao_credito_id' => $cartaoId,
+                'forma_pagamento' => 'debito_conta',       // Débito na conta bancária
+                'tipo' => 'despesa',
+                'valor' => $totalPagar,
+                'descricao' => $descricaoFatura,
+                'data' => $dataPagamento,
+                'data_competencia' => $dataPagamento,
+                'observacao' => sprintf(
+                    '%d item(s) pago(s) - Fatura %02d/%04d',
+                    count($itensNaoPagos),
+                    $mes,
+                    $ano
+                ),
+                'pago' => true,
+                'data_pagamento' => $dataPagamento,
+                'afeta_competencia' => true,
+                'afeta_caixa' => true,                     // ✅ Agora sim afeta o saldo!
+                'origem_tipo' => 'pagamento_fatura',
+            ]);
+
+            error_log("💳 [FATURA] Lançamento ÚNICO criado - ID: {$lancamento->id}, Valor: {$totalPagar}");
+
+            // Marcar todos os itens como pagos (sem vincular ao lançamento)
             foreach ($itensNaoPagos as $itemData) {
                 $item = FaturaCartaoItem::find($itemData['id']);
                 if (!$item) continue;
-
-                // Verificar se o item já tem lançamento vinculado
-                if ($item->lancamento_id) {
-                    // ATUALIZAR lançamento existente
-                    $lancamento = Lancamento::find($item->lancamento_id);
-                    if ($lancamento) {
-                        $lancamento->update([
-                            'pago' => true,
-                            'data_pagamento' => $dataPagamento,
-                            'afeta_caixa' => true,  // Agora sim afeta o saldo!
-                            'observacao' => sprintf(
-                                'Fatura %s •••• %s - %02d/%04d (pago em %s)',
-                                $cartao->nome_cartao,
-                                $cartao->ultimos_digitos,
-                                $mes,
-                                $ano,
-                                date('d/m/Y', strtotime($dataPagamento))
-                            ),
-                        ]);
-                        $lancamentosAtualizados[] = $lancamento->id;
-                    }
-                } else {
-                    // Fallback: criar lançamento se não existir (dados antigos migrados)
-                    $dataCompra = $item->data_compra ? $item->data_compra->format('Y-m-d') : $dataPagamento;
-
-                    $lancamento = Lancamento::create([
-                        'user_id' => $userId,
-                        'conta_id' => $contaId,
-                        'categoria_id' => $item->categoria_id,
-                        'cartao_credito_id' => $cartaoId,
-                        'tipo' => 'despesa',
-                        'valor' => $item->valor,
-                        'descricao' => $item->descricao,
-                        'data' => $dataCompra,                 // Data da compra original
-                        'data_competencia' => $dataCompra,     // Competência: mês da compra
-                        'observacao' => sprintf(
-                            'Fatura %s •••• %s - %02d/%04d (migrado)',
-                            $cartao->nome_cartao,
-                            $cartao->ultimos_digitos,
-                            $mes,
-                            $ano
-                        ),
-                        'pago' => true,
-                        'data_pagamento' => $dataPagamento,
-                        'afeta_competencia' => true,
-                        'afeta_caixa' => true,
-                        'origem_tipo' => 'cartao_credito',
-                    ]);
-
-                    $item->lancamento_id = $lancamento->id;
-                    $lancamentosAtualizados[] = $lancamento->id;
-                }
 
                 $item->pago = true;
                 $item->data_pagamento = $dataPagamento;
@@ -230,7 +213,7 @@ class CartaoFaturaService
 
             DB::commit();
 
-            error_log("✅ [FATURA] Pagamento concluído - " . count($lancamentosAtualizados) . " lançamentos atualizados: " . implode(', ', $lancamentosAtualizados));
+            error_log("✅ [FATURA] Pagamento concluído - Lançamento único ID: {$lancamento->id}, " . count($itensIds) . " itens marcados como pagos");
 
             return [
                 'success' => true,
@@ -238,7 +221,7 @@ class CartaoFaturaService
                 'valor_pago' => $totalPagar,
                 'itens_pagos' => count($itensIds),
                 'novo_limite_disponivel' => $cartao->limite_disponivel,
-                'lancamentos_atualizados' => $lancamentosAtualizados,
+                'lancamento_id' => $lancamento->id,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
@@ -248,11 +231,33 @@ class CartaoFaturaService
     }
 
     /**
+     * Obter nome do mês
+     */
+    private function getNomeMes(int $mes): string
+    {
+        $meses = [
+            1 => 'Jan',
+            2 => 'Fev',
+            3 => 'Mar',
+            4 => 'Abr',
+            5 => 'Mai',
+            6 => 'Jun',
+            7 => 'Jul',
+            8 => 'Ago',
+            9 => 'Set',
+            10 => 'Out',
+            11 => 'Nov',
+            12 => 'Dez'
+        ];
+        return $meses[$mes] ?? (string)$mes;
+    }
+
+    /**
      * Pagar parcelas individuais selecionadas
      * 
-     * CORREÇÃO FINAL: Não cria mais lançamentos aqui!
-     * - Lançamentos já foram criados no momento da COMPRA (CartaoCreditoLancamentoService)
-     * - Aqui apenas: atualiza lançamentos existentes (pago=true, afeta_caixa=true)
+     * REFATORADO: Agora cria UM ÚNICO lançamento para o pagamento parcial
+     * - Não cria mais lançamento por item
+     * - O lançamento representa o débito na conta
      */
     public function pagarParcelas(int $cartaoId, array $parcelaIds, int $mes, int $ano, int $userId): array
     {
@@ -306,64 +311,52 @@ class CartaoFaturaService
                 ->toArray();
 
             $dataPagamento = now()->format('Y-m-d');
-            $lancamentosAtualizados = [];
 
-            error_log("💳 [PARCELAS] Atualizando " . $itens->count() . " lançamentos existentes para pago=true na data {$dataPagamento}");
+            error_log("💳 [PARCELAS] Pagando " . $itens->count() . " itens, valor total: {$totalPagar}");
 
-            // Para cada parcela, ATUALIZAR o lançamento existente (não criar novo!)
+            // ===============================================================
+            // REFATORADO: Criar UM ÚNICO lançamento para o pagamento parcial
+            // ===============================================================
+            $nomeMes = $this->getNomeMes($mes);
+            $qtdItens = $itens->count();
+            $descricaoFatura = sprintf(
+                'Pagamento Parcial Fatura %s •••• %s - %s/%04d (%d %s)',
+                $cartao->nome_cartao,
+                $cartao->ultimos_digitos,
+                $nomeMes,
+                $ano,
+                $qtdItens,
+                $qtdItens === 1 ? 'item' : 'itens'
+            );
+
+            $lancamento = Lancamento::create([
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'categoria_id' => null,
+                'cartao_credito_id' => $cartaoId,
+                'forma_pagamento' => 'debito_conta',
+                'tipo' => 'despesa',
+                'valor' => $totalPagar,
+                'descricao' => $descricaoFatura,
+                'data' => $dataPagamento,
+                'data_competencia' => $dataPagamento,
+                'observacao' => sprintf(
+                    '%d item(s) pago(s) - Fatura %02d/%04d',
+                    $qtdItens,
+                    $mes,
+                    $ano
+                ),
+                'pago' => true,
+                'data_pagamento' => $dataPagamento,
+                'afeta_competencia' => true,
+                'afeta_caixa' => true,
+                'origem_tipo' => 'pagamento_fatura',
+            ]);
+
+            error_log("💳 [PARCELAS] Lançamento ÚNICO criado - ID: {$lancamento->id}, Valor: {$totalPagar}");
+
+            // Marcar todos os itens como pagos
             foreach ($itens as $item) {
-                // Verificar se o item já tem lançamento vinculado
-                if ($item->lancamento_id) {
-                    // ATUALIZAR lançamento existente
-                    $lancamento = Lancamento::find($item->lancamento_id);
-                    if ($lancamento) {
-                        $lancamento->update([
-                            'pago' => true,
-                            'data_pagamento' => $dataPagamento,
-                            'afeta_caixa' => true,  // Agora sim afeta o saldo!
-                            'observacao' => sprintf(
-                                'Fatura %s •••• %s - %02d/%04d (pago em %s)',
-                                $cartao->nome_cartao,
-                                $cartao->ultimos_digitos,
-                                $mes,
-                                $ano,
-                                date('d/m/Y', strtotime($dataPagamento))
-                            ),
-                        ]);
-                        $lancamentosAtualizados[] = $lancamento->id;
-                    }
-                } else {
-                    // Fallback: criar lançamento se não existir (dados antigos migrados)
-                    $dataCompra = $item->data_compra ? $item->data_compra->format('Y-m-d') : $dataPagamento;
-
-                    $lancamento = Lancamento::create([
-                        'user_id' => $userId,
-                        'conta_id' => $contaId,
-                        'categoria_id' => $item->categoria_id,
-                        'cartao_credito_id' => $cartaoId,
-                        'tipo' => 'despesa',
-                        'valor' => $item->valor,
-                        'descricao' => $item->descricao,
-                        'data' => $dataCompra,                 // Data da compra original
-                        'data_competencia' => $dataCompra,     // Competência: mês da compra
-                        'observacao' => sprintf(
-                            'Fatura %s •••• %s - %02d/%04d (migrado)',
-                            $cartao->nome_cartao,
-                            $cartao->ultimos_digitos,
-                            $mes,
-                            $ano
-                        ),
-                        'pago' => true,
-                        'data_pagamento' => $dataPagamento,
-                        'afeta_competencia' => true,
-                        'afeta_caixa' => true,
-                        'origem_tipo' => 'cartao_credito',
-                    ]);
-
-                    $item->lancamento_id = $lancamento->id;
-                    $lancamentosAtualizados[] = $lancamento->id;
-                }
-
                 $item->pago = true;
                 $item->data_pagamento = $dataPagamento;
                 $item->save();
@@ -378,7 +371,7 @@ class CartaoFaturaService
 
             $descricaoParcelas = count($parcelaIds) === 1 ? '1 item' : count($parcelaIds) . ' itens';
 
-            error_log("✅ [PARCELAS] Pagamento concluído - " . count($lancamentosAtualizados) . " lançamentos atualizados: " . implode(', ', $lancamentosAtualizados));
+            error_log("✅ [PARCELAS] Pagamento concluído - Lançamento único ID: {$lancamento->id}");
 
             return [
                 'success' => true,
@@ -386,7 +379,7 @@ class CartaoFaturaService
                 'valor_pago' => $totalPagar,
                 'parcelas_pagas' => count($parcelaIds),
                 'novo_limite_disponivel' => $cartao->limite_disponivel,
-                'lancamentos_atualizados' => $lancamentosAtualizados,
+                'lancamento_id' => $lancamento->id,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
@@ -774,27 +767,5 @@ class CartaoFaturaService
         }
 
         return $categoria->id;
-    }
-
-    /**
-     * Obter nome do mês
-     */
-    private function getNomeMes(int $mes): string
-    {
-        $meses = [
-            1 => 'Janeiro',
-            2 => 'Fevereiro',
-            3 => 'Março',
-            4 => 'Abril',
-            5 => 'Maio',
-            6 => 'Junho',
-            7 => 'Julho',
-            8 => 'Agosto',
-            9 => 'Setembro',
-            10 => 'Outubro',
-            11 => 'Novembro',
-            12 => 'Dezembro'
-        ];
-        return $meses[$mes] ?? '';
     }
 }

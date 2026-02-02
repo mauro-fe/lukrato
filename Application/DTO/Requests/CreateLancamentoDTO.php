@@ -19,6 +19,7 @@ readonly class CreateLancamentoDTO
         public bool $ehSaldoInicial = false,
         public ?int $contaIdDestino = null,
         public bool $pago = true,
+        public ?string $formaPagamento = null,
     ) {}
 
     public function toArray(): array
@@ -36,6 +37,7 @@ readonly class CreateLancamentoDTO
             'eh_saldo_inicial' => $this->ehSaldoInicial ? 1 : 0,
             'conta_id_destino' => $this->contaIdDestino,
             'pago' => $this->pago ? 1 : 0,
+            'forma_pagamento' => $this->formaPagamento,
         ];
     }
 
@@ -54,6 +56,7 @@ readonly class CreateLancamentoDTO
             ehSaldoInicial: (bool)($data['eh_saldo_inicial'] ?? false),
             contaIdDestino: isset($data['conta_id_destino']) ? (int)$data['conta_id_destino'] : null,
             pago: !isset($data['pago']) || (bool)$data['pago'],
+            formaPagamento: $data['forma_pagamento'] ?? null,
         );
     }
 }

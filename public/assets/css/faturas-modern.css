@@ -284,6 +284,26 @@
   transform: translateY(-1px);
 }
 
+.btn-toggle-parcela.btn-editar {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-editar:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-excluir {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-excluir:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
 /* Botão Excluir Item Individual */
 .btn-excluir-item {
   background: #ef4444;

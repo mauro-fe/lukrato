@@ -55,7 +55,9 @@
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: var(--shadow-xl), 0 0 0 1px var(--color-card-border);
+  box-shadow:
+    var(--shadow-xl),
+    0 0 0 1px var(--color-card-border);
   animation: lk-slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
@@ -115,7 +117,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at 20% 50%,
       rgba(255, 255, 255, 0.1) 0%,
       transparent 50%
@@ -1062,7 +1065,9 @@ input.lk-input.lk-input-with-prefix {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .lk-btn:active::before {
@@ -1078,12 +1083,16 @@ input.lk-input.lk-input-with-prefix {
 .lk-btn-primary {
   background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 12px rgba(230, 126, 34, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .lk-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4), 0 3px 8px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 6px 20px rgba(230, 126, 34, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .lk-btn-primary:active {
@@ -1487,5 +1496,239 @@ input.lk-input.lk-input-with-prefix {
   .lk-parcelamento-preview {
     font-size: var(--font-size-xs);
     padding: var(--spacing-3);
+  }
+}
+
+/* ================================================
+   FORMA DE PAGAMENTO - BOTÕES MODERNOS
+   ================================================ */
+
+.lk-forma-pagamento-section {
+  margin-bottom: var(--spacing-4);
+}
+
+.lk-forma-pagamento-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-3);
+}
+
+.lk-forma-pagamento-label i {
+  color: var(--color-primary);
+}
+
+.lk-forma-pagamento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: var(--spacing-2);
+}
+
+.lk-forma-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-2);
+  background: var(--color-card-bg);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 70px;
+}
+
+.lk-forma-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.lk-forma-btn.active {
+  border-color: var(--color-primary);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light) 0%,
+    var(--color-bg) 100%
+  );
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+}
+
+.lk-forma-btn .lk-forma-icon {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.lk-forma-btn:hover .lk-forma-icon,
+.lk-forma-btn.active .lk-forma-icon {
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+/* Ícone PIX específico */
+.lk-forma-btn .lk-forma-icon.fa-pix {
+  color: #32bcad;
+}
+
+.lk-forma-btn.active .lk-forma-icon.fa-pix {
+  color: #32bcad;
+}
+
+.lk-forma-btn .lk-forma-label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.lk-forma-btn:hover .lk-forma-label,
+.lk-forma-btn.active .lk-forma-label {
+  color: var(--color-text);
+}
+
+/* Cores específicas por tipo quando ativo */
+.lk-forma-btn[data-forma="pix"].active {
+  border-color: #32bcad;
+  background: linear-gradient(
+    135deg,
+    rgba(50, 188, 173, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+.lk-forma-btn[data-forma="cartao_credito"].active,
+.lk-forma-btn[data-forma="estorno_cartao"].active {
+  border-color: #8b5cf6;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+.lk-forma-btn[data-forma="cartao_debito"].active {
+  border-color: #3b82f6;
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+.lk-forma-btn[data-forma="dinheiro"].active {
+  border-color: #10b981;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+.lk-forma-btn[data-forma="boleto"].active {
+  border-color: #f59e0b;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+.lk-forma-btn[data-forma="deposito"].active {
+  border-color: #6366f1;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+.lk-forma-btn[data-forma="transferencia"].active {
+  border-color: #ec4899;
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+}
+
+/* Ícones coloridos quando ativo */
+.lk-forma-btn[data-forma="pix"] .lk-forma-icon {
+  color: #32bcad;
+}
+.lk-forma-btn[data-forma="cartao_credito"] .lk-forma-icon,
+.lk-forma-btn[data-forma="estorno_cartao"] .lk-forma-icon {
+  color: #8b5cf6;
+}
+.lk-forma-btn[data-forma="cartao_debito"] .lk-forma-icon {
+  color: #3b82f6;
+}
+.lk-forma-btn[data-forma="dinheiro"] .lk-forma-icon {
+  color: #10b981;
+}
+.lk-forma-btn[data-forma="boleto"] .lk-forma-icon {
+  color: #f59e0b;
+}
+.lk-forma-btn[data-forma="deposito"] .lk-forma-icon {
+  color: #6366f1;
+}
+.lk-forma-btn[data-forma="transferencia"] .lk-forma-icon {
+  color: #ec4899;
+}
+
+/* Indicador de cartão selecionado */
+.lk-forma-cartao-info {
+  display: none;
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.1) 0%,
+    var(--color-bg) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-lg);
+  animation: lk-slideDown 0.3s ease;
+}
+
+.lk-forma-cartao-info.active {
+  display: block;
+}
+
+@keyframes lk-slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .lk-forma-pagamento-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-2);
+  }
+
+  .lk-forma-btn {
+    padding: var(--spacing-2);
+    min-height: 60px;
+  }
+
+  .lk-forma-btn .lk-forma-icon {
+    font-size: 1.1rem;
+  }
+
+  .lk-forma-btn .lk-forma-label {
+    font-size: 0.65rem;
   }
 }

@@ -348,11 +348,19 @@
         },
 
         getResumoPrincipal(parc) {
+            const temEstornos = parc.total_estornos && parc.total_estornos > 0;
+
             return `
                 <div class="resumo-item">
                     <span class="resumo-label">Total a Pagar</span>
                     <strong class="resumo-valor">${Utils.formatMoney(parc.valor_total)}</strong>
                 </div>
+                ${temEstornos ? `
+                    <div class="resumo-item resumo-estornos">
+                        <span class="resumo-label" style="color: #10b981;">↩️ Estornos</span>
+                        <span class="resumo-valor" style="color: #10b981; font-size: 0.85rem;">- ${Utils.formatMoney(parc.total_estornos)}</span>
+                    </div>
+                ` : ''}
                 ${parc.data_vencimento ? `
                     <div class="resumo-item">
                         <span class="resumo-label">Vencimento</span>
@@ -461,7 +469,7 @@
 
         attachDetalhesEventListeners(faturaId) {
             // Botões de pagar/desfazer pagamento
-            const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-toggle-parcela');
+            const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-pagar, .btn-desfazer');
             btnToggles.forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
@@ -470,23 +478,25 @@
                 });
             });
 
-            // Botões de excluir item individual
-            const btnExcluirItem = DOM.detalhesContent.querySelectorAll('.btn-excluir-item');
-            btnExcluirItem.forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const itemId = parseInt(e.currentTarget.dataset.itemId, 10);
-                    await window.excluirItemFaturaGlobal(faturaId, itemId);
-                });
-            });
-
             // Botões de editar item
-            const btnEditarItem = DOM.detalhesContent.querySelectorAll('.btn-editar-item');
-            btnEditarItem.forEach(btn => {
+            const btnEditar = DOM.detalhesContent.querySelectorAll('.btn-editar');
+            btnEditar.forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const itemId = parseInt(e.currentTarget.dataset.itemId, 10);
+                    const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
                     const descricao = e.currentTarget.dataset.descricao || '';
                     const valor = parseFloat(e.currentTarget.dataset.valor) || 0;
                     await this.editarItemFatura(faturaId, itemId, descricao, valor);
+                });
+            });
+
+            // Botões de excluir item
+            const btnExcluir = DOM.detalhesContent.querySelectorAll('.btn-excluir');
+            btnExcluir.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
+                    const ehParcelado = e.currentTarget.dataset.ehParcelado === 'true';
+                    const totalParcelas = parseInt(e.currentTarget.dataset.totalParcelas) || 1;
+                    await this.excluirItemFatura(faturaId, itemId, ehParcelado, totalParcelas);
                 });
             });
         },
@@ -555,19 +565,28 @@
         renderDetalhesGrid(parc, progresso) {
             const totalItens = parc.parcelas_pagas + parc.parcelas_pendentes;
 
+            // Verificar se tem estornos
+            const temEstornos = parc.total_estornos && parc.total_estornos > 0;
+
             return `
                 <div class="detalhes-grid">
                     <div class="detalhes-item">
                         <span class="detalhes-label">💵 Valor Total a Pagar</span>
                         <span class="detalhes-value detalhes-value-highlight">${Utils.formatMoney(parc.valor_total)}</span>
                     </div>
+                    ${temEstornos ? `
+                    <div class="detalhes-item">
+                        <span class="detalhes-label">↩️ Estornos/Créditos</span>
+                        <span class="detalhes-value" style="color: #10b981;">- ${Utils.formatMoney(parc.total_estornos)}</span>
+                    </div>
+                    ` : ''}
                     <div class="detalhes-item">
                         <span class="detalhes-label">📦 Itens</span>
                         <span class="detalhes-value">${totalItens} itens</span>
                     </div>
                     <div class="detalhes-item">
                         <span class="detalhes-label">📊 Tipo</span>
-                        <span class="detalhes-value">💸 Despesas</span>
+                        <span class="detalhes-value">💸 Despesas${temEstornos ? ' + ↩️ Estornos' : ''}</span>
                     </div>
                     <div class="detalhes-item">
                         <span class="detalhes-label">🎯 Status</span>
@@ -665,6 +684,7 @@
 
         renderParcelaCard(parcela, index, descricaoFatura) {
             const isPaga = parcela.pago;
+            const isEstorno = parcela.tipo === 'estorno';
             const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
             const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
             const cardClass = isPaga ? 'parcela-card-paga' : '';
@@ -683,6 +703,30 @@
                 const iconeCategoria = parcela.categoria.icone || '📋';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
                 categoriaInfo = `${iconeCategoria} ${nomeCategoria}`;
+            }
+
+            // Card especial para estornos
+            if (isEstorno) {
+                return `
+                    <div class="parcela-card" id="${cardId}" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%); border-color: rgba(16, 185, 129, 0.4);">
+                        <div class="parcela-card-header">
+                            <span class="parcela-numero" style="color: #10b981;">↩️ Estorno</span>
+                            <span class="parcela-paga" style="background: #10b981;">✅ Creditado</span>
+                        </div>
+                        <div class="parcela-card-body">
+                            <div class="parcela-card-info">
+                                <span class="parcela-card-label">Descrição</span>
+                                <span class="parcela-card-value" style="color: #10b981;">${Utils.escapeHtml(descricaoItem)}</span>
+                            </div>
+                            <div class="parcela-card-info">
+                                <span class="parcela-card-label">Crédito na Fatura</span>
+                                <span class="parcela-card-value parcela-valor" style="color: #10b981; font-weight: 600;">
+                                    - ${Utils.formatMoney(Math.abs(parcela.valor_parcela))}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
 
             return `
@@ -738,6 +782,7 @@
 
         renderParcelaRow(parcela, index, descricaoFatura) {
             const isPaga = parcela.pago;
+            const isEstorno = parcela.tipo === 'estorno';
             const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
             const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
             const rowClass = isPaga ? 'tr-paga' : '';
@@ -755,6 +800,31 @@
                 const iconeCategoria = parcela.categoria.icone || '📋';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
                 descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
+            }
+
+            // Estornos aparecem diferente
+            if (isEstorno) {
+                return `
+                    <tr class="tr-estorno" style="background: rgba(16, 185, 129, 0.1);">
+                        <td data-label="#">
+                            <span class="parcela-numero" style="color: #10b981;">↩️</span>
+                        </td>
+                        <td data-label="Descrição" class="td-descricao">
+                            <div class="parcela-desc" style="color: #10b981;">${Utils.escapeHtml(descricaoItem)}</div>
+                        </td>
+                        <td data-label="Valor">
+                            <span class="parcela-valor" style="color: #10b981; font-weight: 600;">
+                                - ${Utils.formatMoney(Math.abs(parcela.valor_parcela))}
+                            </span>
+                        </td>
+                        <td data-label="Status" class="td-status">
+                            <span class="status-badge parcela-paga" style="background: #10b981;">✅ Creditado</span>
+                        </td>
+                        <td data-label="Ação" class="td-acoes">
+                            <span style="color: #10b981; font-size: 0.85rem;">Estorno aplicado</span>
+                        </td>
+                    </tr>
+                `;
             }
 
             return `
@@ -798,8 +868,8 @@
                     </div>
                 `;
             } else {
-                // Item pendente: apenas botão de pagar
-                // Editar/excluir deve ser feito via tela de Lançamentos
+                // Item pendente: botões de pagar, editar e excluir
+                const ehParcelado = parcela.total_parcelas > 1;
                 return `
                     <div class="btn-group-parcela">
                         <button class="btn-toggle-parcela btn-pagar" 
@@ -807,6 +877,20 @@
                             data-pago="false"
                             title="Marcar como pago">
                             <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn-toggle-parcela btn-editar" 
+                            data-lancamento-id="${parcela.id}"
+                            data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
+                            data-valor="${parcela.valor_parcela || 0}"
+                            title="Editar item">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button class="btn-toggle-parcela btn-excluir" 
+                            data-lancamento-id="${parcela.id}"
+                            data-eh-parcelado="${ehParcelado}"
+                            data-total-parcelas="${parcela.total_parcelas || 1}"
+                            title="Excluir item">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
@@ -1075,6 +1159,216 @@
                     title: 'Erro',
                     text: error.message || 'Não foi possível atualizar o item.',
                     heightAuto: false
+                });
+            }
+        },
+
+        async excluirItemFatura(faturaId, itemId, ehParcelado, totalParcelas) {
+            try {
+                let titulo = 'Excluir Item?';
+                let texto = 'Deseja realmente excluir este item da fatura?';
+                let confirmBtn = 'Sim, excluir item';
+
+                // Se for parcelado, oferecer opções
+                if (ehParcelado && totalParcelas > 1) {
+                    const { value: opcao } = await Swal.fire({
+                        title: 'O que deseja excluir?',
+                        html: `
+                            <p>Este item faz parte de um parcelamento de <strong>${totalParcelas}x</strong>.</p>
+                            <p style="margin-top: 1rem;">Escolha uma opção:</p>
+                        `,
+                        icon: 'question',
+                        input: 'radio',
+                        inputOptions: {
+                            'item': 'Apenas esta parcela',
+                            'parcelamento': `Todo o parcelamento (${totalParcelas} parcelas)`
+                        },
+                        inputValue: 'item',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Continuar',
+                        cancelButtonText: 'Cancelar',
+                        heightAuto: false,
+                        customClass: {
+                            container: 'swal-above-modal'
+                        },
+                        didOpen: () => {
+                            const container = document.querySelector('.swal2-container');
+                            if (container) container.style.zIndex = '99999';
+                        }
+                    });
+
+                    if (!opcao) return;
+
+                    if (opcao === 'parcelamento') {
+                        return await this.excluirParcelamentoCompleto(faturaId, itemId, totalParcelas);
+                    }
+                }
+
+                const result = await Swal.fire({
+                    title: titulo,
+                    text: texto,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: confirmBtn,
+                    cancelButtonText: 'Cancelar',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
+                });
+
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Excluindo...',
+                    allowOutsideClick: false,
+                    heightAuto: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    },
+                    customClass: {
+                        container: 'swal-above-modal'
+                    }
+                });
+
+                await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
+                    method: 'DELETE'
+                });
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Excluído!',
+                    text: 'Item removido da fatura.',
+                    timer: CONFIG.TIMEOUTS.successMessage,
+                    showConfirmButton: false,
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
+                });
+
+                // Recarregar parcelamentos e reabrir modal atualizado
+                await App.carregarParcelamentos();
+
+                // Reabrir o modal com dados atualizados
+                setTimeout(() => {
+                    UI.showDetalhes(faturaId);
+                }, 100);
+
+            } catch (error) {
+                console.error('Erro ao excluir item:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message || 'Não foi possível excluir o item.',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
+                });
+            }
+        },
+
+        async excluirParcelamentoCompleto(faturaId, itemId, totalParcelas) {
+            const result = await Swal.fire({
+                title: 'Excluir Parcelamento Completo?',
+                html: `
+                    <p>Deseja realmente excluir <strong>todas as ${totalParcelas} parcelas</strong> deste parcelamento?</p>
+                    <p style="color: #ef4444; margin-top: 1rem;"><i class="fas fa-exclamation-triangle"></i> Esta ação não pode ser desfeita!</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: `Sim, excluir ${totalParcelas} parcelas`,
+                cancelButtonText: 'Cancelar',
+                heightAuto: false,
+                customClass: {
+                    container: 'swal-above-modal'
+                },
+                didOpen: () => {
+                    const container = document.querySelector('.swal2-container');
+                    if (container) container.style.zIndex = '99999';
+                }
+            });
+
+            if (!result.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Excluindo parcelamento...',
+                allowOutsideClick: false,
+                heightAuto: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    const container = document.querySelector('.swal2-container');
+                    if (container) container.style.zIndex = '99999';
+                },
+                customClass: {
+                    container: 'swal-above-modal'
+                }
+            });
+
+            try {
+                const response = await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}/parcelamento`, {
+                    method: 'DELETE'
+                });
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Parcelamento Excluído!',
+                    text: response.message || `${totalParcelas} parcelas removidas.`,
+                    timer: CONFIG.TIMEOUTS.successMessage,
+                    showConfirmButton: false,
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
+                });
+
+                // Recarregar parcelamentos e reabrir modal atualizado
+                await App.carregarParcelamentos();
+
+                // Reabrir o modal com dados atualizados
+                setTimeout(() => {
+                    UI.showDetalhes(faturaId);
+                }, 100);
+
+            } catch (error) {
+                console.error('Erro ao excluir parcelamento:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message || 'Não foi possível excluir o parcelamento.',
+                    heightAuto: false,
+                    customClass: {
+                        container: 'swal-above-modal'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    }
                 });
             }
         },

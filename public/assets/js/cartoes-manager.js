@@ -490,12 +490,15 @@ class CartoesManager {
      * Criar HTML do cartão
      */
     createCardHTML(cartao) {
-        const percentualUso = cartao.limite_total > 0
-            ? ((cartao.limite_total - cartao.limite_disponivel) / cartao.limite_total * 100).toFixed(1)
-            : 0;
+        // Usar limite calculado (limite_disponivel_real) se disponível, senão usar limite_disponivel
+        const limiteDisponivel = cartao.limite_disponivel_real ?? cartao.limite_disponivel ?? 0;
+        const limiteUtilizado = cartao.limite_utilizado ?? (cartao.limite_total - limiteDisponivel);
+
+        const percentualUso = cartao.percentual_uso ?? (cartao.limite_total > 0
+            ? ((cartao.limite_total - limiteDisponivel) / cartao.limite_total * 100).toFixed(1)
+            : 0);
 
         const brandIcon = this.getBrandIcon(cartao.bandeira);
-        const limiteUtilizado = cartao.limite_total - cartao.limite_disponivel;
 
         // Obter cor da instituição
         const corBg = cartao.conta?.instituicao_financeira?.cor_primaria ||
@@ -576,7 +579,7 @@ class CartoesManager {
                     </div>
                     <div class="card-limit">
                         <div class="card-label">Disponível</div>
-                        <div class="card-value">${this.formatMoney(cartao.limite_disponivel)}</div>
+                        <div class="card-value">${this.formatMoney(limiteDisponivel)}</div>
                         <div class="limit-bar">
                             <div class="limit-fill" style="width: ${100 - percentualUso}%"></div>
                         </div>
@@ -592,8 +595,9 @@ class CartoesManager {
     updateStats() {
         const stats = this.cartoes.reduce((acc, cartao) => {
             const limiteTotal = parseFloat(cartao.limite_total) || 0;
-            const limiteDisponivel = parseFloat(cartao.limite_disponivel) || 0;
-            const limiteUtilizado = Math.max(0, limiteTotal - limiteDisponivel);
+            // Usar limite calculado (limite_disponivel_real) se disponível
+            const limiteDisponivel = parseFloat(cartao.limite_disponivel_real ?? cartao.limite_disponivel) || 0;
+            const limiteUtilizado = parseFloat(cartao.limite_utilizado) || Math.max(0, limiteTotal - limiteDisponivel);
 
             acc.total++;
             acc.limiteTotal += limiteTotal;
@@ -936,7 +940,7 @@ class CartoesManager {
 
             // Calcular resumo financeiro
             const limiteTotal = this.filteredCartoes.reduce((sum, c) => sum + parseFloat(c.limite_total || 0), 0);
-            const limiteDisponivel = this.filteredCartoes.reduce((sum, c) => sum + parseFloat(c.limite_disponivel || 0), 0);
+            const limiteDisponivel = this.filteredCartoes.reduce((sum, c) => sum + parseFloat((c.limite_disponivel_real ?? c.limite_disponivel) || 0), 0);
             const limiteUtilizado = limiteTotal - limiteDisponivel;
             const percentualGeral = limiteTotal > 0 ? (limiteUtilizado / limiteTotal * 100).toFixed(1) : 0;
 
@@ -1005,8 +1009,9 @@ class CartoesManager {
 
             yPos += 5;
             const tableData = this.filteredCartoes.map(cartao => {
+                const limiteDisp = cartao.limite_disponivel_real ?? cartao.limite_disponivel ?? 0;
                 const percentualUso = cartao.limite_total > 0
-                    ? ((cartao.limite_total - cartao.limite_disponivel) / cartao.limite_total * 100).toFixed(1)
+                    ? ((cartao.limite_total - limiteDisp) / cartao.limite_total * 100).toFixed(1)
                     : 0;
 
                 return [
@@ -1014,7 +1019,7 @@ class CartoesManager {
                     this.formatBandeira(cartao.bandeira),
                     `**** ${cartao.ultimos_digitos}`,
                     this.formatMoney(cartao.limite_total),
-                    this.formatMoney(cartao.limite_disponivel),
+                    this.formatMoney(limiteDisp),
                     `${percentualUso}%`,
                     cartao.ativo ? 'Ativo' : 'Inativo'
                 ];

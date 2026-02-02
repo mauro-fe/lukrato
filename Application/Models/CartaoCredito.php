@@ -126,16 +126,29 @@ class CartaoCredito extends Model
 
     /**
      * Retorna limite utilizado (calcula dinamicamente baseado em itens não pagos)
+     * 
+     * Lógica:
+     * - Soma despesas não pagas (valores positivos)
+     * - Subtrai estornos (valores negativos) que já liberam o limite
      */
     public function getLimiteUtilizadoAttribute(): float
     {
-        // Busca total de itens de fatura não pagos
-        $totalNaoPago = \Illuminate\Database\Capsule\Manager::table('faturas_cartao_itens')
+        // Busca total de despesas não pagas (valores positivos)
+        $totalDespesasNaoPagas = \Illuminate\Database\Capsule\Manager::table('faturas_cartao_itens')
             ->where('cartao_credito_id', $this->id)
             ->where('pago', false)
+            ->where('tipo', '!=', 'estorno')
             ->sum('valor');
 
-        return (float) $totalNaoPago;
+        // Busca total de estornos (valores negativos, que liberam limite)
+        // Estornos têm pago=true mas devem ser contabilizados para liberar limite
+        $totalEstornos = \Illuminate\Database\Capsule\Manager::table('faturas_cartao_itens')
+            ->where('cartao_credito_id', $this->id)
+            ->where('tipo', 'estorno')
+            ->sum('valor'); // Já é negativo
+
+        // Limite utilizado = despesas não pagas + estornos (que são negativos, então diminuem)
+        return (float) max(0, $totalDespesasNaoPagas + $totalEstornos);
     }
 
     /**
@@ -176,15 +189,12 @@ class CartaoCredito extends Model
     }
 
     /**
-     * Atualiza limite disponível baseado nos itens de fatura não pagos
+     * Atualiza limite disponível baseado nos itens de fatura não pagos e estornos
      */
     public function atualizarLimiteDisponivel(): void
     {
-        // Soma dos itens de fatura não pagos deste cartão
-        // Usa faturas_cartao_itens que é a fonte correta de dados de fatura
-        $totalUtilizado = $this->itensFatura()
-            ->where('pago', false)
-            ->sum('valor');
+        // Usa o accessor calculado que já considera despesas e estornos
+        $totalUtilizado = $this->limite_utilizado;
 
         $this->limite_disponivel = $this->limite_total - $totalUtilizado;
         $this->save();
