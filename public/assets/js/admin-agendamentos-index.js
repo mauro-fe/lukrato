@@ -1801,6 +1801,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================================
 
     const Actions = {
+        _saving: false, // Flag para prevenir múltiplas submissões
+        
         async edit(record) {
             if (!record) return;
 
@@ -1809,6 +1811,12 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async save() {
+            // Prevenir múltiplas chamadas simultâneas
+            if (this._saving) {
+                console.warn('[Actions.save] Salvamento já em andamento, ignorando chamada duplicada');
+                return;
+            }
+
             Modal.hideError();
 
             const agendamentoId = (DOM.agId?.value || '').trim();
@@ -1820,6 +1828,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 Modal.showError(erros.join('\n'));
                 return;
             }
+
+            this._saving = true;
 
             Swal.fire({
                 title: isEditMode ? 'Salvando alterações...' : 'Salvando...',
@@ -1871,6 +1881,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (error.message && error.message !== 'Erros de validação.') {
                     Swal.fire('Erro', error.message, 'error');
                 }
+            } finally {
+                this._saving = false;
             }
         },
 
