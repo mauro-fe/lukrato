@@ -256,7 +256,9 @@ class ContasManager {
 
         const logoUrl = instituicao?.logo_url || `${this.baseUrl}assets/img/banks/default.svg`;
         const corPrimaria = instituicao?.cor_primaria || '#667eea';
-        const saldo = conta.saldo_atual || conta.saldoAtual || 0;
+        // Normalizar saldo: valores muito próximos de zero são tratados como zero
+        let saldo = conta.saldo_atual || conta.saldoAtual || 0;
+        if (Math.abs(saldo) < 0.01) saldo = 0;
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
 
         return `
@@ -493,6 +495,8 @@ class ContasManager {
      * Formatar moeda
      */
     formatCurrency(value) {
+        // Normalizar valores muito próximos de zero para evitar -R$ 0,00
+        if (Math.abs(value) < 0.01) value = 0;
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'

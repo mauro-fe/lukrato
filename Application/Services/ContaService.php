@@ -289,23 +289,25 @@ class ContaService
             ->pluck('saldo_inicial', 'id')
             ->all();
 
-        // Receitas (não precisa mais filtrar eh_saldo_inicial)
+        // Receitas - apenas lançamentos que afetam caixa
         $receitas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'receita')
+            ->where('afeta_caixa', true)
             ->selectRaw('conta_id, SUM(valor) as total')
             ->groupBy('conta_id')
             ->pluck('total', 'conta_id')
             ->all();
 
-        // Despesas (não precisa mais filtrar eh_saldo_inicial)
+        // Despesas - apenas lançamentos que afetam caixa
         $despesas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'despesa')
+            ->where('afeta_caixa', true)
             ->selectRaw('conta_id, SUM(valor) as total')
             ->groupBy('conta_id')
             ->pluck('total', 'conta_id')

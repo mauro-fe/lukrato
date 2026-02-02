@@ -54,13 +54,12 @@ class CartaoCreditoLancamentoService
                 ];
             }
 
-            // Determinar conta_id (usar do data ou do cartão)
-            $contaId = $data['conta_id'] ?? $cartao->conta_id;
+            // SEMPRE usar conta_id do cartão (conta de pagamento configurada)
+            // Não aceitar conta_id externo para evitar inconsistências
+            $contaId = $cartao->conta_id;
 
             LogService::info("[CARTAO] Dados recebidos", [
-                'conta_id_data' => $data['conta_id'] ?? 'null',
                 'conta_id_cartao' => $cartao->conta_id ?? 'null',
-                'conta_id_final' => $contaId ?? 'null',
                 'cartao_id' => $cartaoId,
                 'user_id' => $userId
             ]);
@@ -127,10 +126,11 @@ class CartaoCreditoLancamentoService
 
         // ===============================================================
         // CORREÇÃO: Criar LANÇAMENTO no momento da COMPRA (não no pagamento)
+        // Vincula conta_id para rastreabilidade, mas afeta_caixa = false
         // ===============================================================
         $lancamento = Lancamento::create([
             'user_id' => $userId,
-            'conta_id' => $contaId,
+            'conta_id' => $contaId,                    // Vincula conta para rastreabilidade
             'categoria_id' => $data['categoria_id'] ?? null,
             'cartao_credito_id' => $cartao->id,
             'tipo' => 'despesa',
@@ -238,7 +238,7 @@ class CartaoCreditoLancamentoService
 
             $lancamento = Lancamento::create([
                 'user_id' => $userId,
-                'conta_id' => $contaId,
+                'conta_id' => $contaId,                    // Vincula conta para rastreabilidade
                 'categoria_id' => $data['categoria_id'] ?? null,
                 'cartao_credito_id' => $cartao->id,
                 'tipo' => 'despesa',

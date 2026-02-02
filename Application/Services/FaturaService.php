@@ -51,7 +51,8 @@ class FaturaService
                 $query->where('status', $status);
             }
 
-            // Filtrar por mês/ano de referência (busca faturas que tenham itens nesse mês)
+            // Filtrar por mês/ano de referência dos itens
+            // Mostra faturas que tenham itens nesse mês/ano de competência
             if ($mes && $ano) {
                 $query->whereHas('itens', function ($q) use ($mes, $ano) {
                     $q->where('mes_referencia', $mes)
@@ -80,6 +81,7 @@ class FaturaService
 
     /**
      * Obter anos disponíveis das faturas do usuário
+     * Retorna todos os anos onde há itens de fatura
      */
     public function obterAnosDisponiveis(int $usuarioId): array
     {

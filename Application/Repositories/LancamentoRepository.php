@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Repositories;
 
 use Application\Models\Lancamento;
+use Application\Models\FaturaCartaoItem;
 use Application\Enums\LancamentoTipo;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -271,6 +272,22 @@ class LancamentoRepository extends BaseRepository
         }
 
         return (float) $query->sum('valor');
+    }
+
+    /**
+     * Deleta um lançamento e seus itens de fatura vinculados.
+     * 
+     * @param int $id
+     * @return bool
+     */
+    public function delete(int $id): bool
+    {
+        $lancamento = $this->findOrFail($id);
+
+        // Excluir itens de fatura vinculados a este lançamento
+        FaturaCartaoItem::where('lancamento_id', $id)->delete();
+
+        return $lancamento->delete();
     }
 
     /**

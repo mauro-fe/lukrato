@@ -67,7 +67,7 @@
         filtros: {
             status: '',
             cartao_id: '',
-            ano: '',
+            ano: new Date().getFullYear(),
             mes: ''
         },
         modalDetalhesInstance: null,
@@ -1309,12 +1309,20 @@
 
             // Guardar valor selecionado atual
             const valorAtual = DOM.filtroAno.value;
+            const anoAtual = new Date().getFullYear();
 
             DOM.filtroAno.innerHTML = '<option value="">Todos os anos</option>';
 
             if (anosDisponiveis.length > 0) {
                 // Usar anos das faturas
                 const anosOrdenados = [...anosDisponiveis].sort((a, b) => a - b);
+
+                // Garantir que o ano atual está na lista
+                if (!anosOrdenados.includes(anoAtual)) {
+                    anosOrdenados.push(anoAtual);
+                    anosOrdenados.sort((a, b) => a - b);
+                }
+
                 anosOrdenados.forEach(ano => {
                     const option = document.createElement('option');
                     option.value = ano;
@@ -1323,16 +1331,19 @@
                 });
             } else {
                 // Fallback: ano atual
-                const anoAtual = new Date().getFullYear();
                 const option = document.createElement('option');
                 option.value = anoAtual;
                 option.textContent = anoAtual;
                 DOM.filtroAno.appendChild(option);
             }
 
-            // Restaurar valor se ainda estiver disponível
+            // Restaurar valor se ainda estiver disponível, ou selecionar ano atual
             if (valorAtual) {
                 DOM.filtroAno.value = valorAtual;
+            } else {
+                // Selecionar ano atual por padrão
+                DOM.filtroAno.value = anoAtual;
+                STATE.filtros.ano = anoAtual;
             }
 
             // Sincronizar filtros da URL
