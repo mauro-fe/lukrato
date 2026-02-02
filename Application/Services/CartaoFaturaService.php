@@ -99,10 +99,11 @@ class CartaoFaturaService
      * REFATORADO: Agora cria UM ÚNICO lançamento para o pagamento da fatura inteira
      * - Não cria mais lançamento por item
      * - O lançamento representa o débito na conta = "Pagamento Fatura Cartão X - Jan/2026"
+     * @param int|null $contaIdOverride - Conta para débito (se null, usa a vinculada ao cartão)
      */
-    public function pagarFatura(int $cartaoId, int $mes, int $ano, int $userId): array
+    public function pagarFatura(int $cartaoId, int $mes, int $ano, int $userId, ?int $contaIdOverride = null): array
     {
-        error_log("💳 [FATURA] Iniciando pagamento - Cartão: {$cartaoId}, Mês: {$mes}/{$ano}, User: {$userId}");
+        error_log("💳 [FATURA] Iniciando pagamento - Cartão: {$cartaoId}, Mês: {$mes}/{$ano}, User: {$userId}, ContaOverride: " . ($contaIdOverride ?? 'NULL'));
 
         DB::beginTransaction();
 
@@ -111,7 +112,7 @@ class CartaoFaturaService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            error_log("💳 [FATURA] Cartão encontrado: {$cartao->nome_cartao} (Conta: " . ($cartao->conta_id ?? 'NULL') . ")");
+            error_log("💳 [FATURA] Cartão encontrado: {$cartao->nome_cartao} (Conta padrão: " . ($cartao->conta_id ?? 'NULL') . ")");
 
             $fatura = $this->obterFaturaMes($cartaoId, $mes, $ano);
 
@@ -126,10 +127,12 @@ class CartaoFaturaService
             }
 
             $totalPagar = array_sum(array_column($itensNaoPagos, 'valor'));
-            $contaId = $cartao->conta_id;
+
+            // Usar conta informada ou a vinculada ao cartão
+            $contaId = $contaIdOverride ?? $cartao->conta_id;
 
             if (!$contaId) {
-                throw new \Exception('Cartão não está vinculado a nenhuma conta.');
+                throw new \Exception('Selecione uma conta para débito do pagamento.');
             }
 
             $conta = Conta::where('id', $contaId)->where('user_id', $userId)->first();
@@ -142,7 +145,8 @@ class CartaoFaturaService
 
             if ($saldoAtual < $totalPagar) {
                 throw new \Exception(sprintf(
-                    'Saldo insuficiente. Disponível: R$ %.2f, Necessário: R$ %.2f',
+                    'Saldo insuficiente na conta %s. Disponível: R$ %.2f, Necessário: R$ %.2f',
+                    $conta->nome,
                     $saldoAtual,
                     $totalPagar
                 ));
@@ -718,7 +722,7 @@ class CartaoFaturaService
     // ========================================================================
 
     /**
-     * Calcular saldo da conta (exclui lançamentos de cartão)
+     * Calcular saldo da conta (usando afeta_caixa para considerar apenas lançamentos efetivos)
      */
     private function calcularSaldoConta(int $contaId, int $userId): float
     {
@@ -727,11 +731,35 @@ class CartaoFaturaService
             return 0;
         }
 
-        return $conta->saldo_inicial +
-            Lancamento::where('conta_id', $contaId)
+        $saldoInicial = (float) ($conta->saldo_inicial ?? 0);
+
+        // Receitas que afetam caixa
+        $receitas = Lancamento::where('conta_id', $contaId)
             ->where('user_id', $userId)
-            ->whereNull('cartao_credito_id')
-            ->sum(DB::raw("CASE WHEN tipo = 'receita' THEN valor ELSE -valor END"));
+            ->where('tipo', 'receita')
+            ->where('afeta_caixa', true)
+            ->sum('valor');
+
+        // Despesas que afetam caixa
+        $despesas = Lancamento::where('conta_id', $contaId)
+            ->where('user_id', $userId)
+            ->where('tipo', 'despesa')
+            ->where('afeta_caixa', true)
+            ->sum('valor');
+
+        // Transferências recebidas
+        $transfIn = Lancamento::where('conta_id_destino', $contaId)
+            ->where('user_id', $userId)
+            ->where('eh_transferencia', 1)
+            ->sum('valor');
+
+        // Transferências enviadas
+        $transfOut = Lancamento::where('conta_id', $contaId)
+            ->where('user_id', $userId)
+            ->where('eh_transferencia', 1)
+            ->sum('valor');
+
+        return $saldoInicial + $receitas - $despesas + $transfIn - $transfOut;
     }
 
     /**

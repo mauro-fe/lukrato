@@ -6,6 +6,8 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
+use Application\Models\FaturaCartaoItem;
+use Application\Models\Fatura;
 use Application\Services\LancamentoExportService;
 use Application\Services\GamificationService;
 use Application\Services\CartaoCreditoLancamentoService;
@@ -605,8 +607,71 @@ class LancamentosController extends BaseController
             return;
         }
 
+        // Se for um pagamento de fatura, reverter os itens da fatura
+        if ($t->origem_tipo === 'pagamento_fatura' && $t->cartao_credito_id) {
+            $this->reverterPagamentoFatura($t);
+        }
+
         $this->lancamentoRepo->delete($id);
         Response::success(['ok' => true]);
+    }
+
+    /**
+     * Reverte o pagamento de uma fatura quando o lançamento é excluído
+     */
+    private function reverterPagamentoFatura($lancamento): void
+    {
+        try {
+            // Extrair mês/ano da descrição do lançamento (ex: "Pagamento Fatura Nubank •••• 1234 - Fev/2026")
+            // ou da observação (ex: "14 item(s) pago(s) - Fatura 02/2026")
+            $mes = null;
+            $ano = null;
+
+            if (preg_match('/Fatura (\d{2})\/(\d{4})/', $lancamento->observacao, $matches)) {
+                $mes = (int)$matches[1];
+                $ano = (int)$matches[2];
+            }
+
+            if (!$mes || !$ano) {
+                error_log("⚠️ [REVERTER FATURA] Não foi possível extrair mês/ano do lançamento ID: {$lancamento->id}");
+                return;
+            }
+
+            error_log("🔄 [REVERTER FATURA] Revertendo pagamento - Cartão: {$lancamento->cartao_credito_id}, Mês: {$mes}/{$ano}");
+
+            // Buscar a fatura correspondente
+            $fatura = Fatura::where('cartao_id', $lancamento->cartao_credito_id)
+                ->where('mes_referencia', $mes)
+                ->where('ano_referencia', $ano)
+                ->first();
+
+            if (!$fatura) {
+                error_log("⚠️ [REVERTER FATURA] Fatura não encontrada para cartão {$lancamento->cartao_credito_id}, {$mes}/{$ano}");
+                return;
+            }
+
+            // Reverter todos os itens pagos desta fatura
+            $itensRevertidos = FaturaCartaoItem::where('fatura_id', $fatura->id)
+                ->where('pago', true)
+                ->update([
+                    'pago' => false,
+                    'data_pagamento' => null
+                ]);
+
+            // Atualizar status da fatura
+            $fatura->status = 'pendente';
+            $fatura->save();
+
+            // Recalcular limite do cartão
+            $cartao = $lancamento->cartaoCredito;
+            if ($cartao) {
+                $cartao->atualizarLimiteDisponivel();
+            }
+
+            error_log("✅ [REVERTER FATURA] {$itensRevertidos} itens revertidos para pendente");
+        } catch (\Exception $e) {
+            error_log("❌ [REVERTER FATURA] Erro: " . $e->getMessage());
+        }
     }
 
     /**

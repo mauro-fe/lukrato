@@ -65,22 +65,22 @@ $erros = 0;
 foreach ($itens as $item) {
     $mesVenc = (int) date('n', strtotime($item->data_vencimento));
     $anoVenc = (int) date('Y', strtotime($item->data_vencimento));
-    
+
     // Calcular competência correta (1 mês antes do vencimento)
     $mesRefCorreto = $mesVenc - 1;
     $anoRefCorreto = $anoVenc;
-    
+
     if ($mesRefCorreto < 1) {
         $mesRefCorreto = 12;
         $anoRefCorreto--;
     }
-    
+
     // Verificar se já está correto
     if ((int)$item->mes_referencia === $mesRefCorreto && (int)$item->ano_referencia === $anoRefCorreto) {
         $jaCorretos++;
         continue;
     }
-    
+
     // Aplicar correção
     try {
         DB::table('faturas_cartao_itens')
@@ -89,7 +89,7 @@ foreach ($itens as $item) {
                 'mes_referencia' => $mesRefCorreto,
                 'ano_referencia' => $anoRefCorreto,
             ]);
-        
+
         echo "✅ Item {$item->id}: {$item->mes_referencia}/{$item->ano_referencia} → {$mesRefCorreto}/{$anoRefCorreto}\n";
         $corrigidos++;
     } catch (Exception $e) {

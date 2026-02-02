@@ -229,6 +229,30 @@
                 method: 'POST',
                 body: JSON.stringify({ pago })
             });
+        },
+
+        /**
+         * Pagar fatura completa - cria UM ÚNICO lançamento agrupado
+         * @param {number} cartaoId - ID do cartão de crédito
+         * @param {number} mes - Mês da fatura (1-12)
+         * @param {number} ano - Ano da fatura
+         * @param {number|null} contaId - ID da conta para débito (null = usa conta vinculada ao cartão)
+         */
+        async pagarFaturaCompleta(cartaoId, mes, ano, contaId = null) {
+            const payload = { mes, ano };
+            if (contaId) payload.conta_id = contaId;
+
+            return await Utils.apiRequest(`${CONFIG.ENDPOINTS.cartoes}/${cartaoId}/fatura/pagar`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+        },
+
+        /**
+         * Listar contas do usuário com saldos
+         */
+        async listarContas() {
+            return await Utils.apiRequest(`${CONFIG.ENDPOINTS.contas}?with_balances=1`);
         }
     };
 
@@ -1375,6 +1399,65 @@
 
         async pagarFaturaCompleta(faturaId, valorTotal) {
             try {
+                // Primeiro buscar os dados da fatura e as contas disponíveis
+                Swal.fire({
+                    title: 'Carregando...',
+                    html: 'Buscando informações da fatura e contas disponíveis.',
+                    allowOutsideClick: false,
+                    heightAuto: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const container = document.querySelector('.swal2-container');
+                        if (container) container.style.zIndex = '99999';
+                    },
+                    customClass: {
+                        container: 'swal-above-modal'
+                    }
+                });
+
+                // Buscar fatura e contas em paralelo
+                const [faturaResponse, contasResponse] = await Promise.all([
+                    API.buscarParcelamento(faturaId),
+                    API.listarContas()
+                ]);
+
+                const fatura = faturaResponse;
+                const contas = contasResponse.data || contasResponse || [];
+
+                if (!fatura.data || !fatura.data.cartao) {
+                    throw new Error('Dados da fatura incompletos');
+                }
+
+                const cartaoId = fatura.data.cartao.id;
+                const contaPadraoId = fatura.data.cartao.conta_id || null;
+
+                // Extrair mês/ano da descrição da fatura (ex: "Fatura 2/2026")
+                const descricao = fatura.data.descricao || '';
+                const match = descricao.match(/(\d+)\/(\d+)/);
+                const mes = match ? match[1] : null;
+                const ano = match ? match[2] : null;
+
+                if (!mes || !ano) {
+                    throw new Error('Não foi possível identificar o mês/ano da fatura');
+                }
+
+                // Montar opções do select de contas
+                let contasOptions = '';
+                if (Array.isArray(contas) && contas.length > 0) {
+                    contas.forEach(conta => {
+                        const saldo = conta.saldoAtual ?? conta.saldo_atual ?? conta.saldo ?? 0;
+                        const saldoFormatado = Utils.formatMoney(saldo);
+                        const isDefault = conta.id === contaPadraoId;
+                        const saldoSuficiente = saldo >= valorTotal;
+                        const statusClass = saldoSuficiente ? 'color: #059669;' : 'color: #dc2626;';
+                        contasOptions += `<option value="${conta.id}" ${isDefault ? 'selected' : ''} ${!saldoSuficiente ? 'style="color: #dc2626;"' : ''}>
+                            ${Utils.escapeHtml(conta.nome)} - ${saldoFormatado}${isDefault ? ' (vinculada ao cartão)' : ''}
+                        </option>`;
+                    });
+                } else {
+                    throw new Error('Nenhuma conta disponível para débito');
+                }
+
                 const result = await Swal.fire({
                     title: 'Pagar Fatura Completa?',
                     html: `
@@ -1383,7 +1466,15 @@
                             <div style="font-size: 0.875rem; color: #047857; margin-bottom: 0.5rem;">Valor Total:</div>
                             <div style="font-size: 1.5rem; font-weight: bold; color: #059669;">${Utils.formatMoney(valorTotal)}</div>
                         </div>
-                        <p style="color: #6b7280; font-size: 0.875rem;">Todos os itens pendentes serão marcados como pagos.</p>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; text-align: left; margin-bottom: 0.5rem; color: #374151; font-weight: 500;">
+                                <i class="fas fa-university"></i> Conta para débito:
+                            </label>
+                            <select id="swalContaSelect" class="swal2-select" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem;">
+                                ${contasOptions}
+                            </select>
+                        </div>
+                        <p style="color: #6b7280; font-size: 0.875rem;">O valor será debitado da conta selecionada.</p>
                     `,
                     icon: 'question',
                     showCancelButton: true,
@@ -1398,10 +1489,21 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
+                    },
+                    preConfirm: () => {
+                        const contaSelect = document.getElementById('swalContaSelect');
+                        const selectedContaId = contaSelect ? parseInt(contaSelect.value) : null;
+                        if (!selectedContaId) {
+                            Swal.showValidationMessage('Selecione uma conta para débito');
+                            return false;
+                        }
+                        return { contaId: selectedContaId };
                     }
                 });
 
                 if (!result.isConfirmed) return;
+
+                const selectedContaId = result.value.contaId;
 
                 Swal.fire({
                     title: 'Processando pagamento...',
@@ -1418,20 +1520,26 @@
                     }
                 });
 
-                const fatura = await API.buscarParcelamento(faturaId);
-                const itensPendentes = fatura.data.parcelas.filter(p => !p.pago);
+                // Chamar API que cria UM ÚNICO lançamento agrupado, passando a conta selecionada
+                const response = await API.pagarFaturaCompleta(cartaoId, parseInt(mes), parseInt(ano), selectedContaId);
 
-                for (const item of itensPendentes) {
-                    await API.toggleItemFatura(faturaId, item.id, true);
+                if (!response.success) {
+                    throw new Error(response.error || 'Erro ao processar pagamento');
                 }
 
                 await Swal.fire({
                     icon: 'success',
                     title: 'Fatura Paga!',
                     html: `
-                        <p>Todos os itens foram pagos com sucesso!</p>
-                        <div style="margin-top: 1rem; color: #059669;">
-                            <i class="fas fa-check-circle" style="font-size: 3rem;"></i>
+                        <p>${response.message || 'Fatura paga com sucesso!'}</p>
+                        <div style="margin: 1rem 0; padding: 0.75rem; background: #f0fdf4; border-radius: 8px;">
+                            <div style="font-size: 0.875rem; color: #047857;">Valor debitado:</div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: #059669;">
+                                ${Utils.formatMoney(response.valor_pago || valorTotal)}
+                            </div>
+                        </div>
+                        <div style="color: #059669;">
+                            <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
                         </div>
                     `,
                     timer: 3000,

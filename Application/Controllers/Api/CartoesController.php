@@ -113,9 +113,9 @@ class CartoesController
             error_log("🎮 [GAMIFICATION] Verificando conquistas para user_id: {$userId}");
             $achievementService = new \Application\Services\AchievementService();
             $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'card_created');
-            
+
             error_log("🎮 [GAMIFICATION] Conquistas encontradas: " . count($newAchievements));
-            
+
             if (!empty($newAchievements)) {
                 $gamificationResult['achievements'] = $newAchievements;
                 error_log("🎮 [GAMIFICATION] " . count($newAchievements) . " conquistas desbloqueadas após criar cartão");
@@ -333,21 +333,26 @@ class CartoesController
         $userId = Auth::id();
         $data = $this->getRequestPayload();
 
+        error_log("💳 [CONTROLLER] Payload recebido: " . json_encode($data));
+
         $mes = $data['mes'] ?? (int) date('n');
         $ano = $data['ano'] ?? (int) date('Y');
+        $contaId = isset($data['conta_id']) ? (int)$data['conta_id'] : null;
+
+        error_log("💳 [CONTROLLER] Mes: {$mes}, Ano: {$ano}, ContaId: " . ($contaId ?? 'NULL'));
 
         try {
-            $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId);
-            
+            $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId, $contaId);
+
             // 🎮 GAMIFICAÇÃO: Verificar conquistas após pagar fatura
             $gamificationResult = [];
             try {
                 error_log("🎮 [GAMIFICATION] Verificando conquistas para user_id: {$userId}");
                 $achievementService = new \Application\Services\AchievementService();
                 $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'invoice_paid');
-                
+
                 error_log("🎮 [GAMIFICATION] Conquistas encontradas: " . count($newAchievements));
-                
+
                 if (!empty($newAchievements)) {
                     $gamificationResult['achievements'] = $newAchievements;
                     $resultado['gamification'] = $gamificationResult;
@@ -360,7 +365,7 @@ class CartoesController
                 error_log("❌ [GAMIFICATION] Erro ao verificar conquistas: " . $e->getMessage());
                 error_log("❌ [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
             }
-            
+
             Response::json($resultado);
         } catch (\Exception $e) {
             Response::json([
