@@ -2376,9 +2376,24 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupFormSubmit() {
+            // Prevenir múltiplas submissões
+            let isSubmitting = false;
+            
             DOM.form?.addEventListener('submit', async (event) => {
                 event.preventDefault();
-                await Actions.save();
+                event.stopPropagation();
+                
+                if (isSubmitting) {
+                    console.warn('Submissão já em andamento, ignorando duplicata');
+                    return;
+                }
+                
+                isSubmitting = true;
+                try {
+                    await Actions.save();
+                } finally {
+                    isSubmitting = false;
+                }
             });
         },
 

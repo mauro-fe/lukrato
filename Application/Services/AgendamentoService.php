@@ -140,8 +140,9 @@ class AgendamentoService
             // Atualizar para próxima ocorrência
             $agendamento->update([
                 'data_pagamento' => $proximaData,
+                'status' => 'pendente', // Volta para pendente
+                'notificado_em' => null, // Limpa para permitir nova notificação
                 'concluido_em' => date('Y-m-d H:i:s'), // Registra última execução
-                // Status continua PENDENTE para aparecer novamente
             ]);
 
             LogService::info('Agendamento recorrente executado e avançado', [
