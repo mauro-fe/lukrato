@@ -737,7 +737,7 @@ class FaturaService
     }
 
     /**
-     * Desmarcar item como pago e remover lançamento
+     * Desmarcar item como pago e reverter lançamento
      */
     private function desmarcarItemPago(FaturaCartaoItem $item): void
     {
@@ -746,10 +746,23 @@ class FaturaService
             return;
         }
 
-        // Remover lançamento se existir
+        // Reverter lançamento se existir (não deletar!)
         if ($item->lancamento_id) {
-            Lancamento::where('id', $item->lancamento_id)->delete();
-            $item->lancamento_id = null;
+            $lancamento = Lancamento::find($item->lancamento_id);
+            if ($lancamento) {
+                // Marcar como não pago e remover efeito no caixa
+                $lancamento->update([
+                    'pago' => false,
+                    'data_pagamento' => null,
+                    'afeta_caixa' => false,  // Não afeta mais o saldo!
+                    'observacao' => sprintf(
+                        'Pagamento revertido - %s (Parcela %d/%d)',
+                        $item->descricao ?? 'Item de fatura',
+                        $item->parcela_atual ?? 1,
+                        $item->total_parcelas ?? 1
+                    ),
+                ]);
+            }
         }
 
         $item->pago = false;

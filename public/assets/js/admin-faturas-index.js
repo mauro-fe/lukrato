@@ -546,15 +546,6 @@
                                     <span class="btn-text-mobile">Pagar Tudo</span>
                                 </button>
                             ` : ''}
-                            ${!temItensPagos ? `
-                                <button class="btn-excluir-fatura" 
-                                        onclick="window.excluirFaturaGlobal(${parc.id})"
-                                        title="Excluir fatura completa">
-                                    <i class="fas fa-trash-alt"></i>
-                                    <span class="btn-text-desktop">Excluir Fatura</span>
-                                    <span class="btn-text-mobile">Excluir</span>
-                                </button>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -807,26 +798,15 @@
                     </div>
                 `;
             } else {
-                // Item pendente: editar, pagar e excluir
+                // Item pendente: apenas botão de pagar
+                // Editar/excluir deve ser feito via tela de Lançamentos
                 return `
                     <div class="btn-group-parcela">
-                        <button class="btn-editar-item" 
-                            data-item-id="${parcela.id}"
-                            data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
-                            data-valor="${parcela.valor_parcela || parcela.valor || 0}"
-                            title="Editar item">
-                            <i class="fas fa-edit"></i>
-                        </button>
                         <button class="btn-toggle-parcela btn-pagar" 
                             data-lancamento-id="${parcela.id}" 
                             data-pago="false"
                             title="Marcar como pago">
                             <i class="fas fa-check"></i>
-                        </button>
-                        <button class="btn-excluir-item" 
-                            data-item-id="${parcela.id}"
-                            title="Excluir item">
-                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
