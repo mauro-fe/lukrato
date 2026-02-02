@@ -283,7 +283,10 @@
             div.dataset.id = parc.id;
 
             const statusBadge = this.getStatusBadge(parc.status, progresso);
-            const [mes, ano] = this.extrairMesAno(parc.descricao);
+
+            // Usar mes_referencia/ano_referencia da API (mais preciso)
+            const mes = parc.mes_referencia || '';
+            const ano = parc.ano_referencia || '';
 
             div.innerHTML = this.createCardHTML({
                 parc,
@@ -518,8 +521,9 @@
         },
 
         renderDetalhesHeader(parc, temItensPendentes, valorRestante) {
-            // Extrair mês e ano da descrição da fatura (ex: "Fatura 2/2026")
-            const [mes, ano] = this.extrairMesAno(parc.descricao);
+            // Usar mes_referencia/ano_referencia da API (mais preciso)
+            const mes = parc.mes_referencia || '';
+            const ano = parc.ano_referencia || '';
             const mesNome = this.getNomeMes(mes);
             const mesAnoFormatado = `${mesNome}/${ano}`;
 

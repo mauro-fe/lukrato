@@ -275,6 +275,10 @@ class CartaoCreditoLancamentoService
                 'pago' => false,
             ]);
 
+            // Extrair mês/ano do VENCIMENTO desta parcela (cada parcela vai para seu mês)
+            $mesVencParcela = (int) date('n', strtotime($dataVencimentoParcela));
+            $anoVencParcela = (int) date('Y', strtotime($dataVencimentoParcela));
+
             // Criar item de fatura vinculado à fatura mensal E ao lançamento
             $item = FaturaCartaoItem::create([
                 'user_id' => $userId,
@@ -288,9 +292,10 @@ class CartaoCreditoLancamentoService
                 'categoria_id' => $data['categoria_id'] ?? null,
                 'parcela_atual' => $i,
                 'total_parcelas' => $totalParcelas,
-                // mes_referencia = mês do VENCIMENTO da parcela (competência)
-                'mes_referencia' => $vencimento['mes'],
-                'ano_referencia' => $vencimento['ano'],
+                // Para parcelados: mes_referencia = mês que a PARCELA vence (não a compra)
+                // Parcela 1 vence em jan -> fatura jan, Parcela 2 vence em fev -> fatura fev, etc.
+                'mes_referencia' => $mesVencParcela,
+                'ano_referencia' => $anoVencParcela,
                 'pago' => false,
             ]);
 

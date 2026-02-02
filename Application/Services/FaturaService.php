@@ -823,6 +823,28 @@ class FaturaService
             })
             ->first();
 
+        // Obter meses únicos de referência dos itens desta fatura
+        $mesesReferencia = $fatura->itens
+            ->map(function ($item) {
+                return [
+                    'mes' => $item->mes_referencia,
+                    'ano' => $item->ano_referencia,
+                ];
+            })
+            ->unique(function ($item) {
+                return $item['ano'] . '-' . $item['mes'];
+            })
+            ->sortBy(function ($item) {
+                return $item['ano'] * 100 + $item['mes'];
+            })
+            ->values()
+            ->toArray();
+
+        // Primeiro mês de referência (para exibição principal)
+        $primeiroMesRef = $fatura->itens->sortBy(function ($item) {
+            return $item->ano_referencia * 100 + $item->mes_referencia;
+        })->first();
+
         return [
             'id' => $fatura->id,
             'descricao' => $fatura->descricao,
@@ -830,6 +852,11 @@ class FaturaService
             'numero_parcelas' => $fatura->numero_parcelas,
             'valor_parcela' => $fatura->valor_parcela,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
+            // Mês/ano de referência (primeiro mês onde aparece)
+            'mes_referencia' => $primeiroMesRef ? $primeiroMesRef->mes_referencia : null,
+            'ano_referencia' => $primeiroMesRef ? $primeiroMesRef->ano_referencia : null,
+            // Lista de todos os meses onde este parcelamento aparece
+            'meses_referencia' => $mesesReferencia,
             'proxima_parcela' => $primeiroItemPendente ? [
                 'numero' => $primeiroItemPendente->parcela_atual,
                 'mes' => $primeiroItemPendente->mes_referencia,
