@@ -24,11 +24,12 @@ try {
     $mailService = new MailService();
 
     $agendamentos = Agendamento::with(['usuario:id,nome,email'])
-        ->where('status', 'pendente')
+        ->whereIn('status', ['pendente', 'notificado'])
+        ->whereNull('notificado_em')
         ->get();
 
     $count = count($agendamentos);
-    LogService::info("[dispatch_reminders] Agendamentos pendentes encontrados: {$count}");
+    LogService::info("[dispatch_reminders] Agendamentos para processar encontrados: {$count}");
 
     foreach ($agendamentos as $agendamento) {
         $pagamento = $agendamento->data_pagamento instanceof \DateTimeInterface
@@ -38,12 +39,18 @@ try {
         $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
         $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
 
-        if ($reminderTimestamp > $windowLimit->getTimestamp() || $reminderTimestamp < $now->getTimestamp()) {
+        // Verifica se está dentro da janela: deve estar entre (agora - 5 minutos) e (agora + 10 minutos)
+        // A janela retroativa permite processar notificações que deveriam ter sido enviadas recentemente
+        $windowStart = $now->modify('-5 minutes')->getTimestamp();
+        $windowEnd = $windowLimit->getTimestamp();
+
+        if ($reminderTimestamp < $windowStart || $reminderTimestamp > $windowEnd) {
             LogService::info(sprintf(
-                "[dispatch_reminders] Ignorado agendamento #%d (%s): fora da janela (%s)",
+                "[dispatch_reminders] Ignorado agendamento #%d (%s): fora da janela (%s, lembrar em %s)",
                 $agendamento->id,
                 $agendamento->titulo,
-                $pagamento->format('d/m/Y H:i')
+                $pagamento->format('d/m/Y H:i'),
+                date('d/m/Y H:i', $reminderTimestamp)
             ));
             continue;
         }
@@ -96,11 +103,11 @@ try {
             LogService::warning('[dispatch_reminders] Canal email habilitado, mas SMTP nao configurado');
         }
 
-        $agendamento->status = 'enviado';
+        $agendamento->status = 'notificado';
         $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
         $agendamento->save();
 
-        LogService::info("[dispatch_reminders] Agendamento #{$agendamento->id} marcado como 'enviado'.");
+        LogService::info("[dispatch_reminders] Agendamento #{$agendamento->id} marcado como 'notificado'.");
     }
 
     LogService::info('=== [dispatch_reminders] Execucao finalizada com sucesso ===');
