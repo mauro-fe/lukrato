@@ -812,6 +812,7 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 13px;
   background: transparent;
+  color: var(--color-text) !important;
 }
 
 .action-btn.btn-edit,
@@ -826,7 +827,7 @@
 .action-btn.edit-btn:hover,
 .lk-actions .lk-btn.ghost:hover {
   background: var(--color-warning);
-  color: white;
+  color: var(--color-text);
   border-color: var(--color-warning);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px
@@ -845,7 +846,7 @@
 .action-btn.delete-btn:hover,
 .lk-actions .lk-btn.delete:hover {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text);
   border-color: var(--color-danger);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px
@@ -1029,7 +1030,7 @@
 
 .pagination-btn:hover:not(:disabled) {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text);
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px
@@ -1090,7 +1091,7 @@
     var(--color-primary),
     color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary))
   );
-  color: white;
+  color: var(--color-text);
   border-color: transparent;
   box-shadow: 0 4px 12px
     color-mix(in srgb, var(--color-primary) 40%, transparent);
@@ -1149,7 +1150,7 @@
 .lk-checkbox input[type="checkbox"]:checked::after {
   content: "✓";
   position: absolute;
-  color: white;
+  color: var(--color-text);
   font-size: 12px;
   font-weight: bold;
 }
@@ -2841,7 +2842,7 @@
   .lan-card[aria-expanded="true"] .lan-card-toggle-icon {
     transform: rotate(90deg);
     background: var(--color-primary);
-    color: white;
+    color: var(--color-text);
   }
 
   /* Bloco de detalhes (Categoria, Conta, Descrição) */
@@ -2921,6 +2922,7 @@
     padding: 0 !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--color-text) !important;
   }
 
   .lan-card-detail-row .lk-btn:active {
@@ -3111,13 +3113,11 @@
 
   .lan-card-detail-value.actions-slot .lk-btn.ghost {
     background: rgba(230, 126, 34, 0.2) !important;
-    color: var(--color-primary) !important;
     border: 1px solid rgba(230, 126, 34, 0.4) !important;
   }
 
   .lan-card-detail-value.actions-slot .lk-btn.danger {
     background: rgba(231, 76, 60, 0.2) !important;
-    color: var(--color-danger) !important;
     border: 1px solid rgba(231, 76, 60, 0.4) !important;
   }
 
@@ -3395,7 +3395,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: white;
+  color: var(--color-text);
   font-size: 1rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
