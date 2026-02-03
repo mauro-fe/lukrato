@@ -493,7 +493,7 @@
 
 .chart-container {
   padding: var(--spacing-6);
-  background: var(--glass-bg);
+  background: var(--color-bg);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   position: relative;
