@@ -10,7 +10,18 @@
 
     RewriteBase /lukrato/public/
 
+    # Force HTTPS (descomente em produção)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+    # Remove trailing slash
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [R=301,L]
+
+    # Force www (opcional - descomente se quiser forçar www)
+    # RewriteCond %{HTTP_HOST} !^www\. [NC]
+    # RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
 
@@ -20,32 +31,159 @@
 
 </IfModule>
 
-# Segurança extra
+# ==========================================
+
+# SEO - Headers e Segurança
+
+# ==========================================
 
 <IfModule mod_headers.c>
 
+    # Segurança
     Header always set X-Content-Type-Options "nosniff"
-
-    Header always set X-Frame-Options "DENY"
-
+    Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # Cache Control para assets estáticos (SEO Performance)
+    <FilesMatch "\.(ico|pdf|jpg|jpeg|png|gif|webp|svg|js|css|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+
+    # Cache para HTML (curto)
+    <FilesMatch "\.(html|htm|php)$">
+        Header set Cache-Control "max-age=0, private, must-revalidate"
+    </FilesMatch>
 
 </IfModule>
 
+# ==========================================
+
+# Compressão GZIP para Performance
+
+# ==========================================
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/atom+xml
+    AddOutputFilterByType DEFLATE font/ttf
+    AddOutputFilterByType DEFLATE font/otf
+    AddOutputFilterByType DEFLATE font/woff
+    AddOutputFilterByType DEFLATE font/woff2
+</IfModule>
+
+# ==========================================
+
+# Expires Headers para Cache
+
+# ==========================================
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Default
+    ExpiresDefault "access plus 1 month"
+    
+    # HTML
+    ExpiresByType text/html "access plus 0 seconds"
+    
+    # CSS e JavaScript
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    
+    # Imagens
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    
+    # Fontes
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+    
+    # XML e JSON
+    ExpiresByType application/json "access plus 0 seconds"
+    ExpiresByType application/xml "access plus 0 seconds"
+    ExpiresByType text/xml "access plus 0 seconds"
+</IfModule>
+
+# ==========================================
+
+# ETags para validação de cache
+
+# ==========================================
+
+<IfModule mod_headers.c>
+    Header unset ETag
+</IfModule>
+FileETag None
+
+# ==========================================
+
 # Proteção contra acesso indevido
 
-<FilesMatch "\.(env|json|lock|gitignore|htaccess|sql)$">
+# ==========================================
 
-    Order allow,deny
-
-    Deny from all
-
+<FilesMatch "\.(env|lock|gitignore|sql|log|bak|backup)$">
+<IfModule mod_authz_core.c>
+Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+Order allow,deny
+Deny from all
+</IfModule>
 </FilesMatch>
 
-<Files "\*.json">
+# Permitir manifest.json para PWA
 
-    Order allow,deny
+<Files "manifest.json">
+<IfModule mod_authz_core.c>
+Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+Order allow,deny
+Allow from all
+</IfModule>
+</Files>
 
-    Deny from all
+# Permitir sitemap.xml
 
+<Files "sitemap.xml">
+<IfModule mod_authz_core.c>
+Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+Order allow,deny
+Allow from all
+</IfModule>
+</Files>
+
+# Permitir robots.txt
+
+<Files "robots.txt">
+<IfModule mod_authz_core.c>
+Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+Order allow,deny
+Allow from all
+</IfModule>
 </Files>

@@ -1,8 +1,9 @@
 ﻿<!-- Hero Section -->
 <section
-    class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
+    class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50"
+    aria-label="Seção principal - Controle financeiro pessoal" itemscope itemtype="https://schema.org/WebPageElement">
     <!-- Background Decorations -->
-    <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
             class="absolute top-20 left-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
         </div>
@@ -18,48 +19,53 @@
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
             <!-- Conteúdo Principal -->
-            <div class="text-center lg:text-left space-y-8" data-aos="fade-right">
+            <article class="text-center lg:text-left space-y-8" data-aos="fade-right">
                 <!-- Badge -->
                 <div
                     class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></span>
                     <span class="text-sm font-medium text-gray-700">Mais de 1.000 usuários organizando suas
                         finanças</span>
                 </div>
 
-                <!-- Título -->
+                <!-- Título Principal - H1 único e otimizado -->
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight">
-                    Organize suas finanças de forma
+                    Controle Financeiro Pessoal
                     <span
                         class="bg-gradient-to-r from-primary via-orange-500 to-orange-600 bg-clip-text text-transparent">
-                        simples e inteligente
+                        Simples e Inteligente
                     </span>
                 </h1>
 
-                <!-- Subtítulo -->
+                <!-- Subtítulo otimizado para SEO -->
                 <p class="text-xl sm:text-2xl text-gray-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                    Controle suas entradas, saídas e agendamentos em um só lugar.
-                    Sem complicação, sem surpresas.
+                    Organize suas <strong>receitas, despesas e orçamento</strong> em um só lugar.
+                    O melhor <strong>aplicativo gratuito</strong> para gerenciar seu dinheiro sem complicação.
                 </p>
 
                 <!-- CTAs -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
                     <a href="<?= BASE_URL ?>login"
-                        class="group inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
+                        class="group inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                        title="Criar conta gratuita no Lukrato" aria-label="Começar a usar o Lukrato gratuitamente">
                         Começar grátis agora
-                        <i class="fa-solid fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>
+                        <i class="fa-solid fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"
+                            aria-hidden="true"></i>
                     </a>
 
                     <a href="#funcionalidades"
-                        class="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary shadow-lg hover:shadow-xl transition-all duration-300">
-                        <i class="fa-solid fa-play mr-3"></i>
+                        class="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary shadow-lg hover:shadow-xl transition-all duration-300"
+                        title="Ver funcionalidades do app de controle financeiro"
+                        aria-label="Conhecer as funcionalidades do Lukrato">
+                        <i class="fa-solid fa-play mr-3" aria-hidden="true"></i>
                         Ver como funciona
                     </a>
                 </div>
 
                 <!-- Social Proof -->
-                <div class="flex flex-col sm:flex-row items-center gap-6 pt-8">
-                    <div class="flex -space-x-3">
+                <div class="flex flex-col sm:flex-row items-center gap-6 pt-8" itemscope
+                    itemtype="https://schema.org/AggregateRating">
+                    <div class="flex -space-x-3" aria-hidden="true">
                         <div
                             class="w-12 h-12 rounded-full border-4 border-white bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white font-bold shadow-lg">
                             J
@@ -78,97 +84,101 @@
                         </div>
                     </div>
                     <div class="text-center sm:text-left">
-                        <div class="flex gap-1 mb-1 justify-center sm:justify-start">
-                            <i class="fa-solid fa-star text-yellow-400"></i>
-                            <i class="fa-solid fa-star text-yellow-400"></i>
-                            <i class="fa-solid fa-star text-yellow-400"></i>
-                            <i class="fa-solid fa-star text-yellow-400"></i>
-                            <i class="fa-solid fa-star text-yellow-400"></i>
+                        <div class="flex gap-1 mb-1 justify-center sm:justify-start"
+                            aria-label="Avaliação 4.9 de 5 estrelas">
+                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
+                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
+                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
+                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
+                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
                         </div>
                         <p class="text-sm text-gray-600">
-                            <strong class="text-gray-900">4.9/5</strong> baseado em mais de 200 avaliações
+                            <strong class="text-gray-900" itemprop="ratingValue">4.9</strong>/5 baseado em mais de <span
+                                itemprop="ratingCount">200</span> avaliações
                         </p>
+                        <meta itemprop="bestRating" content="5">
+                        <meta itemprop="worstRating" content="1">
                     </div>
                 </div>
 
                 <!-- Features rápidos -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
                     <div class="flex items-center gap-2 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i class="fa-solid fa-check-circle text-green-500" aria-hidden="true"></i>
                         <span class="text-sm font-medium">Grátis para começar</span>
                     </div>
                     <div class="flex items-center gap-2 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i class="fa-solid fa-check-circle text-green-500" aria-hidden="true"></i>
                         <span class="text-sm font-medium">Sem cartão</span>
                     </div>
                     <div class="flex items-center gap-2 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i class="fa-solid fa-check-circle text-green-500" aria-hidden="true"></i>
                         <span class="text-sm font-medium">Fácil de usar</span>
                     </div>
                 </div>
-            </div>
+            </article>
 
             <!-- Imagem / Mockup -->
-            <div class="relative" data-aos="fade-left">
+            <figure class="relative" data-aos="fade-left">
                 <!-- Decoração de fundo -->
-                <div
-                    class="absolute -inset-8 bg-gradient-to-r from-primary via-orange-500 to-orange-600 rounded-3xl blur-3xl opacity-20 animate-pulse">
+                <div class="absolute -inset-8 bg-gradient-to-r from-primary via-orange-500 to-orange-600 rounded-3xl blur-3xl opacity-20 animate-pulse"
+                    aria-hidden="true">
                 </div>
 
                 <!-- Card principal -->
                 <div
                     class="relative bg-white rounded-3xl shadow-2xl p-4 transform hover:scale-105 transition-transform duration-500">
-                    <img src="<?= BASE_URL ?>/assets/img/mockups/notebook.jpeg" alt="Dashboard do Lukrato"
-                        class="w-full h-auto rounded-2xl" loading="eager" />
-
-                    <!-- Badge flutuante -->
-                    <div class="absolute -top-6 -right-6 bg-white rounded-2xl shadow-xl p-4 animate-bounce">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-dollar-sign text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500">Saldo Total</p>
-                                <p class="text-lg font-bold text-gray-900">R$ 12.450</p>
-                            </div>
+                    <img src="<?= BASE_URL ?>/assets/img/mockups/notebook.jpeg"
+                        alt="Dashboard do Lukrato mostrando controle financeiro pessoal com gráficos de receitas e despesas"
+                        title="Sistema de controle financeiro Lukrato - Dashboard principal"
+                        class="w-full h-auto rounded-2xl" loading="eager" width="800" height="500"
+                        fetchpriority="high" />
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-dollar-sign text-white text-xl"></i>
                         </div>
-                    </div>
-
-                    <!-- Badge flutuante inferior -->
-                    <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-chart-line text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500">Economia</p>
-                                <p class="text-lg font-bold text-green-600">+23%</p>
-                            </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Saldo Total</p>
+                            <p class="text-lg font-bold text-gray-900">R$ 12.450</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
+                <!-- Badge flutuante inferior -->
+                <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4" aria-hidden="true">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-chart-line text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Economia</p>
+                            <p class="text-lg font-bold text-green-600">+23%</p>
+                        </div>
+                    </div>
+                </div>
         </div>
+        <figcaption class="sr-only">Dashboard do aplicativo Lukrato para controle financeiro pessoal</figcaption>
+        </figure>
+    </div>
 
-        <!-- Seta de scroll suave -->
-        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:block" data-aos="fade-up"
-            data-aos-delay="1000">
-            <a href="#funcionalidades"
-                class="flex flex-col items-center gap-2 text-gray-400 hover:text-gray-600 transition-colors animate-bounce">
-                <span class="text-sm font-medium">Role para descobrir</span>
-                <i class="fa-solid fa-chevron-down text-xl"></i>
-            </a>
-        </div>
+    <!-- Seta de scroll suave -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:block" data-aos="fade-up" data-aos-delay="1000">
+        <a href="#funcionalidades"
+            class="flex flex-col items-center gap-2 text-gray-400 hover:text-gray-600 transition-colors animate-bounce">
+            <span class="text-sm font-medium">Role para descobrir</span>
+            <i class="fa-solid fa-chevron-down text-xl"></i>
+        </a>
+    </div>
     </div>
 </section>
 
 <!-- Seção de Funcionalidades -->
-<section id="funcionalidades" class="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-white to-gray-50">
+<section id="funcionalidades" class="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-white to-gray-50"
+    aria-labelledby="funcionalidades-titulo">
     <!-- Background decoration -->
-    <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
             class="absolute top-20 right-0 w-96 h-96 bg-orange-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
         </div>
@@ -181,52 +191,56 @@
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
             <!-- Conteúdo de texto -->
-            <div class="order-2 lg:order-1 space-y-8" data-aos="fade-right">
+            <article class="order-2 lg:order-1 space-y-8" data-aos="fade-right">
                 <div class="space-y-4">
-                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                        Veja o Lukrato organizando suas
+                    <h2 id="funcionalidades-titulo"
+                        class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                        Funcionalidades para Organizar suas
                         <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                            finanças por você
+                            Finanças Pessoais
                         </span>
                     </h2>
                     <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                        Acompanhe entradas, saídas e agendamentos em um painel simples de entender,
-                        pensado para o seu dia a dia.
+                        Acompanhe <strong>receitas, despesas e agendamentos</strong> em um painel simples de entender,
+                        pensado para o seu dia a dia. Controle financeiro nunca foi tão fácil.
                     </p>
                 </div>
 
                 <!-- Lista de features -->
-                <ul class="space-y-4">
+                <ul class="space-y-4" role="list">
                     <li class="flex items-start gap-4 group">
-                        <div
-                            class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">
                             <i class="fa-solid fa-chart-line text-xl"></i>
                         </div>
                         <div class="flex-1 pt-1">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Visão clara do mês</h3>
-                            <p class="text-gray-600">Saldo consolidado e leitura rápida do que importa.</p>
+                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Dashboard com visão clara do mês</h3>
+                            <p class="text-gray-600">Saldo consolidado e leitura rápida de <strong>receitas e
+                                    despesas</strong> do período.</p>
                         </div>
                     </li>
 
                     <li class="flex items-start gap-4 group">
-                        <div
-                            class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">
                             <i class="fa-regular fa-calendar-check text-xl"></i>
                         </div>
                         <div class="flex-1 pt-1">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Agendamentos inteligentes</h3>
-                            <p class="text-gray-600">Organize contas e evite atrasos com lembretes.</p>
+                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Agendamentos e lembretes de contas</h3>
+                            <p class="text-gray-600">Organize <strong>contas a pagar</strong> e evite atrasos com
+                                lembretes automáticos.</p>
                         </div>
                     </li>
 
                     <li class="flex items-start gap-4 group">
-                        <div
-                            class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">
                             <i class="fa-solid fa-chart-pie text-xl"></i>
                         </div>
                         <div class="flex-1 pt-1">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Relatórios e gráficos</h3>
-                            <p class="text-gray-600">Entenda seus hábitos com visual limpo e objetivo.</p>
+                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Relatórios e gráficos financeiros</h3>
+                            <p class="text-gray-600">Entenda seus <strong>hábitos de consumo</strong> com visual limpo e
+                                objetivo.</p>
                         </div>
                     </li>
                 </ul>
@@ -234,119 +248,118 @@
                 <!-- CTAs -->
                 <div class="flex flex-col sm:flex-row gap-4 pt-4">
                     <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                        class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                        title="Começar a usar o Lukrato grátis" aria-label="Criar conta gratuita">
                         Começar grátis
-                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                        <i class="fa-solid fa-arrow-right ml-2" aria-hidden="true"></i>
                     </a>
 
                     <button type="button" id="openGalleryBtn" @click="$dispatch('open-gallery')"
                         onclick="document.getElementById('galleryModal').style.display='flex'"
-                        class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary hover:shadow-lg transition-all duration-300">
-                        <i class="fa-regular fa-images mr-2"></i>
+                        class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary hover:shadow-lg transition-all duration-300"
+                        title="Ver screenshots do sistema" aria-label="Abrir galeria de imagens do sistema">
+                        <i class="fa-regular fa-images mr-2" aria-hidden="true"></i>
                         Ver o sistema por dentro
                     </button>
                 </div>
 
                 <!-- Social proof -->
                 <div class="flex items-center gap-3 pt-4">
-                    <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></div>
                     <p class="text-sm text-gray-600">
                         Painel pensado para ser rápido, bonito e fácil de usar.
                     </p>
                 </div>
-            </div>
+            </article>
+            <div class="relative">
+                <!-- Decoração de fundo -->
+                <div
+                    class="absolute -inset-4 bg-gradient-to-r from-primary to-orange-600 rounded-3xl blur-2xl opacity-20 animate-pulse">
+                </div>
 
-            <!-- Card Explicativo do Nome -->
-            <div class="order-1 lg:order-2" data-aos="fade-left">
-                <div class="relative">
-                    <!-- Decoração de fundo -->
+                <!-- Card Principal -->
+                <div
+                    class="relative bg-gradient-to-br from-white via-orange-50/30 to-white rounded-3xl shadow-2xl p-8 sm:p-10 border-2 border-orange-100">
+
+                    <!-- Ícone decorativo -->
                     <div
-                        class="absolute -inset-4 bg-gradient-to-r from-primary to-orange-600 rounded-3xl blur-2xl opacity-20 animate-pulse">
+                        class="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center shadow-xl">
+                        <i class="fa-solid fa-lightbulb text-4xl text-white"></i>
                     </div>
 
-                    <!-- Card Principal -->
-                    <div
-                        class="relative bg-gradient-to-br from-white via-orange-50/30 to-white rounded-3xl shadow-2xl p-8 sm:p-10 border-2 border-orange-100">
-
-                        <!-- Ícone decorativo -->
+                    <!-- Conteúdo -->
+                    <div class="relative">
+                        <!-- Badge -->
                         <div
-                            class="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center shadow-xl">
-                            <i class="fa-solid fa-lightbulb text-4xl text-white"></i>
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-orange-600 text-white rounded-full text-sm font-semibold mb-6 shadow-lg">
+                            <i class="fa-solid fa-star"></i>
+                            <span>Por que Lukrato?</span>
                         </div>
 
-                        <!-- Conteúdo -->
-                        <div class="relative">
-                            <!-- Badge -->
+                        <!-- Título -->
+                        <h3 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                            O significado do
+                            <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
+                                nosso nome
+                            </span>
+                        </h3>
+
+                        <!-- Descrição principal -->
+                        <div class="space-y-4 mb-8">
+                            <p class="text-lg text-gray-700 leading-relaxed">
+                                <strong class="text-primary font-bold">Lukrato</strong> vem do verbo
+                                <strong class="text-gray-900">"lucrar"</strong> – e não é por acaso!
+                            </p>
+
+                            <p class="text-lg text-gray-600 leading-relaxed">
+                                Para começar a ter lucros de verdade, você precisa primeiro se organizar
+                                financeiramente.
+                                É assim que você consegue guardar sua grana e fazer seu dinheiro trabalhar para
+                                você.
+                            </p>
+                        </div>
+
+                        <!-- Cards de benefícios -->
+                        <div class="grid sm:grid-cols-2 gap-4">
                             <div
-                                class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-orange-600 text-white rounded-full text-sm font-semibold mb-6 shadow-lg">
-                                <i class="fa-solid fa-star"></i>
-                                <span>Por que Lukrato?</span>
-                            </div>
-
-                            <!-- Título -->
-                            <h3 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                                O significado do
-                                <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                                    nosso nome
-                                </span>
-                            </h3>
-
-                            <!-- Descrição principal -->
-                            <div class="space-y-4 mb-8">
-                                <p class="text-lg text-gray-700 leading-relaxed">
-                                    <strong class="text-primary font-bold">Lukrato</strong> vem do verbo
-                                    <strong class="text-gray-900">"lucrar"</strong> – e não é por acaso!
-                                </p>
-
-                                <p class="text-lg text-gray-600 leading-relaxed">
-                                    Para começar a ter lucros de verdade, você precisa primeiro se organizar
-                                    financeiramente.
-                                    É assim que você consegue guardar sua grana e fazer seu dinheiro trabalhar para
-                                    você.
-                                </p>
-                            </div>
-
-                            <!-- Cards de benefícios -->
-                            <div class="grid sm:grid-cols-2 gap-4">
+                                class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
                                 <div
-                                    class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                    <div
-                                        class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                                        <i class="fa-solid fa-piggy-bank text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 mb-1">Organize-se</h4>
-                                        <p class="text-sm text-gray-600">Controle total das suas finanças</p>
-                                    </div>
+                                    class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                                    <i class="fa-solid fa-piggy-bank text-white"></i>
                                 </div>
-
-                                <div
-                                    class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                    <div
-                                        class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center">
-                                        <i class="fa-solid fa-chart-line text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 mb-1">Lucre mais</h4>
-                                        <p class="text-sm text-gray-600">Faça seu dinheiro crescer</p>
-                                    </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-1">Organize-se</h4>
+                                    <p class="text-sm text-gray-600">Controle total das suas finanças</p>
                                 </div>
                             </div>
 
-                            <!-- Citação -->
                             <div
-                                class="mt-8 p-6 bg-gradient-to-r from-primary/10 to-orange-600/10 border-l-4 border-primary rounded-r-xl">
-                                <p class="text-gray-800 italic font-medium">
-                                    "Organização financeira é o primeiro passo para conquistar seus objetivos e ter
-                                    tranquilidade no futuro."
-                                </p>
+                                class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                                <div
+                                    class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center">
+                                    <i class="fa-solid fa-chart-line text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-1">Lucre mais</h4>
+                                    <p class="text-sm text-gray-600">Faça seu dinheiro crescer</p>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Citação -->
+                        <div
+                            class="mt-8 p-6 bg-gradient-to-r from-primary/10 to-orange-600/10 border-l-4 border-primary rounded-r-xl">
+                            <p class="text-gray-800 italic font-medium">
+                                "Organização financeira é o primeiro passo para conquistar seus objetivos e ter
+                                tranquilidade no futuro."
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
+
+    </div>
     </div>
 </section>
 
@@ -439,116 +452,124 @@
 
 
 <!-- Seção de Benefícios -->
-<section id="beneficios"
-    class="relative py-20 md:py-32 bg-gradient-to-br from-gray-50 via-orange-50/30 to-orange-50/20">
+<section id="beneficios" class="relative py-20 md:py-32 bg-gradient-to-br from-gray-50 via-orange-50/30 to-orange-50/20"
+    aria-labelledby="beneficios-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header da seção -->
-        <div class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                Benefícios pensados para facilitar sua
+        <header class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
+            <h2 id="beneficios-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                Benefícios do Controle Financeiro
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                    vida financeira
+                    Pessoal Inteligente
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                O Lukrato não é apenas um sistema. Ele foi criado para ajudar você a
-                organizar seu dinheiro, evitar preocupações e tomar decisões melhores
+                O Lukrato não é apenas um sistema de <strong>gestão financeira</strong>. Ele foi criado para ajudar você
+                a
+                organizar seu dinheiro, evitar preocupações e tomar <strong>decisões financeiras melhores</strong>
                 no dia a dia, sem complicação.
             </p>
-        </div>
+        </header>
 
         <!-- Grid de benefícios -->
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16" role="list">
 
             <!-- Card 1 -->
-            <div class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-                data-aos="fade-up" data-aos-delay="100">
-                <div
-                    class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300">
+            <article
+                class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                data-aos="fade-up" data-aos-delay="100" role="listitem">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true">
                     <i class="fa-regular fa-eye text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Mais clareza sobre o seu dinheiro</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Clareza sobre seu orçamento pessoal</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    Veja suas entradas, saídas e saldo de forma clara e organizada.
+                    Veja suas <strong>receitas, despesas</strong> e saldo de forma clara e organizada.
                     Nada de confusão, anotações soltas ou planilhas difíceis de entender.
                 </p>
-            </div>
+            </article>
 
             <!-- Card 2 -->
-            <div class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-                data-aos="fade-up" data-aos-delay="200">
-                <div
-                    class="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300">
+            <article
+                class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                data-aos="fade-up" data-aos-delay="200" role="listitem">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true">
                     <i class="fa-regular fa-clock text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Economia de tempo no dia a dia</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Economia de tempo no controle de gastos</h3>
                 <p class="text-gray-600 leading-relaxed">
                     Registre seus gastos rapidamente e acompanhe tudo em poucos minutos.
                     Menos tempo organizando, mais tempo para o que realmente importa.
                 </p>
-            </div>
+            </article>
 
             <!-- Card 3 -->
-            <div class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-                data-aos="fade-up" data-aos-delay="300">
-                <div
-                    class="w-14 h-14 rounded-xl bg-gradient-to-br from-warning to-yellow-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300">
+            <article
+                class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                data-aos="fade-up" data-aos-delay="300" role="listitem">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-warning to-yellow-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true">
                     <i class="fa-regular fa-bell text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Evite atrasos e juros desnecessários</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    Com agendamentos e lembretes, você não esquece mais contas importantes
+                    Com <strong>agendamentos financeiros</strong> e lembretes, você não esquece mais contas importantes
                     e evita pagar juros por atraso.
                 </p>
-            </div>
+            </article>
 
             <!-- Card 4 -->
-            <div class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-                data-aos="fade-up" data-aos-delay="400">
-                <div
-                    class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300">
+            <article
+                class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                data-aos="fade-up" data-aos-delay="400" role="listitem">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true">
                     <i class="fa-regular fa-chart-bar text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Decisões melhores com dados visuais</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Relatórios financeiros com gráficos visuais</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    Gráficos simples mostram seus hábitos financeiros e ajudam você
+                    Gráficos simples mostram seus <strong>hábitos de consumo</strong> e ajudam você
                     a entender onde pode economizar ou se planejar melhor.
                 </p>
-            </div>
+            </article>
 
             <!-- Card 5 -->
-            <div class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-                data-aos="fade-up" data-aos-delay="500">
-                <div
-                    class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300">
+            <article
+                class="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                data-aos="fade-up" data-aos-delay="500" role="listitem">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true">
                     <i class="fa-regular fa-face-smile text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Fácil de usar, mesmo para iniciantes</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">App financeiro fácil de usar</h3>
                 <p class="text-gray-600 leading-relaxed">
                     O Lukrato foi pensado para qualquer pessoa, mesmo quem nunca usou
-                    um sistema financeiro antes. Tudo é simples, intuitivo e direto.
+                    um <strong>sistema financeiro</strong> antes. Tudo é simples, intuitivo e direto.
                 </p>
-            </div>
+            </article>
 
             <!-- Card 6 - destaque extra -->
-            <div class="sm:col-span-2 lg:col-span-1 group bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-white"
-                data-aos="fade-up" data-aos-delay="600">
-                <div
-                    class="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <article
+                class="sm:col-span-2 lg:col-span-1 group bg-gradient-to-br from-primary to-orange-600 rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-white"
+                data-aos="fade-up" data-aos-delay="600" role="listitem">
+                <div class="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true">
                     <i class="fa-solid fa-rocket text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold mb-3">Comece agora mesmo</h3>
+                <h3 class="text-xl font-bold mb-3">Comece agora mesmo - É grátis!</h3>
                 <p class="text-blue-50 leading-relaxed mb-6">
-                    Sem necessidade de cartão de crédito. Crie sua conta gratuitamente e comece a organizar suas
-                    finanças hoje.
+                    Sem necessidade de cartão de crédito. Crie sua conta gratuitamente e comece a <strong>organizar suas
+                        finanças</strong> hoje.
                 </p>
                 <a href="<?= BASE_URL ?>login"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                    title="Criar conta gratuita" aria-label="Começar a usar o Lukrato gratuitamente">
                     Começar grátis
-                    <i class="fa-solid fa-arrow-right"></i>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
-            </div>
+            </article>
 
         </div>
 
@@ -575,7 +596,7 @@
 
 
 <!-- Seção de Planos -->
-<section id="planos" class="relative py-20 md:py-32 bg-gray-50">
+<section id="planos" class="relative py-20 md:py-32 bg-gray-50" aria-labelledby="planos-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div x-data="{ 
@@ -592,15 +613,16 @@
                 }
             }">
 
-            <div class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                    Planos simples,
+            <header class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
+                <h2 id="planos-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                    Planos de Controle Financeiro
                     <span class="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
-                        sem complicação
+                        Simples e Acessíveis
                     </span>
                 </h2>
                 <p class="text-lg text-gray-600 mb-10">
-                    Comece grátis e evolua para o Pro quando quiser mais controle e tranquilidade.
+                    Comece <strong>grátis</strong> e evolua para o Pro quando quiser mais controle sobre suas
+                    <strong>finanças pessoais</strong>.
                 </p>
 
                 <div class="inline-flex bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm gap-1">
@@ -624,111 +646,111 @@
                             class="absolute -top-2 -right-1 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
                     </button>
                 </div>
-            </div>
+        </div>
 
-            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16 items-stretch">
+        <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16 items-stretch">
 
-                <?php if ($planoGratuito): ?>
-                    <div class="flex flex-col bg-white border-2 border-gray-100 rounded-3xl p-8 hover:border-orange-200 transition-all duration-300 shadow-sm hover:shadow-xl"
-                        data-aos="fade-right">
-                        <div class="flex-grow">
-                            <div class="mb-8">
-                                <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                    <?= htmlspecialchars($planoGratuito->nome) ?></h3>
-                                <div class="flex items-baseline gap-1 mb-4">
-                                    <span class="text-5xl font-extrabold text-gray-900">R$ 0</span>
-                                </div>
-                                <p class="text-gray-500 text-sm leading-relaxed">
-                                    <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização.') ?>
-                                </p>
+            <?php if ($planoGratuito): ?>
+                <div class="flex flex-col bg-white border-2 border-gray-100 rounded-3xl p-8 hover:border-orange-200 transition-all duration-300 shadow-sm hover:shadow-xl"
+                    data-aos="fade-right">
+                    <div class="flex-grow">
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                <?= htmlspecialchars($planoGratuito->nome) ?></h3>
+                            <div class="flex items-baseline gap-1 mb-4">
+                                <span class="text-5xl font-extrabold text-gray-900">R$ 0</span>
                             </div>
+                            <p class="text-gray-500 text-sm leading-relaxed">
+                                <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização.') ?>
+                            </p>
+                        </div>
 
-                            <ul class="space-y-4 mb-8">
-                                <li class="flex items-center gap-3 text-gray-700">
-                                    <i class="fa-solid fa-check text-green-500"></i>
-                                    <span>Controle financeiro essencial</span>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-center gap-3 text-gray-700">
+                                <i class="fa-solid fa-check text-green-500"></i>
+                                <span>Controle financeiro essencial</span>
+                            </li>
+                            <?php
+                            $limitacoes = ['Relatórios avançados', 'Agendamentos', 'Exportação de dados', 'Suporte prioritário'];
+                            foreach ($limitacoes as $limite): ?>
+                                <li class="flex items-center gap-3 text-gray-400 opacity-60">
+                                    <i class="fa-solid fa-xmark text-gray-300"></i>
+                                    <span class="text-sm"><?= $limite ?></span>
                                 </li>
-                                <?php
-                                $limitacoes = ['Relatórios avançados', 'Agendamentos', 'Exportação de dados', 'Suporte prioritário'];
-                                foreach ($limitacoes as $limite): ?>
-                                    <li class="flex items-center gap-3 text-gray-400 opacity-60">
-                                        <i class="fa-solid fa-xmark text-gray-300"></i>
-                                        <span class="text-sm"><?= $limite ?></span>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-
-                        <a href="<?= BASE_URL ?>login"
-                            class="block w-full text-center py-4 px-6 text-orange-600 font-bold border-2 border-orange-600 rounded-2xl hover:bg-orange-50 transition-all">
-                            Começar grátis
-                        </a>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
-                <?php endif; ?>
 
-                <?php foreach ($planosPagos as $plano):
-                    $precoMensal = $plano->preco_centavos / 100;
-                ?>
-                    <div class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
-                        x-data="{ basePrice: <?= $precoMensal ?> }" data-aos="fade-left">
+                    <a href="<?= BASE_URL ?>login"
+                        class="block w-full text-center py-4 px-6 text-orange-600 font-bold border-2 border-orange-600 rounded-2xl hover:bg-orange-50 transition-all">
+                        Começar grátis
+                    </a>
+                </div>
+            <?php endif; ?>
 
-                        <div
-                            class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-orange-900 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
-                            Mais Escolhido
-                        </div>
+            <?php foreach ($planosPagos as $plano):
+                $precoMensal = $plano->preco_centavos / 100;
+            ?>
+                <div class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
+                    x-data="{ basePrice: <?= $precoMensal ?> }" data-aos="fade-left">
 
-                        <div class="flex-grow">
-                            <div class="mb-8 pt-2">
-                                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+                    <div
+                        class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-orange-900 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                        Mais Escolhido
+                    </div>
 
-                                <!-- Preço promocional - sempre mostra o "de" riscado -->
-                                <div class="h-6">
-                                    <span class="text-orange-200 line-through text-sm">
-                                        <span x-show="period === 'mensal'">De R$ 29,90</span>
-                                        <span x-show="period !== 'mensal'">R$ <span
+                    <div class="flex-grow">
+                        <div class="mb-8 pt-2">
+                            <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+
+                            <!-- Preço promocional - sempre mostra o "de" riscado -->
+                            <div class="h-6">
+                                <span class="text-orange-200 line-through text-sm">
+                                    <span x-show="period === 'mensal'">De R$ 29,90</span>
+                                    <span x-show="period !== 'mensal'">R$ <span
                                             x-text="period === 'semestral' ? (basePrice * 6).toFixed(2) : (basePrice * 12).toFixed(2)"></span></span>
-                                    </span>
-                                </div>
-
-                                <div class="flex items-baseline gap-1 mb-2">
-                                    <span class="text-5xl font-extrabold"
-                                        x-text="'R$ ' + (period === 'mensal' ? basePrice.toFixed(2) : (period === 'semestral' ? (basePrice * 6 * 0.9).toFixed(2) : (basePrice * 12 * 0.85).toFixed(2)))"></span>
-                                    <span class="text-orange-100 text-sm" x-text="'/ ' + periodLabel"></span>
-                                </div>
-
-                                <p class="text-orange-100 text-sm opacity-90"
-                                    x-text="period === 'mensal' ? 'Plano flexível' : 'Equivalente a R$ ' + (period === 'semestral' ? (basePrice * 0.9).toFixed(2) : (basePrice * 0.85).toFixed(2)) + ' / mês'">
-                                </p>
+                                </span>
                             </div>
 
-                            <ul class="space-y-4 mb-8">
-                                <?php
-                                $recursos = $plano->metadados['recursos'] ?? ['Relatórios avançados', 'Agendamentos', 'Exportação total', 'Categorias ilimitadas', 'Suporte VIP'];
-                                foreach ($recursos as $recurso): ?>
-                                    <li class="flex items-center gap-3">
-                                        <i class="fa-solid fa-check text-orange-200"></i>
-                                        <span class="font-medium"><?= htmlspecialchars($recurso) ?></span>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
+                            <div class="flex items-baseline gap-1 mb-2">
+                                <span class="text-5xl font-extrabold"
+                                    x-text="'R$ ' + (period === 'mensal' ? basePrice.toFixed(2) : (period === 'semestral' ? (basePrice * 6 * 0.9).toFixed(2) : (basePrice * 12 * 0.85).toFixed(2)))"></span>
+                                <span class="text-orange-100 text-sm" x-text="'/ ' + periodLabel"></span>
+                            </div>
+
+                            <p class="text-orange-100 text-sm opacity-90"
+                                x-text="period === 'mensal' ? 'Plano flexível' : 'Equivalente a R$ ' + (period === 'semestral' ? (basePrice * 0.9).toFixed(2) : (basePrice * 0.85).toFixed(2)) + ' / mês'">
+                            </p>
                         </div>
 
-                        <a href="<?= BASE_URL ?>billing"
-                            class="block w-full text-center py-4 px-6 bg-white text-orange-600 font-bold rounded-2xl hover:bg-gray-50 transition-all shadow-lg">
-                            Assinar Pro agora
-                        </a>
+                        <ul class="space-y-4 mb-8">
+                            <?php
+                            $recursos = $plano->metadados['recursos'] ?? ['Relatórios avançados', 'Agendamentos', 'Exportação total', 'Categorias ilimitadas', 'Suporte VIP'];
+                            foreach ($recursos as $recurso): ?>
+                                <li class="flex items-center gap-3">
+                                    <i class="fa-solid fa-check text-orange-200"></i>
+                                    <span class="font-medium"><?= htmlspecialchars($recurso) ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
-                <?php endforeach; ?>
 
-            </div>
-            <div class="text-center" data-aos="fade-up">
-                <p class="text-gray-500 flex items-center justify-center gap-2 text-sm font-medium">
-                    <i class="fa-solid fa-shield-halved text-green-500"></i>
-                    Sem fidelidade. Cancele quando quiser pelo painel.
-                </p>
-            </div>
+                    <a href="<?= BASE_URL ?>billing"
+                        class="block w-full text-center py-4 px-6 bg-white text-orange-600 font-bold rounded-2xl hover:bg-gray-50 transition-all shadow-lg">
+                        Assinar Pro agora
+                    </a>
+                </div>
+            <?php endforeach; ?>
 
         </div>
+        <div class="text-center" data-aos="fade-up">
+            <p class="text-gray-500 flex items-center justify-center gap-2 text-sm font-medium">
+                <i class="fa-solid fa-shield-halved text-green-500"></i>
+                Sem fidelidade. Cancele quando quiser pelo painel.
+            </p>
+        </div>
+
+    </div>
     </div>
 </section>
 
@@ -823,19 +845,20 @@
 
 
 <!-- Seção de Contato -->
-<section id="contato" class="relative py-20 md:py-32 bg-white" x-data="{ activeTab: 'whatsapp' }">
+<section id="contato" class="relative py-20 md:py-32 bg-white" x-data="{ activeTab: 'whatsapp' }"
+    aria-labelledby="contato-titulo" itemscope itemtype="https://schema.org/ContactPage">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
-        <div class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                Fale com
+        <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+            <h2 id="contato-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                Fale com o
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                    a gente
+                    Suporte Lukrato
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 mb-8">
-                Tirou dúvidas, quer sugestões ou precisa de ajuda? Escolha o canal abaixo.
+                Dúvidas sobre <strong>controle financeiro pessoal</strong>? Quer sugestões ou precisa de ajuda? Escolha o canal abaixo.
             </p>
 
             <!-- Toggle Tabs com Alpine.js -->
@@ -853,127 +876,127 @@
                     E-mail
                 </button>
             </div>
-        </div>
+    </div>
 
-        <!-- Panels -->
-        <div class="max-w-3xl mx-auto">
+    <!-- Panels -->
+    <div class="max-w-3xl mx-auto">
 
-            <!-- WhatsApp Panel -->
-            <div x-show="activeTab === 'whatsapp'" x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 transform scale-95"
-                x-transition:enter-end="opacity-100 transform scale-100"
-                class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 sm:p-12 shadow-xl"
-                data-aos="fade-up">
+        <!-- WhatsApp Panel -->
+        <div x-show="activeTab === 'whatsapp'" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform scale-95"
+            x-transition:enter-end="opacity-100 transform scale-100"
+            class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 sm:p-12 shadow-xl"
+            data-aos="fade-up">
 
-                <div class="text-center mb-8">
-                    <div
-                        class="inline-flex w-16 h-16 bg-green-500 rounded-full items-center justify-center mb-4 shadow-lg">
-                        <i class="fa-brands fa-whatsapp text-3xl text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Atendimento rápido</h3>
-                    <p class="text-gray-600">Normalmente respondemos em poucos minutos em horário comercial.</p>
+            <div class="text-center mb-8">
+                <div
+                    class="inline-flex w-16 h-16 bg-green-500 rounded-full items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-brands fa-whatsapp text-3xl text-white"></i>
                 </div>
-
-                <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                    <a href="https://wa.me/5544999506302?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20Lukrato."
-                        target="_blank" rel="noopener"
-                        class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                        <i class="fa-brands fa-whatsapp text-xl"></i>
-                        WhatsApp (Comercial)
-                    </a>
-
-                    <a href="https://wa.me/5544997178938?text=Ol%C3%A1!%20Preciso%20de%20suporte%20no%20Lukrato."
-                        target="_blank" rel="noopener"
-                        class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-green-600 border-2 border-green-500 font-semibold rounded-xl hover:bg-green-50 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                        <i class="fa-solid fa-headset text-xl"></i>
-                        WhatsApp (Suporte)
-                    </a>
-                </div>
-
-                <div class="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
-                        Sem compromisso
-                    </span>
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-                        <i class="fa-solid fa-lock text-primary"></i>
-                        Seus dados ficam privados
-                    </span>
-                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Atendimento rápido</h3>
+                <p class="text-gray-600">Normalmente respondemos em poucos minutos em horário comercial.</p>
             </div>
 
-            <!-- E-mail Panel -->
-            <div x-show="activeTab === 'email'" x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 transform scale-95"
-                x-transition:enter-end="opacity-100 transform scale-100"
-                class="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-8 sm:p-12 shadow-xl"
-                data-aos="fade-up">
+            <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                <a href="https://wa.me/5544999506302?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20Lukrato."
+                    target="_blank" rel="noopener"
+                    class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    WhatsApp (Comercial)
+                </a>
 
-                <div class="text-center mb-8">
-                    <div
-                        class="inline-flex w-16 h-16 bg-primary rounded-full items-center justify-center mb-4 shadow-lg">
-                        <i class="fa-regular fa-envelope text-3xl text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Envie uma mensagem</h3>
-                    <p class="text-gray-600">Prefere e-mail? Mande sua dúvida e respondemos em até 1 dia útil.</p>
+                <a href="https://wa.me/5544997178938?text=Ol%C3%A1!%20Preciso%20de%20suporte%20no%20Lukrato."
+                    target="_blank" rel="noopener"
+                    class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-green-600 border-2 border-green-500 font-semibold rounded-xl hover:bg-green-50 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    <i class="fa-solid fa-headset text-xl"></i>
+                    WhatsApp (Suporte)
+                </a>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                    <i class="fa-solid fa-check-circle text-green-500"></i>
+                    Sem compromisso
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                    <i class="fa-solid fa-lock text-primary"></i>
+                    Seus dados ficam privados
+                </span>
+            </div>
+        </div>
+
+        <!-- E-mail Panel -->
+        <div x-show="activeTab === 'email'" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform scale-95"
+            x-transition:enter-end="opacity-100 transform scale-100"
+            class="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-8 sm:p-12 shadow-xl"
+            data-aos="fade-up">
+
+            <div class="text-center mb-8">
+                <div
+                    class="inline-flex w-16 h-16 bg-primary rounded-full items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-regular fa-envelope text-3xl text-white"></i>
                 </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Envie uma mensagem</h3>
+                <p class="text-gray-600">Prefere e-mail? Mande sua dúvida e respondemos em até 1 dia útil.</p>
+            </div>
 
-                <form id="contactForm" class="space-y-6">
-                    <div class="grid sm:grid-cols-2 gap-6">
-                        <div>
-                            <label for="lk_nome" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Seu nome
-                            </label>
-                            <input id="lk_nome" name="nome" type="text" placeholder="Seu nome" required
-                                class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
-                        </div>
-
-                        <div>
-                            <label for="whatsapp" class="block text-sm font-semibold text-gray-700 mb-2">
-                                WhatsApp <span class="text-gray-400 font-normal">(opcional)</span>
-                            </label>
-                            <input id="whatsapp" name="whatsapp" type="text" placeholder="(00) 00000-0000"
-                                autocomplete="tel"
-                                class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
-                        </div>
-                    </div>
-
+            <form id="contactForm" class="space-y-6">
+                <div class="grid sm:grid-cols-2 gap-6">
                     <div>
-                        <label for="lk_email" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Seu e-mail
+                        <label for="lk_nome" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Seu nome
                         </label>
-                        <input id="lk_email" name="email" type="email" placeholder="voce@email.com" required
+                        <input id="lk_nome" name="nome" type="text" placeholder="Seu nome" required
                             class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
                     </div>
 
                     <div>
-                        <label for="lk_assunto" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Assunto
+                        <label for="whatsapp" class="block text-sm font-semibold text-gray-700 mb-2">
+                            WhatsApp <span class="text-gray-400 font-normal">(opcional)</span>
                         </label>
-                        <input id="lk_assunto" name="assunto" type="text" placeholder="Ex: Dúvida sobre o plano Pro"
-                            required
+                        <input id="whatsapp" name="whatsapp" type="text" placeholder="(00) 00000-0000"
+                            autocomplete="tel"
                             class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
                     </div>
+                </div>
 
-                    <div>
-                        <label for="lk_mensagem" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Mensagem
-                        </label>
-                        <textarea id="lk_mensagem" name="mensagem" rows="6" placeholder="Escreva sua mensagem..."
-                            required
-                            class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all resize-none"></textarea>
-                    </div>
+                <div>
+                    <label for="lk_email" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Seu e-mail
+                    </label>
+                    <input id="lk_email" name="email" type="email" placeholder="voce@email.com" required
+                        class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+                </div>
 
-                    <button type="submit"
-                        class="w-full px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                        <i class="fa-regular fa-paper-plane mr-2"></i>
-                        Enviar mensagem
-                    </button>
-                </form>
+                <div>
+                    <label for="lk_assunto" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Assunto
+                    </label>
+                    <input id="lk_assunto" name="assunto" type="text" placeholder="Ex: Dúvida sobre o plano Pro"
+                        required
+                        class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+                </div>
 
-            </div>
+                <div>
+                    <label for="lk_mensagem" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Mensagem
+                    </label>
+                    <textarea id="lk_mensagem" name="mensagem" rows="6" placeholder="Escreva sua mensagem..."
+                        required
+                        class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all resize-none"></textarea>
+                </div>
+
+                <button type="submit"
+                    class="w-full px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    <i class="fa-regular fa-paper-plane mr-2"></i>
+                    Enviar mensagem
+                </button>
+            </form>
 
         </div>
+
+    </div>
 
     </div>
 </section>

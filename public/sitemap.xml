@@ -1,14 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
-    <!-- Página principal -->
+    <!-- Página principal / Landing Page -->
     <url>
         <loc>https://lukrato.com.br/</loc>
-        <lastmod>2026-01-31</lastmod>
+        <lastmod>2026-02-03</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
+        <image:image>
+            <image:loc>https://lukrato.com.br/assets/img/og-image.png</image:loc>
+            <image:title>Lukrato - Controle Financeiro Pessoal</image:title>
+            <image:caption>Dashboard do Lukrato mostrando controle de finanças pessoais</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://lukrato.com.br/assets/img/logo.png</image:loc>
+            <image:title>Logo Lukrato</image:title>
+        </image:image>
+    </url>
+
+    <!-- Página de Login/Cadastro -->
+    <url>
+        <loc>https://lukrato.com.br/login</loc>
+        <lastmod>2026-02-03</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- Seções importantes da Landing (âncoras para SEO) -->
+    <url>
+        <loc>https://lukrato.com.br/#funcionalidades</loc>
+        <lastmod>2026-02-03</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://lukrato.com.br/#beneficios</loc>
+        <lastmod>2026-02-03</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://lukrato.com.br/#planos</loc>
+        <lastmod>2026-02-03</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <url>
+        <loc>https://lukrato.com.br/#contato</loc>
+        <lastmod>2026-02-03</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
     </url>
 
     <!-- Páginas legais -->
@@ -31,6 +76,14 @@
         <lastmod>2026-01-31</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
+    </url>
+
+    <!-- Página de Assinatura/Billing -->
+    <url>
+        <loc>https://lukrato.com.br/billing</loc>
+        <lastmod>2026-02-03</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
     </url>
 
 </urlset>

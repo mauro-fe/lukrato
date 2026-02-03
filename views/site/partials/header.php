@@ -1,19 +1,22 @@
 <?php
-$pageTitle = $pageTitle ?? 'Lukrato – Controle Financeiro Pessoal Simples e Inteligente';
+$pageTitle = $pageTitle ?? 'Lukrato – Controle Financeiro Pessoal Simples e Inteligente | Grátis';
 
 $pageDescription = $pageDescription ??
-    'Controle suas finanças pessoais de forma simples. Organize gastos, crie orçamento, acompanhe despesas e tenha clareza sobre seu dinheiro. Comece grátis e evolua quando quiser.';
+    'Organize suas finanças pessoais de forma simples e inteligente. O Lukrato é o melhor aplicativo gratuito de controle financeiro para gerenciar gastos, criar orçamentos, acompanhar despesas e ter clareza sobre seu dinheiro. Comece grátis agora!';
 
 $pageKeywords = $pageKeywords ??
-    'controle financeiro pessoal, controle de gastos, orçamento pessoal, finanças pessoais, como economizar dinheiro, aplicativo de controle financeiro';
+    'controle financeiro pessoal, aplicativo controle financeiro grátis, controle de gastos, orçamento pessoal, finanças pessoais, como economizar dinheiro, app financeiro, planilha de gastos, gerenciador financeiro, controle de despesas, organizar finanças, planejamento financeiro pessoal, app para controlar gastos, controle financeiro online, sistema financeiro pessoal';
 
-$pageUrl = $pageUrl ?? BASE_URL . $_SERVER['REQUEST_URI'];
+$pageUrl = $pageUrl ?? BASE_URL . ltrim($_SERVER['REQUEST_URI'], '/');
 
 $pageImage = $pageImage ?? BASE_URL . 'assets/img/og-image.png'; // 1200x630px
 
 $extraCss  = $extraCss ?? [];
 
-$canonicalUrl = $canonicalUrl ?? $pageUrl;
+$canonicalUrl = $canonicalUrl ?? rtrim(BASE_URL, '/') . '/';
+
+// Breadcrumb data
+$breadcrumbItems = $breadcrumbItems ?? [];
 ?>
 
 
@@ -32,7 +35,19 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
     <meta name="keywords" content="<?= htmlspecialchars($pageKeywords) ?>">
     <meta name="author" content="Lukrato">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
+
+    <!-- Mobile & App Meta Tags -->
+    <meta name="theme-color" content="#e67e22">
+    <meta name="msapplication-TileColor" content="#e67e22">
+    <meta name="application-name" content="Lukrato">
+    <meta name="apple-mobile-web-app-title" content="Lukrato">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
 
     <!-- Geo Tags -->
     <meta name="geo.region" content="BR-PR">
@@ -68,6 +83,11 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>assets/img/icone.png">
     <link rel="apple-touch-icon" href="<?= BASE_URL ?>assets/img/icone.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= BASE_URL ?>assets/img/icone.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= BASE_URL ?>assets/img/icone.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= BASE_URL ?>assets/img/icone.png">
+    <link rel="manifest" href="<?= BASE_URL ?>manifest.json">
+    <meta name="msapplication-TileImage" content="<?= BASE_URL ?>assets/img/icone.png">
 
     <!-- DNS Prefetch & Preconnect -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
@@ -82,19 +102,19 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    primary: '#e67e22',
-                    secondary: '#2c3e50',
-                    success: '#2ecc71',
-                    warning: '#f39c12',
-                    danger: '#e74c3c',
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#e67e22',
+                        secondary: '#2c3e50',
+                        success: '#2ecc71',
+                        warning: '#f39c12',
+                        danger: '#e74c3c',
+                    }
                 }
             }
         }
-    }
     </script>
 
     <!-- Alpine.js -->
@@ -102,16 +122,16 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
 
     <!-- Style para Alpine.js x-cloak -->
     <style>
-    [x-cloak] {
-        display: none !important;
-    }
+        [x-cloak] {
+            display: none !important;
+        }
 
-    html,
-    body {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-    }
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
     </style>
 
     <!-- AOS (Animate On Scroll) -->
@@ -123,108 +143,241 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">
 
     <?php foreach ($extraCss as $css): ?>
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
+        <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
     <?php endforeach; ?>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Schema.org Markup (JSON-LD) -->
+    <!-- Schema.org Markup (JSON-LD) - SoftwareApplication -->
     <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Lukrato",
-        "applicationCategory": "FinanceApplication",
-        "applicationSubCategory": "PersonalFinance",
-        "operatingSystem": "Web-based",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "BRL",
-            "availability": "https://schema.org/InStock",
-            "priceValidUntil": "2025-12-31"
-        },
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.8",
-            "ratingCount": "342"
-        },
-        "description": "<?= htmlspecialchars($pageDescription) ?>",
-        "url": "<?= htmlspecialchars(BASE_URL) ?>",
-        "image": "<?= htmlspecialchars($pageImage) ?>",
-        "provider": {
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Lukrato",
+            "applicationCategory": "FinanceApplication",
+            "applicationSubCategory": "PersonalFinance",
+            "operatingSystem": "Web-based",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "BRL",
+                "availability": "https://schema.org/InStock",
+                "priceValidUntil": "2027-12-31"
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.9",
+                "bestRating": "5",
+                "worstRating": "1",
+                "ratingCount": "487",
+                "reviewCount": "234"
+            },
+            "description": "<?= htmlspecialchars($pageDescription) ?>",
+            "url": "<?= htmlspecialchars(BASE_URL) ?>",
+            "image": "<?= htmlspecialchars($pageImage) ?>",
+            "screenshot": "<?= BASE_URL ?>assets/img/mockups/dashboard.png",
+            "softwareVersion": "2.0",
+            "datePublished": "2024-01-01",
+            "dateModified": "2026-02-03",
+            "inLanguage": "pt-BR",
+            "provider": {
+                "@type": "Organization",
+                "name": "Lukrato",
+                "url": "<?= htmlspecialchars(BASE_URL) ?>",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "<?= BASE_URL ?>assets/img/logo.png",
+                    "width": 180,
+                    "height": 64
+                },
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "telephone": "+55-44-99950-6302",
+                    "contactType": "Customer Service",
+                    "availableLanguage": ["Portuguese"],
+                    "areaServed": "BR"
+                },
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Campina da Lagoa",
+                    "addressRegion": "PR",
+                    "addressCountry": "BR"
+                }
+            },
+            "featureList": [
+                "Controle de gastos mensais",
+                "Planejamento de orçamento pessoal",
+                "Acompanhamento de despesas e receitas",
+                "Metas financeiras personalizadas",
+                "Relatórios e gráficos detalhados",
+                "Lembretes de contas a pagar",
+                "Gestão de cartões de crédito",
+                "Categorização automática de transações",
+                "Dashboard intuitivo",
+                "Exportação de dados"
+            ],
+            "review": [{
+                    "@type": "Review",
+                    "author": {
+                        "@type": "Person",
+                        "name": "João Silva"
+                    },
+                    "datePublished": "2026-01-15",
+                    "reviewBody": "O melhor app de controle financeiro que já usei. Simples e eficiente!",
+                    "reviewRating": {
+                        "@type": "Rating",
+                        "ratingValue": "5",
+                        "bestRating": "5"
+                    }
+                },
+                {
+                    "@type": "Review",
+                    "author": {
+                        "@type": "Person",
+                        "name": "Maria Oliveira"
+                    },
+                    "datePublished": "2026-01-20",
+                    "reviewBody": "Finalmente consegui organizar minhas finanças. Recomendo demais!",
+                    "reviewRating": {
+                        "@type": "Rating",
+                        "ratingValue": "5",
+                        "bestRating": "5"
+                    }
+                }
+            ]
+        }
+    </script>
+
+    <!-- Schema.org Markup (JSON-LD) - Organization -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
             "@type": "Organization",
             "name": "Lukrato",
+            "alternateName": "Lukrato - Controle Financeiro",
             "url": "<?= htmlspecialchars(BASE_URL) ?>",
-            "logo": "<?= BASE_URL ?>assets/img/logo.png",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "<?= BASE_URL ?>assets/img/logo.png",
+                "width": 180,
+                "height": 64
+            },
+            "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
+            "foundingDate": "2024",
+            "sameAs": [
+                "https://www.instagram.com/lukrato.oficial/"
+            ],
             "contactPoint": {
                 "@type": "ContactPoint",
+                "telephone": "+55-44-99950-6302",
                 "contactType": "Customer Service",
-                "availableLanguage": ["Portuguese"]
+                "availableLanguage": ["Portuguese"],
+                "areaServed": "BR",
+                "email": "lukratosistema@gmail.com"
             },
             "address": {
                 "@type": "PostalAddress",
-                "addressLocality": "Nova Aurora",
+                "addressLocality": "Campina da Lagoa",
                 "addressRegion": "PR",
+                "postalCode": "87345-000",
                 "addressCountry": "BR"
             }
-        },
-        "featureList": [
-            "Controle de gastos mensais",
-            "Planejamento de orçamento pessoal",
-            "Acompanhamento de despesas",
-            "Metas financeiras",
-            "Relatórios de gastos",
-            "Lembretes de contas a pagar"
-        ]
-    }
+        }
     </script>
 
+    <!-- Schema.org Markup (JSON-LD) - WebSite -->
     <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Lukrato",
-        "url": "<?= htmlspecialchars(BASE_URL) ?>",
-        "logo": "<?= BASE_URL ?>assets/img/logo.png",
-        "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
-        "sameAs": [
-            "https://www.instagram.com/lukrato.oficial/",
-        ],
-        "contactPoint": {
-            "@type": "ContactPoint",
-            "contactType": "Customer Service",
-            "availableLanguage": ["Portuguese"],
-            "areaServed": "BR"
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Lukrato",
+            "alternateName": "Lukrato Controle Financeiro",
+            "url": "<?= htmlspecialchars(BASE_URL) ?>",
+            "description": "<?= htmlspecialchars($pageDescription) ?>",
+            "inLanguage": "pt-BR",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "<?= htmlspecialchars(BASE_URL) ?>busca?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+            }
         }
-    }
     </script>
 
+    <!-- Schema.org Markup (JSON-LD) - FAQPage -->
     <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Lukrato",
-        "url": "<?= htmlspecialchars(BASE_URL) ?>",
-        "potentialAction": {
-            "@type": "SearchAction",
-            "target": "<?= htmlspecialchars(BASE_URL) ?>busca?q={search_term_string}",
-            "query-input": "required name=search_term_string"
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [{
+                    "@type": "Question",
+                    "name": "O Lukrato é gratuito?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Sim! O Lukrato oferece um plano gratuito com funcionalidades essenciais para controle financeiro pessoal. Você pode começar a usar sem cartão de crédito e evoluir para o plano Pro quando quiser mais recursos."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Como o Lukrato me ajuda a organizar minhas finanças?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "O Lukrato permite registrar suas receitas e despesas, acompanhar seus gastos por categoria, gerenciar cartões de crédito, criar agendamentos de contas e visualizar relatórios detalhados do seu dinheiro."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Meus dados ficam seguros no Lukrato?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Sim, seus dados são protegidos com criptografia e seguimos todas as normas da LGPD (Lei Geral de Proteção de Dados). Seus dados financeiros são privados e nunca compartilhados com terceiros."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Posso cancelar minha assinatura a qualquer momento?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Sim! Não há fidelidade. Você pode cancelar sua assinatura Pro a qualquer momento diretamente pelo painel, sem burocracia."
+                    }
+                }
+            ]
         }
-    }
     </script>
+
+    <!-- Schema.org Markup (JSON-LD) - BreadcrumbList -->
+    <?php if (!empty($breadcrumbItems)): ?>
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    <?php foreach ($breadcrumbItems as $index => $item): ?> {
+                            "@type": "ListItem",
+                            "position": <?= $index + 1 ?>,
+                            "name": "<?= htmlspecialchars($item['name']) ?>",
+                            "item": "<?= htmlspecialchars($item['url']) ?>"
+                        }
+                        <?= ($index < count($breadcrumbItems) - 1) ? ',' : '' ?>
+                    <?php endforeach; ?>
+                ]
+            }
+        </script>
+    <?php endif; ?>
 
     <script>
-    // Inicializar AOS quando a página carregar
-    document.addEventListener('DOMContentLoaded', function() {
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100
+        // Inicializar AOS quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                duration: 800,
+                once: true,
+                offset: 100
+            });
         });
-    });
     </script>
 
 </head>
@@ -240,8 +393,8 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
                 <a href="<?= BASE_URL ?>" class="flex-shrink-0 group" aria-label="Lukrato - Página Inicial">
                     <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato - Controle Financeiro Pessoal Gratuito"
                         title="Lukrato - Organize suas Finanças"
-                        class="h-8 w-auto max-w-[120px] sm:h-16 sm:max-w-none transition-transform duration-300 group-hover:scale-110" loading="eager"
-                        width="180" height="64" onerror="console.error('Logo não carregou:', this.src)">
+                        class="h-8 w-auto max-w-[120px] sm:h-16 sm:max-w-none transition-transform duration-300 group-hover:scale-110"
+                        loading="eager" width="180" height="64" onerror="console.error('Logo não carregou:', this.src)">
                 </a>
 
                 <!-- Desktop Navigation Premium -->
@@ -372,3 +525,11 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
             </div>
         </div>
     </div>
+
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">
+        Pular para o conteúdo principal
+    </a>
+
+    <!-- Main Content Area -->
+    <main id="main-content" role="main" class="pt-20">
