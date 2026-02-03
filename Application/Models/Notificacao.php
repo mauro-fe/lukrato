@@ -24,4 +24,11 @@ class Notificacao extends Model
 {
     protected $table = 'notificacoes';
     protected $fillable = ['user_id', 'tipo', 'titulo', 'mensagem', 'lida', 'link'];
+    
+    /**
+     * Cast para garantir que 'lida' seja sempre integer (0 ou 1)
+     */
+    protected $casts = [
+        'lida' => 'integer',
+    ];
 }

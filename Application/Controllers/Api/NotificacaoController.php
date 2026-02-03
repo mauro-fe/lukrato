@@ -27,6 +27,12 @@ class NotificacaoController extends BaseController
             $itens = Notificacao::where('user_id', $userId)
                 ->orderBy('created_at', 'desc')
                 ->get()
+                ->map(function ($n) {
+                    $arr = $n->toArray();
+                    // Garante que 'lida' seja sempre integer 0 ou 1
+                    $arr['lida'] = (int) $n->lida;
+                    return $arr;
+                })
                 ->toArray();
 
             // Adiciona alertas de cartões dinamicamente (com tratamento de erro)
@@ -59,7 +65,7 @@ class NotificacaoController extends BaseController
                         'tipo' => 'alerta',
                         'titulo' => 'Fatura vencendo',
                         'mensagem' => "Fatura de {$alerta['nome_cartao']} vence em {$alerta['dias_faltando']} dia(s) - R$ " . number_format($alerta['valor_fatura'], 2, ',', '.'),
-                        'lida' => false,
+                        'lida' => 0,
                         'created_at' => date('Y-m-d H:i:s'),
                         'link' => '/cartoes',
                         'icone' => '📅',
@@ -85,7 +91,7 @@ class NotificacaoController extends BaseController
                         'tipo' => 'alerta',
                         'titulo' => 'Limite baixo',
                         'mensagem' => "{$alerta['nome_cartao']}: apenas {$alerta['percentual_disponivel']}% disponível (R$ " . number_format($alerta['limite_disponivel'], 2, ',', '.') . ")",
-                        'lida' => false,
+                        'lida' => 0,
                         'created_at' => date('Y-m-d H:i:s'),
                         'link' => '/cartoes',
                         'icone' => $icone,
@@ -125,7 +131,7 @@ class NotificacaoController extends BaseController
                                     'tipo' => 'alerta',
                                     'titulo' => '⏰ Plano PRO vencendo!',
                                     'mensagem' => "Seu plano venceu! Restam {$graceDaysLeft} dia(s) para renovar antes de perder o acesso PRO.",
-                                    'lida' => false,
+                                    'lida' => 0,
                                     'created_at' => date('Y-m-d H:i:s'),
                                     'link' => '/billing',
                                     'icone' => '⏰',
@@ -148,7 +154,8 @@ class NotificacaoController extends BaseController
                 return $dateB - $dateA; // Ordem decrescente (mais recente primeiro)
             });
 
-            $unread = count(array_filter($itens, fn($i) => !($i['lida'] ?? true)));
+            // Conta não lidas: lida === 0 (não lida)
+            $unread = count(array_filter($itens, fn($i) => (int) ($i['lida'] ?? 1) === 0));
 
             Response::success([
                 'itens'  => $itens,
