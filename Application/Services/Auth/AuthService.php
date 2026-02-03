@@ -7,6 +7,7 @@ use Application\Services\Auth\RegistrationHandler;
 use Application\Services\Auth\LogoutHandler;
 use Application\Services\CacheService;
 use Application\Services\MailService;
+use Application\Services\ReferralService;
 use Application\DTO\Auth\CredentialsDTO;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Core\Request;
@@ -60,7 +61,13 @@ class AuthService
             if (!empty($result['user_id'])) {
                 $this->criarAssinaturaPadrao((int) $result['user_id']);
                 $this->criarCategoriasPadrao((int) $result['user_id']);
-                
+
+                // Processa código de indicação se fornecido
+                $referralCode = trim($data['referral_code'] ?? '');
+                if (!empty($referralCode)) {
+                    $this->processarIndicacao((int) $result['user_id'], $referralCode);
+                }
+
                 // Envia email de boas-vindas (em background para não bloquear)
                 $this->enviarEmailBoasVindas((int) $result['user_id'], $data['email'] ?? '', $data['name'] ?? '');
             } else {
@@ -226,7 +233,7 @@ class AuthService
     {
         try {
             $mailService = new MailService();
-            
+
             if (!$mailService->isConfigured()) {
                 LogService::warning('[AuthService] Email de boas-vindas não enviado: SMTP não configurado.', [
                     'user_id' => $userId,
@@ -258,6 +265,56 @@ class AuthService
             LogService::error('[AuthService] Erro ao enviar email de boas-vindas.', [
                 'user_id' => $userId,
                 'email' => $email,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Processa a indicação de um novo usuário.
+     * 
+     * Não lança exceção para não interromper o fluxo de registro.
+     */
+    private function processarIndicacao(int $userId, string $referralCode): void
+    {
+        try {
+            $user = Usuario::find($userId);
+
+            if (!$user) {
+                LogService::warning('[AuthService] Usuário não encontrado ao processar indicação.', [
+                    'user_id' => $userId,
+                    'referral_code' => $referralCode,
+                ]);
+                return;
+            }
+
+            $referralService = new ReferralService();
+
+            // Garante que o novo usuário tenha seu próprio código de indicação
+            $referralService->ensureUserHasReferralCode($user);
+
+            // Processa a indicação
+            $indicacao = $referralService->processReferral($user, $referralCode);
+
+            if ($indicacao) {
+                LogService::info('[AuthService] Indicação processada com sucesso.', [
+                    'user_id' => $userId,
+                    'referrer_id' => $indicacao->referrer_id,
+                    'referral_code' => $referralCode,
+                    'referrer_reward_days' => $indicacao->referrer_reward_days,
+                    'referred_reward_days' => $indicacao->referred_reward_days,
+                ]);
+            } else {
+                LogService::warning('[AuthService] Indicação não foi processada (código inválido ou já indicado).', [
+                    'user_id' => $userId,
+                    'referral_code' => $referralCode,
+                ]);
+            }
+        } catch (Throwable $e) {
+            // Não propaga erro - indicação não deve impedir o registro
+            LogService::error('[AuthService] Erro ao processar indicação.', [
+                'user_id' => $userId,
+                'referral_code' => $referralCode,
                 'message' => $e->getMessage(),
             ]);
         }

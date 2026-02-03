@@ -8,8 +8,8 @@ use Application\Services\LogService;
 
 class CsrfMiddleware
 {
-    // Token time to live in seconds (20 minutes)
-    public const TOKEN_TTL = 1200;
+    // Token time to live in seconds (60 minutes - renovação automática a cada 10 min)
+    public const TOKEN_TTL = 3600;
 
     /**
      * Exposes the configured TTL so other layers know when tokens expire.

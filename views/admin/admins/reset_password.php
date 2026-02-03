@@ -8,6 +8,11 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
     <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+
+    <!-- CSRF Meta Tags para renovação automática -->
+    <?= csrf_meta('reset_password_form') ?>
+
     <title>Redefinir Senha - Lukrato</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
     <style>
@@ -797,6 +802,9 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
         `;
         document.head.appendChild(style);
     </script>
+
+    <!-- Script de CSRF para renovação automática -->
+    <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
 </body>
 
 </html>

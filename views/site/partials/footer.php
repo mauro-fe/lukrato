@@ -127,6 +127,7 @@ $extraJs = $extraJs ?? [];
 
 <!-- JS global da landing (menu mobile, scroll suave, etc.) -->
 <script src="<?= BASE_URL ?>/assets/js/csrf-manager.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/csrf-keep-alive.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/site/landing-base.js"></script>
 
 <!-- JS específicos da página -->

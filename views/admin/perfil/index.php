@@ -218,6 +218,89 @@
         </div>
     </div>
 
+    <!-- Seção de Indicação -->
+    <div class="profile-section referral-section" data-aos="fade-up" data-aos-delay="275">
+        <div class="section-header">
+            <div class="section-icon">🎁</div>
+            <div class="section-header-text">
+                <h3>Indique Amigos</h3>
+                <p>Ganhe dias de PRO por cada indicação</p>
+            </div>
+        </div>
+
+        <div class="referral-section-content">
+            <div class="referral-info">
+                <div class="referral-reward-info">
+                    <div class="reward-item">
+                        <span class="reward-icon">👤</span>
+                        <span class="reward-text">Você ganha <strong>15 dias</strong> de PRO</span>
+                    </div>
+                    <div class="reward-item">
+                        <span class="reward-icon">👥</span>
+                        <span class="reward-text">Seu amigo ganha <strong>7 dias</strong> de PRO</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="referral-container">
+                <div class="referral-code-container">
+                    <label class="referral-label">Seu código de indicação:</label>
+                    <div class="referral-code-box">
+                        <input type="text" id="referral-code" class="referral-code-input" readonly
+                            value="Carregando...">
+                        <button type="button" class="btn-copy-code" id="btn-copy-code" title="Copiar código">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="referral-link-container">
+                    <label class="referral-label">Ou compartilhe seu link:</label>
+                    <div class="referral-link-box">
+                        <input type="text" id="referral-link" class="referral-link-input" readonly
+                            value="Carregando...">
+                        <button type="button" class="btn-copy-link" id="btn-copy-link" title="Copiar link">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="referral-stats" id="referral-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-total">-</span>
+                    <span class="stat-label">Indicações</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-completed">-</span>
+                    <span class="stat-label">Completadas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-days">-</span>
+                    <span class="stat-label">Dias ganhos</span>
+                </div>
+            </div>
+
+            <div class="referral-share-buttons">
+                <button type="button" class="btn-share whatsapp" id="btn-share-whatsapp"
+                    title="Compartilhar no WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </button>
+                <button type="button" class="btn-share telegram" id="btn-share-telegram"
+                    title="Compartilhar no Telegram">
+                    <i class="fa-brands fa-telegram"></i>
+                    <span>Telegram</span>
+                </button>
+                <button type="button" class="btn-share instagram" id="btn-share-instagram"
+                    title="Compartilhar no Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                    <span>Instagram</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Zona de Perigo -->
     <div class="profile-section danger-zone" data-aos="fade-up" data-aos-delay="300">
         <div class="section-header">
@@ -535,6 +618,102 @@
                 }
             });
         }
+
+        // ============================================
+        // SISTEMA DE INDICAÇÃO
+        // ============================================
+
+        async function loadReferralStats() {
+            try {
+                const res = await fetch(`${API}referral/stats`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.data) {
+                    const stats = data.data;
+
+                    // Atualiza código e link
+                    const codeInput = document.getElementById('referral-code');
+                    const linkInput = document.getElementById('referral-link');
+
+                    if (codeInput) codeInput.value = stats.referral_code || '';
+                    if (linkInput) linkInput.value = stats.referral_link || '';
+
+                    // Atualiza estatísticas
+                    document.getElementById('stat-total').textContent = stats.total_indicacoes || 0;
+                    document.getElementById('stat-completed').textContent = stats.indicacoes_completadas || 0;
+                    document.getElementById('stat-days').textContent = stats.dias_ganhos || 0;
+                }
+            } catch (err) {
+                console.error('Erro ao carregar estatísticas de indicação:', err);
+            }
+        }
+
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fa-solid fa-check"></i>';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.innerHTML = originalIcon;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+            });
+        }
+
+        // Botões de copiar
+        document.getElementById('btn-copy-code')?.addEventListener('click', () => {
+            const code = document.getElementById('referral-code')?.value;
+            if (code) copyToClipboard(code, document.getElementById('btn-copy-code'));
+        });
+
+        document.getElementById('btn-copy-link')?.addEventListener('click', () => {
+            const link = document.getElementById('referral-link')?.value;
+            if (link) copyToClipboard(link, document.getElementById('btn-copy-link'));
+        });
+
+        // Botões de compartilhamento
+        document.getElementById('btn-share-whatsapp')?.addEventListener('click', () => {
+            const link = document.getElementById('referral-link')?.value;
+            const text = encodeURIComponent(
+                `🎁 Use meu código e ganhe 7 dias de PRO grátis no Lukrato!\n\n${link}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        });
+
+        document.getElementById('btn-share-telegram')?.addEventListener('click', () => {
+            const link = document.getElementById('referral-link')?.value;
+            const text = encodeURIComponent(`🎁 Use meu código e ganhe 7 dias de PRO grátis no Lukrato!`);
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
+        });
+
+        document.getElementById('btn-share-instagram')?.addEventListener('click', () => {
+            const link = document.getElementById('referral-link')?.value;
+            navigator.clipboard.writeText(link).then(() => {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Link copiado!',
+                        html: 'Cole nos seus Stories ou Direct do Instagram!',
+                        confirmButtonColor: '#e67e22',
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                } else {
+                    alert('Link copiado! Cole nos seus Stories ou Direct do Instagram.');
+                }
+            });
+        });
+
+        // Carregar estatísticas de indicação
+        loadReferralStats();
 
         // Carregar perfil ao iniciar
         loadProfile();

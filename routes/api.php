@@ -247,3 +247,13 @@ Router::add('GET', '/api/plan/limits',              'Api\\PlanController@limits'
 Router::add('GET', '/api/plan/features',            'Api\\PlanController@features',           ['auth']);
 Router::add('GET', '/api/plan/can-create/{resource}', 'Api\\PlanController@canCreate',        ['auth']);
 Router::add('GET', '/api/plan/history-restriction', 'Api\\PlanController@historyRestriction', ['auth']);
+
+// ============================================
+// INDICAÇÕES / REFERRAL
+// ============================================
+
+Router::add('GET', '/api/referral/info',     'Api\\ReferralController@getInfo');              // Público
+Router::add('GET', '/api/referral/validate', 'Api\\ReferralController@validateCode');         // Público (para cadastro)
+Router::add('GET', '/api/referral/stats',    'Api\\ReferralController@getStats',    ['auth']);
+Router::add('GET', '/api/referral/code',     'Api\\ReferralController@getCode',     ['auth']);
+Router::add('GET', '/api/referral/ranking',  'Api\\ReferralController@getRanking',  ['auth']);

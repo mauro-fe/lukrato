@@ -84,6 +84,7 @@ class RegistroController extends BaseController
         $payload = [
             'name' => $this->request->post('name', ''),
             'email' => $this->request->post('email', ''),
+            'referral_code' => $this->request->post('referral_code', ''),
         ];
 
         if ($isGoogle) {

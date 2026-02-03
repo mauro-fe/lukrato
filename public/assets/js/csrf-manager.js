@@ -89,6 +89,11 @@
             }
         });
 
+        // Atualiza TODOS os inputs hidden de CSRF (name=csrf_token ou name=_token)
+        document.querySelectorAll('input[name="csrf_token"], input[name="_token"]').forEach((el) => {
+            el.value = token;
+        });
+
         // Atualiza window.LK
         if (window.LK) {
             window.LK.csrfToken = token;
