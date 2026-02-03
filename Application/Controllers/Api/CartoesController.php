@@ -326,7 +326,7 @@ class CartoesController
 
     /**
      * POST /api/cartoes/{id}/fatura/pagar
-     * Pagar a fatura completa de um mês
+     * Pagar a fatura completa ou parcial de um mês
      */
     public function pagarFatura(int $id): void
     {
@@ -338,11 +338,12 @@ class CartoesController
         $mes = $data['mes'] ?? (int) date('n');
         $ano = $data['ano'] ?? (int) date('Y');
         $contaId = isset($data['conta_id']) ? (int)$data['conta_id'] : null;
+        $valorParcial = isset($data['valor_parcial']) ? (float)$data['valor_parcial'] : null;
 
-        error_log("💳 [CONTROLLER] Mes: {$mes}, Ano: {$ano}, ContaId: " . ($contaId ?? 'NULL'));
+        error_log("💳 [CONTROLLER] Mes: {$mes}, Ano: {$ano}, ContaId: " . ($contaId ?? 'NULL') . ", ValorParcial: " . ($valorParcial ?? 'NULL'));
 
         try {
-            $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId, $contaId);
+            $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId, $contaId, $valorParcial);
 
             // 🎮 GAMIFICAÇÃO: Verificar conquistas após pagar fatura
             $gamificationResult = [];

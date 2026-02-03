@@ -578,11 +578,12 @@
                         </div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             ${temItensPendentes ? `
-                                <button class="btn-pagar-fatura-completa" 
-                                        onclick="window.pagarFaturaCompletaGlobal(${parc.id}, ${valorRestante})">
-                                    <i class="fas fa-check-double"></i>
-                                    <span class="btn-text-desktop">Pagar Fatura Completa</span>
-                                    <span class="btn-text-mobile">Pagar Tudo</span>
+                                <button class="btn-pagar-fatura" 
+                                        onclick="window.abrirModalPagarFatura(${parc.id}, ${valorRestante})"
+                                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span class="btn-text-desktop">Pagar Fatura</span>
+                                    <span class="btn-text-mobile">Pagar</span>
                                 </button>
                             ` : ''}
                             ${faturaCompletamentePaga ? `
@@ -590,7 +591,7 @@
                                         onclick="window.reverterPagamentoFaturaGlobal(${parc.id})"
                                         style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
                                     <i class="fas fa-undo"></i>
-                                    <span class="btn-text-desktop">Desfazer Pagamento</span>
+                                    <span class="btn-text-desktop">Reverter Pagamento</span>
                                     <span class="btn-text-mobile">Reverter</span>
                                 </button>
                             ` : ''}
@@ -894,28 +895,19 @@
 
         renderParcelaButton(parcela, isPaga) {
             if (isPaga) {
-                // Item pago: apenas botão de desfazer
+                // Item pago: sem botões individuais (usar reverter fatura completa)
                 return `
                     <div class="btn-group-parcela">
-                        <button class="btn-toggle-parcela btn-desfazer" 
-                            data-lancamento-id="${parcela.id}" 
-                            data-pago="true"
-                            title="Desfazer pagamento">
-                            <i class="fas fa-undo"></i>
-                        </button>
+                        <span class="badge-pago" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">
+                            <i class="fas fa-check"></i> Pago
+                        </span>
                     </div>
                 `;
             } else {
-                // Item pendente: botões de pagar, editar e excluir
+                // Item pendente: apenas botões de editar e excluir (sem pagar individual)
                 const ehParcelado = parcela.total_parcelas > 1;
                 return `
                     <div class="btn-group-parcela">
-                        <button class="btn-toggle-parcela btn-pagar" 
-                            data-lancamento-id="${parcela.id}" 
-                            data-pago="false"
-                            title="Marcar como pago">
-                            <i class="fas fa-check"></i>
-                        </button>
                         <button class="btn-toggle-parcela btn-editar" 
                             data-lancamento-id="${parcela.id}"
                             data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
@@ -2055,6 +2047,308 @@
     window.pagarFaturaCompletaGlobal = (faturaId, valorTotal) => {
         UI.pagarFaturaCompleta(faturaId, valorTotal);
     };
+
+    // ============================================================================
+    // MODAL PAGAR FATURA - BOOTSTRAP
+    // ============================================================================
+    
+    // Estado do modal de pagamento
+    const ModalPagarFatura = {
+        instance: null,
+        faturaId: null,
+        valorTotal: null,
+        cartaoId: null,
+        mes: null,
+        ano: null,
+        contas: [],
+        contaPadraoId: null,
+
+        init() {
+            const modalEl = document.getElementById('modalPagarFatura');
+            if (!modalEl) return;
+
+            this.instance = new bootstrap.Modal(modalEl);
+            this.attachEvents();
+        },
+
+        attachEvents() {
+            // Botão Pagar Total
+            document.getElementById('btnPagarTotal')?.addEventListener('click', () => {
+                this.instance.hide();
+                UI.pagarFaturaCompleta(this.faturaId, this.valorTotal);
+            });
+
+            // Botão Pagar Parcial - mostrar formulário
+            document.getElementById('btnPagarParcial')?.addEventListener('click', () => {
+                this.mostrarFormularioParcial();
+            });
+
+            // Botão voltar
+            document.getElementById('btnVoltarEscolha')?.addEventListener('click', () => {
+                this.mostrarEscolha();
+            });
+
+            // Botão confirmar pagamento
+            document.getElementById('btnConfirmarPagamento')?.addEventListener('click', () => {
+                this.confirmarPagamentoParcial();
+            });
+
+            // Máscara de valor
+            const inputValor = document.getElementById('valorPagamentoParcial');
+            if (inputValor) {
+                inputValor.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value === '') {
+                        e.target.value = '';
+                        return;
+                    }
+                    value = (parseInt(value) / 100).toFixed(2);
+                    e.target.value = parseFloat(value).toLocaleString('pt-BR', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    });
+                });
+
+                inputValor.addEventListener('focus', (e) => {
+                    e.target.select();
+                });
+            }
+
+            // Hover effects nos botões de opção
+            document.querySelectorAll('.btn-opcao-pagamento').forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'translateY(-2px)';
+                    btn.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translateY(0)';
+                    btn.style.boxShadow = 'none';
+                });
+            });
+        },
+
+        async abrir(faturaId, valorTotal) {
+            this.faturaId = faturaId;
+            this.valorTotal = valorTotal;
+
+            // Atualizar displays
+            document.getElementById('pagarFaturaId').value = faturaId;
+            document.getElementById('pagarFaturaValorTotal').value = valorTotal;
+            document.getElementById('valorTotalDisplay').textContent = Utils.formatMoney(valorTotal);
+            document.getElementById('valorTotalInfo').textContent = `Valor total da fatura: ${Utils.formatMoney(valorTotal)}`;
+            document.getElementById('valorPagamentoParcial').value = Utils.formatMoney(valorTotal).replace('R$ ', '');
+
+            // Mostrar tela de escolha
+            this.mostrarEscolha();
+
+            // Carregar dados da fatura e contas
+            await this.carregarDados();
+
+            // Abrir modal
+            this.instance.show();
+        },
+
+        async carregarDados() {
+            try {
+                const [faturaResponse, contasResponse] = await Promise.all([
+                    API.buscarParcelamento(this.faturaId),
+                    API.listarContas()
+                ]);
+
+                const fatura = faturaResponse;
+                this.contas = contasResponse.data || contasResponse || [];
+
+                if (!fatura.data || !fatura.data.cartao) {
+                    throw new Error('Dados da fatura incompletos');
+                }
+
+                this.cartaoId = fatura.data.cartao.id;
+                this.contaPadraoId = fatura.data.cartao.conta_id || null;
+
+                // Extrair mês/ano da descrição da fatura
+                const descricao = fatura.data.descricao || '';
+                const match = descricao.match(/(\d+)\/(\d+)/);
+                this.mes = match ? parseInt(match[1]) : null;
+                this.ano = match ? parseInt(match[2]) : null;
+
+                // Popular select de contas
+                this.popularSelectContas();
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error.message || 'Erro ao carregar dados da fatura.'
+                });
+            }
+        },
+
+        popularSelectContas() {
+            const select = document.getElementById('contaPagamentoFatura');
+            if (!select) return;
+
+            select.innerHTML = '';
+
+            if (!Array.isArray(this.contas) || this.contas.length === 0) {
+                select.innerHTML = '<option value="">Nenhuma conta disponível</option>';
+                return;
+            }
+
+            this.contas.forEach(conta => {
+                const saldo = conta.saldoAtual ?? conta.saldo_atual ?? conta.saldo ?? 0;
+                const saldoFormatado = Utils.formatMoney(saldo);
+                const isDefault = conta.id === this.contaPadraoId;
+                const option = document.createElement('option');
+                option.value = conta.id;
+                option.textContent = `${conta.nome} - ${saldoFormatado}${isDefault ? ' (vinculada ao cartão)' : ''}`;
+                if (isDefault) option.selected = true;
+                select.appendChild(option);
+            });
+        },
+
+        mostrarEscolha() {
+            document.getElementById('pagarFaturaEscolha').style.display = 'block';
+            document.getElementById('pagarFaturaFormParcial').style.display = 'none';
+            document.getElementById('pagarFaturaFooter').style.display = 'none';
+        },
+
+        mostrarFormularioParcial() {
+            document.getElementById('pagarFaturaEscolha').style.display = 'none';
+            document.getElementById('pagarFaturaFormParcial').style.display = 'block';
+            document.getElementById('pagarFaturaFooter').style.display = 'flex';
+
+            // Focar no input de valor
+            setTimeout(() => {
+                const input = document.getElementById('valorPagamentoParcial');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }, 100);
+        },
+
+        async confirmarPagamentoParcial() {
+            const valorStr = document.getElementById('valorPagamentoParcial').value;
+            const contaId = document.getElementById('contaPagamentoFatura').value;
+
+            const valorPagar = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+
+            // Validações
+            if (valorPagar <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Valor inválido',
+                    text: 'Digite um valor válido para o pagamento.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            if (valorPagar > this.valorTotal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Valor inválido',
+                    text: `O valor não pode ser maior que ${Utils.formatMoney(this.valorTotal)}`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            if (!contaId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Conta não selecionada',
+                    text: 'Selecione uma conta para débito.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            if (!this.cartaoId || !this.mes || !this.ano) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Dados da fatura incompletos. Tente novamente.',
+                });
+                return;
+            }
+
+            // Fechar modal de pagamento
+            this.instance.hide();
+
+            // Processar pagamento
+            Swal.fire({
+                title: 'Processando pagamento...',
+                html: 'Aguarde enquanto processamos o pagamento.',
+                allowOutsideClick: false,
+                heightAuto: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const response = await Utils.apiRequest(`api/cartoes/${this.cartaoId}/fatura/pagar`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        mes: this.mes,
+                        ano: this.ano,
+                        conta_id: parseInt(contaId),
+                        valor_parcial: valorPagar
+                    })
+                });
+
+                if (!response.success) {
+                    throw new Error(response.error || 'Erro ao processar pagamento');
+                }
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Pagamento Realizado!',
+                    html: `
+                        <p>${response.message || 'Pagamento efetuado com sucesso!'}</p>
+                        <div style="margin: 1rem 0; padding: 0.75rem; background: #f0fdf4; border-radius: 8px;">
+                            <div style="font-size: 0.875rem; color: #047857;">Valor pago:</div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: #059669;">
+                                ${Utils.formatMoney(valorPagar)}
+                            </div>
+                        </div>
+                    `,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                await App.carregarParcelamentos();
+
+                // Fechar modal de detalhes
+                if (STATE.modalDetalhesInstance) {
+                    STATE.modalDetalhesInstance.hide();
+                }
+
+            } catch (error) {
+                console.error('Erro ao pagar fatura:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro ao pagar fatura',
+                    text: error.message || 'Não foi possível processar o pagamento. Tente novamente.'
+                });
+            }
+        }
+    };
+
+    /**
+     * Abre modal Bootstrap para escolher como pagar a fatura
+     */
+    window.abrirModalPagarFatura = (faturaId, valorTotal) => {
+        ModalPagarFatura.abrir(faturaId, valorTotal);
+    };
+
+    // Inicializar modal ao carregar
+    document.addEventListener('DOMContentLoaded', () => {
+        ModalPagarFatura.init();
+    });
 
     window.reverterPagamentoFaturaGlobal = async (faturaId) => {
         // Usar dados da fatura atual

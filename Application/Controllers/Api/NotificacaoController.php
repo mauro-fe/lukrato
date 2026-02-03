@@ -141,6 +141,13 @@ class NotificacaoController extends BaseController
                 error_log("⚠️ Erro ao verificar período de carência: " . $e->getMessage());
             }
 
+            // Ordenar todos os itens por created_at (mais recente primeiro)
+            usort($itens, function ($a, $b) {
+                $dateA = strtotime($a['created_at'] ?? '1970-01-01');
+                $dateB = strtotime($b['created_at'] ?? '1970-01-01');
+                return $dateB - $dateA; // Ordem decrescente (mais recente primeiro)
+            });
+
             $unread = count(array_filter($itens, fn($i) => !($i['lida'] ?? true)));
 
             Response::success([
@@ -240,23 +247,49 @@ class NotificacaoController extends BaseController
         $this->requireAuthApi();
         $userId = $this->userId;
 
+        // Garante que a sessão está iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $rawIds = (array)($_POST['ids'] ?? []);
 
-        $ids = array_values(
-            array_filter(
-                array_map('intval', $rawIds),
-                static fn(int $id): bool => $id > 0
-            )
-        );
+        // Separar IDs numéricos (do banco) de IDs de alertas dinâmicos (strings)
+        $idsNumericos = [];
+        $idsDinamicos = [];
 
-        if (empty($ids)) {
+        foreach ($rawIds as $id) {
+            if (is_numeric($id) && (int)$id > 0) {
+                $idsNumericos[] = (int)$id;
+            } elseif (is_string($id) && !empty($id)) {
+                // Alertas dinâmicos (cartao_venc_*, cartao_lim_*, subscription_grace_*, etc.)
+                $idsDinamicos[] = $id;
+            }
+        }
+
+        // Marcar notificações do banco como lidas
+        if (!empty($idsNumericos)) {
+            Notificacao::where('user_id', $userId)
+                ->whereIn('id', $idsNumericos)
+                ->update(['lida' => true]);
+        }
+
+        // Marcar alertas dinâmicos como ignorados
+        if (!empty($idsDinamicos)) {
+            if (!isset($_SESSION['alertas_ignorados'])) {
+                $_SESSION['alertas_ignorados'] = [];
+            }
+
+            $timestamp = time();
+            foreach ($idsDinamicos as $alertaId) {
+                $_SESSION['alertas_ignorados'][$alertaId] = $timestamp;
+            }
+        }
+
+        if (empty($idsNumericos) && empty($idsDinamicos)) {
             Response::validationError(['ids' => 'Nenhum ID de notificação válido fornecido.']);
             return;
         }
-
-        Notificacao::where('user_id', $userId)
-            ->whereIn('id', $ids)
-            ->update(['lida' => true]);
 
         Response::success(['message' => 'Notificações marcadas como lidas']);
     }
@@ -266,6 +299,11 @@ class NotificacaoController extends BaseController
     {
         $this->requireAuthApi();
         $userId = $this->userId;
+
+        // Garante que a sessão está iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
         // Marca notificações do banco como lidas
         Notificacao::where('user_id', $this->userId)

@@ -19,11 +19,11 @@ function initNotificationsBell(userOpts = {}) {
             list: '#lk-bell-list',
             markButton: '#lk-mark-read',
         },
-        // Endpoints (padrão = como sugeri; ajuste se usa /unread-count)
+        // Endpoints
         endpoints: {
             list: 'api/notificacoes',
-            unread: 'api/notificacoes/unread-count',        // altere p/ 'api/notificacoes/unread-count' se for seu caso
-            markRead: 'api/notificacoes/marcar-lida',
+            unread: 'api/notificacoes/unread',
+            markRead: 'api/notificacoes/marcar',
         },
         // Base e CSRF
         baseUrl: findMetaBase(),
