@@ -268,6 +268,97 @@ class MailService implements MailServiceInterface
     }
 
     /**
+     * Envia email de boas-vindas para novo usuário.
+     */
+    public function sendWelcomeEmail(string $toEmail, string $userName): bool
+    {
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+        $agendamentosUrl = $baseUrl ? $baseUrl . '/agendamentos' : '#';
+        $categoriasUrl = $baseUrl ? $baseUrl . '/categorias' : '#';
+        $billingUrl = $baseUrl ? $baseUrl . '/billing' : '#';
+
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $subject = "🎉 Bem-vindo(a) ao Lukrato, {$firstName}!";
+
+        // Conteúdo do email - texto de boas-vindas criativo e acolhedor
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+      </div>
+
+      <p style="font-size: 17px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Parabéns!</strong> Sua conta foi criada com sucesso.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        A partir de agora, você tem em mãos uma ferramenta poderosa para organizar suas finanças 
+        de forma simples e inteligente.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        No Lukrato, você pode acompanhar suas receitas e despesas, gerenciar seus cartões de crédito, 
+        criar agendamentos para nunca esquecer um pagamento e muito mais — tudo em um único lugar.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 32px 0;">
+        Comece agora mesmo e dê o primeiro passo rumo ao controle total das suas finanças. 
+        Estamos aqui para te ajudar nessa jornada! 💪
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$dashboardUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(230, 126, 34, 0.4);">
+          Acessar meu painel →
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px; text-align: center;">
+        <p style="font-size: 14px; color: #7f8c8d; line-height: 1.6; margin: 0;">
+          Dúvidas? Estamos sempre prontos para ajudar.<br>
+          Use o botão de suporte no painel ou responda este email.
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
+            "Olá, {$safeFirstName}! 👋",
+            'Sua conta foi criada com sucesso. Vamos começar?',
+            $content,
+            'Você recebeu este email porque acabou de criar uma conta no Lukrato. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Bem-vindo(a) ao Lukrato, {$firstName}!
+
+Estamos muito felizes em ter você conosco!
+
+O Lukrato foi criado para simplificar sua vida financeira. Aqui você pode organizar suas receitas, despesas, cartões de crédito e muito mais.
+
+PRIMEIROS PASSOS:
+- Configure suas categorias
+- Adicione suas contas
+- Registre seus primeiros lançamentos
+- Crie agendamentos
+
+Acesse seu painel: {$dashboardUrl}
+
+Precisa de ajuda? Responda este email ou use o botão de suporte no painel.
+
+Abraços,
+Equipe Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
      * Valida se um email é válido.
      */
     private function isValidEmail(string $email): bool

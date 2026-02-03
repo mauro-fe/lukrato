@@ -6,6 +6,7 @@ use Application\Services\Auth\LoginHandler;
 use Application\Services\Auth\RegistrationHandler;
 use Application\Services\Auth\LogoutHandler;
 use Application\Services\CacheService;
+use Application\Services\MailService;
 use Application\DTO\Auth\CredentialsDTO;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Core\Request;
@@ -59,6 +60,9 @@ class AuthService
             if (!empty($result['user_id'])) {
                 $this->criarAssinaturaPadrao((int) $result['user_id']);
                 $this->criarCategoriasPadrao((int) $result['user_id']);
+                
+                // Envia email de boas-vindas (em background para não bloquear)
+                $this->enviarEmailBoasVindas((int) $result['user_id'], $data['email'] ?? '', $data['name'] ?? '');
             } else {
                 LogService::warning('[AuthService] Registro retornou sem user_id, não foi possível criar assinatura.', [
                     'email' => $data['email'] ?? 'não-informado'
@@ -209,6 +213,52 @@ class AuthService
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
                 'line'    => $e->getLine(),
+            ]);
+        }
+    }
+
+    /**
+     * Envia email de boas-vindas para o novo usuário.
+     * 
+     * Não lança exceção para não interromper o fluxo de registro.
+     */
+    private function enviarEmailBoasVindas(int $userId, string $email, string $name): void
+    {
+        try {
+            $mailService = new MailService();
+            
+            if (!$mailService->isConfigured()) {
+                LogService::warning('[AuthService] Email de boas-vindas não enviado: SMTP não configurado.', [
+                    'user_id' => $userId,
+                ]);
+                return;
+            }
+
+            // Se não temos o nome, tenta buscar do banco
+            if (empty($name)) {
+                $user = Usuario::find($userId);
+                $name = $user?->nome ?? 'Usuário';
+            }
+
+            $sent = $mailService->sendWelcomeEmail($email, $name);
+
+            if ($sent) {
+                LogService::info('[AuthService] Email de boas-vindas enviado com sucesso.', [
+                    'user_id' => $userId,
+                    'email' => $email,
+                ]);
+            } else {
+                LogService::warning('[AuthService] Email de boas-vindas não foi enviado (retorno false).', [
+                    'user_id' => $userId,
+                    'email' => $email,
+                ]);
+            }
+        } catch (Throwable $e) {
+            // Não propaga erro - email de boas-vindas não deve impedir o registro
+            LogService::error('[AuthService] Erro ao enviar email de boas-vindas.', [
+                'user_id' => $userId,
+                'email' => $email,
+                'message' => $e->getMessage(),
             ]);
         }
     }

@@ -173,6 +173,39 @@ class GoogleAuthService
     }
 
     /**
+     * Realiza login automático após registro via Google
+     */
+    public function loginAfterRegistration(int $userId, string $email): bool
+    {
+        try {
+            $usuario = Usuario::find($userId);
+            
+            if (!$usuario) {
+                LogService::warning('Usuário não encontrado para login após registro', [
+                    'user_id' => $userId,
+                ]);
+                return false;
+            }
+
+            Auth::login($usuario);
+
+            LogService::info('Login automático após registro Google realizado', [
+                'user_id' => $userId,
+                'email' => $email,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            LogService::error('Erro ao fazer login automático após registro', [
+                'user_id' => $userId,
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
      * Cria cliente Google via ENV (produção-ready)
      */
     private function createGoogleClient(): Google_Client
