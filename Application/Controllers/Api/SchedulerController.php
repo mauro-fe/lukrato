@@ -101,25 +101,46 @@ class SchedulerController extends BaseController
                 $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
                 $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
 
-                // Verifica se está dentro da janela: deve estar entre (agora - 5 minutos) e (agora + 10 minutos)
+                // NOVA LÓGICA: Envia lembrete se:
+                // 1. Está dentro da janela normal (-5min a +10min), OU
+                // 2. O lembrete já passou MAS a data de pagamento ainda não passou (recuperação de perdidos)
+                // 3. A data de pagamento passou há no máximo 24 horas (para não enviar lembretes muito antigos)
                 $windowStart = $now->modify('-5 minutes')->getTimestamp();
                 $windowEnd = $windowLimit->getTimestamp();
+                $nowTs = $now->getTimestamp();
+                $pagamentoTs = $pagamento->getTimestamp();
+                
+                // Limite: não enviar se o pagamento já passou há mais de 24 horas
+                $maxAtrasoHoras = 24;
+                $limiteAtraso = $nowTs - ($maxAtrasoHoras * 3600);
 
-                if ($reminderTimestamp < $windowStart || $reminderTimestamp > $windowEnd) {
+                $dentroJanelaNormal = ($reminderTimestamp >= $windowStart && $reminderTimestamp <= $windowEnd);
+                $lembreteAtrasadoMasPagamentoFuturo = ($reminderTimestamp < $windowStart && $pagamentoTs > $nowTs);
+                $pagamentoRecenteNaoNotificado = ($pagamentoTs >= $limiteAtraso && $pagamentoTs <= $nowTs);
+
+                $deveEnviar = $dentroJanelaNormal || $lembreteAtrasadoMasPagamentoFuturo || $pagamentoRecenteNaoNotificado;
+
+                if (!$deveEnviar) {
                     $stats['ignorados']++;
                     LogService::info(sprintf(
-                        "[Scheduler] Ignorado agendamento #%d (%s): fora da janela (lembrar em %s)",
+                        "[Scheduler] Ignorado agendamento #%d (%s): fora da janela (lembrar em %s, pagar em %s)",
                         $agendamento->id,
                         $agendamento->titulo,
-                        date('d/m/Y H:i', $reminderTimestamp)
+                        date('d/m/Y H:i', $reminderTimestamp),
+                        date('d/m/Y H:i', $pagamentoTs)
                     ));
                     continue;
                 }
+                
+                // Log do motivo do envio
+                $motivo = $dentroJanelaNormal ? 'janela_normal' : 
+                         ($lembreteAtrasadoMasPagamentoFuturo ? 'lembrete_atrasado_pagamento_futuro' : 'pagamento_recente');
 
                 LogService::info(sprintf(
-                    "[Scheduler] Processando lembrete para agendamento #%d (%s)...",
+                    "[Scheduler] Processando lembrete para agendamento #%d (%s) - motivo: %s",
                     $agendamento->id,
-                    $agendamento->titulo
+                    $agendamento->titulo,
+                    $motivo
                 ));
 
                 // Notificação in-app
