@@ -700,7 +700,8 @@
                         });
 
                         // Salvar alterações
-                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                            'content');
                         fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`, {
                                 method: 'PUT',
                                 headers: {
@@ -715,14 +716,16 @@
                                     Swal.fire({
                                         icon: 'success',
                                         title: 'Sucesso!',
-                                        text: saveResponse.message || 'Usuário atualizado com sucesso',
+                                        text: saveResponse.message ||
+                                            'Usuário atualizado com sucesso',
                                         timer: 2000,
                                         showConfirmButton: false
                                     });
                                     // Recarregar lista de usuários
                                     fetchUsers(currentPage);
                                 } else {
-                                    Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário', 'error');
+                                    Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário',
+                                        'error');
                                 }
                             })
                             .catch(err => {
@@ -1143,12 +1146,12 @@
         if (refreshBtn) refreshBtn.classList.add('fa-spin');
 
         fetch(`<?= BASE_URL ?>api/sysadmin/stats`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            credentials: 'include'
-        })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                credentials: 'include'
+            })
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);
@@ -1192,7 +1195,7 @@
         document.getElementById('statNewToday').textContent = '-';
         document.getElementById('statNewWeek').textContent = '-';
         document.getElementById('statNewMonth').textContent = '-';
-        
+
         console.error('Stats Error:', message);
     }
 

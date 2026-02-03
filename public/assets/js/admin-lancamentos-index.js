@@ -22,7 +22,7 @@
         BASE_URL: (window.BASE_URL || (location.pathname.includes('/public/') ?
             location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/'),
         TABLE_HEIGHT: '520px',
-        PAGINATION_SIZE: 25,
+        PAGINATION_SIZE: 10,
         PAGINATION_OPTIONS: [10, 25, 50, 100],
         DATA_LIMIT: 500,
         DEBOUNCE_DELAY: 10
@@ -102,7 +102,7 @@
         allData: [],
         filteredData: [],
         currentPage: 1,
-        pageSize: 25,
+        pageSize: 10,
         sortField: 'data',
         sortDirection: 'desc',
         selectedIds: new Set()
@@ -635,7 +635,7 @@
                 header.addEventListener('click', () => {
                     const field = header.dataset.sort;
                     if (!field) return;
-                    
+
                     // Toggle direction if same field, else default to desc
                     if (STATE.sortField === field) {
                         STATE.sortDirection = STATE.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -659,7 +659,7 @@
                         const row = cb.closest('tr');
                         const id = row?.dataset.id;
                         if (!id) return;
-                        
+
                         // Find item to check if selectable
                         const item = STATE.filteredData.find(i => String(i.id) === String(id));
                         if (item && !Utils.isSaldoInicial(item) && !item._isParcelamentoGroup) {
@@ -678,7 +678,7 @@
             // Page size selector
             if (DOM.pageSize) {
                 DOM.pageSize.addEventListener('change', (e) => {
-                    STATE.pageSize = parseInt(e.target.value) || 25;
+                    STATE.pageSize = parseInt(e.target.value) || 10;
                     STATE.currentPage = 1;
                     this.render();
                 });
@@ -717,10 +717,10 @@
                 const field = header.dataset.sort;
                 const icon = header.querySelector('.sort-icon');
                 if (!icon) return;
-                
+
                 if (field === STATE.sortField) {
-                    icon.className = STATE.sortDirection === 'asc' 
-                        ? 'fas fa-sort-up sort-icon active' 
+                    icon.className = STATE.sortDirection === 'asc'
+                        ? 'fas fa-sort-up sort-icon active'
                         : 'fas fa-sort-down sort-icon active';
                 } else {
                     icon.className = 'fas fa-sort sort-icon';
@@ -733,20 +733,20 @@
          */
         setData(items) {
             STATE.allData = Array.isArray(items) ? items : [];
-            
+
             // Process for parcelamento groups
             STATE.filteredData = ParcelamentoGrouper.processForTable(STATE.allData);
-            
+
             // Sort data
             this.sortData();
-            
+
             STATE.currentPage = 1;
             STATE.selectedIds.clear();
-            
+
             if (DOM.selectAllCheckbox) {
                 DOM.selectAllCheckbox.checked = false;
             }
-            
+
             // Update sort indicators
             this.updateSortIndicators();
         },
@@ -757,10 +757,10 @@
         sortData() {
             const field = STATE.sortField;
             const dir = STATE.sortDirection;
-            
+
             STATE.filteredData.sort((a, b) => {
                 let valA, valB;
-                
+
                 if (field === 'data') {
                     const dateA = a.data || a.created_at || '';
                     const dateB = b.data || b.created_at || '';
@@ -783,13 +783,13 @@
                     valA = String(a[field] || '');
                     valB = String(b[field] || '');
                 }
-                
+
                 if (typeof valA === 'string' && typeof valB === 'string') {
-                    return dir === 'asc' 
-                        ? valA.localeCompare(valB, 'pt-BR') 
+                    return dir === 'asc'
+                        ? valA.localeCompare(valB, 'pt-BR')
                         : valB.localeCompare(valA, 'pt-BR');
                 }
-                
+
                 return dir === 'asc' ? (valA - valB) : (valB - valA);
             });
         },
@@ -799,15 +799,15 @@
          */
         render() {
             if (!DOM.tableBody) return;
-            
+
             const total = STATE.filteredData.length;
             const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
             STATE.currentPage = Math.min(STATE.currentPage, totalPages);
-            
+
             const start = (STATE.currentPage - 1) * STATE.pageSize;
             const end = Math.min(start + STATE.pageSize, total);
             const pageData = STATE.filteredData.slice(start, end);
-            
+
             // Render empty state if no data
             if (total === 0) {
                 DOM.tableBody.innerHTML = `
@@ -832,11 +832,11 @@
                 this.updateSelectionInfo();
                 return;
             }
-            
+
             // Render rows
             const rows = pageData.map(item => this.renderRow(item)).join('');
             DOM.tableBody.innerHTML = rows;
-            
+
             this.updatePagination();
             this.updateSelectionInfo();
             this.updateSortIndicators();
@@ -851,58 +851,58 @@
             const isSaldoInicial = Utils.isSaldoInicial(item);
             const isSelectable = !isSaldoInicial && !isGroup;
             const isSelected = STATE.selectedIds.has(String(id));
-            
+
             // Data
             const dataValue = item.data || item.created_at || '';
             const dataFormatted = Utils.fmtDate(dataValue);
-            
+
             // Tipo
             const tipoRaw = String(item.tipo || '').toLowerCase();
             const tipoClass = Utils.getTipoClass(tipoRaw);
             const tipoLabel = tipoRaw ? tipoRaw.charAt(0).toUpperCase() + tipoRaw.slice(1) : '-';
-            
+
             // Categoria
-            let categoria = item.categoria_nome ?? 
+            let categoria = item.categoria_nome ??
                 (typeof item.categoria === 'object' ? item.categoria?.nome : item.categoria) ?? '-';
             if (categoria && typeof categoria === 'object') {
                 categoria = categoria.nome ?? categoria.label ?? '-';
             }
             categoria = categoria || '-';
-            
+
             // Conta
-            let conta = item.conta_nome ?? 
+            let conta = item.conta_nome ??
                 (typeof item.conta === 'object' ? item.conta?.nome : item.conta) ?? '-';
             if (conta && typeof conta === 'object') {
                 conta = conta.nome ?? conta.label ?? '-';
             }
             conta = conta || '-';
-            
+
             // Descrição
             let descricao = item.descricao ?? item.descricao_titulo ?? '';
             if (descricao && typeof descricao === 'object') {
                 descricao = descricao.texto ?? descricao.value ?? '';
             }
             descricao = String(descricao || '-').trim();
-            
+
             // Valor
             let valor = parseFloat(item.valor) || 0;
             if (isGroup && item._parcelas) {
                 valor = item._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
             }
-            
+
             // Row classes
             const rowClasses = ['lk-table-row'];
             if (isSaldoInicial) rowClasses.push('lk-row-inicial');
             if (isGroup) rowClasses.push('parcelamento-grupo');
             if (isSelected) rowClasses.push('selected');
-            
+
             // Checkbox cell
             const checkboxCell = isSelectable
                 ? `<td class="td-checkbox">
                        <input type="checkbox" class="lk-checkbox row-checkbox" ${isSelected ? 'checked' : ''}>
                    </td>`
                 : `<td class="td-checkbox lk-cell-select-disabled"></td>`;
-            
+
             // Descrição cell (special for groups)
             let descricaoCell;
             if (isGroup) {
@@ -910,7 +910,7 @@
                 const parcelasPagas = item._parcelas.filter(p => p.pago).length;
                 const valorParcela = valor / totalParcelas;
                 const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-                
+
                 descricaoCell = `
                     <td class="td-descricao">
                         <div class="d-flex align-items-center gap-2">
@@ -932,27 +932,27 @@
             } else {
                 descricaoCell = `<td class="td-descricao">${Utils.escapeHtml(descricao)}</td>`;
             }
-            
+
             // Cartão de crédito
             const cartaoNome = item.cartao_nome || '';
             const cartaoBandeira = item.cartao_bandeira || '';
             const cartaoDisplay = cartaoNome ? `${cartaoNome}${cartaoBandeira ? ` (${cartaoBandeira})` : ''}` : '-';
             const cartaoCell = `<td class="td-cartao">${Utils.escapeHtml(cartaoDisplay)}</td>`;
-            
+
             // Status (Pago/Pendente)
             const isPago = Boolean(item.pago);
             const statusClass = isPago ? 'status-pago' : 'status-pendente';
             const statusLabel = isPago ? 'Pago' : 'Pendente';
             const statusIcon = isPago ? 'fa-check-circle' : 'fa-clock';
             const statusCell = `<td class="td-status"><span class="badge-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span></td>`;
-            
+
             // Valor cell (special for groups)
             let valorCell;
             if (isGroup) {
                 const totalParcelas = item._parcelas.length;
                 const parcelasPagas = item._parcelas.filter(p => p.pago).length;
                 const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-                
+
                 valorCell = `
                     <td class="td-valor">
                         <div>
@@ -967,7 +967,7 @@
             } else {
                 valorCell = `<td class="td-valor"><span class="valor-cell ${tipoClass}">${Utils.fmtMoney(valor)}</span></td>`;
             }
-            
+
             // Actions cell
             let actionsCell;
             if (isSaldoInicial) {
@@ -1004,7 +1004,7 @@
                 buttons.push(`<button class="lk-btn delete" data-action="delete" data-id="${id}" title="Excluir"><i class="fas fa-trash"></i></button>`);
                 actionsCell = `<td class="td-acoes"><div class="lk-actions">${buttons.join('')}</div></td>`;
             }
-            
+
             return `
                 <tr class="${rowClasses.join(' ')}" data-id="${id}">
                     ${checkboxCell}
@@ -1027,7 +1027,7 @@
         goToPage(page) {
             const totalPages = Math.max(1, Math.ceil(STATE.filteredData.length / STATE.pageSize));
             const safePage = Math.min(Math.max(1, page), totalPages);
-            
+
             if (safePage !== STATE.currentPage) {
                 STATE.currentPage = safePage;
                 this.render();
@@ -1042,7 +1042,7 @@
             const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
             const start = total > 0 ? (STATE.currentPage - 1) * STATE.pageSize + 1 : 0;
             const end = Math.min(STATE.currentPage * STATE.pageSize, total);
-            
+
             // Update info text
             if (DOM.paginationInfo) {
                 if (total === 0) {
@@ -1051,7 +1051,7 @@
                     DOM.paginationInfo.textContent = `${start}-${end} de ${total} lançamentos`;
                 }
             }
-            
+
             // Update buttons
             if (DOM.prevPage) {
                 DOM.prevPage.disabled = STATE.currentPage <= 1;
@@ -1059,18 +1059,18 @@
             if (DOM.nextPage) {
                 DOM.nextPage.disabled = STATE.currentPage >= totalPages;
             }
-            
+
             // Update page numbers
             if (DOM.pageNumbers) {
                 const pages = [];
                 const maxVisible = 5;
                 let startPage = Math.max(1, STATE.currentPage - Math.floor(maxVisible / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-                
+
                 if (endPage - startPage + 1 < maxVisible) {
                     startPage = Math.max(1, endPage - maxVisible + 1);
                 }
-                
+
                 for (let i = startPage; i <= endPage; i++) {
                     const isActive = i === STATE.currentPage;
                     pages.push(`
@@ -1080,9 +1080,9 @@
                         </button>
                     `);
                 }
-                
+
                 DOM.pageNumbers.innerHTML = pages.join('');
-                
+
                 // Add click handlers for page numbers
                 DOM.pageNumbers.querySelectorAll('.page-number-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
@@ -1098,21 +1098,21 @@
          */
         updateSelectionInfo() {
             const count = STATE.selectedIds.size;
-            
+
             if (DOM.selCountSpan) {
                 DOM.selCountSpan.textContent = String(count);
             }
-            
+
             if (DOM.btnExcluirSel) {
                 DOM.btnExcluirSel.toggleAttribute('disabled', count === 0);
             }
-            
+
             // Update select all checkbox state
             if (DOM.selectAllCheckbox && DOM.tableBody) {
                 const checkboxes = DOM.tableBody.querySelectorAll('.row-checkbox');
                 const checkedCount = DOM.tableBody.querySelectorAll('.row-checkbox:checked').length;
                 const totalSelectable = checkboxes.length;
-                
+
                 if (totalSelectable === 0) {
                     DOM.selectAllCheckbox.checked = false;
                     DOM.selectAllCheckbox.indeterminate = false;
@@ -1135,33 +1135,33 @@
         handleTableClick(e) {
             const btn = e.target.closest('button[data-action]');
             if (!btn) return;
-            
+
             const action = btn.dataset.action;
             const id = btn.dataset.id;
             if (!id) return;
-            
+
             const item = STATE.filteredData.find(i => String(i.id) === String(id));
             if (!item) return;
-            
+
             if (action === 'edit') {
                 if (!Utils.canEditLancamento(item)) return;
                 ModalManager.openEditLancamento(item);
             }
-            
+
             if (action === 'delete') {
                 if (Utils.isSaldoInicial(item)) return;
-                
+
                 (async () => {
                     const ok = await Notifications.ask(
                         'Excluir lançamento?',
                         'Esta ação não pode ser desfeita.'
                     );
                     if (!ok) return;
-                    
+
                     btn.disabled = true;
                     const okDel = await API.deleteOne(id);
                     btn.disabled = false;
-                    
+
                     if (okDel) {
                         // Remove from data and re-render
                         STATE.selectedIds.delete(String(id));
@@ -1180,11 +1180,11 @@
         handleCheckboxChange(e) {
             const checkbox = e.target.closest('.row-checkbox');
             if (!checkbox) return;
-            
+
             const row = checkbox.closest('tr');
             const id = row?.dataset.id;
             if (!id) return;
-            
+
             if (checkbox.checked) {
                 STATE.selectedIds.add(id);
                 row.classList.add('selected');
@@ -1192,7 +1192,7 @@
                 STATE.selectedIds.delete(id);
                 row.classList.remove('selected');
             }
-            
+
             this.updateSelectionInfo();
         },
 
@@ -1931,7 +1931,7 @@
 
                 // Clear table while loading
                 TableManager.renderRows([]);
-                
+
                 // Limpa cards enquanto carrega
                 MobileCards.setItems([]);
 

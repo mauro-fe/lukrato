@@ -90,7 +90,7 @@ class MailService implements MailServiceInterface
 
         try {
             $success = $mailer->send();
-            
+
             if ($success) {
                 $this->logger->info('[mail] Envio OK', [
                     'to' => $toEmail,
@@ -98,7 +98,7 @@ class MailService implements MailServiceInterface
                     'host' => $this->config['host'],
                 ]);
             }
-            
+
             return $success;
         } catch (Exception $e) {
             $this->logger->error('[mail] Falha ao enviar', [
@@ -109,7 +109,7 @@ class MailService implements MailServiceInterface
                 'error' => $mailer->ErrorInfo,
                 'exception' => $e->getMessage(),
             ]);
-            
+
             throw new \RuntimeException(
                 'Falha ao enviar email: ' . $mailer->ErrorInfo,
                 0,
@@ -218,7 +218,7 @@ class MailService implements MailServiceInterface
         // Pelo menos um meio de contato (email ou telefone)
         $fromEmail = trim($fromEmail);
         $phone = $phone ? trim($phone) : null;
-        
+
         if ($fromEmail === '' && ($phone === null || $phone === '')) {
             throw new \InvalidArgumentException('Informe ao menos um meio de contato (e-mail ou telefone).');
         }
@@ -339,20 +339,26 @@ Bem-vindo(a) ao Lukrato, {$firstName}!
 
 Estamos muito felizes em ter você conosco!
 
-O Lukrato foi criado para simplificar sua vida financeira. Aqui você pode organizar suas receitas, despesas, cartões de crédito e muito mais.
+Você acabou de dar o primeiro passo para assumir o controle da sua vida financeira.
 
-PRIMEIROS PASSOS:
-- Configure suas categorias
-- Adicione suas contas
-- Registre seus primeiros lançamentos
-- Crie agendamentos
+O Lukrato foi criado para simplificar sua rotina com dinheiro — sem planilhas complicadas e sem dor de cabeça.
+Aqui você pode organizar receitas, despesas e cartões de crédito, acompanhando tudo com clareza.
 
+COMO COMEÇAR AGORA:
+• Configure suas categorias
+• Adicione suas contas bancárias
+• Registre seus primeiros lançamentos
+• Crie agendamentos e evite surpresas
+
+🎯 Desafio inicial: registre 3 lançamentos hoje e sinta a diferença.
+
+Tudo começa por aqui 👇
 Acesse seu painel: {$dashboardUrl}
 
-Precisa de ajuda? Responda este email ou use o botão de suporte no painel.
+Se precisar de ajuda, é só responder este e-mail ou usar o botão de suporte dentro do painel.
 
-Abraços,
-Equipe Lukrato
+Conte com a gente,
+Time Lukrato 💙
 TEXT;
 
         return $this->send($toEmail, $userName, $subject, $html, $text);

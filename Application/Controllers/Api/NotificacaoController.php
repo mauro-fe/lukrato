@@ -113,6 +113,7 @@ class NotificacaoController extends BaseController
             }
 
             // Adiciona alerta de período de carência (plano PRO vencendo)
+            // NOTA: Só adiciona se NÃO existir notificação do banco sobre subscription_expired
             try {
                 $usuario = \Application\Models\Usuario::find($userId);
                 if ($usuario) {
@@ -122,7 +123,15 @@ class NotificacaoController extends BaseController
                         $graceDaysLeft = SubscriptionExpirationService::getGraceDaysRemaining($assinatura);
                         $isInGrace = SubscriptionExpirationService::isInGracePeriod($assinatura);
 
-                        if ($isInGrace && $graceDaysLeft > 0) {
+                        // Verifica se já existe notificação do banco sobre vencimento desta assinatura
+                        $jaTemNotificacaoBanco = collect($itens)->contains(function ($item) use ($assinatura) {
+                            return isset($item['tipo'])
+                                && in_array($item['tipo'], ['subscription_expired', 'subscription_blocked'])
+                                && isset($item['link'])
+                                && str_contains($item['link'], "subscription_id={$assinatura->id}");
+                        });
+
+                        if ($isInGrace && $graceDaysLeft > 0 && !$jaTemNotificacaoBanco) {
                             $alertaId = 'subscription_grace_' . $assinatura->id;
 
                             if (!isset($alertasIgnorados[$alertaId])) {

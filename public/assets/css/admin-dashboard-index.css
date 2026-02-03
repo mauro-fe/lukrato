@@ -353,8 +353,14 @@
   display: none;
 }
 
+.modern-table {
+  background: var(--color-bg) !important;
+}
+.modern-table thead th {
+  background: var(--color-bg) !important;
+}
+
 .transaction-card {
-  background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
@@ -1268,6 +1274,7 @@
   position: relative;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(230, 126, 34, 0.08);
+  background-color: var(--color-bg) !important;
 }
 
 .gamification-section::before {

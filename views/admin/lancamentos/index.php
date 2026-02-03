@@ -173,7 +173,8 @@
                         <thead>
                             <tr>
                                 <th class="th-checkbox">
-                                    <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox" title="Selecionar todos">
+                                    <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox"
+                                        title="Selecionar todos">
                                 </th>
                                 <th class="th-data sortable" data-sort="data">
                                     <span>Data</span>
@@ -200,7 +201,7 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- Paginação Desktop -->
                 <div class="lk-pagination" id="desktopPagination">
                     <div class="pagination-info">

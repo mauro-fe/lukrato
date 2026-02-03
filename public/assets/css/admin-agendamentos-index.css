@@ -553,12 +553,13 @@
    ============================================================================ */
 
 .modern-table-wrapper {
-  background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  padding: var(--spacing-3);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: var(--glass-bg);
 }
 
 .table-header-info {
@@ -566,10 +567,11 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-4) var(--spacing-5);
-  background: var(--color-bg);
   border-bottom: 1px solid var(--glass-border);
   gap: var(--spacing-4);
   flex-wrap: wrap;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-bottom: var(--spacing-3);
 }
 
 .info-group {
@@ -1190,7 +1192,7 @@
 }
 
 .ag-table thead {
-  background: var(--color-primary);
+  background: var(--color-bg);
   color: white;
 }
 
@@ -1199,6 +1201,8 @@
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
+  border-bottom: 2px solid
+    color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .ag-table tbody tr {
@@ -1214,6 +1218,9 @@
   padding: var(--spacing-4);
   vertical-align: middle;
   color: var(--color-text);
+  background-color: var(--color-bg);
+  border-bottom: 2px solid
+    color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .ag-table tbody td.text-center {

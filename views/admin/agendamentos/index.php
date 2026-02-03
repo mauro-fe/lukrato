@@ -114,117 +114,117 @@
                     </button>
                 </div>
             </div>
+
+            <section class="table-container ag-table-desktop tab-desktop">
+                <div class="table-wrapper">
+                    <table class="ag-table" id="agendamentosTable">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Conta</th>
+                                <th>Valor</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agendamentosTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center">Carregando agendamentos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="ag-cards-wrapper cards-wrapper">
+                <div class="ag-cards-container cards-container" id="agCards"></div>
+
+                <nav class="ag-cards-pager cards-pager" id="agCardsPager">
+                    <button type="button" id="agPagerFirst" class="ag-pager-btn pager-btn" disabled>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button type="button" id="agPagerPrev" class="ag-pager-btn pager-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="agPagerInfo" class="ag-pager-info pager-info">Nenhum agendamento</span>
+                    <button type="button" id="agPagerNext" class="ag-pager-btn pager-btn" disabled>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button type="button" id="agPagerLast" class="ag-pager-btn pager-btn" disabled>
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </nav>
+            </section>
+
+            <template id="agCardTemplate">
+                <article class="ag-card card-item" aria-expanded="false">
+                    <div class="ag-card-header">
+                        <div class="ag-card-title-group">
+                            <h3 class="ag-card-title"></h3>
+                            <p class="ag-card-subtitle">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span data-field="data"></span>
+                            </p>
+                            <p class="ag-card-value"></p>
+                            <button type="button" class="card-toggle" data-toggle="details">
+                                <span class="card-toggle-text">Ver detalhes</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+
+                        <span class="ag-tipo-badge">
+                            <i class="fas"></i>
+                            <span data-field="tipo"></span>
+                        </span>
+
+
+
+                    </div>
+
+                    <div class="ag-card-details">
+                        <div class="ag-card-details-row">
+                            <div class="ag-card-details-content">
+                                <p class="ag-card-details-label">Categoria</p>
+                                <p class="ag-card-details-value" data-field="categoria"></p>
+                            </div>
+                        </div>
+                        <div class="ag-card-details-row">
+                            <div class="ag-card-details-content">
+                                <p class="ag-card-details-label">Conta</p>
+                                <p class="ag-card-details-value" data-field="conta"></p>
+                            </div>
+                        </div>
+                        <div class="ag-card-details-row">
+                            <div class="ag-card-details-content">
+                                <p class="ag-card-details-label">Recorrente</p>
+                                <p class="ag-card-details-value" data-field="recorrente"></p>
+                            </div>
+                        </div>
+                        <div class="ag-card-details-row" data-section="descricao">
+                            <div class="ag-card-details-content">
+                                <p class="ag-card-details-label">Descrição</p>
+                                <p class="ag-card-details-value" data-field="descricao"></p>
+                            </div>
+                        </div>
+                        <div class="ag-card-details-row">
+                            <div class="ag-card-details-content">
+                                <p class="ag-card-details-label">Status</p>
+                                <p class="ag-card-details-value" data-field="status"></p>
+                            </div>
+                        </div>
+                        <div class="ag-card-details-row ag-card-btn" data-section="acoes">
+                            <div class="ag-card-details-content">
+                                <p class="ag-card-details-label">Ações</p>
+                                <div class="ag-card-actions"></div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </template>
         </div>
-
-        <section class="table-container ag-table-desktop tab-desktop">
-            <div class="table-wrapper">
-                <table class="ag-table" id="agendamentosTable">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Tipo</th>
-                            <th>Categoria</th>
-                            <th>Conta</th>
-                            <th>Valor</th>
-                            <th>Data</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="agendamentosTableBody">
-                        <tr>
-                            <td colspan="8" class="text-center">Carregando agendamentos...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="ag-cards-wrapper cards-wrapper">
-            <div class="ag-cards-container cards-container" id="agCards"></div>
-
-            <nav class="ag-cards-pager cards-pager" id="agCardsPager">
-                <button type="button" id="agPagerFirst" class="ag-pager-btn pager-btn" disabled>
-                    <i class="fas fa-angle-double-left"></i>
-                </button>
-                <button type="button" id="agPagerPrev" class="ag-pager-btn pager-btn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span id="agPagerInfo" class="ag-pager-info pager-info">Nenhum agendamento</span>
-                <button type="button" id="agPagerNext" class="ag-pager-btn pager-btn" disabled>
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <button type="button" id="agPagerLast" class="ag-pager-btn pager-btn" disabled>
-                    <i class="fas fa-angle-double-right"></i>
-                </button>
-            </nav>
-        </section>
-
-        <template id="agCardTemplate">
-            <article class="ag-card card-item" aria-expanded="false">
-                <div class="ag-card-header">
-                    <div class="ag-card-title-group">
-                        <h3 class="ag-card-title"></h3>
-                        <p class="ag-card-subtitle">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span data-field="data"></span>
-                        </p>
-                        <p class="ag-card-value"></p>
-                        <button type="button" class="card-toggle" data-toggle="details">
-                            <span class="card-toggle-text">Ver detalhes</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                    </div>
-
-                    <span class="ag-tipo-badge">
-                        <i class="fas"></i>
-                        <span data-field="tipo"></span>
-                    </span>
-
-
-
-                </div>
-
-                <div class="ag-card-details">
-                    <div class="ag-card-details-row">
-                        <div class="ag-card-details-content">
-                            <p class="ag-card-details-label">Categoria</p>
-                            <p class="ag-card-details-value" data-field="categoria"></p>
-                        </div>
-                    </div>
-                    <div class="ag-card-details-row">
-                        <div class="ag-card-details-content">
-                            <p class="ag-card-details-label">Conta</p>
-                            <p class="ag-card-details-value" data-field="conta"></p>
-                        </div>
-                    </div>
-                    <div class="ag-card-details-row">
-                        <div class="ag-card-details-content">
-                            <p class="ag-card-details-label">Recorrente</p>
-                            <p class="ag-card-details-value" data-field="recorrente"></p>
-                        </div>
-                    </div>
-                    <div class="ag-card-details-row" data-section="descricao">
-                        <div class="ag-card-details-content">
-                            <p class="ag-card-details-label">Descrição</p>
-                            <p class="ag-card-details-value" data-field="descricao"></p>
-                        </div>
-                    </div>
-                    <div class="ag-card-details-row">
-                        <div class="ag-card-details-content">
-                            <p class="ag-card-details-label">Status</p>
-                            <p class="ag-card-details-value" data-field="status"></p>
-                        </div>
-                    </div>
-                    <div class="ag-card-details-row ag-card-btn" data-section="acoes">
-                        <div class="ag-card-details-content">
-                            <p class="ag-card-details-label">Ações</p>
-                            <div class="ag-card-actions"></div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        </template>
     </div>
 
     <div id="agPaywall" class="paywall-message d-none" role="alert">
