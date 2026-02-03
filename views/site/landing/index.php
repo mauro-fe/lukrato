@@ -681,10 +681,12 @@
                             <div class="mb-8 pt-2">
                                 <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
 
-                                <div x-show="period !== 'mensal'" class="h-6">
+                                <!-- Preço promocional - sempre mostra o "de" riscado -->
+                                <div class="h-6">
                                     <span class="text-orange-200 line-through text-sm">
-                                        R$ <span
-                                            x-text="period === 'semestral' ? (basePrice * 6).toFixed(2) : (basePrice * 12).toFixed(2)"></span>
+                                        <span x-show="period === 'mensal'">De R$ 29,90</span>
+                                        <span x-show="period !== 'mensal'">R$ <span
+                                            x-text="period === 'semestral' ? (basePrice * 6).toFixed(2) : (basePrice * 12).toFixed(2)"></span></span>
                                     </span>
                                 </div>
 

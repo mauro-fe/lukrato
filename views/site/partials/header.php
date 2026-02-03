@@ -240,7 +240,7 @@ $canonicalUrl = $canonicalUrl ?? $pageUrl;
                 <a href="<?= BASE_URL ?>" class="flex-shrink-0 group" aria-label="Lukrato - Página Inicial">
                     <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato - Controle Financeiro Pessoal Gratuito"
                         title="Lukrato - Organize suas Finanças"
-                        class="h-8 sm:h-16 transition-transform duration-300 group-hover:scale-110" loading="eager"
+                        class="h-8 w-auto max-w-[120px] sm:h-16 sm:max-w-none transition-transform duration-300 group-hover:scale-110" loading="eager"
                         width="180" height="64" onerror="console.error('Logo não carregou:', this.src)">
                 </a>
 
