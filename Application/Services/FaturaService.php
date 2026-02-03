@@ -1088,6 +1088,21 @@ class FaturaService
         $totalDespesas = $fatura->itens->where('tipo', '!=', 'estorno')->sum('valor');
         $totalEstornos = abs($fatura->itens->where('tipo', 'estorno')->sum('valor'));
 
+        // Extrair mês/ano da descrição (ex: "Fatura 9/2026")
+        $mesReferencia = null;
+        $anoReferencia = null;
+        if (preg_match('/(\d{1,2})\/(\d{4})/', $fatura->descricao, $matches)) {
+            $mesReferencia = (int)$matches[1];
+            $anoReferencia = (int)$matches[2];
+        }
+
+        // Calcular data de vencimento baseado no mês da fatura e dia de vencimento do cartão
+        $dataVencimento = null;
+        if ($mesReferencia && $anoReferencia && $fatura->cartaoCredito) {
+            $diaVencimento = $fatura->cartaoCredito->dia_vencimento ?? 1;
+            $dataVencimento = sprintf('%04d-%02d-%02d', $anoReferencia, $mesReferencia, $diaVencimento);
+        }
+
         return [
             'id' => $fatura->id,
             'descricao' => $fatura->descricao,
@@ -1097,6 +1112,9 @@ class FaturaService
             'total_estornos' => round((float) $totalEstornos, 2),
             'numero_parcelas' => $fatura->numero_parcelas,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
+            'data_vencimento' => $dataVencimento,
+            'mes_referencia' => $mesReferencia,
+            'ano_referencia' => $anoReferencia,
             'cartao' => $this->formatarCartao($fatura->cartaoCredito),
             'parcelas' => $parcelas,
             'parcelas_pagas' => $itensPagos,

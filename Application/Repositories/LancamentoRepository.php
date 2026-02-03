@@ -284,8 +284,46 @@ class LancamentoRepository extends BaseRepository
     {
         $lancamento = $this->findOrFail($id);
 
+        // Buscar itens de fatura vinculados a este lançamento ANTES de excluir
+        $itensVinculados = FaturaCartaoItem::where('lancamento_id', $id)->get();
+
+        // Coletar IDs de faturas afetadas e cartões para atualizar depois
+        $faturaIds = $itensVinculados->pluck('fatura_id')->unique()->filter()->values();
+        $cartaoIds = $itensVinculados->pluck('cartao_credito_id')->unique()->filter()->values();
+
         // Excluir itens de fatura vinculados a este lançamento
         FaturaCartaoItem::where('lancamento_id', $id)->delete();
+
+        // Atualizar faturas afetadas
+        foreach ($faturaIds as $faturaId) {
+            $fatura = \Application\Models\Fatura::find($faturaId);
+            if ($fatura) {
+                // Verificar se ainda tem itens
+                $itensRestantes = FaturaCartaoItem::where('fatura_id', $faturaId)->count();
+
+                if ($itensRestantes === 0) {
+                    // Se não tem mais itens, excluir a fatura também
+                    $fatura->delete();
+                    error_log("🗑️ [DELETE] Fatura {$faturaId} excluída (sem itens restantes)");
+                } else {
+                    // Atualizar valor total e status
+                    $novoTotal = FaturaCartaoItem::where('fatura_id', $faturaId)->sum('valor');
+                    $fatura->valor_total = $novoTotal;
+                    $fatura->save();
+                    $fatura->atualizarStatus();
+                    error_log("📊 [DELETE] Fatura {$faturaId} atualizada - Novo total: {$novoTotal}, Status: {$fatura->status}");
+                }
+            }
+        }
+
+        // Atualizar limite dos cartões afetados
+        foreach ($cartaoIds as $cartaoId) {
+            $cartao = \Application\Models\CartaoCredito::find($cartaoId);
+            if ($cartao) {
+                $cartao->atualizarLimiteDisponivel();
+                error_log("💳 [DELETE] Limite do cartão {$cartaoId} recalculado");
+            }
+        }
 
         return $lancamento->delete();
     }

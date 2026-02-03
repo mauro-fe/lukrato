@@ -555,21 +555,26 @@
         },
 
         renderDetalhesHeader(parc, temItensPendentes, valorRestante) {
-            // Usar mes_referencia/ano_referencia da API (mais preciso)
-            const mes = parc.mes_referencia || '';
-            const ano = parc.ano_referencia || '';
-            const mesNome = this.getNomeMes(mes);
-            const mesAnoFormatado = `${mesNome}/${ano}`;
+            // Usar data_vencimento se disponível, senão usar mes_referencia/ano_referencia
+            let vencimentoFormatado = '/';
+
+            if (parc.data_vencimento) {
+                vencimentoFormatado = Utils.formatDate(parc.data_vencimento);
+            } else if (parc.mes_referencia && parc.ano_referencia) {
+                const mesNome = this.getNomeMes(parc.mes_referencia);
+                vencimentoFormatado = `${mesNome}/${parc.ano_referencia}`;
+            }
 
             // Verificar se pode excluir (apenas se não tiver itens pagos)
             const temItensPagos = parc.parcelas_pagas > 0;
+            const faturaCompletamentePaga = parc.parcelas_pendentes === 0 && parc.parcelas_pagas > 0;
 
             return `
                 <div class="detalhes-header">
                     <div class="detalhes-header-content">
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <span style="color: #9ca3af; font-size: 0.875rem; font-weight: 500;">Vencimento</span>
-                            <h3 class="detalhes-title" style="margin: 0;">${mesAnoFormatado}</h3>
+                            <h3 class="detalhes-title" style="margin: 0;">${vencimentoFormatado}</h3>
                         </div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             ${temItensPendentes ? `
@@ -578,6 +583,15 @@
                                     <i class="fas fa-check-double"></i>
                                     <span class="btn-text-desktop">Pagar Fatura Completa</span>
                                     <span class="btn-text-mobile">Pagar Tudo</span>
+                                </button>
+                            ` : ''}
+                            ${faturaCompletamentePaga ? `
+                                <button class="btn-reverter-fatura" 
+                                        onclick="window.reverterPagamentoFaturaGlobal(${parc.id})"
+                                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+                                    <i class="fas fa-undo"></i>
+                                    <span class="btn-text-desktop">Desfazer Pagamento</span>
+                                    <span class="btn-text-mobile">Reverter</span>
                                 </button>
                             ` : ''}
                         </div>
@@ -2040,6 +2054,90 @@
 
     window.pagarFaturaCompletaGlobal = (faturaId, valorTotal) => {
         UI.pagarFaturaCompleta(faturaId, valorTotal);
+    };
+
+    window.reverterPagamentoFaturaGlobal = async (faturaId) => {
+        // Usar dados da fatura atual
+        const fatura = STATE.faturaAtual;
+
+        if (!fatura || !fatura.cartao || !fatura.mes_referencia || !fatura.ano_referencia) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Dados da fatura incompletos para reverter o pagamento.'
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: 'Desfazer Pagamento?',
+            html: `
+                <p>Você está prestes a <strong>reverter o pagamento</strong> de todos os itens desta fatura.</p>
+                <div style="margin: 1rem 0; padding: 0.75rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <p style="margin: 0; color: #92400e; font-size: 0.875rem;">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        O lançamento de pagamento será excluído e o valor voltará para a conta.
+                    </p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-undo"></i> Sim, reverter',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            Swal.fire({
+                title: 'Revertendo pagamento...',
+                html: 'Aguarde enquanto processamos a reversão.',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const cartaoId = fatura.cartao.id;
+            const mes = fatura.mes_referencia;
+            const ano = fatura.ano_referencia;
+
+            const response = await Utils.apiRequest(`api/cartoes/${cartaoId}/fatura/desfazer-pagamento`, {
+                method: 'POST',
+                body: JSON.stringify({ mes, ano })
+            });
+
+            if (response.status === 'success' || response.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Pagamento Revertido!',
+                    html: `
+                        <p>${response.message || 'O pagamento foi revertido com sucesso.'}</p>
+                        <p style="color: #059669; margin-top: 0.5rem;">
+                            <i class="fas fa-check-circle"></i> 
+                            ${response.itens_revertidos || 0} item(s) voltou(aram) para pendente.
+                        </p>
+                    `,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                // Fechar modal e recarregar
+                if (STATE.modalDetalhesInstance) {
+                    STATE.modalDetalhesInstance.hide();
+                }
+                await App.carregarParcelamentos();
+            } else {
+                throw new Error(response.message || response.error || 'Erro ao reverter pagamento');
+            }
+        } catch (error) {
+            console.error('Erro ao reverter pagamento:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: error.message || 'Não foi possível reverter o pagamento.'
+            });
+        }
     };
 
     window.excluirFaturaGlobal = async (faturaId) => {

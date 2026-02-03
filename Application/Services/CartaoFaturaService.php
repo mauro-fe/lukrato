@@ -547,13 +547,34 @@ class CartaoFaturaService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+            error_log("🔄 [DESFAZER FATURA] Cartão: {$cartao->nome_cartao}, Mês: {$mes}/{$ano}");
+
+            // Buscar lançamento de pagamento de fatura pelo origem_tipo (mais confiável)
+            // Observação contém: "X item(s) pago(s) - Fatura MM/YYYY"
+            $padraoObservacao = sprintf('Fatura %02d/%04d', $mes, $ano);
 
             $lancamentosPagamento = Lancamento::where('user_id', $userId)
-                ->whereNull('cartao_credito_id')
-                ->where('tipo', 'despesa')
-                ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+                ->where('cartao_credito_id', $cartaoId)
+                ->where('origem_tipo', 'pagamento_fatura')
+                ->where('observacao', 'LIKE', "%{$padraoObservacao}%")
                 ->get();
+
+            error_log("🔍 [DESFAZER FATURA] Padrão de busca: {$padraoObservacao}");
+            error_log("🔍 [DESFAZER FATURA] Lançamentos encontrados: {$lancamentosPagamento->count()}");
+
+            if ($lancamentosPagamento->isEmpty()) {
+                // Fallback: buscar pelo padrão antigo na descrição
+                $nomeMes = $this->getNomeMes($mes);
+                $padraoDescricaoAntigo = "- {$nomeMes}/{$ano}";
+
+                $lancamentosPagamento = Lancamento::where('user_id', $userId)
+                    ->where('cartao_credito_id', $cartaoId)
+                    ->where('tipo', 'despesa')
+                    ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricaoAntigo}%")
+                    ->get();
+
+                error_log("🔍 [DESFAZER FATURA] Fallback - Padrão descrição: {$padraoDescricaoAntigo}, Encontrados: {$lancamentosPagamento->count()}");
+            }
 
             if ($lancamentosPagamento->isEmpty()) {
                 throw new \Exception('Nenhum pagamento encontrado para esta fatura.');
@@ -572,17 +593,28 @@ class CartaoFaturaService
                 ->unique()
                 ->toArray();
 
+            // Contar itens que serão revertidos
+            $itensParaReverter = FaturaCartaoItem::where('user_id', $userId)
+                ->where('cartao_credito_id', $cartao->id)
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
+                ->where('pago', true)
+                ->count();
+
             // Desmarcar parcelas
-            FaturaCartaoItem::where('user_id', $userId)
+            $itensRevertidos = FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cartao->id)
                 ->whereYear('data_vencimento', $ano)
                 ->whereMonth('data_vencimento', $mes)
                 ->where('pago', true)
                 ->update(['pago' => false, 'data_pagamento' => null]);
 
+            error_log("📊 [DESFAZER FATURA] {$itensRevertidos} itens revertidos");
+
             $this->atualizarStatusFaturas($faturasAfetadas);
 
             foreach ($lancamentosPagamento as $pagamento) {
+                error_log("🗑️ [DESFAZER FATURA] Excluindo lançamento ID: {$pagamento->id}");
                 $pagamento->delete();
             }
 
@@ -591,9 +623,14 @@ class CartaoFaturaService
 
             DB::commit();
 
+            error_log("✅ [DESFAZER FATURA] Concluído com sucesso");
+
             return [
+                'status' => 'success',
                 'success' => true,
                 'message' => 'Pagamento desfeito com sucesso!',
+                'itens_revertidos' => $itensRevertidos,
+                'valor_revertido' => $totalPagamentos,
             ];
         } catch (\Exception $e) {
             DB::rollBack();

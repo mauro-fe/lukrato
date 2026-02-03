@@ -622,12 +622,16 @@ class LancamentosController extends BaseController
     private function reverterPagamentoFatura($lancamento): void
     {
         try {
-            // Extrair mês/ano da descrição do lançamento (ex: "Pagamento Fatura Nubank •••• 1234 - Fev/2026")
-            // ou da observação (ex: "14 item(s) pago(s) - Fatura 02/2026")
+            $cartaoId = $lancamento->cartao_credito_id;
+            $userId = $lancamento->user_id;
+
+            error_log("🔄 [REVERTER FATURA] Iniciando reversão - Lançamento ID: {$lancamento->id}, Cartão: {$cartaoId}");
+
+            // Extrair mês/ano da observação (ex: "14 item(s) pago(s) - Fatura 02/2026" ou "Fatura 2/2026")
             $mes = null;
             $ano = null;
 
-            if (preg_match('/Fatura (\d{2})\/(\d{4})/', $lancamento->observacao, $matches)) {
+            if (preg_match('/Fatura (\d{1,2})\/(\d{4})/', $lancamento->observacao, $matches)) {
                 $mes = (int)$matches[1];
                 $ano = (int)$matches[2];
             }
@@ -637,38 +641,54 @@ class LancamentosController extends BaseController
                 return;
             }
 
-            error_log("🔄 [REVERTER FATURA] Revertendo pagamento - Cartão: {$lancamento->cartao_credito_id}, Mês: {$mes}/{$ano}");
+            error_log("🔄 [REVERTER FATURA] Mês/Ano extraído: {$mes}/{$ano}");
 
-            // Buscar a fatura correspondente
-            $fatura = Fatura::where('cartao_id', $lancamento->cartao_credito_id)
-                ->where('mes_referencia', $mes)
-                ->where('ano_referencia', $ano)
-                ->first();
+            // Buscar itens pagos usando data_vencimento (mesmo critério usado ao pagar)
+            // O pagamento busca por whereMonth/whereYear de data_vencimento
+            $itensPagos = FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
+                ->where('user_id', $userId)
+                ->whereYear('data_vencimento', $ano)
+                ->whereMonth('data_vencimento', $mes)
+                ->where('pago', true)
+                ->get();
 
-            if (!$fatura) {
-                error_log("⚠️ [REVERTER FATURA] Fatura não encontrada para cartão {$lancamento->cartao_credito_id}, {$mes}/{$ano}");
+            if ($itensPagos->isEmpty()) {
+                error_log("⚠️ [REVERTER FATURA] Nenhum item pago encontrado para cartão {$cartaoId}, vencimento {$mes}/{$ano}");
                 return;
             }
 
-            // Reverter todos os itens pagos desta fatura
-            $itensRevertidos = FaturaCartaoItem::where('fatura_id', $fatura->id)
-                ->where('pago', true)
+            error_log("📋 [REVERTER FATURA] Encontrados {$itensPagos->count()} itens pagos para reverter");
+
+            // Coletar IDs de faturas para atualizar depois
+            $faturaIds = $itensPagos->pluck('fatura_id')->unique()->filter()->values();
+            $itemIds = $itensPagos->pluck('id')->toArray();
+
+            // Reverter os itens encontrados (usando IDs específicos para segurança)
+            $itensRevertidos = FaturaCartaoItem::whereIn('id', $itemIds)
                 ->update([
                     'pago' => false,
                     'data_pagamento' => null
                 ]);
 
-            // Atualizar status da fatura
-            $fatura->status = 'pendente';
-            $fatura->save();
+            error_log("📊 [REVERTER FATURA] {$itensRevertidos} itens revertidos para não pago");
+
+            // Atualizar status de todas as faturas afetadas
+            foreach ($faturaIds as $faturaId) {
+                $fatura = Fatura::find($faturaId);
+                if ($fatura) {
+                    $fatura->atualizarStatus();
+                    error_log("📊 [REVERTER FATURA] Fatura {$faturaId} atualizada para status: {$fatura->status}");
+                }
+            }
 
             // Recalcular limite do cartão
             $cartao = $lancamento->cartaoCredito;
             if ($cartao) {
                 $cartao->atualizarLimiteDisponivel();
+                error_log("💳 [REVERTER FATURA] Limite do cartão recalculado");
             }
 
-            error_log("✅ [REVERTER FATURA] {$itensRevertidos} itens revertidos para pendente");
+            error_log("✅ [REVERTER FATURA] Reversão concluída com sucesso");
         } catch (\Exception $e) {
             error_log("❌ [REVERTER FATURA] Erro: " . $e->getMessage());
         }
