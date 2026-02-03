@@ -295,7 +295,9 @@ document.addEventListener('DOMContentLoaded', () => {
         apply(token) {
             if (!token) return;
 
+            const oldToken = STATE.csrfToken;
             STATE.csrfToken = token;
+            console.log('[CSRF.apply] Token atualizado:', oldToken?.substring(0, 8) + '... →', token.substring(0, 8) + '...');
 
             document.querySelectorAll(`[data-csrf-id="${CONFIG.TOKEN_ID}"]`).forEach(el => {
                 if (el.tagName === 'META') {
@@ -312,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async refresh() {
+            console.log('[CSRF.refresh] Iniciando renovação do token...');
             const res = await fetch(`${CONFIG.BASE_URL}api/csrf/refresh`, {
                 method: 'POST',
                 credentials: 'include',
@@ -323,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await res.json().catch(() => null);
+            console.log('[CSRF.refresh] Resposta:', data?.status, 'Token prefix:', data?.token?.substring(0, 8));
 
             if (data?.token) {
                 this.apply(data.token);
@@ -369,17 +373,36 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async fetchWithCSRF(url, options = {}, retry = true) {
+            // Sempre pegar o token mais recente do STATE
             const currentToken = STATE.csrfToken || CSRF.get();
+            console.log('[CSRF] fetchWithCSRF chamado. Token atual:', currentToken?.substring(0, 8) + '...');
+
+            // Se o body é FormData, criar uma cópia e atualizar os tokens
+            let finalOptions = { ...options };
+            if (options.body instanceof FormData) {
+                // Criar novo FormData para não modificar o original
+                const newFormData = new FormData();
+                for (const [key, value] of options.body.entries()) {
+                    if (key !== '_token' && key !== 'csrf_token') {
+                        newFormData.append(key, value);
+                    }
+                }
+                // Adicionar tokens atualizados
+                newFormData.set('_token', currentToken);
+                newFormData.set('csrf_token', currentToken);
+                finalOptions.body = newFormData;
+                console.log('[CSRF] FormData recriado com token atualizado');
+            }
 
             const res = await fetch(url, {
-                credentials: options.credentials || 'include',
-                ...options,
+                credentials: finalOptions.credentials || 'include',
+                ...finalOptions,
                 headers: {
                     'Accept': 'application/json',
-                    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+                    ...(finalOptions.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
                     'X-CSRF-TOKEN': currentToken,
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(options.headers || {})
+                    ...(finalOptions.headers || {})
                 }
             });
 
@@ -394,14 +417,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isCsrfError = (res.status === 403 || res.status === 419 || res.status === 422) && (
                 (json?.errors && json.errors.csrf_token) ||
+                (json?.errors && json.errors.csrf_expired) ||
                 String(json?.message || '').toLowerCase().includes('csrf')
             );
 
             if (isCsrfError && retry) {
+                console.warn('[CSRF] Erro de CSRF detectado, renovando token e tentando novamente...');
                 try {
                     await CSRF.refresh();
+                    console.log('[CSRF] Token renovado para:', STATE.csrfToken?.substring(0, 8) + '...');
+                    // Aguardar um pouco para garantir sincronização
+                    await new Promise(resolve => setTimeout(resolve, 150));
+                    // Passar o options ORIGINAL, não o finalOptions, para que o novo FormData seja criado com token novo
                     return this.fetchWithCSRF(url, options, false);
-                } catch (_) {
+                } catch (refreshError) {
+                    console.error('[CSRF] Falha ao renovar CSRF:', refreshError);
                     // Continua para o fluxo normal de erro
                 }
             }
@@ -1802,7 +1832,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const Actions = {
         _saving: false, // Flag para prevenir múltiplas submissões
-        
+
         async edit(record) {
             if (!record) return;
 
@@ -1839,15 +1869,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             try {
-                // Tentar renovar token CSRF ANTES de criar o payload
-                try {
-                    await CSRF.refresh();
-                } catch (csrfError) {
-                    console.warn('[Actions.save] Não foi possível renovar CSRF, usando token atual:', csrfError);
-                }
-
-                // Criar payload DEPOIS do refresh para garantir token atualizado
+                // Criar payload com o token atual - o fetchWithCSRF faz retry automaticamente se necessário
                 const payload = FormManager.getData(valorCentavos);
+                console.log('[Actions.save] Enviando para:', isEditMode ? 'update' : 'create', 'Token:', (STATE.csrfToken || '').substring(0, 10) + '...');
 
                 const endpoint = isEditMode
                     ? `${CONFIG.BASE_URL}api/agendamentos/${agendamentoId}`
@@ -2390,16 +2414,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setupFormSubmit() {
             // Prevenir múltiplas submissões
             let isSubmitting = false;
-            
+
             DOM.form?.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                
+
                 if (isSubmitting) {
                     console.warn('Submissão já em andamento, ignorando duplicata');
                     return;
                 }
-                
+
                 isSubmitting = true;
                 try {
                     await Actions.save();

@@ -4,6 +4,7 @@ namespace Application\Controllers\Api;
 
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
+use Application\Services\LogService;
 
 class SecurityController
 {
@@ -14,7 +15,21 @@ class SecurityController
         }
 
         $tokenId = $this->resolveTokenId();
+        $oldToken = $_SESSION['csrf_tokens'][$tokenId]['value'] ?? null;
+
         $token = CsrfMiddleware::generateToken($tokenId);
+
+        LogService::info('CSRF token renovado', [
+            'token_id' => $tokenId,
+            'session_id' => session_id(),
+            'old_token_prefix' => $oldToken ? substr($oldToken, 0, 8) : 'none',
+            'new_token_prefix' => substr($token, 0, 8),
+            'user_id' => $_SESSION['user_id'] ?? null,
+        ]);
+
+        // Forçar escrita da sessão para garantir que o novo token esteja persistido
+        // antes de enviar a resposta ao cliente
+        session_write_close();
 
         Response::json([
             'status'   => 'ok',

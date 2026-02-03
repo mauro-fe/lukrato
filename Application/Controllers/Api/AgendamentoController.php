@@ -103,6 +103,11 @@ class AgendamentoController extends BaseController
             $data = $this->validator->sanitize($this->getRequestData());
             $data = $this->normalizeDataPagamento($data);
 
+            LogService::info('Dados recebidos para criar agendamento.', [
+                'data' => array_diff_key($data, ['csrf_token' => 1, '_token' => 1]),
+                'user_id' => $this->getUserId()
+            ]);
+
             // Validar com AgendamentoValidator
             $errors = AgendamentoValidator::validateCreate($data);
             if (!empty($errors)) {
@@ -117,7 +122,35 @@ class AgendamentoController extends BaseController
 
             // Criar DTO e salvar
             $dto = CreateAgendamentoDTO::fromRequest($this->getUserId(), $data);
-            $agendamento = $this->agendamentoRepo->create($dto->toArray());
+            $dtoArray = $dto->toArray();
+
+            // Verificar se já existe um agendamento idêntico criado nos últimos 10 segundos
+            // para evitar duplicação por retry ou duplo clique
+            $recentDuplicate = Agendamento::where('user_id', $this->getUserId())
+                ->where('titulo', $dtoArray['titulo'])
+                ->where('valor_centavos', $dtoArray['valor_centavos'])
+                ->where('data_pagamento', $dtoArray['data_pagamento'])
+                ->where('tipo', $dtoArray['tipo'])
+                ->where('created_at', '>=', date('Y-m-d H:i:s', time() - 10))
+                ->first();
+
+            if ($recentDuplicate) {
+                LogService::warning('Agendamento duplicado detectado e ignorado.', [
+                    'existing_id' => $recentDuplicate->id,
+                    'user_id' => $this->getUserId()
+                ]);
+
+                // Retornar o agendamento existente como se fosse criado agora
+                Response::success(['agendamento' => $recentDuplicate, 'duplicate_prevented' => true]);
+                return;
+            }
+
+            $agendamento = $this->agendamentoRepo->create($dtoArray);
+
+            LogService::info('Agendamento criado com sucesso.', [
+                'agendamento_id' => $agendamento->id,
+                'user_id' => $this->getUserId()
+            ]);
 
             Response::success(['agendamento' => $agendamento]);
         } catch (Throwable $e) {
