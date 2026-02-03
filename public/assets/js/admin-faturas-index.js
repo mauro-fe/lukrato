@@ -332,6 +332,9 @@
             const resumoPrincipal = this.getResumoPrincipal(parc);
             const itensInfo = this.getItensInfo(itensPendentes, itensPagos);
             const progressoSection = this.getProgressoSection(totalItens, itensPagos, progresso);
+            
+            // Nome do cartão para exibir na lista
+            const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartão') : 'Cartão';
 
             return `
                 <div class="parc-card-header">
@@ -343,6 +346,10 @@
                         </div>
                     </div>
                     ${statusBadge}
+                </div>
+                <div class="fatura-list-info">
+                    <span class="list-cartao-nome">${Utils.escapeHtml(cartaoNome)}</span>
+                    <span class="list-periodo">${mes}/${ano}</span>
                 </div>
                 <div class="fatura-resumo-principal">${resumoPrincipal}</div>
                 ${itensInfo}
@@ -1592,6 +1599,7 @@
         async init() {
             try {
                 this.initModal();
+                this.initViewToggle();
                 this.aplicarFiltrosURL();
                 await this.carregarCartoes();
                 await this.carregarParcelamentos();
@@ -1605,6 +1613,59 @@
                     text: 'Não foi possível carregar a página. Tente recarregar.'
                 });
             }
+        },
+
+        /**
+         * Inicializar toggle de visualização (Cards/Lista)
+         */
+        initViewToggle() {
+            const viewToggle = document.querySelector('.view-toggle');
+            const container = DOM.containerEl;
+            
+            if (!viewToggle || !container) return;
+
+            const viewButtons = viewToggle.querySelectorAll('.view-btn');
+            
+            // Restaurar preferência salva
+            const savedView = localStorage.getItem('faturas_view_mode') || 'grid';
+            if (savedView === 'list') {
+                container.classList.add('list-view');
+            }
+            
+            // Atualizar estado dos botões
+            this.updateViewToggleState(viewButtons, savedView);
+
+            // Adicionar listeners aos botões
+            viewButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const view = btn.dataset.view;
+                    
+                    if (view === 'list') {
+                        container.classList.add('list-view');
+                    } else {
+                        container.classList.remove('list-view');
+                    }
+                    
+                    // Salvar preferência
+                    localStorage.setItem('faturas_view_mode', view);
+                    
+                    // Atualizar estado dos botões
+                    this.updateViewToggleState(viewButtons, view);
+                });
+            });
+        },
+
+        /**
+         * Atualizar estado visual dos botões de toggle
+         */
+        updateViewToggleState(buttons, activeView) {
+            buttons.forEach(btn => {
+                if (btn.dataset.view === activeView) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         },
 
         initModal() {

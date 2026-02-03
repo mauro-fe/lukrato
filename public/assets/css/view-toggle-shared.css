@@ -1,0 +1,180 @@
+/* ============================================================================
+   VIEW TOGGLE - ESTILOS COMPARTILHADOS
+   Alternância entre visualização Cards e Lista
+   ============================================================================ */
+
+/* Container do Toggle */
+.view-toggle {
+  display: flex;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  border-radius: 10px;
+  padding: 0.25rem;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  gap: 2px;
+}
+
+/* Botões do Toggle */
+.view-btn {
+  padding: 0.5rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted, #94a3b8);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+}
+
+.view-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text, #e2e8f0);
+}
+
+.view-btn.active {
+  background: var(--color-primary, #e67e22);
+  color: white;
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.35);
+}
+
+.view-btn i {
+  font-size: 0.95rem;
+}
+
+/* ============================================================================
+   GRID VIEW (Cards) - Estado padrão
+   ============================================================================ */
+
+.items-container {
+  transition: all 0.3s ease;
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================================================================
+   LIST VIEW - Quando ativado
+   ============================================================================ */
+
+.items-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.items-grid.list-view .item-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+}
+
+/* Ajustes específicos para list-view */
+.items-grid.list-view .item-icon {
+  width: 48px;
+  height: 48px;
+  font-size: 1.25rem;
+}
+
+.items-grid.list-view .item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.items-grid.list-view .item-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.items-grid.list-view .item-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.items-grid.list-view .item-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: right;
+  min-width: 120px;
+}
+
+.items-grid.list-view .item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .view-toggle {
+    display: none; /* Esconde toggle no mobile - mostra só cards */
+  }
+  
+  .items-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .items-grid.list-view {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  
+  .items-grid.list-view .item-card {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .items-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .items-grid.list-view .item-card {
+    grid-template-columns: auto 1fr auto;
+  }
+  
+  .items-grid.list-view .item-value {
+    min-width: 100px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .items-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================================
+   ANIMAÇÕES
+   ============================================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Transição suave ao trocar de view */
+.items-grid.switching {
+  opacity: 0.5;
+  pointer-events: none;
+}

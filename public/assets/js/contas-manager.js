@@ -1176,6 +1176,9 @@ class ContasManager {
             }
         });
 
+        // View Toggle (Cards/Lista)
+        this.initViewToggle();
+
         // Fechar modal ao clicar no overlay
         document.getElementById('modalContaOverlay')?.addEventListener('click', (e) => {
             if (e.target.id === 'modalContaOverlay') {
@@ -1187,6 +1190,63 @@ class ContasManager {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.closeModal();
+            }
+        });
+    }
+
+    /**
+     * Inicializar toggle de visualização (Cards/Lista)
+     */
+    initViewToggle() {
+        const viewToggle = document.querySelector('.view-toggle');
+        const accountsGrid = document.getElementById('accountsGrid');
+        
+        if (!viewToggle || !accountsGrid) return;
+
+        const viewButtons = viewToggle.querySelectorAll('.view-btn');
+        
+        // Restaurar preferência salva
+        const savedView = localStorage.getItem('contas_view_mode') || 'grid';
+        if (savedView === 'list') {
+            accountsGrid.classList.add('list-view');
+        }
+        
+        // Atualizar estado dos botões
+        this.updateViewToggleState(viewButtons, savedView);
+
+        // Adicionar listeners aos botões
+        viewButtons.forEach(btn => {
+            if (btn.dataset.listenerAdded) return;
+            
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                
+                if (view === 'list') {
+                    accountsGrid.classList.add('list-view');
+                } else {
+                    accountsGrid.classList.remove('list-view');
+                }
+                
+                // Salvar preferência
+                localStorage.setItem('contas_view_mode', view);
+                
+                // Atualizar estado dos botões
+                this.updateViewToggleState(viewButtons, view);
+            });
+            
+            btn.dataset.listenerAdded = 'true';
+        });
+    }
+
+    /**
+     * Atualizar estado visual dos botões de toggle
+     */
+    updateViewToggleState(buttons, activeView) {
+        buttons.forEach(btn => {
+            if (btn.dataset.view === activeView) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
             }
         });
     }

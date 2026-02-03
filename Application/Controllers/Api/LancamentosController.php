@@ -142,6 +142,7 @@ class LancamentosController extends BaseController
         $q = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->leftJoin('contas as a',     'a.id', '=', 'l.conta_id')
+            ->leftJoin('cartoes_credito as cc', 'cc.id', '=', 'l.cartao_credito_id')
             ->where('l.user_id', $userId)
             ->whereBetween('l.data', [$from, $to])
             ->when($accId, fn($w) => $w->where(function (Builder $s) use ($accId) {
@@ -162,7 +163,9 @@ class LancamentosController extends BaseController
             COALESCE(c.nome, "") as categoria,
             COALESCE(a.nome, "") as conta_nome,
             COALESCE(a.instituicao, "") as conta_instituicao,
-            COALESCE(a.nome, a.instituicao, "") as conta
+            COALESCE(a.nome, a.instituicao, "") as conta,
+            COALESCE(cc.nome_cartao, "") as cartao_nome,
+            COALESCE(cc.bandeira, "") as cartao_bandeira
         ')->get();
 
         $out = $rows->map(fn($r) => [
@@ -184,6 +187,8 @@ class LancamentosController extends BaseController
             'conta'            => (string)$r->conta,
             'conta_nome'       => (string)$r->conta_nome,
             'conta_instituicao' => (string)$r->conta_instituicao,
+            'cartao_nome'      => (string)($r->cartao_nome ?? ''),
+            'cartao_bandeira'  => (string)($r->cartao_bandeira ?? ''),
         ])->values()->all();
 
         Response::success($out);

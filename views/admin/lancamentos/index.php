@@ -1,7 +1,4 @@
-﻿<!-- Tabulator -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
-
-<!-- CSS MODERNIZADO -->
+﻿<!-- CSS MODERNIZADO -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lancamentos-modern.css">
 
@@ -169,9 +166,62 @@
         </div>
 
         <div class="lan-table-container">
-            <!-- DESKTOP: Tabela Tabulator -->
+            <!-- DESKTOP: Tabela HTML Pura -->
             <section class="table-container tab-desktop">
-                <div id="lancamentosTable"></div>
+                <div class="lk-table-wrapper">
+                    <table class="lk-table" id="lancamentosTable">
+                        <thead>
+                            <tr>
+                                <th class="th-checkbox">
+                                    <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox" title="Selecionar todos">
+                                </th>
+                                <th class="th-data sortable" data-sort="data">
+                                    <span>Data</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="th-tipo sortable" data-sort="tipo">
+                                    <span>Tipo</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="th-categoria">Categoria</th>
+                                <th class="th-conta">Conta</th>
+                                <th class="th-cartao">Cartão</th>
+                                <th class="th-descricao">Descrição</th>
+                                <th class="th-status">Status</th>
+                                <th class="th-valor sortable" data-sort="valor">
+                                    <span>Valor</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="th-acoes">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lancamentosTableBody">
+                            <!-- Linhas serão inseridas via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginação Desktop -->
+                <div class="lk-pagination" id="desktopPagination">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">0 lançamentos</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <select id="pageSize" class="page-size-select">
+                            <option value="10">10 por página</option>
+                            <option value="25" selected>25 por página</option>
+                            <option value="50">50 por página</option>
+                            <option value="100">100 por página</option>
+                        </select>
+                        <button type="button" id="prevPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="pageNumbers" class="page-numbers"></span>
+                        <button type="button" id="nextPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </section>
 
             <!-- MOBILE: Cards + pager -->
@@ -209,5 +259,3 @@
 </section>
 
 <?php include __DIR__ . '/../partials/modals/editar-lancamentos.php'; ?>
-
-<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>

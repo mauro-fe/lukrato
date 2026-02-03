@@ -115,6 +115,22 @@
         </div>
     </div>
 
+    <!-- ==================== HEADER COM TOGGLE ==================== -->
+    <div class="faturas-header" data-aos="fade-up" data-aos-delay="150">
+        <div class="faturas-title">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Suas Faturas</span>
+        </div>
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="grid" title="Visualização em Cards">
+                <i class="fas fa-grip"></i>
+            </button>
+            <button class="view-btn" data-view="list" title="Visualização em Lista">
+                <i class="fas fa-list"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- ==================== LOADING ==================== -->
     <div id="loadingParcelamentos" class="loading-container" style="display: none;">
         <div class="loading-spinner">

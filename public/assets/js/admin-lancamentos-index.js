@@ -3,7 +3,7 @@
  * SISTEMA DE GERENCIAMENTO DE LANÃ‡AMENTOS
  * ============================================================================
  * Gerencia listagem, filtros, ediÃ§Ã£o e exportação de lançamentos financeiros
- * Utiliza Tabulator.js para renderização da tabela
+ * Utiliza tabela HTML pura para renderização da tabela
  * ============================================================================
  */
 
@@ -39,6 +39,13 @@
 
         // Tabela
         tabContainer: document.getElementById('lancamentosTable'),
+        tableBody: document.getElementById('lancamentosTableBody'),
+        selectAllCheckbox: document.getElementById('selectAllLancamentos'),
+        paginationInfo: document.getElementById('paginationInfo'),
+        pageSize: document.getElementById('pageSize'),
+        prevPage: document.getElementById('prevPage'),
+        nextPage: document.getElementById('nextPage'),
+        pageNumbers: document.getElementById('pageNumbers'),
         // Cards (mobile)
         lanCards: document.getElementById('lanCards'),
 
@@ -90,7 +97,15 @@
         categoriaOptions: [],
         contaOptions: [],
         loadTimer: null,
-        lancamentos: [] // Armazena dados originais para agrupamento
+        lancamentos: [], // Armazena dados originais para agrupamento
+        // HTML Table state
+        allData: [],
+        filteredData: [],
+        currentPage: 1,
+        pageSize: 25,
+        sortField: 'data',
+        sortDirection: 'desc',
+        selectedIds: new Set()
     };
 
     // ============================================================================
@@ -606,499 +621,610 @@
     };
 
     // ============================================================================
-    // GERENCIAMENTO DE TABELA (TABULATOR) - DESKTOP
+    // GERENCIAMENTO DE TABELA (HTML PURO) - DESKTOP
     // ============================================================================
 
     const TableManager = {
-        waitForTableReady: (instance) => {
-            if (!instance) return Promise.resolve();
-            if (instance.__lkReadyResolved || !instance.__lkReadyPromise) {
-                return Promise.resolve();
-            }
-            return instance.__lkReadyPromise;
-        },
-
-        tableIsActive: (instance) => {
-            if (!instance) return false;
-            if (instance.__lkInitializing) return true;
-            const rm = instance.rowManager;
-            if (!rm || !rm.renderer) return false;
-            if (instance.element && instance.element.isConnected === false) return false;
-            return true;
-        },
-
-        buildColumns: () => [
-            {
-                formatter: 'rowSelection',
-                titleFormatter: 'rowSelection',
-                hozAlign: 'center',
-                headerSort: false,
-                width: 44,
-                minWidth: 44,
-                responsive: 5,
-                cellClick: (e, cell) => {
-                    const data = cell.getRow().getData();
-                    // Não permitir seleção de grupos ou saldo inicial
-                    if (data._isParcelamentoGroup || Utils.isSaldoInicial(data)) {
-                        e.preventDefault();
-                        cell.getRow().deselect();
+        /**
+         * Initialize table event listeners for sorting, pagination, and selection
+         */
+        init() {
+            // Sortable headers
+            const sortableHeaders = document.querySelectorAll('.sortable[data-sort]');
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const field = header.dataset.sort;
+                    if (!field) return;
+                    
+                    // Toggle direction if same field, else default to desc
+                    if (STATE.sortField === field) {
+                        STATE.sortDirection = STATE.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        STATE.sortField = field;
+                        STATE.sortDirection = 'desc';
                     }
-                }
-            },
-            {
-                title: 'Data',
-                field: 'data',
-                sorter: 'date',
-                hozAlign: 'left',
-                width: 130,
-                minWidth: 90,
-                responsive: 0,
-                mutator: (value, data) => data.data || data.created_at,
-                formatter: (cell) => Utils.fmtDate(cell.getValue()),
-                headerFilterFunc: (headerValue, rowValue) => {
-                    const filter = Utils.parseFilterDate(headerValue);
-                    if (!filter) return true;
+                    STATE.currentPage = 1;
+                    this.sortData();
+                    this.render();
+                    this.updateSortIndicators();
+                });
+            });
 
-                    const value = Utils.extractYMD(rowValue);
-                    if (!value) return false;
-
-                    if (filter.year !== null && value.year !== filter.year) return false;
-                    if (filter.month !== null && value.month !== filter.month) return false;
-                    if (filter.day !== null && value.day !== filter.day) return false;
-                    return true;
-                },
-                headerFilter: 'input',
-                headerFilterPlaceholder: 'Filtrar data'
-            },
-            {
-                title: 'Tipo',
-                field: 'tipo',
-                width: 150,
-                hozAlign: 'center',
-                minWidth: 90,
-                responsive: 0,
-                formatter: (cell) => {
-                    const raw = String(cell.getValue() || '-');
-                    const tipoClass = Utils.getTipoClass(raw);
-                    const label = raw.charAt(0).toUpperCase() + raw.slice(1);
-                    return `<span class="badge-tipo ${tipoClass}">${Utils.escapeHtml(label)}</span>`;
-                },
-                headerFilter: (cell, onRendered, success) => {
-                    const select = document.createElement('select');
-                    select.innerHTML = `
-                        <option value="">Todos</option>
-                        <option value="receita">Receitas</option>
-                        <option value="despesa">Despesas</option>
-                    `;
-                    select.addEventListener('change', () => success(select.value));
-                    onRendered(() => {
-                        const current = typeof cell.getHeaderFilterValue === 'function' ?
-                            (cell.getHeaderFilterValue() || '') : '';
-                        select.value = current;
-                    });
-                    return select;
-                }
-            },
-            {
-                title: 'Categoria',
-                field: 'categoria_nome',
-                hozAlign: 'center',
-                widthGrow: 1,
-                minWidth: 160,
-                responsive: 2,
-                mutator: (value, data) => {
-                    const candidate = value ??
-                        data?.categoria ??
-                        data?.categoria_nome ??
-                        (typeof data?.categoria === 'object' ? data?.categoria?.nome : '') ?? '';
-
-                    if (candidate && typeof candidate === 'object') {
-                        return String(candidate.nome ?? candidate.label ?? candidate.title ?? '');
-                    }
-                    return candidate ? String(candidate) : '';
-                },
-                formatter: (cell) => {
-                    const value = cell.getValue() || '-';
-                    if (value === '-') return value;
-                    return `<span>${Utils.escapeHtml(value)}</span>`;
-                },
-                headerFilter: 'input',
-                headerFilterPlaceholder: 'Filtrar categoria'
-            },
-            {
-                title: 'Conta',
-                field: 'conta_nome',
-                hozAlign: 'center',
-                width: 150,
-                minWidth: 140,
-                responsive: 2,
-
-                mutator: (value, data) => {
-                    const raw = value ??
-                        data?.conta ??
-                        data?.conta_nome ??
-                        (typeof data?.conta === 'object' ? data?.conta?.nome : '') ?? '';
-
-                    if (raw && typeof raw === 'object') {
-                        return String(raw.nome ?? raw.label ?? raw.title ?? '');
-                    }
-                    return raw ? String(raw) : '';
-                },
-                formatter: (cell) => cell.getValue() || '-',
-                headerFilter: 'input',
-                headerFilterPlaceholder: 'Filtrar conta'
-            },
-            {
-                title: 'Descrição',
-                field: 'descricao',
-                hozAlign: 'center',
-                widthGrow: 2,
-                minWidth: 180,
-                responsive: 3,
-                mutator: (value, data) => {
-                    // Se é grupo de parcelamento, usar descrição do grupo
-                    if (data._isParcelamentoGroup) {
-                        return data.descricao;
-                    }
-
-                    let raw = value ??
-                        data?.descricao ??
-                        data?.descricao_titulo ??
-                        (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ?? '';
-
-                    if (raw && typeof raw === 'object') {
-                        raw = raw.texto ?? raw.value ?? raw.title ?? '';
-                    }
-                    return raw ? String(raw).trim() : '';
-                },
-                formatter: (cell) => {
-                    const data = cell.getRow().getData();
-
-                    // Renderizar grupos de parcelamento
-                    if (data._isParcelamentoGroup) {
-                        const totalParcelas = data._parcelas.length;
-                        const parcelasPagas = data._parcelas.filter(p => p.pago).length;
-                        const valorTotal = data._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
-                        const valorParcela = valorTotal / totalParcelas;
-                        const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-
-                        return `
-                            <div class="d-flex align-items-center gap-2">
-                                <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
-                                        data-parcelamento-id="${data.id.replace('grupo_', '')}"
-                                        title="Ver parcelas">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                                <div>
-                                    <div class="fw-bold">
-                                        📦 ${Utils.escapeHtml(cell.getValue())}
-                                    </div>
-                                    <small class="text-muted">
-                                        ${totalParcelas}x de R$ ${valorParcela.toFixed(2)} 
-                                        · ${parcelasPagas}/${totalParcelas} pagas (${Math.round(percentual)}%)
-                                    </small>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    return cell.getValue() || '-';
-                },
-                headerFilterFunc: (headerValue, rowValue) => {
-                    const needle = Utils.normalizeText(headerValue);
-                    if (!needle) return true;
-                    const hay = Utils.normalizeText(rowValue);
-                    return hay.includes(needle);
-                },
-                headerFilter: 'input',
-                headerFilterPlaceholder: 'Filtrar Descrição'
-            },
-            {
-                title: 'Valor',
-                field: 'valor',
-                hozAlign: 'center',
-                width: 150,
-                minWidth: 90,
-                responsive: 0,
-                mutator: (value, data) => {
-                    // Se é grupo, calcular valor total
-                    if (data._isParcelamentoGroup && data._parcelas) {
-                        return data._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
-                    }
-                    return value;
-                },
-                formatter: (cell) => {
-                    const data = cell.getRow().getData();
-                    const tipoClass = Utils.getTipoClass(data?.tipo);
-
-                    // Se é grupo, mostrar com barra de progresso
-                    if (data._isParcelamentoGroup) {
-                        const totalParcelas = data._parcelas.length;
-                        const parcelasPagas = data._parcelas.filter(p => p.pago).length;
-                        const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-
-                        return `
-                            <div>
-                                <div class="fw-bold ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</div>
-                                <div class="progress mt-1" style="height: 4px;">
-                                    <div class="progress-bar bg-${data.tipo === 'receita' ? 'success' : 'danger'}" 
-                                         style="width: ${percentual}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    return `<span class="valor-cell ${tipoClass}">${Utils.fmtMoney(cell.getValue())}</span>`;
-                },
-                headerFilterFunc: (headerValue, rowValue) => {
-                    const needle = Utils.parseFilterNumber(headerValue);
-                    if (needle === null) return true;
-
-                    const value = Number(rowValue ?? 0);
-                    if (!Number.isFinite(value)) return false;
-                    return Math.abs(value - needle) < 0.005;
-                },
-                headerFilter: 'input',
-                headerFilterPlaceholder: 'Filtrar valor'
-            },
-            {
-                title: 'Ações',
-                field: 'actions',
-                headerSort: false,
-                hozAlign: 'center',
-                width: 150,
-                minWidth: 90,
-                responsive: 0,
-                formatter: (cell) => {
-                    const data = cell.getRow().getData();
-                    if (Utils.isSaldoInicial(data)) return '';
-
-                    // Se é grupo de parcelamento
-                    if (data._isParcelamentoGroup) {
-                        return `
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <a class="dropdown-item toggle-parcelas-menu" 
-                                           href="#" 
-                                           data-parcelamento-id="${data.id.replace('grupo_', '')}">
-                                            <i class="fas fa-list"></i> Ver Parcelas
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger delete-parcelamento" 
-                                           href="#" 
-                                           data-parcelamento-id="${data.id.replace('grupo_', '')}">
-                                            <i class="fas fa-trash"></i> Cancelar Parcelamento
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        `;
-                    }
-
-                    const buttons = [];
-                    if (Utils.canEditLancamento(data)) {
-                        buttons.push('<button class="lk-btn ghost" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>');
-                    }
-                    buttons.push('<button class="lk-btn delete" data-action="delete" title="Excluir"><i class="fas fa-trash"></i></button>');
-
-                    return `<div class="lk-actions">${buttons.join('')}</div>`;
-                },
-                cellClick: async (e, cell) => {
-                    const row = cell.getRow();
-                    const data = row.getData();
-
-                    // Se é grupo, não processar clicks normais
-                    if (data._isParcelamentoGroup) {
-                        return;
-                    }
-
-                    const btn = e.target.closest('button[data-action]');
-                    if (!btn) return;
-
-                    const action = btn.getAttribute('data-action');
-
-                    if (action === 'edit') {
-                        if (!Utils.canEditLancamento(data)) return;
-                        ModalManager.openEditLancamento(data);
-                        return;
-                    }
-
-                    if (action === 'delete') {
-                        const id = data?.id;
-                        if (!id || Utils.isSaldoInicial(data)) return;
-
-                        const ok = await Notifications.ask(
-                            'Excluir lançamento?',
-                            'Esta ação não pode ser desfeita.'
-                        );
-                        if (!ok) return;
-
-                        btn.disabled = true;
-                        const okDel = await API.deleteOne(id);
-                        btn.disabled = false;
-
-                        if (okDel) {
-                            row.delete();
-                            Notifications.toast('lançamento excluí­do com sucesso!');
-                            TableManager.updateSelectionInfo();
-                        } else {
-                            Notifications.toast('Falha ao excluir lançamento.', 'error');
+            // Select all checkbox
+            if (DOM.selectAllCheckbox) {
+                DOM.selectAllCheckbox.addEventListener('change', (e) => {
+                    const checked = e.target.checked;
+                    const checkboxes = DOM.tableBody?.querySelectorAll('.row-checkbox') || [];
+                    checkboxes.forEach(cb => {
+                        const row = cb.closest('tr');
+                        const id = row?.dataset.id;
+                        if (!id) return;
+                        
+                        // Find item to check if selectable
+                        const item = STATE.filteredData.find(i => String(i.id) === String(id));
+                        if (item && !Utils.isSaldoInicial(item) && !item._isParcelamentoGroup) {
+                            cb.checked = checked;
+                            if (checked) {
+                                STATE.selectedIds.add(id);
+                            } else {
+                                STATE.selectedIds.delete(id);
+                            }
                         }
-                    }
-                }
-            }
-        ],
-
-        buildTable: () => {
-            if (!DOM.tabContainer) return null;
-
-            const instance = new Tabulator(DOM.tabContainer, {
-                height: CONFIG.TABLE_HEIGHT,
-                layout: 'fitColumns',
-                responsiveLayout: 'collapse',
-                responsiveLayoutCollapseStartOpen: false,
-                responsiveLayoutCollapseFormatter: (data) => {
-                    const categoria = Utils.escapeHtml(
-                        data?.categoria_nome ??
-                        (typeof data?.categoria === 'object' ? data?.categoria?.nome : data?.categoria) ??
-                        '-'
-                    ) || '-';
-
-                    const conta = Utils.escapeHtml(
-                        data?.conta_nome ??
-                        (typeof data?.conta === 'object' ? data?.conta?.nome : data?.conta) ??
-                        '-'
-                    ) || '-';
-
-                    const descRaw = data?.descricao ??
-                        data?.descricao_titulo ??
-                        (typeof data?.descricao === 'object' ? data?.descricao?.texto : '') ??
-                        '';
-                    const descricao = Utils.escapeHtml(String(descRaw || '--'));
-
-                    const container = document.createElement('div');
-                    container.className = 'lk-collapse-details';
-
-                    const makeRow = (label, value) => {
-                        const row = document.createElement('div');
-                        row.className = 'lk-collapse-row';
-
-                        const labelEl = document.createElement('span');
-                        labelEl.className = 'lk-label';
-                        labelEl.textContent = label;
-
-                        const valueEl = document.createElement('span');
-                        valueEl.className = 'lk-value';
-                        valueEl.innerHTML = value || '-';
-
-                        row.appendChild(labelEl);
-                        row.appendChild(valueEl);
-                        return row;
-                    };
-
-                    container.appendChild(makeRow('Categoria', categoria));
-                    container.appendChild(makeRow('Conta', conta));
-                    container.appendChild(makeRow('Descrição', descricao || '--'));
-
-                    return container;
-                },
-                placeholder: '<div class="empty-state" style="text-align:center;"><div class="empty-icon" style="width:120px;height:120px;margin:0 auto 1.5rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fas fa-exchange-alt" style="font-size:3rem;color:white;"></i></div><h3 style="color:var(--color-text);margin-bottom:0.75rem;font-size:1.5rem;font-weight:600;">Nenhum lançamento encontrado</h3><p style="color:var(--color-text-muted);margin-bottom:1.5rem;font-size:1rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p><div style="display:flex;justify-content:center;"><button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.75rem 1.5rem;font-size:1rem;border-radius:var(--radius-md);color:white;font-weight:500;"><i class="fas fa-plus"></i> Criar primeiro lançamento</button></div></div>',
-                selectable: true,
-                index: 'id',
-                pagination: 'local',
-                paginationSize: CONFIG.PAGINATION_SIZE,
-                paginationSizeSelector: CONFIG.PAGINATION_OPTIONS,
-                rowFormatter: (row) => {
-                    const data = row.getData();
-                    row.getElement().setAttribute('data-id', data?.id ?? '');
-                    if (Utils.isSaldoInicial(data)) {
-                        row.getElement()?.classList.add('lk-row-inicial');
-                        const firstCell = row.getCells()?.[0];
-                        firstCell?.getElement()?.classList.add('lk-cell-select-disabled');
-                    }
-                },
-                selectableCheck: (row) => !Utils.isSaldoInicial(row.getData()),
-                columns: TableManager.buildColumns()
-            });
-
-            instance.on('rowSelectionChanged', (_data, rows) => {
-                if (Array.isArray(rows)) {
-                    rows.forEach((row) => {
-                        if (Utils.isSaldoInicial(row.getData())) row.deselect();
                     });
-                }
-                TableManager.updateSelectionInfo();
-            });
+                    this.updateSelectionInfo();
+                });
+            }
 
-            instance.__lkInitializing = true;
-            instance.__lkReadyResolved = false;
-            instance.__lkReadyPromise = new Promise((resolve) => {
-                const markReady = () => {
-                    if (instance.__lkReadyResolved) return;
-                    instance.__lkInitializing = false;
-                    instance.__lkReadyResolved = true;
-                    resolve();
-                };
-                instance.on('tableBuilt', markReady);
-                if (instance.rowManager?.renderer) {
-                    markReady();
-                }
-            });
+            // Page size selector
+            if (DOM.pageSize) {
+                DOM.pageSize.addEventListener('change', (e) => {
+                    STATE.pageSize = parseInt(e.target.value) || 25;
+                    STATE.currentPage = 1;
+                    this.render();
+                });
+            }
 
-            return instance;
-        },
-
-        ensureTable: () => {
-            if (!DOM.tabContainer) return null;
-            if (!TableManager.tableIsActive(STATE.table)) {
-                try {
-                    if (STATE.table && typeof STATE.table.destroy === 'function') {
-                        STATE.table.destroy();
+            // Prev/Next buttons
+            if (DOM.prevPage) {
+                DOM.prevPage.addEventListener('click', () => {
+                    if (STATE.currentPage > 1) {
+                        this.goToPage(STATE.currentPage - 1);
                     }
-                } catch (_) { }
-                STATE.table = TableManager.buildTable();
+                });
             }
-            return STATE.table;
+            if (DOM.nextPage) {
+                DOM.nextPage.addEventListener('click', () => {
+                    const totalPages = Math.ceil(STATE.filteredData.length / STATE.pageSize);
+                    if (STATE.currentPage < totalPages) {
+                        this.goToPage(STATE.currentPage + 1);
+                    }
+                });
+            }
+
+            // Delegated event handler for table clicks
+            if (DOM.tableBody) {
+                DOM.tableBody.addEventListener('click', (e) => this.handleTableClick(e));
+                DOM.tableBody.addEventListener('change', (e) => this.handleCheckboxChange(e));
+            }
         },
 
-        renderRows: async (items) => {
-            const grid = TableManager.ensureTable();
-            if (!grid) return;
-            await TableManager.waitForTableReady(grid);
-
-            // AGRUPAR PARCELAMENTOS
-            const processedItems = Array.isArray(items) ? ParcelamentoGrouper.processForTable(items) : [];
-
-            grid.setData(processedItems);
-            TableManager.updateSelectionInfo();
+        /**
+         * Update sort indicators in table headers
+         */
+        updateSortIndicators() {
+            const sortableHeaders = document.querySelectorAll('.sortable[data-sort]');
+            sortableHeaders.forEach(header => {
+                const field = header.dataset.sort;
+                const icon = header.querySelector('.sort-icon');
+                if (!icon) return;
+                
+                if (field === STATE.sortField) {
+                    icon.className = STATE.sortDirection === 'asc' 
+                        ? 'fas fa-sort-up sort-icon active' 
+                        : 'fas fa-sort-down sort-icon active';
+                } else {
+                    icon.className = 'fas fa-sort sort-icon';
+                }
+            });
         },
 
-        updateSelectionInfo: () => {
-            const t = TableManager.ensureTable();
-            if (!t) {
-                if (DOM.selCountSpan) DOM.selCountSpan.textContent = '0';
-                DOM.btnExcluirSel?.setAttribute('disabled', 'disabled');
+        /**
+         * Store and prepare data for rendering
+         */
+        setData(items) {
+            STATE.allData = Array.isArray(items) ? items : [];
+            
+            // Process for parcelamento groups
+            STATE.filteredData = ParcelamentoGrouper.processForTable(STATE.allData);
+            
+            // Sort data
+            this.sortData();
+            
+            STATE.currentPage = 1;
+            STATE.selectedIds.clear();
+            
+            if (DOM.selectAllCheckbox) {
+                DOM.selectAllCheckbox.checked = false;
+            }
+            
+            // Update sort indicators
+            this.updateSortIndicators();
+        },
+
+        /**
+         * Sort the filtered data based on current sort field and direction
+         */
+        sortData() {
+            const field = STATE.sortField;
+            const dir = STATE.sortDirection;
+            
+            STATE.filteredData.sort((a, b) => {
+                let valA, valB;
+                
+                if (field === 'data') {
+                    const dateA = a.data || a.created_at || '';
+                    const dateB = b.data || b.created_at || '';
+                    valA = new Date(dateA).getTime() || 0;
+                    valB = new Date(dateB).getTime() || 0;
+                } else if (field === 'valor') {
+                    valA = parseFloat(a.valor) || 0;
+                    valB = parseFloat(b.valor) || 0;
+                    // For groups, calculate total
+                    if (a._isParcelamentoGroup && a._parcelas) {
+                        valA = a._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                    }
+                    if (b._isParcelamentoGroup && b._parcelas) {
+                        valB = b._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+                    }
+                } else if (field === 'tipo') {
+                    valA = String(a.tipo || '').toLowerCase();
+                    valB = String(b.tipo || '').toLowerCase();
+                } else {
+                    valA = String(a[field] || '');
+                    valB = String(b[field] || '');
+                }
+                
+                if (typeof valA === 'string' && typeof valB === 'string') {
+                    return dir === 'asc' 
+                        ? valA.localeCompare(valB, 'pt-BR') 
+                        : valB.localeCompare(valA, 'pt-BR');
+                }
+                
+                return dir === 'asc' ? (valA - valB) : (valB - valA);
+            });
+        },
+
+        /**
+         * Render the current page of data
+         */
+        render() {
+            if (!DOM.tableBody) return;
+            
+            const total = STATE.filteredData.length;
+            const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
+            STATE.currentPage = Math.min(STATE.currentPage, totalPages);
+            
+            const start = (STATE.currentPage - 1) * STATE.pageSize;
+            const end = Math.min(start + STATE.pageSize, total);
+            const pageData = STATE.filteredData.slice(start, end);
+            
+            // Render empty state if no data
+            if (total === 0) {
+                DOM.tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="empty-state-cell">
+                            <div class="empty-state" style="text-align:center; padding: 3rem 1rem;">
+                                <div class="empty-icon" style="width:120px;height:120px;margin:0 auto 1.5rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-exchange-alt" style="font-size:3rem;color:white;"></i>
+                                </div>
+                                <h3 style="color:var(--color-text);margin-bottom:0.75rem;font-size:1.5rem;font-weight:600;">Nenhum lançamento encontrado</h3>
+                                <p style="color:var(--color-text-muted);margin-bottom:1.5rem;font-size:1rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p>
+                                <div style="display:flex;justify-content:center;">
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.75rem 1.5rem;font-size:1rem;border-radius:var(--radius-md);color:white;font-weight:500;">
+                                        <i class="fas fa-plus"></i> Criar primeiro lançamento
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                this.updatePagination();
+                this.updateSelectionInfo();
                 return;
             }
+            
+            // Render rows
+            const rows = pageData.map(item => this.renderRow(item)).join('');
+            DOM.tableBody.innerHTML = rows;
+            
+            this.updatePagination();
+            this.updateSelectionInfo();
+            this.updateSortIndicators();
+        },
 
-            if (!t.__lkReadyResolved) {
-                TableManager.waitForTableReady(t).then(() => TableManager.updateSelectionInfo());
-                return;
+        /**
+         * Create HTML for a single row
+         */
+        renderRow(item) {
+            const id = item.id;
+            const isGroup = item._isParcelamentoGroup;
+            const isSaldoInicial = Utils.isSaldoInicial(item);
+            const isSelectable = !isSaldoInicial && !isGroup;
+            const isSelected = STATE.selectedIds.has(String(id));
+            
+            // Data
+            const dataValue = item.data || item.created_at || '';
+            const dataFormatted = Utils.fmtDate(dataValue);
+            
+            // Tipo
+            const tipoRaw = String(item.tipo || '').toLowerCase();
+            const tipoClass = Utils.getTipoClass(tipoRaw);
+            const tipoLabel = tipoRaw ? tipoRaw.charAt(0).toUpperCase() + tipoRaw.slice(1) : '-';
+            
+            // Categoria
+            let categoria = item.categoria_nome ?? 
+                (typeof item.categoria === 'object' ? item.categoria?.nome : item.categoria) ?? '-';
+            if (categoria && typeof categoria === 'object') {
+                categoria = categoria.nome ?? categoria.label ?? '-';
             }
+            categoria = categoria || '-';
+            
+            // Conta
+            let conta = item.conta_nome ?? 
+                (typeof item.conta === 'object' ? item.conta?.nome : item.conta) ?? '-';
+            if (conta && typeof conta === 'object') {
+                conta = conta.nome ?? conta.label ?? '-';
+            }
+            conta = conta || '-';
+            
+            // Descrição
+            let descricao = item.descricao ?? item.descricao_titulo ?? '';
+            if (descricao && typeof descricao === 'object') {
+                descricao = descricao.texto ?? descricao.value ?? '';
+            }
+            descricao = String(descricao || '-').trim();
+            
+            // Valor
+            let valor = parseFloat(item.valor) || 0;
+            if (isGroup && item._parcelas) {
+                valor = item._parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+            }
+            
+            // Row classes
+            const rowClasses = ['lk-table-row'];
+            if (isSaldoInicial) rowClasses.push('lk-row-inicial');
+            if (isGroup) rowClasses.push('parcelamento-grupo');
+            if (isSelected) rowClasses.push('selected');
+            
+            // Checkbox cell
+            const checkboxCell = isSelectable
+                ? `<td class="td-checkbox">
+                       <input type="checkbox" class="lk-checkbox row-checkbox" ${isSelected ? 'checked' : ''}>
+                   </td>`
+                : `<td class="td-checkbox lk-cell-select-disabled"></td>`;
+            
+            // Descrição cell (special for groups)
+            let descricaoCell;
+            if (isGroup) {
+                const totalParcelas = item._parcelas.length;
+                const parcelasPagas = item._parcelas.filter(p => p.pago).length;
+                const valorParcela = valor / totalParcelas;
+                const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
+                
+                descricaoCell = `
+                    <td class="td-descricao">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
+                                    data-parcelamento-id="${String(id).replace('grupo_', '')}"
+                                    title="Ver parcelas">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <div>
+                                <div class="fw-bold">📦 ${Utils.escapeHtml(descricao)}</div>
+                                <small class="text-muted">
+                                    ${totalParcelas}x de R$ ${valorParcela.toFixed(2)} 
+                                    · ${parcelasPagas}/${totalParcelas} pagas (${Math.round(percentual)}%)
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                `;
+            } else {
+                descricaoCell = `<td class="td-descricao">${Utils.escapeHtml(descricao)}</td>`;
+            }
+            
+            // Cartão de crédito
+            const cartaoNome = item.cartao_nome || '';
+            const cartaoBandeira = item.cartao_bandeira || '';
+            const cartaoDisplay = cartaoNome ? `${cartaoNome}${cartaoBandeira ? ` (${cartaoBandeira})` : ''}` : '-';
+            const cartaoCell = `<td class="td-cartao">${Utils.escapeHtml(cartaoDisplay)}</td>`;
+            
+            // Status (Pago/Pendente)
+            const isPago = Boolean(item.pago);
+            const statusClass = isPago ? 'status-pago' : 'status-pendente';
+            const statusLabel = isPago ? 'Pago' : 'Pendente';
+            const statusIcon = isPago ? 'fa-check-circle' : 'fa-clock';
+            const statusCell = `<td class="td-status"><span class="badge-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span></td>`;
+            
+            // Valor cell (special for groups)
+            let valorCell;
+            if (isGroup) {
+                const totalParcelas = item._parcelas.length;
+                const parcelasPagas = item._parcelas.filter(p => p.pago).length;
+                const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
+                
+                valorCell = `
+                    <td class="td-valor">
+                        <div>
+                            <div class="fw-bold valor-cell ${tipoClass}">${Utils.fmtMoney(valor)}</div>
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar bg-${tipoRaw === 'receita' ? 'success' : 'danger'}" 
+                                     style="width: ${percentual}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+            } else {
+                valorCell = `<td class="td-valor"><span class="valor-cell ${tipoClass}">${Utils.fmtMoney(valor)}</span></td>`;
+            }
+            
+            // Actions cell
+            let actionsCell;
+            if (isSaldoInicial) {
+                actionsCell = '<td class="td-acoes"></td>';
+            } else if (isGroup) {
+                const parcelamentoId = String(id).replace('grupo_', '');
+                actionsCell = `
+                    <td class="td-acoes">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item toggle-parcelas-menu" href="#" data-parcelamento-id="${parcelamentoId}">
+                                        <i class="fas fa-list"></i> Ver Parcelas
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger delete-parcelamento" href="#" data-parcelamento-id="${parcelamentoId}">
+                                        <i class="fas fa-trash"></i> Cancelar Parcelamento
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                `;
+            } else {
+                const buttons = [];
+                if (Utils.canEditLancamento(item)) {
+                    buttons.push(`<button class="lk-btn ghost" data-action="edit" data-id="${id}" title="Editar"><i class="fas fa-pen"></i></button>`);
+                }
+                buttons.push(`<button class="lk-btn delete" data-action="delete" data-id="${id}" title="Excluir"><i class="fas fa-trash"></i></button>`);
+                actionsCell = `<td class="td-acoes"><div class="lk-actions">${buttons.join('')}</div></td>`;
+            }
+            
+            return `
+                <tr class="${rowClasses.join(' ')}" data-id="${id}">
+                    ${checkboxCell}
+                    <td class="td-data">${Utils.escapeHtml(dataFormatted)}</td>
+                    <td class="td-tipo"><span class="badge-tipo ${tipoClass}">${Utils.escapeHtml(tipoLabel)}</span></td>
+                    <td class="td-categoria">${Utils.escapeHtml(categoria)}</td>
+                    <td class="td-conta">${Utils.escapeHtml(conta)}</td>
+                    ${cartaoCell}
+                    ${descricaoCell}
+                    ${statusCell}
+                    ${valorCell}
+                    ${actionsCell}
+                </tr>
+            `;
+        },
 
-            const selected = t.getSelectedRows().filter(row => !Utils.isSaldoInicial(row.getData()));
-            const count = selected.length;
+        /**
+         * Navigate to a specific page
+         */
+        goToPage(page) {
+            const totalPages = Math.max(1, Math.ceil(STATE.filteredData.length / STATE.pageSize));
+            const safePage = Math.min(Math.max(1, page), totalPages);
+            
+            if (safePage !== STATE.currentPage) {
+                STATE.currentPage = safePage;
+                this.render();
+            }
+        },
 
-            if (DOM.selCountSpan) DOM.selCountSpan.textContent = String(count);
+        /**
+         * Update pagination controls
+         */
+        updatePagination() {
+            const total = STATE.filteredData.length;
+            const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
+            const start = total > 0 ? (STATE.currentPage - 1) * STATE.pageSize + 1 : 0;
+            const end = Math.min(STATE.currentPage * STATE.pageSize, total);
+            
+            // Update info text
+            if (DOM.paginationInfo) {
+                if (total === 0) {
+                    DOM.paginationInfo.textContent = '0 lançamentos';
+                } else {
+                    DOM.paginationInfo.textContent = `${start}-${end} de ${total} lançamentos`;
+                }
+            }
+            
+            // Update buttons
+            if (DOM.prevPage) {
+                DOM.prevPage.disabled = STATE.currentPage <= 1;
+            }
+            if (DOM.nextPage) {
+                DOM.nextPage.disabled = STATE.currentPage >= totalPages;
+            }
+            
+            // Update page numbers
+            if (DOM.pageNumbers) {
+                const pages = [];
+                const maxVisible = 5;
+                let startPage = Math.max(1, STATE.currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                
+                if (endPage - startPage + 1 < maxVisible) {
+                    startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    const isActive = i === STATE.currentPage;
+                    pages.push(`
+                        <button type="button" class="page-number-btn ${isActive ? 'active' : ''}" 
+                                data-page="${i}" ${isActive ? 'disabled' : ''}>
+                            ${i}
+                        </button>
+                    `);
+                }
+                
+                DOM.pageNumbers.innerHTML = pages.join('');
+                
+                // Add click handlers for page numbers
+                DOM.pageNumbers.querySelectorAll('.page-number-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const page = parseInt(btn.dataset.page);
+                        if (page) this.goToPage(page);
+                    });
+                });
+            }
+        },
+
+        /**
+         * Update selection info (count and button state)
+         */
+        updateSelectionInfo() {
+            const count = STATE.selectedIds.size;
+            
+            if (DOM.selCountSpan) {
+                DOM.selCountSpan.textContent = String(count);
+            }
+            
             if (DOM.btnExcluirSel) {
                 DOM.btnExcluirSel.toggleAttribute('disabled', count === 0);
             }
+            
+            // Update select all checkbox state
+            if (DOM.selectAllCheckbox && DOM.tableBody) {
+                const checkboxes = DOM.tableBody.querySelectorAll('.row-checkbox');
+                const checkedCount = DOM.tableBody.querySelectorAll('.row-checkbox:checked').length;
+                const totalSelectable = checkboxes.length;
+                
+                if (totalSelectable === 0) {
+                    DOM.selectAllCheckbox.checked = false;
+                    DOM.selectAllCheckbox.indeterminate = false;
+                } else if (checkedCount === 0) {
+                    DOM.selectAllCheckbox.checked = false;
+                    DOM.selectAllCheckbox.indeterminate = false;
+                } else if (checkedCount === totalSelectable) {
+                    DOM.selectAllCheckbox.checked = true;
+                    DOM.selectAllCheckbox.indeterminate = false;
+                } else {
+                    DOM.selectAllCheckbox.checked = false;
+                    DOM.selectAllCheckbox.indeterminate = true;
+                }
+            }
+        },
+
+        /**
+         * Handle clicks on table (edit/delete actions)
+         */
+        handleTableClick(e) {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            if (!id) return;
+            
+            const item = STATE.filteredData.find(i => String(i.id) === String(id));
+            if (!item) return;
+            
+            if (action === 'edit') {
+                if (!Utils.canEditLancamento(item)) return;
+                ModalManager.openEditLancamento(item);
+            }
+            
+            if (action === 'delete') {
+                if (Utils.isSaldoInicial(item)) return;
+                
+                (async () => {
+                    const ok = await Notifications.ask(
+                        'Excluir lançamento?',
+                        'Esta ação não pode ser desfeita.'
+                    );
+                    if (!ok) return;
+                    
+                    btn.disabled = true;
+                    const okDel = await API.deleteOne(id);
+                    btn.disabled = false;
+                    
+                    if (okDel) {
+                        // Remove from data and re-render
+                        STATE.selectedIds.delete(String(id));
+                        Notifications.toast('Lançamento excluído com sucesso!');
+                        await DataManager.load();
+                    } else {
+                        Notifications.toast('Falha ao excluir lançamento.', 'error');
+                    }
+                })();
+            }
+        },
+
+        /**
+         * Handle checkbox changes for row selection
+         */
+        handleCheckboxChange(e) {
+            const checkbox = e.target.closest('.row-checkbox');
+            if (!checkbox) return;
+            
+            const row = checkbox.closest('tr');
+            const id = row?.dataset.id;
+            if (!id) return;
+            
+            if (checkbox.checked) {
+                STATE.selectedIds.add(id);
+                row.classList.add('selected');
+            } else {
+                STATE.selectedIds.delete(id);
+                row.classList.remove('selected');
+            }
+            
+            this.updateSelectionInfo();
+        },
+
+        /**
+         * Compatibility method: render rows from items array
+         */
+        renderRows(items) {
+            this.setData(items);
+            this.render();
+        },
+
+        /**
+         * Get selected row IDs (for bulk operations)
+         */
+        getSelectedIds() {
+            return Array.from(STATE.selectedIds);
+        },
+
+        /**
+         * Clear all selections
+         */
+        clearSelection() {
+            STATE.selectedIds.clear();
+            if (DOM.selectAllCheckbox) {
+                DOM.selectAllCheckbox.checked = false;
+                DOM.selectAllCheckbox.indeterminate = false;
+            }
+            const checkboxes = DOM.tableBody?.querySelectorAll('.row-checkbox') || [];
+            checkboxes.forEach(cb => cb.checked = false);
+            const rows = DOM.tableBody?.querySelectorAll('.selected') || [];
+            rows.forEach(row => row.classList.remove('selected'));
+            this.updateSelectionInfo();
         }
     };
 
@@ -1803,14 +1929,10 @@
                 const categoria = DOM.selectCategoria ? DOM.selectCategoria.value : '';
                 const conta = DOM.selectConta ? DOM.selectConta.value : '';
 
-                const t2 = TableManager.ensureTable();
-                if (t2) {
-                    await TableManager.waitForTableReady(t2);
-                    t2.replaceData([]);
-                    TableManager.updateSelectionInfo();
-                }
+                // Clear table while loading
+                TableManager.renderRows([]);
+                
                 // Limpa cards enquanto carrega
-
                 MobileCards.setItems([]);
 
                 const items = await API.fetchLancamentos({
@@ -1821,22 +1943,17 @@
                     limit: CONFIG.DATA_LIMIT
                 });
 
-
                 // Armazenar no STATE para uso do ParcelamentoGrouper
                 STATE.lancamentos = items;
 
-                await TableManager.renderRows(items);
-
+                TableManager.renderRows(items);
                 MobileCards.setItems(items);
 
             }, CONFIG.DEBOUNCE_DELAY);
         },
 
         bulkDelete: async () => {
-            const t = TableManager.ensureTable();
-            const rows = t ? t.getSelectedRows() : [];
-            const eligibleRows = rows.filter(r => !Utils.isSaldoInicial(r.getData()));
-            const ids = eligibleRows.map(r => r.getData()?.id).filter(Boolean);
+            const ids = TableManager.getSelectedIds();
 
             if (!ids.length) return;
 
@@ -1851,9 +1968,8 @@
             DOM.btnExcluirSel.disabled = false;
 
             if (done) {
-                eligibleRows.forEach(r => r.delete());
-                Notifications.toast('lançamentos excluídos com sucesso!');
-                TableManager.updateSelectionInfo();
+                TableManager.clearSelection();
+                Notifications.toast('Lançamentos excluídos com sucesso!');
                 // Recarrega dados para manter cards em sincronia
                 await DataManager.load();
             } else {
@@ -1888,10 +2004,15 @@
             // Submit do formulÃ¡rio de ediÃ§Ã£o
             DOM.formLanc?.addEventListener('submit', ModalManager.submitEditForm);
 
-            // BotÃ£o de filtrar
+            // Botão de filtrar
             DOM.btnFiltrar?.addEventListener('click', DataManager.load);
 
-            // BotÃ£o de exportar
+            // Filtros automáticos ao mudar select
+            DOM.selectTipo?.addEventListener('change', DataManager.load);
+            DOM.selectCategoria?.addEventListener('change', DataManager.load);
+            DOM.selectConta?.addEventListener('change', DataManager.load);
+
+            // Botão de exportar
             DOM.btnExportar?.addEventListener('click', () => ExportManager.export());
 
             // BotÃ£o de excluir selecionados
@@ -2270,10 +2391,13 @@
     };
 
     // ============================================================================
-    // INICIALIZAÃ‡ÃƒO
+    // INICIALIZAÇÃO
     // ============================================================================
 
     const init = async () => {
+
+        // Inicializar tabela HTML
+        TableManager.init();
 
         // Instalar sistema de agrupamento de parcelamentos
         ParcelamentoGrouper.installInterceptor();

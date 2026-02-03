@@ -37,9 +37,21 @@
                 </button>
             </div>
 
-            <a class="btn btn-light" href="<?= BASE_URL ?>contas/arquivadas" aria-label="Ver contas arquivadas">
-                <i class="fas fa-archive"></i> Arquivadas
-            </a>
+            <div class="lk-acc-right">
+                <!-- View Toggle -->
+                <div class="view-toggle" id="viewToggle">
+                    <button class="view-btn active" data-view="grid" title="Visualização em cards">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-btn" data-view="list" title="Visualização em lista">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                
+                <a class="btn btn-light" href="<?= BASE_URL ?>contas/arquivadas" aria-label="Ver contas arquivadas">
+                    <i class="fas fa-archive"></i> Arquivadas
+                </a>
+            </div>
         </div>
 
         <!-- Cards das contas -->
