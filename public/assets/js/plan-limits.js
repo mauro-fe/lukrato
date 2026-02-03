@@ -14,7 +14,15 @@
     // ============================================
 
     const CONFIG = {
-        apiBase: window.getBaseUrl?.() || '/',
+        apiBase: (function () {
+            // Tentar várias formas de obter a URL base
+            if (typeof window.getBaseUrl === 'function') return window.getBaseUrl();
+            if (typeof LK !== 'undefined' && typeof LK.getBase === 'function') return LK.getBase();
+            const meta = document.querySelector('meta[name="base-url"]');
+            if (meta?.content) return meta.content.replace(/\/?$/, '/');
+            // Fallback para ambiente de desenvolvimento
+            return window.BASE_URL || '/lukrato/public/';
+        })(),
         cacheKey: 'lukrato_plan_limits',
         cacheTTL: 5 * 60 * 1000, // 5 minutos
         upgradeUrl: '/billing',

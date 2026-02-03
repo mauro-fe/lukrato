@@ -121,6 +121,8 @@ class CsrfMiddleware
         }
 
         $expected = $_SESSION['csrf_tokens'][$tokenId]['value'] ?? null;
+        $storedTime = $_SESSION['csrf_tokens'][$tokenId]['time'] ?? null;
+        $age = $storedTime ? (time() - $storedTime) : null;
 
         LogService::warning('CSRF bloqueado', [
             'tokenId'        => $tokenId,
@@ -131,6 +133,10 @@ class CsrfMiddleware
             'token_source'   => $source,
             'expected_len'   => is_string($expected) ? strlen($expected) : null,
             'provided_len'   => is_string($token) ? strlen($token) : null,
+            'expected_prefix' => is_string($expected) ? substr($expected, 0, 8) : null,
+            'provided_prefix' => is_string($token) ? substr($token, 0, 8) : null,
+            'token_age_seconds' => $age,
+            'ttl_remaining' => $age !== null ? max(0, self::TOKEN_TTL - $age) : null,
             'reason'         => !isset($_SESSION['csrf_tokens'][$tokenId]) ? 'missing_expected'
                 : ($token ? 'mismatch_or_expired' : 'missing_client_token'),
             'session_id'     => session_id(),
