@@ -297,8 +297,17 @@ main.lukrato-auth::before {
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
+}
+
+/* Altura para aba Login (menor) */
+.card[data-active="login"] {
+  min-height: 480px;
+}
+
+/* Altura para aba Cadastrar (maior) */
+.card[data-active="register"] {
   min-height: 680px;
 }
 
@@ -365,12 +374,20 @@ main.lukrato-auth::before {
 .flip-inner {
   position: relative;
   width: 100%;
-  min-height: 620px;
   transform-style: preserve-3d;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    min-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Altura do flip-inner para Login */
+.card[data-active="login"] .flip-inner {
+  min-height: 420px;
+}
+
+/* Altura do flip-inner para Cadastrar + rotação */
 .card[data-active="register"] .flip-inner {
+  min-height: 650px;
   transform: rotateY(180deg);
 }
 
