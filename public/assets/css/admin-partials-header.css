@@ -359,9 +359,22 @@ body.sidebar-collapsed .sidebar .nav-item span {
   pointer-events: none;
 }
 
-body.sidebar-collapsed .sidebar .logo img {
-  max-height: 36px;
-  margin: 0 auto;
+/* Logo switching on sidebar collapse */
+.sidebar .logo .logo-icon {
+  display: none;
+}
+
+.sidebar .logo .logo-full {
+  display: block;
+}
+
+body.sidebar-collapsed .sidebar .logo .logo-full {
+  display: none;
+}
+
+body.sidebar-collapsed .sidebar .logo .logo-icon {
+  display: block;
+  max-height: 60px;
 }
 
 body.sidebar-collapsed .sidebar .nav-item {
@@ -570,6 +583,7 @@ body.sidebar-collapsed .content-wrapper {
 .lk-header,
 .lk-main {
   padding-left: var(--spacing-3);
+  padding-right: var(--spacing-3);
 }
 
 .lk-main {

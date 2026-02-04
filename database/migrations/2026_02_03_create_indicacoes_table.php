@@ -20,11 +20,11 @@ return new class
                 $table->id();
 
                 // Quem indicou
-                $table->unsignedBigInteger('referrer_id');
+                $table->unsignedInteger('referrer_id');
                 $table->foreign('referrer_id')->references('id')->on('usuarios')->cascadeOnDelete();
 
                 // Quem foi indicado
-                $table->unsignedBigInteger('referred_id');
+                $table->unsignedInteger('referred_id');
                 $table->foreign('referred_id')->references('id')->on('usuarios')->cascadeOnDelete();
 
                 // Status da indicação

@@ -25,7 +25,7 @@ return new class
         // Adiciona campo referred_by (quem indicou este usuário)
         if (!$schema->hasColumn('usuarios', 'referred_by')) {
             $schema->table('usuarios', function (Blueprint $table) {
-                $table->unsignedBigInteger('referred_by')->nullable()->after('referral_code');
+                $table->unsignedInteger('referred_by')->nullable()->after('referral_code');
                 $table->foreign('referred_by')->references('id')->on('usuarios')->nullOnDelete();
             });
         }

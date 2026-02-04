@@ -58,6 +58,9 @@ $extraJs = $extraJs ?? [];
                     <a href="<?= BASE_URL ?>/#planos" class="text-white/70" title="Planos e preços do Lukrato">
                         <span>Planos e Preços</span>
                     </a>
+                    <a href="<?= BASE_URL ?>/#indicacao" class="text-white/70" title="Indicações">
+                        <span>Indicação 🎁</span>
+                    </a>
                     <a href="<?= BASE_URL ?>login" class="text-white/70" title="Entrar ou criar conta grátis">
                         <span>Entrar / Criar Conta</span>
                     </a>

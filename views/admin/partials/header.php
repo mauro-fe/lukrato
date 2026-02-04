@@ -98,7 +98,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <?php endif; ?>
 
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
-    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"></script>
+    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>">
+    </script>
 
     <!-- ============================================================================
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
@@ -276,7 +277,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
         <!-- Logo -->
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>dashboard" aria-label="Ir para o Dashboard">
-                <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
+                <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato" class="logo-full">
+                <img src="<?= BASE_URL ?>assets/img/logo-top.png" alt="Lukrato" class="logo-icon">
             </a>
             <button class="sidebar-close-btn" aria-label="Fechar menu" title="Fechar menu">
                 <i class="fas fa-times"></i>
