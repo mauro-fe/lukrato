@@ -365,6 +365,82 @@ TEXT;
     }
 
     /**
+     * Envia email de verificação de conta.
+     */
+    public function sendEmailVerification(string $toEmail, string $userName, string $verificationUrl): bool
+    {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $subject = "✉️ Confirme seu e-mail - Lukrato";
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">✉️</div>
+      </div>
+
+      <p style="font-size: 17px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Falta pouco!</strong> Confirme seu e-mail para ativar sua conta.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Você está a um passo de começar a organizar suas finanças com o Lukrato. 
+        Para garantir a segurança da sua conta, precisamos confirmar que este e-mail é seu.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 32px 0;">
+        Clique no botão abaixo para verificar seu e-mail. Este link é válido por 24 horas.
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$verificationUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(39, 174, 96, 0.4);">
+          Verificar meu e-mail ✓
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 13px; color: #7f8c8d; line-height: 1.6; margin: 0;">
+          <strong>Se você não criou uma conta no Lukrato</strong>, pode ignorar este e-mail com segurança.
+        </p>
+        <p style="font-size: 13px; color: #95a5a6; line-height: 1.6; margin: 12px 0 0 0;">
+          Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+          <span style="word-break: break-all; color: #3498db;">{$verificationUrl}</span>
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #27ae60 0%, #219a52 100%)',
+            "Olá, {$safeFirstName}! 👋",
+            'Confirme seu e-mail para começar a usar o Lukrato',
+            $content,
+            'Você recebeu este email porque acabou de criar uma conta no Lukrato. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Olá, {$firstName}!
+
+Falta pouco para ativar sua conta no Lukrato!
+
+Para garantir a segurança da sua conta, precisamos confirmar que este e-mail é seu.
+
+Clique no link abaixo para verificar seu e-mail (válido por 24 horas):
+{$verificationUrl}
+
+Se você não criou uma conta no Lukrato, pode ignorar este e-mail com segurança.
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
      * Valida se um email é válido.
      */
     private function isValidEmail(string $email): bool

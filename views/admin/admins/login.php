@@ -358,6 +358,96 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         }
 
         // ======================
+        // MODAL DE VERIFICAÇÃO DE EMAIL
+        // ======================
+        async function showEmailVerificationModal(email) {
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Verifique seu e-mail',
+                html: `
+                    <div style="text-align: left;">
+                        <p style="margin-bottom: 16px; color: #4b5563;">
+                            Para sua segurança, precisamos confirmar que este e-mail é seu antes de liberar o acesso.
+                        </p>
+                        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+                            <p style="font-size: 13px; color: #0369a1; margin: 0 0 4px 0;">Enviamos um link para:</p>
+                            <p style="font-weight: 600; color: #0c4a6e; margin: 0; word-break: break-all;">${email}</p>
+                        </div>
+                        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px;">
+                            <p style="font-size: 13px; color: #92400e; margin: 0 0 8px 0; font-weight: 600;">💡 Não encontrou?</p>
+                            <ul style="font-size: 13px; color: #78350f; margin: 0; padding-left: 16px;">
+                                <li>Verifique a pasta de spam</li>
+                                <li>Aguarde alguns segundos</li>
+                            </ul>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '📧 Reenviar e-mail',
+                cancelButtonText: 'Fechar',
+                confirmButtonColor: '#e67e22',
+                cancelButtonColor: '#6b7280',
+                customClass: {
+                    popup: 'swal-wide'
+                }
+            });
+
+            if (result.isConfirmed) {
+                await resendVerificationEmail(email);
+            }
+        }
+
+        async function resendVerificationEmail(email) {
+            Swal.fire({
+                title: 'Enviando...',
+                text: 'Aguarde enquanto reenviamos o e-mail de verificação.',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const base = document.querySelector('meta[name="base-url"]')?.content || '<?= BASE_URL ?>';
+                const resp = await fetch(`${base}verificar-email/reenviar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({ email })
+                });
+
+                const data = await resp.json();
+
+                if (resp.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'E-mail enviado! ✉️',
+                        html: `
+                            <p>Verifique sua caixa de entrada e clique no link para ativar sua conta.</p>
+                            <p style="font-size: 13px; color: #666; margin-top: 12px;">O link expira em 24 horas.</p>
+                        `,
+                        confirmButtonColor: '#27ae60'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Não foi possível enviar',
+                        text: data.message || 'Tente novamente em alguns instantes.',
+                        confirmButtonColor: '#e74c3c'
+                    });
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de conexão',
+                    text: 'Não foi possível conectar ao servidor. Tente novamente.',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
+        }
+
+        // ======================
         // FUNÇÕES DE CSRF
         // ======================
 
@@ -513,6 +603,15 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     const success = data && (data.success === true || data.status === 'success');
 
                     if (!response.ok || !success) {
+                        // Verifica se é erro de email não verificado
+                        if (data && data.errors && data.errors.email_not_verified) {
+                            const userEmail = data.errors.user_email || emailVal;
+                            showEmailVerificationModal(userEmail);
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnHtml;
+                            return;
+                        }
+
                         // Mensagem especial para erro de CSRF após retry
                         let message;
                         if (isCsrfError(response, data)) {
@@ -530,8 +629,9 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                             generalError.classList.add('show');
                         }
 
-                        // Exibir erros de campos, se a API mandar
-                        if (data && data.errors && typeof data.errors === 'object') {
+                        // Não exibe erro de campo se for erro de email não verificado
+                        // (já foi tratado acima com o modal)
+                        if (data && data.errors && typeof data.errors === 'object' && !data.errors.email_not_verified) {
                             if (data.errors.email) {
                                 const msg = Array.isArray(data.errors.email) ?
                                     data.errors.email[0] :

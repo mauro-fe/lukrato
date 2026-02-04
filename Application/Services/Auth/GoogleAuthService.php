@@ -142,7 +142,17 @@ class GoogleAuthService
             throw new Exception('Falha ao criar usuário via Google');
         }
 
-        return Usuario::findOrFail($result['user_id']);
+        $usuario = Usuario::findOrFail($result['user_id']);
+
+        // Marca email como verificado automaticamente (Google já verifica)
+        if (!$usuario->hasVerifiedEmail()) {
+            $usuario->markEmailAsVerified();
+            LogService::info('Email marcado como verificado (registro via Google)', [
+                'user_id' => $usuario->id,
+            ]);
+        }
+
+        return $usuario;
     }
 
     private function updateUserName(Usuario $usuario, string $name): void
@@ -161,6 +171,14 @@ class GoogleAuthService
         // Armazena foto do Google na sessão
         if (!empty($userInfo['picture'])) {
             $_SESSION['google_user_picture'] = $userInfo['picture'];
+        }
+
+        // Marca email como verificado se ainda não estiver (Google verifica o email)
+        if (!$usuario->hasVerifiedEmail()) {
+            $usuario->markEmailAsVerified();
+            LogService::info('Email marcado como verificado (login via Google)', [
+                'user_id' => $usuario->id,
+            ]);
         }
 
         // Usa o AuthService para fazer o login

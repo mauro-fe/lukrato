@@ -18,6 +18,11 @@ Router::add('GET',  '/logout',       'Auth\\LoginController@logout');
 // Cadastro
 Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
 
+// Verificação de email
+Router::add('GET',  '/verificar-email',          'Auth\\EmailVerificationController@verify');
+Router::add('POST', '/verificar-email/reenviar', 'Auth\\EmailVerificationController@resend');
+Router::add('GET',  '/verificar-email/aviso',    'Auth\\EmailVerificationController@notice');
+
 // Login com Google
 Router::add('GET', '/auth/google/login',        'Auth\\GoogleLoginController@login');
 Router::add('GET', '/auth/google/register',     'Auth\\GoogleLoginController@login');

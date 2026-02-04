@@ -5,6 +5,7 @@ namespace Application\Services\Auth;
 use Application\Services\Auth\LoginHandler;
 use Application\Services\Auth\RegistrationHandler;
 use Application\Services\Auth\LogoutHandler;
+use Application\Services\Auth\EmailVerificationService;
 use Application\Services\CacheService;
 use Application\Services\MailService;
 use Application\Services\ReferralService;
@@ -225,44 +226,41 @@ class AuthService
     }
 
     /**
-     * Envia email de boas-vindas para o novo usuário.
+     * Envia email de verificação para o novo usuário.
      * 
+     * O email de boas-vindas será enviado após a verificação.
      * Não lança exceção para não interromper o fluxo de registro.
      */
     private function enviarEmailBoasVindas(int $userId, string $email, string $name): void
     {
         try {
-            $mailService = new MailService();
+            $user = Usuario::find($userId);
 
-            if (!$mailService->isConfigured()) {
-                LogService::warning('[AuthService] Email de boas-vindas não enviado: SMTP não configurado.', [
+            if (!$user) {
+                LogService::warning('[AuthService] Usuário não encontrado para enviar email de verificação.', [
                     'user_id' => $userId,
                 ]);
                 return;
             }
 
-            // Se não temos o nome, tenta buscar do banco
-            if (empty($name)) {
-                $user = Usuario::find($userId);
-                $name = $user?->nome ?? 'Usuário';
-            }
-
-            $sent = $mailService->sendWelcomeEmail($email, $name);
+            // Envia email de verificação
+            $verificationService = new EmailVerificationService();
+            $sent = $verificationService->sendVerificationEmail($user);
 
             if ($sent) {
-                LogService::info('[AuthService] Email de boas-vindas enviado com sucesso.', [
+                LogService::info('[AuthService] Email de verificação enviado com sucesso.', [
                     'user_id' => $userId,
                     'email' => $email,
                 ]);
             } else {
-                LogService::warning('[AuthService] Email de boas-vindas não foi enviado (retorno false).', [
+                LogService::warning('[AuthService] Email de verificação não foi enviado.', [
                     'user_id' => $userId,
                     'email' => $email,
                 ]);
             }
         } catch (Throwable $e) {
-            // Não propaga erro - email de boas-vindas não deve impedir o registro
-            LogService::error('[AuthService] Erro ao enviar email de boas-vindas.', [
+            // Não propaga erro - email de verificação não deve impedir o registro
+            LogService::error('[AuthService] Erro ao enviar email de verificação.', [
                 'user_id' => $userId,
                 'email' => $email,
                 'message' => $e->getMessage(),

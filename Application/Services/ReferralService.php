@@ -108,6 +108,9 @@ class ReferralService
     /**
      * Processa uma indicação quando um novo usuário se cadastra
      * 
+     * IMPORTANTE: As recompensas SÓ serão aplicadas após a verificação do email
+     * para evitar fraudes com emails falsos.
+     * 
      * @param Usuario $referredUser O novo usuário que foi indicado
      * @param string $referralCode O código de quem indicou
      * @return Indicacao|null
@@ -129,7 +132,8 @@ class ReferralService
             return null; // Já foi indicado antes
         }
 
-        // Cria o registro de indicação
+        // Cria o registro de indicação com status PENDENTE
+        // As recompensas serão aplicadas SOMENTE após verificação do email
         $indicacao = Indicacao::create([
             'referrer_id' => $referrer->id,
             'referred_id' => $referredUser->id,
@@ -144,23 +148,14 @@ class ReferralService
         $referredUser->referred_by = $referrer->id;
         $referredUser->save();
 
-        // Aplica a recompensa imediatamente ao indicado (7 dias de PRO)
-        $this->applyRewardToUser($referredUser, self::REFERRED_REWARD_DAYS);
-        $indicacao->referred_rewarded = true;
-        $indicacao->referred_rewarded_at = now();
+        LogService::info('[ReferralService] Indicação registrada - aguardando verificação de email', [
+            'referrer_id' => $referrer->id,
+            'referred_id' => $referredUser->id,
+            'indicacao_id' => $indicacao->id,
+        ]);
 
-        // Aplica a recompensa ao referrer (15 dias de PRO)
-        $this->applyRewardToUser($referrer, self::REFERRER_REWARD_DAYS);
-        $indicacao->referrer_rewarded = true;
-        $indicacao->referrer_rewarded_at = now();
-
-        // Marca como completada
-        $indicacao->status = Indicacao::STATUS_COMPLETED;
-        $indicacao->completed_at = now();
-        $indicacao->save();
-
-        // Verifica conquistas de indicação para quem indicou
-        $this->checkReferralAchievements($referrer->id);
+        // NÃO aplica recompensas aqui - elas serão aplicadas em EmailVerificationService
+        // após o usuário verificar seu email
 
         return $indicacao;
     }

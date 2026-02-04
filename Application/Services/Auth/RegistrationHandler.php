@@ -28,8 +28,9 @@ class RegistrationHandler
             return [
                 'usuario' => $user,
                 'user_id' => $user->id,
-                'message' => 'Conta criada com sucesso!',
+                'message' => 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.',
                 'redirect' => rtrim(BASE_URL, '/') . '/login',
+                'requires_verification' => true,
             ];
         } catch (Throwable $e) {
             LogService::error('Registration failed', ['error' => $e->getMessage()]);
