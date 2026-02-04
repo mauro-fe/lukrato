@@ -625,6 +625,172 @@ TEXT;
     }
 
     /**
+     * Envia email de confirmação de assinatura PRO ativada
+     */
+    public function sendSubscriptionConfirmation(
+        string $toEmail, 
+        string $userName, 
+        string $planoNome = 'PRO',
+        ?string $renovaEm = null,
+        ?float $valor = null
+    ): bool {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safePlanoNome = htmlspecialchars($planoNome, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+        $billingUrl = $baseUrl ? $baseUrl . '/billing' : '#';
+
+        $subject = "✅ Pagamento confirmado - Lukrato {$safePlanoNome} ativado!";
+
+        // Formatar data de renovação
+        $renovaFormatada = '';
+        if ($renovaEm) {
+            try {
+                $data = new \DateTime($renovaEm);
+                $renovaFormatada = $data->format('d/m/Y');
+            } catch (\Throwable $e) {
+                $renovaFormatada = $renovaEm;
+            }
+        }
+
+        // Formatar valor
+        $valorFormatado = '';
+        if ($valor) {
+            $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
+        }
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+      </div>
+
+      <p style="font-size: 18px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Pagamento confirmado, {$safeFirstName}!</strong>
+      </p>
+
+      <p style="font-size: 16px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0; text-align: center;">
+        Seu acesso ao <strong style="color: #f59e0b;">Lukrato {$safePlanoNome}</strong> foi ativado com sucesso!
+      </p>
+
+      <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 24px 32px; margin: 32px 0; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
+        <p style="color: white; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">
+          Lukrato {$safePlanoNome} Ativo!
+        </p>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          Aproveite todos os recursos premium
+        </p>
+      </div>
+
+      <div style="background: #f8fafc; border-radius: 12px; padding: 20px 24px; margin: 24px 0;">
+        <p style="font-size: 14px; color: #64748b; margin: 0 0 12px 0; font-weight: 600;">📋 Detalhes da assinatura:</p>
+        <table style="width: 100%; font-size: 14px; color: #475569;">
+          <tr>
+            <td style="padding: 8px 0;">Plano:</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #f59e0b;">{$safePlanoNome}</td>
+          </tr>
+HTML;
+
+        if ($valorFormatado) {
+            $content .= <<<HTML
+          <tr>
+            <td style="padding: 8px 0;">Valor:</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: 600;">{$valorFormatado}</td>
+          </tr>
+HTML;
+        }
+
+        if ($renovaFormatada) {
+            $content .= <<<HTML
+          <tr>
+            <td style="padding: 8px 0;">Próxima renovação:</td>
+            <td style="padding: 8px 0; text-align: right;">{$renovaFormatada}</td>
+          </tr>
+HTML;
+        }
+
+        $content .= <<<HTML
+        </table>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Agora você tem acesso a:
+      </p>
+
+      <ul style="font-size: 14px; line-height: 2; color: #5a6c7d; margin: 0 0 24px 20px; padding: 0;">
+        <li>📊 Lançamentos ilimitados</li>
+        <li>💳 Cartões de crédito ilimitados</li>
+        <li>📈 Relatórios avançados e análises</li>
+        <li>🎯 Metas financeiras personalizadas</li>
+        <li>⭐ Pontos em dobro na gamificação</li>
+        <li>🔔 Lembretes e alertas inteligentes</li>
+      </ul>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$dashboardUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">
+          Acessar meu painel 🚀
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 13px; color: #7f8c8d; line-height: 1.6; margin: 0; text-align: center;">
+          Gerencie sua assinatura em <a href="{$billingUrl}" style="color: #3498db;">Minha Assinatura</a>
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            "Bem-vindo ao Lukrato {$safePlanoNome}! 👑",
+            'Seu pagamento foi confirmado e sua assinatura está ativa',
+            $content,
+            'Você recebeu este email porque assinou o Lukrato PRO. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Pagamento confirmado, {$firstName}! 🎉
+
+Seu acesso ao Lukrato {$planoNome} foi ativado com sucesso!
+
+Detalhes da assinatura:
+- Plano: {$planoNome}
+TEXT;
+
+        if ($valorFormatado) {
+            $text .= "\n- Valor: {$valorFormatado}";
+        }
+
+        if ($renovaFormatada) {
+            $text .= "\n- Próxima renovação: {$renovaFormatada}";
+        }
+
+        $text .= <<<TEXT
+
+
+Agora você tem acesso a:
+- Lançamentos ilimitados
+- Cartões de crédito ilimitados  
+- Relatórios avançados e análises
+- Metas financeiras personalizadas
+- Pontos em dobro na gamificação
+- Lembretes e alertas inteligentes
+
+Acesse seu painel: {$dashboardUrl}
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
      * Valida se um email é válido.
      */
     private function isValidEmail(string $email): bool
