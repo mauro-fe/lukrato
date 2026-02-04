@@ -868,6 +868,9 @@ main.lukrato-auth::before {
 }
 
 @media (max-width: 600px) {
+  .card[data-active="register"] {
+    min-height: 750px;
+  }
   main.lukrato-auth {
     padding: 24px 16px;
   }
