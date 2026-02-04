@@ -58,7 +58,6 @@ class ReferralService
         }
 
         return Usuario::where('referral_code', strtoupper(trim($code)))
-            ->where('ativo', true)
             ->first();
     }
 
