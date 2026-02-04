@@ -423,6 +423,17 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
                     </a>
+                    <a href="<?= BASE_URL ?>#indicacao"
+                        class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
+                        aria-label="Programa de indicação">
+                        <span class="inline-flex items-center gap-1">
+                            Indicação
+                            <span class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-1.5 py-0.5 rounded-full">🎁</span>
+                        </span>
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
+                            aria-hidden="true"></span>
+                    </a>
                     <a href="<?= BASE_URL ?>#contato"
                         class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
                         aria-label="Entre em contato conosco">
@@ -501,6 +512,11 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 <a href="<?= BASE_URL ?>#planos" @click="mobileMenuOpen = false"
                     class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
                     Planos
+                </a>
+                <a href="<?= BASE_URL ?>#indicacao" @click="mobileMenuOpen = false"
+                    class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors flex items-center justify-between">
+                    <span>Indicação</span>
+                    <span class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full">🎁 Ganhe PRO</span>
                 </a>
                 <a href="<?= BASE_URL ?>#contato" @click="mobileMenuOpen = false"
                     class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
