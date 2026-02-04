@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\Auth;
 
 use Application\Models\Usuario;
+use Application\Models\Notificacao;
 use Application\Services\LogService;
 use Application\Services\MailService;
 use Application\Services\ReferralService;
@@ -142,6 +143,14 @@ class EmailVerificationService
                 $referralService->applyRewardToUser($user, ReferralService::REFERRED_REWARD_DAYS);
                 $indicacao->referred_rewarded = true;
                 $indicacao->referred_rewarded_at = now();
+
+                // Cria notificação para o usuário indicado
+                $this->createReferralNotification(
+                    $user->id,
+                    'Você ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias PRO! 🎉',
+                    'Parabéns! Por ter sido indicado, você ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias de acesso PRO gratuito. Aproveite todas as funcionalidades premium!',
+                    'referred'
+                );
             }
 
             // Aplica recompensa a quem indicou (15 dias)
@@ -150,6 +159,15 @@ class EmailVerificationService
                 $referralService->applyRewardToUser($referrer, ReferralService::REFERRER_REWARD_DAYS);
                 $indicacao->referrer_rewarded = true;
                 $indicacao->referrer_rewarded_at = now();
+
+                // Cria notificação para quem indicou
+                $referredName = $user->nome ?? 'Um amigo';
+                $this->createReferralNotification(
+                    $referrer->id,
+                    'Você ganhou ' . ReferralService::REFERRER_REWARD_DAYS . ' dias PRO! 🎁',
+                    "{$referredName} verificou o email e agora você ganhou " . ReferralService::REFERRER_REWARD_DAYS . " dias de acesso PRO gratuito. Continue indicando amigos para ganhar mais!",
+                    'referrer'
+                );
 
                 // Verifica conquistas de indicação para quem indicou
                 try {
@@ -175,6 +193,33 @@ class EmailVerificationService
         } catch (\Throwable $e) {
             LogService::error('[EmailVerification] Erro ao processar recompensa de indicação', [
                 'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Cria notificação de recompensa de indicação
+     */
+    private function createReferralNotification(int $userId, string $titulo, string $mensagem, string $tipo): void
+    {
+        try {
+            Notificacao::create([
+                'user_id' => $userId,
+                'tipo' => 'referral_' . $tipo,
+                'titulo' => $titulo,
+                'mensagem' => $mensagem,
+                'lida' => 0,
+                'link' => null,
+            ]);
+
+            LogService::info('[EmailVerification] Notificação de indicação criada', [
+                'user_id' => $userId,
+                'tipo' => $tipo,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::error('[EmailVerification] Erro ao criar notificação', [
+                'user_id' => $userId,
                 'error' => $e->getMessage(),
             ]);
         }

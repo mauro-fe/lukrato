@@ -338,6 +338,10 @@ function registerApiRoutes(): void
     Router::add('POST', '/api/notificacoes/marcar',    'Api\\NotificacaoController@marcarLida',    ['auth']);
 
     Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoController@marcarTodasLidas', ['auth']);
+
+    // Rotas para recompensas de indicação
+    Router::add('GET',  '/api/notificacoes/referral-rewards',      'Api\\NotificacaoController@getReferralRewards',     ['auth']);
+    Router::add('POST', '/api/notificacoes/referral-rewards/seen', 'Api\\NotificacaoController@markReferralRewardsSeen', ['auth', 'csrf']);
 }
 
 
