@@ -3155,19 +3155,30 @@
   border: none !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  .header-info {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info .cartao-info {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  .header-info
+  .cartao-info {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info .cartao-info::before {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  .header-info
+  .cartao-info::before {
   content: "\f09d" !important;
   font-family: "Font Awesome 6 Free" !important;
   font-weight: 900 !important;
@@ -3175,10 +3186,24 @@
   color: white !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info .cartao-nome,
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info .cartao-numero,
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .fatura-periodo,
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-header > .parc-card-badge {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  .header-info
+  .cartao-nome,
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  .header-info
+  .cartao-numero,
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  .fatura-periodo,
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-header
+  > .parc-card-badge {
   display: none !important;
 }
 
@@ -3196,13 +3221,19 @@
   padding: 0 0 0 1.25rem !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .fatura-list-info .list-cartao-nome {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .fatura-list-info
+  .list-cartao-nome {
   font-size: 1rem !important;
   font-weight: 600 !important;
   color: var(--color-text) !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .fatura-list-info .list-periodo {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .fatura-list-info
+  .list-periodo {
   font-size: 0.8rem !important;
   color: var(--color-text-muted) !important;
 }
@@ -3218,22 +3249,34 @@
   margin: 0 !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal .resumo-item {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .fatura-resumo-principal
+  .resumo-item {
   display: none !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal .resumo-item:first-child {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .fatura-resumo-principal
+  .resumo-item:first-child {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
   gap: 0.5rem !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal .resumo-label {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .fatura-resumo-principal
+  .resumo-label {
   display: none !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal .resumo-valor {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .fatura-resumo-principal
+  .resumo-valor {
   font-size: 1.1rem !important;
   font-weight: 700 !important;
   color: var(--color-primary) !important;
@@ -3268,7 +3311,10 @@
   gap: 0.5rem !important;
 }
 
-.parcelamentos-grid.list-view .parcelamento-card .parc-card-actions .parc-btn:hover {
+.parcelamentos-grid.list-view
+  .parcelamento-card
+  .parc-card-actions
+  .parc-btn:hover {
   background: color-mix(in srgb, var(--color-primary) 85%, #000) !important;
 }
 
@@ -3297,51 +3343,174 @@
 
   /* List View Mobile - Faturas */
   .parcelamentos-grid.list-view .parcelamento-card {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: var(--glass-bg) !important;
   }
 
+  /* Header compacto no mobile - mostra info do cartão */
   .parcelamentos-grid.list-view .parcelamento-card .parc-card-header {
-    width: 100%;
-    min-width: 100%;
-    padding: 0.75rem;
-    flex-direction: row;
-    justify-content: space-between;
+    width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    padding: 0.875rem 1rem !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-radius: 12px 12px 0 0 !important;
   }
 
-  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info {
-    flex-direction: row;
-    gap: 1rem;
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-info {
+    flex-direction: row !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
   }
 
-  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .cartao-info {
-    flex-direction: row;
-    gap: 0.5rem;
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-info
+    .cartao-info {
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
   }
 
-  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header > .parc-card-badge {
-    display: flex;
+  /* Mostrar nome e número do cartão no header mobile */
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-info
+    .cartao-info::before {
+    font-size: 1.1rem !important;
+    margin-right: 0.25rem;
   }
 
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-info
+    .cartao-nome {
+    display: inline !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: white !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-info
+    .cartao-numero {
+    display: inline !important;
+    font-size: 0.8rem !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  /* Mostrar período no header mobile */
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .fatura-periodo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    font-size: 0.85rem !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    background: rgba(0, 0, 0, 0.15) !important;
+    padding: 0.25rem 0.6rem !important;
+    border-radius: 6px !important;
+  }
+
+  /* Mostrar badge de status no header mobile */
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    > .parc-card-badge {
+    display: flex !important;
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.5rem !important;
+  }
+
+  /* Ocultar fatura-list-info no mobile pois o header já mostra */
+  .parcelamentos-grid.list-view .parcelamento-card .fatura-list-info {
+    display: none !important;
+  }
+
+  /* Resumo com valores - exibir todos os itens */
   .parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.75rem !important;
+    padding: 1rem !important;
+    background: var(--glass-bg) !important;
   }
 
-  .parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal .resumo-valor {
-    font-size: 1.5rem;
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-item {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.15rem !important;
   }
 
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-item:first-child {
+    flex-direction: column !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-label {
+    display: block !important;
+    font-size: 0.7rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-valor {
+    font-size: 1.15rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-data {
+    font-size: 0.9rem !important;
+    color: var(--color-text) !important;
+  }
+
+  /* Botão de ação */
   .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions {
-    padding: 0 1rem 1rem;
-    width: 100%;
+    padding: 0 1rem 1rem !important;
+    width: 100% !important;
+    background: transparent !important;
   }
 
-  .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions .parc-btn {
-    flex: 1;
-    justify-content: center;
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-actions
+    .parc-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 0.6rem 1rem !important;
   }
 }
 
