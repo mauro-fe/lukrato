@@ -1389,6 +1389,17 @@
                     '';
                 const descricao = descRaw || '--';
 
+                // Cartão de crédito (igual ao desktop)
+                const cartaoNome = item.cartao_nome || '';
+                const cartaoBandeira = item.cartao_bandeira || '';
+                const cartaoDisplay = cartaoNome ? `${cartaoNome}${cartaoBandeira ? ` (${cartaoBandeira})` : ''}` : '-';
+
+                // Status (Pago/Pendente)
+                const isPago = Boolean(item.pago);
+                const statusClass = isPago ? 'status-pago' : 'status-pendente';
+                const statusLabel = isPago ? 'Pago' : 'Pendente';
+                const statusIcon = isPago ? 'fa-check-circle' : 'fa-clock';
+
                 // Botões de ação para desktop/tablet
                 const actionsHtml = `
                 ${Utils.canEditLancamento(item)
@@ -1462,8 +1473,18 @@
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
                         </div>
                         <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Cartão</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(cartaoDisplay)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Status</span>
+                            <span class="lan-card-detail-value card-detail-value">
+                                <span class="badge-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span>
+                            </span>
                         </div>
                         <div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
                             <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
