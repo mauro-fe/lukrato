@@ -151,6 +151,9 @@ class EmailVerificationService
                     'Parabéns! Por ter sido indicado, você ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias de acesso PRO gratuito. Aproveite todas as funcionalidades premium!',
                     'referred'
                 );
+
+                // Envia email para quem foi indicado
+                $this->sendReferralRewardEmail($user, null, 'referred');
             }
 
             // Aplica recompensa a quem indicou (15 dias)
@@ -168,6 +171,9 @@ class EmailVerificationService
                     "{$referredName} verificou o email e agora você ganhou " . ReferralService::REFERRER_REWARD_DAYS . " dias de acesso PRO gratuito. Continue indicando amigos para ganhar mais!",
                     'referrer'
                 );
+
+                // Envia email para quem indicou
+                $this->sendReferralRewardEmail($referrer, $user, 'referrer');
 
                 // Verifica conquistas de indicação para quem indicou
                 try {
@@ -220,6 +226,53 @@ class EmailVerificationService
         } catch (\Throwable $e) {
             LogService::error('[EmailVerification] Erro ao criar notificação', [
                 'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Envia email de recompensa de indicação
+     * 
+     * @param Usuario $recipient Quem vai receber o email
+     * @param Usuario|null $referred Quem foi indicado (apenas para tipo 'referrer')
+     * @param string $tipo 'referred' ou 'referrer'
+     */
+    private function sendReferralRewardEmail(Usuario $recipient, ?Usuario $referred, string $tipo): void
+    {
+        try {
+            if ($tipo === 'referred') {
+                // Email para quem foi indicado
+                $this->mailService->sendReferralRewardToReferred(
+                    $recipient->email,
+                    $recipient->nome ?? 'Usuário',
+                    ReferralService::REFERRED_REWARD_DAYS
+                );
+
+                LogService::info('[EmailVerification] Email de recompensa enviado (indicado)', [
+                    'user_id' => $recipient->id,
+                    'email' => $recipient->email,
+                ]);
+            } elseif ($tipo === 'referrer' && $referred) {
+                // Email para quem indicou
+                $this->mailService->sendReferralRewardToReferrer(
+                    $recipient->email,
+                    $recipient->nome ?? 'Usuário',
+                    $referred->nome ?? 'Um amigo',
+                    ReferralService::REFERRER_REWARD_DAYS
+                );
+
+                LogService::info('[EmailVerification] Email de recompensa enviado (indicador)', [
+                    'user_id' => $recipient->id,
+                    'email' => $recipient->email,
+                    'referred_name' => $referred->nome,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Não falhar o processo se o email não for enviado
+            LogService::error('[EmailVerification] Erro ao enviar email de recompensa', [
+                'user_id' => $recipient->id,
+                'tipo' => $tipo,
                 'error' => $e->getMessage(),
             ]);
         }

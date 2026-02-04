@@ -441,6 +441,190 @@ TEXT;
     }
 
     /**
+     * Envia email de recompensa para quem FOI INDICADO (ganhou 7 dias PRO)
+     */
+    public function sendReferralRewardToReferred(string $toEmail, string $userName, int $days = 7): bool
+    {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+
+        $subject = "🎉 Você ganhou {$days} dias de acesso PRO grátis!";
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎁</div>
+      </div>
+
+      <p style="font-size: 18px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Parabéns, {$safeFirstName}!</strong>
+      </p>
+
+      <p style="font-size: 16px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0; text-align: center;">
+        Por ter sido indicado(a) por um amigo, você ganhou <strong style="color: #10b981;">{$days} dias de acesso PRO gratuito</strong>!
+      </p>
+
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; padding: 24px 32px; margin: 32px 0; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
+        <p style="color: white; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">
+          Acesso PRO Ativado!
+        </p>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          +{$days} dias de funcionalidades premium
+        </p>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Com o acesso PRO você pode:
+      </p>
+
+      <ul style="font-size: 14px; line-height: 2; color: #5a6c7d; margin: 0 0 24px 20px; padding: 0;">
+        <li>📊 Lançamentos ilimitados</li>
+        <li>💳 Múltiplos cartões de crédito</li>
+        <li>📈 Relatórios avançados</li>
+        <li>🎯 Metas financeiras</li>
+        <li>⭐ Pontos em dobro na gamificação</li>
+      </ul>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$dashboardUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+          Acessar meu painel 🚀
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 14px; color: #7f8c8d; line-height: 1.6; margin: 0; text-align: center;">
+          💡 <strong>Dica:</strong> Você também pode indicar amigos e ganhar ainda mais dias PRO!
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            "Presente para você! 🎁",
+            'Você ganhou dias de acesso PRO no Lukrato',
+            $content,
+            'Você recebeu este email porque verificou sua conta no Lukrato e foi indicado por um amigo. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Parabéns, {$firstName}! 🎉
+
+Você ganhou {$days} dias de acesso PRO gratuito por ter sido indicado(a) por um amigo!
+
+Com o acesso PRO você pode:
+- Lançamentos ilimitados
+- Múltiplos cartões de crédito
+- Relatórios avançados
+- Metas financeiras
+- Pontos em dobro na gamificação
+
+Acesse seu painel: {$dashboardUrl}
+
+Dica: Você também pode indicar amigos e ganhar ainda mais dias PRO!
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
+     * Envia email de recompensa para quem INDICOU (ganhou 15 dias PRO)
+     */
+    public function sendReferralRewardToReferrer(
+        string $toEmail, 
+        string $userName, 
+        string $referredName, 
+        int $days = 15
+    ): bool {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safeReferredName = htmlspecialchars($referredName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+        $referralUrl = $baseUrl ? $baseUrl . '/indicar' : '#';
+
+        $subject = "🎁 {$referredName} verificou o email - Você ganhou {$days} dias PRO!";
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+      </div>
+
+      <p style="font-size: 18px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Ótimas notícias, {$safeFirstName}!</strong>
+      </p>
+
+      <p style="font-size: 16px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0; text-align: center;">
+        <strong style="color: #3b82f6;">{$safeReferredName}</strong> verificou o email e agora você ganhou 
+        <strong style="color: #10b981;">{$days} dias de acesso PRO gratuito</strong>!
+      </p>
+
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; padding: 24px 32px; margin: 32px 0; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">👥</div>
+        <p style="color: white; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">
+          +{$days} dias PRO adicionados!
+        </p>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          Obrigado por indicar amigos para o Lukrato
+        </p>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 24px 0; text-align: center;">
+        Continue indicando amigos e ganhe <strong>{$days} dias PRO</strong> para cada um que se cadastrar e verificar o email!
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$referralUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4); margin-right: 12px;">
+          Indicar mais amigos 👥
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 14px; color: #7f8c8d; line-height: 1.6; margin: 0; text-align: center;">
+          🏆 <strong>Seu programa de indicações:</strong> Você ganha {$days} dias PRO por cada amigo que indicar!
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            "Sua indicação deu certo! 🎁",
+            "{$safeReferredName} verificou o email e você foi recompensado",
+            $content,
+            'Você recebeu este email porque indicou um amigo para o Lukrato. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Ótimas notícias, {$firstName}! 🎉
+
+{$referredName} verificou o email e agora você ganhou {$days} dias de acesso PRO gratuito!
+
+Continue indicando amigos e ganhe {$days} dias PRO para cada um que se cadastrar e verificar o email!
+
+Acesse seu painel de indicações: {$referralUrl}
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
      * Valida se um email é válido.
      */
     private function isValidEmail(string $email): bool
