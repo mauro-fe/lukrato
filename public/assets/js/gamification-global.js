@@ -456,34 +456,63 @@
      * Verificar conquistas pendentes de notificação
      * Chamado ao carregar qualquer página
      */
+    let isCheckingPending = false; // Evitar verificações simultâneas
+    
     async function checkPendingAchievements() {
+        // Evitar verificações duplicadas
+        if (isCheckingPending) {
+            console.log('🎮 [GAMIFICATION] Já está verificando conquistas pendentes...');
+            return;
+        }
+        
+        // Não verificar se gamificação está pausada
+        if (window.gamificationPaused === true) {
+            console.log('🎮 [GAMIFICATION] Gamificação pausada, não verificar conquistas pendentes');
+            return;
+        }
+
+        isCheckingPending = true;
+        
         try {
             const baseUrl = window.BASE_URL || '/lukrato/public/';
             const response = await fetch(`${baseUrl}api/gamification/achievements/pending`, {
                 credentials: 'same-origin'
             });
 
-            if (!response.ok) return;
+            if (!response.ok) {
+                isCheckingPending = false;
+                return;
+            }
 
             const data = await response.json();
 
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
+                console.log(`🏆 [GAMIFICATION] ${pending.length} conquista(s) pendente(s) para exibir!`);
 
-                // Mostrar cada conquista com um pequeno delay entre elas
-                for (let i = 0; i < pending.length; i++) {
-                    setTimeout(() => {
-                        window.notifyAchievementUnlocked(pending[i]);
-                    }, i * 3500); // 3.5 segundos entre cada uma
-                }
-
-                // Marcar como vistas após exibir
+                // Marcar como vistas IMEDIATAMENTE para evitar duplicação em outras abas/páginas
                 const achievementIds = pending.map(a => a.id);
-                markAchievementsSeen(achievementIds);
+                await markAchievementsSeen(achievementIds);
+
+                // Exibir conquistas sequencialmente usando o sistema de fila
+                if (pending.length === 1) {
+                    // Apenas uma conquista
+                    window.notifyAchievementUnlocked(pending[0]);
+                } else {
+                    // Múltiplas conquistas - usar sistema de fila
+                    window.combinedQueue = pending.map(ach => ({ type: 'achievement', data: ach }));
+                    showNextQueuedItem();
+                }
             }
         } catch (error) {
+            console.error('🎮 [GAMIFICATION] Erro ao verificar conquistas pendentes:', error);
+        } finally {
+            isCheckingPending = false;
         }
     }
+    
+    // Expor função para uso externo (opcional)
+    window.checkPendingAchievements = checkPendingAchievements;
 
     /**
      * Marcar conquistas como vistas
@@ -506,18 +535,34 @@
                 body: JSON.stringify({ achievement_ids: achievementIds })
             });
         } catch (error) {
+            console.error('🎮 [GAMIFICATION] Erro ao marcar conquistas como vistas:', error);
         }
     }
 
-    // Verificar conquistas pendentes quando a página carregar
-    // DESABILITADO: Conflita com o sistema de notificação imediata
-    // if (document.readyState === 'loading') {
-    //     document.addEventListener('DOMContentLoaded', () => {
-    //         setTimeout(checkPendingAchievements, 1000);
-    //     });
-    // } else {
-    //     setTimeout(checkPendingAchievements, 1000);
-    // }
+    // ====================================================================
+    // VERIFICAÇÃO DE CONQUISTAS PENDENTES - Verificar ao carregar página
+    // ====================================================================
+    // Isto garante que conquistas desbloqueadas em outros contextos
+    // (como verificação de email, ações em background) sejam notificadas
+    function initPendingAchievementsCheck() {
+        const onboardingInProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
+        
+        // Não verificar durante onboarding
+        if (onboardingInProgress || window.gamificationPaused === true) {
+            console.log('🎮 [GAMIFICATION] Verificação de conquistas pendentes adiada (onboarding em progresso)');
+            return;
+        }
+
+        // Verificar conquistas pendentes após 1.5 segundos
+        setTimeout(checkPendingAchievements, 1500);
+    }
+
+    // Iniciar verificação quando página carregar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPendingAchievementsCheck);
+    } else {
+        initPendingAchievementsCheck();
+    }
 
     /**
      * Mostrar conquistas que foram pausadas pelo onboarding
