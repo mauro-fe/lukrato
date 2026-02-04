@@ -633,7 +633,7 @@
                     <strong>finanças pessoais</strong>.
                 </p>
 
-                <div class="inline-flex bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm gap-1">
+                <div class="inline-flex bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm gap-1 mb-6">
                     <button @click="period = 'mensal'; scrollToProCard()"
                         :class="period === 'mensal' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'"
                         class="px-6 py-2.5 rounded-xl font-semibold transition-all duration-200">
@@ -698,7 +698,8 @@
                     <?php foreach ($planosPagos as $plano):
                         $precoMensal = $plano->preco_centavos / 100;
                     ?>
-                        <div id="card-pro" class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
+                        <div id="card-pro"
+                            class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
                             x-data="{ basePrice: <?= $precoMensal ?> }" data-aos="fade-left">
 
                             <div
@@ -850,8 +851,7 @@
 </section>
 
 <!-- Seção de Indicação -->
-<section id="indicacao" class="relative py-20 md:py-32 bg-white overflow-hidden"
-    aria-labelledby="indicacao-titulo">
+<section id="indicacao" class="relative py-20 md:py-32 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
     <!-- Background decorations -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
@@ -865,14 +865,12 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Header -->
         <header class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
-            <div
-                class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-6">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-6">
                 <span class="text-2xl">🎁</span>
                 <span class="text-sm font-semibold text-primary">Programa de Indicação</span>
             </div>
 
-            <h2 id="indicacao-titulo"
-                class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 id="indicacao-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                 Indique amigos e
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                     ganhe dias grátis
@@ -880,7 +878,8 @@
             </h2>
 
             <p class="text-lg sm:text-xl text-gray-600">
-                Compartilhe o Lukrato com seus amigos e ganhe <strong>dias de PRO</strong> para você e para quem você indicar.
+                Compartilhe o Lukrato com seus amigos e ganhe <strong>dias de PRO</strong> para você e para quem você
+                indicar.
                 Quanto mais indicações, mais benefícios!
             </p>
         </header>
@@ -901,7 +900,8 @@
                     </div>
                 </div>
                 <div class="text-center py-6 bg-white rounded-2xl shadow-inner">
-                    <p class="text-5xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
+                    <p
+                        class="text-5xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                         15 dias
                     </p>
                     <p class="text-gray-600 mt-2 font-medium">de acesso PRO grátis</p>
@@ -932,7 +932,8 @@
                     </div>
                 </div>
                 <div class="text-center py-6 bg-white rounded-2xl shadow-inner">
-                    <p class="text-5xl font-bold bg-gradient-to-r from-secondary to-gray-700 bg-clip-text text-transparent">
+                    <p
+                        class="text-5xl font-bold bg-gradient-to-r from-secondary to-gray-700 bg-clip-text text-transparent">
                         7 dias
                     </p>
                     <p class="text-gray-600 mt-2 font-medium">de acesso PRO grátis</p>
@@ -1034,7 +1035,8 @@
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 mb-8">
-                Dúvidas sobre <strong>controle financeiro pessoal</strong>? Quer sugestões ou precisa de ajuda? Escolha o canal abaixo.
+                Dúvidas sobre <strong>controle financeiro pessoal</strong>? Quer sugestões ou precisa de ajuda? Escolha
+                o canal abaixo.
             </p>
 
             <!-- Toggle Tabs com Alpine.js -->
@@ -1061,12 +1063,10 @@
         <div x-show="activeTab === 'whatsapp'" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform scale-95"
             x-transition:enter-end="opacity-100 transform scale-100"
-            class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 sm:p-12 shadow-xl"
-            data-aos="fade-up">
+            class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 sm:p-12 shadow-xl" data-aos="fade-up">
 
             <div class="text-center mb-8">
-                <div
-                    class="inline-flex w-16 h-16 bg-green-500 rounded-full items-center justify-center mb-4 shadow-lg">
+                <div class="inline-flex w-16 h-16 bg-green-500 rounded-full items-center justify-center mb-4 shadow-lg">
                     <i class="fa-brands fa-whatsapp text-3xl text-white"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Atendimento rápido</h3>
@@ -1109,8 +1109,7 @@
             data-aos="fade-up">
 
             <div class="text-center mb-8">
-                <div
-                    class="inline-flex w-16 h-16 bg-primary rounded-full items-center justify-center mb-4 shadow-lg">
+                <div class="inline-flex w-16 h-16 bg-primary rounded-full items-center justify-center mb-4 shadow-lg">
                     <i class="fa-regular fa-envelope text-3xl text-white"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Envie uma mensagem</h3>
@@ -1158,8 +1157,7 @@
                     <label for="lk_mensagem" class="block text-sm font-semibold text-gray-700 mb-2">
                         Mensagem
                     </label>
-                    <textarea id="lk_mensagem" name="mensagem" rows="6" placeholder="Escreva sua mensagem..."
-                        required
+                    <textarea id="lk_mensagem" name="mensagem" rows="6" placeholder="Escreva sua mensagem..." required
                         class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all resize-none"></textarea>
                 </div>
 
