@@ -40,7 +40,7 @@ class AchievementService
     public function checkAndUnlockAchievements(int $userId, ?string $context = null): array
     {
         error_log("🔍 [ACHIEVEMENT] Iniciando verificação para user_id: {$userId}, context: {$context}");
-        
+
         $user = Usuario::find($userId);
         if (!$user) {
             error_log("❌ [ACHIEVEMENT] Usuário não encontrado: {$userId}");
@@ -202,6 +202,12 @@ class AchievementService
 
             // ===== PERFIL =====
             AchievementType::PROFILE_COMPLETE => $this->checkProfileComplete($user),
+
+            // ===== INDICAÇÃO =====
+            AchievementType::FIRST_REFERRAL => $this->checkReferrals($userId, 1),
+            AchievementType::REFERRALS_5 => $this->checkReferrals($userId, 5),
+            AchievementType::REFERRALS_10 => $this->checkReferrals($userId, 10),
+            AchievementType::REFERRALS_25 => $this->checkReferrals($userId, 25),
 
             default => false,
         };
@@ -409,11 +415,25 @@ class AchievementService
     {
         // Lista de categorias padrão que são criadas automaticamente no registro
         $categoriaPadrao = [
-            '🏠 Moradia', '🍔 Alimentação', '🚗 Transporte', '💡 Contas e Serviços',
-            '🏥 Saúde', '🎓 Educação', '👕 Vestuário', '🎬 Lazer', '💳 Cartão de Crédito',
-            '📱 Assinaturas', '🛒 Compras', '💰 Outros Gastos',
-            '💼 Salário', '💰 Freelance', '📈 Investimentos', '🎁 Bônus',
-            '💸 Vendas', '🏆 Prêmios', '💵 Outras Receitas'
+            '🏠 Moradia',
+            '🍔 Alimentação',
+            '🚗 Transporte',
+            '💡 Contas e Serviços',
+            '🏥 Saúde',
+            '🎓 Educação',
+            '👕 Vestuário',
+            '🎬 Lazer',
+            '💳 Cartão de Crédito',
+            '📱 Assinaturas',
+            '🛒 Compras',
+            '💰 Outros Gastos',
+            '💼 Salário',
+            '💰 Freelance',
+            '📈 Investimentos',
+            '🎁 Bônus',
+            '💸 Vendas',
+            '🏆 Prêmios',
+            '💵 Outras Receitas'
         ];
 
         // Contar apenas categorias PERSONALIZADAS (não padrão) do usuário
@@ -669,7 +689,7 @@ class AchievementService
             ->count();
 
         error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - faturas pagas: {$faturaPaga}");
-        
+
         return $faturaPaga >= 1;
     }
 
@@ -782,5 +802,17 @@ class AchievementService
         }
 
         return true;
+    }
+
+    /**
+     * Verifica se o usuário tem N indicações completadas
+     */
+    private function checkReferrals(int $userId, int $minReferrals): bool
+    {
+        $count = \Application\Models\Indicacao::where('referrer_id', $userId)
+            ->where('status', \Application\Models\Indicacao::STATUS_COMPLETED)
+            ->count();
+
+        return $count >= $minReferrals;
     }
 }

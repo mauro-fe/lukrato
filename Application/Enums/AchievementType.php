@@ -79,6 +79,12 @@ enum AchievementType: string
         // ========== CONQUISTA DE PERFIL ==========
     case PROFILE_COMPLETE = 'PROFILE_COMPLETE';             // Perfil completo
 
+        // ========== CONQUISTAS DE INDICAÇÃO ==========
+    case FIRST_REFERRAL = 'FIRST_REFERRAL';                 // Primeira indicação
+    case REFERRALS_5 = 'REFERRALS_5';                       // 5 indicações
+    case REFERRALS_10 = 'REFERRALS_10';                     // 10 indicações
+    case REFERRALS_25 = 'REFERRALS_25';                     // 25 indicações (Influenciador)
+
     /**
      * Retorna se a conquista é exclusiva Pro
      */

@@ -6,6 +6,8 @@ use Application\Models\Usuario;
 use Application\Models\Indicacao;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
+use Application\Services\AchievementService;
+use Application\Services\LogService;
 use Illuminate\Support\Str;
 
 class ReferralService
@@ -157,7 +159,30 @@ class ReferralService
         $indicacao->completed_at = now();
         $indicacao->save();
 
+        // Verifica conquistas de indicação para quem indicou
+        $this->checkReferralAchievements($referrer->id);
+
         return $indicacao;
+    }
+
+    /**
+     * Verifica e desbloqueia conquistas de indicação
+     * 
+     * @param int $userId
+     * @return void
+     */
+    private function checkReferralAchievements(int $userId): void
+    {
+        try {
+            $achievementService = new AchievementService();
+            $achievementService->checkAndUnlockAchievements($userId, 'referral');
+        } catch (\Throwable $e) {
+            // Não deixa erro de conquistas impedir o fluxo principal
+            LogService::warning('[ReferralService] Erro ao verificar conquistas de indicação', [
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -182,18 +207,28 @@ class ReferralService
             ->first();
 
         if ($assinaturaAtiva) {
-            // Estende a assinatura existente
-            $novaData = $assinaturaAtiva->renova_em
-                ? $assinaturaAtiva->renova_em->addDays($days)
-                : now()->addDays($days);
+            // Se a assinatura ativa é PRO, apenas estende
+            if ($assinaturaAtiva->plano_id === $planoPro->id) {
+                $novaData = $assinaturaAtiva->renova_em
+                    ? $assinaturaAtiva->renova_em->addDays($days)
+                    : now()->addDays($days);
 
-            $assinaturaAtiva->renova_em = $novaData;
+                $assinaturaAtiva->renova_em = $novaData;
+                $assinaturaAtiva->save();
+
+                return $assinaturaAtiva;
+            }
+
+            // Se é FREE ou outro plano, atualiza para PRO
+            $assinaturaAtiva->plano_id = $planoPro->id;
+            $assinaturaAtiva->gateway = 'referral';
+            $assinaturaAtiva->renova_em = now()->addDays($days);
             $assinaturaAtiva->save();
 
             return $assinaturaAtiva;
         }
 
-        // Cria uma nova assinatura
+        // Cria uma nova assinatura PRO
         $assinatura = AssinaturaUsuario::create([
             'user_id' => $user->id,
             'plano_id' => $planoPro->id,
@@ -263,7 +298,7 @@ class ReferralService
      */
     public function getReferralLink(Usuario $user): string
     {
-        $baseUrl = rtrim(getenv('APP_URL') ?: 'https://lukrato.com.br', '/');
+        $baseUrl = defined('BASE_URL') ? rtrim(BASE_URL, '/') : 'https://lukrato.com.br';
         return $baseUrl . '/login?ref=' . $user->referral_code;
     }
 
