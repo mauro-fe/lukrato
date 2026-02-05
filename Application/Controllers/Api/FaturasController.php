@@ -533,7 +533,17 @@ class FaturasController
         try {
             $usuarioId = $this->getAuthenticatedUserId();
 
+            LogService::info("deleteParcelamento chamado", [
+                'fatura_id' => $faturaId,
+                'item_id' => $itemId,
+                'usuario_id' => $usuarioId
+            ]);
+
             if ($faturaId <= 0 || $itemId <= 0) {
+                LogService::warning("deleteParcelamento - IDs inválidos", [
+                    'fatura_id' => $faturaId,
+                    'item_id' => $itemId
+                ]);
                 Response::json(['error' => 'IDs inválidos'], 400);
                 return;
             }
@@ -541,6 +551,10 @@ class FaturasController
             // Verificar se fatura existe e pertence ao usuário
             $fatura = $this->faturaService->buscar($faturaId, $usuarioId);
             if (!$fatura) {
+                LogService::warning("deleteParcelamento - Fatura não encontrada", [
+                    'fatura_id' => $faturaId,
+                    'usuario_id' => $usuarioId
+                ]);
                 Response::json(['error' => 'Fatura não encontrada'], 404);
                 return;
             }
@@ -548,6 +562,10 @@ class FaturasController
             $resultado = $this->faturaService->excluirParcelamento($itemId, $usuarioId);
 
             if (!$resultado['success']) {
+                LogService::warning("deleteParcelamento - Falha no serviço", [
+                    'item_id' => $itemId,
+                    'resultado' => $resultado
+                ]);
                 Response::json(['error' => $resultado['message']], 400);
                 return;
             }

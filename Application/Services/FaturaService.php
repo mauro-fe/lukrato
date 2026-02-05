@@ -477,6 +477,11 @@ class FaturaService
         DB::beginTransaction();
 
         try {
+            LogService::info("Iniciando exclusão de parcelamento", [
+                'item_id' => $itemId,
+                'usuario_id' => $usuarioId
+            ]);
+
             // Buscar o item para descobrir a fatura relacionada
             $item = FaturaCartaoItem::where('id', $itemId)
                 ->where('user_id', $usuarioId)
@@ -484,8 +489,19 @@ class FaturaService
                 ->first();
 
             if (!$item) {
+                LogService::warning("Item não encontrado para exclusão de parcelamento", [
+                    'item_id' => $itemId,
+                    'usuario_id' => $usuarioId
+                ]);
                 return ['success' => false, 'message' => 'Item não encontrado'];
             }
+
+            LogService::info("Item encontrado para exclusão", [
+                'item_id' => $itemId,
+                'item_pai_id' => $item->item_pai_id,
+                'total_parcelas' => $item->total_parcelas,
+                'descricao' => $item->descricao
+            ]);
 
             // Buscar todos os itens do mesmo parcelamento
             // Identificamos pelo mesmo item_pai_id ou pela mesma descrição + fatura + total_parcelas

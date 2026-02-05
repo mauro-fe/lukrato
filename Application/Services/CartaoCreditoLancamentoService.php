@@ -180,6 +180,7 @@ class CartaoCreditoLancamentoService
         $valorUltimaParcela = round($valorTotal - $somaParcelasAnteriores, 2);
 
         $dataCompra = $data['data'] ?? date('Y-m-d');
+        $itemPaiId = null; // ID da primeira parcela para vincular as demais
 
         // Criar cada parcela na fatura mensal correspondente
         for ($i = 1; $i <= $totalParcelas; $i++) {
@@ -221,13 +222,20 @@ class CartaoCreditoLancamentoService
                 'mes_referencia' => $mesVencParcela,
                 'ano_referencia' => $anoVencParcela,
                 'pago' => false,
+                'item_pai_id' => $itemPaiId,              // Vincula à primeira parcela
             ]);
+
+            // Guardar o ID da primeira parcela para vincular as demais
+            if ($i === 1) {
+                $itemPaiId = $item->id;
+            }
 
             LogService::info("[CARTAO] Item de fatura criado (parcela {$i}/{$totalParcelas}) - SEM lançamento individual", [
                 'item_id' => $item->id,
                 'fatura_id' => $fatura->id,
                 'mes_ano_vencimento' => "{$vencimento['mes']}/{$vencimento['ano']}",
                 'valor' => $valorDessaParcela,
+                'item_pai_id' => $itemPaiId,
             ]);
 
             // Atualizar valor total da fatura
