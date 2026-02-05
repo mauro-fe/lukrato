@@ -380,9 +380,8 @@ body.sidebar-collapsed .sidebar .logo .logo-full {
 
 body.sidebar-collapsed .sidebar .logo .logo-icon {
   display: block !important;
-  max-height: 50px;
+  max-height: 60px;
   max-width: 50px;
-  margin: 0 auto;
 }
 
 body.sidebar-collapsed .sidebar .nav-item {

@@ -38,11 +38,11 @@ class AuthService
         $this->logoutHandler      = new LogoutHandler();
     }
 
-    public function login(string $email, string $password): array
+    public function login(string $email, string $password, bool $remember = false): array
     {
         try {
             $credentials = new CredentialsDTO($email, $password);
-            return $this->loginHandler->handle($credentials);
+            return $this->loginHandler->handle($credentials, $remember);
         } catch (Throwable $e) {
             throw $e;
         }

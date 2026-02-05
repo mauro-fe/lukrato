@@ -80,6 +80,14 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <small class="field-error" id="passwordError"></small>
                                     </div>
 
+                                    <div class="remember-me">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" id="remember" name="remember" value="1">
+                                            <span class="checkmark"></span>
+                                            <span class="checkbox-label">Lembrar de mim</span>
+                                        </label>
+                                    </div>
+
                                     <button type="submit" class="btn-primary">
                                         <span>Entrar</span>
                                     </button>

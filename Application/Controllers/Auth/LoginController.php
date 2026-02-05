@@ -76,9 +76,12 @@ class LoginController extends BaseController
             $this->applyRateLimit();
 
             // Autenticação
+            $remember = $this->request->post('remember', '0') === '1';
+            
             $result = $this->authService->login(
                 $this->request->post('email', ''),
-                $this->request->post('password', '')
+                $this->request->post('password', ''),
+                $remember
             );
 
             $this->clearOldCsrfTokens();
