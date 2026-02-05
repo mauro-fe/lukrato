@@ -40,7 +40,21 @@ class FaturaService
     ): array {
         try {
             $query = Fatura::where('user_id', $usuarioId)
-                ->with(['cartaoCredito', 'itens']);
+                ->with(['cartaoCredito']);
+
+            // Carregar itens - se tiver filtro de mês/ano, carregar apenas itens desse período
+            if ($mes && $ano) {
+                $query->with(['itens' => function ($q) use ($mes, $ano) {
+                    $q->where('mes_referencia', $mes)
+                        ->where('ano_referencia', $ano);
+                }]);
+            } elseif ($ano) {
+                $query->with(['itens' => function ($q) use ($ano) {
+                    $q->where('ano_referencia', $ano);
+                }]);
+            } else {
+                $query->with(['itens']);
+            }
 
             if ($cartaoId) {
                 $query->where('cartao_credito_id', $cartaoId);
@@ -67,8 +81,9 @@ class FaturaService
 
             $faturas = $query->orderBy('data_compra', 'desc')->get();
 
-            return $faturas->map(function ($fatura) {
-                return $this->formatarFaturaListagem($fatura);
+            // Passar mes/ano para formatação correta
+            return $faturas->map(function ($fatura) use ($mes, $ano) {
+                return $this->formatarFaturaListagem($fatura, $mes, $ano);
             })->toArray();
         } catch (Exception $e) {
             LogService::error("Erro ao listar faturas", [
@@ -1051,20 +1066,28 @@ class FaturaService
 
     /**
      * Formatar fatura para listagem
+     * @param Fatura $fatura
+     * @param int|null $mesRef - Mês de referência para filtrar itens (null = usar primeiro mês)
+     * @param int|null $anoRef - Ano de referência para filtrar itens (null = usar primeiro ano)
      */
-    private function formatarFaturaListagem(Fatura $fatura): array
+    private function formatarFaturaListagem(Fatura $fatura, ?int $mesRef = null, ?int $anoRef = null): array
     {
-        $itensPagos = $fatura->itens->where('pago', 1)->count();
-        $totalItens = $fatura->itens->count();
-        $progresso = $fatura->progresso;
+        // Usar itens já carregados (filtrados na query se houver mes/ano)
+        $itens = $fatura->itens;
+        
+        $itensPagos = $itens->where('pago', 1)->count();
+        $totalItens = $itens->count();
+        
+        // Calcular progresso baseado nos itens filtrados
+        $progresso = $totalItens > 0 ? ($itensPagos / $totalItens) * 100 : 0;
 
         // Calcular valor pendente (apenas itens não pagos)
         // Nota: usa 'valor' que é o campo real na tabela faturas_cartao_itens
-        $valorPendenteItens = $fatura->itens->where('pago', 0)->sum('valor');
+        $valorPendenteItens = $itens->where('pago', 0)->sum('valor');
 
         // Estornos têm valor negativo e já estão pagos
         // Precisamos somar o valor dos estornos para abater do total
-        $valorEstornos = $fatura->itens->where('tipo', 'estorno')->sum('valor'); // Já é negativo
+        $valorEstornos = $itens->where('tipo', 'estorno')->sum('valor'); // Já é negativo
 
         // Valor total a pagar = itens pendentes + estornos (que são negativos, então abate)
         $valorPendente = $valorPendenteItens + $valorEstornos;
@@ -1072,18 +1095,18 @@ class FaturaService
         $valorPendente = max(0, $valorPendente);
 
         // Separar despesas de estornos para o resumo
-        $totalDespesas = $fatura->itens->where('tipo', '!=', 'estorno')->sum('valor');
-        $totalEstornos = abs($fatura->itens->where('tipo', 'estorno')->sum('valor'));
+        $totalDespesas = $itens->where('tipo', '!=', 'estorno')->sum('valor');
+        $totalEstornos = abs($itens->where('tipo', 'estorno')->sum('valor'));
 
         // Próxima parcela pendente (por mês/ano)
-        $primeiroItemPendente = $fatura->itens->where('pago', 0)
+        $primeiroItemPendente = $itens->where('pago', 0)
             ->sortBy(function ($item) {
                 return $item->ano_referencia * 100 + $item->mes_referencia;
             })
             ->first();
 
         // Obter meses únicos de referência dos itens desta fatura
-        $mesesReferencia = $fatura->itens
+        $mesesReferencia = $itens
             ->map(function ($item) {
                 return [
                     'mes' => $item->mes_referencia,
@@ -1099,10 +1122,14 @@ class FaturaService
             ->values()
             ->toArray();
 
-        // Primeiro mês de referência (para exibição principal)
-        $primeiroMesRef = $fatura->itens->sortBy(function ($item) {
+        // Usar mês/ano passado por parâmetro ou primeiro mês de referência
+        $primeiroMesRef = $itens->sortBy(function ($item) {
             return $item->ano_referencia * 100 + $item->mes_referencia;
         })->first();
+        
+        // Se foi passado mês/ano por parâmetro, usa esses valores
+        $mesRetorno = $mesRef !== null ? $mesRef : ($primeiroMesRef ? $primeiroMesRef->mes_referencia : null);
+        $anoRetorno = $anoRef !== null ? $anoRef : ($primeiroMesRef ? $primeiroMesRef->ano_referencia : null);
 
         return [
             'id' => $fatura->id,
@@ -1111,9 +1138,9 @@ class FaturaService
             'numero_parcelas' => $fatura->numero_parcelas,
             'valor_parcela' => $fatura->valor_parcela,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
-            // Mês/ano de referência (primeiro mês onde aparece)
-            'mes_referencia' => $primeiroMesRef ? $primeiroMesRef->mes_referencia : null,
-            'ano_referencia' => $primeiroMesRef ? $primeiroMesRef->ano_referencia : null,
+            // Mês/ano de referência (do filtro ou primeiro mês onde aparece)
+            'mes_referencia' => $mesRetorno,
+            'ano_referencia' => $anoRetorno,
             // Lista de todos os meses onde este parcelamento aparece
             'meses_referencia' => $mesesReferencia,
             'proxima_parcela' => $primeiroItemPendente ? [
