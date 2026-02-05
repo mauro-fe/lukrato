@@ -729,6 +729,9 @@ class FaturaService
 
         $itemPaiId = null; // ID da primeira parcela para vincular as demais
 
+        // Calcular competência base (mês da fatura que fechou)
+        $competenciaBase = $this->calcularCompetenciaFatura($diaCompra, $mesCompra, $anoCompra, $cartao->dia_fechamento);
+
         // Criar cada parcela
         for ($i = 1; $i <= $numeroParcelas; $i++) {
             $vencimento = $this->calcularDataVencimento(
@@ -739,6 +742,14 @@ class FaturaService
                 $cartao->dia_vencimento,
                 $cartao->dia_fechamento
             );
+
+            // Calcular competência desta parcela (avança mês a partir da competência base)
+            $mesCompetencia = $competenciaBase['mes'] + ($i - 1);
+            $anoCompetencia = $competenciaBase['ano'];
+            while ($mesCompetencia > 12) {
+                $mesCompetencia -= 12;
+                $anoCompetencia++;
+            }
 
             $item = FaturaCartaoItem::create([
                 'user_id' => $dados['user_id'],
@@ -751,8 +762,8 @@ class FaturaService
                 'categoria_id' => $dados['categoria_id'] ?? null,
                 'parcela_atual' => $i,
                 'total_parcelas' => $numeroParcelas,
-                'mes_referencia' => $vencimento['mes'],
-                'ano_referencia' => $vencimento['ano'],
+                'mes_referencia' => $mesCompetencia,
+                'ano_referencia' => $anoCompetencia,
                 'pago' => false,
                 'item_pai_id' => $itemPaiId,
             ]);
@@ -762,6 +773,34 @@ class FaturaService
                 $itemPaiId = $item->id;
             }
         }
+    }
+
+    /**
+     * Calcular mês/ano de competência (mês da fatura que fechou)
+     * Se comprou ANTES do fechamento: competência = mês atual
+     * Se comprou NO DIA ou DEPOIS do fechamento: competência = próximo mês
+     */
+    private function calcularCompetenciaFatura(int $diaCompra, int $mesCompra, int $anoCompra, int $diaFechamento): array
+    {
+        if ($diaCompra >= $diaFechamento) {
+            // Comprou no dia do fechamento ou depois - entra na próxima fatura
+            $mesCompetencia = $mesCompra + 1;
+            $anoCompetencia = $anoCompra;
+
+            if ($mesCompetencia > 12) {
+                $mesCompetencia = 1;
+                $anoCompetencia++;
+            }
+        } else {
+            // Comprou ANTES do fechamento - entra na fatura do mês atual
+            $mesCompetencia = $mesCompra;
+            $anoCompetencia = $anoCompra;
+        }
+
+        return [
+            'mes' => $mesCompetencia,
+            'ano' => $anoCompetencia,
+        ];
     }
 
     /**
@@ -787,6 +826,7 @@ class FaturaService
 
     /**
      * Calcular data de vencimento da parcela
+     * CORRIGIDO: O vencimento é SEMPRE no mês seguinte ao fechamento da fatura
      */
     private function calcularDataVencimento(
         int $diaCompra,
@@ -796,21 +836,23 @@ class FaturaService
         int $diaVencimento,
         int $diaFechamento
     ): array {
-        // Se a compra foi feita após o fechamento, vai para o próximo mês
-        $mesReferencia = $mesCompra;
-        $anoReferencia = $anoCompra;
+        // Calcular mês de competência (quando a fatura fecha)
+        $mesCompetencia = $mesCompra;
+        $anoCompetencia = $anoCompra;
 
         if ($diaCompra >= $diaFechamento) {
-            $mesReferencia++;
-            if ($mesReferencia > 12) {
-                $mesReferencia = 1;
-                $anoReferencia++;
+            // Comprou no dia do fechamento ou depois - entra na próxima fatura
+            $mesCompetencia++;
+            if ($mesCompetencia > 12) {
+                $mesCompetencia = 1;
+                $anoCompetencia++;
             }
         }
 
-        // Adicionar os meses da parcela
-        $mesVencimento = $mesReferencia + ($numeroParcela - 1);
-        $anoVencimento = $anoReferencia;
+        // O vencimento é SEMPRE no mês seguinte à competência
+        // + os meses adicionais da parcela
+        $mesVencimento = $mesCompetencia + $numeroParcela; // +1 para vencimento + (parcela-1) para meses adicionais
+        $anoVencimento = $anoCompetencia;
 
         while ($mesVencimento > 12) {
             $mesVencimento -= 12;
