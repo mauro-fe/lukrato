@@ -509,6 +509,10 @@ class AgendamentoController extends BaseController
      * EXECUTAR AGENDAMENTO - Cria lançamento e gerencia recorrência
      * 
      * POST /api/agendamentos/{id}/executar
+     * 
+     * Body (opcional):
+     * - conta_id: int - Conta para debitar/creditar o lançamento
+     * - forma_pagamento: string - Forma de pagamento (dinheiro, pix, cartao_debito, etc)
      */
     public function executar(int $id): void
     {
@@ -529,17 +533,52 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            // Executar agendamento (cria lançamento + gerencia recorrência)
-            $resultado = $this->service->executarAgendamento($agendamento);
+            // Proteção contra execução duplicada (requisição duplicada/retry)
+            // Se foi executado nos últimos 5 segundos, ignorar
+            if ($agendamento->concluido_em) {
+                $ultimaExecucao = strtotime($agendamento->concluido_em);
+                if (time() - $ultimaExecucao < 5) {
+                    LogService::warning('Execução duplicada detectada e ignorada', [
+                        'agendamento_id' => $id,
+                        'concluido_em' => $agendamento->concluido_em,
+                        'user_id' => $this->getUserId()
+                    ]);
+                    // Retornar sucesso mesmo assim para não confundir o frontend
+                    $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
+                    Response::success([
+                        'message' => 'Agendamento já foi executado.',
+                        'agendamento' => $agendamento->toArray(),
+                        'duplicate_prevented' => true,
+                    ]);
+                    return;
+                }
+            }
+
+            // Obter dados opcionais do request
+            $data = $this->getRequestData();
+            $contaId = !empty($data['conta_id']) ? (int) $data['conta_id'] : null;
+            $formaPagamento = !empty($data['forma_pagamento']) ? trim($data['forma_pagamento']) : null;
+
+            // Executar agendamento (cria lançamento + gerencia recorrência/parcelamento)
+            $resultado = $this->service->executarAgendamento($agendamento, $contaId, $formaPagamento);
 
             // Calcular status dinâmico para resposta
             $statusDinamico = $this->service->calcularStatusDinamico($resultado['agendamento']);
             $agendamentoData = $resultado['agendamento']->toArray();
             $agendamentoData['status_dinamico'] = $statusDinamico;
 
-            $mensagem = $resultado['recorrente']
-                ? 'Lançamento criado! Próxima ocorrência agendada para ' . date('d/m/Y', strtotime($resultado['proximaData']))
-                : 'Agendamento executado com sucesso!';
+            // Montar mensagem apropriada
+            if ($resultado['parcelado'] ?? false) {
+                if ($resultado['finalizado'] ?? false) {
+                    $mensagem = "Última parcela paga! ({$resultado['parcela_paga']}/{$resultado['total_parcelas']}) Agendamento finalizado.";
+                } else {
+                    $mensagem = "Parcela {$resultado['parcela_paga']}/{$resultado['total_parcelas']} paga! Próxima: " . date('d/m/Y', strtotime($resultado['proximaData']));
+                }
+            } elseif ($resultado['recorrente']) {
+                $mensagem = 'Lançamento criado! Próxima ocorrência agendada para ' . date('d/m/Y', strtotime($resultado['proximaData']));
+            } else {
+                $mensagem = 'Agendamento executado com sucesso!';
+            }
 
             Response::success([
                 'message' => $mensagem,
@@ -547,11 +586,18 @@ class AgendamentoController extends BaseController
                 'lancamento' => $resultado['lancamento'],
                 'proxima_data' => $resultado['proximaData'],
                 'recorrente' => $resultado['recorrente'],
+                'parcelado' => $resultado['parcelado'] ?? false,
+                'parcela_paga' => $resultado['parcela_paga'] ?? null,
+                'total_parcelas' => $resultado['total_parcelas'] ?? null,
+                'finalizado' => $resultado['finalizado'] ?? false,
             ]);
 
             LogService::info('Agendamento executado via endpoint', [
                 'agendamento_id' => $id,
                 'recorrente' => $resultado['recorrente'],
+                'parcelado' => $resultado['parcelado'] ?? false,
+                'conta_id' => $contaId,
+                'forma_pagamento' => $formaPagamento,
                 'user_id' => $this->getUserId(),
             ]);
         } catch (Throwable $e) {

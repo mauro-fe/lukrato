@@ -187,6 +187,7 @@
                                 <th class="th-categoria">Categoria</th>
                                 <th class="th-conta">Conta</th>
                                 <th class="th-cartao">Cartão</th>
+                                <th class="th-forma-pgto">Forma Pgto</th>
                                 <th class="th-descricao">Descrição</th>
                                 <th class="th-status">Status</th>
                                 <th class="th-valor sortable" data-sort="valor">

@@ -1397,7 +1397,6 @@ class ContasManager {
         // Grupos específicos
         const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
-        const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
         const horaAgendamentoGroup = document.getElementById('horaAgendamentoGroup');
         const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
         const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
@@ -1406,7 +1405,6 @@ class ContasManager {
         // Ocultar grupos de agendamento por padrão
         if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
-        if (numeroRepeticoesGroup) numeroRepeticoesGroup.style.display = 'none';
         if (horaAgendamentoGroup) horaAgendamentoGroup.style.display = 'none';
         if (tempoAvisoGroup) tempoAvisoGroup.style.display = 'none';
         if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'none';
@@ -1515,20 +1513,11 @@ class ContasManager {
 
     /**
      * Configurar eventos de recorrência
+     * Agora a recorrência é sempre indefinida, não precisa de lógica adicional
      */
     configurarEventosRecorrencia() {
-        const recorrenciaSelect = document.getElementById('lancamentoRecorrencia');
-        const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
-
-        if (recorrenciaSelect) {
-            recorrenciaSelect.addEventListener('change', () => {
-                if (recorrenciaSelect.value && numeroRepeticoesGroup) {
-                    numeroRepeticoesGroup.style.display = 'block';
-                } else if (numeroRepeticoesGroup) {
-                    numeroRepeticoesGroup.style.display = 'none';
-                }
-            });
-        }
+        // Recorrência agora repete para sempre até ser cancelada
+        // Não precisa mais do campo "quantas vezes repetir"
     }
 
     /**
@@ -2030,12 +2019,10 @@ class ContasManager {
         // Ocultar campos de agendamento
         const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
-        const numeroRepeticoesGroup = document.getElementById('numeroRepeticoesGroup');
         const labelData = document.getElementById('labelDataLancamento');
 
         if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
-        if (numeroRepeticoesGroup) numeroRepeticoesGroup.style.display = 'none';
         if (labelData) labelData.textContent = 'Data';
 
         // Restaurar título

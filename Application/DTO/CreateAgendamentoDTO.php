@@ -30,6 +30,9 @@ readonly class CreateAgendamentoDTO
         public ?string $recorrencia_freq = null,
         public ?int $recorrencia_intervalo = null,
         public ?string $recorrencia_fim = null,
+        public bool $eh_parcelado = false,
+        public ?int $numero_parcelas = null,
+        public int $parcela_atual = 1,
         public string $status = AgendamentoStatus::PENDENTE->value,
     ) {}
 
@@ -74,6 +77,9 @@ readonly class CreateAgendamentoDTO
             recorrencia_freq: !empty($data['recorrencia_freq']) ? $data['recorrencia_freq'] : null,
             recorrencia_intervalo: !empty($data['recorrencia_intervalo']) ? (int) $data['recorrencia_intervalo'] : null,
             recorrencia_fim: !empty($data['recorrencia_fim']) ? $data['recorrencia_fim'] : null,
+            eh_parcelado: filter_var($data['eh_parcelado'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            numero_parcelas: !empty($data['numero_parcelas']) ? (int) $data['numero_parcelas'] : null,
+            parcela_atual: (int) ($data['parcela_atual'] ?? 1),
         );
     }
 
@@ -100,6 +106,9 @@ readonly class CreateAgendamentoDTO
             'recorrencia_freq' => $this->recorrencia_freq,
             'recorrencia_intervalo' => $this->recorrencia_intervalo,
             'recorrencia_fim' => $this->recorrencia_fim,
+            'eh_parcelado' => $this->eh_parcelado,
+            'numero_parcelas' => $this->numero_parcelas,
+            'parcela_atual' => $this->parcela_atual,
             'status' => $this->status,
         ];
     }

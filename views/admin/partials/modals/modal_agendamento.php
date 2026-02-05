@@ -639,31 +639,76 @@
                     </div>
 
                     <!-- Recorrência -->
-                    <div class="form-group">
+                    <div class="form-group" id="recorrenciaGroup">
                         <label for="agFrequencia" class="form-label">
                             <i class="fas fa-sync-alt"></i> Recorrência
                         </label>
                         <select id="agFrequencia" name="recorrencia_freq" class="form-control modern-select">
-                            <option value="">Não repetir</option>
+                            <option value="">Não repetir (único)</option>
                             <option value="diario">Diariamente</option>
                             <option value="semanal">Semanalmente</option>
                             <option value="mensal">Mensalmente</option>
                             <option value="anual">Anualmente</option>
                         </select>
+                        <small class="lk-helper-text">🔁 Repete para sempre até você cancelar - ideal para contas fixas</small>
                     </div>
 
-                    <!-- Quantas vezes repetir (aparece quando recorrência selecionada) -->
-                    <div class="form-group" id="repeticoesGroup" style="display: none;">
-                        <label for="agRepeticoes" class="form-label">
-                            <i class="fas fa-redo"></i> Quantas vezes repetir?
+                    <!-- Parcelamento Moderno -->
+                    <div class="form-group" id="parcelamentoGroup">
+                        <label class="form-label">
+                            <i class="fas fa-credit-card"></i> Parcelamento
+                            <span class="optional-badge">opcional</span>
                         </label>
-                        <div class="lk-input-group">
-                            <input type="number" id="agRepeticoes" name="recorrencia_repeticoes" class="lk-input"
-                                placeholder="12" min="1" max="999">
-                            <span class="lk-input-suffix">vezes</span>
+                        
+                        <div class="parcelamento-card">
+                            <div class="parcelamento-toggle-row">
+                                <div class="parcelamento-info">
+                                    <span class="parcelamento-icon">💳</span>
+                                    <div class="parcelamento-text">
+                                        <span class="parcelamento-label">Compra Parcelada</span>
+                                        <span class="parcelamento-desc">Divide em várias parcelas mensais</span>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="agEhParcelado" name="eh_parcelado" value="1">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="parcelamento-config" id="parcelasInputGroup" style="display: none;">
+                                <div class="parcelas-input-wrapper">
+                                    <div class="parcelas-label">
+                                        <i class="fas fa-layer-group"></i>
+                                        <span>Número de parcelas</span>
+                                    </div>
+                                    <div class="parcelas-input-group">
+                                        <button type="button" class="parcelas-btn parcelas-minus" onclick="adjustParcelas(-1)">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="agNumeroParcelas" name="numero_parcelas" 
+                                            class="parcelas-input" 
+                                            value="2" placeholder="2"
+                                            style="color: #fff !important; background: transparent !important; font-size: 1.2rem; font-weight: 700;">
+                                        <button type="button" class="parcelas-btn parcelas-plus" onclick="adjustParcelas(1)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        <span class="parcelas-suffix">x</span>
+                                    </div>
+                                </div>
+                                <div class="parcelas-presets">
+                                    <button type="button" class="preset-btn" onclick="setParcelas(2)">2x</button>
+                                    <button type="button" class="preset-btn" onclick="setParcelas(3)">3x</button>
+                                    <button type="button" class="preset-btn" onclick="setParcelas(6)">6x</button>
+                                    <button type="button" class="preset-btn" onclick="setParcelas(10)">10x</button>
+                                    <button type="button" class="preset-btn" onclick="setParcelas(12)">12x</button>
+                                </div>
+                            </div>
                         </div>
-                        <small class="lk-helper-text">Deixe em branco para indefinido</small>
+                        <small class="lk-helper-text">O lembrete aparece todo mês até a última parcela ser paga</small>
                     </div>
+
+                    <!-- Campo oculto para repetições (sempre indefinido) -->
+                    <input type="hidden" id="agRepeticoes" name="recorrencia_repeticoes" value="">
 
                     <!-- Tempo de Aviso -->
                     <div class="form-group">
@@ -720,6 +765,197 @@
                 <button type="submit" form="formAgendamento" class="btn-modern btn-primary-modern">
                     <i class="fas fa-save"></i>
                     <span>Salvar Agendamento</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL EXECUTAR AGENDAMENTO ==================== -->
+<style>
+    #modalExecutarAgendamento .modal-content {
+        border: none;
+        border-radius: var(--radius-xl);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-xl), 0 0 0 1px rgba(16, 185, 129, 0.1);
+        overflow: hidden;
+    }
+
+    #modalExecutarAgendamento .modern-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: var(--spacing-5);
+        border-bottom: none;
+    }
+
+    #modalExecutarAgendamento .modal-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    #modalExecutarAgendamento .modal-title {
+        color: white;
+        font-size: var(--font-size-lg);
+        font-weight: 700;
+        margin: 0;
+    }
+
+    #modalExecutarAgendamento .modal-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: var(--font-size-sm);
+        margin: 0;
+        margin-top: 4px;
+    }
+
+    #modalExecutarAgendamento .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    #modalExecutarAgendamento .agendamento-resumo {
+        background: var(--color-surface-muted);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-4);
+        margin-bottom: var(--spacing-4);
+        border: 1px solid var(--glass-border);
+    }
+
+    #modalExecutarAgendamento .resumo-titulo {
+        font-weight: 600;
+        color: var(--color-text);
+        margin-bottom: var(--spacing-2);
+    }
+
+    #modalExecutarAgendamento .resumo-valor {
+        font-size: var(--font-size-xl);
+        font-weight: 700;
+        color: #10b981;
+    }
+
+    #modalExecutarAgendamento .resumo-parcela {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        margin-top: var(--spacing-1);
+    }
+
+    #modalExecutarAgendamento .form-group {
+        margin-bottom: var(--spacing-4);
+    }
+
+    #modalExecutarAgendamento .form-label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-weight: 600;
+        color: var(--color-text);
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-2);
+    }
+
+    #modalExecutarAgendamento .form-label i {
+        color: #10b981;
+    }
+
+    #modalExecutarAgendamento .form-control {
+        width: 100%;
+        padding: var(--spacing-3) var(--spacing-4);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
+        color: var(--color-text);
+        font-size: var(--font-size-sm);
+    }
+
+    #modalExecutarAgendamento .form-control:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    }
+
+    #modalExecutarAgendamento .btn-executar {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: var(--spacing-3) var(--spacing-6);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    #modalExecutarAgendamento .btn-executar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+</style>
+
+<div class="modal fade" id="modalExecutarAgendamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modern-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="modal-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title">Registrar Pagamento</h5>
+                        <p class="modal-subtitle">Informe onde foi pago para gerar o lançamento</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body" style="padding: var(--spacing-5);">
+                <input type="hidden" id="execAgendamentoId">
+                
+                <!-- Resumo do Agendamento -->
+                <div class="agendamento-resumo">
+                    <div class="resumo-titulo" id="execResumoTitulo">-</div>
+                    <div class="resumo-valor" id="execResumoValor">R$ 0,00</div>
+                    <div class="resumo-parcela" id="execResumoParcela"></div>
+                </div>
+
+                <!-- Conta -->
+                <div class="form-group">
+                    <label for="execConta" class="form-label">
+                        <i class="fas fa-wallet"></i> Conta
+                    </label>
+                    <select id="execConta" name="conta_id" class="form-control">
+                        <option value="">Selecione a conta</option>
+                    </select>
+                    <small class="text-muted">Em qual conta esse valor será debitado/creditado?</small>
+                </div>
+
+                <!-- Forma de Pagamento -->
+                <div class="form-group">
+                    <label for="execFormaPagamento" class="form-label">
+                        <i class="fas fa-credit-card"></i> Forma de Pagamento
+                    </label>
+                    <select id="execFormaPagamento" name="forma_pagamento" class="form-control">
+                        <option value="">Selecione (opcional)</option>
+                        <option value="dinheiro">💵 Dinheiro</option>
+                        <option value="pix">📱 PIX</option>
+                        <option value="cartao_debito">💳 Cartão de Débito</option>
+                        <option value="cartao_credito">💳 Cartão de Crédito</option>
+                        <option value="boleto">📄 Boleto</option>
+                        <option value="transferencia">🏦 Transferência</option>
+                        <option value="outro">📋 Outro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="border: 0; padding: var(--spacing-4) var(--spacing-5) var(--spacing-5);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn-executar" id="btnConfirmarExecucao">
+                    <i class="fas fa-check me-2"></i>Confirmar Pagamento
                 </button>
             </div>
         </div>

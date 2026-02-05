@@ -191,20 +191,7 @@ const lancamentoGlobalManager = {
             totalParcelasInput.addEventListener('input', () => this.atualizarPreviewParcelamento());
         }
 
-        // Recorrência - mostrar campo de repetições
-        const recorrenciaSelect = document.getElementById('globalLancamentoRecorrencia');
-        if (recorrenciaSelect) {
-            recorrenciaSelect.addEventListener('change', (e) => {
-                const repeticoesGroup = document.getElementById('globalRepeticoesGroup');
-                if (repeticoesGroup) {
-                    repeticoesGroup.style.display = e.target.value !== '' ? 'block' : 'none';
-                    if (e.target.value === '') {
-                        const repeticoesInput = document.getElementById('globalLancamentoRepeticoes');
-                        if (repeticoesInput) repeticoesInput.value = '';
-                    }
-                }
-            });
-        }
+        // Recorrência - agora é sempre indefinida, não precisa de lógica adicional
 
         // Submit do formulário
         const form = document.getElementById('globalFormLancamento');

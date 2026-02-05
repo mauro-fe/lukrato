@@ -159,7 +159,7 @@ class LancamentosController extends BaseController
         $rows = $q->selectRaw('
             l.id, l.data, l.tipo, l.valor, l.descricao, l.observacao, 
             l.categoria_id, l.conta_id, l.conta_id_destino, l.eh_transferencia, l.eh_saldo_inicial,
-            l.pago, l.parcelamento_id, l.cartao_credito_id,
+            l.pago, l.parcelamento_id, l.cartao_credito_id, l.forma_pagamento,
             COALESCE(c.nome, "") as categoria,
             COALESCE(a.nome, "") as conta_nome,
             COALESCE(a.instituicao, "") as conta_instituicao,
@@ -189,6 +189,7 @@ class LancamentosController extends BaseController
             'conta_instituicao' => (string)$r->conta_instituicao,
             'cartao_nome'      => (string)($r->cartao_nome ?? ''),
             'cartao_bandeira'  => (string)($r->cartao_bandeira ?? ''),
+            'forma_pagamento'  => (string)($r->forma_pagamento ?? ''),
         ])->values()->all();
 
         Response::success($out);
