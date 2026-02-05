@@ -449,7 +449,11 @@
                 const parc = response.data;
 
                 if (!parc) {
-                    throw new Error('Fatura não encontrada');
+                    // Fatura não existe mais - fechar modal se estiver aberto
+                    if (STATE.modalDetalhesInstance) {
+                        STATE.modalDetalhesInstance.hide();
+                    }
+                    return;
                 }
 
                 STATE.faturaAtual = parc;
@@ -461,6 +465,15 @@
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
                 console.error('Erro ao abrir detalhes:', error);
+                
+                // Se erro 404, a fatura foi excluída - apenas fechar modal silenciosamente
+                if (error.message && error.message.includes('404')) {
+                    if (STATE.modalDetalhesInstance) {
+                        STATE.modalDetalhesInstance.hide();
+                    }
+                    return;
+                }
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
