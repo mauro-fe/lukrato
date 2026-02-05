@@ -6,8 +6,6 @@
 <section class="ag-page">
     <!-- ==================== HEADER MODERNIZADO ==================== -->
     <div class="lan-header-modern">
-        <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
-
         <!-- CARD DE FILTROS -->
         <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">
@@ -136,6 +134,28 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Paginação Desktop -->
+                <div class="lk-pagination" id="agDesktopPagination">
+                    <div class="pagination-info">
+                        <span id="agPaginationInfo">0 agendamentos</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <select id="agPageSize" class="page-size-select">
+                            <option value="10">10 por página</option>
+                            <option value="25" selected>25 por página</option>
+                            <option value="50">50 por página</option>
+                            <option value="100">100 por página</option>
+                        </select>
+                        <button type="button" id="agPrevPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="agPageNumbers" class="page-numbers"></span>
+                        <button type="button" id="agNextPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </section>
 

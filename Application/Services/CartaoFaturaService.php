@@ -709,13 +709,13 @@ class CartaoFaturaService
 
             foreach ($cartoes as $cartao) {
                 try {
-                    // Resetar para cada cartão
-                    $mesRef = (int) $dataHoje->format('n');
-                    $anoRef = (int) $dataHoje->format('Y');
+                    // Determinar a data de vencimento
+                    $mesVenc = (int) $dataHoje->format('n');
+                    $anoVenc = (int) $dataHoje->format('Y');
 
                     $dataVencimento = \DateTime::createFromFormat(
                         'Y-n-j',
-                        "{$anoRef}-{$mesRef}-{$cartao->dia_vencimento}"
+                        "{$anoVenc}-{$mesVenc}-{$cartao->dia_vencimento}"
                     );
 
                     if (!$dataVencimento) {
@@ -725,12 +725,21 @@ class CartaoFaturaService
                     // Se vencimento já passou neste mês, vai para o próximo
                     if ($dataVencimento < $dataHoje) {
                         $dataVencimento->modify('+1 month');
-                        $mesRef = (int) $dataVencimento->format('n');
-                        $anoRef = (int) $dataVencimento->format('Y');
+                        $mesVenc = (int) $dataVencimento->format('n');
+                        $anoVenc = (int) $dataVencimento->format('Y');
                     }
 
                     if ($dataVencimento <= $dataLimite && $dataVencimento >= $dataHoje) {
-                        // Usar competência (mes_referencia/ano_referencia) em vez do mês da data_vencimento
+                        // CORRIGIDO: mes_referencia é o mês ANTERIOR ao vencimento
+                        // A fatura FECHA em janeiro e VENCE em fevereiro
+                        // Logo, itens com mes_referencia = 1 vencem em 02
+                        $mesRef = $mesVenc - 1;
+                        $anoRef = $anoVenc;
+                        if ($mesRef < 1) {
+                            $mesRef = 12;
+                            $anoRef--;
+                        }
+
                         $totalFatura = FaturaCartaoItem::where('cartao_credito_id', $cartao->id)
                             ->where('pago', false)
                             ->where('mes_referencia', $mesRef)

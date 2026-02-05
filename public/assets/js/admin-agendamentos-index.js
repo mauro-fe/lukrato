@@ -33,7 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         ignoreFilterChange: false,
         activeQuickFilter: null,
-        applyingQuickFilter: false
+        applyingQuickFilter: false,
+        // Paginação desktop
+        currentPage: 1,
+        pageSize: 25,
+        filteredData: []
     };
 
 
@@ -228,13 +232,20 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody: document.getElementById('agendamentosTableBody'),
         agList: document.getElementById('agList'),
 
-        // Paginação
+        // Paginação Mobile (Cards)
         pager: document.getElementById('agCardsPager'),
         pagerInfo: document.getElementById('agPagerInfo'),
         pagerFirst: document.getElementById('agPagerFirst'),
         pagerPrev: document.getElementById('agPagerPrev'),
         pagerNext: document.getElementById('agPagerNext'),
         pagerLast: document.getElementById('agPagerLast'),
+
+        // Paginação Desktop (Tabela)
+        paginationInfo: document.getElementById('agPaginationInfo'),
+        pageSize: document.getElementById('agPageSize'),
+        prevPage: document.getElementById('agPrevPage'),
+        nextPage: document.getElementById('agNextPage'),
+        pageNumbers: document.getElementById('agPageNumbers'),
 
         // Paywall
         paywallBox: document.getElementById('agPaywall'),
@@ -1089,10 +1100,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
+            const editBtn = `
+                <button class="lk-btn ghost ag-card-btn" data-ag-action="editar" data-id="${itemId}" title="Editar">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+            `;
+
             // Verificar cancelado PRIMEIRO
             if (status === 'cancelado') {
                 actionsContainer.innerHTML = `
                     ${viewBtn}
+                    ${editBtn}
                     <button class="lk-btn ghost ag-card-btn" data-ag-action="reativar" data-id="${itemId}" title="Reativar">
                         <i class="fas fa-undo-alt"></i>
                     </button>
@@ -1103,15 +1121,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="lk-btn ghost-pagar ag-card-btn" data-ag-action="pagar" data-id="${itemId}" title="Executar">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button class="lk-btn ghost ag-card-btn" data-ag-action="editar" data-id="${itemId}" title="Editar">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
+                    ${editBtn}
                     <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
             } else {
-                actionsContainer.innerHTML = viewBtn;
+                // Executados também podem ser editados
+                actionsContainer.innerHTML = `${viewBtn}${editBtn}`;
             }
         },
 
@@ -1158,17 +1175,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================================
 
     const DesktopTable = {
-        render(data) {
+        render(data, resetPage = true) {
 
             if (!DOM.tableBody) return;
+
+            // Armazenar dados filtrados para paginação
+            STATE.filteredData = data || [];
+
+            if (resetPage) {
+                STATE.currentPage = 1;
+            }
 
             if (!data || data.length === 0) {
                 DOM.tableBody.innerHTML =
                     '<tr><td colspan="8" class="text-center">Nenhum agendamento encontrado.</td></tr>';
+                this.updatePagination();
                 return;
             }
 
-            DOM.tableBody.innerHTML = data.map(item => this.renderRow(item)).join('');
+            // Calcular paginação
+            const start = (STATE.currentPage - 1) * STATE.pageSize;
+            const end = start + STATE.pageSize;
+            const pageData = data.slice(start, end);
+
+            DOM.tableBody.innerHTML = pageData.map(item => this.renderRow(item)).join('');
 
             // Adicionar event listeners
             DOM.tableBody.querySelectorAll('[data-action]').forEach(btn => {
@@ -1181,6 +1211,74 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
+
+            this.updatePagination();
+        },
+
+        updatePagination() {
+            const total = STATE.filteredData.length;
+            const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
+            const start = total > 0 ? (STATE.currentPage - 1) * STATE.pageSize + 1 : 0;
+            const end = Math.min(STATE.currentPage * STATE.pageSize, total);
+
+            // Atualizar info text
+            if (DOM.paginationInfo) {
+                if (total === 0) {
+                    DOM.paginationInfo.textContent = '0 agendamentos';
+                } else {
+                    DOM.paginationInfo.textContent = `${start}-${end} de ${total} agendamentos`;
+                }
+            }
+
+            // Atualizar botões
+            if (DOM.prevPage) {
+                DOM.prevPage.disabled = STATE.currentPage <= 1;
+            }
+            if (DOM.nextPage) {
+                DOM.nextPage.disabled = STATE.currentPage >= totalPages;
+            }
+
+            // Atualizar números de página
+            if (DOM.pageNumbers) {
+                const pages = [];
+                const maxVisible = 5;
+                let startPage = Math.max(1, STATE.currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+                if (endPage - startPage + 1 < maxVisible) {
+                    startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const isActive = i === STATE.currentPage;
+                    pages.push(`
+                        <button type="button" class="page-number-btn ${isActive ? 'active' : ''}" 
+                                data-page="${i}" ${isActive ? 'disabled' : ''}>
+                            ${i}
+                        </button>
+                    `);
+                }
+
+                DOM.pageNumbers.innerHTML = pages.join('');
+
+                // Adicionar handlers para números de página
+                DOM.pageNumbers.querySelectorAll('.page-number-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const page = parseInt(btn.dataset.page);
+                        if (page) this.goToPage(page);
+                    });
+                });
+            }
+        },
+
+        goToPage(page) {
+            const totalPages = Math.max(1, Math.ceil(STATE.filteredData.length / STATE.pageSize));
+            const safePage = Math.min(Math.max(1, page), totalPages);
+
+            if (safePage !== STATE.currentPage) {
+                STATE.currentPage = safePage;
+                this.render(STATE.filteredData, false);
+            }
         },
 
         renderRow(item) {
@@ -1237,10 +1335,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
+            const editBtn = `
+                <button type="button" class="btn-action btn-edit" data-action="editar" data-id="${itemId}" 
+                    title="✏️ Editar agendamento">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+            `;
+
             // Verificar cancelado PRIMEIRO
             if (status === 'cancelado') {
                 return `
                     ${viewBtn}
+                    ${editBtn}
                     <button type="button" class="btn-action btn-restore" data-action="reativar" data-id="${itemId}" 
                         title="🔄 Reativar agendamento">
                         <i class="fas fa-undo-alt"></i>
@@ -1255,10 +1361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         title="✅ Executar agendamento - Cria lançamento">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button type="button" class="btn-action btn-edit" data-action="editar" data-id="${itemId}" 
-                        title="✏️ Editar agendamento">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
+                    ${editBtn}
                     <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
                         title="❌ Cancelar agendamento">
                         <i class="fas fa-times"></i>
@@ -1266,7 +1369,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
-            return viewBtn;
+            // Executados também podem ser editados
+            return `${viewBtn}${editBtn}`;
         }
     };
 
@@ -2508,6 +2612,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupPagination() {
+            // Paginação Mobile (Cards)
             DOM.pagerFirst?.addEventListener('click', () => {
                 MobileCards.currentPage = 1;
                 MobileCards.render();
@@ -2527,6 +2632,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { totalPages } = MobileCards.getPagedData();
                 MobileCards.currentPage = totalPages;
                 MobileCards.render();
+            });
+
+            // Paginação Desktop (Tabela)
+            DOM.prevPage?.addEventListener('click', () => {
+                if (STATE.currentPage > 1) {
+                    DesktopTable.goToPage(STATE.currentPage - 1);
+                }
+            });
+
+            DOM.nextPage?.addEventListener('click', () => {
+                const totalPages = Math.ceil(STATE.filteredData.length / STATE.pageSize);
+                if (STATE.currentPage < totalPages) {
+                    DesktopTable.goToPage(STATE.currentPage + 1);
+                }
+            });
+
+            DOM.pageSize?.addEventListener('change', () => {
+                STATE.pageSize = parseInt(DOM.pageSize.value, 10) || 25;
+                STATE.currentPage = 1;
+                DesktopTable.render(STATE.filteredData, false);
             });
         },
 

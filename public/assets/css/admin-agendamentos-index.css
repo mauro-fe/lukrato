@@ -2199,3 +2199,147 @@ input#agNumeroParcelas,
     justify-content: center;
   }
 }
+
+/* ============================================================================
+   PAGINAÇÃO DESKTOP
+   ============================================================================ */
+
+.lk-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--color-bg);
+  border-top: 1px solid var(--glass-border);
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.pagination-info strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.page-size-select {
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-size-select:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  background: var(--glass-bg);
+}
+
+.page-size-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.page-size-select option {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.pagination-btn {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.page-number-btn {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--glass-bg);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+}
+
+.page-number-btn:hover:not(.active):not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface));
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.page-number-btn.active {
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary)));
+  color: var(--color-text);
+  border-color: transparent;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  cursor: default;
+}
+
+.page-number-btn:disabled {
+  cursor: default;
+}
+
+@media (max-width: 768px) {
+  .lk-pagination {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+  
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

@@ -263,11 +263,6 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            if ($agendamento->status !== AgendamentoStatus::PENDENTE->value) {
-                Response::error('Somente agendamentos pendentes podem ser editados.', 400);
-                return;
-            }
-
             $data = $this->validator->sanitize($_POST);
             $data = $this->normalizeDataPagamento($data);
 
