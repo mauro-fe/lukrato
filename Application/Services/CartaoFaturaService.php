@@ -709,29 +709,31 @@ class CartaoFaturaService
 
             foreach ($cartoes as $cartao) {
                 try {
-                    $mesAtual = (int) $dataHoje->format('n');
-                    $anoAtual = (int) $dataHoje->format('Y');
+                    // Resetar para cada cartão
+                    $mesRef = (int) $dataHoje->format('n');
+                    $anoRef = (int) $dataHoje->format('Y');
 
                     $dataVencimento = \DateTime::createFromFormat(
                         'Y-n-j',
-                        "{$anoAtual}-{$mesAtual}-{$cartao->dia_vencimento}"
+                        "{$anoRef}-{$mesRef}-{$cartao->dia_vencimento}"
                     );
 
                     if (!$dataVencimento) {
                         continue;
                     }
 
+                    // Se vencimento já passou neste mês, vai para o próximo
                     if ($dataVencimento < $dataHoje) {
                         $dataVencimento->modify('+1 month');
-                        $mesAtual = (int) $dataVencimento->format('n');
-                        $anoAtual = (int) $dataVencimento->format('Y');
+                        $mesRef = (int) $dataVencimento->format('n');
+                        $anoRef = (int) $dataVencimento->format('Y');
                     }
 
                     if ($dataVencimento <= $dataLimite && $dataVencimento >= $dataHoje) {
                         $totalFatura = FaturaCartaoItem::where('cartao_credito_id', $cartao->id)
                             ->where('pago', false)
-                            ->whereYear('data_vencimento', $anoAtual)
-                            ->whereMonth('data_vencimento', $mesAtual)
+                            ->whereYear('data_vencimento', $anoRef)
+                            ->whereMonth('data_vencimento', $mesRef)
                             ->sum('valor');
 
                         if ($totalFatura > 0) {
@@ -745,8 +747,8 @@ class CartaoFaturaService
                                 'valor_fatura' => (float) $totalFatura,
                                 'tipo' => 'vencimento_proximo',
                                 'gravidade' => $diasFaltando <= 3 ? 'critico' : 'atencao',
-                                'mes' => $mesAtual,
-                                'ano' => $anoAtual,
+                                'mes' => $mesRef,
+                                'ano' => $anoRef,
                             ];
                         }
                     }
