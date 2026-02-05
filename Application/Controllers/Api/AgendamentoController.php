@@ -532,7 +532,9 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            if ($agendamento->status !== AgendamentoStatus::PENDENTE->value) {
+            // Permitir executar agendamentos pendentes OU notificados (que receberam lembrete mas ainda não foram pagos)
+            $statusExecutaveis = [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::NOTIFICADO->value];
+            if (!in_array($agendamento->status, $statusExecutaveis, true)) {
                 Response::error('Somente agendamentos pendentes podem ser executados.', 400);
                 return;
             }

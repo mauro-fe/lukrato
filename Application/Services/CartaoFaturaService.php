@@ -730,10 +730,11 @@ class CartaoFaturaService
                     }
 
                     if ($dataVencimento <= $dataLimite && $dataVencimento >= $dataHoje) {
+                        // Usar competência (mes_referencia/ano_referencia) em vez do mês da data_vencimento
                         $totalFatura = FaturaCartaoItem::where('cartao_credito_id', $cartao->id)
                             ->where('pago', false)
-                            ->whereYear('data_vencimento', $anoRef)
-                            ->whereMonth('data_vencimento', $mesRef)
+                            ->where('mes_referencia', $mesRef)
+                            ->where('ano_referencia', $anoRef)
                             ->sum('valor');
 
                         if ($totalFatura > 0) {
