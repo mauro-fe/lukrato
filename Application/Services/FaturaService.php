@@ -504,7 +504,6 @@ class FaturaService
             ]);
 
             // Buscar todos os itens do mesmo parcelamento
-            // Identificamos pelo mesmo item_pai_id ou pela mesma descrição + fatura + total_parcelas
             $itensParcelamento = FaturaCartaoItem::where('user_id', $usuarioId);
 
             if ($item->item_pai_id) {
@@ -514,8 +513,7 @@ class FaturaService
                         ->orWhere('id', $item->item_pai_id);
                 });
             } else {
-                // Se não tem item_pai_id, é item avulso ou primeira parcela
-                // Buscar filhos se for pai, ou só o item se for avulso
+                // Se não tem item_pai_id, verificar se é pai ou usar descrição
                 $filhos = FaturaCartaoItem::where('item_pai_id', $item->id)->count();
                 if ($filhos > 0) {
                     // É um pai, buscar todos os filhos + ele mesmo
@@ -523,6 +521,26 @@ class FaturaService
                         $q->where('item_pai_id', $item->id)
                             ->orWhere('id', $item->id);
                     });
+                } elseif ($item->total_parcelas > 1) {
+                    // Parcelamento sem item_pai_id (dados antigos)
+                    // Identificar pela descrição base (sem número da parcela)
+                    $descricaoBase = preg_replace('/\s*\(\d+\/\d+\)\s*$/', '', $item->descricao);
+                    
+                    $itensParcelamento->where('cartao_credito_id', $item->cartao_credito_id)
+                        ->where('total_parcelas', $item->total_parcelas)
+                        ->where('data_compra', $item->data_compra)
+                        ->where(function ($q) use ($descricaoBase, $item) {
+                            // Descrição igual ou descrição base igual (para parcelas com número)
+                            $q->where('descricao', 'LIKE', $descricaoBase . ' (%/%)')
+                              ->orWhere('descricao', $descricaoBase);
+                        });
+                    
+                    LogService::info("Buscando parcelamento por descrição base", [
+                        'descricao_base' => $descricaoBase,
+                        'cartao_id' => $item->cartao_credito_id,
+                        'total_parcelas' => $item->total_parcelas,
+                        'data_compra' => $item->data_compra
+                    ]);
                 } else {
                     // Item avulso, só ele
                     $itensParcelamento->where('id', $item->id);
@@ -709,6 +727,8 @@ class FaturaService
         $mesCompra = (int) $dataCompra->format('m');
         $anoCompra = (int) $dataCompra->format('Y');
 
+        $itemPaiId = null; // ID da primeira parcela para vincular as demais
+
         // Criar cada parcela
         for ($i = 1; $i <= $numeroParcelas; $i++) {
             $vencimento = $this->calcularDataVencimento(
@@ -720,7 +740,7 @@ class FaturaService
                 $cartao->dia_fechamento
             );
 
-            FaturaCartaoItem::create([
+            $item = FaturaCartaoItem::create([
                 'user_id' => $dados['user_id'],
                 'cartao_credito_id' => $dados['cartao_credito_id'],
                 'fatura_id' => $fatura->id,
@@ -729,12 +749,18 @@ class FaturaService
                 'data_compra' => $dados['data_compra'],
                 'data_vencimento' => $vencimento['data'],
                 'categoria_id' => $dados['categoria_id'] ?? null,
-                'numero_parcela' => $i,
+                'parcela_atual' => $i,
                 'total_parcelas' => $numeroParcelas,
                 'mes_referencia' => $vencimento['mes'],
                 'ano_referencia' => $vencimento['ano'],
                 'pago' => false,
+                'item_pai_id' => $itemPaiId,
             ]);
+
+            // Guardar ID da primeira parcela para vincular as demais
+            if ($i === 1) {
+                $itemPaiId = $item->id;
+            }
         }
     }
 

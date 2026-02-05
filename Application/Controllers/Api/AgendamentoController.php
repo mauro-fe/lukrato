@@ -175,7 +175,11 @@ class AgendamentoController extends BaseController
         try {
             $query = Agendamento::with(['categoria:id,nome', 'conta:id,nome'])
                 ->where('user_id', $this->getUserId())
-                ->whereIn('status', [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::CANCELADO->value]);
+                ->whereIn('status', [
+                    AgendamentoStatus::PENDENTE->value,
+                    AgendamentoStatus::NOTIFICADO->value,
+                    AgendamentoStatus::CANCELADO->value
+                ]);
 
             // Filtrar por mês se fornecido (formato: YYYY-MM)
             $month = $_GET['month'] ?? null;
