@@ -28,7 +28,7 @@ class SessionManager implements SessionManagerInterface
         if ($remember) {
             $_SESSION['remember_me'] = true;
             $lifetime = self::REMEMBER_LIFETIME;
-            
+
             // Configurar cookie com vida longa
             $params = session_get_cookie_params();
             setcookie(

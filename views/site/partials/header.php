@@ -428,7 +428,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                         aria-label="Programa de indicação">
                         <span class="inline-flex items-center gap-1">
                             Indicação
-                            <span class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-1.5 py-0.5 rounded-full">🎁</span>
+                            <span
+                                class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-1.5 py-0.5 rounded-full">🎁</span>
                         </span>
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
@@ -453,7 +454,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             aria-hidden="true"></i>
                         <span>Entrar</span>
                     </a>
-                    <a href="<?= BASE_URL ?>login"
+                    <a href="<?= BASE_URL ?>login?tab=register"
                         class="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 group"
                         aria-label="Começar a usar grátis">
                         <span>Começar grátis</span>
@@ -516,7 +517,9 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 <a href="<?= BASE_URL ?>#indicacao" @click="mobileMenuOpen = false"
                     class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors flex items-center justify-between">
                     <span>Indicação</span>
-                    <span class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full">🎁 Ganhe PRO</span>
+                    <span
+                        class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full">🎁
+                        Ganhe PRO</span>
                 </a>
                 <a href="<?= BASE_URL ?>#contato" @click="mobileMenuOpen = false"
                     class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
@@ -532,7 +535,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     <i class="fa-regular fa-user" aria-hidden="true"></i>
                     <span>Entrar</span>
                 </a>
-                <a href="<?= BASE_URL ?>login"
+                <a href="<?= BASE_URL ?>login?tab=register"
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                     aria-label="Começar a usar grátis">
                     <span>Começar grátis</span>
@@ -543,9 +546,10 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     </div>
 
     <!-- Skip to main content link for accessibility -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">
         Pular para o conteúdo principal
     </a>
 
     <!-- Main Content Area -->
-    <main id="main-content" role="main" class="pt-20">
+    <main id="main-content" role="main">

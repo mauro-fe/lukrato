@@ -303,7 +303,7 @@ main.lukrato-auth::before {
 
 /* Altura para aba Login (menor) */
 .card[data-active="login"] {
-  min-height: 550px;
+  min-height: 600px;
 }
 
 /* Altura para aba Cadastrar (maior) */

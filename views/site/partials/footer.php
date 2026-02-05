@@ -16,8 +16,8 @@ $extraJs = $extraJs ?? [];
                     title="Lukrato - Controle Financeiro Pessoal" aria-label="Ir para página inicial do Lukrato">
                     <img src="<?= BASE_URL ?>/assets/img/logo.png"
                         alt="Lukrato - Melhor App de Controle Financeiro Pessoal Grátis"
-                        title="Lukrato - Sistema de Finanças Pessoais" class="h-14" loading="lazy" width="180"
-                        height="56" itemprop="logo">
+                        title="Lukrato - Sistema de Finanças Pessoais" loading="lazy" width="180" height="56"
+                        itemprop="logo">
                 </a>
                 <meta itemprop="name" content="Lukrato">
                 <meta itemprop="url" content="<?= BASE_URL ?>">
@@ -25,21 +25,26 @@ $extraJs = $extraJs ?? [];
                     Controle financeiro pessoal simples, inteligente e sem complicação. Organize suas finanças grátis.
                 </p>
                 <nav class="lk-footer-icons flex gap-3 pt-2" aria-label="Redes sociais">
-                    <a href="https://facebook.com/lukrato" aria-label="Lukrato no Facebook" rel="noopener noreferrer"
-                        target="_blank" class="w-11 h-11 bg-white rounded-xl flex items-center justify-center"
-                        itemprop="sameAs">
-                        <i class="fa-brands fa-facebook-f text-lg" aria-hidden="true"></i>
-                    </a>
                     <a href="https://instagram.com/lukrato.oficial" aria-label="Lukrato no Instagram"
                         rel="noopener noreferrer" target="_blank"
                         class="w-11 h-11 bg-white rounded-xl flex items-center justify-center" itemprop="sameAs">
                         <i class="fa-brands fa-instagram text-lg" aria-hidden="true"></i>
                     </a>
-                    <a href="https://linkedin.com/company/lukrato" aria-label="Lukrato no LinkedIn"
+                    <a href="https://tiktok.com/@lukrato.oficial" aria-label="Lukrato no TikTok"
+                        rel="noopener noreferrer" target="_blank"
+                        class="w-11 h-11 bg-white rounded-xl flex items-center justify-center" itemprop="sameAs">
+                        <i class="fa-brands fa-tiktok text-lg" aria-hidden="true"></i>
+                    </a>
+                    <!-- <a href="https://facebook.com/lukrato" aria-label="Lukrato no Facebook" rel="noopener noreferrer"
+                        target="_blank" class="w-11 h-11 bg-white rounded-xl flex items-center justify-center"
+                        itemprop="sameAs">
+                        <i class="fa-brands fa-facebook-f text-lg" aria-hidden="true"></i>
+                    </a> -->
+                    <!-- <a href="https://linkedin.com/company/lukrato" aria-label="Lukrato no LinkedIn"
                         rel="noopener noreferrer" target="_blank"
                         class="w-11 h-11 bg-white rounded-xl flex items-center justify-center" itemprop="sameAs">
                         <i class="fa-brands fa-linkedin-in text-lg" aria-hidden="true"></i>
-                    </a>
+                    </a> -->
                 </nav>
             </div>
 
@@ -61,8 +66,11 @@ $extraJs = $extraJs ?? [];
                     <a href="<?= BASE_URL ?>/#indicacao" class="text-white/70" title="Indicações">
                         <span>Indicação 🎁</span>
                     </a>
-                    <a href="<?= BASE_URL ?>login" class="text-white/70" title="Entrar ou criar conta grátis">
-                        <span>Entrar / Criar Conta</span>
+                    <a href="<?= BASE_URL ?>login?tab=login" class="text-white/70" title="Entrar na sua conta">
+                        <span>Entrar</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>login?tab=register" class="text-white/70" title="Criar conta grátis">
+                        <span>Criar Conta</span>
                     </a>
                 </nav>
             </div>
@@ -84,7 +92,7 @@ $extraJs = $extraJs ?? [];
             </div>
 
             <!-- Contato -->
-            <div class="lk-footer-links" itemscope itemtype="https://schema.org/ContactPoint">
+            <div class="lk-footer-contact" itemscope itemtype="https://schema.org/ContactPoint">
                 <h3 class="font-bold text-lg mb-5 text-white">Contato</h3>
                 <meta itemprop="contactType" content="Customer Service">
                 <meta itemprop="availableLanguage" content="Portuguese">

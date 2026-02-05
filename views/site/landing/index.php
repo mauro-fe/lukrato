@@ -175,7 +175,7 @@
 </section>
 
 <!-- Seção de Funcionalidades -->
-<section id="funcionalidades" class="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-white to-gray-50"
+<section id="funcionalidades" class="relative py-14 md:py-24 overflow-hidden bg-gradient-to-b from-white to-gray-50"
     aria-labelledby="funcionalidades-titulo">
     <!-- Background decoration -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -452,13 +452,13 @@
 
 
 <!-- Seção de Benefícios -->
-<section id="beneficios" class="relative py-20 md:py-32 bg-gradient-to-br from-gray-50 via-orange-50/30 to-orange-50/20"
+<section id="beneficios" class="relative py-14 md:py-24 bg-gradient-to-br from-gray-50 via-orange-50/30 to-orange-50/20"
     aria-labelledby="beneficios-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header da seção -->
-        <header class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
-            <h2 id="beneficios-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+        <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+            <h2 id="beneficios-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                 Benefícios do Controle Financeiro
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                     Pessoal Inteligente
@@ -596,7 +596,7 @@
 
 
 <!-- Seção de Planos -->
-<section id="planos" class="relative py-20 md:py-32 bg-gray-50" aria-labelledby="planos-titulo">
+<section id="planos" class="relative py-14 md:py-10 bg-gray-50" aria-labelledby="planos-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div x-data="{ 
@@ -621,14 +621,14 @@
                 }
             }">
 
-            <header class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
-                <h2 id="planos-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+                <h2 id="planos-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                     Planos de Controle Financeiro
                     <span class="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
                         Simples e Acessíveis
                     </span>
                 </h2>
-                <p class="text-lg text-gray-600 mb-10">
+                <p class="text-lg text-gray-600 mb-6">
                     Comece <strong>grátis</strong> e evolua para o Pro quando quiser mais controle sobre suas
                     <strong>finanças pessoais</strong>.
                 </p>
@@ -763,7 +763,7 @@
 </section>
 
 <!-- Seção de Garantia -->
-<section id="garantia" class="relative py-20 md:py-32 bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
+<section id="garantia" class="relative py-14 md:py-20 bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="max-w-4xl mx-auto">
@@ -787,7 +787,7 @@
                 </h2>
 
                 <!-- Subtítulo -->
-                <p class="text-lg sm:text-xl text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+                <p class="text-lg sm:text-xl text-center text-gray-600 mb-8 max-w-2xl mx-auto">
                     O Lukrato foi criado para simplificar sua vida financeira.
                     Você começa grátis e só evolui para o Pro se fizer sentido para você.
                 </p>
@@ -851,7 +851,7 @@
 </section>
 
 <!-- Seção de Indicação -->
-<section id="indicacao" class="relative py-20 md:py-32 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
+<section id="indicacao" class="relative py-14 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
     <!-- Background decorations -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
@@ -864,13 +864,13 @@
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Header -->
-        <header class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-6">
+        <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-4">
                 <span class="text-2xl">🎁</span>
                 <span class="text-sm font-semibold text-primary">Programa de Indicação</span>
             </div>
 
-            <h2 id="indicacao-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 id="indicacao-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                 Indique amigos e
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                     ganhe dias grátis
@@ -957,9 +957,9 @@
                 Como funciona?
             </h3>
 
-            <div class="grid sm:grid-cols-3 gap-6">
+            <div class="flex flex-col sm:flex-row items-start justify-center gap-4 sm:gap-0">
                 <!-- Passo 1 -->
-                <div class="text-center group">
+                <div class="text-center group flex-1 max-w-[200px] mx-auto sm:mx-0">
                     <div
                         class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                         <span class="text-2xl font-bold text-primary">1</span>
@@ -970,13 +970,13 @@
                     </p>
                 </div>
 
-                <!-- Linha conectora (hidden em mobile) -->
-                <div class="hidden sm:flex items-center justify-center -mx-6">
-                    <div class="w-full h-0.5 bg-gradient-to-r from-orange-200 via-primary to-orange-200"></div>
+                <!-- Linha conectora 1-2 -->
+                <div class="hidden sm:flex items-center justify-center flex-shrink-0 pt-8">
+                    <div class="w-16 h-0.5 bg-gradient-to-r from-orange-200 via-primary to-orange-200"></div>
                 </div>
 
                 <!-- Passo 2 -->
-                <div class="text-center group">
+                <div class="text-center group flex-1 max-w-[200px] mx-auto sm:mx-0">
                     <div
                         class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                         <span class="text-2xl font-bold text-primary">2</span>
@@ -987,13 +987,13 @@
                     </p>
                 </div>
 
-                <!-- Linha conectora (hidden em mobile) -->
-                <div class="hidden sm:flex items-center justify-center -mx-6">
-                    <div class="w-full h-0.5 bg-gradient-to-r from-orange-200 via-primary to-orange-200"></div>
+                <!-- Linha conectora 2-3 -->
+                <div class="hidden sm:flex items-center justify-center flex-shrink-0 pt-8">
+                    <div class="w-16 h-0.5 bg-gradient-to-r from-orange-200 via-primary to-orange-200"></div>
                 </div>
 
                 <!-- Passo 3 -->
-                <div class="text-center group">
+                <div class="text-center group flex-1 max-w-[200px] mx-auto sm:mx-0">
                     <div
                         class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                         <span class="text-2xl font-bold text-primary">3</span>
@@ -1022,19 +1022,19 @@
 </section>
 
 <!-- Seção de Contato -->
-<section id="contato" class="relative py-20 md:py-32 bg-white" x-data="{ activeTab: 'whatsapp' }"
+<section id="contato" class="relative py-14 md:py-14 bg-white" x-data="{ activeTab: 'whatsapp' }"
     aria-labelledby="contato-titulo" itemscope itemtype="https://schema.org/ContactPage">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
         <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
-            <h2 id="contato-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 id="contato-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                 Fale com o
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                     Suporte Lukrato
                 </span>
             </h2>
-            <p class="text-lg sm:text-xl text-gray-600 mb-8">
+            <p class="text-lg sm:text-xl text-gray-600 mb-6">
                 Dúvidas sobre <strong>controle financeiro pessoal</strong>? Quer sugestões ou precisa de ajuda? Escolha
                 o canal abaixo.
             </p>

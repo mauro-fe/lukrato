@@ -67,13 +67,13 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                 <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate>
                                     <?= csrf_input('login_form') ?>
                                     <div class="field">
-                                        <input type="email" id="email" name="email" placeholder="E-mail" required>
+                                        <input type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email">
                                         <small class="field-error" id="emailError"></small>
                                     </div>
 
                                     <div class="field">
                                         <input type="password" id="password" name="password" placeholder="Senha"
-                                            required>
+                                            required autocomplete="current-password">
                                         <button type="button" class="toggle-password" data-target="password">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
@@ -209,6 +209,25 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
 
     <script>
+        // ======================
+        // LEMBRAR DE MIM - Preencher credenciais salvas
+        // ======================
+        (function initRememberMe() {
+            const savedEmail = localStorage.getItem('lk_remember_email');
+            const rememberChecked = localStorage.getItem('lk_remember_checked') === 'true';
+
+            const emailInput = document.getElementById('email');
+            const rememberCheckbox = document.getElementById('remember');
+
+            if (savedEmail && emailInput) {
+                emailInput.value = savedEmail;
+            }
+
+            if (rememberChecked && rememberCheckbox) {
+                rememberCheckbox.checked = true;
+            }
+        })();
+
         // Partículas
         function createParticles() {
             const container = document.getElementById('particles');
@@ -422,7 +441,9 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: new URLSearchParams({ email })
+                    body: new URLSearchParams({
+                        email
+                    })
                 });
 
                 const data = await resp.json();
@@ -663,6 +684,16 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     if (generalSuccess) {
                         generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
                         generalSuccess.classList.add('show');
+                    }
+
+                    // Salvar ou limpar credenciais baseado no checkbox "Lembrar de mim"
+                    const rememberCheckbox = document.getElementById('remember');
+                    if (rememberCheckbox && rememberCheckbox.checked) {
+                        localStorage.setItem('lk_remember_email', emailVal);
+                        localStorage.setItem('lk_remember_checked', 'true');
+                    } else {
+                        localStorage.removeItem('lk_remember_email');
+                        localStorage.removeItem('lk_remember_checked');
                     }
 
                     const redirectUrl = (data && data.redirect) ? data.redirect : '<?= BASE_URL ?>dashboard';
