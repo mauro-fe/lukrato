@@ -436,7 +436,7 @@
 
             <div class="lk-legal-actions">
                 <a class="lk-legal-btn lk-legal-btn-primary"
-                    href="mailto:lukratosistema@gmail.com?subject=Solicita%C3%A7%C3%A3o%20LGPD%20-%20Lukrato">
+                    href="<?= BASE_URL ?>#contato">
                     Solicitar por e-mail
                 </a>
             </div>
@@ -448,9 +448,6 @@
             </p>
         </section>
 
-        <footer class="lk-legal-footer">
-            <span>© 2025 Lukrato</span>
-        </footer>
 
     </div>
 </main>

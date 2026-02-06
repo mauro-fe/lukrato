@@ -14,7 +14,11 @@ use Application\Core\Router;
 
 // Asaas (Gateway de pagamento)
 Router::add('POST', '/api/webhook/asaas', 'Api\\AsaasWebhookController@receive');
-Router::add('GET',  '/api/webhook/asaas', 'Api\\AsaasWebhookController@test');
+
+// GET apenas para desenvolvimento (retorna 404 em produção)
+if (!defined('APP_ENV') || APP_ENV !== 'production') {
+    Router::add('GET', '/api/webhook/asaas', 'Api\\AsaasWebhookController@test');
+}
 
 /**
  * ============================================

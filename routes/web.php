@@ -121,7 +121,7 @@ function registerAppRoutes(): void
     Router::add('GET', '/premium/pending-payment', 'PremiumController@getPendingPayment', ['auth']);
     Router::add('POST', '/premium/cancel-pending', 'PremiumController@cancelPendingPayment', ['auth']);
     Router::add('POST', '/api/webhook/asaas', 'Api\\AsaasWebhookController@receive');
-    Router::add('GET', '/api/webhook/asaas', 'Api\AsaasWebhookController@test');
+    // GET removido em produção por segurança
 }
 
 Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send');

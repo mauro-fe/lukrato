@@ -145,16 +145,17 @@
                     </div>
                 </div>
 
-                <!-- Badge flutuante inferior -->
-                <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4" aria-hidden="true">
-                    <div class="flex items-center gap-3">
+                <!-- Badge flutuante - Economia -->
+                <div class="absolute -top-5 -left-2 sm:-left-4 lg:-left-6 bg-white rounded-2xl shadow-xl p-3 lg:p-4"
+                    aria-hidden="true">
+                    <div class="flex items-center gap-2 lg:gap-3">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-chart-line text-white text-xl"></i>
+                            class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-chart-line text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Economia</p>
-                            <p class="text-lg font-bold text-green-600">+23%</p>
+                            <p class="text-base lg:text-lg font-bold text-green-600">+23%</p>
                         </div>
                     </div>
                 </div>
