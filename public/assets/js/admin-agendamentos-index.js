@@ -1221,6 +1221,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const start = total > 0 ? (STATE.currentPage - 1) * STATE.pageSize + 1 : 0;
             const end = Math.min(STATE.currentPage * STATE.pageSize, total);
 
+            console.log('[Paginação] Total:', total, '| filteredData:', STATE.filteredData, '| DOM.paginationInfo:', DOM.paginationInfo);
+
             // Atualizar info text
             if (DOM.paginationInfo) {
                 if (total === 0) {
