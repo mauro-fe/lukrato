@@ -659,96 +659,96 @@
                 <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16 items-stretch">
 
                     <?php if ($planoGratuito): ?>
-                        <div class="flex flex-col bg-white border-2 border-gray-100 rounded-3xl p-8 hover:border-orange-200 transition-all duration-300 shadow-sm hover:shadow-xl"
-                            data-aos="fade-right">
-                            <div class="flex-grow">
-                                <div class="mb-8">
-                                    <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                        <?= htmlspecialchars($planoGratuito->nome) ?></h3>
-                                    <div class="flex items-baseline gap-1 mb-4">
-                                        <span class="text-5xl font-extrabold text-gray-900">R$ 0</span>
-                                    </div>
-                                    <p class="text-gray-500 text-sm leading-relaxed">
-                                        <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização.') ?>
-                                    </p>
+                    <div class="flex flex-col bg-white border-2 border-gray-100 rounded-3xl p-8 hover:border-orange-200 transition-all duration-300 shadow-sm hover:shadow-xl"
+                        data-aos="fade-right">
+                        <div class="flex-grow">
+                            <div class="mb-8">
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                    <?= htmlspecialchars($planoGratuito->nome) ?></h3>
+                                <div class="flex items-baseline gap-1 mb-4">
+                                    <span class="text-5xl font-extrabold text-gray-900">R$ 0</span>
                                 </div>
-
-                                <ul class="space-y-4 mb-8">
-                                    <li class="flex items-center gap-3 text-gray-700">
-                                        <i class="fa-solid fa-check text-green-500"></i>
-                                        <span>Controle financeiro essencial</span>
-                                    </li>
-                                    <?php
-                                    $limitacoes = ['Relatórios avançados', 'Agendamentos', 'Exportação de dados', 'Suporte prioritário'];
-                                    foreach ($limitacoes as $limite): ?>
-                                        <li class="flex items-center gap-3 text-gray-400 opacity-60">
-                                            <i class="fa-solid fa-xmark text-gray-300"></i>
-                                            <span class="text-sm"><?= $limite ?></span>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
+                                <p class="text-gray-500 text-sm leading-relaxed">
+                                    <?= htmlspecialchars($planoGratuito->metadados['descricao'] ?? 'Ideal para testar o sistema e entender sua organização.') ?>
+                                </p>
                             </div>
 
-                            <a href="<?= BASE_URL ?>login"
-                                class="block w-full text-center py-4 px-6 text-orange-600 font-bold border-2 border-orange-600 rounded-2xl hover:bg-orange-50 transition-all">
-                                Começar grátis
-                            </a>
+                            <ul class="space-y-4 mb-8">
+                                <li class="flex items-center gap-3 text-gray-700">
+                                    <i class="fa-solid fa-check text-green-500"></i>
+                                    <span>Controle financeiro essencial</span>
+                                </li>
+                                <?php
+                                    $limitacoes = ['Relatórios avançados', 'Agendamentos', 'Exportação de dados', 'Suporte prioritário'];
+                                    foreach ($limitacoes as $limite): ?>
+                                <li class="flex items-center gap-3 text-gray-400 opacity-60">
+                                    <i class="fa-solid fa-xmark text-gray-300"></i>
+                                    <span class="text-sm"><?= $limite ?></span>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
+
+                        <a href="<?= BASE_URL ?>login"
+                            class="block w-full text-center py-4 px-6 text-orange-600 font-bold border-2 border-orange-600 rounded-2xl hover:bg-orange-50 transition-all">
+                            Começar grátis
+                        </a>
+                    </div>
                     <?php endif; ?>
 
                     <?php foreach ($planosPagos as $plano):
                         $precoMensal = $plano->preco_centavos / 100;
                     ?>
-                        <div id="card-pro"
-                            class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
-                            x-data="{ basePrice: <?= $precoMensal ?> }" data-aos="fade-left">
+                    <div id="card-pro"
+                        class="relative flex flex-col bg-gradient-to-b from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-2xl shadow-orange-200 hover:scale-[1.02] transition-all duration-300"
+                        x-data="{ basePrice: <?= $precoMensal ?> }" data-aos="fade-left">
 
-                            <div
-                                class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-orange-900 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
-                                Mais Escolhido
-                            </div>
+                        <div
+                            class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-orange-900 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                            Mais Escolhido
+                        </div>
 
-                            <div class="flex-grow">
-                                <div class="mb-8 pt-2">
-                                    <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
+                        <div class="flex-grow">
+                            <div class="mb-8 pt-2">
+                                <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($plano->nome) ?></h3>
 
-                                    <!-- Preço promocional - sempre mostra o "de" riscado -->
-                                    <div class="h-6">
-                                        <span class="text-orange-200 line-through text-sm">
-                                            <span x-show="period === 'mensal'">De R$ 29,90</span>
-                                            <span x-show="period !== 'mensal'">R$ <span
-                                                    x-text="period === 'semestral' ? (basePrice * 6).toFixed(2) : (basePrice * 12).toFixed(2)"></span></span>
-                                        </span>
-                                    </div>
-
-                                    <div class="flex items-baseline gap-1 mb-2">
-                                        <span class="text-5xl font-extrabold"
-                                            x-text="'R$ ' + (period === 'mensal' ? basePrice.toFixed(2) : (period === 'semestral' ? (basePrice * 6 * 0.9).toFixed(2) : (basePrice * 12 * 0.85).toFixed(2)))"></span>
-                                        <span class="text-orange-100 text-sm" x-text="'/ ' + periodLabel"></span>
-                                    </div>
-
-                                    <p class="text-orange-100 text-sm opacity-90"
-                                        x-text="period === 'mensal' ? 'Plano flexível' : 'Equivalente a R$ ' + (period === 'semestral' ? (basePrice * 0.9).toFixed(2) : (basePrice * 0.85).toFixed(2)) + ' / mês'">
-                                    </p>
+                                <!-- Preço promocional - sempre mostra o "de" riscado -->
+                                <div class="h-6">
+                                    <span class="text-orange-200 line-through text-sm">
+                                        <span x-show="period === 'mensal'">De R$ 29,90</span>
+                                        <span x-show="period !== 'mensal'">R$ <span
+                                                x-text="period === 'semestral' ? (basePrice * 6).toFixed(2) : (basePrice * 12).toFixed(2)"></span></span>
+                                    </span>
                                 </div>
 
-                                <ul class="space-y-4 mb-8">
-                                    <?php
-                                    $recursos = $plano->metadados['recursos'] ?? ['Relatórios avançados', 'Agendamentos', 'Exportação total', 'Categorias ilimitadas', 'Suporte VIP'];
-                                    foreach ($recursos as $recurso): ?>
-                                        <li class="flex items-center gap-3">
-                                            <i class="fa-solid fa-check text-orange-200"></i>
-                                            <span class="font-medium"><?= htmlspecialchars($recurso) ?></span>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-5xl font-extrabold"
+                                        x-text="'R$ ' + (period === 'mensal' ? basePrice.toFixed(2) : (period === 'semestral' ? (basePrice * 6 * 0.9).toFixed(2) : (basePrice * 12 * 0.85).toFixed(2)))"></span>
+                                    <span class="text-orange-100 text-sm" x-text="'/ ' + periodLabel"></span>
+                                </div>
+
+                                <p class="text-orange-100 text-sm opacity-90"
+                                    x-text="period === 'mensal' ? 'Plano flexível' : 'Equivalente a R$ ' + (period === 'semestral' ? (basePrice * 0.9).toFixed(2) : (basePrice * 0.85).toFixed(2)) + ' / mês'">
+                                </p>
                             </div>
 
-                            <a href="<?= BASE_URL ?>billing"
-                                class="block w-full text-center py-4 px-6 bg-white text-orange-600 font-bold rounded-2xl hover:bg-gray-50 transition-all shadow-lg">
-                                Assinar Pro agora
-                            </a>
+                            <ul class="space-y-4 mb-8">
+                                <?php
+                                    $recursos = $plano->metadados['recursos'] ?? ['Relatórios avançados', 'Agendamentos', 'Exportação total', 'Categorias ilimitadas', 'Suporte VIP'];
+                                    foreach ($recursos as $recurso): ?>
+                                <li class="flex items-center gap-3">
+                                    <i class="fa-solid fa-check text-orange-200"></i>
+                                    <span class="font-medium"><?= htmlspecialchars($recurso) ?></span>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
+
+                        <a href="<?= BASE_URL ?>billing"
+                            class="block w-full text-center py-4 px-6 bg-white text-orange-600 font-bold rounded-2xl hover:bg-gray-50 transition-all shadow-lg">
+                            Assinar Pro agora
+                        </a>
+                    </div>
                     <?php endforeach; ?>
 
                 </div>
@@ -1189,115 +1189,115 @@
 
 <!-- Estilos Tailwind customizados e animações -->
 <style>
-    @keyframes blob {
+@keyframes blob {
 
-        0%,
-        100% {
-            transform: translate(0, 0) scale(1);
-        }
-
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
     }
 
-    .animate-blob {
-        animation: blob 7s infinite;
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
     }
 
-    .animation-delay-2000 {
-        animation-delay: 2s;
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
     }
+}
 
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
+.animate-blob {
+    animation: blob 7s infinite;
+}
 
-    [x-cloak] {
-        display: none !important;
-    }
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
 
-    /* Smooth scroll */
-    html {
-        scroll-behavior: smooth;
-    }
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
 
-    /* Melhorar a tipografia */
-    body {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+[x-cloak] {
+    display: none !important;
+}
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Melhorar a tipografia */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 </style>
 
 <script>
-    // Formulário de contato
-    document.addEventListener('DOMContentLoaded', function() {
-        const contactForm = document.getElementById('contactForm');
+// Formulário de contato
+document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.getElementById('contactForm');
 
-        if (contactForm) {
-            contactForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
+    if (contactForm) {
+        contactForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-                const submitButton = this.querySelector('button[type="submit"]');
-                const originalText = submitButton.innerHTML;
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
 
-                // Desabilita o botão e mostra loading
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
+            // Desabilita o botão e mostra loading
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
 
-                try {
-                    const formData = new FormData(this);
+            try {
+                const formData = new FormData(this);
 
-                    const response = await fetch('<?= BASE_URL ?>api/contato/enviar', {
-                        method: 'POST',
-                        body: formData
-                    });
+                const response = await fetch('<?= BASE_URL ?>api/contato/enviar', {
+                    method: 'POST',
+                    body: formData
+                });
 
-                    const data = await response.json();
+                const data = await response.json();
 
-                    if (response.ok && data.success) {
-                        // Sucesso
-                        showNotification(
-                            'Mensagem enviada com sucesso! Em breve entraremos em contato.',
-                            'success');
-                        this.reset();
-                    } else {
-                        // Erro
-                        showNotification(data.message || 'Erro ao enviar mensagem. Tente novamente.',
-                            'error');
-                    }
-
-                } catch (error) {
-                    console.error('Erro:', error);
-                    showNotification('Erro ao enviar mensagem. Tente novamente.', 'error');
-                } finally {
-                    // Restaura o botão
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalText;
+                if (response.ok && data.success) {
+                    // Sucesso
+                    showNotification(
+                        'Mensagem enviada com sucesso! Em breve entraremos em contato.',
+                        'success');
+                    this.reset();
+                } else {
+                    // Erro
+                    showNotification(data.message || 'Erro ao enviar mensagem. Tente novamente.',
+                        'error');
                 }
-            });
+
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Erro ao enviar mensagem. Tente novamente.', 'error');
+            } finally {
+                // Restaura o botão
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Função para mostrar notificações
+    function showNotification(message, type = 'success') {
+        // Remove notificação anterior se existir
+        const oldNotification = document.querySelector('.contact-notification');
+        if (oldNotification) {
+            oldNotification.remove();
         }
 
-        // Função para mostrar notificações
-        function showNotification(message, type = 'success') {
-            // Remove notificação anterior se existir
-            const oldNotification = document.querySelector('.contact-notification');
-            if (oldNotification) {
-                oldNotification.remove();
-            }
+        // Cria nova notificação
+        const notification = document.createElement('div');
+        notification.className =
+            'contact-notification fixed top-8 right-8 z-50 max-w-md px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 ease-out';
 
-            // Cria nova notificação
-            const notification = document.createElement('div');
-            notification.className =
-                'contact-notification fixed top-8 right-8 z-50 max-w-md px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 ease-out';
-
-            if (type === 'success') {
-                notification.classList.add('bg-green-500', 'text-white');
-                notification.innerHTML = `
+        if (type === 'success') {
+            notification.classList.add('bg-green-500', 'text-white');
+            notification.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-check-circle text-2xl"></i>
                         <div>
@@ -1306,9 +1306,9 @@
                         </div>
                     </div>
                 `;
-            } else {
-                notification.classList.add('bg-red-500', 'text-white');
-                notification.innerHTML = `
+        } else {
+            notification.classList.add('bg-red-500', 'text-white');
+            notification.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-exclamation-circle text-2xl"></i>
                         <div>
@@ -1317,56 +1317,56 @@
                         </div>
                     </div>
                 `;
-            }
+        }
 
-            document.body.appendChild(notification);
+        document.body.appendChild(notification);
 
-            // Animação de entrada
+        // Animação de entrada
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    notification.style.opacity = '1';
-                    notification.style.transform = 'translateX(0)';
-                }, 10);
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
             }, 10);
+        }, 10);
 
-            // Remove após 5 segundos
+        // Remove após 5 segundos
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            }, 5000);
+                notification.remove();
+            }, 300);
+        }, 5000);
+    }
+});
+
+// Fallback para galeria (caso Alpine.js não carregue)
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('galleryModal');
+
+    // Adiciona listener global para o evento
+    window.addEventListener('open-gallery', function() {
+        if (modal) {
+            modal.style.display = 'flex';
+            // Se Alpine.js estiver carregado, ele cuida do resto
+            // Se não, pelo menos o modal fica visível
         }
     });
 
-    // Fallback para galeria (caso Alpine.js não carregue)
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('galleryModal');
-
-        // Adiciona listener global para o evento
-        window.addEventListener('open-gallery', function() {
-            if (modal) {
-                modal.style.display = 'flex';
-                // Se Alpine.js estiver carregado, ele cuida do resto
-                // Se não, pelo menos o modal fica visível
-            }
-        });
-
-        // Fallback: se clicar no botão e nada acontecer após 100ms, abre manualmente
-        setTimeout(function() {
-            const buttons = document.querySelectorAll('[\\@click*="open-gallery"]');
-            buttons.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    setTimeout(function() {
-                        if (modal && modal.style.display === 'none') {
-                            modal.style.display = 'flex';
-                        }
-                    }, 100);
-                });
+    // Fallback: se clicar no botão e nada acontecer após 100ms, abre manualmente
+    setTimeout(function() {
+        const buttons = document.querySelectorAll('[\\@click*="open-gallery"]');
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                setTimeout(function() {
+                    if (modal && modal.style.display === 'none') {
+                        modal.style.display = 'flex';
+                    }
+                }, 100);
             });
-        }, 1000);
-    });
+        });
+    }, 1000);
+});
 </script>

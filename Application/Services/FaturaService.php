@@ -540,16 +540,16 @@ class FaturaService
                     // Parcelamento sem item_pai_id (dados antigos)
                     // Identificar pela descrição base (sem número da parcela)
                     $descricaoBase = preg_replace('/\s*\(\d+\/\d+\)\s*$/', '', $item->descricao);
-                    
+
                     $itensParcelamento->where('cartao_credito_id', $item->cartao_credito_id)
                         ->where('total_parcelas', $item->total_parcelas)
                         ->where('data_compra', $item->data_compra)
                         ->where(function ($q) use ($descricaoBase, $item) {
                             // Descrição igual ou descrição base igual (para parcelas com número)
                             $q->where('descricao', 'LIKE', $descricaoBase . ' (%/%)')
-                              ->orWhere('descricao', $descricaoBase);
+                                ->orWhere('descricao', $descricaoBase);
                         });
-                    
+
                     LogService::info("Buscando parcelamento por descrição base", [
                         'descricao_base' => $descricaoBase,
                         'cartao_id' => $item->cartao_credito_id,
@@ -791,30 +791,16 @@ class FaturaService
     }
 
     /**
-     * Calcular mês/ano de competência (mês da fatura que fechou)
-     * Se comprou ANTES do fechamento: competência = mês atual
-     * Se comprou NO DIA ou DEPOIS do fechamento: competência = próximo mês
+     * Calcular mês/ano de competência (mês da compra)
+     * A competência é SEMPRE o mês em que a compra foi feita.
+     * O dia de fechamento afeta apenas o VENCIMENTO, não a competência.
      */
     private function calcularCompetenciaFatura(int $diaCompra, int $mesCompra, int $anoCompra, int $diaFechamento): array
     {
-        if ($diaCompra >= $diaFechamento) {
-            // Comprou no dia do fechamento ou depois - entra na próxima fatura
-            $mesCompetencia = $mesCompra + 1;
-            $anoCompetencia = $anoCompra;
-
-            if ($mesCompetencia > 12) {
-                $mesCompetencia = 1;
-                $anoCompetencia++;
-            }
-        } else {
-            // Comprou ANTES do fechamento - entra na fatura do mês atual
-            $mesCompetencia = $mesCompra;
-            $anoCompetencia = $anoCompra;
-        }
-
+        // Competência = mês da compra (sempre)
         return [
-            'mes' => $mesCompetencia,
-            'ano' => $anoCompetencia,
+            'mes' => $mesCompra,
+            'ano' => $anoCompra,
         ];
     }
 
@@ -1074,10 +1060,10 @@ class FaturaService
     {
         // Usar itens já carregados (filtrados na query se houver mes/ano)
         $itens = $fatura->itens;
-        
+
         $itensPagos = $itens->where('pago', 1)->count();
         $totalItens = $itens->count();
-        
+
         // Calcular progresso baseado nos itens filtrados
         $progresso = $totalItens > 0 ? ($itensPagos / $totalItens) * 100 : 0;
 
@@ -1126,7 +1112,7 @@ class FaturaService
         $primeiroMesRef = $itens->sortBy(function ($item) {
             return $item->ano_referencia * 100 + $item->mes_referencia;
         })->first();
-        
+
         // Se foi passado mês/ano por parâmetro, usa esses valores
         $mesRetorno = $mesRef !== null ? $mesRef : ($primeiroMesRef ? $primeiroMesRef->mes_referencia : null);
         $anoRetorno = $anoRef !== null ? $anoRef : ($primeiroMesRef ? $primeiroMesRef->ano_referencia : null);

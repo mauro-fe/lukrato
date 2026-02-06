@@ -1200,40 +1200,40 @@ class ContasManager {
     initViewToggle() {
         const viewToggle = document.querySelector('.view-toggle');
         const accountsGrid = document.getElementById('accountsGrid');
-        
+
         if (!viewToggle || !accountsGrid) return;
 
         const viewButtons = viewToggle.querySelectorAll('.view-btn');
-        
+
         // Restaurar preferência salva
         const savedView = localStorage.getItem('contas_view_mode') || 'grid';
         if (savedView === 'list') {
             accountsGrid.classList.add('list-view');
         }
-        
+
         // Atualizar estado dos botões
         this.updateViewToggleState(viewButtons, savedView);
 
         // Adicionar listeners aos botões
         viewButtons.forEach(btn => {
             if (btn.dataset.listenerAdded) return;
-            
+
             btn.addEventListener('click', () => {
                 const view = btn.dataset.view;
-                
+
                 if (view === 'list') {
                     accountsGrid.classList.add('list-view');
                 } else {
                     accountsGrid.classList.remove('list-view');
                 }
-                
+
                 // Salvar preferência
                 localStorage.setItem('contas_view_mode', view);
-                
+
                 // Atualizar estado dos botões
                 this.updateViewToggleState(viewButtons, view);
             });
-            
+
             btn.dataset.listenerAdded = 'true';
         });
     }
@@ -1400,6 +1400,7 @@ class ContasManager {
         const horaAgendamentoGroup = document.getElementById('horaAgendamentoGroup');
         const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
         const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
+        const formaPagamentoAgendamentoGroup = document.getElementById('formaPagamentoAgendamentoGroup');
         const labelData = document.getElementById('labelDataLancamento');
 
         // Ocultar grupos de agendamento por padrão
@@ -1408,6 +1409,7 @@ class ContasManager {
         if (horaAgendamentoGroup) horaAgendamentoGroup.style.display = 'none';
         if (tempoAvisoGroup) tempoAvisoGroup.style.display = 'none';
         if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'none';
+        if (formaPagamentoAgendamentoGroup) formaPagamentoAgendamentoGroup.style.display = 'none';
         if (labelData) labelData.textContent = 'Data';
 
         // Carregar categorias (exceto para transferência)
@@ -1501,6 +1503,10 @@ class ContasManager {
             const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
             if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'block';
 
+            // Mostrar forma de pagamento para agendamento
+            const formaPagamentoAgendamentoGroup = document.getElementById('formaPagamentoAgendamentoGroup');
+            if (formaPagamentoAgendamentoGroup) formaPagamentoAgendamentoGroup.style.display = 'block';
+
             // Configurar evento de recorrência
             this.configurarEventosRecorrencia();
         }
@@ -1524,8 +1530,8 @@ class ContasManager {
      * Selecionar tipo de agendamento (receita/despesa)
      */
     selecionarTipoAgendamento(tipo) {
-        const btnReceita = document.querySelector('.lk-btn-tipo-receita');
-        const btnDespesa = document.querySelector('.lk-btn-tipo-despesa');
+        const btnReceita = document.querySelector('#tipoAgendamentoGroup .lk-btn-tipo-receita');
+        const btnDespesa = document.querySelector('#tipoAgendamentoGroup .lk-btn-tipo-despesa');
         const inputTipo = document.getElementById('lancamentoTipoAgendamento');
 
         if (tipo === 'receita') {
@@ -1660,19 +1666,16 @@ class ContasManager {
      * Callback quando o cartão é alterado
      */
     onCartaoChange() {
-        console.log('[ESTORNO] onCartaoChange chamado');
         const cartaoSelect = document.getElementById('lancamentoCartaoCredito');
         const cartaoId = cartaoSelect?.value;
         const faturaEstornoGroup = document.getElementById('faturaEstornoGroup');
 
-        console.log('[ESTORNO] isEstornoCartao:', this.isEstornoCartao, 'cartaoId:', cartaoId);
 
         if (this.isEstornoCartao && cartaoId) {
             // Carregar faturas do cartão selecionado
             this.carregarFaturasCartao(cartaoId);
             if (faturaEstornoGroup) {
                 faturaEstornoGroup.style.display = 'block';
-                console.log('[ESTORNO] Mostrando grupo de fatura');
             }
         } else {
             if (faturaEstornoGroup) {
@@ -1690,8 +1693,6 @@ class ContasManager {
             console.error('[ESTORNO] Select lancamentoFaturaEstorno não encontrado');
             return;
         }
-
-        console.log('[ESTORNO] Carregando faturas para cartão:', cartaoId);
 
         // Gerar lista de meses diretamente (sem depender da API)
         const hoje = new Date();
@@ -1740,8 +1741,6 @@ class ContasManager {
             option.textContent = `${meses[mes - 1]} / ${ano} (anterior)`;
             select.appendChild(option);
         }
-
-        console.log('[ESTORNO] Faturas carregadas:', select.options.length);
     }
 
     /**
@@ -2239,6 +2238,9 @@ class ContasManager {
                 const canalInapp = document.getElementById('lancamentoCanalInapp')?.checked ? '1' : '0';
                 const canalEmail = document.getElementById('lancamentoCanalEmail')?.checked ? '1' : '0';
 
+                // Forma de pagamento para agendamento
+                const formaPagamentoAg = document.getElementById('lancamentoFormaPagamentoAg')?.value || null;
+
                 requestData = {
                     titulo: formData.get('descricao'),
                     tipo: tipoAgendamento,
@@ -2254,7 +2256,8 @@ class ContasManager {
                     recorrencia_fim: recorrenciaFim,
                     lembrar_antes_segundos: lembrarAntesSegundos,
                     canal_inapp: canalInapp,
-                    canal_email: canalEmail
+                    canal_email: canalEmail,
+                    forma_pagamento: formaPagamentoAg
                 };
             }
             // Se for PARCELAMENTO SEM CARTÃO (conta bancária), usar endpoint de parcelamentos

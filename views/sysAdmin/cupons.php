@@ -327,8 +327,6 @@ require_once __DIR__ . '/../admin/partials/header.php';
         data.limite_uso = parseInt(data.limite_uso) || 0;
         data.ativo = true;
 
-        console.log('Dados do cupom:', data);
-        console.log('CSRF Token:', getCsrfToken());
 
         try {
             const response = await fetch(`${BASE_URL}api/cupons`, {
@@ -342,7 +340,6 @@ require_once __DIR__ . '/../admin/partials/header.php';
             });
 
             const result = await response.json();
-            console.log('Resposta do servidor:', result);
 
             if (result.status === 'success') {
                 Swal.fire('Sucesso!', result.message, 'success');
@@ -373,8 +370,6 @@ require_once __DIR__ . '/../admin/partials/header.php';
 
         try {
             const csrfToken = getCsrfToken();
-            console.log('🗑️ Excluindo cupom:', id, codigo);
-            console.log('🔑 CSRF Token:', csrfToken);
 
             const response = await fetch(`${BASE_URL}api/cupons`, {
                 method: 'DELETE',
@@ -388,14 +383,12 @@ require_once __DIR__ . '/../admin/partials/header.php';
                 })
             });
 
-            console.log('📡 Status da resposta:', response.status);
 
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('📦 Resposta:', data);
 
             if (data.status === 'success') {
                 Swal.fire('Excluído!', data.message, 'success');

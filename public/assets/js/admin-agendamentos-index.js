@@ -308,7 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const oldToken = STATE.csrfToken;
             STATE.csrfToken = token;
-            console.log('[CSRF.apply] Token atualizado:', oldToken?.substring(0, 8) + '... →', token.substring(0, 8) + '...');
 
             document.querySelectorAll(`[data-csrf-id="${CONFIG.TOKEN_ID}"]`).forEach(el => {
                 if (el.tagName === 'META') {
@@ -325,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async refresh() {
-            console.log('[CSRF.refresh] Iniciando renovação do token...');
             const res = await fetch(`${CONFIG.BASE_URL}api/csrf/refresh`, {
                 method: 'POST',
                 credentials: 'include',
@@ -337,7 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await res.json().catch(() => null);
-            console.log('[CSRF.refresh] Resposta:', data?.status, 'Token prefix:', data?.token?.substring(0, 8));
 
             if (data?.token) {
                 this.apply(data.token);
@@ -388,7 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // O sistema LK pode ter renovado o token em background
             const currentToken = CSRF.get();
             STATE.csrfToken = currentToken; // Sincronizar o cache
-            console.log('[CSRF] fetchWithCSRF chamado. Token atual:', currentToken?.substring(0, 8) + '...');
 
             // Se o body é FormData, criar uma cópia e atualizar os tokens
             let finalOptions = { ...options };
@@ -404,7 +400,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 newFormData.set('_token', currentToken);
                 newFormData.set('csrf_token', currentToken);
                 finalOptions.body = newFormData;
-                console.log('[CSRF] FormData recriado com token atualizado');
             }
 
             const res = await fetch(url, {
@@ -438,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('[CSRF] Erro de CSRF detectado, renovando token e tentando novamente...');
                 try {
                     await CSRF.refresh();
-                    console.log('[CSRF] Token renovado para:', STATE.csrfToken?.substring(0, 8) + '...');
                     // Aguardar um pouco para garantir sincronização
                     await new Promise(resolve => setTimeout(resolve, 150));
                     // Passar o options ORIGINAL, não o finalOptions, para que o novo FormData seja criado com token novo
@@ -612,6 +606,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return isRecorrente
                 ? '<span class="recorrente-icon" title="Agendamento recorrente">🔁</span>'
                 : '';
+        },
+
+        /**
+         * Formata forma de pagamento para exibição
+         */
+        formaPagamento(forma) {
+            if (!forma) return '-';
+            const mapa = {
+                'pix': '📱 PIX',
+                'cartao_credito': '💳 Cartão de Crédito',
+                'cartao_debito': '💳 Cartão de Débito',
+                'dinheiro': '💵 Dinheiro',
+                'boleto': '📄 Boleto',
+                'transferencia': '🏦 Transferência',
+                'deposito': '🏦 Depósito',
+                'outro': '📋 Outro'
+            };
+            return mapa[forma] || forma.charAt(0).toUpperCase() + forma.slice(1).replace(/_/g, ' ');
         }
     };
 
@@ -1625,6 +1637,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 this.hideElement('viewDescricaoSection');
             }
+
+            // Forma de pagamento
+            const formaPagEl = document.getElementById('viewFormaPagamento');
+            if (formaPagEl) {
+                if (agendamento.forma_pagamento) {
+                    this.showElement('viewFormaPagamentoItem');
+                    this.setElementText('viewFormaPagamento', Format.formaPagamento(agendamento.forma_pagamento));
+                } else {
+                    this.hideElement('viewFormaPagamentoItem');
+                }
+            }
         },
 
         getFrequenciaTexto(freq) {
@@ -1772,6 +1795,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         updatePresetButtons(0);
                     }
                 }
+            }
+
+            // Preencher forma de pagamento
+            const formaPagamentoSelect = document.getElementById('agFormaPagamento');
+            if (formaPagamentoSelect) {
+                formaPagamentoSelect.value = record.forma_pagamento || '';
             }
 
             Modal.hideError();
@@ -1925,6 +1954,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload.append('eh_parcelado', '0');
             }
 
+            // Forma de pagamento
+            const formaPagamento = document.getElementById('agFormaPagamento');
+            if (formaPagamento?.value) {
+                payload.append('forma_pagamento', formaPagamento.value);
+            }
+
             // Campos de notificação
             const canalInapp = document.getElementById('agCanalInapp');
             const canalEmail = document.getElementById('agCanalEmail');
@@ -2027,7 +2062,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Criar payload com o token atual - o fetchWithCSRF faz retry automaticamente se necessário
                 const payload = FormManager.getData(valorCentavos);
-                console.log('[Actions.save] Enviando para:', isEditMode ? 'update' : 'create', 'Token:', (STATE.csrfToken || '').substring(0, 10) + '...');
 
                 const endpoint = isEditMode
                     ? `${CONFIG.BASE_URL}api/agendamentos/${agendamentoId}`

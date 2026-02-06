@@ -117,14 +117,15 @@
                             Tipo de Agendamento
                         </label>
                         <div class="lk-tipo-agendamento-btns">
-                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active"
-                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
-                                <i class="fas fa-arrow-up"></i> Despesa
-                            </button>
                             <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita"
                                 onclick="lancamentoGlobalManager.selecionarTipoAgendamento('receita')">
                                 <i class="fas fa-arrow-down"></i> Receita
                             </button>
+                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active"
+                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
+                                <i class="fas fa-arrow-up"></i> Despesa
+                            </button>
+
                         </div>
                     </div>
 
@@ -170,30 +171,36 @@
 
 
                     <!-- Forma de Pagamento (para despesas) -->
-                    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaPagamentoGroup" style="display: none;">
+                    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaPagamentoGroup"
+                        style="display: none;">
                         <input type="hidden" id="globalFormaPagamento" name="forma_pagamento" value="">
                         <label class="lk-forma-pagamento-label">
                             <i class="fas fa-wallet"></i>
                             Como você vai pagar?
                         </label>
                         <div class="lk-forma-pagamento-grid" id="globalFormaPagamentoGrid">
-                            <button type="button" class="lk-forma-btn" data-forma="pix" onclick="lancamentoGlobalManager.selecionarFormaPagamento('pix')">
+                            <button type="button" class="lk-forma-btn" data-forma="pix"
+                                onclick="lancamentoGlobalManager.selecionarFormaPagamento('pix')">
                                 <i class="fa-brands fa-pix lk-forma-icon"></i>
                                 <span class="lk-forma-label">PIX</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="cartao_credito" onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_credito')">
+                            <button type="button" class="lk-forma-btn" data-forma="cartao_credito"
+                                onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_credito')">
                                 <i class="fa-solid fa-credit-card lk-forma-icon"></i>
                                 <span class="lk-forma-label">Crédito</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="cartao_debito" onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_debito')">
+                            <button type="button" class="lk-forma-btn" data-forma="cartao_debito"
+                                onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_debito')">
                                 <i class="fa-solid fa-credit-card lk-forma-icon"></i>
                                 <span class="lk-forma-label">Débito</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="dinheiro" onclick="lancamentoGlobalManager.selecionarFormaPagamento('dinheiro')">
+                            <button type="button" class="lk-forma-btn" data-forma="dinheiro"
+                                onclick="lancamentoGlobalManager.selecionarFormaPagamento('dinheiro')">
                                 <i class="fa-solid fa-money-bill-wave lk-forma-icon"></i>
                                 <span class="lk-forma-label">Dinheiro</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="boleto" onclick="lancamentoGlobalManager.selecionarFormaPagamento('boleto')">
+                            <button type="button" class="lk-forma-btn" data-forma="boleto"
+                                onclick="lancamentoGlobalManager.selecionarFormaPagamento('boleto')">
                                 <i class="fa-solid fa-barcode lk-forma-icon"></i>
                                 <span class="lk-forma-label">Boleto</span>
                             </button>
@@ -201,30 +208,36 @@
                     </div>
 
                     <!-- Forma de Recebimento (para receitas) -->
-                    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaRecebimentoGroup" style="display: none;">
+                    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaRecebimentoGroup"
+                        style="display: none;">
                         <input type="hidden" id="globalFormaRecebimento" name="forma_pagamento" value="">
                         <label class="lk-forma-pagamento-label">
                             <i class="fas fa-hand-holding-usd"></i>
                             Como você vai receber?
                         </label>
                         <div class="lk-forma-pagamento-grid" id="globalFormaRecebimentoGrid">
-                            <button type="button" class="lk-forma-btn" data-forma="pix" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('pix')">
+                            <button type="button" class="lk-forma-btn" data-forma="pix"
+                                onclick="lancamentoGlobalManager.selecionarFormaRecebimento('pix')">
                                 <i class="fa-brands fa-pix lk-forma-icon"></i>
                                 <span class="lk-forma-label">PIX</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="deposito" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('deposito')">
+                            <button type="button" class="lk-forma-btn" data-forma="deposito"
+                                onclick="lancamentoGlobalManager.selecionarFormaRecebimento('deposito')">
                                 <i class="fa-solid fa-building-columns lk-forma-icon"></i>
                                 <span class="lk-forma-label">Depósito</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="dinheiro" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('dinheiro')">
+                            <button type="button" class="lk-forma-btn" data-forma="dinheiro"
+                                onclick="lancamentoGlobalManager.selecionarFormaRecebimento('dinheiro')">
                                 <i class="fa-solid fa-money-bill-wave lk-forma-icon"></i>
                                 <span class="lk-forma-label">Dinheiro</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="transferencia" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('transferencia')">
+                            <button type="button" class="lk-forma-btn" data-forma="transferencia"
+                                onclick="lancamentoGlobalManager.selecionarFormaRecebimento('transferencia')">
                                 <i class="fa-solid fa-arrow-right-arrow-left lk-forma-icon"></i>
                                 <span class="lk-forma-label">Transf.</span>
                             </button>
-                            <button type="button" class="lk-forma-btn" data-forma="estorno_cartao" onclick="lancamentoGlobalManager.selecionarFormaRecebimento('estorno_cartao')">
+                            <button type="button" class="lk-forma-btn" data-forma="estorno_cartao"
+                                onclick="lancamentoGlobalManager.selecionarFormaRecebimento('estorno_cartao')">
                                 <i class="fa-solid fa-rotate-left lk-forma-icon"></i>
                                 <span class="lk-forma-label">Estorno</span>
                             </button>
@@ -238,7 +251,8 @@
                             Qual cartão?
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select" onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
+                            <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
+                                onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
                                 <option value="">Selecione o cartão</option>
                                 <!-- Preenchido via JS -->
                             </select>
@@ -407,6 +421,26 @@
                                     E-mail
                                 </span>
                             </label>
+                        </div>
+                    </div>
+
+                    <!-- Forma de Pagamento (somente para agendamento) -->
+                    <div class="lk-form-group" id="globalFormaPagamentoAgendamentoGroup" style="display: none;">
+                        <label for="globalFormaPagamentoAg" class="lk-label">
+                            <i class="fas fa-credit-card"></i>
+                            Forma de Pagamento
+                            <span class="lk-optional-badge">opcional</span>
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="globalFormaPagamentoAg" name="forma_pagamento_ag" class="lk-select">
+                                <option value="">Selecione (opcional)</option>
+                                <option value="pix">📱 PIX</option>
+                                <option value="dinheiro">💵 Dinheiro</option>
+                                <option value="boleto">📄 Boleto</option>
+                                <option value="transferencia">🏦 Transferência</option>
+                                <option value="deposito">🏦 Depósito</option>
+                            </select>
+                            <i class="fas fa-chevron-down lk-select-icon"></i>
                         </div>
                     </div>
 

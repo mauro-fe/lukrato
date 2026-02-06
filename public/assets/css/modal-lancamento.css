@@ -697,23 +697,48 @@
 }
 
 .lk-btn-tipo-receita.active {
-  border-color: var(--color-success);
+  border-color: #28a745 !important;
   background: linear-gradient(
     135deg,
-    rgba(46, 204, 113, 0.15),
-    rgba(46, 204, 113, 0.25)
-  );
-  color: #155724;
+    rgba(40, 167, 69, 0.2),
+    rgba(40, 167, 69, 0.35)
+  ) !important;
+  color: #28a745 !important;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
 }
 
 .lk-btn-tipo-despesa.active {
-  border-color: var(--color-danger);
+  border-color: #dc3545 !important;
   background: linear-gradient(
     135deg,
-    rgba(231, 76, 60, 0.15),
-    rgba(231, 76, 60, 0.25)
-  );
-  color: #721c24;
+    rgba(220, 53, 69, 0.2),
+    rgba(220, 53, 69, 0.35)
+  ) !important;
+  color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+}
+
+/* Dark mode para botões de tipo de agendamento */
+:root[data-theme="dark"] .lk-btn-tipo-receita.active {
+  border-color: #28a745 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 167, 69, 0.3),
+    rgba(40, 167, 69, 0.5)
+  ) !important;
+  color: #5cb85c !important;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+}
+
+:root[data-theme="dark"] .lk-btn-tipo-despesa.active {
+  border-color: #dc3545 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(220, 53, 69, 0.3),
+    rgba(220, 53, 69, 0.5)
+  ) !important;
+  color: #ff6b6b !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3);
 }
 
 /* ================================================
@@ -978,7 +1003,7 @@ input.lk-input.lk-input-with-prefix {
 
 .lk-parcelamento-detalhes {
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text);
   margin-top: var(--spacing-2);
   display: flex;
   flex-direction: column;
@@ -996,7 +1021,7 @@ input.lk-input.lk-input-with-prefix {
 .lk-btn-voltar {
   background: none;
   border: 2px solid var(--color-card-border);
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
@@ -1115,7 +1140,7 @@ input.lk-input.lk-input-with-prefix {
 /* Botão Ghost */
 .lk-btn-ghost {
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   border: 2px solid var(--color-card-border);
 }
 
@@ -1561,7 +1586,7 @@ input.lk-input.lk-input-with-prefix {
 
 .lk-forma-btn .lk-forma-icon {
   font-size: 1.25rem;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   transition: all 0.2s ease;
 }
 
@@ -1583,7 +1608,7 @@ input.lk-input.lk-input-with-prefix {
 .lk-forma-btn .lk-forma-label {
   font-size: var(--font-size-xs);
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   text-align: center;
   line-height: 1.2;
 }

@@ -14,6 +14,7 @@ readonly class UpdateLancamentoDTO
         public ?string $observacao = null,
         public ?int $categoriaId = null,
         public ?int $contaId = null,
+        public ?string $formaPagamento = null,
     ) {}
 
     public function toArray(): array
@@ -26,6 +27,7 @@ readonly class UpdateLancamentoDTO
             'observacao' => $this->observacao,
             'categoria_id' => $this->categoriaId,
             'conta_id' => $this->contaId,
+            'forma_pagamento' => $this->formaPagamento,
         ];
     }
 
@@ -39,6 +41,7 @@ readonly class UpdateLancamentoDTO
             observacao: $data['observacao'] ?? null,
             categoriaId: isset($data['categoria_id']) ? (int)$data['categoria_id'] : null,
             contaId: isset($data['conta_id']) ? (int)$data['conta_id'] : null,
+            formaPagamento: $data['forma_pagamento'] ?? null,
         );
     }
 }

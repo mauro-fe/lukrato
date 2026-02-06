@@ -81,9 +81,28 @@
         selectLancConta: document.getElementById('editLancConta'),
         selectLancCategoria: document.getElementById('editLancCategoria'),
         inputLancValor: document.getElementById('editLancValor'),
-        inputLancDescricao: document.getElementById('editLancDescricao')
+        inputLancDescricao: document.getElementById('editLancDescricao'),
+        selectLancFormaPagamento: document.getElementById('editLancFormaPagamento'),
 
-
+        // Modal de visualização
+        modalViewLancEl: document.getElementById('modalViewLancamento'),
+        viewLancData: document.getElementById('viewLancData'),
+        viewLancTipo: document.getElementById('viewLancTipo'),
+        viewLancValor: document.getElementById('viewLancValor'),
+        viewLancStatus: document.getElementById('viewLancStatus'),
+        viewLancCategoria: document.getElementById('viewLancCategoria'),
+        viewLancConta: document.getElementById('viewLancConta'),
+        viewLancCartaoItem: document.getElementById('viewLancCartaoItem'),
+        viewLancCartao: document.getElementById('viewLancCartao'),
+        viewLancFormaPgtoItem: document.getElementById('viewLancFormaPgtoItem'),
+        viewLancFormaPgto: document.getElementById('viewLancFormaPgto'),
+        viewLancDescricaoCard: document.getElementById('viewLancDescricaoCard'),
+        viewLancDescricao: document.getElementById('viewLancDescricao'),
+        viewLancParcelamentoCard: document.getElementById('viewLancParcelamentoCard'),
+        viewLancParcela: document.getElementById('viewLancParcela'),
+        btnEditFromView: document.getElementById('btnEditFromView'),
+        modalViewLancamentoLabel: document.getElementById('modalViewLancamentoLabel'),
+        viewLancamentoId: document.getElementById('viewLancamentoId')
     };
 
     // ============================================================================
@@ -93,7 +112,9 @@
     const STATE = {
         table: null,
         modalEditLanc: null,
+        modalViewLanc: null,
         editingLancamentoId: null,
+        viewingLancamento: null,
         categoriaOptions: [],
         contaOptions: [],
         loadTimer: null,
@@ -1018,6 +1039,8 @@
                 `;
             } else {
                 const buttons = [];
+                // Botão de visualização (olhinho)
+                buttons.push(`<button class="lk-btn ghost" data-action="view" data-id="${id}" title="Visualizar"><i class="fas fa-eye"></i></button>`);
                 if (Utils.canEditLancamento(item)) {
                     buttons.push(`<button class="lk-btn ghost" data-action="edit" data-id="${id}" title="Editar"><i class="fas fa-pen"></i></button>`);
                 }
@@ -1032,10 +1055,7 @@
                     <td class="td-tipo"><span class="badge-tipo ${tipoClass}">${Utils.escapeHtml(tipoLabel)}</span></td>
                     <td class="td-categoria">${Utils.escapeHtml(categoria)}</td>
                     <td class="td-conta">${Utils.escapeHtml(conta)}</td>
-                    ${cartaoCell}
-                    ${formaPgtoCell}
                     ${descricaoCell}
-                    ${statusCell}
                     ${valorCell}
                     ${actionsCell}
                 </tr>
@@ -1163,6 +1183,10 @@
 
             const item = STATE.filteredData.find(i => String(i.id) === String(id));
             if (!item) return;
+
+            if (action === 'view') {
+                ModalManager.openViewLancamento(item);
+            }
 
             if (action === 'edit') {
                 if (!Utils.canEditLancamento(item)) return;
@@ -1755,6 +1779,116 @@
                 DOM.inputLancDescricao.value = data?.descricao || '';
             }
 
+            if (DOM.selectLancFormaPagamento) {
+                DOM.selectLancFormaPagamento.value = data?.forma_pagamento || '';
+            }
+
+            modal.show();
+        },
+
+        // Inicializa modal de visualização
+        ensureViewModal: () => {
+            if (!STATE.modalViewLanc && DOM.modalViewLancEl) {
+                STATE.modalViewLanc = new bootstrap.Modal(DOM.modalViewLancEl);
+            }
+            return STATE.modalViewLanc;
+        },
+
+        // Abre modal de visualização de lançamento
+        openViewLancamento: (data) => {
+            const modal = ModalManager.ensureViewModal();
+            if (!modal || !data) return;
+
+            STATE.viewingLancamento = data;
+
+            // Preencher ID oculto
+            if (DOM.viewLancamentoId) {
+                DOM.viewLancamentoId.value = data.id || '';
+            }
+
+            // Data
+            if (DOM.viewLancData) {
+                DOM.viewLancData.textContent = Utils.fmtDate(data.data);
+            }
+
+            // Tipo
+            if (DOM.viewLancTipo) {
+                const tipo = String(data.tipo || '').toLowerCase();
+                const isTipoReceita = tipo === 'receita';
+                DOM.viewLancTipo.textContent = isTipoReceita ? 'Receita' : 'Despesa';
+                DOM.viewLancTipo.className = 'badge ' + (isTipoReceita ? 'bg-success' : 'bg-danger');
+            }
+
+            // Valor
+            if (DOM.viewLancValor) {
+                DOM.viewLancValor.textContent = Utils.fmtMoney(Math.abs(data.valor || 0));
+            }
+
+            // Status
+            if (DOM.viewLancStatus) {
+                let statusLabel = 'Efetivado';
+                let statusClass = 'bg-success';
+                if (data.status === 'pendente') {
+                    statusLabel = 'Pendente';
+                    statusClass = 'bg-warning text-dark';
+                } else if (data.status === 'cancelado') {
+                    statusLabel = 'Cancelado';
+                    statusClass = 'bg-secondary';
+                }
+                DOM.viewLancStatus.textContent = statusLabel;
+                DOM.viewLancStatus.className = 'badge ' + statusClass;
+            }
+
+            // Categoria
+            if (DOM.viewLancCategoria) {
+                DOM.viewLancCategoria.textContent = data.categoria_nome || data.categoria || '-';
+            }
+
+            // Conta
+            if (DOM.viewLancConta) {
+                DOM.viewLancConta.textContent = data.conta_nome || data.conta || '-';
+            }
+
+            // Cartão
+            if (DOM.viewLancCartaoItem && DOM.viewLancCartao) {
+                if (data.cartao_id && data.cartao_nome) {
+                    DOM.viewLancCartaoItem.classList.remove('d-none');
+                    DOM.viewLancCartao.textContent = data.cartao_nome;
+                } else {
+                    DOM.viewLancCartaoItem.classList.add('d-none');
+                }
+            }
+
+            // Forma de Pagamento
+            if (DOM.viewLancFormaPgtoItem && DOM.viewLancFormaPgto) {
+                if (data.forma_pagamento) {
+                    DOM.viewLancFormaPgtoItem.classList.remove('d-none');
+                    DOM.viewLancFormaPgto.textContent = Utils.formatFormaPagamento ? Utils.formatFormaPagamento(data.forma_pagamento) : data.forma_pagamento;
+                } else {
+                    DOM.viewLancFormaPgtoItem.classList.add('d-none');
+                }
+            }
+
+            // Descrição
+            if (DOM.viewLancDescricaoCard && DOM.viewLancDescricao) {
+                if (data.descricao && data.descricao.trim()) {
+                    DOM.viewLancDescricaoCard.classList.remove('d-none');
+                    DOM.viewLancDescricao.textContent = data.descricao;
+                } else {
+                    DOM.viewLancDescricaoCard.classList.add('d-none');
+                }
+            }
+
+            // Parcelamento
+            if (DOM.viewLancParcelamentoCard && DOM.viewLancParcela) {
+                if (data.parcela_atual && data.total_parcelas) {
+                    DOM.viewLancParcelamentoCard.classList.remove('d-none');
+                    DOM.viewLancParcela.textContent = `${data.parcela_atual}/${data.total_parcelas}`;
+                } else {
+                    DOM.viewLancParcelamentoCard.classList.add('d-none');
+                }
+            }
+
             modal.show();
         },
 
@@ -1771,6 +1905,7 @@
             const categoriaValue = DOM.selectLancCategoria?.value || '';
             const valorValue = DOM.inputLancValor?.value || '';
             const descricaoValue = (DOM.inputLancDescricao?.value || '').trim();
+            const formaPagamentoValue = DOM.selectLancFormaPagamento?.value || '';
 
             if (!dataValue) return ModalManager.showLancAlert('Informe a data do lançamento.');
             if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lançamento.');
@@ -1787,7 +1922,8 @@
                 valor: Number(valorFloat.toFixed(2)),
                 descricao: descricaoValue,
                 conta_id: Number(contaValue),
-                categoria_id: categoriaValue ? Number(categoriaValue) : null
+                categoria_id: categoriaValue ? Number(categoriaValue) : null,
+                forma_pagamento: formaPagamentoValue || null
             };
 
             // Detectar se é um parcelamento
@@ -2052,6 +2188,27 @@
 
             // Submit do formulÃ¡rio de ediÃ§Ã£o
             DOM.formLanc?.addEventListener('submit', ModalManager.submitEditForm);
+
+            // Botão editar do modal de visualização
+            DOM.btnEditFromView?.addEventListener('click', () => {
+                if (!STATE.viewingLancamento) return;
+                const lancamento = STATE.viewingLancamento;
+
+                // Fechar modal de visualização
+                if (STATE.modalViewLanc) {
+                    STATE.modalViewLanc.hide();
+                }
+
+                // Abrir modal de edição após um pequeno delay para evitar conflitos
+                setTimeout(() => {
+                    ModalManager.openEditLancamento(lancamento);
+                }, 300);
+            });
+
+            // Modal de visualização fechou - limpar dados
+            DOM.modalViewLancEl?.addEventListener('hidden.bs.modal', () => {
+                STATE.viewingLancamento = null;
+            });
 
             // Botão de filtrar
             DOM.btnFiltrar?.addEventListener('click', DataManager.load);

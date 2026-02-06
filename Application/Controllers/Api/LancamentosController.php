@@ -561,6 +561,7 @@ class LancamentosController extends BaseController
             'observacao' => $payload['observacao'] ?? $lancamento->observacao,
             'conta_id' => $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id,
             'categoria_id' => $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id,
+            'forma_pagamento' => array_key_exists('forma_pagamento', $payload) ? $payload['forma_pagamento'] : $lancamento->forma_pagamento,
         ];
 
         // Validar
@@ -587,6 +588,7 @@ class LancamentosController extends BaseController
             'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
             'categoria_id' => $categoriaId,
             'conta_id' => $contaId,
+            'forma_pagamento' => $mergedData['forma_pagamento'] ?? null,
         ]);
 
         // Atualizar

@@ -262,42 +262,20 @@ class CartaoCreditoLancamentoService
     }
 
     /**
-     * Calcular mês/ano de competência (mês da fatura que fechou)
-     * Se comprou ANTES do fechamento: competência = mês atual
-     * Se comprou NO DIA ou DEPOIS do fechamento: competência = próximo mês
+     * Calcular mês/ano de competência (mês da compra)
+     * A competência é SEMPRE o mês em que a compra foi feita.
+     * O dia de fechamento afeta apenas o VENCIMENTO, não a competência.
      * 
      * @return array ['mes' => int, 'ano' => int]
      */
     private function calcularCompetencia(string $dataCompra, ?int $diaFechamento): array
     {
         $dataObj = new \DateTime($dataCompra);
-        $mesAtual = (int)$dataObj->format('n');
-        $anoAtual = (int)$dataObj->format('Y');
-        $diaCompra = (int)$dataObj->format('j');
 
-        // Se não informou dia de fechamento, considerar dia 25
-        if ($diaFechamento === null) {
-            $diaFechamento = 25;
-        }
-
-        if ($diaCompra >= $diaFechamento) {
-            // Comprou no dia do fechamento ou depois - entra na próxima fatura
-            $mesCompetencia = $mesAtual + 1;
-            $anoCompetencia = $anoAtual;
-
-            if ($mesCompetencia > 12) {
-                $mesCompetencia = 1;
-                $anoCompetencia++;
-            }
-        } else {
-            // Comprou ANTES do fechamento - entra na fatura do mês atual
-            $mesCompetencia = $mesAtual;
-            $anoCompetencia = $anoAtual;
-        }
-
+        // Competência = mês da compra (sempre)
         return [
-            'mes' => $mesCompetencia,
-            'ano' => $anoCompetencia,
+            'mes' => (int)$dataObj->format('n'),
+            'ano' => (int)$dataObj->format('Y'),
         ];
     }
 

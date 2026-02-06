@@ -650,7 +650,24 @@
                             <option value="mensal">Mensalmente</option>
                             <option value="anual">Anualmente</option>
                         </select>
-                        <small class="lk-helper-text">🔁 Repete para sempre até você cancelar - ideal para contas fixas</small>
+                        <small class="lk-helper-text">🔁 Repete para sempre até você cancelar - ideal para contas
+                            fixas</small>
+                    </div>
+
+                    <!-- Forma de Pagamento -->
+                    <div class="form-group" id="agFormaPagamentoGroup">
+                        <label for="agFormaPagamento" class="form-label">
+                            <i class="fas fa-credit-card"></i> Forma de Pagamento
+                            <span class="optional-badge">opcional</span>
+                        </label>
+                        <select id="agFormaPagamento" name="forma_pagamento" class="form-control modern-select">
+                            <option value="">Selecione (opcional)</option>
+                            <option value="pix">📱 PIX</option>
+                            <option value="dinheiro">💵 Dinheiro</option>
+                            <option value="boleto">📄 Boleto</option>
+                            <option value="transferencia">🏦 Transferência</option>
+                            <option value="deposito">🏦 Depósito</option>
+                        </select>
                     </div>
 
                     <!-- Parcelamento Moderno -->
@@ -659,7 +676,7 @@
                             <i class="fas fa-credit-card"></i> Parcelamento
                             <span class="optional-badge">opcional</span>
                         </label>
-                        
+
                         <div class="parcelamento-card">
                             <div class="parcelamento-toggle-row">
                                 <div class="parcelamento-info">
@@ -674,7 +691,7 @@
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
-                            
+
                             <div class="parcelamento-config" id="parcelasInputGroup" style="display: none;">
                                 <div class="parcelas-input-wrapper">
                                     <div class="parcelas-label">
@@ -682,14 +699,15 @@
                                         <span>Número de parcelas</span>
                                     </div>
                                     <div class="parcelas-input-group">
-                                        <button type="button" class="parcelas-btn parcelas-minus" onclick="adjustParcelas(-1)">
+                                        <button type="button" class="parcelas-btn parcelas-minus"
+                                            onclick="adjustParcelas(-1)">
                                             <i class="fas fa-minus"></i>
                                         </button>
-                                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="agNumeroParcelas" name="numero_parcelas" 
-                                            class="parcelas-input" 
-                                            value="2" placeholder="2"
+                                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="agNumeroParcelas"
+                                            name="numero_parcelas" class="parcelas-input" value="2" placeholder="2"
                                             style="color: #fff !important; background: transparent !important; font-size: 1.2rem; font-weight: 700;">
-                                        <button type="button" class="parcelas-btn parcelas-plus" onclick="adjustParcelas(1)">
+                                        <button type="button" class="parcelas-btn parcelas-plus"
+                                            onclick="adjustParcelas(1)">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                         <span class="parcelas-suffix">x</span>
@@ -913,7 +931,7 @@
 
             <div class="modal-body" style="padding: var(--spacing-5);">
                 <input type="hidden" id="execAgendamentoId">
-                
+
                 <!-- Resumo do Agendamento -->
                 <div class="agendamento-resumo">
                     <div class="resumo-titulo" id="execResumoTitulo">-</div>

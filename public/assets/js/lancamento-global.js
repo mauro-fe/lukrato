@@ -421,6 +421,12 @@ const lancamentoGlobalManager = {
         if (canaisNotificacaoGroup) {
             canaisNotificacaoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
         }
+
+        // Mostrar/ocultar forma de pagamento para agendamento
+        const formaPagamentoAgendamentoGroup = document.getElementById('globalFormaPagamentoAgendamentoGroup');
+        if (formaPagamentoAgendamentoGroup) {
+            formaPagamentoAgendamentoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        }
     },
 
     selecionarTipoAgendamento(tipo) {
@@ -839,6 +845,9 @@ const lancamentoGlobalManager = {
                 const canalInapp = document.getElementById('globalCanalInapp')?.checked ? '1' : '0';
                 const canalEmail = document.getElementById('globalCanalEmail')?.checked ? '1' : '0';
 
+                // Coletar forma de pagamento para agendamento
+                const formaPagamentoAg = document.getElementById('globalFormaPagamentoAg')?.value || null;
+
                 requestData = {
                     titulo: dados.descricao,
                     tipo: tipoAgendamento,
@@ -854,7 +863,8 @@ const lancamentoGlobalManager = {
                     recorrencia_fim: recorrenciaFim,
                     lembrar_antes_segundos: lembrarAntesSegundos,
                     canal_inapp: canalInapp,
-                    canal_email: canalEmail
+                    canal_email: canalEmail,
+                    forma_pagamento: formaPagamentoAg
                 };
             } else if (this.tipoAtual === 'transferencia') {
                 apiUrl = `${this.baseUrl}api/transfers`;

@@ -1,7 +1,7 @@
 <!-- Modal de Edição de Lançamento (usado pela tabela) -->
 <div class="modal fade" id="modalEditarLancamento" tabindex="-1" aria-labelledby="modalEditarLancamentoLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:650px">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalEditarLancamentoLabel">Editar Lançamento</h5>
@@ -25,30 +25,44 @@
                             </select>
                         </div>
                     </div>
-                    <div class="row g-3">
-
+                    <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="editLancConta" class="form-label">Conta</label>
                             <select class="form-select form-select-sm" id="editLancConta" required
                                 aria-required="true"></select>
                         </div>
-                        <div class="col-md-6 mt-3">
+                        <div class="col-md-6">
                             <label for="editLancCategoria" class="form-label">Categoria</label>
                             <select class="form-select form-select-sm" id="editLancCategoria"></select>
                         </div>
                     </div>
-                    <div class="row g-3">
-
-                        <div class="col-md-9">
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-8">
                             <label for="editLancDescricao" class="form-label">Descrição</label>
                             <input type="text" class="form-control form-control-sm" id="editLancDescricao"
                                 aria-label="Descrição do lançamento">
                         </div>
-
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label for="editLancValor" class="form-label">Valor</label>
                             <input type="text" class="form-control form-control-sm money-mask" id="editLancValor"
                                 inputmode="decimal" placeholder="R$ 0,00" required aria-required="true">
+                        </div>
+                    </div>
+
+                    <!-- Forma de Pagamento -->
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label for="editLancFormaPagamento" class="form-label">Forma de Pagamento</label>
+                            <select class="form-select form-select-sm" id="editLancFormaPagamento">
+                                <option value="">-- Não informada --</option>
+                                <option value="pix">📱 PIX</option>
+                                <option value="cartao_credito">💳 Cartão de Crédito</option>
+                                <option value="cartao_debito">💳 Cartão de Débito</option>
+                                <option value="dinheiro">💵 Dinheiro</option>
+                                <option value="boleto">📄 Boleto</option>
+                                <option value="transferencia">🏦 Transferência</option>
+                                <option value="deposito">🏦 Depósito</option>
+                            </select>
                         </div>
                     </div>
 

@@ -28,6 +28,7 @@ readonly class UpdateAgendamentoDTO
         public ?string $recorrencia_freq = null,
         public ?int $recorrencia_intervalo = null,
         public ?string $recorrencia_fim = null,
+        public ?string $forma_pagamento = null,
     ) {}
 
     /**
@@ -84,6 +85,7 @@ readonly class UpdateAgendamentoDTO
             recorrencia_freq: $recorrenciaFreq,
             recorrencia_intervalo: $recorrenciaIntervalo,
             recorrencia_fim: $recorrenciaFim,
+            forma_pagamento: !empty($data['forma_pagamento']) ? $data['forma_pagamento'] : null,
         );
     }
 
@@ -130,6 +132,9 @@ readonly class UpdateAgendamentoDTO
             if ($this->recorrencia_fim !== null) $data['recorrencia_fim'] = $this->recorrencia_fim;
         }
 
+        // Forma de pagamento
+        if ($this->forma_pagamento !== null) $data['forma_pagamento'] = $this->forma_pagamento;
+
         return $data;
     }
 
@@ -159,6 +164,7 @@ readonly class UpdateAgendamentoDTO
             recorrencia_freq: $this->recorrencia_freq,
             recorrencia_intervalo: $this->recorrencia_intervalo,
             recorrencia_fim: $this->recorrencia_fim,
+            forma_pagamento: $this->forma_pagamento,
         );
     }
 

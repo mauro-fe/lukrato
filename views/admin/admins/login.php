@@ -490,7 +490,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     // Se for erro de CSRF e ainda não tentamos renovar, renova e tenta de novo
                     if (isCsrfError(response, data) && !hasRetried) {
                         hasRetried = true;
-                        console.log('[Login] Token CSRF expirado, renovando...');
                         try {
                             await refreshCsrfForForm('login_form');
                             // Tenta novamente após renovar
@@ -665,7 +664,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     // Se for erro de CSRF e ainda não tentamos renovar, renova e tenta de novo
                     if (isCsrfError(response, data) && !hasRetried) {
                         hasRetried = true;
-                        console.log('[Register] Token CSRF expirado, renovando...');
                         try {
                             await refreshCsrfForForm('register_form');
                             return attemptRegister();

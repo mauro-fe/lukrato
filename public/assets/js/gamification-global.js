@@ -457,22 +457,20 @@
      * Chamado ao carregar qualquer página
      */
     let isCheckingPending = false; // Evitar verificações simultâneas
-    
+
     async function checkPendingAchievements() {
         // Evitar verificações duplicadas
         if (isCheckingPending) {
-            console.log('🎮 [GAMIFICATION] Já está verificando conquistas pendentes...');
             return;
         }
-        
+
         // Não verificar se gamificação está pausada
         if (window.gamificationPaused === true) {
-            console.log('🎮 [GAMIFICATION] Gamificação pausada, não verificar conquistas pendentes');
             return;
         }
 
         isCheckingPending = true;
-        
+
         try {
             const baseUrl = window.BASE_URL || '/lukrato/public/';
             const response = await fetch(`${baseUrl}api/gamification/achievements/pending`, {
@@ -488,7 +486,6 @@
 
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
-                console.log(`🏆 [GAMIFICATION] ${pending.length} conquista(s) pendente(s) para exibir!`);
 
                 // Marcar como vistas IMEDIATAMENTE para evitar duplicação em outras abas/páginas
                 const achievementIds = pending.map(a => a.id);
@@ -510,7 +507,7 @@
             isCheckingPending = false;
         }
     }
-    
+
     // Expor função para uso externo (opcional)
     window.checkPendingAchievements = checkPendingAchievements;
 
@@ -565,7 +562,6 @@
 
             if (data.success && data.data && data.data.rewards && data.data.rewards.length > 0) {
                 const rewards = data.data.rewards;
-                console.log(`🎁 [REFERRAL] ${rewards.length} recompensa(s) de indicação para exibir!`);
 
                 // Mostrar modal para cada recompensa
                 for (const reward of rewards) {
@@ -665,10 +661,9 @@
     // (como verificação de email, ações em background) sejam notificadas
     function initPendingAchievementsCheck() {
         const onboardingInProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
-        
+
         // Não verificar durante onboarding
         if (onboardingInProgress || window.gamificationPaused === true) {
-            console.log('🎮 [GAMIFICATION] Verificação de conquistas pendentes adiada (onboarding em progresso)');
             return;
         }
 

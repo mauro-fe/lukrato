@@ -325,6 +325,10 @@
                             <span class="view-label">Conta:</span>
                             <span class="view-value" id="viewConta">-</span>
                         </div>
+                        <div class="view-item" id="viewFormaPagamentoItem" style="display: none;">
+                            <span class="view-label">Forma de Pagamento:</span>
+                            <span class="view-value" id="viewFormaPagamento">-</span>
+                        </div>
                     </div>
 
                     <!-- Datas e Prazos -->

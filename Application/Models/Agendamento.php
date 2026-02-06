@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $titulo
  * @property string|null $descricao
  * @property string $tipo
+ * @property string|null $forma_pagamento
  * @property int|null $valor_centavos
  * @property string|null $moeda
  * @property \Carbon\Carbon|null $data_pagamento
@@ -46,6 +47,7 @@ class Agendamento extends Model
         'titulo',
         'descricao',
         'tipo',
+        'forma_pagamento',
         'valor_centavos',
         'moeda',
         'data_pagamento',

@@ -33,6 +33,7 @@ readonly class CreateAgendamentoDTO
         public bool $eh_parcelado = false,
         public ?int $numero_parcelas = null,
         public int $parcela_atual = 1,
+        public ?string $forma_pagamento = null,
         public string $status = AgendamentoStatus::PENDENTE->value,
     ) {}
 
@@ -80,6 +81,7 @@ readonly class CreateAgendamentoDTO
             eh_parcelado: filter_var($data['eh_parcelado'] ?? false, FILTER_VALIDATE_BOOLEAN),
             numero_parcelas: !empty($data['numero_parcelas']) ? (int) $data['numero_parcelas'] : null,
             parcela_atual: (int) ($data['parcela_atual'] ?? 1),
+            forma_pagamento: !empty($data['forma_pagamento']) ? $data['forma_pagamento'] : null,
         );
     }
 
@@ -109,6 +111,7 @@ readonly class CreateAgendamentoDTO
             'eh_parcelado' => $this->eh_parcelado,
             'numero_parcelas' => $this->numero_parcelas,
             'parcela_atual' => $this->parcela_atual,
+            'forma_pagamento' => $this->forma_pagamento,
             'status' => $this->status,
         ];
     }

@@ -265,140 +265,140 @@
 </div>
 
 <script>
-    function limparCache() {
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Limpar Cache?',
-                text: 'Isso ira remover todos os arquivos de cache do sistema.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#e67e22',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sim, limpar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Cache Limpo!',
-                        text: 'O cache do sistema foi limpo com sucesso.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                }
-            });
-        } else {
-            if (confirm('Tem certeza que deseja limpar o cache do sistema?')) {
-                alert('Cache limpo com sucesso!');
-            }
-        }
-    }
-
-    function toggleMaintenance() {
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Modo Manutencao',
-                text: 'Deseja ativar o modo manutencao? O site ficara indisponivel para usuarios.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sim, ativar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Modo Manutencao Ativado',
-                        text: 'O sistema esta agora em modo manutencao.',
-                        timer: 2000
-                    });
-                }
-            });
-        } else {
-            if (confirm('Deseja ativar o modo manutencao?')) {
-                alert('Modo manutencao ativado!');
-            }
-        }
-    }
-
-    function searchUser() {
-        const query = document.getElementById('userSearch');
-        if (!query) return;
-
-        const value = query.value.trim();
-        if (!value) {
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campo vazio',
-                    text: 'Digite um e-mail ou ID para buscar.',
-                    timer: 2000
-                });
-            } else {
-                alert('Digite um e-mail ou ID para buscar.');
-            }
-            return;
-        }
-
-    }
-
-    function loadRecentUsers() {
-        const btn = event.target.closest('.btn-refresh');
-        if (!btn) return;
-
-        const icon = btn.querySelector('i');
-        if (icon) icon.classList.add('fa-spin');
-
-        setTimeout(() => {
-            if (icon) icon.classList.remove('fa-spin');
-            if (window.Swal) {
+function limparCache() {
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Limpar Cache?',
+            text: 'Isso ira remover todos os arquivos de cache do sistema.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#e67e22',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sim, limpar!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Atualizado!',
-                    timer: 1000,
+                    title: 'Cache Limpo!',
+                    text: 'O cache do sistema foi limpo com sucesso.',
+                    timer: 2000,
                     showConfirmButton: false
                 });
             }
-            location.reload();
-        }, 1000);
+        });
+    } else {
+        if (confirm('Tem certeza que deseja limpar o cache do sistema?')) {
+            alert('Cache limpo com sucesso!');
+        }
+    }
+}
+
+function toggleMaintenance() {
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Modo Manutencao',
+            text: 'Deseja ativar o modo manutencao? O site ficara indisponivel para usuarios.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sim, ativar!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Modo Manutencao Ativado',
+                    text: 'O sistema esta agora em modo manutencao.',
+                    timer: 2000
+                });
+            }
+        });
+    } else {
+        if (confirm('Deseja ativar o modo manutencao?')) {
+            alert('Modo manutencao ativado!');
+        }
+    }
+}
+
+function searchUser() {
+    const query = document.getElementById('userSearch');
+    if (!query) return;
+
+    const value = query.value.trim();
+    if (!value) {
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo vazio',
+                text: 'Digite um e-mail ou ID para buscar.',
+                timer: 2000
+            });
+        } else {
+            alert('Digite um e-mail ou ID para buscar.');
+        }
+        return;
     }
 
-    function viewUser(userId) {
-        // Buscar dados completos do usuário
-        fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`)
-            .then(res => res.json())
-            .then(response => {
-                if (!response.success) {
-                    Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
-                    return;
-                }
+}
 
-                const user = response.data;
-                const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }) : 'N/A';
+function loadRecentUsers() {
+    const btn = event.target.closest('.btn-refresh');
+    if (!btn) return;
 
-                const dataNascimento = user.data_nascimento ? new Date(user.data_nascimento).toLocaleDateString(
-                    'pt-BR') : 'Não informado';
+    const icon = btn.querySelector('i');
+    if (icon) icon.classList.add('fa-spin');
 
-                // Montar HTML do endereço
-                let enderecoHtml = '';
-                if (user.endereco) {
-                    const end = user.endereco;
-                    const enderecoCompleto = [
-                        end.rua ? `${end.rua}${end.numero ? ', ' + end.numero : ''}` : null,
-                        end.complemento,
-                        end.bairro,
-                        end.cidade && end.estado ? `${end.cidade} - ${end.estado}` : (end.cidade || end.estado),
-                        end.cep ? `CEP: ${end.cep}` : null
-                    ].filter(Boolean).join(' | ');
+    setTimeout(() => {
+        if (icon) icon.classList.remove('fa-spin');
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Atualizado!',
+                timer: 1000,
+                showConfirmButton: false
+            });
+        }
+        location.reload();
+    }, 1000);
+}
 
-                    enderecoHtml = `
+function viewUser(userId) {
+    // Buscar dados completos do usuário
+    fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`)
+        .then(res => res.json())
+        .then(response => {
+            if (!response.success) {
+                Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
+                return;
+            }
+
+            const user = response.data;
+            const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : 'N/A';
+
+            const dataNascimento = user.data_nascimento ? new Date(user.data_nascimento).toLocaleDateString(
+                'pt-BR') : 'Não informado';
+
+            // Montar HTML do endereço
+            let enderecoHtml = '';
+            if (user.endereco) {
+                const end = user.endereco;
+                const enderecoCompleto = [
+                    end.rua ? `${end.rua}${end.numero ? ', ' + end.numero : ''}` : null,
+                    end.complemento,
+                    end.bairro,
+                    end.cidade && end.estado ? `${end.cidade} - ${end.estado}` : (end.cidade || end.estado),
+                    end.cep ? `CEP: ${end.cep}` : null
+                ].filter(Boolean).join(' | ');
+
+                enderecoHtml = `
                         <div class="detail-section">
                             <h4><i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i> Endereço</h4>
                             ${end.rua ? `<div class="detail-row">
@@ -423,8 +423,8 @@
                             </div>` : ''}
                         </div>
                     `;
-                } else {
-                    enderecoHtml = `
+            } else {
+                enderecoHtml = `
                         <div class="detail-section">
                             <h4><i class="fas fa-map-marker-alt" style="color: #94a3b8;"></i> Endereço</h4>
                             <p style="color: var(--color-text-muted); font-size: 14px;">
@@ -432,34 +432,34 @@
                             </p>
                         </div>
                     `;
-                }
+            }
 
-                // Montar HTML da assinatura
-                let subscriptionHtml = '';
-                if (user.subscription) {
-                    const expiresAt = user.subscription.renova_em ? new Date(user.subscription.renova_em)
-                        .toLocaleDateString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : 'N/A';
+            // Montar HTML da assinatura
+            let subscriptionHtml = '';
+            if (user.subscription) {
+                const expiresAt = user.subscription.renova_em ? new Date(user.subscription.renova_em)
+                    .toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : 'N/A';
 
-                    const statusClass = user.subscription.status === 'active' ? 'success' : 'warning';
-                    const statusText = user.subscription.status === 'active' ? 'Ativa' : (user.subscription.status ===
-                        'canceled' ? 'Cancelada' : user.subscription.status);
+                const statusClass = user.subscription.status === 'active' ? 'success' : 'warning';
+                const statusText = user.subscription.status === 'active' ? 'Ativa' : (user.subscription.status ===
+                    'canceled' ? 'Cancelada' : user.subscription.status);
 
-                    // Nome do plano - usar plano_nome ou mapear o ID
-                    const planoNome = user.subscription.plano_nome ||
-                        (user.subscription.plano_id == 1 ? 'Free' :
-                            (user.subscription.plano_id == 2 ? 'Pro' :
-                                'Plano ' + user.subscription.plano_id));
+                // Nome do plano - usar plano_nome ou mapear o ID
+                const planoNome = user.subscription.plano_nome ||
+                    (user.subscription.plano_id == 1 ? 'Free' :
+                        (user.subscription.plano_id == 2 ? 'Pro' :
+                            'Plano ' + user.subscription.plano_id));
 
-                    // Badge do plano
-                    const planoBadgeClass = user.subscription.plano_id == 2 ? 'badge-pro' : 'badge-free';
+                // Badge do plano
+                const planoBadgeClass = user.subscription.plano_id == 2 ? 'badge-pro' : 'badge-free';
 
-                    subscriptionHtml = `
+                subscriptionHtml = `
                         <div class="detail-section">
                             <h4><i class="fas fa-crown" style="color: #f59e0b;"></i> Assinatura</h4>
                             <div class="detail-row">
@@ -480,8 +480,8 @@
                             </div>
                         </div>
                     `;
-                } else {
-                    subscriptionHtml = `
+            } else {
+                subscriptionHtml = `
                         <div class="detail-section">
                             <h4><i class="fas fa-crown" style="color: #94a3b8;"></i> Assinatura</h4>
                             <p style="color: var(--color-text-muted); font-size: 14px;">
@@ -489,11 +489,11 @@
                             </p>
                         </div>
                     `;
-                }
+            }
 
-                Swal.fire({
-                    title: `<i class="fas fa-user-circle"></i> Detalhes do Usuário`,
-                    html: `
+            Swal.fire({
+                title: `<i class="fas fa-user-circle"></i> Detalhes do Usuário`,
+                html: `
                         <div class="user-details-modal">
                             <div class="user-header-info">
                                 <div class="user-avatar-large">${(user.nome || 'U')[0].toUpperCase()}</div>
@@ -532,52 +532,52 @@
                             ${subscriptionHtml}
                         </div>
                     `,
-                    customClass: {
-                        popup: 'sysadmin-swal user-details-popup'
-                    },
-                    showCloseButton: true,
-                    showConfirmButton: false,
-                    width: '600px'
-                });
-            })
-            .catch(err => {
-                console.error('Erro ao buscar usuário:', err);
-                Swal.fire('Erro', 'Erro ao buscar dados do usuário', 'error');
+                customClass: {
+                    popup: 'sysadmin-swal user-details-popup'
+                },
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: '600px'
             });
-    }
-
-    function editUser(userId) {
-        // Fechar qualquer modal aberto antes de abrir novo
-        Swal.close();
-
-        // Mostrar loading
-        Swal.fire({
-            title: 'Carregando...',
-            text: 'Buscando dados do usuário',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+        })
+        .catch(err => {
+            console.error('Erro ao buscar usuário:', err);
+            Swal.fire('Erro', 'Erro ao buscar dados do usuário', 'error');
         });
+}
 
-        // Buscar dados do usuário
-        fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`)
-            .then(res => res.json())
-            .then(response => {
-                // Fechar loading
-                Swal.close();
+function editUser(userId) {
+    // Fechar qualquer modal aberto antes de abrir novo
+    Swal.close();
 
-                if (!response.success) {
-                    Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
-                    return;
-                }
+    // Mostrar loading
+    Swal.fire({
+        title: 'Carregando...',
+        text: 'Buscando dados do usuário',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
 
-                const user = response.data;
+    // Buscar dados do usuário
+    fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`)
+        .then(res => res.json())
+        .then(response => {
+            // Fechar loading
+            Swal.close();
 
-                // Criar HTML do formulário
-                const formHtml = `
+            if (!response.success) {
+                Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
+                return;
+            }
+
+            const user = response.data;
+
+            // Criar HTML do formulário
+            const formHtml = `
                 <div style="text-align: left;">
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
@@ -628,169 +628,169 @@
                 </div>
             `;
 
-                // Abrir modal de edição
-                Swal.fire({
-                    title: '<i class="fas fa-user-edit"></i> Editar Usuário',
-                    html: formHtml,
-                    customClass: {
-                        popup: 'sysadmin-swal'
-                    },
-                    showCancelButton: true,
-                    confirmButtonText: '<i class="fas fa-save"></i> Salvar',
-                    cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-                    confirmButtonColor: '#10b981',
-                    cancelButtonColor: '#94a3b8',
-                    width: '500px',
-                    focusConfirm: false,
-                    didOpen: () => {
-                        // Focar no campo nome após abrir
-                        const nomeInput = document.getElementById('editNome');
-                        if (nomeInput) nomeInput.focus();
-                    },
-                    preConfirm: () => {
-                        const nome = document.getElementById('editNome')?.value?.trim() || '';
-                        const email = document.getElementById('editEmail')?.value?.trim() || '';
-                        const senha = document.getElementById('editSenha')?.value || '';
-                        const is_admin = document.getElementById('editIsAdmin')?.value || '0';
-
-                        if (!nome) {
-                            Swal.showValidationMessage('Nome é obrigatório');
-                            return false;
-                        }
-                        if (!email) {
-                            Swal.showValidationMessage('Email é obrigatório');
-                            return false;
-                        }
-                        if (senha && senha.length < 6) {
-                            Swal.showValidationMessage('Senha deve ter pelo menos 6 caracteres');
-                            return false;
-                        }
-
-                        return {
-                            nome,
-                            email,
-                            senha,
-                            is_admin: parseInt(is_admin)
-                        };
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed && result.value) {
-                        const data = result.value;
-
-                        // Preparar payload
-                        const payload = {
-                            nome: data.nome,
-                            email: data.email,
-                            is_admin: data.is_admin
-                        };
-
-                        if (data.senha) {
-                            payload.senha = data.senha;
-                        }
-
-                        // Mostrar loading enquanto salva
-                        Swal.fire({
-                            title: 'Salvando...',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
-                        // Salvar alterações
-                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
-                            'content');
-                        fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken
-                                },
-                                body: JSON.stringify(payload)
-                            })
-                            .then(res => res.json())
-                            .then(saveResponse => {
-                                if (saveResponse.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Sucesso!',
-                                        text: saveResponse.message ||
-                                            'Usuário atualizado com sucesso',
-                                        timer: 2000,
-                                        showConfirmButton: false
-                                    });
-                                    // Recarregar lista de usuários
-                                    fetchUsers(currentPage);
-                                } else {
-                                    Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário',
-                                        'error');
-                                }
-                            })
-                            .catch(err => {
-                                console.error('Erro ao salvar:', err);
-                                Swal.fire('Erro', 'Erro ao salvar alterações', 'error');
-                            });
-                    }
-                });
-            })
-            .catch(err => {
-                console.error('Erro ao buscar usuário:', err);
-                Swal.fire('Erro', 'Erro ao buscar dados do usuário', 'error');
-            });
-    }
-
-    function deleteUser(userId) {
-        if (window.Swal) {
+            // Abrir modal de edição
             Swal.fire({
-                title: 'Excluir Usuario?',
-                text: 'Esta acao nao podera ser desfeita!',
-                icon: 'warning',
+                title: '<i class="fas fa-user-edit"></i> Editar Usuário',
+                html: formHtml,
+                customClass: {
+                    popup: 'sysadmin-swal'
+                },
                 showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sim, excluir!',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: '<i class="fas fa-save"></i> Salvar',
+                cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#94a3b8',
+                width: '500px',
+                focusConfirm: false,
+                didOpen: () => {
+                    // Focar no campo nome após abrir
+                    const nomeInput = document.getElementById('editNome');
+                    if (nomeInput) nomeInput.focus();
+                },
+                preConfirm: () => {
+                    const nome = document.getElementById('editNome')?.value?.trim() || '';
+                    const email = document.getElementById('editEmail')?.value?.trim() || '';
+                    const senha = document.getElementById('editSenha')?.value || '';
+                    const is_admin = document.getElementById('editIsAdmin')?.value || '0';
+
+                    if (!nome) {
+                        Swal.showValidationMessage('Nome é obrigatório');
+                        return false;
+                    }
+                    if (!email) {
+                        Swal.showValidationMessage('Email é obrigatório');
+                        return false;
+                    }
+                    if (senha && senha.length < 6) {
+                        Swal.showValidationMessage('Senha deve ter pelo menos 6 caracteres');
+                        return false;
+                    }
+
+                    return {
+                        nome,
+                        email,
+                        senha,
+                        is_admin: parseInt(is_admin)
+                    };
+                }
             }).then((result) => {
-                if (result.isConfirmed) {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (result.isConfirmed && result.value) {
+                    const data = result.value;
+
+                    // Preparar payload
+                    const payload = {
+                        nome: data.nome,
+                        email: data.email,
+                        is_admin: data.is_admin
+                    };
+
+                    if (data.senha) {
+                        payload.senha = data.senha;
+                    }
+
+                    // Mostrar loading enquanto salva
+                    Swal.fire({
+                        title: 'Salvando...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Salvar alterações
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                        'content');
                     fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`, {
-                            method: 'DELETE',
+                            method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': csrfToken
-                            }
+                            },
+                            body: JSON.stringify(payload)
                         })
                         .then(res => res.json())
-                        .then(response => {
-                            if (response.success) {
+                        .then(saveResponse => {
+                            if (saveResponse.success) {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Deletado!',
-                                    text: response.message || 'Usuário removido com sucesso.',
+                                    title: 'Sucesso!',
+                                    text: saveResponse.message ||
+                                        'Usuário atualizado com sucesso',
                                     timer: 2000,
                                     showConfirmButton: false
                                 });
                                 // Recarregar lista de usuários
                                 fetchUsers(currentPage);
                             } else {
-                                Swal.fire('Erro', response.message || 'Erro ao excluir usuário', 'error');
+                                Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário',
+                                    'error');
                             }
                         })
                         .catch(err => {
-                            console.error('Erro ao excluir:', err);
-                            Swal.fire('Erro', 'Erro ao excluir usuário', 'error');
+                            console.error('Erro ao salvar:', err);
+                            Swal.fire('Erro', 'Erro ao salvar alterações', 'error');
                         });
                 }
             });
-        }
-    }
+        })
+        .catch(err => {
+            console.error('Erro ao buscar usuário:', err);
+            Swal.fire('Erro', 'Erro ao buscar dados do usuário', 'error');
+        });
+}
 
-    function openGrantAccessModal() {
+function deleteUser(userId) {
+    if (window.Swal) {
         Swal.fire({
-            title: '<i class="fas fa-crown"></i> Liberar Acesso PRO',
-            html: `
+            title: 'Excluir Usuario?',
+            text: 'Esta acao nao podera ser desfeita!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sim, excluir!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                fetch(`<?= BASE_URL ?>api/sysadmin/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deletado!',
+                                text: response.message || 'Usuário removido com sucesso.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            // Recarregar lista de usuários
+                            fetchUsers(currentPage);
+                        } else {
+                            Swal.fire('Erro', response.message || 'Erro ao excluir usuário', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Erro ao excluir:', err);
+                        Swal.fire('Erro', 'Erro ao excluir usuário', 'error');
+                    });
+            }
+        });
+    }
+}
+
+function openGrantAccessModal() {
+    Swal.fire({
+        title: '<i class="fas fa-crown"></i> Liberar Acesso PRO',
+        html: `
             <div style="text-align: left;">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
@@ -826,110 +826,110 @@
                 </div>
             </div>
         `,
-            customClass: {
-                popup: 'sysadmin-swal'
-            },
-            showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-check"></i> Liberar Acesso',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-            confirmButtonColor: '#f97316',
-            cancelButtonColor: '#94a3b8',
-            width: '500px',
-            didOpen: () => {
-                const periodSelect = document.getElementById('grantPeriod');
-                const customDiv = document.getElementById('customDaysDiv');
+        customClass: {
+            popup: 'sysadmin-swal'
+        },
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-check"></i> Liberar Acesso',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#94a3b8',
+        width: '500px',
+        didOpen: () => {
+            const periodSelect = document.getElementById('grantPeriod');
+            const customDiv = document.getElementById('customDaysDiv');
 
-                periodSelect.addEventListener('change', function() {
-                    customDiv.style.display = this.value === 'custom' ? 'block' : 'none';
-                });
-            },
-            preConfirm: () => {
-                const userId = document.getElementById('grantUserId').value.trim();
-                const period = document.getElementById('grantPeriod').value;
-                const customDays = document.getElementById('customDays').value;
+            periodSelect.addEventListener('change', function() {
+                customDiv.style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+        },
+        preConfirm: () => {
+            const userId = document.getElementById('grantUserId').value.trim();
+            const period = document.getElementById('grantPeriod').value;
+            const customDays = document.getElementById('customDays').value;
 
-                if (!userId) {
-                    Swal.showValidationMessage('Por favor, informe o email ou ID do usuário');
+            if (!userId) {
+                Swal.showValidationMessage('Por favor, informe o email ou ID do usuário');
+                return false;
+            }
+
+            let days = period;
+            if (period === 'custom') {
+                if (!customDays || customDays < 1) {
+                    Swal.showValidationMessage('Por favor, informe um número válido de dias');
                     return false;
                 }
-
-                let days = period;
-                if (period === 'custom') {
-                    if (!customDays || customDays < 1) {
-                        Swal.showValidationMessage('Por favor, informe um número válido de dias');
-                        return false;
-                    }
-                    days = customDays;
-                }
-
-                return {
-                    userId,
-                    days
-                };
+                days = customDays;
             }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                grantProAccess(result.value.userId, result.value.days);
-            }
+
+            return {
+                userId,
+                days
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            grantProAccess(result.value.userId, result.value.days);
+        }
+    });
+}
+
+async function grantProAccess(userId, days) {
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        const response = await fetch('<?= BASE_URL ?>api/sysadmin/grant-access', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                userId,
+                days
+            })
         });
-    }
 
-    async function grantProAccess(userId, days) {
-        try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const data = await response.json();
 
-            const response = await fetch('<?= BASE_URL ?>api/sysadmin/grant-access', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    userId,
-                    days
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Acesso Liberado!',
-                    html: `
+        if (response.ok && data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Acesso Liberado!',
+                html: `
                     <p><strong>${data.data.userName}</strong> agora tem acesso PRO por <strong>${days} dias</strong>.</p>
                     <p style="color: #64748b; font-size: 14px; margin-top: 10px;">
                         Válido até: <strong>${data.data.expiresAt}</strong>
                     </p>
                 `,
-                    confirmButtonColor: '#f97316'
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro',
-                    text: data.message || 'Não foi possível liberar o acesso',
-                    confirmButtonColor: '#f97316'
-                });
-            }
-        } catch (error) {
-            console.error('Erro:', error);
+                confirmButtonColor: '#f97316'
+            }).then(() => {
+                location.reload();
+            });
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: 'Ocorreu um erro ao processar a solicitação',
+                text: data.message || 'Não foi possível liberar o acesso',
                 confirmButtonColor: '#f97316'
             });
         }
-    }
-
-    function openRevokeAccessModal() {
+    } catch (error) {
+        console.error('Erro:', error);
         Swal.fire({
-            title: '<i class="fas fa-ban"></i> Remover Acesso PRO',
-            html: `
+            icon: 'error',
+            title: 'Erro',
+            text: 'Ocorreu um erro ao processar a solicitação',
+            confirmButtonColor: '#f97316'
+        });
+    }
+}
+
+function openRevokeAccessModal() {
+    Swal.fire({
+        title: '<i class="fas fa-ban"></i> Remover Acesso PRO',
+        html: `
             <div style="text-align: left;">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
@@ -947,119 +947,119 @@
                 </div>
             </div>
         `,
-            customClass: {
-                popup: 'sysadmin-swal'
+        customClass: {
+            popup: 'sysadmin-swal'
+        },
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-ban"></i> Remover Acesso',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#94a3b8',
+        width: '500px',
+        preConfirm: () => {
+            const userId = document.getElementById('revokeUserId').value.trim();
+
+            if (!userId) {
+                Swal.showValidationMessage('Por favor, informe o email ou ID do usuário');
+                return false;
+            }
+
+            return {
+                userId
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            revokeProAccess(result.value.userId);
+        }
+    });
+}
+
+async function revokeProAccess(userId) {
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        const response = await fetch('<?= BASE_URL ?>api/sysadmin/revoke-access', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             },
-            showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-ban"></i> Remover Acesso',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            width: '500px',
-            preConfirm: () => {
-                const userId = document.getElementById('revokeUserId').value.trim();
-
-                if (!userId) {
-                    Swal.showValidationMessage('Por favor, informe o email ou ID do usuário');
-                    return false;
-                }
-
-                return {
-                    userId
-                };
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                revokeProAccess(result.value.userId);
-            }
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                userId
+            })
         });
-    }
 
-    async function revokeProAccess(userId) {
-        try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const data = await response.json();
 
-            const response = await fetch('<?= BASE_URL ?>api/sysadmin/revoke-access', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    userId
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Acesso Removido!',
-                    html: `
+        if (response.ok && data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Acesso Removido!',
+                html: `
                     <p>O acesso PRO de <strong>${data.data.userName}</strong> foi removido com sucesso.</p>
                     <p style="color: #64748b; font-size: 14px; margin-top: 10px;">
                         ${data.data.subscriptionsCanceled} assinatura(s) cancelada(s).
                     </p>
                 `,
-                    confirmButtonColor: '#ef4444'
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro',
-                    text: data.message || 'Não foi possível remover o acesso',
-                    confirmButtonColor: '#ef4444'
-                });
-            }
-        } catch (error) {
-            console.error('Erro:', error);
+                confirmButtonColor: '#ef4444'
+            }).then(() => {
+                location.reload();
+            });
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: 'Ocorreu um erro ao processar a solicitação',
+                text: data.message || 'Não foi possível remover o acesso',
                 confirmButtonColor: '#ef4444'
             });
         }
+    } catch (error) {
+        console.error('Erro:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro',
+            text: 'Ocorreu um erro ao processar a solicitação',
+            confirmButtonColor: '#ef4444'
+        });
     }
+}
 
-    // Modern user table rendering
-    const userTableSection = document.getElementById('userTableSection');
-    const userFiltersForm = document.getElementById('userFilters');
-    let currentPage = 1;
+// Modern user table rendering
+const userTableSection = document.getElementById('userTableSection');
+const userFiltersForm = document.getElementById('userFilters');
+let currentPage = 1;
 
-    function fetchUsers(page = 1) {
-        const formData = new FormData(userFiltersForm);
-        const params = new URLSearchParams(formData);
-        params.set('page', page);
-        fetch(`<?= BASE_URL ?>api/sysadmin/users?${params.toString()}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) {
-                    userTableSection.innerHTML = `<div class='error-msg'>Erro ao buscar usuários</div>`;
-                    return;
-                }
-                renderUserTable(data.data.users, data.data.total, data.data.page, data.data.perPage);
-            })
-            .catch(err => {
-                console.error('Erro ao buscar usuários:', err);
-                userTableSection.innerHTML = `<div class='error-msg'>Erro ao carregar usuários</div>`;
-            });
-    }
+function fetchUsers(page = 1) {
+    const formData = new FormData(userFiltersForm);
+    const params = new URLSearchParams(formData);
+    params.set('page', page);
+    fetch(`<?= BASE_URL ?>api/sysadmin/users?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                userTableSection.innerHTML = `<div class='error-msg'>Erro ao buscar usuários</div>`;
+                return;
+            }
+            renderUserTable(data.data.users, data.data.total, data.data.page, data.data.perPage);
+        })
+        .catch(err => {
+            console.error('Erro ao buscar usuários:', err);
+            userTableSection.innerHTML = `<div class='error-msg'>Erro ao carregar usuários</div>`;
+        });
+}
 
-    function renderUserTable(users, total, page, perPage) {
-        let html = `<div class='modern-table-card'><div class='table-responsive'><table class='modern-table'>`;
+function renderUserTable(users, total, page, perPage) {
+    let html = `<div class='modern-table-card'><div class='table-responsive'><table class='modern-table'>`;
+    html +=
+        `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
+    if (users.length === 0) {
         html +=
-            `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
-        if (users.length === 0) {
-            html +=
-                `<tr><td colspan='6' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
-        } else {
-            users.forEach(u => {
-                html += `<tr>
+            `<tr><td colspan='6' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
+    } else {
+        users.forEach(u => {
+            html += `<tr>
                     <td><span class='user-id'>#${u.id}</span></td>
                     <td><div class='user-info'><div class='user-avatar'>${(u.nome||'U')[0].toUpperCase()}</div><span class='user-name'>${u.nome||'-'}</span></div></td>
                     <td><span class='user-email'>${u.email||'-'}</span></td>
@@ -1067,339 +1067,338 @@
                     <td><span class='user-date'>${u.created_at?formatDate(u.created_at):'-'}</span></td>
                     <td class='text-center'><div class='action-buttons'><button class='btn-action view' title='Ver detalhes' onclick='viewUser(${u.id})'><i class='fas fa-eye'></i></button><button class='btn-action edit' title='Editar usuário' onclick='editUser(${u.id})'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Excluir usuário' onclick='deleteUser(${u.id})'><i class='fas fa-trash'></i></button></div></td>
                 </tr>`;
-            });
-        }
-        html += `</tbody></table></div>`;
-        html += renderPagination(total, page, perPage);
-        html += `</div>`;
-        userTableSection.innerHTML = html;
+        });
     }
+    html += `</tbody></table></div>`;
+    html += renderPagination(total, page, perPage);
+    html += `</div>`;
+    userTableSection.innerHTML = html;
+}
 
-    function renderPagination(total, page, perPage) {
-        const totalPages = Math.ceil(total / perPage);
-        const startItem = ((page - 1) * perPage) + 1;
-        const endItem = Math.min(page * perPage, total);
+function renderPagination(total, page, perPage) {
+    const totalPages = Math.ceil(total / perPage);
+    const startItem = ((page - 1) * perPage) + 1;
+    const endItem = Math.min(page * perPage, total);
 
-        let html = `<div class='pagination-wrapper'>`;
+    let html = `<div class='pagination-wrapper'>`;
 
-        // Info de registros
-        html += `<div class='pagination-info'>
+    // Info de registros
+    html += `<div class='pagination-info'>
             <span>Mostrando <strong>${startItem}</strong> - <strong>${endItem}</strong> de <strong>${total}</strong> usuários</span>
         </div>`;
 
-        // Controles de navegação
-        html += `<div class='pagination-controls'>`;
-        html +=
-            `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(1)' title='Primeira página'><i class='fas fa-angle-double-left'></i></button>`;
-        html +=
-            `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(${page-1})' title='Anterior'><i class='fas fa-angle-left'></i></button>`;
+    // Controles de navegação
+    html += `<div class='pagination-controls'>`;
+    html +=
+        `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(1)' title='Primeira página'><i class='fas fa-angle-double-left'></i></button>`;
+    html +=
+        `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(${page-1})' title='Anterior'><i class='fas fa-angle-left'></i></button>`;
 
-        // Números das páginas
-        for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
-            html += `<button class='pagination-btn ${i===page?'active':''}' onclick='goToPage(${i})'>${i}</button>`;
-        }
-
-        html +=
-            `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${page+1})' title='Próxima'><i class='fas fa-angle-right'></i></button>`;
-        html +=
-            `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${totalPages})' title='Última página'><i class='fas fa-angle-double-right'></i></button>`;
-        html += `</div>`;
-
-        html += `</div>`;
-        return html;
+    // Números das páginas
+    for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+        html += `<button class='pagination-btn ${i===page?'active':''}' onclick='goToPage(${i})'>${i}</button>`;
     }
 
-    function goToPage(p) {
-        currentPage = p;
-        fetchUsers(currentPage);
-    }
+    html +=
+        `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${page+1})' title='Próxima'><i class='fas fa-angle-right'></i></button>`;
+    html +=
+        `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${totalPages})' title='Última página'><i class='fas fa-angle-double-right'></i></button>`;
+    html += `</div>`;
 
-    function formatDate(dt) {
-        const d = new Date(dt);
-        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR').slice(0, 5);
-    }
+    html += `</div>`;
+    return html;
+}
 
-    userFiltersForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        currentPage = 1;
-        fetchUsers(currentPage);
-    });
+function goToPage(p) {
+    currentPage = p;
+    fetchUsers(currentPage);
+}
 
-    window.goToPage = goToPage;
-    window.viewUser = viewUser;
-    window.editUser = editUser;
-    window.deleteUser = deleteUser;
+function formatDate(dt) {
+    const d = new Date(dt);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR').slice(0, 5);
+}
 
-    // Inicializa tabela ao carregar
-    fetchUsers(1);
+userFiltersForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    currentPage = 1;
+    fetchUsers(currentPage);
+});
 
-    // ============================================
-    // ESTATÍSTICAS E GRÁFICOS
-    // ============================================
+window.goToPage = goToPage;
+window.viewUser = viewUser;
+window.editUser = editUser;
+window.deleteUser = deleteUser;
 
-    let usersByDayChart = null;
-    let userDistributionChart = null;
-    let subscriptionsByGatewayChart = null;
+// Inicializa tabela ao carregar
+fetchUsers(1);
 
-    function loadStats() {
-        const refreshBtn = document.querySelector('.btn-refresh-stats i');
-        if (refreshBtn) refreshBtn.classList.add('fa-spin');
+// ============================================
+// ESTATÍSTICAS E GRÁFICOS
+// ============================================
 
-        fetch(`<?= BASE_URL ?>api/sysadmin/stats`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-                },
-                credentials: 'include'
-            })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                return res.json();
-            })
-            .then(response => {
-                if (refreshBtn) refreshBtn.classList.remove('fa-spin');
+let usersByDayChart = null;
+let userDistributionChart = null;
+let subscriptionsByGatewayChart = null;
 
-                console.log('📊 Estatísticas recebidas:', response);
+function loadStats() {
+    const refreshBtn = document.querySelector('.btn-refresh-stats i');
+    if (refreshBtn) refreshBtn.classList.add('fa-spin');
 
-                if (!response.success) {
-                    console.error('Erro ao carregar estatísticas:', response.message);
-                    showStatsError(response.message || 'Erro ao carregar estatísticas');
-                    return;
-                }
+    fetch(`<?= BASE_URL ?>api/sysadmin/stats`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            credentials: 'include'
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then(response => {
+            if (refreshBtn) refreshBtn.classList.remove('fa-spin');
 
-                const data = response.data;
-                if (!data || !data.overview || !data.charts) {
-                    console.error('Dados de estatísticas inválidos:', data);
-                    showStatsError('Dados de estatísticas inválidos');
-                    return;
-                }
 
-                updateStatsOverview(data);
-                renderCharts(data.charts);
-            })
-            .catch(err => {
-                if (refreshBtn) refreshBtn.classList.remove('fa-spin');
-                console.error('Erro ao carregar estatísticas:', err);
-                showStatsError('Erro ao conectar com o servidor');
+            if (!response.success) {
+                console.error('Erro ao carregar estatísticas:', response.message);
+                showStatsError(response.message || 'Erro ao carregar estatísticas');
+                return;
+            }
+
+            const data = response.data;
+            if (!data || !data.overview || !data.charts) {
+                console.error('Dados de estatísticas inválidos:', data);
+                showStatsError('Dados de estatísticas inválidos');
+                return;
+            }
+
+            updateStatsOverview(data);
+            renderCharts(data.charts);
+        })
+        .catch(err => {
+            if (refreshBtn) refreshBtn.classList.remove('fa-spin');
+            console.error('Erro ao carregar estatísticas:', err);
+            showStatsError('Erro ao conectar com o servidor');
+        });
+}
+
+function showStatsError(message) {
+    // Exibir valores padrão em caso de erro
+    document.getElementById('statProUsers').textContent = 'Erro';
+    document.getElementById('statFreeUsers').textContent = 'Erro';
+    document.getElementById('statConversionRate').textContent = '-';
+    document.getElementById('statGrowthRate').textContent = '-';
+    document.getElementById('statNewToday').textContent = '-';
+    document.getElementById('statNewWeek').textContent = '-';
+    document.getElementById('statNewMonth').textContent = '-';
+
+    console.error('Stats Error:', message);
+}
+
+function updateStatsOverview(data) {
+    // Overview cards
+    document.getElementById('statProUsers').textContent = data.overview.proUsers.toLocaleString('pt-BR');
+    document.getElementById('statFreeUsers').textContent = data.overview.freeUsers.toLocaleString('pt-BR');
+    document.getElementById('statConversionRate').textContent = data.overview.conversionRate + '%';
+
+    const growthRate = data.newUsers.growthRate;
+    const growthEl = document.getElementById('statGrowthRate');
+    growthEl.textContent = (growthRate >= 0 ? '+' : '') + growthRate + '%';
+    growthEl.classList.toggle('positive', growthRate >= 0);
+    growthEl.classList.toggle('negative', growthRate < 0);
+
+    // New users summary
+    document.getElementById('statNewToday').textContent = data.newUsers.today.toLocaleString('pt-BR');
+    document.getElementById('statNewWeek').textContent = data.newUsers.thisWeek.toLocaleString('pt-BR');
+    document.getElementById('statNewMonth').textContent = data.newUsers.thisMonth.toLocaleString('pt-BR');
+}
+
+function renderCharts(charts) {
+    const chartColors = {
+        primary: '#f97316',
+        secondary: '#3b82f6',
+        success: '#10b981',
+        warning: '#f59e0b',
+        danger: '#ef4444',
+        purple: '#8b5cf6',
+        pink: '#ec4899',
+        gray: '#6b7280'
+    };
+
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDarkMode ? '#e2e8f0' : '#1e293b';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+    // Line Chart - Users by Day
+    const usersByDayCtx = document.getElementById('usersByDayChart')?.getContext('2d');
+    if (usersByDayCtx) {
+        if (usersByDayChart) usersByDayChart.destroy();
+
+        const labels = Object.keys(charts.usersByDay).map(date => {
+            const d = new Date(date);
+            return d.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit'
             });
-    }
+        });
+        const values = Object.values(charts.usersByDay);
 
-    function showStatsError(message) {
-        // Exibir valores padrão em caso de erro
-        document.getElementById('statProUsers').textContent = 'Erro';
-        document.getElementById('statFreeUsers').textContent = 'Erro';
-        document.getElementById('statConversionRate').textContent = '-';
-        document.getElementById('statGrowthRate').textContent = '-';
-        document.getElementById('statNewToday').textContent = '-';
-        document.getElementById('statNewWeek').textContent = '-';
-        document.getElementById('statNewMonth').textContent = '-';
-
-        console.error('Stats Error:', message);
-    }
-
-    function updateStatsOverview(data) {
-        // Overview cards
-        document.getElementById('statProUsers').textContent = data.overview.proUsers.toLocaleString('pt-BR');
-        document.getElementById('statFreeUsers').textContent = data.overview.freeUsers.toLocaleString('pt-BR');
-        document.getElementById('statConversionRate').textContent = data.overview.conversionRate + '%';
-
-        const growthRate = data.newUsers.growthRate;
-        const growthEl = document.getElementById('statGrowthRate');
-        growthEl.textContent = (growthRate >= 0 ? '+' : '') + growthRate + '%';
-        growthEl.classList.toggle('positive', growthRate >= 0);
-        growthEl.classList.toggle('negative', growthRate < 0);
-
-        // New users summary
-        document.getElementById('statNewToday').textContent = data.newUsers.today.toLocaleString('pt-BR');
-        document.getElementById('statNewWeek').textContent = data.newUsers.thisWeek.toLocaleString('pt-BR');
-        document.getElementById('statNewMonth').textContent = data.newUsers.thisMonth.toLocaleString('pt-BR');
-    }
-
-    function renderCharts(charts) {
-        const chartColors = {
-            primary: '#f97316',
-            secondary: '#3b82f6',
-            success: '#10b981',
-            warning: '#f59e0b',
-            danger: '#ef4444',
-            purple: '#8b5cf6',
-            pink: '#ec4899',
-            gray: '#6b7280'
-        };
-
-        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDarkMode ? '#e2e8f0' : '#1e293b';
-        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-
-        // Line Chart - Users by Day
-        const usersByDayCtx = document.getElementById('usersByDayChart')?.getContext('2d');
-        if (usersByDayCtx) {
-            if (usersByDayChart) usersByDayChart.destroy();
-
-            const labels = Object.keys(charts.usersByDay).map(date => {
-                const d = new Date(date);
-                return d.toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit'
-                });
-            });
-            const values = Object.values(charts.usersByDay);
-
-            usersByDayChart = new Chart(usersByDayCtx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Novos Usuários',
-                        data: values,
-                        borderColor: chartColors.primary,
-                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: chartColors.primary,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
+        usersByDayChart = new Chart(usersByDayCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Novos Usuários',
+                    data: values,
+                    borderColor: chartColors.primary,
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: chartColors.primary,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: isDarkMode ? '#1e293b' : '#fff',
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: gridColor,
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
+                scales: {
+                    x: {
+                        grid: {
+                            color: gridColor
                         },
-                        tooltip: {
-                            backgroundColor: isDarkMode ? '#1e293b' : '#fff',
-                            titleColor: textColor,
-                            bodyColor: textColor,
-                            borderColor: gridColor,
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: false
+                        ticks: {
+                            color: textColor,
+                            maxRotation: 45
                         }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: textColor,
-                                maxRotation: 45
-                            }
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: gridColor
                         },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: textColor,
-                                stepSize: 1
-                            }
+                        ticks: {
+                            color: textColor,
+                            stepSize: 1
                         }
                     }
                 }
-            });
-        }
-
-        // Pie Chart - User Distribution
-        const userDistCtx = document.getElementById('userDistributionChart')?.getContext('2d');
-        if (userDistCtx) {
-            if (userDistributionChart) userDistributionChart.destroy();
-
-            userDistributionChart = new Chart(userDistCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(charts.userDistribution),
-                    datasets: [{
-                        data: Object.values(charts.userDistribution),
-                        backgroundColor: [chartColors.primary, chartColors.gray],
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: textColor,
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        }
-                    },
-                    cutout: '60%'
-                }
-            });
-        }
-
-        // Doughnut Chart - Subscriptions by Gateway
-        const gatewayCtx = document.getElementById('subscriptionsByGatewayChart')?.getContext('2d');
-        if (gatewayCtx) {
-            if (subscriptionsByGatewayChart) subscriptionsByGatewayChart.destroy();
-
-            const gatewayLabels = Object.keys(charts.subscriptionsByGateway);
-            const gatewayValues = Object.values(charts.subscriptionsByGateway);
-
-            if (gatewayLabels.length === 0) {
-                gatewayLabels.push('Nenhum');
-                gatewayValues.push(0);
             }
+        });
+    }
 
-            const gatewayColors = gatewayLabels.map((label, i) => {
-                const colors = [chartColors.success, chartColors.secondary, chartColors.purple, chartColors.pink,
-                    chartColors.warning
-                ];
-                return colors[i % colors.length];
-            });
+    // Pie Chart - User Distribution
+    const userDistCtx = document.getElementById('userDistributionChart')?.getContext('2d');
+    if (userDistCtx) {
+        if (userDistributionChart) userDistributionChart.destroy();
 
-            subscriptionsByGatewayChart = new Chart(gatewayCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: gatewayLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
-                    datasets: [{
-                        data: gatewayValues,
-                        backgroundColor: gatewayColors,
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: textColor,
-                                padding: 20,
-                                usePointStyle: true
-                            }
+        userDistributionChart = new Chart(userDistCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(charts.userDistribution),
+                datasets: [{
+                    data: Object.values(charts.userDistribution),
+                    backgroundColor: [chartColors.primary, chartColors.gray],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            padding: 20,
+                            usePointStyle: true
                         }
-                    },
-                    cutout: '60%'
-                }
-            });
-        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
     }
 
-    // Carregar estatísticas ao iniciar
-    if (typeof Chart !== 'undefined') {
-        loadStats();
-    } else {
-        // Carregar Chart.js se não estiver disponível
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-        script.onload = loadStats;
-        document.head.appendChild(script);
+    // Doughnut Chart - Subscriptions by Gateway
+    const gatewayCtx = document.getElementById('subscriptionsByGatewayChart')?.getContext('2d');
+    if (gatewayCtx) {
+        if (subscriptionsByGatewayChart) subscriptionsByGatewayChart.destroy();
+
+        const gatewayLabels = Object.keys(charts.subscriptionsByGateway);
+        const gatewayValues = Object.values(charts.subscriptionsByGateway);
+
+        if (gatewayLabels.length === 0) {
+            gatewayLabels.push('Nenhum');
+            gatewayValues.push(0);
+        }
+
+        const gatewayColors = gatewayLabels.map((label, i) => {
+            const colors = [chartColors.success, chartColors.secondary, chartColors.purple, chartColors.pink,
+                chartColors.warning
+            ];
+            return colors[i % colors.length];
+        });
+
+        subscriptionsByGatewayChart = new Chart(gatewayCtx, {
+            type: 'doughnut',
+            data: {
+                labels: gatewayLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                datasets: [{
+                    data: gatewayValues,
+                    backgroundColor: gatewayColors,
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
     }
+}
+
+// Carregar estatísticas ao iniciar
+if (typeof Chart !== 'undefined') {
+    loadStats();
+} else {
+    // Carregar Chart.js se não estiver disponível
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    script.onload = loadStats;
+    document.head.appendChild(script);
+}
 </script>

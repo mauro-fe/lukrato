@@ -331,6 +331,26 @@
                 <!-- Campo oculto para número de repetições (sempre indefinido) -->
                 <input type="hidden" id="lancamentoNumeroRepeticoes" name="numero_repeticoes" value="">
 
+                <!-- Forma de Pagamento (somente para agendamento) -->
+                <div class="lk-form-group" id="formaPagamentoAgendamentoGroup" style="display: none;">
+                    <label for="lancamentoFormaPagamentoAg" class="lk-label">
+                        <i class="fas fa-credit-card"></i>
+                        Forma de Pagamento
+                        <span class="lk-optional-badge">opcional</span>
+                    </label>
+                    <div class="lk-select-wrapper">
+                        <select id="lancamentoFormaPagamentoAg" name="forma_pagamento_ag" class="lk-select">
+                            <option value="">Selecione (opcional)</option>
+                            <option value="pix">📱 PIX</option>
+                            <option value="dinheiro">💵 Dinheiro</option>
+                            <option value="boleto">📄 Boleto</option>
+                            <option value="transferencia">🏦 Transferência</option>
+                            <option value="deposito">🏦 Depósito</option>
+                        </select>
+                        <i class="fas fa-chevron-down lk-select-icon"></i>
+                    </div>
+                </div>
+
                 <!-- Tempo de Aviso (somente para agendamento) -->
                 <div class="lk-form-group" id="tempoAvisoGroup" style="display: none;">
                     <label for="lancamentoTempoAviso" class="lk-label">
