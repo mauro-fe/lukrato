@@ -1746,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const numeroParcelas = document.getElementById('agNumeroParcelas');
             const parcelasInputGroup = document.getElementById('parcelasInputGroup');
             const isParcelado = record.eh_parcelado === 1 || record.eh_parcelado === true || record.eh_parcelado === '1';
-            
+
             if (ehParceladoCheckbox) {
                 ehParceladoCheckbox.checked = isParcelado;
                 if (isParcelado) {
@@ -2985,14 +2985,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function adjustParcelas(delta) {
     const input = document.getElementById('agNumeroParcelas');
     if (!input) return;
-    
+
     let value = parseInt(input.value) || 2;
     value += delta;
-    
+
     // Limites
     if (value < 2) value = 2;
     if (value > 48) value = 48;
-    
+
     input.value = value;
     updatePresetButtons(value);
 }
@@ -3004,7 +3004,7 @@ function adjustParcelas(delta) {
 function setParcelas(num) {
     const input = document.getElementById('agNumeroParcelas');
     if (!input) return;
-    
+
     input.value = num;
     updatePresetButtons(num);
 }
@@ -3026,7 +3026,7 @@ function updatePresetButtons(activeValue) {
 }
 
 // Adicionar listener para mudanças no input de parcelas
-document.addEventListener('input', function(e) {
+document.addEventListener('input', function (e) {
     if (e.target && e.target.id === 'agNumeroParcelas') {
         updatePresetButtons(parseInt(e.target.value) || 0);
     }

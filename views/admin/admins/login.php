@@ -17,7 +17,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
     <!-- CSRF Meta Tags para renovação automática -->
     <?= csrf_meta('login_form') ?>
-    <meta name="csrf-token-register" content="<?= htmlspecialchars(csrf_token('register_form'), ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="csrf-token-register"
+        content="<?= htmlspecialchars(csrf_token('register_form'), ENT_QUOTES, 'UTF-8') ?>">
 
     <title>Login / Cadastro - Lukrato</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
@@ -67,25 +68,17 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                 <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate>
                                     <?= csrf_input('login_form') ?>
                                     <div class="field">
-                                        <input type="email" id="email" name="email" placeholder="E-mail" required autocomplete="email">
+                                        <input type="email" id="email" name="email" placeholder="E-mail" required>
                                         <small class="field-error" id="emailError"></small>
                                     </div>
 
                                     <div class="field">
                                         <input type="password" id="password" name="password" placeholder="Senha"
-                                            required autocomplete="current-password">
+                                            required>
                                         <button type="button" class="toggle-password" data-target="password">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
                                         <small class="field-error" id="passwordError"></small>
-                                    </div>
-
-                                    <div class="remember-me">
-                                        <label class="checkbox-container">
-                                            <input type="checkbox" id="remember" name="remember" value="1">
-                                            <span class="checkmark"></span>
-                                            <span class="checkbox-label">Lembrar de mim</span>
-                                        </label>
                                     </div>
 
                                     <button type="submit" class="btn-primary">
@@ -157,8 +150,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <div class="input-with-icon">
                                             <i class="fa-solid fa-gift referral-icon"></i>
                                             <input type="text" id="referral_code" name="referral_code"
-                                                placeholder="Código de indicação (opcional)"
-                                                maxlength="8" style="text-transform: uppercase;">
+                                                placeholder="Código de indicação (opcional)" maxlength="8"
+                                                style="text-transform: uppercase;">
                                         </div>
                                         <small class="field-hint" id="referralHint"></small>
                                         <small class="field-error" id="referralError"></small>
@@ -209,25 +202,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
 
     <script>
-        // ======================
-        // LEMBRAR DE MIM - Preencher credenciais salvas
-        // ======================
-        (function initRememberMe() {
-            const savedEmail = localStorage.getItem('lk_remember_email');
-            const rememberChecked = localStorage.getItem('lk_remember_checked') === 'true';
-
-            const emailInput = document.getElementById('email');
-            const rememberCheckbox = document.getElementById('remember');
-
-            if (savedEmail && emailInput) {
-                emailInput.value = savedEmail;
-            }
-
-            if (rememberChecked && rememberCheckbox) {
-                rememberCheckbox.checked = true;
-            }
-        })();
-
         // Partículas
         function createParticles() {
             const container = document.getElementById('particles');
@@ -293,7 +267,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    referralHint.innerHTML = `<i class="fa-solid fa-check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
+                    referralHint.innerHTML =
+                        `<i class="fa-solid fa-check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
                     referralHint.className = 'field-hint valid';
                     referralError.textContent = '';
                     validatedReferralCode = code;
@@ -382,98 +357,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                 el.textContent = '';
                 el.classList.remove('show');
             });
-        }
-
-        // ======================
-        // MODAL DE VERIFICAÇÃO DE EMAIL
-        // ======================
-        async function showEmailVerificationModal(email) {
-            const result = await Swal.fire({
-                icon: 'warning',
-                title: 'Verifique seu e-mail',
-                html: `
-                    <div style="text-align: left;">
-                        <p style="margin-bottom: 16px; color: #4b5563;">
-                            Para sua segurança, precisamos confirmar que este e-mail é seu antes de liberar o acesso.
-                        </p>
-                        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
-                            <p style="font-size: 13px; color: #0369a1; margin: 0 0 4px 0;">Enviamos um link para:</p>
-                            <p style="font-weight: 600; color: #0c4a6e; margin: 0; word-break: break-all;">${email}</p>
-                        </div>
-                        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px;">
-                            <p style="font-size: 13px; color: #92400e; margin: 0 0 8px 0; font-weight: 600;">💡 Não encontrou?</p>
-                            <ul style="font-size: 13px; color: #78350f; margin: 0; padding-left: 16px;">
-                                <li>Verifique a pasta de spam</li>
-                                <li>Aguarde alguns segundos</li>
-                            </ul>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: '📧 Reenviar e-mail',
-                cancelButtonText: 'Fechar',
-                confirmButtonColor: '#e67e22',
-                cancelButtonColor: '#6b7280',
-                customClass: {
-                    popup: 'swal-wide'
-                }
-            });
-
-            if (result.isConfirmed) {
-                await resendVerificationEmail(email);
-            }
-        }
-
-        async function resendVerificationEmail(email) {
-            Swal.fire({
-                title: 'Enviando...',
-                text: 'Aguarde enquanto reenviamos o e-mail de verificação.',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            try {
-                const base = document.querySelector('meta[name="base-url"]')?.content || '<?= BASE_URL ?>';
-                const resp = await fetch(`${base}verificar-email/reenviar`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: new URLSearchParams({
-                        email
-                    })
-                });
-
-                const data = await resp.json();
-
-                if (resp.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'E-mail enviado! ✉️',
-                        html: `
-                            <p>Verifique sua caixa de entrada e clique no link para ativar sua conta.</p>
-                            <p style="font-size: 13px; color: #666; margin-top: 12px;">O link expira em 24 horas.</p>
-                        `,
-                        confirmButtonColor: '#27ae60'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Não foi possível enviar',
-                        text: data.message || 'Tente novamente em alguns instantes.',
-                        confirmButtonColor: '#e74c3c'
-                    });
-                }
-            } catch (err) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro de conexão',
-                    text: 'Não foi possível conectar ao servidor. Tente novamente.',
-                    confirmButtonColor: '#e74c3c'
-                });
-            }
         }
 
         // ======================
@@ -632,15 +515,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     const success = data && (data.success === true || data.status === 'success');
 
                     if (!response.ok || !success) {
-                        // Verifica se é erro de email não verificado
-                        if (data && data.errors && data.errors.email_not_verified) {
-                            const userEmail = data.errors.user_email || emailVal;
-                            showEmailVerificationModal(userEmail);
-                            btn.disabled = false;
-                            btn.innerHTML = originalBtnHtml;
-                            return;
-                        }
-
                         // Mensagem especial para erro de CSRF após retry
                         let message;
                         if (isCsrfError(response, data)) {
@@ -658,9 +532,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                             generalError.classList.add('show');
                         }
 
-                        // Não exibe erro de campo se for erro de email não verificado
-                        // (já foi tratado acima com o modal)
-                        if (data && data.errors && typeof data.errors === 'object' && !data.errors.email_not_verified) {
+                        // Exibir erros de campos, se a API mandar
+                        if (data && data.errors && typeof data.errors === 'object') {
                             if (data.errors.email) {
                                 const msg = Array.isArray(data.errors.email) ?
                                     data.errors.email[0] :
@@ -684,16 +557,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     if (generalSuccess) {
                         generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
                         generalSuccess.classList.add('show');
-                    }
-
-                    // Salvar ou limpar credenciais baseado no checkbox "Lembrar de mim"
-                    const rememberCheckbox = document.getElementById('remember');
-                    if (rememberCheckbox && rememberCheckbox.checked) {
-                        localStorage.setItem('lk_remember_email', emailVal);
-                        localStorage.setItem('lk_remember_checked', 'true');
-                    } else {
-                        localStorage.removeItem('lk_remember_email');
-                        localStorage.removeItem('lk_remember_checked');
                     }
 
                     const redirectUrl = (data && data.redirect) ? data.redirect : '<?= BASE_URL ?>dashboard';
@@ -839,7 +702,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     const message = err.message || 'Erro ao criar conta.';
 
                     // Se a mensagem indicar CSRF expirado, recarrega a página
-                    if (message.toLowerCase().includes('sessão expirada') || message.toLowerCase().includes('csrf')) {
+                    if (message.toLowerCase().includes('sessão expirada') || message.toLowerCase().includes(
+                            'csrf')) {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Sessão expirada',
