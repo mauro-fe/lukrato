@@ -146,7 +146,7 @@
                 </div>
 
                 <!-- Badge flutuante inferior -->
-                <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4" aria-hidden="true">
+                <div class="absolute bottom-96 -left-6 bg-white rounded-2xl shadow-xl p-4" aria-hidden="true">
                     <div class="flex items-center gap-3">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">

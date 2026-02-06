@@ -19,9 +19,21 @@ class AsaasWebhookController extends BaseController
         $this->asaas = new AsaasService();
     }
 
+    /**
+     * Endpoint de teste - APENAS para desenvolvimento
+     * Em produção retorna 404 para não expor informações
+     */
     public function test(): void
     {
-        echo 'Webhook OK';
+        // Em produção, não revelar que o endpoint existe
+        if (defined('APP_ENV') && APP_ENV === 'production') {
+            http_response_code(404);
+            echo 'Not Found';
+            exit;
+        }
+
+        // Em desenvolvimento, permitir verificar se está funcionando
+        echo 'Webhook OK (dev only)';
         exit;
     }
 
