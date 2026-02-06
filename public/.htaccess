@@ -47,8 +47,14 @@
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
 
     # Cache Control para assets estáticos (SEO Performance)
-    <FilesMatch "\.(ico|pdf|jpg|jpeg|png|gif|webp|svg|js|css|woff|woff2|ttf|eot)$">
+    # Usar no-cache para JS/CSS permite que Cloudflare revalide sempre
+    <FilesMatch "\.(ico|pdf|jpg|jpeg|png|gif|webp|svg|woff|woff2|ttf|eot)$">
         Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+    
+    # CSS e JS - cache curto para permitir atualizações rápidas
+    <FilesMatch "\.(js|css)$">
+        Header set Cache-Control "max-age=3600, public, must-revalidate"
     </FilesMatch>
 
     # Cache para HTML (curto)
@@ -98,10 +104,10 @@
     # HTML
     ExpiresByType text/html "access plus 0 seconds"
     
-    # CSS e JavaScript
-    ExpiresByType text/css "access plus 1 year"
-    ExpiresByType application/javascript "access plus 1 year"
-    ExpiresByType text/javascript "access plus 1 year"
+    # CSS e JavaScript - cache mais curto para atualizações rápidas
+    ExpiresByType text/css "access plus 1 hour"
+    ExpiresByType application/javascript "access plus 1 hour"
+    ExpiresByType text/javascript "access plus 1 hour"
     
     # Imagens
     ExpiresByType image/jpeg "access plus 1 year"
