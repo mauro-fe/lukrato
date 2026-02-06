@@ -62,7 +62,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha2Vence10_CompraNoFechamento_VenceProximoMes(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-02-02', 10, 2);
-        
+
         $this->assertEquals('2025-03-10', $result['data'], 'Compra no dia do fechamento deve ir para fatura do próximo mês');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -75,7 +75,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha2Vence10_CompraAposFechamento_VenceProximoMes(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-02-03', 10, 2);
-        
+
         $this->assertEquals('2025-03-10', $result['data'], 'Compra após fechamento deve ir para fatura do próximo mês');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -88,7 +88,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha2Vence10_CompraMetadoMes_VenceProximoMes(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-02-15', 10, 2);
-        
+
         $this->assertEquals('2025-03-10', $result['data'], 'Compra no meio do mês deve ir para fatura do próximo mês');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -101,7 +101,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha2Vence10_CompraFimMes_VenceProximoMes(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-02-28', 10, 2);
-        
+
         $this->assertEquals('2025-03-10', $result['data'], 'Compra no fim do mês deve ir para fatura do próximo mês');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -114,7 +114,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha2Vence10_CompraAntesFechamento_VenceMesmoMes(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-02-01', 10, 2);
-        
+
         $this->assertEquals('2025-02-10', $result['data'], 'Compra antes do fechamento deve ir para fatura do mês atual');
         $this->assertEquals(2, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -131,7 +131,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha25Vence5_CompraAntesFechamento(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-01-24', 5, 25);
-        
+
         $this->assertEquals('2025-02-05', $result['data'], 'fecha=25,vence=5: compra antes do fechamento deve vencer no mês seguinte ao fechamento');
         $this->assertEquals(2, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -144,7 +144,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha25Vence5_CompraNoFechamento(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-01-25', 5, 25);
-        
+
         $this->assertEquals('2025-03-05', $result['data'], 'fecha=25,vence=5: compra no fechamento deve vencer 2 meses à frente');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -157,7 +157,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha25Vence5_CompraAposFechamento(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-01-26', 5, 25);
-        
+
         $this->assertEquals('2025-03-05', $result['data'], 'fecha=25,vence=5: compra após fechamento deve vencer 2 meses à frente');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -174,7 +174,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha10Vence15_CompraAntesFechamento(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-03-09', 15, 10);
-        
+
         $this->assertEquals('2025-03-15', $result['data'], 'fecha=10,vence=15: compra antes do fechamento deve vencer no mesmo mês');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -187,7 +187,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha10Vence15_CompraNoFechamento(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-03-10', 15, 10);
-        
+
         $this->assertEquals('2025-04-15', $result['data'], 'fecha=10,vence=15: compra no fechamento deve vencer no próximo mês');
         $this->assertEquals(4, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -200,7 +200,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFecha10Vence15_CompraAposFechamento(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-03-11', 15, 10);
-        
+
         $this->assertEquals('2025-04-15', $result['data'], 'fecha=10,vence=15: compra após fechamento deve vencer no próximo mês');
         $this->assertEquals(4, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -216,7 +216,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testViradaAno_Fecha2Vence10_CompraNoFechamentoDezembro(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-12-02', 10, 2);
-        
+
         $this->assertEquals('2026-01-10', $result['data'], 'Compra no fechamento em dezembro deve ir para janeiro do próximo ano');
         $this->assertEquals(1, $result['mes']);
         $this->assertEquals(2026, $result['ano']);
@@ -228,7 +228,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testViradaAno_Fecha2Vence10_CompraAntesFechamentoDezembro(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-12-01', 10, 2);
-        
+
         $this->assertEquals('2025-12-10', $result['data'], 'Compra antes do fechamento em dezembro deve vencer em dezembro');
         $this->assertEquals(12, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -240,7 +240,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testViradaAno_Fecha25Vence5_CompraNoFechamentoDezembro(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-12-25', 5, 25);
-        
+
         $this->assertEquals('2026-02-05', $result['data'], 'fecha=25,vence=5: compra no fechamento em dez deve vencer em fev do próximo ano');
         $this->assertEquals(2, $result['mes']);
         $this->assertEquals(2026, $result['ano']);
@@ -252,7 +252,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testViradaAno_Fecha25Vence5_CompraAntesFechamentoDezembro(): void
     {
         $result = $this->calcularVencimentoLancamento('2025-12-24', 5, 25);
-        
+
         $this->assertEquals('2026-01-05', $result['data'], 'fecha=25,vence=5: compra antes do fechamento em dez deve vencer em jan do próximo ano');
         $this->assertEquals(1, $result['mes']);
         $this->assertEquals(2026, $result['ano']);
@@ -287,7 +287,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFaturaService_Fecha2Vence10_Parcela1_CompraNoFechamento(): void
     {
         $result = $this->calcularVencimentoFatura(2, 2, 2025, 1, 10, 2);
-        
+
         $this->assertEquals('2025-03-10', $result['data'], 'FaturaService: parcela 1, compra no fechamento deve vencer no próximo mês');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -300,7 +300,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFaturaService_Fecha2Vence10_Parcela2_CompraNoFechamento(): void
     {
         $result = $this->calcularVencimentoFatura(2, 2, 2025, 2, 10, 2);
-        
+
         $this->assertEquals('2025-04-10', $result['data'], 'FaturaService: parcela 2, compra no fechamento deve vencer 2 meses à frente');
         $this->assertEquals(4, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -313,7 +313,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFaturaService_Fecha2Vence10_Parcela3_CompraNoFechamento(): void
     {
         $result = $this->calcularVencimentoFatura(2, 2, 2025, 3, 10, 2);
-        
+
         $this->assertEquals('2025-05-10', $result['data'], 'FaturaService: parcela 3, compra no fechamento deve vencer 3 meses à frente');
         $this->assertEquals(5, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -326,7 +326,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFaturaService_Fecha2Vence10_Parcela1_CompraAntesFechamento(): void
     {
         $result = $this->calcularVencimentoFatura(1, 2, 2025, 1, 10, 2);
-        
+
         $this->assertEquals('2025-02-10', $result['data'], 'FaturaService: parcela 1, compra antes do fechamento deve vencer no mês atual');
         $this->assertEquals(2, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -339,7 +339,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFaturaService_Fecha25Vence5_Parcela1_CompraNoFechamento(): void
     {
         $result = $this->calcularVencimentoFatura(25, 1, 2025, 1, 5, 25);
-        
+
         $this->assertEquals('2025-03-05', $result['data'], 'FaturaService: fecha=25,vence=5, parcela 1, compra no fechamento');
         $this->assertEquals(3, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
@@ -352,7 +352,7 @@ class CartaoCreditoVencimentoTest extends TestCase
     public function testFaturaService_Fecha25Vence5_Parcela1_CompraAntesFechamento(): void
     {
         $result = $this->calcularVencimentoFatura(24, 1, 2025, 1, 5, 25);
-        
+
         $this->assertEquals('2025-02-05', $result['data'], 'FaturaService: fecha=25,vence=5, parcela 1, compra antes do fechamento');
         $this->assertEquals(2, $result['mes']);
         $this->assertEquals(2025, $result['ano']);
