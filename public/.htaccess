@@ -4,6 +4,15 @@
 
 </IfModule>
 
+# ==========================================
+# LiteSpeed Cache Control
+# ==========================================
+<IfModule LiteSpeed>
+    # Desabilitar cache do LiteSpeed para JS/CSS permitir atualizações
+    RewriteRule \.js$ - [E=Cache-Control:no-cache]
+    RewriteRule \.css$ - [E=Cache-Control:no-cache]
+</IfModule>
+
 <IfModule mod_rewrite.c>
 
     RewriteEngine On
