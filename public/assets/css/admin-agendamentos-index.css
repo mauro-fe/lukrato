@@ -1693,6 +1693,11 @@
     display: none !important;
   }
 
+  /* Esconder paginação desktop no mobile */
+  .lk-pagination {
+    display: none !important;
+  }
+
   .ag-cards-wrapper {
     display: flex !important;
   }
