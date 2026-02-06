@@ -25,6 +25,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $recorrencia_freq
  * @property int|null $recorrencia_intervalo
  * @property \Carbon\Carbon|null $recorrencia_fim
+ * @property bool $eh_parcelado
+ * @property int|null $numero_parcelas
+ * @property int $parcela_atual
  * @property \Carbon\Carbon|null $notificado_em
  * @property \Carbon\Carbon|null $concluido_em
  * @property string|null $status
@@ -54,6 +57,9 @@ class Agendamento extends Model
         'recorrencia_freq',
         'recorrencia_intervalo',
         'recorrencia_fim',
+        'eh_parcelado',
+        'numero_parcelas',
+        'parcela_atual',
         'notificado_em',
         'concluido_em',
         'status',
@@ -68,6 +74,9 @@ class Agendamento extends Model
         'canal_email'      => 'bool',
         'canal_inapp'      => 'bool',
         'recorrente'       => 'bool',
+        'eh_parcelado'     => 'bool',
+        'numero_parcelas'  => 'int',
+        'parcela_atual'    => 'int',
     ];
 
     public function conta()

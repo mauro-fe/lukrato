@@ -36,6 +36,11 @@ class LoginController extends BaseController
         $activeTab = $_SESSION['auth_active_tab'] ?? 'login';
         unset($_SESSION['auth_active_tab']);
 
+        // Permite definir a aba via query string
+        if (isset($_GET['tab']) && in_array($_GET['tab'], ['login', 'register'])) {
+            $activeTab = $_GET['tab'];
+        }
+
         $registerErrors = $_SESSION['register_errors'] ?? null;
         unset($_SESSION['register_errors']);
 
@@ -76,9 +81,12 @@ class LoginController extends BaseController
             $this->applyRateLimit();
 
             // Autenticação
+            $remember = $this->request->post('remember', '0') === '1';
+
             $result = $this->authService->login(
                 $this->request->post('email', ''),
-                $this->request->post('password', '')
+                $this->request->post('password', ''),
+                $remember
             );
 
             $this->clearOldCsrfTokens();

@@ -210,6 +210,15 @@
   display: inline;
 }
 
+/* Botão Pagar Fatura (modal detalhes) */
+.btn-pagar-fatura .btn-text-mobile {
+  display: none;
+}
+
+.btn-pagar-fatura .btn-text-desktop {
+  display: inline;
+}
+
 /* Botão Excluir Fatura */
 .btn-excluir-fatura {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
@@ -237,6 +246,36 @@
 }
 
 .btn-excluir-fatura .btn-text-desktop {
+  display: inline;
+}
+
+/* Botão Reverter Pagamento */
+.btn-reverter-fatura {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  white-space: nowrap;
+}
+
+.btn-reverter-fatura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-reverter-fatura .btn-text-mobile {
+  display: none;
+}
+
+.btn-reverter-fatura .btn-text-desktop {
   display: inline;
 }
 
@@ -866,22 +905,23 @@
     justify-content: center;
   }
 
-  /* Header do modal - botão responsivo */
+  /* Header do modal - responsivo lado a lado */
   .detalhes-header-content {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-3);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
   }
 
   .detalhes-header-content .detalhes-title {
-    text-align: center;
+    text-align: left;
     font-size: var(--font-size-lg);
   }
 
   .btn-pagar-fatura-completa {
-    width: 100%;
+    width: auto;
     justify-content: center;
-    padding: var(--spacing-3);
+    padding: 0.6rem 1rem;
   }
 
   .btn-pagar-fatura-completa .btn-text-desktop {
@@ -889,6 +929,19 @@
   }
 
   .btn-pagar-fatura-completa .btn-text-mobile {
+    display: inline;
+  }
+
+  /* Botão Pagar Fatura (modal detalhes) - mobile */
+  .btn-pagar-fatura {
+    padding: 0.6rem 1rem;
+  }
+
+  .btn-pagar-fatura .btn-text-desktop {
+    display: none;
+  }
+
+  .btn-pagar-fatura .btn-text-mobile {
     display: inline;
   }
 
@@ -903,6 +956,20 @@
   }
 
   .btn-excluir-fatura .btn-text-mobile {
+    display: inline;
+  }
+
+  .btn-reverter-fatura {
+    width: 100%;
+    justify-content: center;
+    padding: var(--spacing-3);
+  }
+
+  .btn-reverter-fatura .btn-text-desktop {
+    display: none;
+  }
+
+  .btn-reverter-fatura .btn-text-mobile {
     display: inline;
   }
 
@@ -3128,8 +3195,8 @@
 }
 
 .parcelamentos-grid.list-view .parcelamento-card {
-  display: flex !important;
-  flex-direction: row !important;
+  display: grid !important;
+  grid-template-columns: 70px 160px 1fr auto auto !important;
   align-items: center !important;
   gap: 0 !important;
   border-radius: 12px !important;
@@ -3137,6 +3204,7 @@
   padding: 0 !important;
   width: 100% !important;
   min-width: 100% !important;
+  min-height: 70px !important;
 }
 
 /* Ícone colorido à esquerda */
@@ -3218,7 +3286,7 @@
   flex-direction: column !important;
   gap: 0.15rem !important;
   min-width: 140px !important;
-  padding: 0 0 0 1.25rem !important;
+  padding: 0 1rem !important;
 }
 
 .parcelamentos-grid.list-view
@@ -3238,9 +3306,8 @@
   color: var(--color-text-muted) !important;
 }
 
-/* Resumo - só valor */
+/* Resumo - valor em destaque */
 .parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal {
-  flex: 1 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -3282,6 +3349,36 @@
   color: var(--color-primary) !important;
 }
 
+/* Seção de Progresso - visível na lista */
+.parcelamentos-grid.list-view .parcelamento-card .parc-progress-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important;
+  padding: 0 1.5rem !important;
+  min-width: 150px !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .parc-progress-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.75rem !important;
+  color: var(--color-text-muted) !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .parc-progress-bar {
+  height: 6px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .parc-progress-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #f59e0b, #f97316) !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+}
+
 /* OCULTAR seções extras */
 .parcelamentos-grid.list-view .parcelamento-card .fatura-itens-info,
 .parcelamentos-grid.list-view .parcelamento-card .fatura-progresso {
@@ -3309,6 +3406,7 @@
   display: flex !important;
   align-items: center !important;
   gap: 0.5rem !important;
+  white-space: nowrap !important;
 }
 
 .parcelamentos-grid.list-view
@@ -3443,16 +3541,13 @@
     display: none !important;
   }
 
-  /* Resumo com valores - exibir todos os itens */
+  /* Resumo com valores - layout compacto mobile */
   .parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal {
     display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 0.75rem !important;
-    padding: 1rem !important;
-    background: var(--glass-bg) !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    background: transparent !important;
   }
 
   .parcelamentos-grid.list-view
@@ -3460,15 +3555,17 @@
     .fatura-resumo-principal
     .resumo-item {
     display: flex !important;
-    flex-direction: column !important;
-    gap: 0.15rem !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
   }
 
   .parcelamentos-grid.list-view
     .parcelamento-card
     .fatura-resumo-principal
     .resumo-item:first-child {
-    flex-direction: column !important;
+    flex-direction: row !important;
   }
 
   .parcelamentos-grid.list-view
@@ -3476,7 +3573,7 @@
     .fatura-resumo-principal
     .resumo-label {
     display: block !important;
-    font-size: 0.7rem !important;
+    font-size: 0.8rem !important;
     text-transform: uppercase !important;
     letter-spacing: 0.02em !important;
     color: var(--color-text-muted) !important;
@@ -3486,7 +3583,9 @@
     .parcelamento-card
     .fatura-resumo-principal
     .resumo-valor {
-    font-size: 1.15rem !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #f59e0b !important;
   }
 
   .parcelamentos-grid.list-view
@@ -3497,9 +3596,18 @@
     color: var(--color-text) !important;
   }
 
-  /* Botão de ação */
+  /* Seção de progresso mobile - compacta */
+  .parcelamentos-grid.list-view .parcelamento-card .parc-progress-section {
+    padding: 0.5rem 1rem 0.75rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-progress-header {
+    font-size: 0.75rem !important;
+  }
+
+  /* Botão de ação - compacto */
   .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions {
-    padding: 0 1rem 1rem !important;
+    padding: 0 1rem 0.75rem !important;
     width: 100% !important;
     background: transparent !important;
   }
@@ -3510,7 +3618,8 @@
     .parc-btn {
     flex: 1 !important;
     justify-content: center !important;
-    padding: 0.6rem 1rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
   }
 }
 

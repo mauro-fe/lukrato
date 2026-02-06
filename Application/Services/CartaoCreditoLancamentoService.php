@@ -110,8 +110,8 @@ class CartaoCreditoLancamentoService
         $dataCompra = $data['data'] ?? date('Y-m-d');
         $vencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
 
-        // Extrair mês/ano da COMPRA para competência (não do vencimento)
-        [$anoCompra, $mesCompra] = explode('-', $dataCompra);
+        // Calcular competência (mês da fatura que fechou, não do vencimento)
+        $competencia = $this->calcularCompetencia($dataCompra, $cartao->dia_fechamento);
 
         // Buscar ou criar fatura do mês de VENCIMENTO (onde a parcela será cobrada)
         $fatura = $this->buscarOuCriarFatura(
@@ -139,8 +139,8 @@ class CartaoCreditoLancamentoService
             'categoria_id' => $data['categoria_id'] ?? null,
             'parcela_atual' => 1,
             'total_parcelas' => 1,
-            'mes_referencia' => (int) $mesCompra,
-            'ano_referencia' => (int) $anoCompra,
+            'mes_referencia' => $competencia['mes'],
+            'ano_referencia' => $competencia['ano'],
             'pago' => false,
         ]);
 
@@ -148,7 +148,7 @@ class CartaoCreditoLancamentoService
             'item_id' => $item->id,
             'fatura_id' => $fatura->id,
             'valor' => $data['valor'],
-            'mes_referencia' => $mesCompra,
+            'mes_referencia' => $competencia['mes'],
         ]);
 
         // Atualizar valor total da fatura
@@ -180,6 +180,10 @@ class CartaoCreditoLancamentoService
         $valorUltimaParcela = round($valorTotal - $somaParcelasAnteriores, 2);
 
         $dataCompra = $data['data'] ?? date('Y-m-d');
+        $itemPaiId = null; // ID da primeira parcela para vincular as demais
+
+        // Calcular competência da primeira parcela (mês da fatura que fechou)
+        $competenciaBase = $this->calcularCompetencia($dataCompra, $cartao->dia_fechamento);
 
         // Criar cada parcela na fatura mensal correspondente
         for ($i = 1; $i <= $totalParcelas; $i++) {
@@ -201,9 +205,13 @@ class CartaoCreditoLancamentoService
             $descricaoParcela = $data['descricao'] . " ({$i}/{$totalParcelas})";
             $dataVencimentoParcela = $vencimento['data'];
 
-            // Extrair mês/ano do VENCIMENTO desta parcela
-            $mesVencParcela = (int) date('n', strtotime($dataVencimentoParcela));
-            $anoVencParcela = (int) date('Y', strtotime($dataVencimentoParcela));
+            // Calcular competência desta parcela (avança mês a partir da competência base)
+            $mesCompetencia = $competenciaBase['mes'] + ($i - 1);
+            $anoCompetencia = $competenciaBase['ano'];
+            while ($mesCompetencia > 12) {
+                $mesCompetencia -= 12;
+                $anoCompetencia++;
+            }
 
             // Criar item de fatura (SEM lancamento_id)
             $item = FaturaCartaoItem::create([
@@ -218,16 +226,24 @@ class CartaoCreditoLancamentoService
                 'categoria_id' => $data['categoria_id'] ?? null,
                 'parcela_atual' => $i,
                 'total_parcelas' => $totalParcelas,
-                'mes_referencia' => $mesVencParcela,
-                'ano_referencia' => $anoVencParcela,
+                'mes_referencia' => $mesCompetencia,
+                'ano_referencia' => $anoCompetencia,
                 'pago' => false,
+                'item_pai_id' => $itemPaiId,              // Vincula à primeira parcela
             ]);
+
+            // Guardar o ID da primeira parcela para vincular as demais
+            if ($i === 1) {
+                $itemPaiId = $item->id;
+            }
 
             LogService::info("[CARTAO] Item de fatura criado (parcela {$i}/{$totalParcelas}) - SEM lançamento individual", [
                 'item_id' => $item->id,
                 'fatura_id' => $fatura->id,
                 'mes_ano_vencimento' => "{$vencimento['mes']}/{$vencimento['ano']}",
+                'mes_referencia' => $mesCompetencia,
                 'valor' => $valorDessaParcela,
+                'item_pai_id' => $itemPaiId,
             ]);
 
             // Atualizar valor total da fatura
@@ -243,6 +259,46 @@ class CartaoCreditoLancamentoService
         }
 
         return $itens;
+    }
+
+    /**
+     * Calcular mês/ano de competência (mês da fatura que fechou)
+     * Se comprou ANTES do fechamento: competência = mês atual
+     * Se comprou NO DIA ou DEPOIS do fechamento: competência = próximo mês
+     * 
+     * @return array ['mes' => int, 'ano' => int]
+     */
+    private function calcularCompetencia(string $dataCompra, ?int $diaFechamento): array
+    {
+        $dataObj = new \DateTime($dataCompra);
+        $mesAtual = (int)$dataObj->format('n');
+        $anoAtual = (int)$dataObj->format('Y');
+        $diaCompra = (int)$dataObj->format('j');
+
+        // Se não informou dia de fechamento, considerar dia 25
+        if ($diaFechamento === null) {
+            $diaFechamento = 25;
+        }
+
+        if ($diaCompra >= $diaFechamento) {
+            // Comprou no dia do fechamento ou depois - entra na próxima fatura
+            $mesCompetencia = $mesAtual + 1;
+            $anoCompetencia = $anoAtual;
+
+            if ($mesCompetencia > 12) {
+                $mesCompetencia = 1;
+                $anoCompetencia++;
+            }
+        } else {
+            // Comprou ANTES do fechamento - entra na fatura do mês atual
+            $mesCompetencia = $mesAtual;
+            $anoCompetencia = $anoAtual;
+        }
+
+        return [
+            'mes' => $mesCompetencia,
+            'ano' => $anoCompetencia,
+        ];
     }
 
     /**
@@ -264,8 +320,22 @@ class CartaoCreditoLancamentoService
             $diaFechamento = max(1, $diaVencimento - 5);
         }
 
-        // Se comprou NO DIA de fechamento ou DEPOIS, vai para o próximo mês
+        // CORRIGIDO: O vencimento é SEMPRE no mês seguinte ao fechamento da fatura
+        // Se comprou ANTES do fechamento: entra na fatura do mês atual, vence no MÊS SEGUINTE
+        // Se comprou NO DIA ou DEPOIS do fechamento: entra na fatura do próximo mês, vence 2 meses à frente
         if ($diaCompra >= $diaFechamento) {
+            // Comprou no dia do fechamento ou depois - entra na próxima fatura
+            // Fatura fecha no próximo mês, vence 2 meses à frente
+            $mesVencimento = $mesAtual + 2;
+            $anoVencimento = $anoAtual;
+
+            if ($mesVencimento > 12) {
+                $mesVencimento -= 12;
+                $anoVencimento++;
+            }
+        } else {
+            // Comprou ANTES do fechamento - entra na fatura do mês atual
+            // Fatura fecha este mês, vence no PRÓXIMO mês
             $mesVencimento = $mesAtual + 1;
             $anoVencimento = $anoAtual;
 
@@ -273,10 +343,6 @@ class CartaoCreditoLancamentoService
                 $mesVencimento = 1;
                 $anoVencimento++;
             }
-        } else {
-            // Comprou ANTES do fechamento - vence no mês atual
-            $mesVencimento = $mesAtual;
-            $anoVencimento = $anoAtual;
         }
 
         // Ajustar dia para o último dia do mês se necessário
@@ -468,8 +534,8 @@ class CartaoCreditoLancamentoService
                 $mesCompra = (int)$dataObj->format('m');
                 $anoCompra = (int)$dataObj->format('Y');
 
-                // Mesma lógica de fechamento de fatura
-                if ($diaCompra > $diaFechamento) {
+                // Mesma lógica de fechamento de fatura (>= para consistência)
+                if ($diaCompra >= $diaFechamento) {
                     $mesReferencia = $mesCompra + 1;
                     $anoReferencia = $anoCompra;
                     if ($mesReferencia > 12) {
@@ -482,12 +548,18 @@ class CartaoCreditoLancamentoService
                 }
             }
 
-            // Calcular data de vencimento
+            // Calcular data de vencimento (mês seguinte à referência)
+            $mesVencimento = $mesReferencia + 1;
+            $anoVencimento = $anoReferencia;
+            if ($mesVencimento > 12) {
+                $mesVencimento = 1;
+                $anoVencimento++;
+            }
             $diaVencimento = (int)$cartao->dia_vencimento;
-            $dataVencimento = sprintf('%04d-%02d-%02d', $anoReferencia, $mesReferencia, min($diaVencimento, 28));
+            $dataVencimento = sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, min($diaVencimento, 28));
 
-            // Buscar ou criar fatura do mês
-            $fatura = $this->buscarOuCriarFatura($userId, $cartaoId, $mesReferencia, $anoReferencia);
+            // Buscar ou criar fatura do mês de vencimento
+            $fatura = $this->buscarOuCriarFatura($userId, $cartaoId, $mesVencimento, $anoVencimento);
 
             // Criar item de fatura como ESTORNO (valor negativo para abater da fatura)
             $item = FaturaCartaoItem::create([

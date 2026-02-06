@@ -325,21 +325,11 @@
                         </select>
                         <i class="fas fa-chevron-down lk-select-icon"></i>
                     </div>
+                    <small class="lk-helper-text">🔁 Repete para sempre até você cancelar</small>
                 </div>
 
-                <!-- Número de Repetições (quando recorrente) -->
-                <div class="lk-form-group" id="numeroRepeticoesGroup" style="display: none;">
-                    <label for="lancamentoNumeroRepeticoes" class="lk-label">
-                        <i class="fas fa-redo"></i>
-                        Quantas vezes repetir?
-                    </label>
-                    <div class="lk-input-group">
-                        <input type="number" id="lancamentoNumeroRepeticoes" name="numero_repeticoes" class="lk-input"
-                            min="1" max="999" placeholder="12">
-                        <span class="lk-input-suffix">vezes</span>
-                    </div>
-                    <small class="lk-helper-text">Deixe em branco para indefinido</small>
-                </div>
+                <!-- Campo oculto para número de repetições (sempre indefinido) -->
+                <input type="hidden" id="lancamentoNumeroRepeticoes" name="numero_repeticoes" value="">
 
                 <!-- Tempo de Aviso (somente para agendamento) -->
                 <div class="lk-form-group" id="tempoAvisoGroup" style="display: none;">

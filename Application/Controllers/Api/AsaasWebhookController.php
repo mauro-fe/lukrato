@@ -5,8 +5,10 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\LogWebhookCobranca;
+use Application\Models\Usuario;
 use Application\Services\AsaasService;
 use Application\Services\LogService;
+use Application\Services\MailService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class AsaasWebhookController extends BaseController
@@ -213,6 +215,7 @@ class AsaasWebhookController extends BaseController
         }
 
         $statusAnterior = $assinatura->status;
+        $isPrimeiraAtivacao = $statusAnterior !== AssinaturaUsuario::ST_ACTIVE;
 
         $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
         $assinatura->save();
@@ -225,6 +228,61 @@ class AsaasWebhookController extends BaseController
             'status_novo' => AssinaturaUsuario::ST_ACTIVE,
             'payment_date' => $payment['paymentDate'] ?? null,
         ]);
+
+        // 📧 Enviar email de confirmação de pagamento
+        if ($isPrimeiraAtivacao) {
+            $this->sendPaymentConfirmationEmail($assinatura, $payment);
+        }
+    }
+
+    /**
+     * Envia email de confirmação de pagamento/assinatura ativada
+     */
+    private function sendPaymentConfirmationEmail(AssinaturaUsuario $assinatura, array $payment): void
+    {
+        try {
+            $usuario = Usuario::find($assinatura->user_id);
+            
+            if (!$usuario || empty($usuario->email)) {
+                LogService::warning('Usuário não encontrado para enviar email de confirmação', [
+                    'user_id' => $assinatura->user_id,
+                ]);
+                return;
+            }
+
+            // Buscar nome do plano
+            $planoNome = 'PRO';
+            if ($assinatura->plano_id) {
+                $plano = \Application\Models\Plano::find($assinatura->plano_id);
+                if ($plano) {
+                    $planoNome = $plano->nome ?? 'PRO';
+                }
+            }
+
+            // Obter valor do pagamento
+            $valor = isset($payment['value']) ? (float) $payment['value'] : null;
+
+            $mailService = new MailService();
+            $mailService->sendSubscriptionConfirmation(
+                $usuario->email,
+                $usuario->nome ?? 'Usuário',
+                $planoNome,
+                $assinatura->renova_em,
+                $valor
+            );
+
+            LogService::info('Email de confirmação de pagamento enviado', [
+                'user_id' => $usuario->id,
+                'email' => $usuario->email,
+                'plano' => $planoNome,
+            ]);
+        } catch (\Throwable $e) {
+            // Não falhar o webhook por erro no email
+            LogService::error('Erro ao enviar email de confirmação de pagamento', [
+                'user_id' => $assinatura->user_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function mapSubscriptionStatus(?string $status): ?string

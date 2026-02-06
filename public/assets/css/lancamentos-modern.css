@@ -563,6 +563,17 @@
   font-size: 0.8rem;
 }
 
+/* Coluna Forma de Pagamento */
+.th-forma-pgto {
+  width: 110px;
+}
+
+.td-forma-pgto {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
 /* Badges de Status */
 .badge-status {
   display: inline-flex;

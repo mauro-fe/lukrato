@@ -709,29 +709,41 @@ class CartaoFaturaService
 
             foreach ($cartoes as $cartao) {
                 try {
-                    $mesAtual = (int) $dataHoje->format('n');
-                    $anoAtual = (int) $dataHoje->format('Y');
+                    // Determinar a data de vencimento
+                    $mesVenc = (int) $dataHoje->format('n');
+                    $anoVenc = (int) $dataHoje->format('Y');
 
                     $dataVencimento = \DateTime::createFromFormat(
                         'Y-n-j',
-                        "{$anoAtual}-{$mesAtual}-{$cartao->dia_vencimento}"
+                        "{$anoVenc}-{$mesVenc}-{$cartao->dia_vencimento}"
                     );
 
                     if (!$dataVencimento) {
                         continue;
                     }
 
+                    // Se vencimento já passou neste mês, vai para o próximo
                     if ($dataVencimento < $dataHoje) {
                         $dataVencimento->modify('+1 month');
-                        $mesAtual = (int) $dataVencimento->format('n');
-                        $anoAtual = (int) $dataVencimento->format('Y');
+                        $mesVenc = (int) $dataVencimento->format('n');
+                        $anoVenc = (int) $dataVencimento->format('Y');
                     }
 
                     if ($dataVencimento <= $dataLimite && $dataVencimento >= $dataHoje) {
+                        // CORRIGIDO: mes_referencia é o mês ANTERIOR ao vencimento
+                        // A fatura FECHA em janeiro e VENCE em fevereiro
+                        // Logo, itens com mes_referencia = 1 vencem em 02
+                        $mesRef = $mesVenc - 1;
+                        $anoRef = $anoVenc;
+                        if ($mesRef < 1) {
+                            $mesRef = 12;
+                            $anoRef--;
+                        }
+
                         $totalFatura = FaturaCartaoItem::where('cartao_credito_id', $cartao->id)
                             ->where('pago', false)
-                            ->whereYear('data_vencimento', $anoAtual)
-                            ->whereMonth('data_vencimento', $mesAtual)
+                            ->where('mes_referencia', $mesRef)
+                            ->where('ano_referencia', $anoRef)
                             ->sum('valor');
 
                         if ($totalFatura > 0) {
@@ -745,8 +757,8 @@ class CartaoFaturaService
                                 'valor_fatura' => (float) $totalFatura,
                                 'tipo' => 'vencimento_proximo',
                                 'gravidade' => $diasFaltando <= 3 ? 'critico' : 'atencao',
-                                'mes' => $mesAtual,
-                                'ano' => $anoAtual,
+                                'mes' => $mesRef,
+                                'ano' => $anoRef,
                             ];
                         }
                     }

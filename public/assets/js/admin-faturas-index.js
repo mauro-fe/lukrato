@@ -388,45 +388,16 @@
                 </div>
                 ${temEstornos ? `
                     <div class="resumo-item resumo-estornos">
-                        <span class="resumo-label" style="color: #10b981;">↩️ Estornos</span>
-                        <span class="resumo-valor" style="color: #10b981; font-size: 0.85rem;">- ${Utils.formatMoney(parc.total_estornos)}</span>
-                    </div>
-                ` : ''}
-                ${parc.data_vencimento ? `
-                    <div class="resumo-item">
-                        <span class="resumo-label">Vencimento</span>
-                        <strong class="resumo-data">${Utils.formatDate(parc.data_vencimento)}</strong>
+                        <span class="resumo-label" style="color: #10b981;">Estornos</span>
+                        <span class="resumo-valor" style="color: #10b981;">- ${Utils.formatMoney(parc.total_estornos)}</span>
                     </div>
                 ` : ''}
             `;
         },
 
         getItensInfo(itensPendentes, itensPagos) {
-            let html = '';
-
-            if (itensPendentes > 0) {
-                html += `
-                    <div class="fatura-itens-info">
-                        <div class="itens-badge itens-pendentes">
-                            <i class="fas fa-clock"></i>
-                            <span>${itensPendentes} ${itensPendentes === 1 ? 'item pendente' : 'itens pendentes'}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (itensPagos > 0) {
-                html += `
-                    <div class="fatura-itens-info">
-                        <div class="itens-badge itens-pagos">
-                            <i class="fas fa-check-circle"></i>
-                            <span>${itensPagos} ${itensPagos === 1 ? 'item pago' : 'itens pagos'}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return html;
+            // Removido para simplificar - info já aparece no progresso
+            return '';
         },
 
         getProgressoSection(totalItens, itensPagos, progresso) {
@@ -478,7 +449,11 @@
                 const parc = response.data;
 
                 if (!parc) {
-                    throw new Error('Fatura não encontrada');
+                    // Fatura não existe mais - fechar modal se estiver aberto
+                    if (STATE.modalDetalhesInstance) {
+                        STATE.modalDetalhesInstance.hide();
+                    }
+                    return;
                 }
 
                 STATE.faturaAtual = parc;
@@ -490,6 +465,15 @@
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
                 console.error('Erro ao abrir detalhes:', error);
+                
+                // Se erro 404, a fatura foi excluída - apenas fechar modal silenciosamente
+                if (error.message && error.message.includes('404')) {
+                    if (STATE.modalDetalhesInstance) {
+                        STATE.modalDetalhesInstance.hide();
+                    }
+                    return;
+                }
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
@@ -578,12 +562,12 @@
 
             return `
                 <div class="detalhes-header">
-                    <div class="detalhes-header-content">
+                    <div class="detalhes-header-content" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <span style="color: #9ca3af; font-size: 0.875rem; font-weight: 500;">Vencimento</span>
                             <h3 class="detalhes-title" style="margin: 0;">${vencimentoFormatado}</h3>
                         </div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                             ${temItensPendentes ? `
                                 <button class="btn-pagar-fatura" 
                                         onclick="window.abrirModalPagarFatura(${parc.id}, ${valorRestante})"
@@ -1298,13 +1282,23 @@
                     }
                 });
 
-                // Recarregar parcelamentos e reabrir modal atualizado
+                // Recarregar parcelamentos
                 await App.carregarParcelamentos();
 
-                // Reabrir o modal com dados atualizados
-                setTimeout(() => {
-                    UI.showDetalhes(faturaId);
-                }, 100);
+                // Verificar se a fatura ainda existe antes de reabrir o modal
+                const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
+                
+                if (faturaAindaExiste) {
+                    // Reabrir o modal com dados atualizados
+                    setTimeout(() => {
+                        UI.showDetalhes(faturaId);
+                    }, 100);
+                } else {
+                    // Fatura foi excluída (era o último item), fechar modal
+                    if (STATE.modalDetalhesInstance) {
+                        STATE.modalDetalhesInstance.hide();
+                    }
+                }
 
             } catch (error) {
                 console.error('Erro ao excluir item:', error);
@@ -1384,13 +1378,23 @@
                     }
                 });
 
-                // Recarregar parcelamentos e reabrir modal atualizado
+                // Recarregar parcelamentos
                 await App.carregarParcelamentos();
 
-                // Reabrir o modal com dados atualizados
-                setTimeout(() => {
-                    UI.showDetalhes(faturaId);
-                }, 100);
+                // Verificar se a fatura ainda existe antes de reabrir o modal
+                const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
+                
+                if (faturaAindaExiste) {
+                    // Reabrir o modal com dados atualizados
+                    setTimeout(() => {
+                        UI.showDetalhes(faturaId);
+                    }, 100);
+                } else {
+                    // Fatura foi excluída (era o último item), fechar modal
+                    if (STATE.modalDetalhesInstance) {
+                        STATE.modalDetalhesInstance.hide();
+                    }
+                }
 
             } catch (error) {
                 console.error('Erro ao excluir parcelamento:', error);

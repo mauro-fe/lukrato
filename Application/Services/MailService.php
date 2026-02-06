@@ -365,6 +365,432 @@ TEXT;
     }
 
     /**
+     * Envia email de verificação de conta.
+     */
+    public function sendEmailVerification(string $toEmail, string $userName, string $verificationUrl): bool
+    {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $subject = "✉️ Confirme seu e-mail - Lukrato";
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">✉️</div>
+      </div>
+
+      <p style="font-size: 17px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Falta pouco!</strong> Confirme seu e-mail para ativar sua conta.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Você está a um passo de começar a organizar suas finanças com o Lukrato. 
+        Para garantir a segurança da sua conta, precisamos confirmar que este e-mail é seu.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 32px 0;">
+        Clique no botão abaixo para verificar seu e-mail. Este link é válido por 24 horas.
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$verificationUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(39, 174, 96, 0.4);">
+          Verificar meu e-mail ✓
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 13px; color: #7f8c8d; line-height: 1.6; margin: 0;">
+          <strong>Se você não criou uma conta no Lukrato</strong>, pode ignorar este e-mail com segurança.
+        </p>
+        <p style="font-size: 13px; color: #95a5a6; line-height: 1.6; margin: 12px 0 0 0;">
+          Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+          <span style="word-break: break-all; color: #3498db;">{$verificationUrl}</span>
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #27ae60 0%, #219a52 100%)',
+            "Olá, {$safeFirstName}! 👋",
+            'Confirme seu e-mail para começar a usar o Lukrato',
+            $content,
+            'Você recebeu este email porque acabou de criar uma conta no Lukrato. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Olá, {$firstName}!
+
+Falta pouco para ativar sua conta no Lukrato!
+
+Para garantir a segurança da sua conta, precisamos confirmar que este e-mail é seu.
+
+Clique no link abaixo para verificar seu e-mail (válido por 24 horas):
+{$verificationUrl}
+
+Se você não criou uma conta no Lukrato, pode ignorar este e-mail com segurança.
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
+     * Envia email de recompensa para quem FOI INDICADO (ganhou 7 dias PRO)
+     */
+    public function sendReferralRewardToReferred(string $toEmail, string $userName, int $days = 7): bool
+    {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+
+        $subject = "🎉 Você ganhou {$days} dias de acesso PRO grátis!";
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎁</div>
+      </div>
+
+      <p style="font-size: 18px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Parabéns, {$safeFirstName}!</strong>
+      </p>
+
+      <p style="font-size: 16px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0; text-align: center;">
+        Por ter sido indicado(a) por um amigo, você ganhou <strong style="color: #10b981;">{$days} dias de acesso PRO gratuito</strong>!
+      </p>
+
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; padding: 24px 32px; margin: 32px 0; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
+        <p style="color: white; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">
+          Acesso PRO Ativado!
+        </p>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          +{$days} dias de funcionalidades premium
+        </p>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Com o acesso PRO você pode:
+      </p>
+
+      <ul style="font-size: 14px; line-height: 2; color: #5a6c7d; margin: 0 0 24px 20px; padding: 0;">
+        <li>📊 Lançamentos ilimitados</li>
+        <li>💳 Múltiplos cartões de crédito</li>
+        <li>📈 Relatórios avançados</li>
+        <li>🎯 Metas financeiras</li>
+        <li>⭐ Pontos em dobro na gamificação</li>
+      </ul>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$dashboardUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+          Acessar meu painel 🚀
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 14px; color: #7f8c8d; line-height: 1.6; margin: 0; text-align: center;">
+          💡 <strong>Dica:</strong> Você também pode indicar amigos e ganhar ainda mais dias PRO!
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            "Presente para você! 🎁",
+            'Você ganhou dias de acesso PRO no Lukrato',
+            $content,
+            'Você recebeu este email porque verificou sua conta no Lukrato e foi indicado por um amigo. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Parabéns, {$firstName}! 🎉
+
+Você ganhou {$days} dias de acesso PRO gratuito por ter sido indicado(a) por um amigo!
+
+Com o acesso PRO você pode:
+- Lançamentos ilimitados
+- Múltiplos cartões de crédito
+- Relatórios avançados
+- Metas financeiras
+- Pontos em dobro na gamificação
+
+Acesse seu painel: {$dashboardUrl}
+
+Dica: Você também pode indicar amigos e ganhar ainda mais dias PRO!
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
+     * Envia email de recompensa para quem INDICOU (ganhou 15 dias PRO)
+     */
+    public function sendReferralRewardToReferrer(
+        string $toEmail, 
+        string $userName, 
+        string $referredName, 
+        int $days = 15
+    ): bool {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safeReferredName = htmlspecialchars($referredName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+        $referralUrl = $baseUrl ? $baseUrl . '/indicar' : '#';
+
+        $subject = "🎁 {$referredName} verificou o email - Você ganhou {$days} dias PRO!";
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+      </div>
+
+      <p style="font-size: 18px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Ótimas notícias, {$safeFirstName}!</strong>
+      </p>
+
+      <p style="font-size: 16px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0; text-align: center;">
+        <strong style="color: #3b82f6;">{$safeReferredName}</strong> verificou o email e agora você ganhou 
+        <strong style="color: #10b981;">{$days} dias de acesso PRO gratuito</strong>!
+      </p>
+
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; padding: 24px 32px; margin: 32px 0; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">👥</div>
+        <p style="color: white; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">
+          +{$days} dias PRO adicionados!
+        </p>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          Obrigado por indicar amigos para o Lukrato
+        </p>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 24px 0; text-align: center;">
+        Continue indicando amigos e ganhe <strong>{$days} dias PRO</strong> para cada um que se cadastrar e verificar o email!
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$referralUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4); margin-right: 12px;">
+          Indicar mais amigos 👥
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 14px; color: #7f8c8d; line-height: 1.6; margin: 0; text-align: center;">
+          🏆 <strong>Seu programa de indicações:</strong> Você ganha {$days} dias PRO por cada amigo que indicar!
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            "Sua indicação deu certo! 🎁",
+            "{$safeReferredName} verificou o email e você foi recompensado",
+            $content,
+            'Você recebeu este email porque indicou um amigo para o Lukrato. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Ótimas notícias, {$firstName}! 🎉
+
+{$referredName} verificou o email e agora você ganhou {$days} dias de acesso PRO gratuito!
+
+Continue indicando amigos e ganhe {$days} dias PRO para cada um que se cadastrar e verificar o email!
+
+Acesse seu painel de indicações: {$referralUrl}
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
+     * Envia email de confirmação de assinatura PRO ativada
+     */
+    public function sendSubscriptionConfirmation(
+        string $toEmail, 
+        string $userName, 
+        string $planoNome = 'PRO',
+        ?string $renovaEm = null,
+        ?float $valor = null
+    ): bool {
+        $firstName = explode(' ', trim($userName))[0];
+        $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safePlanoNome = htmlspecialchars($planoNome, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+        $billingUrl = $baseUrl ? $baseUrl . '/billing' : '#';
+
+        $subject = "✅ Pagamento confirmado - Lukrato {$safePlanoNome} ativado!";
+
+        // Formatar data de renovação
+        $renovaFormatada = '';
+        if ($renovaEm) {
+            try {
+                $data = new \DateTime($renovaEm);
+                $renovaFormatada = $data->format('d/m/Y');
+            } catch (\Throwable $e) {
+                $renovaFormatada = $renovaEm;
+            }
+        }
+
+        // Formatar valor
+        $valorFormatado = '';
+        if ($valor) {
+            $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
+        }
+
+        $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+      </div>
+
+      <p style="font-size: 18px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Pagamento confirmado, {$safeFirstName}!</strong>
+      </p>
+
+      <p style="font-size: 16px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0; text-align: center;">
+        Seu acesso ao <strong style="color: #f59e0b;">Lukrato {$safePlanoNome}</strong> foi ativado com sucesso!
+      </p>
+
+      <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 24px 32px; margin: 32px 0; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
+        <p style="color: white; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">
+          Lukrato {$safePlanoNome} Ativo!
+        </p>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          Aproveite todos os recursos premium
+        </p>
+      </div>
+
+      <div style="background: #f8fafc; border-radius: 12px; padding: 20px 24px; margin: 24px 0;">
+        <p style="font-size: 14px; color: #64748b; margin: 0 0 12px 0; font-weight: 600;">📋 Detalhes da assinatura:</p>
+        <table style="width: 100%; font-size: 14px; color: #475569;">
+          <tr>
+            <td style="padding: 8px 0;">Plano:</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #f59e0b;">{$safePlanoNome}</td>
+          </tr>
+HTML;
+
+        if ($valorFormatado) {
+            $content .= <<<HTML
+          <tr>
+            <td style="padding: 8px 0;">Valor:</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: 600;">{$valorFormatado}</td>
+          </tr>
+HTML;
+        }
+
+        if ($renovaFormatada) {
+            $content .= <<<HTML
+          <tr>
+            <td style="padding: 8px 0;">Próxima renovação:</td>
+            <td style="padding: 8px 0; text-align: right;">{$renovaFormatada}</td>
+          </tr>
+HTML;
+        }
+
+        $content .= <<<HTML
+        </table>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Agora você tem acesso a:
+      </p>
+
+      <ul style="font-size: 14px; line-height: 2; color: #5a6c7d; margin: 0 0 24px 20px; padding: 0;">
+        <li>📊 Lançamentos ilimitados</li>
+        <li>💳 Cartões de crédito ilimitados</li>
+        <li>📈 Relatórios avançados e análises</li>
+        <li>🎯 Metas financeiras personalizadas</li>
+        <li>⭐ Pontos em dobro na gamificação</li>
+        <li>🔔 Lembretes e alertas inteligentes</li>
+      </ul>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$dashboardUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">
+          Acessar meu painel 🚀
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 13px; color: #7f8c8d; line-height: 1.6; margin: 0; text-align: center;">
+          Gerencie sua assinatura em <a href="{$billingUrl}" style="color: #3498db;">Minha Assinatura</a>
+        </p>
+      </div>
+HTML;
+
+        $html = EmailTemplate::wrap(
+            $subject,
+            'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            "Bem-vindo ao Lukrato {$safePlanoNome}! 👑",
+            'Seu pagamento foi confirmado e sua assinatura está ativa',
+            $content,
+            'Você recebeu este email porque assinou o Lukrato PRO. © ' . date('Y') . ' Lukrato'
+        );
+
+        $text = <<<TEXT
+Pagamento confirmado, {$firstName}! 🎉
+
+Seu acesso ao Lukrato {$planoNome} foi ativado com sucesso!
+
+Detalhes da assinatura:
+- Plano: {$planoNome}
+TEXT;
+
+        if ($valorFormatado) {
+            $text .= "\n- Valor: {$valorFormatado}";
+        }
+
+        if ($renovaFormatada) {
+            $text .= "\n- Próxima renovação: {$renovaFormatada}";
+        }
+
+        $text .= <<<TEXT
+
+
+Agora você tem acesso a:
+- Lançamentos ilimitados
+- Cartões de crédito ilimitados  
+- Relatórios avançados e análises
+- Metas financeiras personalizadas
+- Pontos em dobro na gamificação
+- Lembretes e alertas inteligentes
+
+Acesse seu painel: {$dashboardUrl}
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+        return $this->send($toEmail, $userName, $subject, $html, $text);
+    }
+
+    /**
      * Valida se um email é válido.
      */
     private function isValidEmail(string $email): bool

@@ -48,6 +48,19 @@ class CredentialsValidationStrategy extends AbstractValidationStrategy
         // 5) Tem senha local → validar senha normalmente
         if (!password_verify($credentials->password, $usuario->senha)) {
             $this->addError('credentials', 'E-mail ou senha inválidos.');
+            return;
+        }
+
+        // 6) Verificar se o email foi verificado
+        if (!$usuario->hasVerifiedEmail()) {
+            throw new ValidationException(
+                errors: [
+                    'email_not_verified' => true,
+                    'user_email' => $usuario->email,
+                    'email' => 'Você precisa verificar seu e-mail antes de fazer login. Verifique sua caixa de entrada.'
+                ],
+                message: 'E-mail não verificado'
+            );
         }
     }
 

@@ -46,15 +46,20 @@ class Usuario extends Model
         'external_customer_id',
         'gateway',
         'google_id',
-        'is_admin'
+        'is_admin',
+        'email_verified_at',
+        'email_verification_token',
+        'email_verification_sent_at',
     ];
 
-    protected $hidden = ['senha', 'password'];
+    protected $hidden = ['senha', 'password', 'email_verification_token'];
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
         'is_admin' => 'integer',
         'onboarding_completed_at' => 'datetime',
         'onboarding_tour_skipped_at' => 'datetime',
+        'email_verified_at' => 'datetime',
+        'email_verification_sent_at' => 'datetime',
     ];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'onboarding_completed'];
 
@@ -173,6 +178,52 @@ class Usuario extends Model
     public function planoAtual()
     {
         return $this->assinaturaAtiva()->with('plano')->first()?->plano;
+    }
+
+    /**
+     * Verifica se o email do usuário foi verificado
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    /**
+     * Marca o email como verificado
+     */
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+        ])->save();
+    }
+
+    /**
+     * Gera um novo token de verificação de email
+     */
+    public function generateEmailVerificationToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+
+        $this->forceFill([
+            'email_verification_token' => $token,
+            'email_verification_sent_at' => now(),
+        ])->save();
+
+        return $token;
+    }
+
+    /**
+     * Busca usuário pelo token de verificação
+     */
+    public static function findByVerificationToken(string $token): ?self
+    {
+        if (empty($token)) {
+            return null;
+        }
+
+        return self::where('email_verification_token', $token)->first();
     }
 
 

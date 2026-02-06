@@ -40,7 +40,21 @@ class FaturaService
     ): array {
         try {
             $query = Fatura::where('user_id', $usuarioId)
-                ->with(['cartaoCredito', 'itens']);
+                ->with(['cartaoCredito']);
+
+            // Carregar itens - se tiver filtro de mês/ano, carregar apenas itens desse período
+            if ($mes && $ano) {
+                $query->with(['itens' => function ($q) use ($mes, $ano) {
+                    $q->where('mes_referencia', $mes)
+                        ->where('ano_referencia', $ano);
+                }]);
+            } elseif ($ano) {
+                $query->with(['itens' => function ($q) use ($ano) {
+                    $q->where('ano_referencia', $ano);
+                }]);
+            } else {
+                $query->with(['itens']);
+            }
 
             if ($cartaoId) {
                 $query->where('cartao_credito_id', $cartaoId);
@@ -67,8 +81,9 @@ class FaturaService
 
             $faturas = $query->orderBy('data_compra', 'desc')->get();
 
-            return $faturas->map(function ($fatura) {
-                return $this->formatarFaturaListagem($fatura);
+            // Passar mes/ano para formatação correta
+            return $faturas->map(function ($fatura) use ($mes, $ano) {
+                return $this->formatarFaturaListagem($fatura, $mes, $ano);
             })->toArray();
         } catch (Exception $e) {
             LogService::error("Erro ao listar faturas", [
@@ -477,6 +492,11 @@ class FaturaService
         DB::beginTransaction();
 
         try {
+            LogService::info("Iniciando exclusão de parcelamento", [
+                'item_id' => $itemId,
+                'usuario_id' => $usuarioId
+            ]);
+
             // Buscar o item para descobrir a fatura relacionada
             $item = FaturaCartaoItem::where('id', $itemId)
                 ->where('user_id', $usuarioId)
@@ -484,11 +504,21 @@ class FaturaService
                 ->first();
 
             if (!$item) {
+                LogService::warning("Item não encontrado para exclusão de parcelamento", [
+                    'item_id' => $itemId,
+                    'usuario_id' => $usuarioId
+                ]);
                 return ['success' => false, 'message' => 'Item não encontrado'];
             }
 
+            LogService::info("Item encontrado para exclusão", [
+                'item_id' => $itemId,
+                'item_pai_id' => $item->item_pai_id,
+                'total_parcelas' => $item->total_parcelas,
+                'descricao' => $item->descricao
+            ]);
+
             // Buscar todos os itens do mesmo parcelamento
-            // Identificamos pelo mesmo item_pai_id ou pela mesma descrição + fatura + total_parcelas
             $itensParcelamento = FaturaCartaoItem::where('user_id', $usuarioId);
 
             if ($item->item_pai_id) {
@@ -498,8 +528,7 @@ class FaturaService
                         ->orWhere('id', $item->item_pai_id);
                 });
             } else {
-                // Se não tem item_pai_id, é item avulso ou primeira parcela
-                // Buscar filhos se for pai, ou só o item se for avulso
+                // Se não tem item_pai_id, verificar se é pai ou usar descrição
                 $filhos = FaturaCartaoItem::where('item_pai_id', $item->id)->count();
                 if ($filhos > 0) {
                     // É um pai, buscar todos os filhos + ele mesmo
@@ -507,6 +536,26 @@ class FaturaService
                         $q->where('item_pai_id', $item->id)
                             ->orWhere('id', $item->id);
                     });
+                } elseif ($item->total_parcelas > 1) {
+                    // Parcelamento sem item_pai_id (dados antigos)
+                    // Identificar pela descrição base (sem número da parcela)
+                    $descricaoBase = preg_replace('/\s*\(\d+\/\d+\)\s*$/', '', $item->descricao);
+                    
+                    $itensParcelamento->where('cartao_credito_id', $item->cartao_credito_id)
+                        ->where('total_parcelas', $item->total_parcelas)
+                        ->where('data_compra', $item->data_compra)
+                        ->where(function ($q) use ($descricaoBase, $item) {
+                            // Descrição igual ou descrição base igual (para parcelas com número)
+                            $q->where('descricao', 'LIKE', $descricaoBase . ' (%/%)')
+                              ->orWhere('descricao', $descricaoBase);
+                        });
+                    
+                    LogService::info("Buscando parcelamento por descrição base", [
+                        'descricao_base' => $descricaoBase,
+                        'cartao_id' => $item->cartao_credito_id,
+                        'total_parcelas' => $item->total_parcelas,
+                        'data_compra' => $item->data_compra
+                    ]);
                 } else {
                     // Item avulso, só ele
                     $itensParcelamento->where('id', $item->id);
@@ -693,6 +742,11 @@ class FaturaService
         $mesCompra = (int) $dataCompra->format('m');
         $anoCompra = (int) $dataCompra->format('Y');
 
+        $itemPaiId = null; // ID da primeira parcela para vincular as demais
+
+        // Calcular competência base (mês da fatura que fechou)
+        $competenciaBase = $this->calcularCompetenciaFatura($diaCompra, $mesCompra, $anoCompra, $cartao->dia_fechamento);
+
         // Criar cada parcela
         for ($i = 1; $i <= $numeroParcelas; $i++) {
             $vencimento = $this->calcularDataVencimento(
@@ -704,7 +758,15 @@ class FaturaService
                 $cartao->dia_fechamento
             );
 
-            FaturaCartaoItem::create([
+            // Calcular competência desta parcela (avança mês a partir da competência base)
+            $mesCompetencia = $competenciaBase['mes'] + ($i - 1);
+            $anoCompetencia = $competenciaBase['ano'];
+            while ($mesCompetencia > 12) {
+                $mesCompetencia -= 12;
+                $anoCompetencia++;
+            }
+
+            $item = FaturaCartaoItem::create([
                 'user_id' => $dados['user_id'],
                 'cartao_credito_id' => $dados['cartao_credito_id'],
                 'fatura_id' => $fatura->id,
@@ -713,13 +775,47 @@ class FaturaService
                 'data_compra' => $dados['data_compra'],
                 'data_vencimento' => $vencimento['data'],
                 'categoria_id' => $dados['categoria_id'] ?? null,
-                'numero_parcela' => $i,
+                'parcela_atual' => $i,
                 'total_parcelas' => $numeroParcelas,
-                'mes_referencia' => $vencimento['mes'],
-                'ano_referencia' => $vencimento['ano'],
+                'mes_referencia' => $mesCompetencia,
+                'ano_referencia' => $anoCompetencia,
                 'pago' => false,
+                'item_pai_id' => $itemPaiId,
             ]);
+
+            // Guardar ID da primeira parcela para vincular as demais
+            if ($i === 1) {
+                $itemPaiId = $item->id;
+            }
         }
+    }
+
+    /**
+     * Calcular mês/ano de competência (mês da fatura que fechou)
+     * Se comprou ANTES do fechamento: competência = mês atual
+     * Se comprou NO DIA ou DEPOIS do fechamento: competência = próximo mês
+     */
+    private function calcularCompetenciaFatura(int $diaCompra, int $mesCompra, int $anoCompra, int $diaFechamento): array
+    {
+        if ($diaCompra >= $diaFechamento) {
+            // Comprou no dia do fechamento ou depois - entra na próxima fatura
+            $mesCompetencia = $mesCompra + 1;
+            $anoCompetencia = $anoCompra;
+
+            if ($mesCompetencia > 12) {
+                $mesCompetencia = 1;
+                $anoCompetencia++;
+            }
+        } else {
+            // Comprou ANTES do fechamento - entra na fatura do mês atual
+            $mesCompetencia = $mesCompra;
+            $anoCompetencia = $anoCompra;
+        }
+
+        return [
+            'mes' => $mesCompetencia,
+            'ano' => $anoCompetencia,
+        ];
     }
 
     /**
@@ -745,6 +841,7 @@ class FaturaService
 
     /**
      * Calcular data de vencimento da parcela
+     * CORRIGIDO: O vencimento é SEMPRE no mês seguinte ao fechamento da fatura
      */
     private function calcularDataVencimento(
         int $diaCompra,
@@ -754,21 +851,23 @@ class FaturaService
         int $diaVencimento,
         int $diaFechamento
     ): array {
-        // Se a compra foi feita após o fechamento, vai para o próximo mês
-        $mesReferencia = $mesCompra;
-        $anoReferencia = $anoCompra;
+        // Calcular mês de competência (quando a fatura fecha)
+        $mesCompetencia = $mesCompra;
+        $anoCompetencia = $anoCompra;
 
         if ($diaCompra >= $diaFechamento) {
-            $mesReferencia++;
-            if ($mesReferencia > 12) {
-                $mesReferencia = 1;
-                $anoReferencia++;
+            // Comprou no dia do fechamento ou depois - entra na próxima fatura
+            $mesCompetencia++;
+            if ($mesCompetencia > 12) {
+                $mesCompetencia = 1;
+                $anoCompetencia++;
             }
         }
 
-        // Adicionar os meses da parcela
-        $mesVencimento = $mesReferencia + ($numeroParcela - 1);
-        $anoVencimento = $anoReferencia;
+        // O vencimento é SEMPRE no mês seguinte à competência
+        // + os meses adicionais da parcela
+        $mesVencimento = $mesCompetencia + $numeroParcela; // +1 para vencimento + (parcela-1) para meses adicionais
+        $anoVencimento = $anoCompetencia;
 
         while ($mesVencimento > 12) {
             $mesVencimento -= 12;
@@ -967,20 +1066,28 @@ class FaturaService
 
     /**
      * Formatar fatura para listagem
+     * @param Fatura $fatura
+     * @param int|null $mesRef - Mês de referência para filtrar itens (null = usar primeiro mês)
+     * @param int|null $anoRef - Ano de referência para filtrar itens (null = usar primeiro ano)
      */
-    private function formatarFaturaListagem(Fatura $fatura): array
+    private function formatarFaturaListagem(Fatura $fatura, ?int $mesRef = null, ?int $anoRef = null): array
     {
-        $itensPagos = $fatura->itens->where('pago', 1)->count();
-        $totalItens = $fatura->itens->count();
-        $progresso = $fatura->progresso;
+        // Usar itens já carregados (filtrados na query se houver mes/ano)
+        $itens = $fatura->itens;
+        
+        $itensPagos = $itens->where('pago', 1)->count();
+        $totalItens = $itens->count();
+        
+        // Calcular progresso baseado nos itens filtrados
+        $progresso = $totalItens > 0 ? ($itensPagos / $totalItens) * 100 : 0;
 
         // Calcular valor pendente (apenas itens não pagos)
         // Nota: usa 'valor' que é o campo real na tabela faturas_cartao_itens
-        $valorPendenteItens = $fatura->itens->where('pago', 0)->sum('valor');
+        $valorPendenteItens = $itens->where('pago', 0)->sum('valor');
 
         // Estornos têm valor negativo e já estão pagos
         // Precisamos somar o valor dos estornos para abater do total
-        $valorEstornos = $fatura->itens->where('tipo', 'estorno')->sum('valor'); // Já é negativo
+        $valorEstornos = $itens->where('tipo', 'estorno')->sum('valor'); // Já é negativo
 
         // Valor total a pagar = itens pendentes + estornos (que são negativos, então abate)
         $valorPendente = $valorPendenteItens + $valorEstornos;
@@ -988,18 +1095,18 @@ class FaturaService
         $valorPendente = max(0, $valorPendente);
 
         // Separar despesas de estornos para o resumo
-        $totalDespesas = $fatura->itens->where('tipo', '!=', 'estorno')->sum('valor');
-        $totalEstornos = abs($fatura->itens->where('tipo', 'estorno')->sum('valor'));
+        $totalDespesas = $itens->where('tipo', '!=', 'estorno')->sum('valor');
+        $totalEstornos = abs($itens->where('tipo', 'estorno')->sum('valor'));
 
         // Próxima parcela pendente (por mês/ano)
-        $primeiroItemPendente = $fatura->itens->where('pago', 0)
+        $primeiroItemPendente = $itens->where('pago', 0)
             ->sortBy(function ($item) {
                 return $item->ano_referencia * 100 + $item->mes_referencia;
             })
             ->first();
 
         // Obter meses únicos de referência dos itens desta fatura
-        $mesesReferencia = $fatura->itens
+        $mesesReferencia = $itens
             ->map(function ($item) {
                 return [
                     'mes' => $item->mes_referencia,
@@ -1015,10 +1122,14 @@ class FaturaService
             ->values()
             ->toArray();
 
-        // Primeiro mês de referência (para exibição principal)
-        $primeiroMesRef = $fatura->itens->sortBy(function ($item) {
+        // Usar mês/ano passado por parâmetro ou primeiro mês de referência
+        $primeiroMesRef = $itens->sortBy(function ($item) {
             return $item->ano_referencia * 100 + $item->mes_referencia;
         })->first();
+        
+        // Se foi passado mês/ano por parâmetro, usa esses valores
+        $mesRetorno = $mesRef !== null ? $mesRef : ($primeiroMesRef ? $primeiroMesRef->mes_referencia : null);
+        $anoRetorno = $anoRef !== null ? $anoRef : ($primeiroMesRef ? $primeiroMesRef->ano_referencia : null);
 
         return [
             'id' => $fatura->id,
@@ -1027,9 +1138,9 @@ class FaturaService
             'numero_parcelas' => $fatura->numero_parcelas,
             'valor_parcela' => $fatura->valor_parcela,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
-            // Mês/ano de referência (primeiro mês onde aparece)
-            'mes_referencia' => $primeiroMesRef ? $primeiroMesRef->mes_referencia : null,
-            'ano_referencia' => $primeiroMesRef ? $primeiroMesRef->ano_referencia : null,
+            // Mês/ano de referência (do filtro ou primeiro mês onde aparece)
+            'mes_referencia' => $mesRetorno,
+            'ano_referencia' => $anoRetorno,
             // Lista de todos os meses onde este parcelamento aparece
             'meses_referencia' => $mesesReferencia,
             'proxima_parcela' => $primeiroItemPendente ? [

@@ -170,6 +170,22 @@
 
         canEditLancamento: (data) => !Utils.isSaldoInicial(data) && !Utils.isTransferencia(data),
 
+        // ---------- Forma de Pagamento ----------
+        formatFormaPagamento: (forma) => {
+            if (!forma) return '-';
+            const mapa = {
+                'dinheiro': '💵 Dinheiro',
+                'pix': '⚡ PIX',
+                'cartao_debito': '💳 Débito',
+                'cartao_credito': '💳 Crédito',
+                'transferencia': '🔄 Transferência',
+                'boleto': '📄 Boleto',
+                'cheque': '📝 Cheque',
+                'outro': '📋 Outro'
+            };
+            return mapa[forma] || forma.charAt(0).toUpperCase() + forma.slice(1).replace(/_/g, ' ');
+        },
+
         // ---------- Parsing de filtros ----------
         parseFilterNumber: (input) => {
             if (input === undefined || input === null) return null;
@@ -939,6 +955,10 @@
             const cartaoDisplay = cartaoNome ? `${cartaoNome}${cartaoBandeira ? ` (${cartaoBandeira})` : ''}` : '-';
             const cartaoCell = `<td class="td-cartao">${Utils.escapeHtml(cartaoDisplay)}</td>`;
 
+            // Forma de Pagamento
+            const formaPgto = Utils.formatFormaPagamento(item.forma_pagamento);
+            const formaPgtoCell = `<td class="td-forma-pgto">${formaPgto}</td>`;
+
             // Status (Pago/Pendente)
             const isPago = Boolean(item.pago);
             const statusClass = isPago ? 'status-pago' : 'status-pendente';
@@ -1013,6 +1033,7 @@
                     <td class="td-categoria">${Utils.escapeHtml(categoria)}</td>
                     <td class="td-conta">${Utils.escapeHtml(conta)}</td>
                     ${cartaoCell}
+                    ${formaPgtoCell}
                     ${descricaoCell}
                     ${statusCell}
                     ${valorCell}
@@ -1394,6 +1415,9 @@
                 const cartaoBandeira = item.cartao_bandeira || '';
                 const cartaoDisplay = cartaoNome ? `${cartaoNome}${cartaoBandeira ? ` (${cartaoBandeira})` : ''}` : '-';
 
+                // Forma de Pagamento
+                const formaPgto = Utils.formatFormaPagamento(item.forma_pagamento);
+
                 // Status (Pago/Pendente)
                 const isPago = Boolean(item.pago);
                 const statusClass = isPago ? 'status-pago' : 'status-pendente';
@@ -1475,6 +1499,10 @@
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Cartão</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(cartaoDisplay)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Forma Pgto</span>
+                            <span class="lan-card-detail-value card-detail-value">${formaPgto}</span>
                         </div>
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>

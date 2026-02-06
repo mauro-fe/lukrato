@@ -27,20 +27,22 @@ class RegistrationResponseHandler
         $isAjax = $this->request->isAjax();
         $redirect = $isGoogleRegistration ? 'dashboard' : 'login';
         
+        // Para registro normal, menciona a verificação de email
         $message = $isGoogleRegistration 
             ? 'Conta criada com Google e login realizado com sucesso!'
-            : ($result['message'] ?? 'Conta criada com sucesso! Você já pode fazer o login.');
+            : ($result['message'] ?? 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.');
 
         if ($isAjax) {
             Response::success([
                 'redirect' => $result['redirect'] ?? $redirect,
+                'requires_verification' => !$isGoogleRegistration,
             ], $message, 201);
             return;
         }
 
         $successMessage = $isGoogleRegistration
             ? 'Conta criada com Google! Bem-vindo ao Lukrato.'
-            : 'Conta criada com sucesso! Você já pode fazer o login.';
+            : 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.';
 
         $_SESSION['success'] = $successMessage;
         Response::redirectTo(BASE_URL . $redirect);

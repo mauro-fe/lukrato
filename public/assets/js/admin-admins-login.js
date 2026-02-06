@@ -123,6 +123,80 @@
         setTimeout(() => box.classList.remove('show'), 3000);
     }
 
+    // ===================== EMAIL VERIFICATION ALERT =====================
+    async function showEmailVerificationAlert(email) {
+        if (!window.Swal) {
+            showMessage('error', 'Você precisa verificar seu e-mail antes de fazer login. Verifique sua caixa de entrada.');
+            return;
+        }
+
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'E-mail não verificado',
+            html: `
+                <p style="margin-bottom: 16px;">Você precisa verificar seu e-mail antes de fazer login.</p>
+                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Enviamos um link de verificação para:</p>
+                <p style="font-weight: 600; color: #0369a1; background: #f0f9ff; padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">${email}</p>
+                <p style="font-size: 13px; color: #888;">Não recebeu? Verifique a pasta de spam ou clique abaixo para reenviar.</p>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Reenviar e-mail',
+            cancelButtonText: 'Fechar',
+            confirmButtonColor: '#e67e22',
+            cancelButtonColor: '#6c757d',
+        });
+
+        if (result.isConfirmed) {
+            await resendVerificationEmail(email);
+        }
+    }
+
+    async function resendVerificationEmail(email) {
+        try {
+            Swal.fire({
+                title: 'Enviando...',
+                text: 'Aguarde enquanto reenviamos o e-mail.',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const resp = await fetch(BASE_URL + 'verificar-email/reenviar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({ email })
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'E-mail enviado!',
+                    text: data.message || 'Verifique sua caixa de entrada e clique no link para ativar sua conta.',
+                    confirmButtonColor: '#27ae60'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: data.message || 'Não foi possível reenviar o e-mail. Tente novamente.',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro de conexão',
+                text: 'Não foi possível conectar ao servidor. Tente novamente.',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    }
+
     // ===================== LOGIN (AJAX) =====================
     const loginForm = document.getElementById('loginForm');
     if (loginForm && loginForm.dataset.bound !== '1') {
@@ -168,15 +242,28 @@
                         window.location.href = (data && data.redirect) ? data.redirect : (BASE_URL + 'login');
                     }, 800);
                 } else {
+                    // Verificar se é erro de email não verificado - mostra APENAS o modal bonito
+                    if (data?.errors?.email_not_verified) {
+                        const userEmail = data?.errors?.user_email || emailVal;
+                        showEmailVerificationAlert(userEmail);
+                        return; // Importante: não mostra mais nada
+                    }
+                    
+                    // Outros erros
                     if (data?.field === 'password') {
                         showFieldErrorById('password', data.message || 'Senha incorreta.');
                         pwdField?.focus();
                     } else if (data?.field === 'email') {
                         showFieldErrorById('email', data.message || 'E-mail nao encontrado.');
                         emailField?.focus();
-                    } else {
-                        // Ignora mensagem do servidor para manter PT-BR
+                    } else if (data?.errors?.credentials) {
+                        // Erro de credenciais - mostra mensagem bonita
                         showMessage('error', 'E-mail ou senha incorretos.');
+                    } else if (data?.errors?.email && !data?.errors?.email_not_verified) {
+                        // Erro específico de email (ex: conta Google)
+                        showMessage('error', data.errors.email);
+                    } else {
+                        showMessage('error', data?.message || 'E-mail ou senha incorretos.');
                     }
                 }
             } catch {
@@ -252,11 +339,12 @@
                 let data = null; try { data = await resp.json(); } catch (_) { }
 
                 if (resp.ok && data) {
-                    // Mensagem fixa conforme solicitado
-                    showMessage('success', 'Conta criada com sucesso');
+                    // Mostra mensagem de sucesso com aviso sobre verificação de email
+                    const successMsg = data.message || 'Conta criada com sucesso! Verifique seu e-mail para ativar.';
+                    showMessage('success', successMsg);
                     setTimeout(() => {
                         window.location.href = (data && data.redirect) ? data.redirect : (BASE_URL + 'login');
-                    }, 800);
+                    }, 1500);
                     return;
                 }
 

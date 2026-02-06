@@ -33,7 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         ignoreFilterChange: false,
         activeQuickFilter: null,
-        applyingQuickFilter: false
+        applyingQuickFilter: false,
+        // Paginação desktop
+        currentPage: 1,
+        pageSize: 25,
+        filteredData: []
     };
 
 
@@ -228,13 +232,20 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody: document.getElementById('agendamentosTableBody'),
         agList: document.getElementById('agList'),
 
-        // Paginação
+        // Paginação Mobile (Cards)
         pager: document.getElementById('agCardsPager'),
         pagerInfo: document.getElementById('agPagerInfo'),
         pagerFirst: document.getElementById('agPagerFirst'),
         pagerPrev: document.getElementById('agPagerPrev'),
         pagerNext: document.getElementById('agPagerNext'),
         pagerLast: document.getElementById('agPagerLast'),
+
+        // Paginação Desktop (Tabela)
+        paginationInfo: document.getElementById('agPaginationInfo'),
+        pageSize: document.getElementById('agPageSize'),
+        prevPage: document.getElementById('agPrevPage'),
+        nextPage: document.getElementById('agNextPage'),
+        pageNumbers: document.getElementById('agPageNumbers'),
 
         // Paywall
         paywallBox: document.getElementById('agPaywall'),
@@ -373,8 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async fetchWithCSRF(url, options = {}, retry = true) {
-            // Sempre pegar o token mais recente do STATE
-            const currentToken = STATE.csrfToken || CSRF.get();
+            // SEMPRE pegar o token mais recente do DOM (meta tag) - não usar cache
+            // O sistema LK pode ter renovado o token em background
+            const currentToken = CSRF.get();
+            STATE.csrfToken = currentToken; // Sincronizar o cache
             console.log('[CSRF] fetchWithCSRF chamado. Token atual:', currentToken?.substring(0, 8) + '...');
 
             // Se o body é FormData, criar uma cópia e atualizar os tokens
@@ -1005,6 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.dataset.id = item.id;
 
             const isRecorrente = item.recorrente === 1 || item.recorrente === true;
+            const isParcelado = item.eh_parcelado === 1 || item.eh_parcelado === true;
             const statusDinamico = item.status_dinamico ||
                 Format.calcularStatusDinamico(item.data_pagamento || item.data_agendada, isRecorrente, status);
 
@@ -1015,9 +1029,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.classList.add('card-vencido');
             }
 
-            // Título com ícone de recorrência
+            // Ícone de parcelamento ou recorrência
+            let infoIcon = '';
+            if (isParcelado && item.numero_parcelas) {
+                infoIcon = `<span class="parcela-badge" title="Parcelado em ${item.numero_parcelas}x">📊 ${item.parcela_atual || 1}/${item.numero_parcelas}</span>`;
+            } else if (isRecorrente) {
+                infoIcon = Format.recorrenteIcon(isRecorrente);
+            }
+
+            // Título com ícone
             const tituloEl = clone.querySelector('.ag-card-title');
-            tituloEl.innerHTML = `${Format.escapeHtml(item.titulo || '-')} ${Format.recorrenteIcon(isRecorrente)}`;
+            tituloEl.innerHTML = `${Format.escapeHtml(item.titulo || '-')} ${infoIcon}`;
 
             // Data - usar data_pagamento com fallback
             clone.querySelector('[data-field="data"]').textContent =
@@ -1042,9 +1064,15 @@ document.addEventListener('DOMContentLoaded', () => {
             clone.querySelector('[data-field="conta"]').textContent =
                 item.conta?.nome || item.conta_nome || '-';
 
-            // Recorrente
-            clone.querySelector('[data-field="recorrente"]').textContent =
-                isRecorrente ? '✅ Sim (automático)' : '❌ Não (único)';
+            // Recorrente/Parcelado
+            const recorrenteEl = clone.querySelector('[data-field="recorrente"]');
+            if (isParcelado && item.numero_parcelas) {
+                recorrenteEl.textContent = `📊 Parcelado (${item.parcela_atual || 1}/${item.numero_parcelas})`;
+            } else if (isRecorrente) {
+                recorrenteEl.textContent = '🔁 Recorrente';
+            } else {
+                recorrenteEl.textContent = '❌ Não (único)';
+            }
 
             // Descrição (opcional)
             if (item.descricao) {
@@ -1072,10 +1100,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
+            const editBtn = `
+                <button class="lk-btn ghost ag-card-btn" data-ag-action="editar" data-id="${itemId}" title="Editar">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+            `;
+
             // Verificar cancelado PRIMEIRO
             if (status === 'cancelado') {
                 actionsContainer.innerHTML = `
                     ${viewBtn}
+                    ${editBtn}
                     <button class="lk-btn ghost ag-card-btn" data-ag-action="reativar" data-id="${itemId}" title="Reativar">
                         <i class="fas fa-undo-alt"></i>
                     </button>
@@ -1086,15 +1121,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="lk-btn ghost-pagar ag-card-btn" data-ag-action="pagar" data-id="${itemId}" title="Executar">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button class="lk-btn ghost ag-card-btn" data-ag-action="editar" data-id="${itemId}" title="Editar">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
+                    ${editBtn}
                     <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
             } else {
-                actionsContainer.innerHTML = viewBtn;
+                // Executados também podem ser editados
+                actionsContainer.innerHTML = `${viewBtn}${editBtn}`;
             }
         },
 
@@ -1141,17 +1175,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================================
 
     const DesktopTable = {
-        render(data) {
+        render(data, resetPage = true) {
 
             if (!DOM.tableBody) return;
+
+            // Armazenar dados filtrados para paginação
+            STATE.filteredData = data || [];
+
+            if (resetPage) {
+                STATE.currentPage = 1;
+            }
 
             if (!data || data.length === 0) {
                 DOM.tableBody.innerHTML =
                     '<tr><td colspan="8" class="text-center">Nenhum agendamento encontrado.</td></tr>';
+                this.updatePagination();
                 return;
             }
 
-            DOM.tableBody.innerHTML = data.map(item => this.renderRow(item)).join('');
+            // Calcular paginação
+            const start = (STATE.currentPage - 1) * STATE.pageSize;
+            const end = start + STATE.pageSize;
+            const pageData = data.slice(start, end);
+
+            DOM.tableBody.innerHTML = pageData.map(item => this.renderRow(item)).join('');
 
             // Adicionar event listeners
             DOM.tableBody.querySelectorAll('[data-action]').forEach(btn => {
@@ -1164,12 +1211,81 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
+
+            this.updatePagination();
+        },
+
+        updatePagination() {
+            const total = STATE.filteredData.length;
+            const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
+            const start = total > 0 ? (STATE.currentPage - 1) * STATE.pageSize + 1 : 0;
+            const end = Math.min(STATE.currentPage * STATE.pageSize, total);
+
+            // Atualizar info text
+            if (DOM.paginationInfo) {
+                if (total === 0) {
+                    DOM.paginationInfo.textContent = '0 agendamentos';
+                } else {
+                    DOM.paginationInfo.textContent = `${start}-${end} de ${total} agendamentos`;
+                }
+            }
+
+            // Atualizar botões
+            if (DOM.prevPage) {
+                DOM.prevPage.disabled = STATE.currentPage <= 1;
+            }
+            if (DOM.nextPage) {
+                DOM.nextPage.disabled = STATE.currentPage >= totalPages;
+            }
+
+            // Atualizar números de página
+            if (DOM.pageNumbers) {
+                const pages = [];
+                const maxVisible = 5;
+                let startPage = Math.max(1, STATE.currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+                if (endPage - startPage + 1 < maxVisible) {
+                    startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const isActive = i === STATE.currentPage;
+                    pages.push(`
+                        <button type="button" class="page-number-btn ${isActive ? 'active' : ''}" 
+                                data-page="${i}" ${isActive ? 'disabled' : ''}>
+                            ${i}
+                        </button>
+                    `);
+                }
+
+                DOM.pageNumbers.innerHTML = pages.join('');
+
+                // Adicionar handlers para números de página
+                DOM.pageNumbers.querySelectorAll('.page-number-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const page = parseInt(btn.dataset.page);
+                        if (page) this.goToPage(page);
+                    });
+                });
+            }
+        },
+
+        goToPage(page) {
+            const totalPages = Math.max(1, Math.ceil(STATE.filteredData.length / STATE.pageSize));
+            const safePage = Math.min(Math.max(1, page), totalPages);
+
+            if (safePage !== STATE.currentPage) {
+                STATE.currentPage = safePage;
+                this.render(STATE.filteredData, false);
+            }
         },
 
         renderRow(item) {
             const status = String(item.status || '').toLowerCase();
             const tipo = String(item.tipo || '').toLowerCase();
             const isRecorrente = item.recorrente === 1 || item.recorrente === true;
+            const isParcelado = item.eh_parcelado === 1 || item.eh_parcelado === true;
 
             // Calcular status dinâmico
             const statusDinamico = item.status_dinamico ||
@@ -1182,11 +1298,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Usar data_pagamento (ou data_agendada como fallback)
             const dataExibicao = item.data_pagamento || item.data_agendada;
 
+            // Ícone de parcelamento ou recorrência
+            let infoIcon = '';
+            if (isParcelado && item.numero_parcelas) {
+                infoIcon = `<span class="parcela-badge" title="Parcelado em ${item.numero_parcelas}x">📊 ${item.parcela_atual || 1}/${item.numero_parcelas}</span>`;
+            } else if (isRecorrente) {
+                infoIcon = Format.recorrenteIcon(isRecorrente);
+            }
+
             return `
                 <tr data-id="${item.id}" class="${rowClass}">
                     <td>
                         ${Format.escapeHtml(item.titulo || '-')}
-                        ${Format.recorrenteIcon(isRecorrente)}
+                        ${infoIcon}
                     </td>
                     <td>
                         <span class="ag-tipo-badge ${tipo}">
@@ -1211,10 +1335,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
+            const editBtn = `
+                <button type="button" class="btn-action btn-edit" data-action="editar" data-id="${itemId}" 
+                    title="✏️ Editar agendamento">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+            `;
+
             // Verificar cancelado PRIMEIRO
             if (status === 'cancelado') {
                 return `
                     ${viewBtn}
+                    ${editBtn}
                     <button type="button" class="btn-action btn-restore" data-action="reativar" data-id="${itemId}" 
                         title="🔄 Reativar agendamento">
                         <i class="fas fa-undo-alt"></i>
@@ -1229,10 +1361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         title="✅ Executar agendamento - Cria lançamento">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button type="button" class="btn-action btn-edit" data-action="editar" data-id="${itemId}" 
-                        title="✏️ Editar agendamento">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
+                    ${editBtn}
                     <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
                         title="❌ Cancelar agendamento">
                         <i class="fas fa-times"></i>
@@ -1240,7 +1369,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
-            return viewBtn;
+            // Executados também podem ser editados
+            return `${viewBtn}${editBtn}`;
         }
     };
 
@@ -1406,6 +1536,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         preencherDados(agendamento) {
             const isRecorrente = agendamento.recorrente === 1 || agendamento.recorrente === true;
+            const isParcelado = agendamento.eh_parcelado === 1 || agendamento.eh_parcelado === true;
             const statusDinamico = agendamento.status_dinamico ||
                 Format.calcularStatusDinamico(agendamento.data_pagamento, isRecorrente, agendamento.status);
 
@@ -1451,23 +1582,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.hideElement('viewConcluidoEmItem');
             }
 
-            // Recorrência
-            this.setElementText('viewRecorrente', isRecorrente ? '✅ Sim (automático)' : '❌ Não (único)');
-
-            if (isRecorrente && agendamento.recorrencia_freq) {
-                this.showElement('viewRecorrenciaFreqItem');
-                const freqTexto = this.getFrequenciaTexto(agendamento.recorrencia_freq);
-                this.setElementText('viewRecorrenciaFreq', freqTexto);
-
-                if (agendamento.recorrencia_intervalo && agendamento.recorrencia_intervalo > 1) {
-                    this.showElement('viewRecorrenciaIntervaloItem');
-                    this.setElementText('viewRecorrenciaIntervalo', `A cada ${agendamento.recorrencia_intervalo} ${freqTexto.toLowerCase()}`);
-                } else {
-                    this.hideElement('viewRecorrenciaIntervaloItem');
-                }
-            } else {
+            // Recorrência ou Parcelamento
+            if (isParcelado && agendamento.numero_parcelas) {
+                this.setElementText('viewRecorrente', `📊 Parcelado (${agendamento.parcela_atual || 1}/${agendamento.numero_parcelas})`);
                 this.hideElement('viewRecorrenciaFreqItem');
                 this.hideElement('viewRecorrenciaIntervaloItem');
+            } else {
+                this.setElementText('viewRecorrente', isRecorrente ? '🔁 Recorrente' : '❌ Não (único)');
+
+                if (isRecorrente && agendamento.recorrencia_freq) {
+                    this.showElement('viewRecorrenciaFreqItem');
+                    const freqTexto = this.getFrequenciaTexto(agendamento.recorrencia_freq);
+                    this.setElementText('viewRecorrenciaFreq', freqTexto);
+
+                    if (agendamento.recorrencia_intervalo && agendamento.recorrencia_intervalo > 1) {
+                        this.showElement('viewRecorrenciaIntervaloItem');
+                        this.setElementText('viewRecorrenciaIntervalo', `A cada ${agendamento.recorrencia_intervalo} ${freqTexto.toLowerCase()}`);
+                    } else {
+                        this.hideElement('viewRecorrenciaIntervaloItem');
+                    }
+                } else {
+                    this.hideElement('viewRecorrenciaFreqItem');
+                    this.hideElement('viewRecorrenciaIntervaloItem');
+                }
             }
 
             // Notificações
@@ -1579,31 +1716,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (recorrenteValor && record.recorrencia_freq && agFrequencia) {
                 agFrequencia.value = record.recorrencia_freq;
-                const repeticoesGroup = document.getElementById('repeticoesGroup');
-                if (repeticoesGroup) repeticoesGroup.style.display = 'block';
             } else if (agFrequencia) {
                 agFrequencia.value = '';
             }
 
-            // Preencher repetições calculando a partir de recorrencia_fim
-            const agRepeticoes = document.getElementById('agRepeticoes');
-            if (agRepeticoes) {
-                if (record.recorrencia_fim && record.recorrencia_freq && record.data_pagamento) {
-                    // Calcular número de repetições baseado na data de fim
-                    const repeticoes = this.calcularRepeticoesFromFim(
-                        record.data_pagamento,
-                        record.recorrencia_freq,
-                        record.recorrencia_fim
-                    );
-                    if (repeticoes && repeticoes > 0) {
-                        agRepeticoes.value = repeticoes;
-                    } else {
-                        agRepeticoes.value = '';
-                    }
-                } else {
-                    agRepeticoes.value = '';
-                }
-            }
+            // Recorrência agora é sempre indefinida, não precisa calcular repetições
+            // O campo agRepeticoes é um hidden vazio
 
             // Atualizar checkboxes de notificação com valores do registro
             const checkboxSistema = document.getElementById('agCanalInapp');
@@ -1621,6 +1739,39 @@ document.addEventListener('DOMContentLoaded', () => {
             if (agTempoAviso && record.lembrar_antes_segundos !== undefined) {
                 const minutos = Math.round((parseInt(record.lembrar_antes_segundos) || 0) / 60);
                 agTempoAviso.value = String(minutos);
+            }
+
+            // Preencher campos de parcelamento
+            const ehParceladoCheckbox = document.getElementById('agEhParcelado');
+            const numeroParcelas = document.getElementById('agNumeroParcelas');
+            const parcelasInputGroup = document.getElementById('parcelasInputGroup');
+            const isParcelado = record.eh_parcelado === 1 || record.eh_parcelado === true || record.eh_parcelado === '1';
+            
+            if (ehParceladoCheckbox) {
+                ehParceladoCheckbox.checked = isParcelado;
+                if (isParcelado) {
+                    if (parcelasInputGroup) parcelasInputGroup.style.display = 'block';
+                    if (numeroParcelas && record.numero_parcelas) {
+                        numeroParcelas.value = record.numero_parcelas;
+                        // Atualizar preset buttons
+                        if (typeof updatePresetButtons === 'function') {
+                            updatePresetButtons(parseInt(record.numero_parcelas));
+                        }
+                    }
+                    // Desabilitar recorrência se parcelado
+                    const selectFrequencia = document.getElementById('agFrequencia');
+                    if (selectFrequencia) selectFrequencia.disabled = true;
+                } else {
+                    if (parcelasInputGroup) parcelasInputGroup.style.display = 'none';
+                    if (numeroParcelas) numeroParcelas.value = '2';
+                    // Reabilitar recorrência
+                    const selectFrequencia = document.getElementById('agFrequencia');
+                    if (selectFrequencia) selectFrequencia.disabled = false;
+                    // Limpar preset buttons
+                    if (typeof updatePresetButtons === 'function') {
+                        updatePresetButtons(0);
+                    }
+                }
             }
 
             Modal.hideError();
@@ -1729,7 +1880,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getData(valorCentavos) {
             const payload = new FormData();
-            const token = STATE.csrfToken || CSRF.get();
+            // SEMPRE pegar o token mais recente do DOM (meta tag)
+            const token = CSRF.get();
 
             if (token) {
                 payload.append('_token', token);
@@ -1758,17 +1910,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (recorrente === '1' && frequencia) {
                 payload.append('recorrencia_freq', frequencia);
                 payload.append('recorrencia_intervalo', '1');
+                // Recorrência agora é sempre indefinida (sem data de fim)
+                // O agendamento repete para sempre até ser cancelado manualmente
+            }
 
-                const repeticoes = (DOM.agRepeticoes?.value || '').trim();
-                if (repeticoes && parseInt(repeticoes) > 0) {
-                    const dataPagamento = (DOM.agDataPagamento?.value || '').trim();
-                    if (dataPagamento) {
-                        const recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, frequencia, parseInt(repeticoes));
-                        if (recorrenciaFim) {
-                            payload.append('recorrencia_fim', recorrenciaFim);
-                        }
-                    }
-                }
+            // Verificar se é parcelado
+            const ehParcelado = document.getElementById('agEhParcelado');
+            const numeroParcelas = document.getElementById('agNumeroParcelas');
+            if (ehParcelado?.checked && numeroParcelas?.value) {
+                payload.append('eh_parcelado', '1');
+                payload.append('numero_parcelas', numeroParcelas.value);
+                payload.append('parcela_atual', '1');
+            } else {
+                payload.append('eh_parcelado', '0');
             }
 
             // Campos de notificação
@@ -1803,17 +1957,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOM.agValor.value = MoneyMask.format(0);
             }
 
-            // Resetar select de frequência e campo de repetições
+            // Resetar select de frequência
             if (DOM.agFrequencia) {
                 DOM.agFrequencia.value = '';
+                DOM.agFrequencia.disabled = false;
             }
-            if (DOM.agRepeticoes) {
-                DOM.agRepeticoes.value = '';
-            }
-            const repeticoesGroup = document.getElementById('repeticoesGroup');
-            if (repeticoesGroup) {
-                repeticoesGroup.style.display = 'none';
-            }
+
+            // Resetar campos de parcelamento
+            const ehParcelado = document.getElementById('agEhParcelado');
+            const numeroParcelas = document.getElementById('agNumeroParcelas');
+            const parcelasInputGroup = document.getElementById('parcelasInputGroup');
+            if (ehParcelado) ehParcelado.checked = false;
+            if (numeroParcelas) numeroParcelas.value = '';
+            if (parcelasInputGroup) parcelasInputGroup.style.display = 'none';
 
             // Reset da recorrência agora é feito via select dropdown (já tratado acima)
 
@@ -1911,23 +2067,82 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async pagar(id) {
-            // Buscar agendamento do cache para verificar se é recorrente
+            // Buscar agendamento do cache para exibir informações
             const agendamento = Agendamentos.getFromCache(id);
-            const isRecorrente = agendamento?.recorrente === 1 || agendamento?.recorrente === true;
+            if (!agendamento) {
+                Swal.fire('Erro', 'Agendamento não encontrado.', 'error');
+                return;
+            }
 
-            const confirm = await Swal.fire({
-                title: 'Executar agendamento?',
-                html: isRecorrente
-                    ? '<p>✅ Um lançamento será criado.</p><p>🔁 Este agendamento é <strong>recorrente</strong> e continuará ativo na próxima data.</p>'
-                    : '<p>✅ Um lançamento será criado.</p><p>❌ Este agendamento será <strong>finalizado</strong> e não aparecerá mais.</p>',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: '✔️ Sim, executar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#10b981',
-            });
+            const isRecorrente = agendamento.recorrente === 1 || agendamento.recorrente === true;
+            const isParcelado = agendamento.eh_parcelado === 1 || agendamento.eh_parcelado === true;
+            const parcelaAtual = agendamento.parcela_atual || 1;
+            const totalParcelas = agendamento.numero_parcelas || 1;
 
-            if (!confirm.isConfirmed) return;
+            // Preencher modal de execução
+            document.getElementById('execAgendamentoId').value = id;
+            document.getElementById('execResumoTitulo').textContent = agendamento.titulo || 'Agendamento';
+            document.getElementById('execResumoValor').textContent = Format.currency(agendamento.valor_centavos);
+
+            // Mostrar info de parcela/recorrência
+            const resumoParcela = document.getElementById('execResumoParcela');
+            if (isParcelado) {
+                resumoParcela.innerHTML = `<strong>Parcela ${parcelaAtual}/${totalParcelas}</strong>`;
+                resumoParcela.style.display = 'block';
+            } else if (isRecorrente) {
+                resumoParcela.innerHTML = `<span class="text-success">🔁 Recorrente</span>`;
+                resumoParcela.style.display = 'block';
+            } else {
+                resumoParcela.style.display = 'none';
+            }
+
+            // Carregar contas no select
+            const execConta = document.getElementById('execConta');
+            if (execConta && STATE.selectCache.contas) {
+                execConta.innerHTML = '<option value="">Selecione a conta</option>';
+                STATE.selectCache.contas.forEach(conta => {
+                    const option = document.createElement('option');
+                    option.value = conta.id;
+                    option.textContent = conta.nome + (conta.instituicao ? ` · ${conta.instituicao}` : '');
+                    // Pré-selecionar se o agendamento tem conta
+                    if (agendamento.conta_id && String(agendamento.conta_id) === String(conta.id)) {
+                        option.selected = true;
+                    }
+                    execConta.appendChild(option);
+                });
+            }
+
+            // Abrir modal
+            const modalEl = document.getElementById('modalExecutarAgendamento');
+            if (modalEl && window.bootstrap) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        },
+
+        /**
+         * Confirmar execução do agendamento (chamado do modal)
+         */
+        async confirmarExecucao() {
+            // Proteção contra duplo clique
+            if (this._executing) {
+                console.warn('[Actions.confirmarExecucao] Execução já em andamento, ignorando chamada duplicada');
+                return;
+            }
+
+            const id = document.getElementById('execAgendamentoId')?.value;
+            if (!id) return;
+
+            this._executing = true;
+
+            const contaId = document.getElementById('execConta')?.value || null;
+            const formaPagamento = document.getElementById('execFormaPagamento')?.value || null;
+
+            // Fechar modal
+            const modalEl = document.getElementById('modalExecutarAgendamento');
+            if (modalEl && window.bootstrap) {
+                bootstrap.Modal.getInstance(modalEl)?.hide();
+            }
 
             Swal.fire({
                 title: 'Executando...',
@@ -1937,8 +2152,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             try {
+                const payload = {};
+                if (contaId) payload.conta_id = contaId;
+                if (formaPagamento) payload.forma_pagamento = formaPagamento;
+
                 const json = await HTTP.fetchWithCSRF(`${CONFIG.BASE_URL}api/agendamentos/${id}/executar`, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
                 if (!json || json?.status !== 'success') {
@@ -1961,6 +2182,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(err);
                 Swal.close();
                 Swal.fire('Erro', err.message || 'Falha ao executar agendamento.', 'error');
+            } finally {
+                this._executing = false;
             }
         },
 
@@ -2389,6 +2612,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupPagination() {
+            // Paginação Mobile (Cards)
             DOM.pagerFirst?.addEventListener('click', () => {
                 MobileCards.currentPage = 1;
                 MobileCards.render();
@@ -2408,6 +2632,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { totalPages } = MobileCards.getPagedData();
                 MobileCards.currentPage = totalPages;
                 MobileCards.render();
+            });
+
+            // Paginação Desktop (Tabela)
+            DOM.prevPage?.addEventListener('click', () => {
+                if (STATE.currentPage > 1) {
+                    DesktopTable.goToPage(STATE.currentPage - 1);
+                }
+            });
+
+            DOM.nextPage?.addEventListener('click', () => {
+                const totalPages = Math.ceil(STATE.filteredData.length / STATE.pageSize);
+                if (STATE.currentPage < totalPages) {
+                    DesktopTable.goToPage(STATE.currentPage + 1);
+                }
+            });
+
+            DOM.pageSize?.addEventListener('change', () => {
+                STATE.pageSize = parseInt(DOM.pageSize.value, 10) || 25;
+                STATE.currentPage = 1;
+                DesktopTable.render(STATE.filteredData, false);
             });
         },
 
@@ -2494,26 +2738,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setupRecurrenceToggle() {
             const selectFrequencia = document.getElementById('agFrequencia');
-            const repeticoesGroup = document.getElementById('repeticoesGroup');
-            const inputRepeticoes = document.getElementById('agRepeticoes');
 
-            if (!selectFrequencia || !repeticoesGroup) return;
+            // Parcelamento
+            const ehParcelado = document.getElementById('agEhParcelado');
+            const parcelasInputGroup = document.getElementById('parcelasInputGroup');
 
-            // Mostrar/ocultar campo de repetições baseado no select de frequência
+            if (!selectFrequencia) return;
+
+            // Quando seleciona recorrência, desabilitar parcelamento
             selectFrequencia.addEventListener('change', function () {
                 if (this.value && this.value !== '') {
-                    repeticoesGroup.style.display = 'block';
+                    // Se recorrente, desabilitar parcelamento
+                    if (ehParcelado) {
+                        ehParcelado.checked = false;
+                        ehParcelado.disabled = true;
+                    }
+                    if (parcelasInputGroup) parcelasInputGroup.style.display = 'none';
                 } else {
-                    repeticoesGroup.style.display = 'none';
-                    if (inputRepeticoes) inputRepeticoes.value = '';
+                    // Reabilitar parcelamento
+                    if (ehParcelado) ehParcelado.disabled = false;
                 }
             });
 
-            // Inicializar estado correto ao abrir modal
-            if (selectFrequencia.value && selectFrequencia.value !== '') {
-                repeticoesGroup.style.display = 'block';
-            } else {
-                repeticoesGroup.style.display = 'none';
+            // Configurar checkbox de parcelamento
+            if (ehParcelado && parcelasInputGroup) {
+                ehParcelado.addEventListener('change', function () {
+                    if (this.checked) {
+                        parcelasInputGroup.style.display = 'block';
+                        // Se parcelado, desabilitar recorrência
+                        if (selectFrequencia) {
+                            selectFrequencia.value = '';
+                            selectFrequencia.disabled = true;
+                        }
+                    } else {
+                        parcelasInputGroup.style.display = 'none';
+                        // Reabilitar recorrência
+                        if (selectFrequencia) selectFrequencia.disabled = false;
+                    }
+                });
+            }
+        },
+
+        setupExecucaoModal() {
+            // Botão confirmar execução
+            const btnConfirmar = document.getElementById('btnConfirmarExecucao');
+            if (btnConfirmar) {
+                btnConfirmar.addEventListener('click', () => Actions.confirmarExecucao());
             }
         },
 
@@ -2675,6 +2945,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Events.setupTipoChange();
         Events.setupModalEvents();
         Events.setupToggleButtons();
+        Events.setupRecurrenceToggle();
+        Events.setupExecucaoModal();
         Events.setupActionHandler();
         Events.setupFilters();
         Events.setupAddButton();
@@ -2700,4 +2972,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Executar inicialização
     init();
+});
+
+// ============================================================================
+// FUNÇÕES GLOBAIS PARA PARCELAMENTO MODERNO
+// ============================================================================
+
+/**
+ * Ajusta o número de parcelas (+ ou -)
+ * @param {number} delta - Valor para incrementar/decrementar
+ */
+function adjustParcelas(delta) {
+    const input = document.getElementById('agNumeroParcelas');
+    if (!input) return;
+    
+    let value = parseInt(input.value) || 2;
+    value += delta;
+    
+    // Limites
+    if (value < 2) value = 2;
+    if (value > 48) value = 48;
+    
+    input.value = value;
+    updatePresetButtons(value);
+}
+
+/**
+ * Define número de parcelas via preset button
+ * @param {number} num - Número de parcelas
+ */
+function setParcelas(num) {
+    const input = document.getElementById('agNumeroParcelas');
+    if (!input) return;
+    
+    input.value = num;
+    updatePresetButtons(num);
+}
+
+/**
+ * Atualiza visual dos preset buttons
+ * @param {number} activeValue - Valor ativo atual
+ */
+function updatePresetButtons(activeValue) {
+    const presets = document.querySelectorAll('.parcelas-presets .preset-btn');
+    presets.forEach(btn => {
+        const btnValue = parseInt(btn.textContent);
+        if (btnValue === activeValue) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Adicionar listener para mudanças no input de parcelas
+document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'agNumeroParcelas') {
+        updatePresetButtons(parseInt(e.target.value) || 0);
+    }
 });

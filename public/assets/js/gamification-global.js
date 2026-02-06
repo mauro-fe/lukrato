@@ -456,34 +456,63 @@
      * Verificar conquistas pendentes de notificação
      * Chamado ao carregar qualquer página
      */
+    let isCheckingPending = false; // Evitar verificações simultâneas
+    
     async function checkPendingAchievements() {
+        // Evitar verificações duplicadas
+        if (isCheckingPending) {
+            console.log('🎮 [GAMIFICATION] Já está verificando conquistas pendentes...');
+            return;
+        }
+        
+        // Não verificar se gamificação está pausada
+        if (window.gamificationPaused === true) {
+            console.log('🎮 [GAMIFICATION] Gamificação pausada, não verificar conquistas pendentes');
+            return;
+        }
+
+        isCheckingPending = true;
+        
         try {
             const baseUrl = window.BASE_URL || '/lukrato/public/';
             const response = await fetch(`${baseUrl}api/gamification/achievements/pending`, {
                 credentials: 'same-origin'
             });
 
-            if (!response.ok) return;
+            if (!response.ok) {
+                isCheckingPending = false;
+                return;
+            }
 
             const data = await response.json();
 
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
+                console.log(`🏆 [GAMIFICATION] ${pending.length} conquista(s) pendente(s) para exibir!`);
 
-                // Mostrar cada conquista com um pequeno delay entre elas
-                for (let i = 0; i < pending.length; i++) {
-                    setTimeout(() => {
-                        window.notifyAchievementUnlocked(pending[i]);
-                    }, i * 3500); // 3.5 segundos entre cada uma
-                }
-
-                // Marcar como vistas após exibir
+                // Marcar como vistas IMEDIATAMENTE para evitar duplicação em outras abas/páginas
                 const achievementIds = pending.map(a => a.id);
-                markAchievementsSeen(achievementIds);
+                await markAchievementsSeen(achievementIds);
+
+                // Exibir conquistas sequencialmente usando o sistema de fila
+                if (pending.length === 1) {
+                    // Apenas uma conquista
+                    window.notifyAchievementUnlocked(pending[0]);
+                } else {
+                    // Múltiplas conquistas - usar sistema de fila
+                    window.combinedQueue = pending.map(ach => ({ type: 'achievement', data: ach }));
+                    showNextQueuedItem();
+                }
             }
         } catch (error) {
+            console.error('🎮 [GAMIFICATION] Erro ao verificar conquistas pendentes:', error);
+        } finally {
+            isCheckingPending = false;
         }
     }
+    
+    // Expor função para uso externo (opcional)
+    window.checkPendingAchievements = checkPendingAchievements;
 
     /**
      * Marcar conquistas como vistas
@@ -506,18 +535,156 @@
                 body: JSON.stringify({ achievement_ids: achievementIds })
             });
         } catch (error) {
+            console.error('🎮 [GAMIFICATION] Erro ao marcar conquistas como vistas:', error);
         }
     }
 
-    // Verificar conquistas pendentes quando a página carregar
-    // DESABILITADO: Conflita com o sistema de notificação imediata
-    // if (document.readyState === 'loading') {
-    //     document.addEventListener('DOMContentLoaded', () => {
-    //         setTimeout(checkPendingAchievements, 1000);
-    //     });
-    // } else {
-    //     setTimeout(checkPendingAchievements, 1000);
-    // }
+    // ====================================================================
+    // VERIFICAÇÃO DE RECOMPENSAS DE INDICAÇÃO - Modal de parabéns
+    // ====================================================================
+    let isCheckingReferralRewards = false;
+
+    async function checkReferralRewards() {
+        if (isCheckingReferralRewards) return;
+        if (window.gamificationPaused === true) return;
+
+        isCheckingReferralRewards = true;
+
+        try {
+            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const response = await fetch(`${baseUrl}api/notificacoes/referral-rewards`, {
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                isCheckingReferralRewards = false;
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.data && data.data.rewards && data.data.rewards.length > 0) {
+                const rewards = data.data.rewards;
+                console.log(`🎁 [REFERRAL] ${rewards.length} recompensa(s) de indicação para exibir!`);
+
+                // Mostrar modal para cada recompensa
+                for (const reward of rewards) {
+                    await showReferralRewardModal(reward);
+                }
+
+                // Marcar como vistas
+                const ids = rewards.map(r => r.id);
+                await markReferralRewardsSeen(ids);
+            }
+        } catch (error) {
+            console.error('🎁 [REFERRAL] Erro ao verificar recompensas:', error);
+        } finally {
+            isCheckingReferralRewards = false;
+        }
+    }
+
+    /**
+     * Mostra modal de parabéns para recompensa de indicação
+     */
+    function showReferralRewardModal(reward) {
+        return new Promise((resolve) => {
+            // Tocar som
+            playAchievementSound();
+
+            // Confetes
+            setTimeout(() => {
+                createAchievementConfetti();
+            }, 100);
+
+            const isReferrer = reward.tipo === 'referral_referrer';
+            const icon = isReferrer ? '🎁' : '🎉';
+            const buttonText = isReferrer ? '🚀 Continuar indicando!' : '🚀 Aproveitar!';
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: `${icon} ${reward.titulo}`,
+                    html: `
+                        <div class="referral-reward-animation">
+                            <div class="referral-icon-big">${isReferrer ? '👥' : '🌟'}</div>
+                            <p class="referral-message">${reward.mensagem}</p>
+                            <div class="referral-pro-badge">
+                                <i class="fas fa-gem"></i> Acesso PRO ativado!
+                            </div>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonText: buttonText,
+                    customClass: {
+                        popup: 'referral-reward-modal',
+                        confirmButton: 'btn btn-primary'
+                    },
+                    showClass: {
+                        popup: 'animate__animated animate__bounceIn'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOut'
+                    },
+                    allowOutsideClick: false
+                }).then(() => {
+                    resolve();
+                });
+            } else {
+                alert(`${icon} ${reward.titulo}\n\n${reward.mensagem}`);
+                resolve();
+            }
+        });
+    }
+
+    /**
+     * Marca recompensas de indicação como vistas
+     */
+    async function markReferralRewardsSeen(ids) {
+        try {
+            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+            await fetch(`${baseUrl}api/notificacoes/referral-rewards/seen`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                body: JSON.stringify({ ids: ids })
+            });
+        } catch (error) {
+            console.error('🎁 [REFERRAL] Erro ao marcar recompensas como vistas:', error);
+        }
+    }
+
+    // ====================================================================
+    // VERIFICAÇÃO DE CONQUISTAS PENDENTES - Verificar ao carregar página
+    // ====================================================================
+    // Isto garante que conquistas desbloqueadas em outros contextos
+    // (como verificação de email, ações em background) sejam notificadas
+    function initPendingAchievementsCheck() {
+        const onboardingInProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
+        
+        // Não verificar durante onboarding
+        if (onboardingInProgress || window.gamificationPaused === true) {
+            console.log('🎮 [GAMIFICATION] Verificação de conquistas pendentes adiada (onboarding em progresso)');
+            return;
+        }
+
+        // Verificar recompensas de indicação primeiro (após 1 segundo)
+        setTimeout(checkReferralRewards, 1000);
+
+        // Verificar conquistas pendentes após 2.5 segundos (depois das recompensas)
+        setTimeout(checkPendingAchievements, 2500);
+    }
+
+    // Iniciar verificação quando página carregar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPendingAchievementsCheck);
+    } else {
+        initPendingAchievementsCheck();
+    }
 
     /**
      * Mostrar conquistas que foram pausadas pelo onboarding

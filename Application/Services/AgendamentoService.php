@@ -66,8 +66,11 @@ class AgendamentoService
             ->first();
     }
 
-    public function createLancamentoFromAgendamento(Agendamento $agendamento): ?Lancamento
-    {
+    public function createLancamentoFromAgendamento(
+        Agendamento $agendamento,
+        ?int $contaId = null,
+        ?string $formaPagamento = null
+    ): ?Lancamento {
         $userId = $this->getUserId($agendamento);
         $valor = $this->centavosParaValor($agendamento->valor_centavos);
 
@@ -80,32 +83,48 @@ class AgendamentoService
             $descricao = 'Lançamento de Agendamento';
         }
 
+        // Se for parcelado, adicionar info da parcela na descrição
+        if ($agendamento->eh_parcelado && $agendamento->numero_parcelas > 1) {
+            $descricao .= " ({$agendamento->parcela_atual}/{$agendamento->numero_parcelas})";
+        }
+
         $observacao = $this->gerarObservacao($agendamento);
         $data = $this->extrairDataPagamento($agendamento->data_pagamento);
+
+        // Usar conta passada ou a do agendamento
+        $contaFinal = $contaId ?? $agendamento->conta_id;
 
         $lancamentoExistente = $this->buscarLancamentoExistente($userId, $observacao);
         if ($lancamentoExistente) {
             return $lancamentoExistente;
         }
 
-        return Lancamento::create([
+        $lancamentoData = [
             'user_id'          => $userId,
             'tipo'             => $agendamento->tipo ?? Lancamento::TIPO_DESPESA,
             'data'             => $data,
             'categoria_id'     => $agendamento->categoria_id,
-            'conta_id'         => $agendamento->conta_id,
+            'conta_id'         => $contaFinal,
             'descricao'        => $descricao,
             'observacao'       => $observacao,
             'valor'            => $valor,
             'eh_transferencia' => 0,
             'eh_saldo_inicial' => 0,
-        ]);
+            'pago'             => true,
+        ];
+
+        // Adicionar forma de pagamento se fornecida
+        if ($formaPagamento) {
+            $lancamentoData['forma_pagamento'] = $formaPagamento;
+        }
+
+        return Lancamento::create($lancamentoData);
     }
 
     /**
      * EXECUTAR AGENDAMENTO - Lógica principal do sistema
      * 
-     * CASO A: NÃO RECORRENTE
+     * CASO A: NÃO RECORRENTE E NÃO PARCELADO
      * - Criar lançamento
      * - Marcar como concluído
      * - Agendamento não aparece mais
@@ -115,31 +134,120 @@ class AgendamentoService
      * - Avançar data para próxima ocorrência
      * - Agendamento continua ativo
      * 
+     * CASO C: PARCELADO
+     * - Criar lançamento com info da parcela
+     * - Incrementar parcela_atual
+     * - Se parcela_atual >= numero_parcelas, finalizar
+     * - Senão, avançar data para próximo mês
+     * 
      * @param Agendamento $agendamento
+     * @param int|null $contaId Conta para o lançamento (sobrescreve a do agendamento)
+     * @param string|null $formaPagamento Forma de pagamento do lançamento
      * @return array ['lancamento' => Lancamento, 'agendamento' => Agendamento, 'proximaData' => string|null]
      * @throws RuntimeException
      */
-    public function executarAgendamento(Agendamento $agendamento): array
-    {
-        // 1. Criar lançamento
-        $lancamento = $this->createLancamentoFromAgendamento($agendamento);
+    public function executarAgendamento(
+        Agendamento $agendamento,
+        ?int $contaId = null,
+        ?string $formaPagamento = null
+    ): array {
+        // 1. Criar lançamento com conta e forma de pagamento fornecidas
+        $lancamento = $this->createLancamentoFromAgendamento($agendamento, $contaId, $formaPagamento);
 
         if (!$lancamento) {
             throw new RuntimeException('Falha ao criar lançamento.');
         }
 
-        // 2. Verificar se é recorrente
+        // 2. CASO C: PARCELADO
+        if ($agendamento->eh_parcelado && $agendamento->numero_parcelas > 1) {
+            $parcelaAtual = $agendamento->parcela_atual ?? 1;
+            $proximaParcela = $parcelaAtual + 1;
+            
+            // Verificar se é a última parcela
+            if ($proximaParcela > $agendamento->numero_parcelas) {
+                // Última parcela - finalizar
+                $agendamento->update([
+                    'parcela_atual' => $parcelaAtual,
+                    'status' => 'concluido',
+                    'concluido_em' => date('Y-m-d H:i:s'),
+                ]);
+
+                LogService::info('Agendamento parcelado finalizado (última parcela)', [
+                    'agendamento_id' => $agendamento->id,
+                    'parcela_final' => $parcelaAtual,
+                    'total_parcelas' => $agendamento->numero_parcelas,
+                ]);
+
+                return [
+                    'lancamento' => $lancamento,
+                    'agendamento' => $agendamento->fresh(),
+                    'proximaData' => null,
+                    'recorrente' => false,
+                    'parcelado' => true,
+                    'parcela_paga' => $parcelaAtual,
+                    'total_parcelas' => $agendamento->numero_parcelas,
+                    'finalizado' => true,
+                ];
+            } else {
+                // Ainda há parcelas - avançar para próximo mês
+                $proximaData = $this->calcularProximaData(
+                    $agendamento->data_pagamento,
+                    'monthly', // Parcelas sempre mensais
+                    1
+                );
+
+                // Calcular próxima execução baseada no lembrete
+                $lembrarSegundos = (int) ($agendamento->lembrar_antes_segundos ?? 0);
+                $proximaExecucao = (new \DateTimeImmutable($proximaData))
+                    ->modify("-{$lembrarSegundos} seconds")
+                    ->format('Y-m-d H:i:s');
+
+                $agendamento->update([
+                    'parcela_atual' => $proximaParcela,
+                    'data_pagamento' => $proximaData,
+                    'proxima_execucao' => $proximaExecucao,
+                    'status' => 'pendente',
+                    'notificado_em' => null,
+                ]);
+
+                LogService::info('Agendamento parcelado - parcela paga, avançando', [
+                    'agendamento_id' => $agendamento->id,
+                    'parcela_paga' => $parcelaAtual,
+                    'proxima_parcela' => $proximaParcela,
+                    'proxima_data' => $proximaData,
+                ]);
+
+                return [
+                    'lancamento' => $lancamento,
+                    'agendamento' => $agendamento->fresh(),
+                    'proximaData' => $proximaData,
+                    'recorrente' => false,
+                    'parcelado' => true,
+                    'parcela_paga' => $parcelaAtual,
+                    'total_parcelas' => $agendamento->numero_parcelas,
+                    'finalizado' => false,
+                ];
+            }
+        }
+
+        // 3. CASO B: RECORRENTE
         if ($agendamento->recorrente && $agendamento->recorrencia_freq) {
-            // CASO B: RECORRENTE - Avançar data
             $proximaData = $this->calcularProximaData(
                 $agendamento->data_pagamento,
                 $agendamento->recorrencia_freq,
                 $agendamento->recorrencia_intervalo ?? 1
             );
 
+            // Calcular próxima execução baseada no lembrete
+            $lembrarSegundos = (int) ($agendamento->lembrar_antes_segundos ?? 0);
+            $proximaExecucao = (new \DateTimeImmutable($proximaData))
+                ->modify("-{$lembrarSegundos} seconds")
+                ->format('Y-m-d H:i:s');
+
             // Atualizar para próxima ocorrência
             $agendamento->update([
                 'data_pagamento' => $proximaData,
+                'proxima_execucao' => $proximaExecucao,
                 'status' => 'pendente', // Volta para pendente
                 'notificado_em' => null, // Limpa para permitir nova notificação
                 'concluido_em' => date('Y-m-d H:i:s'), // Registra última execução
@@ -155,25 +263,27 @@ class AgendamentoService
                 'agendamento' => $agendamento->fresh(),
                 'proximaData' => $proximaData,
                 'recorrente' => true,
-            ];
-        } else {
-            // CASO A: NÃO RECORRENTE - Finalizar
-            $agendamento->update([
-                'status' => 'concluido',
-                'concluido_em' => date('Y-m-d H:i:s'),
-            ]);
-
-            LogService::info('Agendamento único executado e finalizado', [
-                'agendamento_id' => $agendamento->id,
-            ]);
-
-            return [
-                'lancamento' => $lancamento,
-                'agendamento' => $agendamento->fresh(),
-                'proximaData' => null,
-                'recorrente' => false,
+                'parcelado' => false,
             ];
         }
+
+        // 4. CASO A: NÃO RECORRENTE E NÃO PARCELADO - Finalizar
+        $agendamento->update([
+            'status' => 'concluido',
+            'concluido_em' => date('Y-m-d H:i:s'),
+        ]);
+
+        LogService::info('Agendamento único executado e finalizado', [
+            'agendamento_id' => $agendamento->id,
+        ]);
+
+        return [
+            'lancamento' => $lancamento,
+            'agendamento' => $agendamento->fresh(),
+            'proximaData' => null,
+            'recorrente' => false,
+            'parcelado' => false,
+        ];
     }
 
     /**
@@ -247,11 +357,14 @@ class AgendamentoService
 
         $intervalo = max(1, $intervalo); // Mínimo 1
 
-        return match (strtolower($recorrenciaFreq)) {
-            'daily' => $data->modify("+{$intervalo} day")->format('Y-m-d H:i:s'),
-            'weekly' => $data->modify("+{$intervalo} week")->format('Y-m-d H:i:s'),
-            'monthly' => $data->modify("+{$intervalo} month")->format('Y-m-d H:i:s'),
-            'yearly' => $data->modify("+{$intervalo} year")->format('Y-m-d H:i:s'),
+        // Normalizar frequência - aceitar tanto português quanto inglês
+        $freq = strtolower($recorrenciaFreq);
+        
+        return match ($freq) {
+            'daily', 'diario' => $data->modify("+{$intervalo} day")->format('Y-m-d H:i:s'),
+            'weekly', 'semanal' => $data->modify("+{$intervalo} week")->format('Y-m-d H:i:s'),
+            'monthly', 'mensal' => $data->modify("+{$intervalo} month")->format('Y-m-d H:i:s'),
+            'yearly', 'anual' => $data->modify("+{$intervalo} year")->format('Y-m-d H:i:s'),
             default => $data->format('Y-m-d H:i:s'),
         };
     }

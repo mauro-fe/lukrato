@@ -33,7 +33,7 @@ class LoginHandler implements AuthHandlerInterface
         $this->csrfCheck = new CsrfSecurityCheck($request, 'login_form');
         $this->rateLimitCheck = new RateLimitSecurityCheck($request, $cache, 'login');
     }
-    public function handle(CredentialsDTO $credentials): array
+    public function handle(CredentialsDTO $credentials, bool $remember = false): array
     {
         try {
             $this->validationStrategy->validate($credentials);
@@ -50,11 +50,12 @@ class LoginHandler implements AuthHandlerInterface
                 );
             }
 
-            $this->sessionManager->createSession($user);
+            $this->sessionManager->createSession($user, $remember);
 
             LogService::info('Login success', [
                 'user_id' => $user->id,
-                'ip' => (new Request())->ip()
+                'ip' => (new Request())->ip(),
+                'remember' => $remember
             ]);
 
             return [

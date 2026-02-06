@@ -354,4 +354,70 @@ class NotificacaoController extends BaseController
 
         Response::success(['message' => 'Todas as notificações foram marcadas como lidas']);
     }
+
+    /**
+     * Verifica se há notificações de recompensa de indicação não lidas
+     * GET /api/notificacoes/referral-rewards
+     * 
+     * Retorna notificações de referral para mostrar modal de parabéns
+     */
+    public function getReferralRewards(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            // Busca notificações de referral não lidas
+            $rewards = Notificacao::where('user_id', $this->userId)
+                ->where('lida', 0)
+                ->where(function ($query) {
+                    $query->where('tipo', 'referral_referred')
+                        ->orWhere('tipo', 'referral_referrer');
+                })
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($n) {
+                    return [
+                        'id' => $n->id,
+                        'tipo' => $n->tipo,
+                        'titulo' => $n->titulo,
+                        'mensagem' => $n->mensagem,
+                        'created_at' => $n->created_at?->toDateTimeString(),
+                    ];
+                })
+                ->toArray();
+
+            Response::success([
+                'rewards' => $rewards,
+                'count' => count($rewards),
+            ], 'Recompensas de indicação');
+        } catch (Throwable $e) {
+            error_log("❌ Erro ao buscar recompensas de referral: " . $e->getMessage());
+            Response::error('Erro ao buscar recompensas', 500);
+        }
+    }
+
+    /**
+     * Marca notificações de referral como vistas
+     * POST /api/notificacoes/referral-rewards/seen
+     */
+    public function markReferralRewardsSeen(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $payload = $this->getRequestPayload();
+            $ids = $payload['ids'] ?? [];
+
+            if (!empty($ids) && is_array($ids)) {
+                Notificacao::where('user_id', $this->userId)
+                    ->whereIn('id', $ids)
+                    ->update(['lida' => 1]);
+            }
+
+            Response::success(['message' => 'Recompensas marcadas como vistas']);
+        } catch (Throwable $e) {
+            error_log("❌ Erro ao marcar recompensas como vistas: " . $e->getMessage());
+            Response::error('Erro ao marcar recompensas', 500);
+        }
+    }
 }

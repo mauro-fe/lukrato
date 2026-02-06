@@ -281,7 +281,6 @@ svg {
   padding: 48px 24px 24px;
   font-size: 0.95rem;
   color: #fff;
-  margin-top: 64px;
 }
 
 .lk-footer-container {
@@ -343,10 +342,15 @@ svg {
   padding: 2px 0;
 }
 
-.lk-footer-links a::after {
+.lk-footer-links nav a span {
+  position: relative;
+  display: inline-block;
+}
+
+.lk-footer-links nav a span::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: -2px;
   left: 0;
   width: 0;
   height: 2px;
@@ -355,11 +359,11 @@ svg {
   border-radius: 2px;
 }
 
-.lk-footer-links a:hover::after {
+.lk-footer-links nav a:hover span::after {
   width: 100%;
 }
 
-.lk-footer-links a:hover {
+.lk-footer-links nav a:hover {
   transform: translateX(4px);
 }
 
