@@ -281,8 +281,22 @@ class CartaoCreditoLancamentoService
 
     /**
      * Calcular data de vencimento da fatura
-     * Se a compra foi ANTES do dia de fechamento, vence na fatura do mês atual
-     * Se foi NO DIA de fechamento ou DEPOIS, vence na fatura do próximo mês
+     * 
+     * Lógica:
+     * 1. Determinar mês de fechamento:
+     *    - Se comprou ANTES do dia de fechamento: fatura fecha no mês da compra
+     *    - Se comprou NO DIA ou DEPOIS do fechamento: fatura fecha no mês seguinte
+     * 2. Determinar mês de vencimento:
+     *    - Se dia_vencimento > dia_fechamento: vencimento no MESMO mês do fechamento
+     *    - Se dia_vencimento <= dia_fechamento: vencimento no mês SEGUINTE ao fechamento
+     * 
+     * Exemplo: fecha=2, vence=10
+     *   Compra em 01/02 → fecha em 02/02, vence em 10/02
+     *   Compra em 02/02 → fecha em 02/03, vence em 10/03
+     * 
+     * Exemplo: fecha=25, vence=5
+     *   Compra em 24/01 → fecha em 25/01, vence em 05/02
+     *   Compra em 25/01 → fecha em 25/02, vence em 05/03
      * 
      * @return array ['data' => string, 'mes' => int, 'ano' => int]
      */
@@ -298,27 +312,31 @@ class CartaoCreditoLancamentoService
             $diaFechamento = max(1, $diaVencimento - 5);
         }
 
-        // CORRIGIDO: O vencimento é SEMPRE no mês seguinte ao fechamento da fatura
-        // Se comprou ANTES do fechamento: entra na fatura do mês atual, vence no MÊS SEGUINTE
-        // Se comprou NO DIA ou DEPOIS do fechamento: entra na fatura do próximo mês, vence 2 meses à frente
+        // PASSO 1: Determinar mês de fechamento da fatura
+        // Se comprou NO DIA do fechamento ou depois, entra na fatura que fecha no próximo mês
         if ($diaCompra >= $diaFechamento) {
-            // Comprou no dia do fechamento ou depois - entra na próxima fatura
-            // Fatura fecha no próximo mês, vence 2 meses à frente
-            $mesVencimento = $mesAtual + 2;
-            $anoVencimento = $anoAtual;
-
-            if ($mesVencimento > 12) {
-                $mesVencimento -= 12;
-                $anoVencimento++;
+            $mesFechamento = $mesAtual + 1;
+            $anoFechamento = $anoAtual;
+            if ($mesFechamento > 12) {
+                $mesFechamento -= 12;
+                $anoFechamento++;
             }
         } else {
-            // Comprou ANTES do fechamento - entra na fatura do mês atual
-            // Fatura fecha este mês, vence no PRÓXIMO mês
-            $mesVencimento = $mesAtual + 1;
-            $anoVencimento = $anoAtual;
+            $mesFechamento = $mesAtual;
+            $anoFechamento = $anoAtual;
+        }
 
+        // PASSO 2: Determinar mês de vencimento
+        // Se dia_vencimento > dia_fechamento: vencimento no MESMO mês do fechamento
+        // Se dia_vencimento <= dia_fechamento: vencimento no mês SEGUINTE ao fechamento
+        if ($diaVencimento > $diaFechamento) {
+            $mesVencimento = $mesFechamento;
+            $anoVencimento = $anoFechamento;
+        } else {
+            $mesVencimento = $mesFechamento + 1;
+            $anoVencimento = $anoFechamento;
             if ($mesVencimento > 12) {
-                $mesVencimento = 1;
+                $mesVencimento -= 12;
                 $anoVencimento++;
             }
         }
@@ -526,15 +544,23 @@ class CartaoCreditoLancamentoService
                 }
             }
 
-            // Calcular data de vencimento (mês seguinte à referência)
-            $mesVencimento = $mesReferencia + 1;
-            $anoVencimento = $anoReferencia;
-            if ($mesVencimento > 12) {
-                $mesVencimento = 1;
-                $anoVencimento++;
-            }
+            // Calcular data de vencimento baseado na relação entre dia_vencimento e dia_fechamento
             $diaVencimento = (int)$cartao->dia_vencimento;
-            $dataVencimento = sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, min($diaVencimento, 28));
+            if ($diaVencimento > $diaFechamento) {
+                // Vencimento no MESMO mês do fechamento
+                $mesVencimento = $mesReferencia;
+                $anoVencimento = $anoReferencia;
+            } else {
+                // Vencimento no mês SEGUINTE ao fechamento
+                $mesVencimento = $mesReferencia + 1;
+                $anoVencimento = $anoReferencia;
+                if ($mesVencimento > 12) {
+                    $mesVencimento = 1;
+                    $anoVencimento++;
+                }
+            }
+            $ultimoDiaMes = (int)date('t', mktime(0, 0, 0, $mesVencimento, 1, $anoVencimento));
+            $dataVencimento = sprintf('%04d-%02d-%02d', $anoVencimento, $mesVencimento, min($diaVencimento, $ultimoDiaMes));
 
             // Buscar ou criar fatura do mês de vencimento
             $fatura = $this->buscarOuCriarFatura($userId, $cartaoId, $mesVencimento, $anoVencimento);

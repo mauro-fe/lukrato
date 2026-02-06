@@ -827,7 +827,15 @@ class FaturaService
 
     /**
      * Calcular data de vencimento da parcela
-     * CORRIGIDO: O vencimento é SEMPRE no mês seguinte ao fechamento da fatura
+     * 
+     * Lógica:
+     * 1. Determinar mês de fechamento:
+     *    - Se comprou ANTES do dia de fechamento: fatura fecha no mês da compra
+     *    - Se comprou NO DIA ou DEPOIS do fechamento: fatura fecha no mês seguinte
+     * 2. Determinar mês de vencimento:
+     *    - Se dia_vencimento > dia_fechamento: vencimento no MESMO mês do fechamento
+     *    - Se dia_vencimento <= dia_fechamento: vencimento no mês SEGUINTE ao fechamento
+     * 3. Para parcelas adicionais, avançar meses a partir do vencimento da 1ª parcela
      */
     private function calcularDataVencimento(
         int $diaCompra,
@@ -837,24 +845,36 @@ class FaturaService
         int $diaVencimento,
         int $diaFechamento
     ): array {
-        // Calcular mês de competência (quando a fatura fecha)
-        $mesCompetencia = $mesCompra;
-        $anoCompetencia = $anoCompra;
+        // PASSO 1: Determinar mês de fechamento da fatura
+        $mesFechamento = $mesCompra;
+        $anoFechamento = $anoCompra;
 
         if ($diaCompra >= $diaFechamento) {
             // Comprou no dia do fechamento ou depois - entra na próxima fatura
-            $mesCompetencia++;
-            if ($mesCompetencia > 12) {
-                $mesCompetencia = 1;
-                $anoCompetencia++;
+            $mesFechamento++;
+            if ($mesFechamento > 12) {
+                $mesFechamento = 1;
+                $anoFechamento++;
             }
         }
 
-        // O vencimento é SEMPRE no mês seguinte à competência
-        // + os meses adicionais da parcela
-        $mesVencimento = $mesCompetencia + $numeroParcela; // +1 para vencimento + (parcela-1) para meses adicionais
-        $anoVencimento = $anoCompetencia;
+        // PASSO 2: Determinar mês de vencimento da 1ª parcela
+        // Se dia_vencimento > dia_fechamento: vencimento no MESMO mês do fechamento
+        // Se dia_vencimento <= dia_fechamento: vencimento no mês SEGUINTE ao fechamento
+        if ($diaVencimento > $diaFechamento) {
+            $mesVencimento = $mesFechamento;
+            $anoVencimento = $anoFechamento;
+        } else {
+            $mesVencimento = $mesFechamento + 1;
+            $anoVencimento = $anoFechamento;
+            if ($mesVencimento > 12) {
+                $mesVencimento -= 12;
+                $anoVencimento++;
+            }
+        }
 
+        // PASSO 3: Avançar meses para parcelas adicionais (parcela 2 em diante)
+        $mesVencimento += ($numeroParcela - 1);
         while ($mesVencimento > 12) {
             $mesVencimento -= 12;
             $anoVencimento++;
