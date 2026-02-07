@@ -440,11 +440,6 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            if ($agendamento->status !== AgendamentoStatus::PENDENTE->value) {
-                Response::error('Somente agendamentos pendentes podem ser cancelados.', 400);
-                return;
-            }
-
             $agendamento->update([
                 'status' => AgendamentoStatus::CANCELADO->value,
                 'concluido_em' => null,

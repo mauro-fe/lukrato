@@ -37,8 +37,9 @@ interface MailServiceInterface
 
     /**
      * Envia lembrete de agendamento.
+     * @param string $tipo Tipo do lembrete: 'antecedencia', 'horario' ou 'padrao'
      */
-    public function sendAgendamentoReminder(Agendamento $agendamento, Usuario $usuario): bool;
+    public function sendAgendamentoReminder(Agendamento $agendamento, Usuario $usuario, string $tipo = 'padrao'): bool;
 
     /**
      * Envia mensagem de suporte.

@@ -119,11 +119,20 @@
                         <thead>
                             <tr>
                                 <th>Título</th>
-                                <th>Tipo</th>
+                                <th class="sortable" data-sort="tipo">
+                                    <span>Tipo</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
                                 <th>Categoria</th>
                                 <th>Conta</th>
-                                <th>Valor</th>
-                                <th>Data</th>
+                                <th class="sortable" data-sort="valor_centavos">
+                                    <span>Valor</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-sort="data_pagamento">
+                                    <span>Data</span>
+                                    <i class="fas fa-sort sort-icon"></i>
+                                </th>
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>
@@ -143,8 +152,8 @@
                     </div>
                     <div class="pagination-controls">
                         <select id="agPageSize" class="page-size-select">
-                            <option value="10">10 por página</option>
-                            <option value="25" selected>25 por página</option>
+                            <option value="10" selected>10 por página</option>
+                            <option value="25">25 por página</option>
                             <option value="50">50 por página</option>
                             <option value="100">100 por página</option>
                         </select>

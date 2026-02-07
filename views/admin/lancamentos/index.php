@@ -207,8 +207,8 @@
                     </div>
                     <div class="pagination-controls">
                         <select id="pageSize" class="page-size-select">
-                            <option value="10">10 por página</option>
-                            <option value="25" selected>25 por página</option>
+                            <option value="10" selected>10 por página</option>
+                            <option value="25">25 por página</option>
                             <option value="50">50 por página</option>
                             <option value="100">100 por página</option>
                         </select>

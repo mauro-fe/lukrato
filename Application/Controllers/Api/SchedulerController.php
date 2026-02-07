@@ -86,7 +86,10 @@ class SchedulerController extends BaseController
 
             $agendamentos = Agendamento::with(['usuario:id,nome,email'])
                 ->whereIn('status', ['pendente', 'notificado'])
-                ->whereNull('notificado_em')
+                ->where(function ($query) {
+                    $query->whereNull('lembrete_antecedencia_em')
+                        ->orWhereNull('notificado_em');
+                })
                 ->get();
 
             LogService::info("[Scheduler] Agendamentos para processar encontrados: " . count($agendamentos));
@@ -100,120 +103,120 @@ class SchedulerController extends BaseController
 
                 $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
                 $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
-
-                // NOVA LÓGICA: Envia lembrete se:
-                // 1. Está dentro da janela normal (-5min a +10min), OU
-                // 2. O lembrete já passou MAS a data de pagamento ainda não passou (recuperação de perdidos)
-                // 3. A data de pagamento passou há no máximo 24 horas (para não enviar lembretes muito antigos)
-                $windowStart = $now->modify('-5 minutes')->getTimestamp();
                 $windowEnd = $windowLimit->getTimestamp();
                 $nowTs = $now->getTimestamp();
                 $pagamentoTs = $pagamento->getTimestamp();
-                
+
                 // Limite: não enviar se o pagamento já passou há mais de 24 horas
                 $maxAtrasoHoras = 24;
                 $limiteAtraso = $nowTs - ($maxAtrasoHoras * 3600);
 
-                $dentroJanelaNormal = ($reminderTimestamp >= $windowStart && $reminderTimestamp <= $windowEnd);
-                $lembreteAtrasadoMasPagamentoFuturo = ($reminderTimestamp < $windowStart && $pagamentoTs > $nowTs);
-                $pagamentoRecenteNaoNotificado = ($pagamentoTs >= $limiteAtraso && $pagamentoTs <= $nowTs);
-
-                $deveEnviar = $dentroJanelaNormal || $lembreteAtrasadoMasPagamentoFuturo || $pagamentoRecenteNaoNotificado;
-
-                if (!$deveEnviar) {
+                if ($pagamentoTs < $limiteAtraso) {
                     $stats['ignorados']++;
-                    LogService::info(sprintf(
-                        "[Scheduler] Ignorado agendamento #%d (%s): fora da janela (lembrar em %s, pagar em %s)",
-                        $agendamento->id,
-                        $agendamento->titulo,
-                        date('d/m/Y H:i', $reminderTimestamp),
-                        date('d/m/Y H:i', $pagamentoTs)
-                    ));
                     continue;
                 }
-                
-                // Log do motivo do envio
-                $motivo = $dentroJanelaNormal ? 'janela_normal' : 
-                         ($lembreteAtrasadoMasPagamentoFuturo ? 'lembrete_atrasado_pagamento_futuro' : 'pagamento_recente');
 
-                LogService::info(sprintf(
-                    "[Scheduler] Processando lembrete para agendamento #%d (%s) - motivo: %s",
-                    $agendamento->id,
-                    $agendamento->titulo,
-                    $motivo
-                ));
+                $enviouAlgo = false;
 
-                // Notificação in-app
-                if ($agendamento->canal_inapp) {
-                    try {
-                        Notificacao::create([
-                            'user_id' => $agendamento->user_id,
-                            'tipo' => 'agendamento',
-                            'titulo' => 'Lembrete de pagamento',
-                            'mensagem' => sprintf(
-                                '%s agendado para %s.',
-                                $agendamento->titulo,
-                                $pagamento->format('d/m/Y H:i')
-                            ),
-                            'link' => $linkAgendamentos,
-                            'lida' => 0,
-                        ]);
+                // ===== LEMBRETE DE ANTECEDÊNCIA =====
+                $temAntecedencia = $leadSeconds > 0;
+                $antecedenciaNaoEnviada = empty($agendamento->lembrete_antecedencia_em);
+                $momentoAntecedenciaChegou = ($reminderTimestamp <= $windowEnd);
 
-                        $stats['enviados_inapp']++;
-                        LogService::info("[Scheduler] Notificação in-app criada para user_id={$agendamento->user_id}");
-                    } catch (\Throwable $e) {
-                        $stats['erros'][] = [
-                            'tipo' => 'inapp',
-                            'agendamento_id' => $agendamento->id,
-                            'erro' => $e->getMessage(),
-                        ];
-                        LogService::error('[Scheduler] Erro ao criar notificação in-app', [
-                            'agendamento_id' => $agendamento->id,
-                            'erro' => $e->getMessage(),
-                        ]);
+                if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou) {
+                    $segundosRestantes = $pagamentoTs - $nowTs;
+                    $tempoRestante = $segundosRestantes > 3600
+                        ? floor($segundosRestantes / 3600) . ' hora(s)'
+                        : floor($segundosRestantes / 60) . ' minuto(s)';
+
+                    LogService::info("[Scheduler] Enviando lembrete de ANTECEDÊNCIA para #{$agendamento->id}");
+
+                    if ($agendamento->canal_inapp) {
+                        try {
+                            Notificacao::create([
+                                'user_id' => $agendamento->user_id,
+                                'tipo' => 'agendamento',
+                                'titulo' => 'Lembrete de pagamento',
+                                'mensagem' => sprintf(
+                                    'Lembrete: %s vence em %s (%s).',
+                                    $agendamento->titulo,
+                                    $tempoRestante,
+                                    $pagamento->format('d/m/Y H:i')
+                                ),
+                                'link' => $linkAgendamentos,
+                                'lida' => 0,
+                            ]);
+                            $stats['enviados_inapp']++;
+                        } catch (\Throwable $e) {
+                            $stats['erros'][] = ['tipo' => 'inapp_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
+                        }
                     }
-                }
 
-                // Notificação por email
-                if ($agendamento->canal_email) {
-                    if ($mailService->isConfigured()) {
+                    if ($agendamento->canal_email && $mailService->isConfigured()) {
                         $usuario = $agendamento->usuario;
                         if ($usuario && !empty($usuario->email)) {
                             try {
-                                $mailService->sendAgendamentoReminder($agendamento, $usuario);
+                                $mailService->sendAgendamentoReminder($agendamento, $usuario, 'antecedencia');
                                 $stats['enviados_email']++;
-                                LogService::info(sprintf(
-                                    "[Scheduler] Email enviado para %s (%s)",
-                                    $usuario->nome ?? 'usuário sem nome',
-                                    $usuario->email
-                                ));
                             } catch (\Throwable $e) {
-                                $stats['erros'][] = [
-                                    'tipo' => 'email',
-                                    'agendamento_id' => $agendamento->id,
-                                    'erro' => $e->getMessage(),
-                                ];
-                                LogService::error('[Scheduler] Falha ao enviar email', [
-                                    'erro' => $e->getMessage(),
-                                    'agendamento_id' => $agendamento->id,
-                                ]);
+                                $stats['erros'][] = ['tipo' => 'email_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                             }
-                        } else {
-                            LogService::warning('[Scheduler] Usuário sem email', [
-                                'agendamento_id' => $agendamento->id,
-                            ]);
                         }
-                    } else {
-                        LogService::warning('[Scheduler] Canal email habilitado, mas SMTP não configurado');
                     }
+
+                    $agendamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
+                    $enviouAlgo = true;
                 }
 
-                // Marca como notificado
-                $agendamento->status = 'notificado';
-                $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
-                $agendamento->save();
+                // ===== LEMBRETE NO HORÁRIO =====
+                $horarioNaoEnviado = empty($agendamento->notificado_em);
+                $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
 
-                LogService::info("[Scheduler] Agendamento #{$agendamento->id} marcado como 'notificado'.");
+                if ($horarioNaoEnviado && $momentoHorarioChegou) {
+                    LogService::info("[Scheduler] Enviando lembrete NO HORÁRIO para #{$agendamento->id}");
+
+                    if ($agendamento->canal_inapp) {
+                        try {
+                            Notificacao::create([
+                                'user_id' => $agendamento->user_id,
+                                'tipo' => 'agendamento',
+                                'titulo' => 'Pagamento agora!',
+                                'mensagem' => sprintf(
+                                    'Atenção: %s vence agora! (%s)',
+                                    $agendamento->titulo,
+                                    $pagamento->format('d/m/Y H:i')
+                                ),
+                                'link' => $linkAgendamentos,
+                                'lida' => 0,
+                            ]);
+                            $stats['enviados_inapp']++;
+                        } catch (\Throwable $e) {
+                            $stats['erros'][] = ['tipo' => 'inapp_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
+                        }
+                    }
+
+                    if ($agendamento->canal_email && $mailService->isConfigured()) {
+                        $usuario = $agendamento->usuario;
+                        if ($usuario && !empty($usuario->email)) {
+                            try {
+                                $mailService->sendAgendamentoReminder($agendamento, $usuario, 'horario');
+                                $stats['enviados_email']++;
+                            } catch (\Throwable $e) {
+                                $stats['erros'][] = ['tipo' => 'email_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
+                            }
+                        }
+                    }
+
+                    $agendamento->status = 'notificado';
+                    $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
+                    $enviouAlgo = true;
+                }
+
+                if ($enviouAlgo) {
+                    $agendamento->save();
+                } else {
+                    $stats['ignorados']++;
+                }
             }
 
             LogService::info('=== [Scheduler] Dispatch de lembretes finalizado ===', $stats);
@@ -525,7 +528,11 @@ class SchedulerController extends BaseController
         $mailService = new MailService();
 
         $agendamentos = Agendamento::with(['usuario:id,nome,email'])
-            ->where('status', 'pendente')
+            ->whereIn('status', ['pendente', 'notificado'])
+            ->where(function ($query) {
+                $query->whereNull('lembrete_antecedencia_em')
+                    ->orWhereNull('notificado_em');
+            })
             ->get();
 
         foreach ($agendamentos as $agendamento) {
@@ -537,49 +544,116 @@ class SchedulerController extends BaseController
 
             $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
             $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
+            $nowTs = $now->getTimestamp();
+            $pagamentoTs = $pagamento->getTimestamp();
+            $windowEnd = $windowLimit->getTimestamp();
 
-            if ($reminderTimestamp > $windowLimit->getTimestamp() || $reminderTimestamp < $now->getTimestamp()) {
+            // Limite: não enviar se o pagamento já passou há mais de 24 horas
+            $maxAtrasoHoras = 24;
+            $limiteAtraso = $nowTs - ($maxAtrasoHoras * 3600);
+
+            if ($pagamentoTs < $limiteAtraso) {
                 $stats['ignorados']++;
                 continue;
             }
 
-            // Notificação in-app
-            if ($agendamento->canal_inapp) {
-                try {
-                    Notificacao::create([
-                        'user_id' => $agendamento->user_id,
-                        'tipo' => 'agendamento',
-                        'titulo' => 'Lembrete de pagamento',
-                        'mensagem' => sprintf(
-                            '%s agendado para %s.',
-                            $agendamento->titulo,
-                            $pagamento->format('d/m/Y H:i')
-                        ),
-                        'link' => $linkAgendamentos,
-                        'lida' => 0,
-                    ]);
-                    $stats['enviados_inapp']++;
-                } catch (\Throwable $e) {
-                    $stats['erros'][] = ['tipo' => 'inapp', 'agendamento_id' => $agendamento->id, 'erro' => $e->getMessage()];
-                }
-            }
+            $enviouAlgo = false;
 
-            // Notificação por email
-            if ($agendamento->canal_email && $mailService->isConfigured()) {
-                $usuario = $agendamento->usuario;
-                if ($usuario && !empty($usuario->email)) {
+            // ===== LEMBRETE DE ANTECEDÊNCIA =====
+            $temAntecedencia = $leadSeconds > 0;
+            $antecedenciaNaoEnviada = empty($agendamento->lembrete_antecedencia_em);
+            $momentoAntecedenciaChegou = ($reminderTimestamp <= $windowEnd);
+
+            if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou) {
+                $segundosRestantes = $pagamentoTs - $nowTs;
+                $tempoRestante = $segundosRestantes > 3600
+                    ? floor($segundosRestantes / 3600) . ' hora(s)'
+                    : floor($segundosRestantes / 60) . ' minuto(s)';
+
+                if ($agendamento->canal_inapp) {
                     try {
-                        $mailService->sendAgendamentoReminder($agendamento, $usuario);
-                        $stats['enviados_email']++;
+                        Notificacao::create([
+                            'user_id' => $agendamento->user_id,
+                            'tipo' => 'agendamento',
+                            'titulo' => 'Lembrete de pagamento',
+                            'mensagem' => sprintf(
+                                'Lembrete: %s vence em %s (%s).',
+                                $agendamento->titulo,
+                                $tempoRestante,
+                                $pagamento->format('d/m/Y H:i')
+                            ),
+                            'link' => $linkAgendamentos,
+                            'lida' => 0,
+                        ]);
+                        $stats['enviados_inapp']++;
                     } catch (\Throwable $e) {
-                        $stats['erros'][] = ['tipo' => 'email', 'agendamento_id' => $agendamento->id, 'erro' => $e->getMessage()];
+                        $stats['erros'][] = ['tipo' => 'inapp_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                     }
                 }
+
+                if ($agendamento->canal_email && $mailService->isConfigured()) {
+                    $usuario = $agendamento->usuario;
+                    if ($usuario && !empty($usuario->email)) {
+                        try {
+                            $mailService->sendAgendamentoReminder($agendamento, $usuario, 'antecedencia');
+                            $stats['enviados_email']++;
+                        } catch (\Throwable $e) {
+                            $stats['erros'][] = ['tipo' => 'email_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
+                        }
+                    }
+                }
+
+                $agendamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
+                $enviouAlgo = true;
             }
 
-            $agendamento->status = 'notificado';
-            $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
-            $agendamento->save();
+            // ===== LEMBRETE NO HORÁRIO =====
+            $horarioNaoEnviado = empty($agendamento->notificado_em);
+            $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
+
+            if ($horarioNaoEnviado && $momentoHorarioChegou) {
+                if ($agendamento->canal_inapp) {
+                    try {
+                        Notificacao::create([
+                            'user_id' => $agendamento->user_id,
+                            'tipo' => 'agendamento',
+                            'titulo' => 'Pagamento agora!',
+                            'mensagem' => sprintf(
+                                'Atenção: %s vence agora! (%s)',
+                                $agendamento->titulo,
+                                $pagamento->format('d/m/Y H:i')
+                            ),
+                            'link' => $linkAgendamentos,
+                            'lida' => 0,
+                        ]);
+                        $stats['enviados_inapp']++;
+                    } catch (\Throwable $e) {
+                        $stats['erros'][] = ['tipo' => 'inapp_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
+                    }
+                }
+
+                if ($agendamento->canal_email && $mailService->isConfigured()) {
+                    $usuario = $agendamento->usuario;
+                    if ($usuario && !empty($usuario->email)) {
+                        try {
+                            $mailService->sendAgendamentoReminder($agendamento, $usuario, 'horario');
+                            $stats['enviados_email']++;
+                        } catch (\Throwable $e) {
+                            $stats['erros'][] = ['tipo' => 'email_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
+                        }
+                    }
+                }
+
+                $agendamento->status = 'notificado';
+                $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
+                $enviouAlgo = true;
+            }
+
+            if ($enviouAlgo) {
+                $agendamento->save();
+            } else {
+                $stats['ignorados']++;
+            }
         }
 
         return $stats;

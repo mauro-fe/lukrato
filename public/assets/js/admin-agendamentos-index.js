@@ -36,8 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
         applyingQuickFilter: false,
         // Paginação desktop
         currentPage: 1,
-        pageSize: 25,
-        filteredData: []
+        pageSize: 10,
+        filteredData: [],
+        // Ordenação desktop
+        sortField: 'data_pagamento',
+        sortDirection: 'desc'
     };
 
 
@@ -1139,8 +1142,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 `;
             } else {
-                // Executados também podem ser editados
-                actionsContainer.innerHTML = `${viewBtn}${editBtn}`;
+                // Executados também podem ser editados e cancelados
+                actionsContainer.innerHTML = `
+                    ${viewBtn}
+                    ${editBtn}
+                    <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
             }
         },
 
@@ -1198,7 +1207,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 STATE.currentPage = 1;
             }
 
-            if (!data || data.length === 0) {
+            // Ordenar dados
+            this.sortData();
+
+            // Atualizar indicadores de ordenação
+            this.updateSortIndicators();
+
+            if (!STATE.filteredData || STATE.filteredData.length === 0) {
                 DOM.tableBody.innerHTML =
                     '<tr><td colspan="8" class="text-center">Nenhum agendamento encontrado.</td></tr>';
                 this.updatePagination();
@@ -1208,7 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Calcular paginação
             const start = (STATE.currentPage - 1) * STATE.pageSize;
             const end = start + STATE.pageSize;
-            const pageData = data.slice(start, end);
+            const pageData = STATE.filteredData.slice(start, end);
 
             DOM.tableBody.innerHTML = pageData.map(item => this.renderRow(item)).join('');
 
@@ -1291,6 +1306,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 STATE.currentPage = safePage;
                 this.render(STATE.filteredData, false);
             }
+        },
+
+        sortData() {
+            if (!STATE.filteredData || STATE.filteredData.length === 0) return;
+
+            STATE.filteredData.sort((a, b) => {
+                let aVal, bVal;
+
+                switch (STATE.sortField) {
+                    case 'data_pagamento':
+                        const aDate = a.data_pagamento || a.data_agendada;
+                        const bDate = b.data_pagamento || b.data_agendada;
+                        aVal = aDate ? new Date(String(aDate).replace(' ', 'T')).getTime() : 0;
+                        bVal = bDate ? new Date(String(bDate).replace(' ', 'T')).getTime() : 0;
+                        break;
+                    case 'tipo':
+                        aVal = String(a.tipo || '').toLowerCase();
+                        bVal = String(b.tipo || '').toLowerCase();
+                        break;
+                    case 'valor_centavos':
+                        aVal = Number(a.valor_centavos) || 0;
+                        bVal = Number(b.valor_centavos) || 0;
+                        break;
+                    default:
+                        aVal = String(a[STATE.sortField] || '').toLowerCase();
+                        bVal = String(b[STATE.sortField] || '').toLowerCase();
+                }
+
+                if (aVal === bVal) return 0;
+
+                const dir = STATE.sortDirection === 'asc' ? 1 : -1;
+                return aVal > bVal ? dir : -dir;
+            });
+        },
+
+        updateSortIndicators() {
+            const sortableHeaders = document.querySelectorAll('.ag-table th.sortable[data-sort]');
+            sortableHeaders.forEach(th => {
+                const field = th.dataset.sort;
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (field === STATE.sortField) {
+                    th.classList.add(STATE.sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
         },
 
         renderRow(item) {
@@ -1381,8 +1440,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
-            // Executados também podem ser editados
-            return `${viewBtn}${editBtn}`;
+            // Executados também podem ser editados e cancelados
+            return `
+                ${viewBtn}
+                ${editBtn}
+                <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
+                    title="❌ Cancelar agendamento">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
         }
     };
 
@@ -2683,9 +2749,28 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             DOM.pageSize?.addEventListener('change', () => {
-                STATE.pageSize = parseInt(DOM.pageSize.value, 10) || 25;
+                STATE.pageSize = parseInt(DOM.pageSize.value, 10) || 10;
                 STATE.currentPage = 1;
                 DesktopTable.render(STATE.filteredData, false);
+            });
+
+            // Sortable headers
+            const sortableHeaders = document.querySelectorAll('.ag-table th.sortable[data-sort]');
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const field = header.dataset.sort;
+                    if (!field) return;
+
+                    // Toggle direction if same field, else default to desc
+                    if (STATE.sortField === field) {
+                        STATE.sortDirection = STATE.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        STATE.sortField = field;
+                        STATE.sortDirection = 'desc';
+                    }
+                    STATE.currentPage = 1;
+                    DesktopTable.render(STATE.filteredData, false);
+                });
             });
         },
 

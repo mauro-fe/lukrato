@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $numero_parcelas
  * @property int $parcela_atual
  * @property \Carbon\Carbon|null $notificado_em
+ * @property \Carbon\Carbon|null $lembrete_antecedencia_em
  * @property \Carbon\Carbon|null $concluido_em
  * @property string|null $status
  *
@@ -63,6 +64,7 @@ class Agendamento extends Model
         'numero_parcelas',
         'parcela_atual',
         'notificado_em',
+        'lembrete_antecedencia_em',
         'concluido_em',
         'status',
     ];
@@ -72,6 +74,7 @@ class Agendamento extends Model
         'proxima_execucao' => 'datetime',
         'recorrencia_fim'  => 'date',
         'notificado_em'    => 'datetime',
+        'lembrete_antecedencia_em' => 'datetime',
         'concluido_em'     => 'datetime',
         'canal_email'      => 'bool',
         'canal_inapp'      => 'bool',

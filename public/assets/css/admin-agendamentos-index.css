@@ -19,7 +19,7 @@
 .modern-modal .modal-content {
   border: none;
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  background: var(--color-bg) !important;
   box-shadow: var(--shadow-2xl);
   overflow: hidden;
 }
@@ -1339,7 +1339,7 @@
 
 .modal-body {
   padding: var(--spacing-6);
-  background: var(--color-bg);
+  background: var(--color-bg) !important;
 }
 .modal-footer {
   background: var(--color-bg);
@@ -1356,6 +1356,9 @@
 
 .form-label i {
   color: var(--color-primary);
+}
+.form-control {
+  background-color: var(--color-bg) !important;
 }
 
 .form-control:focus,
@@ -1925,7 +1928,11 @@
    ============================================================================= */
 
 .parcelamento-card {
-  background: linear-gradient(145deg, var(--color-background), var(--color-surface));
+  background: linear-gradient(
+    145deg,
+    var(--color-background),
+    var(--color-surface)
+  );
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-4);
@@ -1934,7 +1941,11 @@
 
 .parcelamento-card:has(#agEhParcelado:checked) {
   border-color: var(--color-primary);
-  background: linear-gradient(145deg, rgba(230, 126, 34, 0.05), var(--color-surface));
+  background: linear-gradient(
+    145deg,
+    rgba(230, 126, 34, 0.05),
+    var(--color-surface)
+  );
   box-shadow: 0 4px 20px rgba(230, 126, 34, 0.15);
 }
 
@@ -2011,7 +2022,7 @@
   background: var(--color-text-muted);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -2137,8 +2148,8 @@ input#agNumeroParcelas,
 
 .parcelas-input::placeholder,
 #agNumeroParcelas::placeholder {
-  color: rgba(255,255,255,0.5) !important;
-  -webkit-text-fill-color: rgba(255,255,255,0.5) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .parcelas-suffix {
@@ -2190,16 +2201,16 @@ input#agNumeroParcelas,
     align-items: flex-start;
     gap: var(--spacing-3);
   }
-  
+
   .toggle-switch {
     align-self: flex-end;
   }
-  
+
   .parcelas-input-wrapper {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .parcelas-input-group {
     justify-content: center;
   }
@@ -2249,14 +2260,16 @@ input#agNumeroParcelas,
 
 .page-size-select:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 15%, transparent);
   background: var(--glass-bg);
 }
 
 .page-size-select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .page-size-select option {
@@ -2284,7 +2297,8 @@ input#agNumeroParcelas,
   color: var(--color-text);
   border-color: var(--color-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .pagination-btn:disabled {
@@ -2318,17 +2332,27 @@ input#agNumeroParcelas,
 }
 
 .page-number-btn:hover:not(.active):not(:disabled) {
-  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 15%,
+    var(--color-surface)
+  );
   border-color: var(--color-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 4px 8px
+    color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .page-number-btn.active {
-  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary)));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary))
+  );
   color: var(--color-text);
   border-color: transparent;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
   cursor: default;
 }
 
@@ -2342,9 +2366,61 @@ input#agNumeroParcelas,
     gap: var(--spacing-3);
     padding: var(--spacing-3);
   }
-  
+
   .pagination-controls {
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+
+/* =============================================================================
+   SORTABLE HEADERS - TABELA DE AGENDAMENTOS
+   ============================================================================= */
+
+.ag-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.ag-table thead th.sortable span {
+  display: inline;
+  vertical-align: middle;
+}
+
+.ag-table thead th.sortable:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface)
+  );
+}
+
+.ag-table thead th.sortable .sort-icon {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  opacity: 0.4;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  vertical-align: middle;
+}
+
+.ag-table thead th.sortable:hover .sort-icon {
+  opacity: 0.7;
+}
+
+.ag-table thead th.sortable.sort-asc .sort-icon::before {
+  content: "\f0de"; /* fa-sort-up */
+}
+
+.ag-table thead th.sortable.sort-desc .sort-icon::before {
+  content: "\f0dd"; /* fa-sort-down */
+}
+
+.ag-table thead th.sortable.sort-asc .sort-icon,
+.ag-table thead th.sortable.sort-desc .sort-icon,
+.ag-table thead th.sortable .sort-icon.active {
+  opacity: 1;
+  color: var(--color-primary);
 }
