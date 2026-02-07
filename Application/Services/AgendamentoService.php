@@ -89,7 +89,8 @@ class AgendamentoService
         }
 
         $observacao = $this->gerarObservacao($agendamento);
-        $data = $this->extrairDataPagamento($agendamento->data_pagamento);
+        // Quando executa o pagamento, usar o momento atual como data do lançamento
+        $data = date('Y-m-d H:i:s');
 
         // Usar conta passada ou a do agendamento
         $contaFinal = $contaId ?? $agendamento->conta_id;
@@ -102,7 +103,7 @@ class AgendamentoService
         $lancamentoData = [
             'user_id'          => $userId,
             'tipo'             => $agendamento->tipo ?? Lancamento::TIPO_DESPESA,
-            'data'             => $data,
+            'data'             => $data, // Data e hora do pagamento real
             'categoria_id'     => $agendamento->categoria_id,
             'conta_id'         => $contaFinal,
             'descricao'        => $descricao,
@@ -162,7 +163,7 @@ class AgendamentoService
         if ($agendamento->eh_parcelado && $agendamento->numero_parcelas > 1) {
             $parcelaAtual = $agendamento->parcela_atual ?? 1;
             $proximaParcela = $parcelaAtual + 1;
-            
+
             // Verificar se é a última parcela
             if ($proximaParcela > $agendamento->numero_parcelas) {
                 // Última parcela - finalizar
@@ -359,7 +360,7 @@ class AgendamentoService
 
         // Normalizar frequência - aceitar tanto português quanto inglês
         $freq = strtolower($recorrenciaFreq);
-        
+
         return match ($freq) {
             'daily', 'diario' => $data->modify("+{$intervalo} day")->format('Y-m-d H:i:s'),
             'weekly', 'semanal' => $data->modify("+{$intervalo} week")->format('Y-m-d H:i:s'),
