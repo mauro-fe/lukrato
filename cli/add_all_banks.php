@@ -25,6 +25,7 @@ $instituicoes = [
     ['nome' => 'Sicoob', 'codigo' => 'sicoob', 'tipo' => 'banco', 'cor_primaria' => '#003641', 'cor_secundaria' => '#6FB43F'],
     ['nome' => 'Banco do Nordeste', 'codigo' => 'bnb', 'tipo' => 'banco', 'cor_primaria' => '#E30613', 'cor_secundaria' => '#FFFFFF'],
     ['nome' => 'Banco da Amazônia', 'codigo' => 'basa', 'tipo' => 'banco', 'cor_primaria' => '#006838', 'cor_secundaria' => '#FFFFFF'],
+    ['nome' => 'Banco Safra', 'codigo' => 'safra', 'tipo' => 'banco', 'cor_primaria' => '#00205B', 'cor_secundaria' => '#FFFFFF'],
 
     // Bancos Digitais / Fintechs
     ['nome' => 'Nubank', 'codigo' => 'nubank', 'tipo' => 'fintech', 'cor_primaria' => '#8A05BE', 'cor_secundaria' => '#FFFFFF'],
