@@ -85,6 +85,8 @@ class CartaoFaturaService
                 'total_parcelas' => $item->total_parcelas ?? 1,
                 'pago' => $item->pago,
                 'categoria_id' => $item->categoria_id,
+                'mes_referencia' => $item->mes_referencia,
+                'ano_referencia' => $item->ano_referencia,
             ])->toArray(),
             'total' => $total,
             'vencimento' => $dataVencimento,
@@ -128,15 +130,15 @@ class CartaoFaturaService
             }
 
             $totalFatura = array_sum(array_column($itensNaoPagos, 'valor'));
-            
+
             // Se valor parcial informado, usa ele; senão, paga tudo
             $totalPagar = $valorParcial !== null ? $valorParcial : $totalFatura;
             $isPagamentoParcial = $valorParcial !== null && $valorParcial < $totalFatura;
-            
+
             if ($totalPagar <= 0) {
                 throw new \Exception('O valor do pagamento deve ser maior que zero.');
             }
-            
+
             if ($totalPagar > $totalFatura) {
                 throw new \Exception(sprintf(
                     'O valor informado (R$ %.2f) é maior que o total da fatura (R$ %.2f).',
@@ -176,7 +178,11 @@ class CartaoFaturaService
             // ===============================================================
             // REFATORADO: Criar UM ÚNICO lançamento para o pagamento da fatura
             // ===============================================================
-            $nomeMes = $this->getNomeMes($mes);
+            // Usar mes_referencia/ano_referencia (competência) dos itens para a descrição
+            $primeiroItem = reset($itensNaoPagos);
+            $mesCompetencia = $primeiroItem['mes_referencia'] ?? $mes;
+            $anoCompetencia = $primeiroItem['ano_referencia'] ?? $ano;
+            $nomeMes = $this->getNomeMes($mesCompetencia);
             $tipoPagamento = $isPagamentoParcial ? 'Pagamento Parcial' : 'Pagamento';
             $descricaoFatura = sprintf(
                 '%s Fatura %s •••• %s - %s/%04d',
@@ -184,25 +190,25 @@ class CartaoFaturaService
                 $cartao->nome_cartao,
                 $cartao->ultimos_digitos,
                 $nomeMes,
-                $ano
+                $anoCompetencia
             );
 
             // Determinar quantos itens serão marcados como pagos
             // Em pagamento parcial, marcamos itens proporcionalmente ao valor
             $itensParaPagar = [];
             $valorAcumulado = 0;
-            
+
             if ($isPagamentoParcial) {
                 // Ordenar itens por valor (menor primeiro) para pagar mais itens possíveis
                 usort($itensNaoPagos, fn($a, $b) => $a['valor'] <=> $b['valor']);
-                
+
                 foreach ($itensNaoPagos as $itemData) {
                     if ($valorAcumulado + $itemData['valor'] <= $totalPagar) {
                         $itensParaPagar[] = $itemData;
                         $valorAcumulado += $itemData['valor'];
                     }
                 }
-                
+
                 // Se não conseguiu pagar nenhum item completo, marca o primeiro parcialmente
                 // (neste caso, ainda assim marcamos pelo menos como pagamento registrado)
                 if (empty($itensParaPagar) && !empty($itensNaoPagos)) {
@@ -214,7 +220,7 @@ class CartaoFaturaService
             }
 
             $qtdItensPagos = count($itensParaPagar);
-            $observacao = $isPagamentoParcial 
+            $observacao = $isPagamentoParcial
                 ? sprintf('Pagamento parcial R$ %.2f - %d de %d item(s) - Fatura %02d/%04d', $totalPagar, $qtdItensPagos, count($itensNaoPagos), $mes, $ano)
                 : sprintf('%d item(s) pago(s) - Fatura %02d/%04d', $qtdItensPagos, $mes, $ano);
 
@@ -264,7 +270,7 @@ class CartaoFaturaService
 
             error_log("✅ [FATURA] Pagamento concluído - Lançamento único ID: {$lancamento->id}, " . count($itensIds) . " itens marcados como pagos");
 
-            $mensagem = $isPagamentoParcial 
+            $mensagem = $isPagamentoParcial
                 ? sprintf('Pagamento parcial realizado! R$ %.2f pago(s), %d item(s) quitado(s).', $totalPagar, count($itensIds))
                 : sprintf('Fatura paga! %d item(s) marcado(s) como pago(s).', count($itensIds));
 
