@@ -290,8 +290,34 @@ class AgendamentoController extends BaseController
                 $dto = $dto->withProximaExecucao($dataPagamento, $lembrarSegundos);
             }
 
+            // Se a data de pagamento mudou, resetar flags de notificação
+            // para que o lembrete seja reenviado na nova data
+            $updateData = $dto->toArray();
+            if ($dto->data_pagamento !== null) {
+                $dataAnterior = $agendamento->data_pagamento instanceof \DateTimeInterface
+                    ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
+                    : (string) $agendamento->data_pagamento;
+
+                if ($dto->data_pagamento !== $dataAnterior) {
+                    $updateData['notificado_em'] = null;
+                    $updateData['lembrete_antecedencia_em'] = null;
+
+                    // Se estava "notificado", voltar para "pendente"
+                    if ($agendamento->status === 'notificado') {
+                        $updateData['status'] = 'pendente';
+                    }
+
+                    LogService::info('Data de pagamento alterada, resetando notificações.', [
+                        'agendamento_id' => $id,
+                        'data_anterior' => $dataAnterior,
+                        'data_nova' => $dto->data_pagamento,
+                        'user_id' => $this->getUserId(),
+                    ]);
+                }
+            }
+
             // Atualizar
-            $agendamento->update($dto->toArray());
+            $agendamento->update($updateData);
             $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
 
             Response::success(['agendamento' => $agendamento]);

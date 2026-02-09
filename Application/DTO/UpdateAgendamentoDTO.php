@@ -29,6 +29,9 @@ readonly class UpdateAgendamentoDTO
         public ?int $recorrencia_intervalo = null,
         public ?string $recorrencia_fim = null,
         public ?string $forma_pagamento = null,
+        public ?bool $eh_parcelado = null,
+        public ?int $numero_parcelas = null,
+        public ?int $parcela_atual = null,
     ) {}
 
     /**
@@ -68,6 +71,17 @@ readonly class UpdateAgendamentoDTO
             ? $data['recorrencia_fim']
             : null;
 
+        // Tratar campos de parcelamento
+        $ehParcelado = isset($data['eh_parcelado'])
+            ? filter_var($data['eh_parcelado'], FILTER_VALIDATE_BOOLEAN)
+            : null;
+        $numeroParcelas = isset($data['numero_parcelas']) && $data['numero_parcelas'] !== ''
+            ? (int) $data['numero_parcelas']
+            : null;
+        $parcelaAtual = isset($data['parcela_atual']) && $data['parcela_atual'] !== ''
+            ? (int) $data['parcela_atual']
+            : null;
+
         return new self(
             titulo: isset($data['titulo']) ? $data['titulo'] : null,
             tipo: isset($data['tipo']) ? strtolower(trim($data['tipo'])) : null,
@@ -86,6 +100,9 @@ readonly class UpdateAgendamentoDTO
             recorrencia_intervalo: $recorrenciaIntervalo,
             recorrencia_fim: $recorrenciaFim,
             forma_pagamento: !empty($data['forma_pagamento']) ? $data['forma_pagamento'] : null,
+            eh_parcelado: $ehParcelado,
+            numero_parcelas: $numeroParcelas,
+            parcela_atual: $parcelaAtual,
         );
     }
 
@@ -135,6 +152,23 @@ readonly class UpdateAgendamentoDTO
         // Forma de pagamento
         if ($this->forma_pagamento !== null) $data['forma_pagamento'] = $this->forma_pagamento;
 
+        // Tratamento especial para campos de parcelamento
+        if ($this->eh_parcelado !== null) {
+            $data['eh_parcelado'] = $this->eh_parcelado;
+
+            // Se desativou parcelamento, limpar campos relacionados
+            if ($this->eh_parcelado === false) {
+                $data['numero_parcelas'] = null;
+                $data['parcela_atual'] = 1;
+            } else {
+                if ($this->numero_parcelas !== null) $data['numero_parcelas'] = $this->numero_parcelas;
+                if ($this->parcela_atual !== null) $data['parcela_atual'] = $this->parcela_atual;
+            }
+        } else {
+            if ($this->numero_parcelas !== null) $data['numero_parcelas'] = $this->numero_parcelas;
+            if ($this->parcela_atual !== null) $data['parcela_atual'] = $this->parcela_atual;
+        }
+
         return $data;
     }
 
@@ -165,6 +199,9 @@ readonly class UpdateAgendamentoDTO
             recorrencia_intervalo: $this->recorrencia_intervalo,
             recorrencia_fim: $this->recorrencia_fim,
             forma_pagamento: $this->forma_pagamento,
+            eh_parcelado: $this->eh_parcelado,
+            numero_parcelas: $this->numero_parcelas,
+            parcela_atual: $this->parcela_atual,
         );
     }
 

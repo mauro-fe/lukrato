@@ -1731,3 +1731,521 @@
     border: 1px solid #ccc;
   }
 }
+
+/* ==================== PREVISÃO FINANCEIRA ==================== */
+.provisao-section {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.provisao-section:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 20%,
+    var(--glass-border)
+  );
+}
+
+@media (min-width: 1024px) {
+  .provisao-section {
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+}
+
+.provisao-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.provisao-title::before {
+  content: "";
+  width: 5px;
+  height: 28px;
+  background: linear-gradient(180deg, var(--color-primary), #f39c12);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+}
+
+.provisao-title i {
+  color: var(--color-primary);
+  font-size: 16px;
+}
+
+/* Alerta de vencidos */
+.provisao-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(231, 76, 60, 0.08);
+  border: 1px solid rgba(231, 76, 60, 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.provisao-alert-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.provisao-alert-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.provisao-alert-link {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-danger);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.provisao-alert-link:hover {
+  color: #c0392b;
+  gap: 8px;
+}
+
+/* Cards de provisão */
+.provisao-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 640px) {
+  .provisao-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.provisao-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--color-bg);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.provisao-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.provisao-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.provisao-card.pagar .provisao-card-icon {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.provisao-card.receber .provisao-card-icon {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: var(--color-text);
+
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.provisao-card.projetado .provisao-card-icon {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: var(--color-text);
+
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.provisao-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.provisao-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.provisao-card-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.provisao-card.pagar .provisao-card-value {
+  color: var(--color-danger);
+}
+
+.provisao-card.receber .provisao-card-value {
+  color: var(--color-success);
+}
+
+.provisao-card-count {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* Próximos vencimentos */
+.provisao-proximos {
+  margin-bottom: 16px;
+}
+
+.provisao-proximos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.provisao-proximos-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.provisao-proximos-title i {
+  color: var(--color-primary);
+  font-size: 14px;
+}
+
+.provisao-ver-todos {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.provisao-ver-todos:hover {
+  gap: 8px;
+  opacity: 0.85;
+}
+
+.provisao-proximos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.provisao-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--color-bg);
+  transition: all 0.2s ease;
+}
+
+.provisao-item:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+}
+
+.provisao-item-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.provisao-item-dot.despesa {
+  background: var(--color-danger);
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+.provisao-item-dot.receita {
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+}
+
+.provisao-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.provisao-item-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.provisao-item-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.provisao-item-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.provisao-item-badge.vence-hoje {
+  background: rgba(243, 156, 18, 0.15);
+  color: var(--color-warning);
+}
+
+.provisao-item-badge.vencido {
+  background: rgba(231, 76, 60, 0.12);
+  color: var(--color-danger);
+}
+
+.provisao-item-badge.parcela {
+  background: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+}
+
+.provisao-item-badge.recorrente {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+
+.provisao-item-valor {
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.provisao-item-valor.despesa {
+  color: var(--color-danger);
+}
+
+.provisao-item-valor.receita {
+  color: var(--color-success);
+}
+
+.provisao-item-data {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 55px;
+}
+
+/* Empty state */
+.provisao-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.provisao-empty i {
+  color: var(--color-success);
+  font-size: 18px;
+}
+
+/* Parcelas ativas */
+.provisao-parcelas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: var(--radius-sm);
+}
+
+.provisao-parcelas-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #a855f7, #c084fc);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.provisao-parcelas-text {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.provisao-parcelas-valor {
+  font-size: 14px;
+  font-weight: 700;
+  color: #a855f7;
+  flex-shrink: 0;
+}
+
+/* PRO Overlay */
+.provisao-pro-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s ease;
+}
+
+:root[data-theme="light"] .provisao-pro-overlay {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.provisao-pro-content {
+  text-align: center;
+  max-width: 320px;
+  padding: 32px 24px;
+}
+
+.provisao-pro-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--color-primary), #f39c12);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.35);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.provisao-pro-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px 0;
+}
+
+.provisao-pro-content p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+.provisao-pro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.35);
+}
+
+.provisao-pro-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.45);
+}
+
+.provisao-pro-btn:active {
+  transform: scale(0.97);
+}
+
+/* Provisão blurred state for free users */
+.provisao-section.is-locked .provisao-grid,
+.provisao-section.is-locked .provisao-proximos,
+.provisao-section.is-locked .provisao-parcelas,
+.provisao-section.is-locked .provisao-alert {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Skeleton loading for provisão */
+.provisao-card-value.loading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 6px;
+  opacity: 0.6;
+}

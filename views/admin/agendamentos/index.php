@@ -6,6 +6,8 @@
 <section class="ag-page">
     <!-- ==================== HEADER MODERNIZADO ==================== -->
     <div class="lan-header-modern">
+        <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+
         <!-- CARD DE FILTROS -->
         <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">

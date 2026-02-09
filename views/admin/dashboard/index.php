@@ -151,6 +151,87 @@
         </div>
     </section>
 
+    <!-- Previsão Financeira (Agendamentos) -->
+    <section class="provisao-section" id="provisaoSection" data-aos="fade-up" data-aos-duration="500">
+        <h2 class="provisao-title">
+            <i class="fas fa-calendar-check"></i>
+            Previsão Financeira
+        </h2>
+
+        <!-- Alerta de vencidos -->
+        <div class="provisao-alert" id="provisaoAlertVencidos" style="display:none;">
+            <div class="provisao-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="provisao-alert-text">
+                <strong id="provisaoAlertCount">0</strong> pagamento(s) vencido(s) totalizando
+                <strong id="provisaoAlertTotal">R$ 0,00</strong>
+            </div>
+            <a href="<?= BASE_URL ?>agendamentos" class="provisao-alert-link">Ver todos <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <!-- Cards de Provisão -->
+        <div class="provisao-grid">
+            <div class="provisao-card pagar">
+                <div class="provisao-card-icon"><i class="fas fa-arrow-up"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">A Pagar</span>
+                    <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoPagarCount">0 agendamentos</span>
+                </div>
+            </div>
+            <div class="provisao-card receber">
+                <div class="provisao-card-icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">A Receber</span>
+                    <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoReceberCount">0 agendamentos</span>
+                </div>
+            </div>
+            <div class="provisao-card projetado">
+                <div class="provisao-card-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">Saldo Projetado</span>
+                    <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoProjetadoLabel">saldo atual + previsão</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Próximos Vencimentos -->
+        <div class="provisao-proximos">
+            <div class="provisao-proximos-header">
+                <span class="provisao-proximos-title"><i class="fas fa-clock"></i> Próximos Vencimentos</span>
+                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos">Ver todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="provisao-proximos-list" id="provisaoProximosList">
+                <div class="provisao-empty" id="provisaoEmpty">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Nenhum agendamento pendente</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parcelas Ativas -->
+        <div class="provisao-parcelas" id="provisaoParcelas" style="display:none;">
+            <div class="provisao-parcelas-icon"><i class="fas fa-layer-group"></i></div>
+            <span class="provisao-parcelas-text" id="provisaoParcelasText">0 parcelamentos ativos</span>
+            <span class="provisao-parcelas-valor" id="provisaoParcelasValor">R$ 0,00/mês</span>
+        </div>
+
+        <!-- Overlay PRO (para free users) -->
+        <div class="provisao-pro-overlay" id="provisaoProOverlay" style="display:none;">
+            <div class="provisao-pro-content">
+                <div class="provisao-pro-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h3>Previsão Financeira</h3>
+                <p>Veja quanto vai pagar, receber e como ficará seu saldo. Disponível no plano <strong>Pro</strong>.</p>
+                <button class="provisao-pro-btn" onclick="window.location.href='<?= BASE_URL ?>planos'">
+                    <i class="fas fa-rocket"></i> Conhecer o Pro
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- Chart -->
     <section class="chart-section" data-aos="fade-up" data-aos-duration="500">
         <h2 class="chart-title">Evolução Financeira</h2>

@@ -43,6 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
         sortDirection: 'desc'
     };
 
+    /**
+     * Retorna o mês selecionado no header (YYYY-MM) ou o mês atual
+     */
+    function getCurrentMonth() {
+        return (window.LukratoHeader?.getMonth?.()) || new Date().toISOString().slice(0, 7);
+    }
+
 
     // ============================================================================
     // MÓDULO TOGGLE RECORRÊNCIA - PROFISSIONAL
@@ -1467,7 +1474,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const res = await fetch(`${CONFIG.BASE_URL}api/agendamentos`, {
+                const month = getCurrentMonth();
+                const res = await fetch(`${CONFIG.BASE_URL}api/agendamentos?month=${encodeURIComponent(month)}`, {
                     credentials: 'include'
                 });
 
@@ -2946,6 +2954,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupFilters() {
+            // Recarregar ao trocar de mês no header
+            document.addEventListener('lukrato:month-changed', () => {
+                STATE.activeQuickFilter = null;
+                document.querySelectorAll('.quick-filter-btn').forEach(btn => btn.classList.remove('active'));
+                Agendamentos.load();
+            });
+
             DOM.filtroTipo?.addEventListener('change', () => {
                 STATE.activeQuickFilter = null; // Desativa filtro r\u00e1pido
                 document.querySelectorAll('.quick-filter-btn').forEach(btn => btn.classList.remove('active'));

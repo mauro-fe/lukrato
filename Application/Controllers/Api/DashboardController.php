@@ -6,6 +6,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
+use Application\Models\Agendamento;
 use Application\Enums\LancamentoTipo;
 use Application\Repositories\LancamentoRepository;
 use Illuminate\Database\Eloquent\Builder;
@@ -259,5 +260,138 @@ class DashboardController
         ])->values()->all();
 
         Response::json($out);
+    }
+
+    /**
+     * GET /api/dashboard/provisao
+     * 
+     * Retorna provisão financeira baseada nos agendamentos pendentes.
+     * - Total a pagar (despesas agendadas no mês)
+     * - Total a receber (receitas agendadas no mês)
+     * - Saldo projetado (saldo atual + receitas - despesas agendadas)
+     * - Próximos vencimentos (agendamentos mais próximos)
+     * - Agendamentos vencidos
+     */
+    public function provisao(): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::json(['status' => 'error', 'message' => 'Não autenticado'], 401);
+            return;
+        }
+
+        $monthInput = trim($_GET['month'] ?? date('Y-m'));
+        $normalized = $this->normalizeMonth($monthInput);
+        $month = $normalized['month'];
+        $start = "{$month}-01";
+        $end = date('Y-m-t', strtotime($start));
+        $now = date('Y-m-d H:i:s');
+
+        // Agendamentos pendentes/notificados do mês
+        $agendamentosMes = Agendamento::where('user_id', $userId)
+            ->whereIn('status', ['pendente', 'notificado'])
+            ->whereBetween('data_pagamento', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->get();
+
+        $totalPagar = 0;
+        $totalReceber = 0;
+        $countPagar = 0;
+        $countReceber = 0;
+
+        foreach ($agendamentosMes as $ag) {
+            $valor = ($ag->valor_centavos ?? 0) / 100;
+            if (strtolower($ag->tipo ?? '') === 'receita') {
+                $totalReceber += $valor;
+                $countReceber++;
+            } else {
+                $totalPagar += $valor;
+                $countPagar++;
+            }
+        }
+
+        // Saldo atual (real das contas)
+        $contas = Conta::where('user_id', $userId)
+            ->where('ativo', true)
+            ->get();
+
+        $saldoAtual = 0;
+        foreach ($contas as $conta) {
+            $saldoAtual += $this->calcularSaldoConta($userId, $conta->id, date('Y-m-d'));
+        }
+
+        $saldoProjetado = $saldoAtual + $totalReceber - $totalPagar;
+
+        // Próximos 5 vencimentos (a partir de agora, qualquer mês)
+        $proximos = Agendamento::with(['categoria:id,nome'])
+            ->where('user_id', $userId)
+            ->whereIn('status', ['pendente', 'notificado'])
+            ->where('data_pagamento', '>=', $now)
+            ->orderBy('data_pagamento', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(fn($ag) => [
+                'id' => $ag->id,
+                'titulo' => $ag->titulo,
+                'tipo' => $ag->tipo,
+                'valor' => ($ag->valor_centavos ?? 0) / 100,
+                'data_pagamento' => $ag->data_pagamento instanceof \DateTimeInterface
+                    ? $ag->data_pagamento->format('Y-m-d H:i:s')
+                    : (string) $ag->data_pagamento,
+                'categoria' => $ag->categoria?->nome ?? null,
+                'eh_parcelado' => (bool) $ag->eh_parcelado,
+                'parcela_atual' => $ag->parcela_atual,
+                'numero_parcelas' => $ag->numero_parcelas,
+                'recorrente' => (bool) $ag->recorrente,
+            ]);
+
+        // Agendamentos vencidos (data_pagamento já passou e não concluídos)
+        $vencidos = Agendamento::where('user_id', $userId)
+            ->whereIn('status', ['pendente', 'notificado'])
+            ->where('data_pagamento', '<', $now)
+            ->orderBy('data_pagamento', 'asc')
+            ->get()
+            ->map(fn($ag) => [
+                'id' => $ag->id,
+                'titulo' => $ag->titulo,
+                'tipo' => $ag->tipo,
+                'valor' => ($ag->valor_centavos ?? 0) / 100,
+                'data_pagamento' => $ag->data_pagamento instanceof \DateTimeInterface
+                    ? $ag->data_pagamento->format('Y-m-d H:i:s')
+                    : (string) $ag->data_pagamento,
+            ]);
+
+        // Parcelas ativas
+        $parcelasAtivas = Agendamento::where('user_id', $userId)
+            ->where('eh_parcelado', true)
+            ->whereIn('status', ['pendente', 'notificado'])
+            ->where('numero_parcelas', '>', 1)
+            ->get();
+
+        $totalMensalParcelas = 0;
+        foreach ($parcelasAtivas as $p) {
+            $totalMensalParcelas += ($p->valor_centavos ?? 0) / 100;
+        }
+
+        Response::json([
+            'month' => $month,
+            'provisao' => [
+                'a_pagar' => round($totalPagar, 2),
+                'a_receber' => round($totalReceber, 2),
+                'saldo_projetado' => round($saldoProjetado, 2),
+                'saldo_atual' => round($saldoAtual, 2),
+                'count_pagar' => $countPagar,
+                'count_receber' => $countReceber,
+            ],
+            'proximos' => $proximos->values()->all(),
+            'vencidos' => [
+                'count' => $vencidos->count(),
+                'total' => round($vencidos->sum('valor'), 2),
+                'items' => $vencidos->values()->take(5)->all(),
+            ],
+            'parcelas' => [
+                'ativas' => $parcelasAtivas->count(),
+                'total_mensal' => round($totalMensalParcelas, 2),
+            ],
+        ]);
     }
 }

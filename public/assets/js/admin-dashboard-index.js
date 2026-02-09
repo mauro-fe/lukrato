@@ -863,6 +863,228 @@
         }
     };
 
+    // ==================== PREVISÃO FINANCEIRA ====================
+    const Provisao = {
+        isProUser: null,
+
+        checkProStatus: async () => {
+            // Ensure PlanLimits has finished loading before checking
+            if (window.PlanLimits?.init) {
+                try {
+                    await window.PlanLimits.init();
+                } catch { /* ignore */ }
+            }
+
+            if (window.PlanLimits?.isPro) {
+                Provisao.isProUser = window.PlanLimits.isPro();
+                return Provisao.isProUser;
+            }
+
+            // Fallback: fetch directly from API
+            try {
+                const data = await API.fetch(`${CONFIG.API_URL}plan-limits`);
+                Provisao.isProUser = data?.is_pro === true;
+            } catch {
+                try {
+                    const data = await API.fetch(`${CONFIG.API_URL}gamification/progress`);
+                    Provisao.isProUser = data?.data?.is_pro === true;
+                } catch {
+                    Provisao.isProUser = false;
+                }
+            }
+
+            return Provisao.isProUser;
+        },
+
+        render: async (month) => {
+            const section = document.getElementById('provisaoSection');
+            if (!section) return;
+
+            // Always re-check Pro status to avoid stale cache
+            await Provisao.checkProStatus();
+
+            const overlay = document.getElementById('provisaoProOverlay');
+
+            if (!Provisao.isProUser) {
+                // Show locked state with sample data
+                section.classList.add('is-locked');
+                if (overlay) overlay.style.display = 'flex';
+
+                // Show placeholder numbers
+                Provisao.renderPlaceholder();
+                return;
+            }
+
+            // Pro user: load real data
+            section.classList.remove('is-locked');
+            if (overlay) overlay.style.display = 'none';
+
+            try {
+                const data = await API.fetch(
+                    `${CONFIG.API_URL}dashboard/provisao?month=${encodeURIComponent(month)}`
+                );
+                Provisao.renderData(data);
+            } catch (err) {
+                console.error('Erro ao carregar provisão:', err);
+            }
+        },
+
+        renderPlaceholder: () => {
+            const pagar = document.getElementById('provisaoPagar');
+            const receber = document.getElementById('provisaoReceber');
+            const projetado = document.getElementById('provisaoProjetado');
+            const pagarCount = document.getElementById('provisaoPagarCount');
+            const receberCount = document.getElementById('provisaoReceberCount');
+
+            if (pagar) pagar.textContent = 'R$ 1.250,00';
+            if (receber) receber.textContent = 'R$ 3.800,00';
+            if (projetado) projetado.textContent = 'R$ 5.430,00';
+            if (pagarCount) pagarCount.textContent = '4 agendamentos';
+            if (receberCount) receberCount.textContent = '2 agendamentos';
+
+            // Show sample upcoming items
+            const list = document.getElementById('provisaoProximosList');
+            if (list) {
+                list.innerHTML = `
+                    <div class="provisao-item">
+                        <div class="provisao-item-dot despesa"></div>
+                        <div class="provisao-item-info">
+                            <div class="provisao-item-titulo">Aluguel</div>
+                            <div class="provisao-item-meta"><span class="provisao-item-badge recorrente">Mensal</span></div>
+                        </div>
+                        <span class="provisao-item-valor despesa">R$ 800,00</span>
+                        <span class="provisao-item-data">15/02</span>
+                    </div>
+                    <div class="provisao-item">
+                        <div class="provisao-item-dot receita"></div>
+                        <div class="provisao-item-info">
+                            <div class="provisao-item-titulo">Salário</div>
+                            <div class="provisao-item-meta"><span class="provisao-item-badge recorrente">Mensal</span></div>
+                        </div>
+                        <span class="provisao-item-valor receita">R$ 3.800,00</span>
+                        <span class="provisao-item-data">05/02</span>
+                    </div>
+                `;
+            }
+        },
+
+        renderData: (data) => {
+            if (!data) return;
+
+            const p = data.provisao || {};
+            const money = Utils.money;
+
+            // Cards
+            const pagar = document.getElementById('provisaoPagar');
+            const receber = document.getElementById('provisaoReceber');
+            const projetado = document.getElementById('provisaoProjetado');
+            const pagarCount = document.getElementById('provisaoPagarCount');
+            const receberCount = document.getElementById('provisaoReceberCount');
+            const projetadoLabel = document.getElementById('provisaoProjetadoLabel');
+
+            if (pagar) pagar.textContent = money(p.a_pagar || 0);
+            if (receber) receber.textContent = money(p.a_receber || 0);
+            if (projetado) {
+                projetado.textContent = money(p.saldo_projetado || 0);
+                projetado.style.color = (p.saldo_projetado || 0) >= 0 ? '' : 'var(--color-danger)';
+            }
+            if (pagarCount) pagarCount.textContent = `${p.count_pagar || 0} agendamento${(p.count_pagar || 0) !== 1 ? 's' : ''}`;
+            if (receberCount) receberCount.textContent = `${p.count_receber || 0} agendamento${(p.count_receber || 0) !== 1 ? 's' : ''}`;
+            if (projetadoLabel) projetadoLabel.textContent = `saldo atual: ${money(p.saldo_atual || 0)}`;
+
+            // Alerta de vencidos
+            const alertEl = document.getElementById('provisaoAlertVencidos');
+            const vencidos = data.vencidos || {};
+            if (alertEl) {
+                if ((vencidos.count || 0) > 0) {
+                    alertEl.style.display = 'flex';
+                    const countEl = document.getElementById('provisaoAlertCount');
+                    const totalEl = document.getElementById('provisaoAlertTotal');
+                    if (countEl) countEl.textContent = vencidos.count;
+                    if (totalEl) totalEl.textContent = money(vencidos.total || 0);
+                } else {
+                    alertEl.style.display = 'none';
+                }
+            }
+
+            // Próximos vencimentos
+            const list = document.getElementById('provisaoProximosList');
+            const emptyEl = document.getElementById('provisaoEmpty');
+            const proximos = data.proximos || [];
+
+            if (list) {
+                if (proximos.length === 0) {
+                    list.innerHTML = '';
+                    if (emptyEl) {
+                        list.appendChild(emptyEl);
+                        emptyEl.style.display = 'flex';
+                    }
+                } else {
+                    list.innerHTML = '';
+                    const today = new Date().toISOString().slice(0, 10);
+
+                    proximos.forEach(item => {
+                        const tipo = (item.tipo || '').toLowerCase();
+                        const dataParts = (item.data_pagamento || '').split(/[T\s]/)[0];
+                        const isHoje = dataParts === today;
+                        const dateDisplay = Provisao.formatDateShort(dataParts);
+
+                        let badges = '';
+                        if (isHoje) badges += '<span class="provisao-item-badge vence-hoje">Hoje</span>';
+                        if (item.eh_parcelado && item.numero_parcelas > 1) {
+                            badges += `<span class="provisao-item-badge parcela">${item.parcela_atual}/${item.numero_parcelas}</span>`;
+                        }
+                        if (item.recorrente) {
+                            badges += '<span class="provisao-item-badge recorrente">Recorrente</span>';
+                        }
+                        if (item.categoria) {
+                            badges += `<span>${item.categoria}</span>`;
+                        }
+
+                        const el = document.createElement('div');
+                        el.className = 'provisao-item';
+                        el.innerHTML = `
+                            <div class="provisao-item-dot ${tipo}"></div>
+                            <div class="provisao-item-info">
+                                <div class="provisao-item-titulo">${item.titulo || 'Sem título'}</div>
+                                <div class="provisao-item-meta">${badges}</div>
+                            </div>
+                            <span class="provisao-item-valor ${tipo}">${money(item.valor || 0)}</span>
+                            <span class="provisao-item-data">${dateDisplay}</span>
+                        `;
+
+                        list.appendChild(el);
+                    });
+                }
+            }
+
+            // Parcelas ativas
+            const parcelasEl = document.getElementById('provisaoParcelas');
+            const parcelas = data.parcelas || {};
+            if (parcelasEl) {
+                if ((parcelas.ativas || 0) > 0) {
+                    parcelasEl.style.display = 'flex';
+                    const textEl = document.getElementById('provisaoParcelasText');
+                    const valorEl = document.getElementById('provisaoParcelasValor');
+                    if (textEl) textEl.textContent = `${parcelas.ativas} parcelamento${parcelas.ativas !== 1 ? 's' : ''} ativo${parcelas.ativas !== 1 ? 's' : ''}`;
+                    if (valorEl) valorEl.textContent = `${money(parcelas.total_mensal || 0)}/mês`;
+                } else {
+                    parcelasEl.style.display = 'none';
+                }
+            }
+        },
+
+        formatDateShort: (dateStr) => {
+            if (!dateStr) return '-';
+            try {
+                const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                return m ? `${m[3]}/${m[2]}` : '-';
+            } catch {
+                return '-';
+            }
+        }
+    };
+
     const DashboardManager = {
         refresh: async () => {
             if (STATE.isLoading) return;
@@ -904,7 +1126,8 @@
                 await Promise.allSettled([
                     Renderers.renderKPIs(month),
                     Renderers.renderTable(month),
-                    Renderers.renderChart(month)
+                    Renderers.renderChart(month),
+                    Provisao.render(month)
                 ]);
             } catch (err) {
                 console.error('Erro ao atualizar dashboard:', err);
