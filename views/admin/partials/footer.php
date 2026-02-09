@@ -31,6 +31,10 @@
 <script src="<?= BASE_URL ?>assets/js/plugins/smooth-scrollbar.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Birthday Modal -->
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/birthday-modal.css?v=<?= time() ?>">
+<script src="<?= BASE_URL ?>assets/js/birthday-modal.js?v=<?= time() ?>"></script>
+
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 
 <script src="<?= BASE_URL ?>assets/js/soft-ui-dashboard.js?v=1.1.2"></script>

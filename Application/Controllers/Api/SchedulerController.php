@@ -658,4 +658,46 @@ class SchedulerController extends BaseController
 
         return $stats;
     }
+
+    /**
+     * Processa notificações de aniversário do dia
+     * 
+     * GET/POST /api/scheduler/dispatch-birthdays
+     */
+    public function dispatchBirthdays(): void
+    {
+        if (!$this->validateSchedulerToken()) {
+            LogService::warning('[Scheduler] Tentativa de acesso não autorizada - birthdays', [
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
+            Response::json(['error' => 'Unauthorized'], 401);
+            return;
+        }
+
+        LogService::info('=== [Scheduler] Início do dispatch de aniversários ===');
+
+        try {
+            $notificationService = new \Application\Services\NotificationService();
+            
+            // Envia notificações internas e emails
+            $result = $notificationService->processBirthdayNotifications(true);
+
+            LogService::info('[Scheduler] Aniversários processados', $result);
+
+            Response::json([
+                'success' => true,
+                'message' => 'Notificações de aniversário processadas',
+                'stats' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::error('[Scheduler] Erro ao processar aniversários', [
+                'erro' => $e->getMessage(),
+            ]);
+            
+            Response::json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

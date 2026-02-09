@@ -96,4 +96,62 @@ class PreferenciaUsuarioController extends BaseController
             Response::error('Falha ao salvar preferência.', 500);
         }
     }
+
+    /**
+     * Verifica se hoje é aniversário do usuário
+     * GET /api/user/birthday-check
+     */
+    public function birthdayCheck(): void
+    {
+        try {
+            $this->requireAuth();
+
+            $user = Usuario::find($this->userId);
+            if (!$user) {
+                Response::error('Usuário não encontrado.', 404);
+                return;
+            }
+
+            // Verifica se tem data de nascimento
+            if (empty($user->data_nascimento)) {
+                Response::success([
+                    'is_birthday' => false,
+                    'reason' => 'no_birthdate'
+                ]);
+                return;
+            }
+
+            $today = new \DateTimeImmutable('today');
+            $birthDate = new \DateTimeImmutable($user->data_nascimento);
+
+            // Verifica se é o mesmo dia e mês
+            $isBirthday = (
+                (int) $today->format('m') === (int) $birthDate->format('m') &&
+                (int) $today->format('d') === (int) $birthDate->format('d')
+            );
+
+            if ($isBirthday) {
+                // Calcula idade
+                $age = (int) $today->diff($birthDate)->y;
+                
+                // Pega primeiro nome
+                $nameParts = explode(' ', trim($user->nome));
+                $firstName = $nameParts[0] ?? 'Você';
+
+                Response::success([
+                    'is_birthday' => true,
+                    'first_name' => $firstName,
+                    'age' => $age,
+                    'full_name' => $user->nome,
+                ]);
+            } else {
+                Response::success([
+                    'is_birthday' => false
+                ]);
+            }
+        } catch (Throwable $e) {
+            LogService::error('Falha ao verificar aniversário', ['exception' => $e->getMessage()]);
+            Response::success(['is_birthday' => false]); // Falha silenciosa
+        }
+    }
 }

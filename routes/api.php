@@ -186,6 +186,7 @@ Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoControlle
 
 Router::add('GET',  '/api/user/theme', 'Api\\PreferenciaUsuarioController@show',   ['auth']);
 Router::add('POST', '/api/user/theme', 'Api\\PreferenciaUsuarioController@update', ['auth', 'csrf']);
+Router::add('GET',  '/api/user/birthday-check', 'Api\\PreferenciaUsuarioController@birthdayCheck', ['auth']);
 
 // ============================================
 // PREMIUM / ASSINATURA
@@ -239,6 +240,30 @@ Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@delet
 Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'csrf']);
 Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'csrf']);
 Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth']);
+
+// ============================================
+// CAMPANHAS DE MENSAGENS (SYSADMIN)
+// ============================================
+
+Router::add('GET',  '/api/campaigns',          'Api\\CampaignController@index',   ['auth']);
+Router::add('POST', '/api/campaigns',          'Api\\CampaignController@store',   ['auth', 'csrf']);
+Router::add('GET',  '/api/campaigns/preview',  'Api\\CampaignController@preview', ['auth']);
+Router::add('GET',  '/api/campaigns/stats',    'Api\\CampaignController@stats',   ['auth']);
+Router::add('GET',  '/api/campaigns/options',  'Api\\CampaignController@options', ['auth']);
+Router::add('GET',  '/api/campaigns/birthdays',      'Api\\CampaignController@birthdays',    ['auth']);
+Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\CampaignController@sendBirthdays', ['auth', 'csrf']);
+Router::add('GET',  '/api/campaigns/{id}',     'Api\\CampaignController@show',    ['auth']);
+
+// ============================================
+// NOTIFICAÇÕES (USUÁRIO)
+// ============================================
+
+Router::add('GET',    '/api/notifications',            'Api\\NotificationController@index',         ['auth']);
+Router::add('GET',    '/api/notifications/count',      'Api\\NotificationController@count',         ['auth']);
+Router::add('POST',   '/api/notifications/{id}/read',  'Api\\NotificationController@markAsRead',    ['auth', 'csrf']);
+Router::add('POST',   '/api/notifications/read-all',   'Api\\NotificationController@markAllAsRead', ['auth', 'csrf']);
+Router::add('DELETE', '/api/notifications/{id}',       'Api\\NotificationController@destroy',       ['auth', 'csrf']);
+Router::add('DELETE', '/api/notifications/read',       'Api\\NotificationController@deleteRead',    ['auth', 'csrf']);
 
 // ============================================
 // PLANO / LIMITES

@@ -61,6 +61,9 @@ Se seu servidor suporta cron jobs nativos, configure assim:
 # Assinaturas expiradas a cada hora
 0 * * * * curl -s "https://seudominio.com.br/api/scheduler/process-expired-subscriptions?token=SEU_TOKEN" > /dev/null
 
+# Notificações de aniversário diariamente às 8h
+0 8 * * * curl -s "https://seudominio.com.br/api/scheduler/dispatch-birthdays?token=SEU_TOKEN" > /dev/null
+
 # Verificação mensal de conquistas (1º dia do mês às 01:00)
 0 1 1 * * php /path/to/cli/check_monthly_achievements.php > /dev/null
 ```
@@ -76,6 +79,12 @@ A maioria dos painéis de hospedagem oferece "Cron Jobs" ou "Tarefas Agendadas":
 
      ```
      https://seudominio.com.br/api/scheduler/dispatch-reminders?token=SEU_TOKEN
+     ```
+
+   - **Aniversários** (diariamente às 8h):
+
+     ```
+     https://seudominio.com.br/api/scheduler/dispatch-birthdays?token=SEU_TOKEN
      ```
 
    - **Assinaturas** (a cada hora):

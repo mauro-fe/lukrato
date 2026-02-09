@@ -203,6 +203,23 @@
                 </div>
             </div>
 
+            <!-- Comunicações Card -->
+            <div class="control-card">
+                <div class="control-header">
+                    <i class="fas fa-bullhorn" style="color: #f59e0b;"></i>
+                    <div>
+                        <h3>Comunicações</h3>
+                        <p>Envie mensagens e campanhas</p>
+                    </div>
+                </div>
+                <div class="control-actions">
+                    <button class="btn-control primary" onclick="window.location.href='<?= BASE_URL ?>sysadmin/comunicacoes'" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-paper-plane"></i>
+                        Gerenciar Campanhas
+                    </button>
+                </div>
+            </div>
+
             <!-- Grant Access Card -->
             <div class="control-card">
                 <div class="control-header">

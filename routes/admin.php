@@ -50,6 +50,9 @@ Router::add('GET', '/sysadmin', 'SysAdmin\\SuperAdminController@index', ['auth']
 // SysAdmin - Gerenciamento de cupons
 Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['auth']);
 
+// SysAdmin - Comunicações e campanhas
+Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth']);
+
 // SysAdmin - Listagem de usuários com filtros
 Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth']);
 

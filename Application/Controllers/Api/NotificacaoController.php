@@ -5,6 +5,7 @@ namespace Application\Controllers\Api;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Notificacao;
+use Application\Models\Notification;
 use Application\Services\CartaoFaturaService;
 use Application\Services\CartaoCreditoService;
 use Application\Services\SubscriptionExpirationService;
@@ -156,6 +157,45 @@ class NotificacaoController extends BaseController
                 error_log("⚠️ Erro ao verificar período de carência: " . $e->getMessage());
             }
 
+            // ================================================
+            // NOTIFICAÇÕES DE CAMPANHAS (nova tabela notifications)
+            // ================================================
+            try {
+                $campaignNotifications = Notification::where('user_id', $userId)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(50)
+                    ->get();
+
+                foreach ($campaignNotifications as $notif) {
+                    // Mapear tipo para ícone e cor
+                    $iconMap = [
+                        'info' => ['📢', '#6b7280'],
+                        'promo' => ['👑', '#f59e0b'],
+                        'update' => ['🚀', '#8b5cf6'],
+                        'alert' => ['⚠️', '#ef4444'],
+                        'success' => ['✅', '#10b981'],
+                        'reminder' => ['🔔', '#3b82f6'],
+                    ];
+                    $iconData = $iconMap[$notif->type] ?? $iconMap['info'];
+
+                    $itens[] = [
+                        'id' => 'campaign_' . $notif->id, // Prefixo para identificar
+                        'tipo' => $notif->type,
+                        'titulo' => $notif->title,
+                        'mensagem' => $notif->message,
+                        'lida' => (int) $notif->is_read,
+                        'created_at' => $notif->created_at->format('Y-m-d H:i:s'),
+                        'link' => $notif->link,
+                        'icone' => $iconData[0],
+                        'cor' => $iconData[1],
+                        'dinamico' => false,
+                        'campaign_id' => $notif->campaign_id,
+                    ];
+                }
+            } catch (\Exception $e) {
+                error_log("⚠️ Erro ao buscar notificações de campanhas: " . $e->getMessage());
+            }
+
             // Ordenar todos os itens por created_at (mais recente primeiro)
             usort($itens, function ($a, $b) {
                 $dateA = strtotime($a['created_at'] ?? '1970-01-01');
@@ -230,6 +270,15 @@ class NotificacaoController extends BaseController
                 error_log("Stack trace: " . $e->getTraceAsString());
             }
 
+            // Conta notificações de campanhas não lidas
+            try {
+                $qtd += Notification::where('user_id', $userId)
+                    ->where('is_read', false)
+                    ->count();
+            } catch (\Exception $e) {
+                error_log("⚠️ Erro ao contar notificações de campanhas: " . $e->getMessage());
+            }
+
             Response::success(['unread' => (int)$qtd]);
         } catch (\Throwable $e) {
             error_log("❌ Erro ao buscar contagem não lidas: " . $e->getMessage());
@@ -239,10 +288,6 @@ class NotificacaoController extends BaseController
             Response::success(['unread' => 0]);
         }
     }
-
-    /**
-     * Limpa alertas expirados (mais de 24 horas)
-     */
     private function limparAlertasExpirados(array $alertasIgnorados): array
     {
         $agora = time();
@@ -270,24 +315,41 @@ class NotificacaoController extends BaseController
 
         $rawIds = (array)($_POST['ids'] ?? []);
 
-        // Separar IDs numéricos (do banco) de IDs de alertas dinâmicos (strings)
+        // Separar IDs numéricos (do banco) de IDs de alertas dinâmicos (strings) e campanhas
         $idsNumericos = [];
         $idsDinamicos = [];
+        $idsCampanhas = [];
 
         foreach ($rawIds as $id) {
             if (is_numeric($id) && (int)$id > 0) {
                 $idsNumericos[] = (int)$id;
+            } elseif (is_string($id) && str_starts_with($id, 'campaign_')) {
+                // Notificações de campanhas
+                $campaignNotifId = (int) str_replace('campaign_', '', $id);
+                if ($campaignNotifId > 0) {
+                    $idsCampanhas[] = $campaignNotifId;
+                }
             } elseif (is_string($id) && !empty($id)) {
                 // Alertas dinâmicos (cartao_venc_*, cartao_lim_*, subscription_grace_*, etc.)
                 $idsDinamicos[] = $id;
             }
         }
 
-        // Marcar notificações do banco como lidas
+        // Marcar notificações do banco (legadas) como lidas
         if (!empty($idsNumericos)) {
             Notificacao::where('user_id', $userId)
                 ->whereIn('id', $idsNumericos)
                 ->update(['lida' => true]);
+        }
+
+        // Marcar notificações de campanhas como lidas
+        if (!empty($idsCampanhas)) {
+            Notification::where('user_id', $userId)
+                ->whereIn('id', $idsCampanhas)
+                ->update([
+                    'is_read' => true,
+                    'read_at' => now()
+                ]);
         }
 
         // Marcar alertas dinâmicos como ignorados
@@ -302,7 +364,7 @@ class NotificacaoController extends BaseController
             }
         }
 
-        if (empty($idsNumericos) && empty($idsDinamicos)) {
+        if (empty($idsNumericos) && empty($idsDinamicos) && empty($idsCampanhas)) {
             Response::validationError(['ids' => 'Nenhum ID de notificação válido fornecido.']);
             return;
         }
@@ -321,10 +383,22 @@ class NotificacaoController extends BaseController
             session_start();
         }
 
-        // Marca notificações do banco como lidas
+        // Marca notificações do banco (legadas) como lidas
         Notificacao::where('user_id', $this->userId)
             ->where('lida', false)
             ->update(['lida' => true]);
+
+        // Marca notificações de campanhas como lidas
+        try {
+            Notification::where('user_id', $userId)
+                ->where('is_read', false)
+                ->update([
+                    'is_read' => true,
+                    'read_at' => now()
+                ]);
+        } catch (\Exception $e) {
+            error_log("⚠️ Erro ao marcar notificações de campanhas: " . $e->getMessage());
+        }
 
         // Marca alertas dinâmicos como ignorados com timestamp
         if (!isset($_SESSION['alertas_ignorados'])) {
