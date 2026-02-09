@@ -540,7 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const colorMap = {
                 pendente: 'warning',
                 enviado: 'info',
-                concluido: 'success',
                 cancelado: 'danger'
             };
 
@@ -561,8 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
          * Calcula status dinâmico baseado na data
          * @param {string} dataPagamento - Data do agendamento
          * @param {boolean} recorrente - Se é recorrente
-         * @param {string} statusBanco - Status do banco (cancelado, concluido)
-         * @returns {string} 'hoje', 'agendado', 'vencido', 'executado', 'cancelado'
+         * @param {string} statusBanco - Status do banco (cancelado, pendente, notificado)
+         * @returns {string} 'hoje', 'agendado', 'vencido', 'cancelado'
          */
         calcularStatusDinamico(dataPagamento, recorrente, statusBanco) {
             // Se foi cancelado no banco
@@ -570,24 +569,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 return 'cancelado';
             }
 
-            // Se foi executado E não é recorrente
-            if (statusBanco === 'concluido' && !recorrente) {
-                return 'executado';
-            }
-
             if (!dataPagamento) {
                 return 'agendado';
             }
 
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-
+            const agora = new Date();
             const dataAgendamento = new Date(dataPagamento);
-            dataAgendamento.setHours(0, 0, 0, 0);
 
-            if (dataAgendamento.getTime() === hoje.getTime()) {
+            const hojeDate = new Date(agora);
+            hojeDate.setHours(0, 0, 0, 0);
+            const agendDate = new Date(dataAgendamento);
+            agendDate.setHours(0, 0, 0, 0);
+
+            if (agendDate.getTime() === hojeDate.getTime()) {
+                // Mesmo dia: verificar se o horário já passou
+                if (dataAgendamento < agora) {
+                    return 'vencido';
+                }
                 return 'hoje';
-            } else if (dataAgendamento < hoje) {
+            } else if (agendDate < hojeDate) {
                 return 'vencido';
             } else {
                 return 'agendado';
@@ -602,7 +602,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 'hoje': '<span class="badge-status badge-hoje" title="Agendado para hoje">📅 Hoje</span>',
                 'agendado': '<span class="badge-status badge-agendado" title="Agendado para o futuro">⏰ Agendado</span>',
                 'vencido': '<span class="badge-status badge-vencido" title="Data passou">⚠️ Vencido</span>',
-                'executado': '<span class="badge-status badge-executado" title="Já foi executado">✅ Executado</span>',
                 'cancelado': '<span class="badge-status badge-cancelado" title="Cancelado">❌ Cancelado</span>',
             };
 
@@ -1137,21 +1136,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fas fa-undo-alt"></i>
                     </button>
                 `;
-            } else if (status === 'pendente' || statusDinamico !== 'executado') {
+            } else {
                 actionsContainer.innerHTML = `
                     ${viewBtn}
                     <button class="lk-btn ghost-pagar ag-card-btn" data-ag-action="pagar" data-id="${itemId}" title="Executar">
                         <i class="fas fa-check"></i>
                     </button>
-                    ${editBtn}
-                    <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-            } else {
-                // Executados também podem ser editados e cancelados
-                actionsContainer.innerHTML = `
-                    ${viewBtn}
                     ${editBtn}
                     <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
                         <i class="fas fa-times"></i>
@@ -1432,24 +1422,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
-            if (status === 'pendente' || statusDinamico !== 'executado') {
-                return `
-                    ${viewBtn}
-                    <button type="button" class="btn-action btn-pay" data-action="pagar" data-id="${itemId}" 
-                        title="✅ Executar agendamento - Cria lançamento">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    ${editBtn}
-                    <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
-                        title="❌ Cancelar agendamento">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-            }
-
-            // Executados também podem ser editados e cancelados
             return `
                 ${viewBtn}
+                <button type="button" class="btn-action btn-pay" data-action="pagar" data-id="${itemId}" 
+                    title="✅ Executar agendamento - Cria lançamento">
+                    <i class="fas fa-check"></i>
+                </button>
                 ${editBtn}
                 <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
                     title="❌ Cancelar agendamento">
@@ -2464,7 +2442,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (DOM.filtroStatus?.value) {
-                filtered = filtered.filter(item => item.status === DOM.filtroStatus.value);
+                const statusFiltro = DOM.filtroStatus.value;
+                filtered = filtered.filter(item => {
+                    const isRecorrente = item.recorrente === 1 || item.recorrente === true;
+                    const sd = item.status_dinamico ||
+                        Format.calcularStatusDinamico(item.data_pagamento || item.data_agendada, isRecorrente, item.status);
+                    return sd === statusFiltro;
+                });
             }
 
             if (isDesktop) {

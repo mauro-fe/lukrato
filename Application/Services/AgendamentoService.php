@@ -166,10 +166,9 @@ class AgendamentoService
 
             // Verificar se é a última parcela
             if ($proximaParcela > $agendamento->numero_parcelas) {
-                // Última parcela - finalizar
+                // Última parcela - finalizar (mantém pendente, concluido_em marca execução)
                 $agendamento->update([
                     'parcela_atual' => $parcelaAtual,
-                    'status' => 'concluido',
                     'concluido_em' => date('Y-m-d H:i:s'),
                 ]);
 
@@ -268,9 +267,8 @@ class AgendamentoService
             ];
         }
 
-        // 4. CASO A: NÃO RECORRENTE E NÃO PARCELADO - Finalizar
+        // 4. CASO A: NÃO RECORRENTE E NÃO PARCELADO - Finalizar (mantém pendente, concluido_em marca execução)
         $agendamento->update([
-            'status' => 'concluido',
             'concluido_em' => date('Y-m-d H:i:s'),
         ]);
 
@@ -292,18 +290,13 @@ class AgendamentoService
      * NÃO SALVA NO BANCO - apenas retorna o status calculado
      * 
      * @param Agendamento $agendamento
-     * @return string 'hoje', 'agendado', 'vencido', 'executado'
+     * @return string 'hoje', 'agendado', 'vencido', 'cancelado'
      */
     public function calcularStatusDinamico(Agendamento $agendamento): string
     {
         // Se foi cancelado, retorna cancelado
         if ($agendamento->status === 'cancelado') {
             return 'cancelado';
-        }
-
-        // Se foi executado E não é recorrente, está finalizado
-        if ($agendamento->concluido_em && !$agendamento->recorrente) {
-            return 'executado';
         }
 
         // Para recorrentes, calcular baseado na próxima data

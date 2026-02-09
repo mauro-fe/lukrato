@@ -178,7 +178,7 @@ class AgendamentoController extends BaseController
                 ->whereIn('status', [
                     AgendamentoStatus::PENDENTE->value,
                     AgendamentoStatus::NOTIFICADO->value,
-                    AgendamentoStatus::CANCELADO->value
+                    AgendamentoStatus::CANCELADO->value,
                 ]);
 
             // Filtrar por mês se fornecido (formato: YYYY-MM)
@@ -376,13 +376,12 @@ class AgendamentoController extends BaseController
     private function processarConclusao(Agendamento $agendamento, string $statusAnterior): array
     {
         $payload = [
-            'status' => AgendamentoStatus::CONCLUIDO->value,
             'concluido_em' => date('Y-m-d H:i:s'),
         ];
 
         $lancamento = null;
 
-        if ($statusAnterior !== AgendamentoStatus::CONCLUIDO->value) {
+        if (!$agendamento->concluido_em) {
             try {
                 $lancamento = $this->service->createLancamentoFromAgendamento($agendamento);
             } catch (Throwable $e) {
@@ -422,15 +421,12 @@ class AgendamentoController extends BaseController
             $statusAnterior = $agendamento->status;
             $lancamento = null;
 
-            if ($novoStatus === AgendamentoStatus::CONCLUIDO) {
-                $resultado = $this->processarConclusao($agendamento, $statusAnterior);
-                $payload = $resultado['payload'];
-                $lancamento = $resultado['lancamento'];
-            } else {
-                $payload = [
-                    'status' => $novoStatus->value,
-                    'concluido_em' => null,
-                ];
+            $payload = [
+                'status' => $novoStatus->value,
+            ];
+
+            if ($novoStatus === AgendamentoStatus::CANCELADO) {
+                $payload['concluido_em'] = null;
             }
 
             $agendamento->update($payload);

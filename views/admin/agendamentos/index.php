@@ -51,8 +51,9 @@
                         </label>
                         <select id="filtroStatus" class="modern-select" aria-label="Filtrar por status">
                             <option value="">Todos</option>
-                            <option value="pendente">⏱️ Pendente</option>
-                            <option value="concluido">✅ Concluído</option>
+                            <option value="hoje">📅 Hoje</option>
+                            <option value="agendado">⏰ Agendado</option>
+                            <option value="vencido">⚠️ Vencido</option>
                             <option value="cancelado">❌ Cancelado</option>
                         </select>
                     </div>

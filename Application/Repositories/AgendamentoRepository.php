@@ -57,12 +57,12 @@ class AgendamentoRepository extends BaseRepository
     }
 
     /**
-     * Busca agendamentos concluídos
+     * Busca agendamentos executados (com concluido_em preenchido)
      */
-    public function findConcluidos(int $userId): Collection
+    public function findExecutados(int $userId): Collection
     {
         return Agendamento::where('user_id', $userId)
-            ->where('status', 'concluido')
+            ->whereNotNull('concluido_em')
             ->orderBy('data_pagamento', 'desc')
             ->get();
     }
@@ -141,13 +141,13 @@ class AgendamentoRepository extends BaseRepository
     }
 
     /**
-     * Marca agendamento como concluído
+     * Marca agendamento como executado (preenche concluido_em)
      */
-    public function marcarConcluido(int $id, string $dataPagamento): bool
+    public function marcarExecutado(int $id, string $dataPagamento): bool
     {
         return Agendamento::where('id', $id)
             ->update([
-                'status' => 'concluido',
+                'concluido_em' => date('Y-m-d H:i:s'),
                 'data_pagamento' => $dataPagamento,
             ]);
     }

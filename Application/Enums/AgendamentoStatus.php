@@ -6,7 +6,6 @@ enum AgendamentoStatus: string
 {
     case PENDENTE = 'pendente';
     case NOTIFICADO = 'notificado';
-    case CONCLUIDO = 'concluido';
     case CANCELADO = 'cancelado';
 
     public static function listValues(): array
