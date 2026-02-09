@@ -263,7 +263,8 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            $data = $this->validator->sanitize($_POST);
+            // Usar getRequestData() para suportar tanto JSON quanto FormData
+            $data = $this->validator->sanitize($this->getRequestData());
             $data = $this->normalizeDataPagamento($data);
 
             // Validar com AgendamentoValidator
@@ -290,15 +291,20 @@ class AgendamentoController extends BaseController
                 $dto = $dto->withProximaExecucao($dataPagamento, $lembrarSegundos);
             }
 
-            // Se a data de pagamento mudou, resetar flags de notificação
-            // para que o lembrete seja reenviado na nova data
+            // Se a data de pagamento ou tempo de antecedência mudou, resetar flags de notificação
+            // para que o lembrete seja reenviado na nova data/configuração
             $updateData = $dto->toArray();
+            
+            $dataAlterada = false;
+            $antecedenciaAlterada = false;
+
             if ($dto->data_pagamento !== null) {
                 $dataAnterior = $agendamento->data_pagamento instanceof \DateTimeInterface
                     ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
                     : (string) $agendamento->data_pagamento;
 
                 if ($dto->data_pagamento !== $dataAnterior) {
+                    $dataAlterada = true;
                     $updateData['notificado_em'] = null;
                     $updateData['lembrete_antecedencia_em'] = null;
 
@@ -311,6 +317,25 @@ class AgendamentoController extends BaseController
                         'agendamento_id' => $id,
                         'data_anterior' => $dataAnterior,
                         'data_nova' => $dto->data_pagamento,
+                        'user_id' => $this->getUserId(),
+                    ]);
+                }
+            }
+
+            // Se o tempo de antecedência do lembrete mudou, resetar apenas o lembrete de antecedência
+            // para que o novo lembrete seja enviado no novo horário configurado
+            if (!$dataAlterada && $dto->lembrar_antes_segundos !== null) {
+                $antecedenciaAnterior = (int) ($agendamento->lembrar_antes_segundos ?? 0);
+                $antecedenciaNova = (int) $dto->lembrar_antes_segundos;
+
+                if ($antecedenciaNova !== $antecedenciaAnterior) {
+                    $antecedenciaAlterada = true;
+                    $updateData['lembrete_antecedencia_em'] = null;
+
+                    LogService::info('Tempo de antecedência alterado, resetando lembrete de antecedência.', [
+                        'agendamento_id' => $id,
+                        'antecedencia_anterior_segundos' => $antecedenciaAnterior,
+                        'antecedencia_nova_segundos' => $antecedenciaNova,
                         'user_id' => $this->getUserId(),
                     ]);
                 }
@@ -413,7 +438,8 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            $novoStatus = $this->validarStatus($_POST['status'] ?? '', $id);
+            $requestData = $this->getRequestData();
+            $novoStatus = $this->validarStatus($requestData['status'] ?? '', $id);
             if (!$novoStatus) {
                 return;
             }
