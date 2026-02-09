@@ -312,14 +312,23 @@ class AgendamentoService
             return 'agendado';
         }
 
-        $hoje = date('Y-m-d');
-        $dataComparacao = $dataAgendada instanceof \DateTimeInterface
-            ? $dataAgendada->format('Y-m-d')
-            : date('Y-m-d', strtotime($dataAgendada));
+        $agendadaDT = $dataAgendada instanceof \DateTimeInterface
+            ? $dataAgendada
+            : new \DateTime($dataAgendada);
 
-        if ($dataComparacao === $hoje) {
-            return 'hoje';
-        } elseif ($dataComparacao < $hoje) {
+        $agendadaFull = $agendadaDT->format('Y-m-d H:i:s');
+        $nowFull = date('Y-m-d H:i:s');
+        $agendadaDate = $agendadaDT->format('Y-m-d');
+        $nowDate = date('Y-m-d');
+
+        if ($agendadaDate === $nowDate) {
+            // Se o horário já passou, marca como vencido
+            if ($agendadaFull < $nowFull) {
+                return 'vencido';
+            } else {
+                return 'hoje';
+            }
+        } elseif ($agendadaDate < $nowDate) {
             return 'vencido';
         } else {
             return 'agendado';
