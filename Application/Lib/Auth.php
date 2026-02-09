@@ -6,7 +6,16 @@ use Application\Models\Usuario;
 
 class Auth
 {
-    public const SESSION_TIMEOUT = 3600;
+    public const SESSION_TIMEOUT = 3600; // 1 hora padrão
+    public const REMEMBER_TIMEOUT = 2592000; // 30 dias se marcou 'lembrar de mim'
+
+    /**
+     * Retorna o timeout apropriado baseado no remember_me
+     */
+    public static function getSessionTimeout(): int
+    {
+        return !empty($_SESSION['remember_me']) ? self::REMEMBER_TIMEOUT : self::SESSION_TIMEOUT;
+    }
 
     public static function checkAdmin($expectedUsername = null)
     {
@@ -120,14 +129,17 @@ class Auth
         }
     }
 
-    public static function checkActivity(int $timeout = self::SESSION_TIMEOUT): bool
+    public static function checkActivity(?int $timeout = null): bool
     {
         if (!self::isLoggedIn()) {
             return false;
         }
 
+        // Usa o timeout dinâmico se não foi especificado
+        $effectiveTimeout = $timeout ?? self::getSessionTimeout();
+
         $lastActivity = $_SESSION['last_activity'] ?? 0;
-        if ((time() - $lastActivity) > $timeout) {
+        if ((time() - $lastActivity) > $effectiveTimeout) {
             self::logout();
             return false;
         }

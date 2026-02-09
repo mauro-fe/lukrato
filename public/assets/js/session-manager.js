@@ -26,12 +26,22 @@
         warningThreshold: 300, // 5 minutos
 
         // Tempo de sessão total (em segundos) - fallback (1 hora como no Auth)
-        sessionLifetime: 3600, // 1 hora
+        sessionLifetime: 3600, // 1 hora (será atualizado pela API)
+
+        // Intervalo mínimo entre heartbeats (em ms) - para não sobrecarregar
+        heartbeatInterval: 120000, // 2 minutos
+
+        // Tempo de inatividade antes de considerar usuário "inativo" (em ms)
+        inactivityThreshold: 300000, // 5 minutos
+
+        // Tempo antes de logout automático após mostrar modal (em segundos)
+        autoLogoutDelay: 60, // 1 minuto
 
         // Endpoints da API
         endpoints: {
             status: 'api/session/status',
-            renew: 'api/session/renew'
+            renew: 'api/session/renew',
+            heartbeat: 'api/session/heartbeat'
         }
     };
 
@@ -44,7 +54,12 @@
         isLoggedOutShown: false,
         checkIntervalId: null,
         countdownIntervalId: null,
-        lastCheck: Date.now()
+        heartbeatIntervalId: null,
+        autoLogoutTimeoutId: null,
+        lastCheck: Date.now(),
+        lastActivity: Date.now(),
+        isUserActive: true,
+        isRemembered: false
     };
 
     // ========================================================================
@@ -230,6 +245,10 @@
                             Deseja continuar sua sessão ou prefere sair?
                         </p>
                         
+                        <p id="lk-session-auto-logout-countdown" class="lk-session-auto-logout-text">
+                            Logout automático em ${CONFIG.autoLogoutDelay}s
+                        </p>
+                        
                         <div class="lk-session-actions">
                             <button type="button" class="lk-session-btn lk-session-btn-secondary" id="lk-session-expired-logout-btn">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -357,6 +376,7 @@
             const expiredModal = document.getElementById('lk-session-expired-warning-modal');
             if (expiredModal) {
                 expiredModal.classList.remove('active');
+                this.stopAutoLogoutTimer();
             }
         },
 
@@ -388,12 +408,48 @@
             requestAnimationFrame(() => {
                 modal.classList.add('active');
                 state.isWarningShown = true;
+
+                // Inicia auto-logout timer
+                this.startAutoLogoutTimer();
             });
 
             // Foca no botão de renovar para acessibilidade
             setTimeout(() => {
                 document.getElementById('lk-session-expired-renew-btn')?.focus();
             }, CONFIG.animationDuration);
+        },
+
+        // Inicia timer de auto-logout após exibir modal
+        startAutoLogoutTimer() {
+            this.stopAutoLogoutTimer();
+            
+            let secondsLeft = CONFIG.autoLogoutDelay;
+            const countdownEl = document.getElementById('lk-session-auto-logout-countdown');
+            
+            const tick = () => {
+                if (countdownEl) {
+                    countdownEl.textContent = `Logout automático em ${secondsLeft}s`;
+                }
+                
+                secondsLeft--;
+                
+                if (secondsLeft < 0) {
+                    console.log('[SessionManager] Auto-logout após timeout');
+                    this.stopAutoLogoutTimer();
+                    SessionManager.logout();
+                }
+            };
+            
+            tick(); // Primeira execução imediata
+            state.autoLogoutTimeoutId = setInterval(tick, 1000);
+        },
+
+        // Para timer de auto-logout
+        stopAutoLogoutTimer() {
+            if (state.autoLogoutTimeoutId) {
+                clearInterval(state.autoLogoutTimeoutId);
+                state.autoLogoutTimeoutId = null;
+            }
         },
 
         // Mostra o modal de desconectado
@@ -586,22 +642,72 @@
 
         // Configura listeners de atividade
         setupActivityListeners() {
-            const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
-            let lastActivityUpdate = 0;
+            const events = ['mousedown', 'keydown', 'touchstart', 'scroll', 'click', 'mousemove'];
+            let lastHeartbeat = 0;
 
             const handleActivity = () => {
                 const now = Date.now();
-                // Atualiza no máximo a cada 60 segundos
-                if (now - lastActivityUpdate > 60000) {
-                    lastActivityUpdate = now;
-                    // Não faz heartbeat aqui para não sobrecarregar
-                    // O check periódico já cuida disso
+                state.lastActivity = now;
+                state.isUserActive = true;
+
+                // Envia heartbeat no máximo a cada CONFIG.heartbeatInterval (2 minutos)
+                if (now - lastHeartbeat > CONFIG.heartbeatInterval) {
+                    lastHeartbeat = now;
+                    this.sendHeartbeat();
+                }
+            };
+
+            // Throttle mousemove para não disparar muito
+            let mouseMoveThrottle = 0;
+            const handleMouseMove = () => {
+                const now = Date.now();
+                if (now - mouseMoveThrottle > 5000) { // Máximo a cada 5s para mousemove
+                    mouseMoveThrottle = now;
+                    handleActivity();
                 }
             };
 
             events.forEach(event => {
-                document.addEventListener(event, handleActivity, { passive: true });
+                if (event === 'mousemove') {
+                    document.addEventListener(event, handleMouseMove, { passive: true });
+                } else {
+                    document.addEventListener(event, handleActivity, { passive: true });
+                }
             });
+
+            // Verifica inatividade periodicamente
+            this.startInactivityCheck();
+        },
+
+        // Verifica se usuário está inativo
+        startInactivityCheck() {
+            setInterval(() => {
+                const now = Date.now();
+                if (now - state.lastActivity > CONFIG.inactivityThreshold) {
+                    state.isUserActive = false;
+                }
+            }, 60000); // Verifica a cada minuto
+        },
+
+        // Envia heartbeat silencioso para manter sessão ativa
+        async sendHeartbeat() {
+            // Não envia heartbeat se já está mostrando warning ou logout
+            if (state.isWarningShown || state.isLoggedOutShown) {
+                return;
+            }
+
+            const result = await utils.apiRequest(CONFIG.endpoints.heartbeat, 'POST');
+            
+            if (result.ok && result.data) {
+                // Atualiza o tempo restante com o valor retornado
+                if (result.data.remainingTime) {
+                    state.remainingTime = result.data.remainingTime;
+                }
+                if (result.data.isRemembered !== undefined) {
+                    state.isRemembered = result.data.isRemembered;
+                }
+                console.log('[SessionManager] Heartbeat OK - Sessão renovada silenciosamente');
+            }
         },
 
         // Inicia verificação periódica
@@ -640,6 +746,9 @@
             if (data.sessionLifetime) {
                 CONFIG.sessionLifetime = data.sessionLifetime;
             }
+            if (data.isRemembered !== undefined) {
+                state.isRemembered = data.isRemembered;
+            }
 
             // Verifica o status da sessão
             // Caso 1: Usuário não tem sessão alguma (nunca logou ou sessão completamente inválida)
@@ -651,6 +760,12 @@
 
             // Caso 2: Sessão expirada mas ainda pode renovar (grace period)
             if (data.expired && data.canRenew) {
+                // Se usuário está ativo, renova automaticamente
+                if (state.isUserActive) {
+                    console.log('[SessionManager] Sessão expirou mas usuário ativo - renovando automaticamente');
+                    this.renewSession();
+                    return;
+                }
                 // Mostra o modal de aviso para dar chance de renovar
                 if (!state.isWarningShown && !state.isLoggedOutShown) {
                     state.remainingTime = 0; // Já expirou
@@ -661,6 +776,12 @@
 
             // Caso 3: Sessão ativa, verifica se deve mostrar aviso
             if (data.showWarning && !state.isWarningShown && !state.isLoggedOutShown) {
+                // Se usuário está ativo, renova silenciosamente ao invés de mostrar aviso
+                if (state.isUserActive) {
+                    console.log('[SessionManager] Sessão próxima de expirar mas usuário ativo - renovando silenciosamente');
+                    this.sendHeartbeat();
+                    return;
+                }
                 UI.showWarningModal();
             } else if (!data.showWarning && state.isWarningShown) {
                 // Sessão foi renovada por outra aba/ação

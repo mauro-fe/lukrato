@@ -26,7 +26,8 @@ class AuthMiddleware
         }
 
         // Se o admin está logado, também verifica a inatividade da sessão
-        if (!Auth::checkActivity(Auth::SESSION_TIMEOUT)) {
+        // Usa timeout dinâmico: 30 dias se marcou "lembrar-me", 1 hora padrão
+        if (!Auth::checkActivity()) {
             Auth::logout();
             if ($expectsJson) {
                 throw new AuthException('Sessão expirada por inatividade. Faça login novamente.', 419);

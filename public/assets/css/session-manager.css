@@ -514,3 +514,24 @@
     border: 2px solid currentColor;
   }
 }
+
+/* ============================================================================
+   AUTO-LOGOUT COUNTDOWN TEXT
+   ============================================================================ */
+.lk-session-auto-logout-text {
+  font-size: 0.8rem;
+  color: var(--lk-session-danger, #ef4444);
+  text-align: center;
+  margin: 0.5rem 0;
+  font-weight: 500;
+  animation: blink-warning 1s ease-in-out infinite;
+}
+
+@keyframes blink-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

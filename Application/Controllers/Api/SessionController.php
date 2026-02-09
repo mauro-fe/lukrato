@@ -17,9 +17,12 @@ use Application\Middlewares\CsrfMiddleware;
 class SessionController
 {
     /**
-     * Tempo máximo de sessão em segundos (usa o mesmo do Auth)
+     * Retorna o tempo de sessão apropriado (considera remember_me)
      */
-    private const SESSION_LIFETIME = Auth::SESSION_TIMEOUT;
+    private function getSessionLifetime(): int
+    {
+        return Auth::getSessionTimeout();
+    }
 
     /**
      * Tempo para exibir aviso de expiração (5 minutos antes)
@@ -59,17 +62,20 @@ class SessionController
             return;
         }
 
+        // Obtém tempo de sessão apropriado (considera remember_me)
+        $sessionLifetime = $this->getSessionLifetime();
+
         // Calcula tempo restante da sessão (usa last_activity como no Auth)
         $lastActivity = $_SESSION['last_activity'] ?? time();
         $sessionAge = time() - $lastActivity;
-        $remainingTime = max(0, self::SESSION_LIFETIME - $sessionAge);
+        $remainingTime = max(0, $sessionLifetime - $sessionAge);
 
         // Verifica se a sessão está expirada
         $isExpired = $remainingTime <= 0;
 
         // Permite renovação se expirou há menos de 30 minutos (grace period)
         $gracePeriod = 1800; // 30 minutos
-        $canRenew = !$isExpired || ($sessionAge <= self::SESSION_LIFETIME + $gracePeriod);
+        $canRenew = !$isExpired || ($sessionAge <= $sessionLifetime + $gracePeriod);
 
         // Mostra aviso se está nos últimos 5 minutos OU se acabou de expirar mas pode renovar
         $showWarning = ($remainingTime > 0 && $remainingTime <= self::WARNING_THRESHOLD)
@@ -77,6 +83,7 @@ class SessionController
 
         // Busca dados do usuário apenas se a sessão ainda é válida ou pode renovar
         $userName = 'Usuário';
+        $isRemembered = !empty($_SESSION['remember_me']);
         if ($canRenew) {
             $user = Auth::user();
             if ($user) {
@@ -91,8 +98,9 @@ class SessionController
             'showWarning' => $showWarning,
             'canRenew' => $canRenew,
             'warningThreshold' => self::WARNING_THRESHOLD,
-            'sessionLifetime' => self::SESSION_LIFETIME,
+            'sessionLifetime' => $sessionLifetime,
             'userName' => $userName,
+            'isRemembered' => $isRemembered,
         ]);
     }
 
@@ -123,12 +131,15 @@ class SessionController
             return;
         }
 
+        // Obtém tempo de sessão apropriado (considera remember_me)
+        $sessionLifetime = $this->getSessionLifetime();
+
         // Verifica se ainda está dentro do grace period
         $lastActivity = $_SESSION['last_activity'] ?? 0;
         $sessionAge = time() - $lastActivity;
         $gracePeriod = 1800; // 30 minutos após expirar
 
-        if ($sessionAge > self::SESSION_LIFETIME + $gracePeriod) {
+        if ($sessionAge > $sessionLifetime + $gracePeriod) {
             // Passou do grace period, não pode mais renovar
             Response::json([
                 'success' => false,
@@ -153,8 +164,8 @@ class SessionController
             'success' => true,
             'message' => 'Sessão renovada com sucesso',
             'newToken' => $newToken,
-            'remainingTime' => self::SESSION_LIFETIME,
-            'expiresAt' => date('Y-m-d H:i:s', time() + self::SESSION_LIFETIME),
+            'remainingTime' => $sessionLifetime,
+            'expiresAt' => date('Y-m-d H:i:s', time() + $sessionLifetime),
         ]);
     }
 
@@ -162,7 +173,7 @@ class SessionController
      * Realiza heartbeat para manter sessão ativa
      * 
      * Endpoint leve para verificar se sessão ainda é válida
-     * sem renovar completamente.
+     * e renovar automaticamente se o usuário estiver ativo.
      */
     public function heartbeat(): void
     {
@@ -177,14 +188,20 @@ class SessionController
             return;
         }
 
-        // Atualiza timestamp apenas se estiver dentro do período válido
+        // Obtém tempo de sessão apropriado (considera remember_me)
+        $sessionLifetime = $this->getSessionLifetime();
+
+        // Atualiza timestamp - isso mantém a sessão viva enquanto usuário está ativo
         $lastActivity = $_SESSION['last_activity'] ?? time();
         $sessionAge = time() - $lastActivity;
 
-        if ($sessionAge < self::SESSION_LIFETIME) {
+        if ($sessionAge < $sessionLifetime) {
             $_SESSION['last_activity'] = time();
         }
 
-        Response::json(['alive' => true]);
+        Response::json([
+            'alive' => true,
+            'remainingTime' => max(0, $sessionLifetime - $sessionAge),
+        ]);
     }
 }

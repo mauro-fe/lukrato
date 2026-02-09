@@ -168,6 +168,10 @@ class DashboardController
 
     private function calcularSaldoConta(int $userId, int $contaId, string $ate): float
     {
+        // Buscar saldo inicial da conta
+        $conta = Conta::find($contaId);
+        $saldoInicial = (float) ($conta->saldo_inicial ?? 0);
+
         $movBaseAcumulado = Lancamento::where('user_id', $userId)
             ->where('data', '<=', $ate)
             ->where('conta_id', $contaId);
@@ -194,11 +198,16 @@ class DashboardController
             ->where('conta_id', $contaId)
             ->sum('valor');
 
-        return $movReceitas - $movDespesas + $transfIn - $transfOut;
+        return $saldoInicial + $movReceitas - $movDespesas + $transfIn - $transfOut;
     }
 
     private function calcularSaldoGlobal(int $userId, string $ate): float
     {
+        // Soma dos saldos iniciais de todas as contas ativas
+        $saldosIniciais = (float) Conta::where('user_id', $userId)
+            ->where('ativo', true)
+            ->sum('saldo_inicial');
+
         $movGlobal = Lancamento::where('user_id', $userId)
             ->where('data', '<=', $ate)
             ->where('eh_transferencia', 0);
@@ -211,7 +220,7 @@ class DashboardController
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->sum('valor');
 
-        return $r - $d;
+        return $saldosIniciais + $r - $d;
     }
 
     public function transactions(): void
