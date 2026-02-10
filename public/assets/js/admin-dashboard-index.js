@@ -988,22 +988,65 @@
                 projetado.textContent = money(p.saldo_projetado || 0);
                 projetado.style.color = (p.saldo_projetado || 0) >= 0 ? '' : 'var(--color-danger)';
             }
-            if (pagarCount) pagarCount.textContent = `${p.count_pagar || 0} agendamento${(p.count_pagar || 0) !== 1 ? 's' : ''}`;
+            
+            // Contador de A Pagar com faturas de cartão
+            if (pagarCount) {
+                const countAgend = p.count_pagar || 0;
+                const countFat = p.count_faturas || 0;
+                let pagarText = `${countAgend} agendamento${countAgend !== 1 ? 's' : ''}`;
+                if (countFat > 0) {
+                    pagarText += ` • ${countFat} fatura${countFat !== 1 ? 's' : ''}`;
+                }
+                pagarCount.textContent = pagarText;
+            }
             if (receberCount) receberCount.textContent = `${p.count_receber || 0} agendamento${(p.count_receber || 0) !== 1 ? 's' : ''}`;
             if (projetadoLabel) projetadoLabel.textContent = `saldo atual: ${money(p.saldo_atual || 0)}`;
 
-            // Alerta de vencidos
-            const alertEl = document.getElementById('provisaoAlertVencidos');
+            // Alertas de vencidos (separados por tipo)
             const vencidos = data.vencidos || {};
-            if (alertEl) {
-                if ((vencidos.count || 0) > 0) {
-                    alertEl.style.display = 'flex';
-                    const countEl = document.getElementById('provisaoAlertCount');
-                    const totalEl = document.getElementById('provisaoAlertTotal');
-                    if (countEl) countEl.textContent = vencidos.count;
-                    if (totalEl) totalEl.textContent = money(vencidos.total || 0);
+            
+            // Alerta de despesas vencidas
+            const alertDespesas = document.getElementById('provisaoAlertDespesas');
+            if (alertDespesas) {
+                const despesas = vencidos.despesas || {};
+                if ((despesas.count || 0) > 0) {
+                    alertDespesas.style.display = 'flex';
+                    const countEl = document.getElementById('provisaoAlertDespesasCount');
+                    const totalEl = document.getElementById('provisaoAlertDespesasTotal');
+                    if (countEl) countEl.textContent = despesas.count;
+                    if (totalEl) totalEl.textContent = money(despesas.total || 0);
                 } else {
-                    alertEl.style.display = 'none';
+                    alertDespesas.style.display = 'none';
+                }
+            }
+
+            // Alerta de receitas vencidas (não recebidas)
+            const alertReceitas = document.getElementById('provisaoAlertReceitas');
+            if (alertReceitas) {
+                const receitas = vencidos.receitas || {};
+                if ((receitas.count || 0) > 0) {
+                    alertReceitas.style.display = 'flex';
+                    const countEl = document.getElementById('provisaoAlertReceitasCount');
+                    const totalEl = document.getElementById('provisaoAlertReceitasTotal');
+                    if (countEl) countEl.textContent = receitas.count;
+                    if (totalEl) totalEl.textContent = money(receitas.total || 0);
+                } else {
+                    alertReceitas.style.display = 'none';
+                }
+            }
+
+            // Alerta de faturas vencidas
+            const alertFaturas = document.getElementById('provisaoAlertFaturas');
+            if (alertFaturas) {
+                const countFat = vencidos.count_faturas || 0;
+                if (countFat > 0) {
+                    alertFaturas.style.display = 'flex';
+                    const countEl = document.getElementById('provisaoAlertFaturasCount');
+                    const totalEl = document.getElementById('provisaoAlertFaturasTotal');
+                    if (countEl) countEl.textContent = countFat;
+                    if (totalEl) totalEl.textContent = money(vencidos.total_faturas || 0);
+                } else {
+                    alertFaturas.style.display = 'none';
                 }
             }
 
@@ -1025,33 +1068,54 @@
 
                     proximos.forEach(item => {
                         const tipo = (item.tipo || '').toLowerCase();
+                        const isFatura = item.is_fatura === true;
                         const dataParts = (item.data_pagamento || '').split(/[T\s]/)[0];
                         const isHoje = dataParts === today;
                         const dateDisplay = Provisao.formatDateShort(dataParts);
 
                         let badges = '';
                         if (isHoje) badges += '<span class="provisao-item-badge vence-hoje">Hoje</span>';
-                        if (item.eh_parcelado && item.numero_parcelas > 1) {
-                            badges += `<span class="provisao-item-badge parcela">${item.parcela_atual}/${item.numero_parcelas}</span>`;
-                        }
-                        if (item.recorrente) {
-                            badges += '<span class="provisao-item-badge recorrente">Recorrente</span>';
-                        }
-                        if (item.categoria) {
-                            badges += `<span>${item.categoria}</span>`;
+                        
+                        if (isFatura) {
+                            // Badge especial para fatura de cartão
+                            badges += '<span class="provisao-item-badge fatura"><i class="fas fa-credit-card"></i> Fatura</span>';
+                            if (item.cartao_ultimos_digitos) {
+                                badges += `<span>****${item.cartao_ultimos_digitos}</span>`;
+                            }
+                        } else {
+                            if (item.eh_parcelado && item.numero_parcelas > 1) {
+                                badges += `<span class="provisao-item-badge parcela">${item.parcela_atual}/${item.numero_parcelas}</span>`;
+                            }
+                            if (item.recorrente) {
+                                badges += '<span class="provisao-item-badge recorrente">Recorrente</span>';
+                            }
+                            if (item.categoria) {
+                                badges += `<span>${item.categoria}</span>`;
+                            }
                         }
 
+                        const tipoClass = isFatura ? 'fatura' : tipo;
                         const el = document.createElement('div');
-                        el.className = 'provisao-item';
+                        el.className = 'provisao-item' + (isFatura ? ' is-fatura' : '');
                         el.innerHTML = `
-                            <div class="provisao-item-dot ${tipo}"></div>
+                            <div class="provisao-item-dot ${tipoClass}"></div>
                             <div class="provisao-item-info">
                                 <div class="provisao-item-titulo">${item.titulo || 'Sem título'}</div>
                                 <div class="provisao-item-meta">${badges}</div>
                             </div>
-                            <span class="provisao-item-valor ${tipo}">${money(item.valor || 0)}</span>
+                            <span class="provisao-item-valor ${tipoClass}">${money(item.valor || 0)}</span>
                             <span class="provisao-item-data">${dateDisplay}</span>
                         `;
+                        
+                        // Adicionar link para faturas
+                        if (isFatura && item.cartao_id) {
+                            el.style.cursor = 'pointer';
+                            el.addEventListener('click', () => {
+                                const dataVenc = (item.data_pagamento || '').split(/[T\s]/)[0];
+                                const [ano, mes] = dataVenc.split('-');
+                                window.location.href = `${window.BASE_URL || '/'}faturas?cartao_id=${item.cartao_id}&mes=${parseInt(mes)}&ano=${ano}`;
+                            });
+                        }
 
                         list.appendChild(el);
                     });

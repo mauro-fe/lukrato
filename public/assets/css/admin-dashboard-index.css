@@ -1787,6 +1787,14 @@
   font-size: 16px;
 }
 
+/* Container de alertas */
+.provisao-alerts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
 /* Alerta de vencidos */
 .provisao-alert {
   display: flex;
@@ -1796,8 +1804,57 @@
   background: rgba(231, 76, 60, 0.08);
   border: 1px solid rgba(231, 76, 60, 0.2);
   border-radius: var(--radius-md);
-  margin-bottom: 20px;
   animation: fadeIn 0.3s ease;
+}
+
+/* Alerta de despesas vencidas (vermelho) */
+.provisao-alert.despesas {
+  background: rgba(231, 76, 60, 0.08);
+  border-color: rgba(231, 76, 60, 0.2);
+}
+
+.provisao-alert.despesas .provisao-alert-icon {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.provisao-alert.despesas .provisao-alert-link {
+  color: var(--color-danger);
+}
+
+/* Alerta de receitas vencidas/atrasadas (azul/info) */
+.provisao-alert.receitas {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.provisao-alert.receitas .provisao-alert-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.provisao-alert.receitas .provisao-alert-link {
+  color: #3b82f6;
+}
+
+.provisao-alert.receitas .provisao-alert-link:hover {
+  color: #2563eb;
+}
+
+/* Alerta de faturas vencidas (roxo) */
+.provisao-alert.faturas {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.provisao-alert.faturas .provisao-alert-icon {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.provisao-alert.faturas .provisao-alert-link {
+  color: #6366f1;
+}
+
+.provisao-alert.faturas .provisao-alert-link:hover {
+  color: #4f46e5;
 }
 
 .provisao-alert-icon {
@@ -2083,6 +2140,38 @@
 
 .provisao-item-valor.receita {
   color: var(--color-success);
+}
+
+/* Fatura de cartão de crédito */
+.provisao-item-badge.fatura {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.provisao-item-badge.fatura i {
+  font-size: 9px;
+}
+
+.provisao-item-dot.fatura {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+.provisao-item-valor.fatura {
+  color: #6366f1;
+}
+
+.provisao-item.is-fatura {
+  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.provisao-item.is-fatura:hover {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.08);
 }
 
 .provisao-item-data {

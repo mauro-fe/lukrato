@@ -158,14 +158,35 @@
             Previsão Financeira
         </h2>
 
-        <!-- Alerta de vencidos -->
-        <div class="provisao-alert" id="provisaoAlertVencidos" style="display:none;">
-            <div class="provisao-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="provisao-alert-text">
-                <strong id="provisaoAlertCount">0</strong> pagamento(s) vencido(s) totalizando
-                <strong id="provisaoAlertTotal">R$ 0,00</strong>
+        <!-- Alertas de vencidos -->
+        <div class="provisao-alerts-container" id="provisaoAlertsContainer">
+            <!-- Alerta de despesas vencidas -->
+            <div class="provisao-alert despesas" id="provisaoAlertDespesas" style="display:none;">
+                <div class="provisao-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="provisao-alert-text">
+                    <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
+                    <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
+                </div>
+                <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i class="fas fa-arrow-right"></i></a>
             </div>
-            <a href="<?= BASE_URL ?>agendamentos" class="provisao-alert-link">Ver todos <i class="fas fa-arrow-right"></i></a>
+            <!-- Alerta de receitas vencidas (não recebidas) -->
+            <div class="provisao-alert receitas" id="provisaoAlertReceitas" style="display:none;">
+                <div class="provisao-alert-icon"><i class="fas fa-info-circle"></i></div>
+                <div class="provisao-alert-text">
+                    <strong id="provisaoAlertReceitasCount">0</strong> recebimento(s) atrasado(s) totalizando
+                    <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
+                </div>
+                <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <!-- Alerta de faturas vencidas -->
+            <div class="provisao-alert faturas" id="provisaoAlertFaturas" style="display:none;">
+                <div class="provisao-alert-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="provisao-alert-text">
+                    <strong id="provisaoAlertFaturasCount">0</strong> fatura(s) vencida(s) totalizando
+                    <strong id="provisaoAlertFaturasTotal">R$ 0,00</strong>
+                </div>
+                <a href="<?= BASE_URL ?>faturas" class="provisao-alert-link">Ver <i class="fas fa-arrow-right"></i></a>
+            </div>
         </div>
 
         <!-- Cards de Provisão -->

@@ -7,6 +7,8 @@ use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Application\Models\Agendamento;
+use Application\Models\FaturaCartaoItem;
+use Application\Models\CartaoCredito;
 use Application\Enums\LancamentoTipo;
 use Application\Repositories\LancamentoRepository;
 use Illuminate\Database\Eloquent\Builder;
@@ -296,9 +298,10 @@ class DashboardController
         $end = date('Y-m-t', strtotime($start));
         $now = date('Y-m-d H:i:s');
 
-        // Agendamentos pendentes/notificados do mês
+        // Agendamentos pendentes/notificados do mês (não concluídos)
         $agendamentosMes = Agendamento::where('user_id', $userId)
             ->whereIn('status', ['pendente', 'notificado'])
+            ->whereNull('concluido_em')
             ->whereBetween('data_pagamento', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->get();
 
@@ -330,10 +333,11 @@ class DashboardController
 
         $saldoProjetado = $saldoAtual + $totalReceber - $totalPagar;
 
-        // Próximos 5 vencimentos (a partir de agora, qualquer mês)
+        // Próximos 5 vencimentos (a partir de agora, qualquer mês, não concluídos)
         $proximos = Agendamento::with(['categoria:id,nome'])
             ->where('user_id', $userId)
             ->whereIn('status', ['pendente', 'notificado'])
+            ->whereNull('concluido_em')
             ->where('data_pagamento', '>=', $now)
             ->orderBy('data_pagamento', 'asc')
             ->limit(5)
@@ -354,12 +358,18 @@ class DashboardController
             ]);
 
         // Agendamentos vencidos (data_pagamento já passou e não concluídos)
-        $vencidos = Agendamento::where('user_id', $userId)
+        $vencidosQuery = Agendamento::where('user_id', $userId)
             ->whereIn('status', ['pendente', 'notificado'])
+            ->whereNull('concluido_em')
             ->where('data_pagamento', '<', $now)
             ->orderBy('data_pagamento', 'asc')
-            ->get()
-            ->map(fn($ag) => [
+            ->get();
+
+        // Separar vencidos entre despesas e receitas
+        $vencidosDespesas = $vencidosQuery->filter(fn($ag) => strtolower($ag->tipo ?? '') !== 'receita');
+        $vencidosReceitas = $vencidosQuery->filter(fn($ag) => strtolower($ag->tipo ?? '') === 'receita');
+
+        $vencidos = $vencidosQuery->map(fn($ag) => [
                 'id' => $ag->id,
                 'titulo' => $ag->titulo,
                 'tipo' => $ag->tipo,
@@ -369,10 +379,11 @@ class DashboardController
                     : (string) $ag->data_pagamento,
             ]);
 
-        // Parcelas ativas
+        // Parcelas ativas (não concluídas)
         $parcelasAtivas = Agendamento::where('user_id', $userId)
             ->where('eh_parcelado', true)
             ->whereIn('status', ['pendente', 'notificado'])
+            ->whereNull('concluido_em')
             ->where('numero_parcelas', '>', 1)
             ->get();
 
@@ -381,21 +392,167 @@ class DashboardController
             $totalMensalParcelas += ($p->valor_centavos ?? 0) / 100;
         }
 
+        // ==================== FATURAS DE CARTÃO ====================
+        // Buscar faturas de cartão pendentes do mês
+        $mesNum = (int) date('m', strtotime($start));
+        $anoNum = (int) date('Y', strtotime($start));
+        
+        $faturasPendentes = FaturaCartaoItem::where('user_id', $userId)
+            ->where('pago', false)
+            ->whereYear('data_vencimento', $anoNum)
+            ->whereMonth('data_vencimento', $mesNum)
+            ->get();
+
+        // Agrupar por cartão para mostrar como "Fatura Cartao X"
+        $faturasPorCartao = [];
+        foreach ($faturasPendentes as $item) {
+            $cartaoId = $item->cartao_credito_id;
+            if (!isset($faturasPorCartao[$cartaoId])) {
+                $faturasPorCartao[$cartaoId] = [
+                    'total' => 0,
+                    'itens' => 0,
+                    'data_vencimento' => $item->data_vencimento,
+                ];
+            }
+            $faturasPorCartao[$cartaoId]['total'] += (float) $item->valor;
+            $faturasPorCartao[$cartaoId]['itens']++;
+        }
+
+        $totalFaturas = 0;
+        $countFaturas = count($faturasPorCartao);
+        $proximosFaturas = [];
+
+        // Buscar nomes dos cartões e montar lista de próximas faturas
+        $cartoes = CartaoCredito::where('user_id', $userId)->get()->keyBy('id');
+        
+        foreach ($faturasPorCartao as $cartaoId => $dados) {
+            $totalFaturas += $dados['total'];
+            $cartao = $cartoes->get($cartaoId);
+            
+            if ($cartao) {
+                $dataVenc = $dados['data_vencimento'];
+                if ($dataVenc instanceof \DateTimeInterface) {
+                    $dataVencStr = $dataVenc->format('Y-m-d H:i:s');
+                } else {
+                    $dataVencStr = (string) $dataVenc;
+                }
+                
+                $proximosFaturas[] = [
+                    'id' => 'fatura_' . $cartaoId . '_' . $mesNum . '_' . $anoNum,
+                    'titulo' => 'Fatura ' . $cartao->nome_cartao,
+                    'tipo' => 'fatura',
+                    'valor' => round($dados['total'], 2),
+                    'data_pagamento' => $dataVencStr,
+                    'categoria' => null,
+                    'eh_parcelado' => false,
+                    'parcela_atual' => null,
+                    'numero_parcelas' => null,
+                    'recorrente' => false,
+                    'is_fatura' => true,
+                    'cartao_id' => $cartaoId,
+                    'cartao_nome' => $cartao->nome_cartao,
+                    'cartao_ultimos_digitos' => $cartao->ultimos_digitos,
+                    'itens_count' => $dados['itens'],
+                ];
+            }
+        }
+
+        // Buscar faturas vencidas (de meses anteriores)
+        $faturasVencidas = FaturaCartaoItem::where('user_id', $userId)
+            ->where('pago', false)
+            ->where('data_vencimento', '<', $now)
+            ->get();
+
+        $faturasVencidasPorCartao = [];
+        foreach ($faturasVencidas as $item) {
+            $cartaoId = $item->cartao_credito_id;
+            if (!isset($faturasVencidasPorCartao[$cartaoId])) {
+                $faturasVencidasPorCartao[$cartaoId] = [
+                    'total' => 0,
+                    'data_vencimento' => $item->data_vencimento,
+                ];
+            }
+            $faturasVencidasPorCartao[$cartaoId]['total'] += (float) $item->valor;
+        }
+
+        $totalFaturasVencidas = 0;
+        $countFaturasVencidas = count($faturasVencidasPorCartao);
+        $vencidosFaturas = [];
+
+        foreach ($faturasVencidasPorCartao as $cartaoId => $dados) {
+            $totalFaturasVencidas += $dados['total'];
+            $cartao = $cartoes->get($cartaoId);
+            
+            if ($cartao) {
+                $dataVenc = $dados['data_vencimento'];
+                if ($dataVenc instanceof \DateTimeInterface) {
+                    $dataVencStr = $dataVenc->format('Y-m-d H:i:s');
+                } else {
+                    $dataVencStr = (string) $dataVenc;
+                }
+                
+                $vencidosFaturas[] = [
+                    'id' => 'fatura_vencida_' . $cartaoId,
+                    'titulo' => 'Fatura ' . $cartao->nome_cartao,
+                    'tipo' => 'fatura',
+                    'valor' => round($dados['total'], 2),
+                    'data_pagamento' => $dataVencStr,
+                    'is_fatura' => true,
+                    'cartao_nome' => $cartao->nome_cartao,
+                ];
+            }
+        }
+
+        // Mesclar próximos vencimentos com faturas e ordenar por data
+        $todosProximos = array_merge($proximos->values()->all(), $proximosFaturas);
+        usort($todosProximos, function ($a, $b) {
+            $dataA = $a['data_pagamento'] ?? '';
+            $dataB = $b['data_pagamento'] ?? '';
+            return strcmp($dataA, $dataB);
+        });
+        $todosProximos = array_slice($todosProximos, 0, 5);
+
+        // Atualizar totais incluindo faturas
+        $totalPagarComFaturas = $totalPagar + $totalFaturas;
+        $saldoProjetadoComFaturas = $saldoAtual + $totalReceber - $totalPagarComFaturas;
+
+        // Mesclar vencidos
+        $todosVencidosItems = array_merge($vencidos->values()->take(5)->all(), $vencidosFaturas);
+        $totalVencidosGeral = round($vencidos->sum('valor'), 2) + $totalFaturasVencidas;
+        $countVencidosGeral = $vencidos->count() + $countFaturasVencidas;
+
+        // Calcular totais separados de despesas e receitas vencidas
+        $totalDespesasVencidas = $vencidosDespesas->sum(fn($ag) => ($ag->valor_centavos ?? 0) / 100);
+        $totalReceitasVencidas = $vencidosReceitas->sum(fn($ag) => ($ag->valor_centavos ?? 0) / 100);
+
         Response::json([
             'month' => $month,
             'provisao' => [
-                'a_pagar' => round($totalPagar, 2),
+                'a_pagar' => round($totalPagarComFaturas, 2),
                 'a_receber' => round($totalReceber, 2),
-                'saldo_projetado' => round($saldoProjetado, 2),
+                'saldo_projetado' => round($saldoProjetadoComFaturas, 2),
                 'saldo_atual' => round($saldoAtual, 2),
                 'count_pagar' => $countPagar,
                 'count_receber' => $countReceber,
+                'count_faturas' => $countFaturas,
+                'total_faturas' => round($totalFaturas, 2),
             ],
-            'proximos' => $proximos->values()->all(),
+            'proximos' => $todosProximos,
             'vencidos' => [
-                'count' => $vencidos->count(),
-                'total' => round($vencidos->sum('valor'), 2),
-                'items' => $vencidos->values()->take(5)->all(),
+                'count' => $countVencidosGeral,
+                'total' => round($totalVencidosGeral, 2),
+                'items' => array_slice($todosVencidosItems, 0, 5),
+                'count_faturas' => $countFaturasVencidas,
+                'total_faturas' => round($totalFaturasVencidas, 2),
+                // Separação por tipo
+                'despesas' => [
+                    'count' => $vencidosDespesas->count(),
+                    'total' => round($totalDespesasVencidas, 2),
+                ],
+                'receitas' => [
+                    'count' => $vencidosReceitas->count(),
+                    'total' => round($totalReceitasVencidas, 2),
+                ],
             ],
             'parcelas' => [
                 'ativas' => $parcelasAtivas->count(),
