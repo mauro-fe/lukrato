@@ -19,7 +19,7 @@
 /* Backdrop do SweetAlert também precisa estar acima */
 .swal2-container.swal2-backdrop-show.swal-above-modal {
   z-index: 999998 !important;
-  background: rgba(0, 0, 0, 0.4) !important;
+  background: var(--color-bg) !important;
 }
 
 /* Garantir que qualquer swal2-container dentro de um modal apareça na frente */
