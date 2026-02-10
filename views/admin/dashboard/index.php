@@ -220,13 +220,13 @@
         <!-- Próximos Vencimentos -->
         <div class="provisao-proximos">
             <div class="provisao-proximos-header">
-                <span class="provisao-proximos-title"><i class="fas fa-clock"></i> Próximos Vencimentos</span>
-                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos">Ver todos <i class="fas fa-arrow-right"></i></a>
+                <span class="provisao-proximos-title" id="provisaoProximosTitle"><i class="fas fa-clock"></i> Próximos Vencimentos</span>
+                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="provisao-proximos-list" id="provisaoProximosList">
                 <div class="provisao-empty" id="provisaoEmpty">
                     <i class="fas fa-check-circle"></i>
-                    <span>Nenhum agendamento pendente</span>
+                    <span>Nenhum vencimento pendente</span>
                 </div>
             </div>
         </div>

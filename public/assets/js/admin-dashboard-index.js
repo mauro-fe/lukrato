@@ -904,26 +904,17 @@
             await Provisao.checkProStatus();
 
             const overlay = document.getElementById('provisaoProOverlay');
+            const isPro = Provisao.isProUser;
 
-            if (!Provisao.isProUser) {
-                // Show locked state with sample data
-                section.classList.add('is-locked');
-                if (overlay) overlay.style.display = 'flex';
-
-                // Show placeholder numbers
-                Provisao.renderPlaceholder();
-                return;
-            }
-
-            // Pro user: load real data
+            // Sempre carrega dados reais (Free mostra só faturas, Pro mostra tudo)
             section.classList.remove('is-locked');
             if (overlay) overlay.style.display = 'none';
 
             try {
                 const data = await API.fetch(
-                    `${CONFIG.API_URL}dashboard/provisao?month=${encodeURIComponent(month)}`
+                    `${CONFIG.API_URL}dashboard/provisao?month=${encodeURIComponent(month)}&is_pro=${isPro ? '1' : '0'}`
                 );
-                Provisao.renderData(data);
+                Provisao.renderData(data, isPro);
             } catch (err) {
                 console.error('Erro ao carregar provisão:', err);
             }
@@ -968,11 +959,25 @@
             }
         },
 
-        renderData: (data) => {
+        renderData: (data, isPro = true) => {
             if (!data) return;
 
             const p = data.provisao || {};
             const money = Utils.money;
+
+            // Atualizar título e link conforme plano
+            const titleEl = document.getElementById('provisaoProximosTitle');
+            const verTodosEl = document.getElementById('provisaoVerTodos');
+            if (titleEl) {
+                titleEl.innerHTML = isPro 
+                    ? '<i class="fas fa-clock"></i> Próximos Vencimentos'
+                    : '<i class="fas fa-credit-card"></i> Próximas Faturas';
+            }
+            if (verTodosEl) {
+                verTodosEl.href = isPro 
+                    ? `${window.BASE_URL || '/'}agendamentos`
+                    : `${window.BASE_URL || '/'}faturas`;
+            }
 
             // Cards
             const pagar = document.getElementById('provisaoPagar');
@@ -981,9 +986,21 @@
             const pagarCount = document.getElementById('provisaoPagarCount');
             const receberCount = document.getElementById('provisaoReceberCount');
             const projetadoLabel = document.getElementById('provisaoProjetadoLabel');
+            
+            // Card A Receber - só mostra dados para Pro
+            const receberCard = receber?.closest('.provisao-card');
 
             if (pagar) pagar.textContent = money(p.a_pagar || 0);
-            if (receber) receber.textContent = money(p.a_receber || 0);
+            
+            if (isPro) {
+                if (receber) receber.textContent = money(p.a_receber || 0);
+                if (receberCard) receberCard.style.opacity = '1';
+            } else {
+                // Free: esconde o card A Receber ou mostra como bloqueado
+                if (receber) receber.textContent = 'R$ --';
+                if (receberCard) receberCard.style.opacity = '0.5';
+            }
+            
             if (projetado) {
                 projetado.textContent = money(p.saldo_projetado || 0);
                 projetado.style.color = (p.saldo_projetado || 0) >= 0 ? '' : 'var(--color-danger)';
@@ -993,23 +1010,35 @@
             if (pagarCount) {
                 const countAgend = p.count_pagar || 0;
                 const countFat = p.count_faturas || 0;
-                let pagarText = `${countAgend} agendamento${countAgend !== 1 ? 's' : ''}`;
-                if (countFat > 0) {
-                    pagarText += ` • ${countFat} fatura${countFat !== 1 ? 's' : ''}`;
+                
+                if (isPro) {
+                    let pagarText = `${countAgend} agendamento${countAgend !== 1 ? 's' : ''}`;
+                    if (countFat > 0) {
+                        pagarText += ` • ${countFat} fatura${countFat !== 1 ? 's' : ''}`;
+                    }
+                    pagarCount.textContent = pagarText;
+                } else {
+                    // Free: mostra apenas faturas
+                    pagarCount.textContent = `${countFat} fatura${countFat !== 1 ? 's' : ''}`;
                 }
-                pagarCount.textContent = pagarText;
             }
-            if (receberCount) receberCount.textContent = `${p.count_receber || 0} agendamento${(p.count_receber || 0) !== 1 ? 's' : ''}`;
+            
+            if (isPro) {
+                if (receberCount) receberCount.textContent = `${p.count_receber || 0} agendamento${(p.count_receber || 0) !== 1 ? 's' : ''}`;
+            } else {
+                if (receberCount) receberCount.textContent = 'Pro';
+            }
+            
             if (projetadoLabel) projetadoLabel.textContent = `saldo atual: ${money(p.saldo_atual || 0)}`;
 
             // Alertas de vencidos (separados por tipo)
             const vencidos = data.vencidos || {};
             
-            // Alerta de despesas vencidas
+            // Alerta de despesas vencidas (só Pro)
             const alertDespesas = document.getElementById('provisaoAlertDespesas');
             if (alertDespesas) {
                 const despesas = vencidos.despesas || {};
-                if ((despesas.count || 0) > 0) {
+                if (isPro && (despesas.count || 0) > 0) {
                     alertDespesas.style.display = 'flex';
                     const countEl = document.getElementById('provisaoAlertDespesasCount');
                     const totalEl = document.getElementById('provisaoAlertDespesasTotal');
@@ -1020,11 +1049,11 @@
                 }
             }
 
-            // Alerta de receitas vencidas (não recebidas)
+            // Alerta de receitas vencidas (não recebidas) - só Pro
             const alertReceitas = document.getElementById('provisaoAlertReceitas');
             if (alertReceitas) {
                 const receitas = vencidos.receitas || {};
-                if ((receitas.count || 0) > 0) {
+                if (isPro && (receitas.count || 0) > 0) {
                     alertReceitas.style.display = 'flex';
                     const countEl = document.getElementById('provisaoAlertReceitasCount');
                     const totalEl = document.getElementById('provisaoAlertReceitasTotal');
@@ -1053,12 +1082,22 @@
             // Próximos vencimentos
             const list = document.getElementById('provisaoProximosList');
             const emptyEl = document.getElementById('provisaoEmpty');
-            const proximos = data.proximos || [];
+            let proximos = data.proximos || [];
+            
+            // Free: filtra para mostrar apenas faturas
+            if (!isPro) {
+                proximos = proximos.filter(item => item.is_fatura === true);
+            }
 
             if (list) {
                 if (proximos.length === 0) {
                     list.innerHTML = '';
                     if (emptyEl) {
+                        // Ajusta mensagem conforme plano
+                        const emptyText = emptyEl.querySelector('span');
+                        if (emptyText) {
+                            emptyText.textContent = isPro ? 'Nenhum vencimento pendente' : 'Nenhuma fatura pendente';
+                        }
                         list.appendChild(emptyEl);
                         emptyEl.style.display = 'flex';
                     }
@@ -1122,11 +1161,11 @@
                 }
             }
 
-            // Parcelas ativas
+            // Parcelas ativas (só Pro)
             const parcelasEl = document.getElementById('provisaoParcelas');
             const parcelas = data.parcelas || {};
             if (parcelasEl) {
-                if ((parcelas.ativas || 0) > 0) {
+                if (isPro && (parcelas.ativas || 0) > 0) {
                     parcelasEl.style.display = 'flex';
                     const textEl = document.getElementById('provisaoParcelasText');
                     const valorEl = document.getElementById('provisaoParcelasValor');
