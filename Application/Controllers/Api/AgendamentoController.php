@@ -179,7 +179,14 @@ class AgendamentoController extends BaseController
                     AgendamentoStatus::PENDENTE->value,
                     AgendamentoStatus::NOTIFICADO->value,
                     AgendamentoStatus::CANCELADO->value,
-                ]);
+                ])
+                // Excluir agendamentos únicos e parcelados finalizados
+                // (concluido_em preenchido = executado/finalizado)
+                // Recorrentes sempre aparecem, mesmo com concluido_em preenchido
+                ->where(function ($q) {
+                    $q->whereNull('concluido_em')
+                      ->orWhere('recorrente', true);
+                });
 
             // Filtrar por mês se fornecido (formato: YYYY-MM)
             $month = $_GET['month'] ?? null;
