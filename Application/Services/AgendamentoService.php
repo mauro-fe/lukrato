@@ -250,7 +250,7 @@ class AgendamentoService
                 'proxima_execucao' => $proximaExecucao,
                 'status' => 'pendente', // Volta para pendente
                 'notificado_em' => null, // Limpa para permitir nova notificação
-                'concluido_em' => date('Y-m-d H:i:s'), // Registra última execução
+                'concluido_em' => null, // Limpa para nova ocorrência aparecer nas consultas
             ]);
 
             LogService::info('Agendamento recorrente executado e avançado', [
