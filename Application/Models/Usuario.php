@@ -50,6 +50,9 @@ class Usuario extends Model
         'email_verified_at',
         'email_verification_token',
         'email_verification_sent_at',
+        'original_email_hash',
+        'registration_ip',
+        'last_login_ip',
     ];
 
     protected $hidden = ['senha', 'password', 'email_verification_token'];
