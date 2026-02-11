@@ -112,6 +112,9 @@ class ContasManager {
     }
 
     async init() {
+        console.log('🔧 ContasManager init - baseUrl:', this.baseUrl);
+        console.log('🔧 window.BASE_URL:', window.BASE_URL);
+        
         await this.loadInstituicoes();
         await this.loadContas();
         this.attachEventListeners();
