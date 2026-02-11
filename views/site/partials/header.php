@@ -384,23 +384,25 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
 <body class="antialiased" x-data="{ mobileMenuOpen: false }">
     <!-- Header Premium -->
-    <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 20"
-        :class="scrolled ? 'bg-white shadow-lg' : 'bg-white/95'"
-        class="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg transition-all duration-300" role="banner">
+    <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 50"
+        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.08)] border-b border-gray-200/50' : 'bg-transparent backdrop-blur-none border-b border-transparent'"
+        class="fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out" role="banner">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
+            <div class="flex items-center justify-between transition-all duration-500" :class="scrolled ? 'h-16' : 'h-20'">
                 <!-- Logo com animação -->
                 <a href="<?= BASE_URL ?>" class="flex-shrink-0 group" aria-label="Lukrato - Página Inicial">
                     <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato - Controle Financeiro Pessoal Gratuito"
                         title="Lukrato - Organize suas Finanças"
-                        class="h-8 w-auto max-w-[120px] sm:h-16 sm:max-w-none transition-transform duration-300 group-hover:scale-110"
+                        class="w-auto max-w-[120px] sm:max-w-none transition-all duration-500 group-hover:scale-105"
+                        :class="scrolled ? 'h-7 sm:h-12' : 'h-8 sm:h-14'"
                         loading="eager" width="180" height="64" onerror="console.error('Logo não carregou:', this.src)">
                 </a>
 
                 <!-- Desktop Navigation Premium -->
                 <nav class="hidden lg:flex items-center gap-8" aria-label="Navegação principal" role="navigation">
                     <a href="<?= BASE_URL ?>#funcionalidades"
-                        class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
+                        class="relative font-semibold transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
                         aria-label="Ver funcionalidades do app">
                         Funcionalidades
                         <span
@@ -408,7 +410,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             aria-hidden="true"></span>
                     </a>
                     <a href="<?= BASE_URL ?>#beneficios"
-                        class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
+                        class="relative font-semibold transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
                         aria-label="Conhecer benefícios do Lukrato">
                         Benefícios
                         <span
@@ -416,7 +419,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             aria-hidden="true"></span>
                     </a>
                     <a href="<?= BASE_URL ?>#planos"
-                        class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
+                        class="relative font-semibold transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
                         aria-label="Ver planos e preços">
                         Planos
                         <span
@@ -424,7 +428,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             aria-hidden="true"></span>
                     </a>
                     <a href="<?= BASE_URL ?>#indicacao"
-                        class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
+                        class="relative font-semibold transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
                         aria-label="Programa de indicação">
                         <span class="inline-flex items-center gap-1">
                             Indicação
@@ -436,7 +441,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             aria-hidden="true"></span>
                     </a>
                     <a href="<?= BASE_URL ?>#contato"
-                        class="relative text-gray-700 font-semibold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-orange-600 transition-all duration-300 group"
+                        class="relative font-semibold transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
                         aria-label="Entre em contato conosco">
                         Contato
                         <span
@@ -446,16 +452,17 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 </nav>
 
                 <!-- Desktop Actions Premium -->
-                <div class="hidden lg:flex items-center gap-4">
+                <div class="hidden lg:flex items-center gap-3">
                     <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-primary font-semibold transition-all duration-300 group"
+                        class="inline-flex items-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 hover:text-primary hover:bg-orange-50' : 'text-gray-700 hover:text-primary hover:bg-white/20'"
                         aria-label="Entrar na sua conta">
                         <i class="fa-regular fa-user text-sm transition-transform group-hover:scale-110"
                             aria-hidden="true"></i>
                         <span>Entrar</span>
                     </a>
                     <a href="<?= BASE_URL ?>login?tab=register"
-                        class="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 group"
+                        class="inline-flex items-center gap-2 px-7 py-2.5 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-full shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-300 group"
                         aria-label="Começar a usar grátis">
                         <span>Começar grátis</span>
                         <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-1"
@@ -465,7 +472,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
                 <!-- Mobile Menu Button Premium -->
                 <button @click="mobileMenuOpen = !mobileMenuOpen"
-                    class="lg:hidden relative p-2.5 text-gray-700 hover:text-primary hover:bg-orange-50 rounded-xl transition-all duration-300"
+                    class="lg:hidden relative p-2.5 hover:text-primary hover:bg-orange-50 rounded-xl transition-all duration-300"
+                    :class="scrolled ? 'text-gray-700' : 'text-gray-700'"
                     type="button" aria-label="Abrir menu de navegação" aria-expanded="false"
                     :aria-expanded="mobileMenuOpen">
                     <i class="fa-solid fa-bars text-2xl" x-show="!mobileMenuOpen" aria-hidden="true"></i>
@@ -473,7 +481,34 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 </button>
             </div>
         </div>
+        <!-- Scroll Progress Bar -->
+        <div class="absolute bottom-0 left-0 w-full h-[3px] bg-transparent">
+            <div id="scrollProgressBar"
+                class="h-full bg-gradient-to-r from-primary via-orange-500 to-orange-600 transition-none"
+                style="width: 0%; will-change: width;"></div>
+        </div>
     </header>
+
+    <script>
+        (function() {
+            const bar = document.getElementById('scrollProgressBar');
+            let ticking = false;
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    requestAnimationFrame(function() {
+                        const scrollTop = window.scrollY;
+                        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                        bar.style.width = progress + '%';
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, {
+                passive: true
+            });
+        })();
+    </script>
 
     <!-- Mobile Menu Backdrop -->
     <div x-show="mobileMenuOpen" x-transition:enter="transition-opacity ease-out duration-300"
