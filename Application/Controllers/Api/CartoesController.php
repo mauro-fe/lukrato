@@ -36,6 +36,12 @@ class CartoesController
      */
     public function index(): void
     {
+        // Modo diagnóstico (temporário) - acesse com ?diag=1
+        if (isset($_GET['diag']) && $_GET['diag'] === '1') {
+            $this->runDiagnostic();
+            return;
+        }
+        
         $userId = Auth::id();
         $contaId = isset($_GET['conta_id']) ? (int) $_GET['conta_id'] : null;
         $apenasAtivos = (int) ($_GET['only_active'] ?? 1) === 1;
@@ -628,6 +634,66 @@ class CartoesController
         } catch (\Exception $e) {
             error_log("❌ [Controller] Erro ao desfazer parcela: " . $e->getMessage());
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Diagnóstico temporário - REMOVER após identificar problema
+     */
+    private function runDiagnostic(): void
+    {
+        $startTime = microtime(true);
+        $timings = [];
+        
+        try {
+            // 1. Auth
+            $t1 = microtime(true);
+            $userId = Auth::id();
+            $timings['auth'] = round((microtime(true) - $t1) * 1000, 2);
+            
+            if (!$userId) {
+                Response::json(['error' => 'Não autenticado', 'timings' => $timings]);
+                return;
+            }
+            
+            // 2. DB Connection
+            $t2 = microtime(true);
+            \Illuminate\Database\Capsule\Manager::connection()->getPdo();
+            $timings['db_connect'] = round((microtime(true) - $t2) * 1000, 2);
+            
+            // 3. Count cartoes
+            $t3 = microtime(true);
+            $cartoesCount = \Application\Models\CartaoCredito::where('user_id', $userId)->count();
+            $timings['cartoes_count'] = round((microtime(true) - $t3) * 1000, 2);
+            
+            // 4. List cartoes
+            $t4 = microtime(true);
+            $cartoes = \Application\Models\CartaoCredito::forUser($userId)
+                ->with('conta.instituicaoFinanceira')
+                ->ativos()
+                ->get();
+            $timings['cartoes_list'] = round((microtime(true) - $t4) * 1000, 2);
+            
+            $timings['total'] = round((microtime(true) - $startTime) * 1000, 2);
+            
+            Response::json([
+                'status' => 'OK',
+                'user_id' => $userId,
+                'cartoes_count' => $cartoesCount,
+                'timings_ms' => $timings,
+                'memory_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
+                'server_time' => date('Y-m-d H:i:s')
+            ]);
+            
+        } catch (\Throwable $e) {
+            $timings['error_at'] = round((microtime(true) - $startTime) * 1000, 2);
+            Response::json([
+                'status' => 'ERROR',
+                'error' => $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine(),
+                'timings_ms' => $timings
+            ], 500);
         }
     }
 }

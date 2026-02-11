@@ -43,6 +43,12 @@ class ContasController
      */
     public function index(): void
     {
+        // Modo diagnóstico (temporário) - acesse com ?diag=1
+        if (isset($_GET['diag']) && $_GET['diag'] === '1') {
+            $this->runDiagnostic();
+            return;
+        }
+        
         try {
             $userId = Auth::id();
 
@@ -410,5 +416,84 @@ class ContasController
         }
 
         return $codigo;
+    }
+
+    /**
+     * Diagnóstico temporário - REMOVER após identificar problema
+     */
+    private function runDiagnostic(): void
+    {
+        $startTime = microtime(true);
+        $timings = [];
+        
+        header('Content-Type: application/json');
+        
+        try {
+            // 1. Auth
+            $t1 = microtime(true);
+            $userId = Auth::id();
+            $timings['auth'] = round((microtime(true) - $t1) * 1000, 2);
+            
+            if (!$userId) {
+                Response::json(['error' => 'Não autenticado', 'timings' => $timings]);
+                return;
+            }
+            
+            // 2. DB Connection
+            $t2 = microtime(true);
+            \Illuminate\Database\Capsule\Manager::connection()->getPdo();
+            $timings['db_connect'] = round((microtime(true) - $t2) * 1000, 2);
+            
+            // 3. Simple query
+            $t3 = microtime(true);
+            \Illuminate\Database\Capsule\Manager::select('SELECT 1');
+            $timings['db_simple'] = round((microtime(true) - $t3) * 1000, 2);
+            
+            // 4. Count instituicoes
+            $t4 = microtime(true);
+            $instCount = InstituicaoFinanceira::count();
+            $timings['inst_count'] = round((microtime(true) - $t4) * 1000, 2);
+            
+            // 5. List instituicoes  
+            $t5 = microtime(true);
+            $instituicoes = InstituicaoFinanceira::ativas()->limit(5)->get();
+            $timings['inst_list'] = round((microtime(true) - $t5) * 1000, 2);
+            
+            // 6. Count contas
+            $t6 = microtime(true);
+            $contasCount = \Application\Models\Conta::where('user_id', $userId)->count();
+            $timings['contas_count'] = round((microtime(true) - $t6) * 1000, 2);
+            
+            // 7. List contas (sem saldos)
+            $t7 = microtime(true);
+            $contas = \Application\Models\Conta::forUser($userId)
+                ->with('instituicaoFinanceira')
+                ->ativas()
+                ->get();
+            $timings['contas_list'] = round((microtime(true) - $t7) * 1000, 2);
+            
+            $timings['total'] = round((microtime(true) - $startTime) * 1000, 2);
+            
+            Response::json([
+                'status' => 'OK',
+                'user_id' => $userId,
+                'inst_count' => $instCount,
+                'contas_count' => $contasCount,
+                'timings_ms' => $timings,
+                'memory_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
+                'php_version' => PHP_VERSION,
+                'server_time' => date('Y-m-d H:i:s')
+            ]);
+            
+        } catch (\Throwable $e) {
+            $timings['error_at'] = round((microtime(true) - $startTime) * 1000, 2);
+            Response::json([
+                'status' => 'ERROR',
+                'error' => $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine(),
+                'timings_ms' => $timings
+            ], 500);
+        }
     }
 }
