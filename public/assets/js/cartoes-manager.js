@@ -544,10 +544,15 @@ class CartoesManager {
      * Renderizar cartões
      */
     renderCartoes() {
+        console.log('🎨 [DEBUG] renderCartoes() iniciado');
         const grid = document.getElementById('cartoesGrid');
         const emptyState = document.getElementById('emptyState');
+        console.log('🎨 [DEBUG] cartoesGrid encontrado:', !!grid);
+        console.log('🎨 [DEBUG] emptyState encontrado:', !!emptyState);
+        console.log('🎨 [DEBUG] filteredCartoes.length:', this.filteredCartoes?.length);
 
         if (this.filteredCartoes.length === 0) {
+            console.log('🎨 [DEBUG] Renderizando empty state...');
             grid.innerHTML = '';
             emptyState.style.display = 'block';
             emptyState.querySelector('h3').textContent =
@@ -559,10 +564,13 @@ class CartoesManager {
 
         emptyState.style.display = 'none';
 
+        console.log('🎨 [DEBUG] Renderizando cards de cartões...');
         grid.innerHTML = this.filteredCartoes.map(cartao => this.createCardHTML(cartao)).join('');
+        console.log('🎨 [DEBUG] innerHTML atualizado');
 
         // Add event listeners para ações
         this.setupCardActions();
+        console.log('🎨 [DEBUG] renderCartoes() concluído');
     }
 
     /**

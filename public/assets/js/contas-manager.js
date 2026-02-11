@@ -370,10 +370,18 @@ class ContasManager {
      * Renderizar lista de contas
      */
     renderContas() {
+        console.log('🎨 [DEBUG] renderContas() iniciado');
         const container = document.getElementById('accountsGrid');
-        if (!container) return;
+        console.log('🎨 [DEBUG] accountsGrid encontrado:', !!container);
+        if (!container) {
+            console.error('❌ [DEBUG] accountsGrid NÃO encontrado!');
+            return;
+        }
+
+        console.log('🎨 [DEBUG] Total de contas para renderizar:', this.contas.length);
 
         if (this.contas.length === 0) {
+            console.log('🎨 [DEBUG] Renderizando empty-state...');
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -386,6 +394,7 @@ class ContasManager {
                     </button>
                 </div>
             `;
+            console.log('🎨 [DEBUG] innerHTML após empty-state:', container.innerHTML.substring(0, 100));
             // Anexar listener para o botão de criar primeira conta
             setTimeout(() => {
                 const btnCriarPrimeira = document.getElementById('btnCriarPrimeiraConta');
@@ -398,7 +407,9 @@ class ContasManager {
             return;
         }
 
+        console.log('🎨 [DEBUG] Renderizando cards de contas...');
         container.innerHTML = this.contas.map(conta => this.createContaCard(conta)).join('');
+        console.log('🎨 [DEBUG] innerHTML após renderizar cards:', container.innerHTML.substring(0, 100));
         this.attachContaCardListeners();
     }
 

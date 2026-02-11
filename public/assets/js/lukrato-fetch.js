@@ -153,11 +153,14 @@ class LukratoFetch {
                     credentials: options.credentials || 'same-origin'
                 };
 
+                console.log(`🌐 [LukratoFetch] Iniciando fetch: ${url}`);
                 const response = await fetch(url, fetchOptions);
+                console.log(`🌐 [LukratoFetch] Response recebido: status=${response.status}`);
                 clearTimeout(timeoutId);
                 clearTimeout(slowTimer);
 
                 const elapsed = Date.now() - startTime;
+                console.log(`🌐 [LukratoFetch] Tempo de resposta: ${elapsed}ms`);
                 
                 // Log de performance
                 if (elapsed > this.slowThreshold) {
@@ -171,11 +174,14 @@ class LukratoFetch {
                 }
 
                 if (!response.ok) {
+                    console.error(`🌐 [LukratoFetch] Resposta não-ok: ${response.status}`);
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || `Erro ${response.status}`);
                 }
 
+                console.log(`🌐 [LukratoFetch] Parseando JSON...`);
                 const data = await response.json();
+                console.log(`🌐 [LukratoFetch] JSON parseado com sucesso`);
 
                 // Salvar no cache
                 if (this.enableCache && cacheKey && options.method === 'GET') {
