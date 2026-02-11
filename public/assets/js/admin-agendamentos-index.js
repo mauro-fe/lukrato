@@ -1023,9 +1023,42 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEmpty() {
             const empty = document.createElement('div');
             empty.className = 'ag-card card-item card-empty';
-            empty.innerHTML = '<div class="card-empty-text">Nenhum agendamento encontrado.</div>';
+            empty.innerHTML = `
+                <i class="fas fa-calendar-plus card-empty-icon"></i>
+                <h3 class="card-empty-title">Nenhum agendamento encontrado</h3>
+                <p class="card-empty-text">Comece agendando suas contas fixas como aluguel, assinaturas e salário para nunca esquecer um pagamento.</p>
+                <button type="button" class="card-empty-cta" id="btnAddFromEmpty">
+                    <i class="fas fa-plus"></i>
+                    <span>Criar primeiro agendamento</span>
+                </button>
+            `;
 
             DOM.cardsContainer.appendChild(empty);
+
+            // Adicionar listener ao botão CTA
+            const ctaBtn = empty.querySelector('#btnAddFromEmpty');
+            ctaBtn?.addEventListener('click', () => {
+                DOM.btnAddAgendamento?.click();
+            });
+        },
+
+        renderSkeleton(count = 3) {
+            DOM.cardsContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'ag-skeleton-card';
+                skeleton.innerHTML = `
+                    <div class="ag-skeleton-row">
+                        <div class="ag-skeleton-circle"></div>
+                        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                            <div class="ag-skeleton-line medium"></div>
+                            <div class="ag-skeleton-line short"></div>
+                        </div>
+                    </div>
+                    <div class="ag-skeleton-line full"></div>
+                `;
+                DOM.cardsContainer.appendChild(skeleton);
+            }
         },
 
         renderCard(item) {
@@ -1486,6 +1519,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Renderizar ambas as visualizações (CSS controla qual é exibida)
                 DesktopTable.render(itens);
                 MobileCards.setData(itens);
+
+                // Atualizar contagens dos filtros rápidos
+                Filters.updateQuickFilterCounts();
 
             } catch (error) {
                 DesktopTable.render([]);
@@ -2130,11 +2166,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('Erros de validação.');
                 }
 
-                Swal.fire(
-                    'Sucesso',
-                    isEditMode ? 'Agendamento atualizado com sucesso!' : 'Agendamento salvo com sucesso!',
-                    'success'
-                );
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: isEditMode ? 'Agendamento atualizado!' : 'Agendamento salvo!',
+                    showConfirmButton: false,
+                    timer: 2500,
+                    timerProgressBar: true
+                });
 
                 FormManager.reset();
                 Modal.close();
@@ -2304,10 +2344,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 Swal.fire({
+                    toast: true,
+                    position: 'top-end',
                     icon: 'success',
                     title: 'Cancelado!',
-                    text: 'Agendamento cancelado com sucesso.',
-                    confirmButtonColor: '#10b981',
+                    text: 'Agendamento cancelado.',
+                    showConfirmButton: false,
+                    timer: 2500,
+                    timerProgressBar: true
                 });
 
                 await Agendamentos.load();
@@ -2348,10 +2392,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 Swal.fire({
+                    toast: true,
+                    position: 'top-end',
                     icon: 'success',
                     title: 'Reativado!',
-                    text: 'Agendamento reativado com sucesso.',
-                    confirmButtonColor: '#10b981',
+                    text: 'Agendamento reativado.',
+                    showConfirmButton: false,
+                    timer: 2500,
+                    timerProgressBar: true
                 });
 
                 await Agendamentos.load();
@@ -2378,7 +2426,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cats = Helpers.listFromPayload(data);
 
                 if (DOM.filtroCategoria) {
-                    DOM.filtroCategoria.innerHTML = '<option value="">Todas as Categorias</option>';
+                    DOM.filtroCategoria.innerHTML = '<option value="">Todas as categorias</option>';
 
                     cats.forEach(cat => {
                         const opt = document.createElement('option');
@@ -2400,7 +2448,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const contas = Helpers.listFromPayload(data);
 
                 if (DOM.filtroConta) {
-                    DOM.filtroConta.innerHTML = '<option value="">Todas as Contas</option>';
+                    DOM.filtroConta.innerHTML = '<option value="">Todas as contas</option>';
 
                     contas.forEach(conta => {
                         const opt = document.createElement('option');
@@ -2564,6 +2612,77 @@ document.addEventListener('DOMContentLoaded', () => {
             STATE.applyingQuickFilter = false;
             STATE.activeQuickFilter = filterType;
 
+        },
+
+        /**
+         * Atualiza contagem nos botões de filtro rápido
+         */
+        updateQuickFilterCounts() {
+            const allData = Array.from(STATE.cache.values());
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            const fimSemana = new Date(hoje);
+            fimSemana.setDate(hoje.getDate() + 7);
+
+            const counts = {
+                hoje: 0,
+                semana: 0,
+                vencidos: 0,
+                receitas: 0,
+                despesas: 0,
+                recorrentes: 0
+            };
+
+            allData.forEach(item => {
+                const dataStr = item.data_pagamento || item.data_agendada;
+                const dataItem = dataStr ? new Date(dataStr) : null;
+                if (dataItem) dataItem.setHours(0, 0, 0, 0);
+
+                const isRecorrente = item.recorrente === 1 || item.recorrente === true;
+
+                // Hoje
+                if (dataItem && dataItem.getTime() === hoje.getTime()) {
+                    counts.hoje++;
+                }
+
+                // Esta semana
+                if (dataItem && dataItem >= hoje && dataItem <= fimSemana) {
+                    counts.semana++;
+                }
+
+                // Vencidos
+                if (item.status === 'pendente' && dataItem && dataItem < hoje) {
+                    counts.vencidos++;
+                }
+
+                // Receitas/Despesas
+                if (item.tipo === 'receita') counts.receitas++;
+                if (item.tipo === 'despesa') counts.despesas++;
+
+                // Recorrentes
+                if (isRecorrente) counts.recorrentes++;
+            });
+
+            // Atualizar badges nos botões
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                const filterType = btn.dataset.filter;
+                const count = counts[filterType];
+
+                // Remover badge antigo se existir
+                let badge = btn.querySelector('.quick-filter-count');
+                
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'quick-filter-count';
+                        btn.appendChild(badge);
+                    }
+                    badge.textContent = count > 99 ? '99+' : count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
         }
     };
 
@@ -3019,6 +3138,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     Events.setupToggleButtonsInModal();
                 }, 300);
             });
+        },
+
+        // Atalho de teclado (N) para novo agendamento
+        setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ignorar se estiver em input, textarea ou modal aberto
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+                if (e.target.closest('.modal.show') || e.target.closest('.swal2-container')) return;
+
+                // N = Novo agendamento
+                if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    DOM.btnAddAgendamento?.click();
+                }
+            });
         }
     };
 
@@ -3068,6 +3202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Events.setupActionHandler();
         Events.setupFilters();
         Events.setupAddButton();
+        Events.setupKeyboardShortcuts();
 
         // Renderizar cards iniciais (Mobile)
         MobileCards.render();

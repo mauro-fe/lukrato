@@ -852,6 +852,34 @@
    RESPONSIVIDADE - MOBILE FIRST APPROACH
    ============================================================================ */
 
+/* ========== Touch Targets Mínimos (Mobile) ========== */
+@media (max-width: 768px) {
+  .tab-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .stat-card {
+    min-height: 80px;
+  }
+
+  .btn-upgrade,
+  .btn-export,
+  .form-select {
+    min-height: 44px;
+  }
+}
+
+/* ========== Focus-visible para acessibilidade ========== */
+.stat-card:focus-visible,
+.btn-upgrade:focus-visible,
+.btn-export:focus-visible,
+.form-select:focus-visible,
+.insights-card:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* ========== Mobile Pequeno (min-width: 360px) ========== */
 @media (min-width: 360px) {
   .rel-page {
@@ -2528,6 +2556,87 @@ canvas {
   }
 }
 
+/* =============================================================================
+   SKELETON LOADING - Relatórios
+   ============================================================================= */
+
+.skeleton-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+  min-height: 400px;
+}
+
+.skeleton-chart-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-surface-muted, #e0e0e0) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--spacing-3);
+  height: 200px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.skeleton-bar {
+  flex: 1;
+  max-width: 40px;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-surface-muted, #e0e0e0) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+.skeleton-bar:nth-child(2) { height: 80%; animation-delay: 0.1s; }
+.skeleton-bar:nth-child(3) { height: 45%; animation-delay: 0.2s; }
+.skeleton-bar:nth-child(4) { height: 90%; animation-delay: 0.3s; }
+.skeleton-bar:nth-child(5) { height: 70%; animation-delay: 0.4s; }
+.skeleton-bar:nth-child(6) { height: 55%; animation-delay: 0.5s; }
+
+.skeleton-line {
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-surface-muted, #e0e0e0) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-line.short { width: 40%; }
+.skeleton-line.medium { width: 60%; }
+.skeleton-line.full { width: 100%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .loading-state p {
   color: var(--color-text-muted);
   font-size: var(--font-size-base);
@@ -2558,16 +2667,23 @@ canvas {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
   padding: var(--spacing-8);
   text-align: center;
+  min-height: 300px;
 }
 
 .empty-state .empty-icon,
-.empty-state i {
+.empty-state > i {
   font-size: 4rem;
-  color: var(--color-text-muted);
-  opacity: 0.5;
+  color: var(--color-primary);
+  opacity: 0.7;
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 
 .empty-state .empty-icon i {
@@ -2585,7 +2701,30 @@ canvas {
   font-size: var(--font-size-base);
   color: var(--color-text-muted);
   margin: 0;
-  max-width: 500px;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.empty-state .empty-cta {
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-decoration: none;
+}
+
+.empty-state .empty-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+  color: white;
 }
 
 .empty-state .btn {

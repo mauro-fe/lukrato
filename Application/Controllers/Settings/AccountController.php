@@ -7,6 +7,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\LogService;
+use Application\Services\ReferralAntifraudService;
 use Application\Core\Exceptions\AuthException;
 use Exception;
 
@@ -15,10 +16,11 @@ class AccountController extends BaseController
     public function delete(): void
     {
         $requestId = uniqid('acc_del_', true);
+        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
 
         LogService::info('Iniciando processo de exclusão de conta', [
             'request_id' => $requestId,
-            'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+            'ip'         => $ip,
         ]);
 
         try {
@@ -26,7 +28,7 @@ class AccountController extends BaseController
         } catch (AuthException $e) {
             LogService::warning('Tentativa de excluir conta sem autenticação', [
                 'request_id' => $requestId,
-                'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ip'         => $ip,
                 'error'      => $e->getMessage(),
             ]);
 
@@ -41,14 +43,14 @@ class AccountController extends BaseController
                 LogService::warning('Usuário não encontrado ao tentar excluir conta', [
                     'request_id' => $requestId,
                     'user_id'    => $this->userId,
-                    'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                    'ip'         => $ip,
                 ]);
 
                 Response::notFound('Usuário não encontrado.');
                 return;
             }
 
-            // Guarda email original para log
+            // Guarda email original para log e anti-fraude
             $originalEmail = $user->email;
 
             // Anonimiza email para liberar para novo cadastro (mantém histórico)
@@ -66,12 +68,17 @@ class AccountController extends BaseController
                     'request_id' => $requestId,
                     'user_id'    => $this->userId,
                     'email'      => $originalEmail,
-                    'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                    'ip'         => $ip,
                 ]);
 
                 Response::error('Não foi possível excluir sua conta. Tente novamente.', 500);
                 return;
             }
+
+            // Registra no sistema anti-fraude para aplicar quarentena
+            $antifraudService = new ReferralAntifraudService();
+            $antifraudService->onAccountDeleted($originalEmail, $this->userId, $ip);
+
             Auth::logout();
 
             LogService::info('Conta excluída com sucesso', [
@@ -80,7 +87,7 @@ class AccountController extends BaseController
                 'email_original' => $originalEmail,
                 'email_anonimizado' => $anonymizedEmail,
                 'delete_result' => $result,
-                'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ip'         => $ip,
             ]);
 
             Response::success(null, 'Conta excluída com sucesso.');
@@ -90,7 +97,7 @@ class AccountController extends BaseController
             LogService::error('Erro inesperado ao excluir conta', [
                 'request_id' => $requestId,
                 'user_id'    => $this->userId ?? null,
-                'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ip'         => $ip ?? null,
                 'exception'  => $e->getMessage(),
                 'trace'      => $e->getTraceAsString(),
             ]);

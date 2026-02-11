@@ -155,6 +155,13 @@
         margin-left: auto;
     }
 
+    #modalAgendamento .required-asterisk {
+        color: var(--color-danger, #ef4444);
+        font-weight: 700;
+        font-size: 1rem;
+        margin-left: 2px;
+    }
+
     /* Form Controls */
     #modalAgendamento .modern-body input.form-control,
     #modalAgendamento .modern-body select.form-control,
@@ -593,7 +600,7 @@
                         </div>
                         <div class="form-group col-titulo">
                             <label for="agTitulo" class="form-label">
-                                <i class="fas fa-align-left"></i> Descrição
+                                <i class="fas fa-align-left"></i> Descrição <span class="required-asterisk">*</span>
                             </label>
                             <input type="text" id="agTitulo" name="titulo" class="form-control"
                                 placeholder="Ex: Aluguel, Salário, Netflix..." required maxlength="160">
@@ -604,15 +611,15 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="agCategoria" class="form-label">
-                                <i class="fas fa-folder"></i> Categoria
+                                <i class="fas fa-folder"></i> Categoria <span class="required-asterisk">*</span>
                             </label>
                             <select id="agCategoria" name="categoria_id" class="form-control modern-select" required>
-                                <option value="">Selecione uma categoria</option>
+                                <option value="" disabled selected>Selecione uma categoria...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="agValor" class="form-label">
-                                <i class="fas fa-dollar-sign"></i> Valor
+                                <i class="fas fa-dollar-sign"></i> Valor <span class="required-asterisk">*</span>
                             </label>
                             <input type="text" id="agValor" name="valor" class="form-control" placeholder="R$ 0,00"
                                 required>
@@ -624,14 +631,15 @@
                         <div class="form-group">
                             <label for="agConta" class="form-label">
                                 <i class="fas fa-wallet"></i> Conta
+                                <span class="optional-badge">opcional</span>
                             </label>
                             <select id="agConta" name="conta_id" class="form-control modern-select">
-                                <option value="">Todas as contas (opcional)</option>
+                                <option value="">Qualquer conta</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="agDataPagamento" class="form-label">
-                                <i class="fas fa-calendar-alt"></i> Data de Execução
+                                <i class="fas fa-calendar-alt"></i> Data de Execução <span class="required-asterisk">*</span>
                             </label>
                             <input type="datetime-local" id="agDataPagamento" name="data_pagamento" class="form-control"
                                 required>

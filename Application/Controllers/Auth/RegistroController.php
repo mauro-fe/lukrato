@@ -9,6 +9,7 @@ use Application\Services\Auth\AuthService;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Auth\RegistrationResponseHandler;
 use Application\Core\Exceptions\ValidationException;
+use Application\Middlewares\CsrfMiddleware;
 use Application\Services\LogService;
 use Throwable;
 
@@ -50,6 +51,9 @@ class RegistroController extends BaseController
      */
     public function store(): void
     {
+        // Valida CSRF com tokenId específico do formulário
+        CsrfMiddleware::handle($this->request, 'register_form');
+        
         $email = $this->request->post('email', 'não-informado');
         $socialData = $_SESSION['social_register'] ?? null;
         $isGoogleRegistration = !empty($socialData) && ($socialData['provider'] ?? null) === 'google';

@@ -3190,20 +3190,53 @@
 .parcelamentos-grid.list-view {
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.75rem !important;
+  gap: 0.5rem !important;
   grid-template-columns: none !important;
+}
+
+/* Headers da lista */
+.faturas-list-header {
+  display: none;
+}
+
+.faturas-list-header.visible {
+  display: grid !important;
+  grid-template-columns: 70px 1fr 130px 150px 110px 130px !important;
+  align-items: center !important;
+  padding: 0.75rem 0.5rem !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  color: var(--color-text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  gap: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  background: var(--glass-bg) !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.faturas-list-header span {
+  padding: 0 0.5rem;
+}
+
+.faturas-list-header span:first-child {
+  text-align: center;
+}
+
+.faturas-list-header span:last-child {
+  text-align: center;
 }
 
 .parcelamentos-grid.list-view .parcelamento-card {
   display: grid !important;
-  grid-template-columns: 70px 160px 1fr auto auto !important;
+  grid-template-columns: 70px 1fr 130px 150px 110px 130px !important;
   align-items: center !important;
-  gap: 0 !important;
+  gap: 0.5rem !important;
   border-radius: 12px !important;
   overflow: hidden !important;
   padding: 0 !important;
   width: 100% !important;
-  min-width: 100% !important;
   min-height: 70px !important;
 }
 
@@ -3219,34 +3252,30 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  /* Cor vem do inline style definido pelo JS baseado na cor do cartão */
   border: none !important;
 }
 
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  .header-info {
+/* Ocultar elementos do header no list-view - mostrar apenas ícone */
+.parcelamentos-grid.list-view .parcelamento-card .parc-card-header::before {
+  display: none !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-left {
+  display: none !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-right {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  .header-info
-  .cartao-info {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-periodo {
+  display: none !important;
 }
 
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  .header-info
-  .cartao-info::before {
+.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-right::before {
   content: "\f09d" !important;
   font-family: "Font Awesome 6 Free" !important;
   font-weight: 900 !important;
@@ -3254,25 +3283,28 @@
   color: white !important;
 }
 
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  .header-info
-  .cartao-nome,
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  .header-info
-  .cartao-numero,
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  .fatura-periodo,
-.parcelamentos-grid.list-view
-  .parcelamento-card
-  .parc-card-header
-  > .parc-card-badge {
+/* Status badge visível na lista - na coluna própria */
+.parcelamentos-grid.list-view .parcelamento-card .parc-card-header .parc-card-badge {
   display: none !important;
+}
+
+/* Nova coluna de status para lista */
+.fatura-status-col {
+  display: none;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .fatura-status-col {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .fatura-status-col .parc-card-badge {
+  display: inline-flex !important;
+  padding: 0.35rem 0.6rem !important;
+  font-size: 0.7rem !important;
+  white-space: nowrap !important;
+  justify-content: center !important;
 }
 
 /* Elemento de info para lista - oculto em cards */
@@ -3285,8 +3317,14 @@
   display: flex !important;
   flex-direction: column !important;
   gap: 0.15rem !important;
-  min-width: 140px !important;
+  min-width: 160px !important;
   padding: 0 1rem !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card .fatura-list-info .list-cartao-numero {
+  font-size: 0.75rem !important;
+  color: var(--color-text-muted) !important;
+  font-family: monospace !important;
 }
 
 .parcelamentos-grid.list-view
@@ -3311,8 +3349,8 @@
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 1.5rem !important;
-  padding: 0 1.5rem !important;
+  gap: 0 !important;
+  padding: 0 0.5rem !important;
   margin: 0 !important;
 }
 
@@ -3344,7 +3382,7 @@
   .parcelamento-card
   .fatura-resumo-principal
   .resumo-valor {
-  font-size: 1.1rem !important;
+  font-size: 1rem !important;
   font-weight: 700 !important;
   color: var(--color-primary) !important;
 }
@@ -3354,8 +3392,8 @@
   display: flex !important;
   flex-direction: column !important;
   gap: 0.25rem !important;
-  padding: 0 1.5rem !important;
-  min-width: 150px !important;
+  padding: 0 0.5rem !important;
+  min-width: auto !important;
 }
 
 .parcelamentos-grid.list-view .parcelamento-card .parc-progress-header {
@@ -3418,6 +3456,16 @@
 
 /* ==================== RESPONSIVO FATURAS ==================== */
 @media (max-width: 768px) {
+  /* Ocultar header de colunas no mobile */
+  .faturas-list-header.visible {
+    display: none !important;
+  }
+
+  /* Ocultar coluna de status separada no mobile (vai aparecer no header) */
+  .parcelamentos-grid.list-view .parcelamento-card .fatura-status-col {
+    display: none !important;
+  }
+
   .faturas-header {
     flex-direction: column;
     gap: 1rem;
@@ -3441,10 +3489,12 @@
 
   /* List View Mobile - Faturas */
   .parcelamentos-grid.list-view .parcelamento-card {
+    display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
     padding: 0 !important;
     background: var(--glass-bg) !important;
+    grid-template-columns: none !important;
   }
 
   /* Header compacto no mobile - mostra info do cartão */
@@ -3461,78 +3511,58 @@
     border-radius: 12px 12px 0 0 !important;
   }
 
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    .header-info {
-    flex-direction: row !important;
-    gap: 0.75rem !important;
-    align-items: center !important;
+  /* Mostrar elementos no mobile */
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header::before {
+    display: block !important;
   }
 
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    .header-info
-    .cartao-info {
-    flex-direction: row !important;
-    gap: 0.5rem !important;
-    align-items: center !important;
-  }
-
-  /* Mostrar nome e número do cartão no header mobile */
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    .header-info
-    .cartao-info::before {
-    font-size: 1.1rem !important;
-    margin-right: 0.25rem;
-  }
-
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    .header-info
-    .cartao-nome {
-    display: inline !important;
-    font-size: 0.95rem !important;
-    font-weight: 600 !important;
-    color: white !important;
-  }
-
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    .header-info
-    .cartao-numero {
-    display: inline !important;
-    font-size: 0.8rem !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-  }
-
-  /* Mostrar período no header mobile */
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    .fatura-periodo {
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-left {
     display: flex !important;
     align-items: center !important;
-    gap: 0.35rem !important;
-    font-size: 0.85rem !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    background: rgba(0, 0, 0, 0.15) !important;
-    padding: 0.25rem 0.6rem !important;
-    border-radius: 6px !important;
+    gap: 0.75rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-brand {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.1rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.15rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-cartao-nome {
+    font-size: 0.95rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-cartao-numero {
+    font-size: 0.75rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-right {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-right::before {
+    display: none !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .header-periodo {
+    display: flex !important;
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.5rem !important;
   }
 
   /* Mostrar badge de status no header mobile */
-  .parcelamentos-grid.list-view
-    .parcelamento-card
-    .parc-card-header
-    > .parc-card-badge {
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header .parc-card-badge {
     display: flex !important;
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
     padding: 0.2rem 0.5rem !important;
   }
 
@@ -3651,12 +3681,112 @@
   opacity: 0.7;
 }
 
-/* Cabeçalho do Card */
+/* Cabeçalho do Card - Design Elegante */
 .parc-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: start;
-  margin-bottom: var(--spacing-4);
+  align-items: center;
+  padding: 1.25rem;
+  border-radius: 12px 12px 0 0;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
+}
+
+/* Efeito de brilho sutil */
+.parc-card-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.parc-card-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.parc-card-header .header-brand {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.parc-card-header .header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.parc-card-header .header-cartao-nome {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.parc-card-header .header-cartao-numero {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Consolas', 'Monaco', monospace;
+  letter-spacing: 0.1em;
+}
+
+.parc-card-header .header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.parc-card-header .header-periodo {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.parc-card-header .header-periodo i {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.parc-card-header .parc-card-badge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .parc-card-title {
@@ -3880,24 +4010,105 @@
 /* ==================== EMPTY STATE ==================== */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 5rem 2rem;
+  max-width: 600px;
+  margin: 2rem auto;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: 28px;
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 30%, transparent);
+  box-shadow: var(--shadow-lg);
 }
 
 .empty-icon {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2.5rem;
   font-size: 4rem;
-  color: var(--color-card-border);
-  margin-bottom: var(--spacing-6);
+  color: white;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+  animation: float 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.empty-icon i {
+  position: relative;
+  z-index: 2;
+}
+
+.empty-icon::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
 .empty-state h3 {
-  font-size: var(--font-size-2xl);
-  color: var(--color-primary);
-  margin-bottom: var(--spacing-3);
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
 }
 
 .empty-state p {
+  font-size: 1.1rem;
   color: var(--color-text-muted);
-  margin-bottom: var(--spacing-8);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.empty-state .btn-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.empty-state .btn-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
 /* ==================== MODAL MODERNO ==================== */
@@ -4060,4 +4271,33 @@
 
 .detalhes-header {
   margin-bottom: var(--spacing-4);
+}
+
+/* ==================== ACCESSIBILITY - FOCUS VISIBLE ==================== */
+.view-btn:focus-visible,
+.parc-btn:focus-visible,
+.btn-filter-apply:focus-visible,
+.btn-filter-clear:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ==================== TOUCH TARGETS ==================== */
+@media (pointer: coarse) {
+  .view-btn,
+  .parc-btn,
+  .btn-filter-apply,
+  .btn-filter-clear {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions .parc-btn {
+    min-height: 44px;
+    padding: 0.75rem 1.25rem;
+  }
 }

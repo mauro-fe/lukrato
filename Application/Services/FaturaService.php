@@ -40,7 +40,7 @@ class FaturaService
     ): array {
         try {
             $query = Fatura::where('user_id', $usuarioId)
-                ->with(['cartaoCredito']);
+                ->with(['cartaoCredito.conta']);
 
             // Carregar itens - se tiver filtro de mês/ano, carregar apenas itens desse período
             if ($mes && $ano) {
@@ -1246,11 +1246,17 @@ class FaturaService
      */
     private function formatarCartao(CartaoCredito $cartao): array
     {
+        // Cor: prioridade para cor_cartao, depois cor da instituição financeira
+        $cor = $cartao->cor_cartao 
+            ?? $cartao->conta?->instituicaoFinanceira?->cor_primaria 
+            ?? null;
+        
         return [
             'id' => $cartao->id,
             'nome' => $cartao->nome_cartao ?? $cartao->bandeira,
             'bandeira' => $cartao->bandeira,
             'ultimos_digitos' => $cartao->ultimos_digitos ?? '',
+            'cor_cartao' => $cor,
         ];
     }
 

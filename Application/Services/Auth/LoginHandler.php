@@ -36,12 +36,20 @@ class LoginHandler implements AuthHandlerInterface
     public function handle(CredentialsDTO $credentials, bool $remember = false): array
     {
         try {
+            LogService::info('[LOGIN_HANDLER DEBUG] Início handle', ['email' => $credentials->email]);
+            
             $this->validationStrategy->validate($credentials);
+            LogService::info('[LOGIN_HANDLER DEBUG] Validação OK');
 
             $user = Usuario::authenticate(
                 $credentials->email,
                 $credentials->password
             );
+
+            LogService::info('[LOGIN_HANDLER DEBUG] Usuario::authenticate retornou', [
+                'user_found' => $user !== null,
+                'user_id' => $user ? $user->id : null
+            ]);
 
             if (!$user) {
                 throw new ValidationException(
@@ -50,6 +58,7 @@ class LoginHandler implements AuthHandlerInterface
                 );
             }
 
+            LogService::info('[LOGIN_HANDLER DEBUG] Criando sessão');
             $this->sessionManager->createSession($user, $remember);
 
             LogService::info('Login success', [
@@ -62,7 +71,12 @@ class LoginHandler implements AuthHandlerInterface
                 'redirect' => Helpers::baseUrl('dashboard')
             ];
         } catch (Throwable $e) {
-            LogService::error('Login failed', ['error' => $e->getMessage()]);
+            LogService::error('[LOGIN_HANDLER DEBUG] Exception', [
+                'type' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             throw $e;
         }
     }

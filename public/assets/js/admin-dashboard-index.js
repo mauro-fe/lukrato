@@ -882,7 +882,7 @@
 
             // Fallback: fetch directly from API
             try {
-                const data = await API.fetch(`${CONFIG.API_URL}plan-limits`);
+                const data = await API.fetch(`${CONFIG.API_URL}plan/limits`);
                 Provisao.isProUser = data?.is_pro === true;
             } catch {
                 try {

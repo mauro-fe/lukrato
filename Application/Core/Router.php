@@ -76,13 +76,16 @@ class Router
 
         foreach ($middlewareNames as $name) {
             if (!isset($registry[$name])) {
-                throw new \Exception("Middleware '{$name}' n├úo est├í registrado.");
+                throw new \Exception("Middleware '{$name}' não está registrado.");
             }
 
             $middlewareClass = $registry[$name];
 
             if ($name === 'ratelimit') {
-                (new $middlewareClass(new CacheService()))->handle($request);
+                $identifier = $request->ip() ?? 'unknown';
+                (new $middlewareClass(new CacheService()))->handle($request, $identifier);
+            } elseif ($name === 'sysadmin') {
+                (new $middlewareClass())->handle($request);
             } else {
                 $middlewareClass::handle($request);
             }

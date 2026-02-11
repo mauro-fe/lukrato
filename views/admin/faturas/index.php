@@ -140,6 +140,15 @@
     </div>
 
     <!-- ==================== LISTA DE FATURAS ==================== -->
+    <!-- Headers da lista (visível apenas em modo lista) -->
+    <div id="faturasListHeader" class="faturas-list-header">
+        <span></span>
+        <span>Cartão</span>
+        <span>Valor</span>
+        <span>Progresso</span>
+        <span>Status</span>
+        <span>Ações</span>
+    </div>
     <div id="parcelamentosContainer" class="parcelamentos-grid" data-aos="fade-up" data-aos-delay="200">
         <!-- Cards serão inseridos aqui via JS -->
     </div>
@@ -150,7 +159,11 @@
             <i class="fas fa-credit-card"></i>
         </div>
         <h3>Nenhuma fatura encontrada</h3>
-        <p>Suas faturas de cartão aparecerão aqui quando você fizer compras parceladas</p>
+        <p>Suas faturas de cartão aparecerão aqui automaticamente quando você cadastrar compras parceladas</p>
+        <a href="<?= BASE_URL ?>lancamentos" class="btn-cta">
+            <i class="fas fa-plus"></i>
+            Criar Lançamento Parcelado
+        </a>
     </div>
 </section>
 <?php include __DIR__ . '/../partials/modals/modal-detalhes-faturas.php'; ?>

@@ -330,30 +330,44 @@
         createCardHTML({ parc, statusBadge, mes, ano, itensPendentes, itensPagos, totalItens, progresso }) {
             const cartaoInfo = this.getCartaoInfo(parc);
             const resumoPrincipal = this.getResumoPrincipal(parc);
-            const itensInfo = this.getItensInfo(itensPendentes, itensPagos);
             const progressoSection = this.getProgressoSection(totalItens, itensPagos, progresso);
             
-            // Nome do cartão para exibir na lista
+            // Nome e número do cartão para exibir na lista
             const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartão') : 'Cartão';
+            const cartaoNumero = parc.cartao?.ultimos_digitos ? `•••• ${parc.cartao.ultimos_digitos}` : '';
+            
+            // Cor do cartão (definida pelo usuário, instituição ou bandeira)
+            const cardColor = this.getCardColor(parc.cartao);
+            const bandeira = parc.cartao?.bandeira?.toLowerCase() || 'outros';
+            const bandeiraIcon = this.getBandeiraIcon(bandeira);
 
             return `
-                <div class="parc-card-header">
-                    <div class="header-info">
-                        <div class="cartao-info">${cartaoInfo}</div>
-                        <div class="fatura-periodo">
-                            <i class="fas fa-calendar-alt"></i>
-                            ${mes}/${ano}
+                <div class="parc-card-header" style="background: ${cardColor};">
+                    <div class="header-left">
+                        <div class="header-brand">
+                            ${bandeiraIcon}
+                        </div>
+                        <div class="header-info">
+                            <span class="header-cartao-nome">${Utils.escapeHtml(cartaoNome)}</span>
+                            <span class="header-cartao-numero">${cartaoNumero || ''}</span>
                         </div>
                     </div>
-                    ${statusBadge}
+                    <div class="header-right">
+                        <div class="header-periodo">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>${mes}/${ano}</span>
+                        </div>
+                        ${statusBadge}
+                    </div>
                 </div>
                 <div class="fatura-list-info">
                     <span class="list-cartao-nome">${Utils.escapeHtml(cartaoNome)}</span>
                     <span class="list-periodo">${mes}/${ano}</span>
+                    ${cartaoNumero ? `<span class="list-cartao-numero">${cartaoNumero}</span>` : ''}
                 </div>
                 <div class="fatura-resumo-principal">${resumoPrincipal}</div>
-                ${itensInfo}
                 ${progressoSection}
+                <div class="fatura-status-col">${statusBadge}</div>
                 <div class="parc-card-actions">
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
                         <i class="fas fa-eye"></i>
@@ -366,6 +380,41 @@
         extrairMesAno(descricao) {
             const match = descricao.match(/(\d+)\/(\d+)/);
             return match ? [match[1], match[2]] : ['', ''];
+        },
+
+        getCardColor(cartao) {
+            // Usar cor_cartao definida pelo usuário, ou cor da instituição, ou cor da bandeira
+            if (cartao?.cor_cartao) {
+                return cartao.cor_cartao;
+            }
+            if (cartao?.conta?.instituicao_financeira?.cor_primaria) {
+                return cartao.conta.instituicao_financeira.cor_primaria;
+            }
+            // Cores padrão por bandeira
+            const colors = {
+                'visa': 'linear-gradient(135deg, #1A1F71 0%, #2D3A8C 100%)',
+                'mastercard': 'linear-gradient(135deg, #EB001B 0%, #F79E1B 100%)',
+                'elo': 'linear-gradient(135deg, #FFCB05 0%, #FFE600 100%)',
+                'amex': 'linear-gradient(135deg, #006FCF 0%, #0099CC 100%)',
+                'diners': 'linear-gradient(135deg, #0079BE 0%, #00558C 100%)',
+                'discover': 'linear-gradient(135deg, #FF6000 0%, #FF8500 100%)',
+                'hipercard': 'linear-gradient(135deg, #B11116 0%, #D32F2F 100%)'
+            };
+            return colors[cartao?.bandeira?.toLowerCase()] || 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)';
+        },
+
+        getBandeiraIcon(bandeira) {
+            const icons = {
+                'visa': '<i class="fab fa-cc-visa"></i>',
+                'mastercard': '<i class="fab fa-cc-mastercard"></i>',
+                'amex': '<i class="fab fa-cc-amex"></i>',
+                'discover': '<i class="fab fa-cc-discover"></i>',
+                'diners': '<i class="fab fa-cc-diners-club"></i>',
+                'jcb': '<i class="fab fa-cc-jcb"></i>',
+                'elo': '<i class="fas fa-credit-card"></i>',
+                'hipercard': '<i class="fas fa-credit-card"></i>'
+            };
+            return icons[bandeira] || '<i class="fas fa-credit-card"></i>';
         },
 
         getCartaoInfo(parc) {
@@ -1639,6 +1688,14 @@
             // Atualizar estado dos botões
             this.updateViewToggleState(viewButtons, savedView);
 
+            // Referência ao header da lista
+            const listHeader = document.getElementById('faturasListHeader');
+            
+            // Mostrar/ocultar header conforme view inicial
+            if (savedView === 'list' && listHeader) {
+                listHeader.classList.add('visible');
+            }
+
             // Adicionar listeners aos botões
             viewButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1646,8 +1703,10 @@
                     
                     if (view === 'list') {
                         container.classList.add('list-view');
+                        if (listHeader) listHeader.classList.add('visible');
                     } else {
                         container.classList.remove('list-view');
+                        if (listHeader) listHeader.classList.remove('visible');
                     }
                     
                     // Salvar preferência

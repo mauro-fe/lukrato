@@ -536,9 +536,95 @@
   background: var(--color-success);
 }
 
+/* Barra de limite de indicações */
+.referral-limit-bar {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.limit-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
+}
+
+.limit-bar-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.limit-bar-count {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.limit-bar-track {
+  height: 12px;
+  background: var(--glass-bg);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.limit-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+  border-radius: 6px;
+  transition: width 0.5s ease, background 0.3s ease;
+  position: relative;
+}
+
+.limit-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.limit-bar-fill.warning {
+  background: linear-gradient(90deg, var(--color-warning), #f39c12);
+}
+
+.limit-bar-fill.full {
+  background: linear-gradient(90deg, var(--color-danger), #c0392b);
+}
+
+.limit-bar-fill.full::after {
+  display: none;
+}
+
+.limit-bar-hint {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-2);
+  text-align: center;
+}
+
+.limit-bar-hint.limit-reached {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
 .referral-stats {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: var(--spacing-6);
   padding: var(--spacing-4);
   background: var(--color-bg);

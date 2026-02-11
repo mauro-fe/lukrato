@@ -76,6 +76,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <?php loadPageCss(); ?>
 
+    <!-- Proteção contra internet lenta (timeout, retry, indicadores) -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lukrato-fetch.css?v=<?= time() ?>">
+
     <!-- Enhancements por último para sobrescrever tudo -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css?v=<?= time() ?>">
 
@@ -88,6 +91,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
+    <script src="<?= BASE_URL ?>assets/js/lukrato-fetch.js?v=<?= time() ?>"></script>
     <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
 
     <!-- Sistema de Gerenciamento de Sessão -->

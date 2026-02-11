@@ -95,6 +95,8 @@ class CartoesManager {
      * Inicialização
      */
     init() {
+        console.log('🔧 CartoesManager init - baseUrl:', this.baseUrl);
+        console.log('🔧 window.BASE_URL:', window.BASE_URL);
         this.setupEventListeners();
         this.loadCartoes();
     }
@@ -239,6 +241,10 @@ class CartoesManager {
      * Carregar cartões do servidor
      */
     async loadCartoes() {
+        console.log('🔄 [DEBUG] loadCartoes() chamado');
+        console.log('🔄 [DEBUG] window.BASE_URL:', window.BASE_URL);
+        console.log('🔄 [DEBUG] URL:', `${window.BASE_URL}api/cartoes`);
+        
         const grid = document.getElementById('cartoesGrid');
         const emptyState = document.getElementById('emptyState');
 
@@ -251,21 +257,53 @@ class CartoesManager {
             `;
             emptyState.style.display = 'none';
 
-            const response = await fetch(`${window.BASE_URL}api/cartoes`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            });
+            const startTime = performance.now();
+            console.log('🔄 [DEBUG] lkFetch disponível:', !!window.lkFetch);
 
-            if (!response.ok) {
-                throw new Error('Erro ao carregar cartões');
+            // Usar lkFetch se disponível (com timeout, retry e indicadores)
+            let data;
+            if (window.lkFetch) {
+                console.log('🔄 [DEBUG] Usando lkFetch para cartões...');
+                const result = await window.lkFetch.get(`${window.BASE_URL}api/cartoes`, {
+                    timeout: 20000,      // 20 segundos
+                    maxRetries: 2,       // 2 tentativas extras
+                    showLoading: true,
+                    loadingTarget: '#cartoesContainer'
+                });
+                console.log('✅ [DEBUG] lkFetch cartões retornou:', result);
+                data = result.data;
+            } else {
+                console.log('🔄 [DEBUG] Usando fetch nativo para cartões...');
+                // Fallback para fetch simples com timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
+                const response = await fetch(`${window.BASE_URL}api/cartoes`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                console.log('✅ [DEBUG] fetch cartões status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar cartões');
+                }
+
+                data = await response.json();
+                console.log('✅ [DEBUG] JSON cartões parseado:', data);
             }
-
-            const data = await response.json();
+            
+            const elapsed = performance.now() - startTime;
+            console.log(`✅ [DEBUG] loadCartoes concluído em ${elapsed.toFixed(2)}ms`);
+            
             this.cartoes = Array.isArray(data) ? data : (data.data || []);
+            console.log('✅ [DEBUG] Total cartões carregados:', this.cartoes.length);
 
             // Verificar faturas pendentes
             await this.verificarFaturasPendentes();
@@ -273,17 +311,45 @@ class CartoesManager {
             this.filteredCartoes = [...this.cartoes];
 
             if (this.cartoes.length === 0) {
+                console.log('🎨 [DEBUG] Cartões vazios, limpando grid e mostrando emptyState');
+                console.log('🎨 [DEBUG] grid element:', grid);
+                console.log('🎨 [DEBUG] emptyState element:', emptyState);
                 grid.innerHTML = '';
+                console.log('🎨 [DEBUG] grid.innerHTML após limpar:', grid.innerHTML);
                 emptyState.style.display = 'block';
+                console.log('🎨 [DEBUG] emptyState.style.display:', emptyState.style.display);
             } else {
+                console.log('🔄 [DEBUG] Chamando renderCartoes()...');
                 this.renderCartoes();
+                console.log('🔄 [DEBUG] Chamando updateStats()...');
                 this.updateStats();
             }
+            console.log('✅ [DEBUG] loadCartoes() finalizado com sucesso');
 
         } catch (error) {
-            console.error('Erro ao carregar cartões:', error);
-            this.showToast('error', 'Erro ao carregar cartões');
-            grid.innerHTML = '<p class="error-message">Erro ao carregar cartões. Tente novamente.</p>';
+            console.error('❌ [DEBUG] Erro ao carregar cartões:', error);
+            console.error('❌ [DEBUG] Error name:', error.name);
+            console.error('❌ [DEBUG] Error message:', error.message);
+            console.error('❌ [DEBUG] Error stack:', error.stack);
+            
+            // Mensagem mais amigável para timeout
+            let message = 'Erro ao carregar cartões';
+            if (error.name === 'AbortError' || error.message.includes('demorou')) {
+                message = 'A conexão está lenta. Tente novamente.';
+            } else if (!navigator.onLine) {
+                message = 'Sem conexão com a internet';
+            }
+            
+            this.showToast('error', message);
+            grid.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p class="error-message">${message}</p>
+                    <button class="btn btn-primary btn-retry" onclick="window.cartoesManager.loadCartoes()">
+                        <i class="fas fa-redo"></i> Tentar novamente
+                    </button>
+                </div>
+            `;
         }
     }
 
@@ -340,23 +406,41 @@ class CartoesManager {
      */
     async carregarAlertas() {
         try {
-            const response = await fetch(`${this.baseUrl}api/cartoes/alertas`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            });
-
-            if (response.ok) {
-                const data = await response.json();
+            let data;
+            if (window.lkFetch) {
+                const result = await window.lkFetch.get(`${this.baseUrl}api/cartoes/alertas`, {
+                    timeout: 10000,
+                    maxRetries: 1,
+                    showLoading: false // Não mostrar loading global para alertas
+                });
+                data = result.data;
                 this.alertas = data.alertas || [];
-                this.renderAlertas();
             } else {
-                console.warn('Erro ao carregar alertas:', response.status);
-                this.alertas = [];
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(`${this.baseUrl}api/cartoes/alertas`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    data = await response.json();
+                    this.alertas = data.alertas || [];
+                } else {
+                    console.warn('Erro ao carregar alertas:', response.status);
+                    this.alertas = [];
+                }
             }
+            
+            this.renderAlertas();
         } catch (error) {
             console.warn('Erro ao carregar alertas:', error);
             this.alertas = [];
@@ -465,10 +549,15 @@ class CartoesManager {
      * Renderizar cartões
      */
     renderCartoes() {
+        console.log('🎨 [DEBUG] renderCartoes() iniciado');
         const grid = document.getElementById('cartoesGrid');
         const emptyState = document.getElementById('emptyState');
+        console.log('🎨 [DEBUG] cartoesGrid encontrado:', !!grid);
+        console.log('🎨 [DEBUG] emptyState encontrado:', !!emptyState);
+        console.log('🎨 [DEBUG] filteredCartoes.length:', this.filteredCartoes?.length);
 
         if (this.filteredCartoes.length === 0) {
+            console.log('🎨 [DEBUG] Renderizando empty state...');
             grid.innerHTML = '';
             emptyState.style.display = 'block';
             emptyState.querySelector('h3').textContent =
@@ -480,10 +569,13 @@ class CartoesManager {
 
         emptyState.style.display = 'none';
 
+        console.log('🎨 [DEBUG] Renderizando cards de cartões...');
         grid.innerHTML = this.filteredCartoes.map(cartao => this.createCardHTML(cartao)).join('');
+        console.log('🎨 [DEBUG] innerHTML atualizado');
 
         // Add event listeners para ações
         this.setupCardActions();
+        console.log('🎨 [DEBUG] renderCartoes() concluído');
     }
 
     /**

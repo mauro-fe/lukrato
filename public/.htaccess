@@ -19,6 +19,20 @@
 
     RewriteBase /lukrato/public/
 
+    # ==========================================
+    # GOOGLE SEARCH CONSOLE VERIFICATION
+    # ==========================================
+    # Arquivo de verificação do Google - servir diretamente
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^google[a-zA-Z0-9]+\.html$ - [NC,L]
+
+    # ==========================================
+    # BLOQUEAR ARQUIVOS DE DEBUG/TESTE EM PRODUÇÃO
+    # ==========================================
+    RewriteCond %{REMOTE_ADDR} !^127\.0\.0\.1$
+    RewriteCond %{REMOTE_ADDR} !^::1$
+    RewriteRule ^(debug-|test-|teste-) - [F,L]
+
     # Force HTTPS (descomente em produção)
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

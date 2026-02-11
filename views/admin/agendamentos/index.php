@@ -30,7 +30,7 @@
                             <span>Categoria</span>
                         </label>
                         <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
-                            <option value="">Todas as Categorias</option>
+                            <option value="">Todas as categorias</option>
                         </select>
                     </div>
 
@@ -40,7 +40,7 @@
                             <span>Conta</span>
                         </label>
                         <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
-                            <option value="">Todas as Contas</option>
+                            <option value="">Todas as contas</option>
                         </select>
                     </div>
 
