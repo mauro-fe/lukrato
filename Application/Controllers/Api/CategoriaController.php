@@ -93,6 +93,11 @@ class CategoriaController extends BaseController
     {
         $this->requireAuthApi();
 
+        // Liberar lock da sessão para permitir requisições paralelas
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         error_log("📂 [CATEGORIAS] Requisição recebida - User ID: {$this->userId}");
 
         $tipo = $this->request?->get('tipo');

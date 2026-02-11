@@ -109,6 +109,11 @@ class LancamentosController extends BaseController
             return;
         }
 
+        // Liberar lock da sessão para permitir requisições paralelas
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         if (!DB::schema()->hasTable('lancamentos')) {
             Response::success([]);
             return;

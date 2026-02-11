@@ -43,6 +43,12 @@ class CartoesController
         }
         
         $userId = Auth::id();
+        
+        // Liberar lock da sessão para permitir requisições paralelas
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+        
         $contaId = isset($_GET['conta_id']) ? (int) $_GET['conta_id'] : null;
         $apenasAtivos = (int) ($_GET['only_active'] ?? 1) === 1;
         $arquivados = (int) ($_GET['archived'] ?? 0) === 1;

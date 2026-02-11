@@ -60,6 +60,11 @@ class ContasController
             $userId = Auth::id();
             $timings['auth'] = microtime(true) - $startTime;
             
+            // Liberar lock da sessão para permitir requisições paralelas
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+            
             if ($debugMode) {
                 error_log("[CONTAS DEBUG] userId: $userId");
             }
