@@ -180,18 +180,26 @@ class ContasManager {
      * Carregar instituições financeiras
      */
     async loadInstituicoes() {
+        console.log('🔄 [DEBUG] loadInstituicoes() chamado');
+        console.log('🔄 [DEBUG] URL:', `${this.baseUrl}/instituicoes`);
+        console.log('🔄 [DEBUG] lkFetch disponível:', !!window.lkFetch);
+        
         try {
             let data;
+            const startTime = performance.now();
             
             // Usar lkFetch se disponível (com timeout e retry)
             if (window.lkFetch) {
+                console.log('🔄 [DEBUG] Usando lkFetch...');
                 const result = await window.lkFetch.get(`${this.baseUrl}/instituicoes`, {
                     timeout: 15000,
                     maxRetries: 2,
                     showLoading: false
                 });
+                console.log('✅ [DEBUG] lkFetch retornou:', result);
                 data = result.data;
             } else {
+                console.log('🔄 [DEBUG] Usando fetch nativo...');
                 // Fallback com timeout manual
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -207,12 +215,18 @@ class ContasManager {
                 });
                 
                 clearTimeout(timeoutId);
+                console.log('✅ [DEBUG] fetch retornou status:', response.status);
                 
                 if (!response.ok) throw new Error('Erro ao carregar instituições');
                 data = await response.json();
+                console.log('✅ [DEBUG] JSON parseado:', data);
             }
 
+            const elapsed = performance.now() - startTime;
+            console.log(`✅ [DEBUG] loadInstituicoes concluído em ${elapsed.toFixed(2)}ms`);
+            
             this.instituicoes = Array.isArray(data) ? data : (data.data || []);
+            console.log('✅ [DEBUG] Total instituições:', this.instituicoes.length);
 
             if (this.instituicoes.length > 0) {
                 const nubank = this.instituicoes.find(i => i.codigo === 'nubank');
@@ -223,7 +237,10 @@ class ContasManager {
 
             this.renderInstituicoesSelect();
         } catch (error) {
-            console.error('Erro ao carregar instituições:', error);
+            console.error('❌ [DEBUG] Erro ao carregar instituições:', error);
+            console.error('❌ [DEBUG] Error name:', error.name);
+            console.error('❌ [DEBUG] Error message:', error.message);
+            console.error('❌ [DEBUG] Error stack:', error.stack);
             
             // Mensagem mais amigável para timeout
             let message = 'Erro ao carregar instituições financeiras';
@@ -241,6 +258,7 @@ class ContasManager {
      * Carregar contas do usuário
      */
     async loadContas() {
+        console.log('🔄 [DEBUG] loadContas() chamado');
         const grid = document.getElementById('accountsGrid');
         
         try {
@@ -252,23 +270,31 @@ class ContasManager {
                 only_active: '1'
             });
 
+            const url = `${this.baseUrl}/contas?${params}`;
+            console.log('🔄 [DEBUG] loadContas URL:', url);
+            console.log('🔄 [DEBUG] lkFetch disponível:', !!window.lkFetch);
+
             let data;
+            const startTime = performance.now();
             
             // Usar lkFetch se disponível (com timeout, retry e indicadores)
             if (window.lkFetch) {
-                const result = await window.lkFetch.get(`${this.baseUrl}/contas?${params}`, {
+                console.log('🔄 [DEBUG] Usando lkFetch para contas...');
+                const result = await window.lkFetch.get(url, {
                     timeout: 20000,
                     maxRetries: 2,
                     showLoading: true,
                     loadingTarget: '#accountsGrid'
                 });
+                console.log('✅ [DEBUG] lkFetch contas retornou:', result);
                 data = result.data;
             } else {
+                console.log('🔄 [DEBUG] Usando fetch nativo para contas...');
                 // Fallback com timeout manual
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 20000);
                 
-                const response = await fetch(`${this.baseUrl}/contas?${params}`, {
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -279,27 +305,39 @@ class ContasManager {
                 });
                 
                 clearTimeout(timeoutId);
+                console.log('✅ [DEBUG] fetch contas status:', response.status);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Erro na resposta:', errorText);
+                    console.error('❌ [DEBUG] Erro na resposta:', errorText);
                     throw new Error(`Erro ao carregar contas: ${response.status}`);
                 }
                 
                 data = await response.json();
+                console.log('✅ [DEBUG] JSON contas parseado:', data);
             }
+
+            const elapsed = performance.now() - startTime;
+            console.log(`✅ [DEBUG] loadContas concluído em ${elapsed.toFixed(2)}ms`);
 
             // A resposta pode ser um array direto ou um objeto com data
             this.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
+            console.log('✅ [DEBUG] Total contas carregadas:', this.contas.length);
 
             if (this.contas.length > 0) {
                 // Contas carregadas
             }
 
+            console.log('🔄 [DEBUG] Chamando renderContas()...');
             this.renderContas();
+            console.log('🔄 [DEBUG] Chamando updateStats()...');
             this.updateStats();
+            console.log('✅ [DEBUG] loadContas() finalizado com sucesso');
         } catch (error) {
-            console.error('Erro ao carregar contas:', error);
+            console.error('❌ [DEBUG] Erro ao carregar contas:', error);
+            console.error('❌ [DEBUG] Error name:', error.name);
+            console.error('❌ [DEBUG] Error message:', error.message);
+            console.error('❌ [DEBUG] Error stack:', error.stack);
             
             // Mensagem mais amigável para timeout
             let message = 'Erro ao carregar contas';
