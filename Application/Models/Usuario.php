@@ -254,8 +254,28 @@ class Usuario extends Model
 
     public static function authenticate(string $email, string $password): ?self
     {
+        LogService::info('[AUTH DEBUG] Buscando usuário', ['email' => strtolower(trim($email))]);
+        
         $user = self::whereRaw('LOWER(email)=?', [trim(strtolower($email))])->first();
-        if ($user && password_verify($password, $user->senha)) return $user;
+        
+        LogService::info('[AUTH DEBUG] Usuário encontrado?', [
+            'found' => $user !== null,
+            'user_id' => $user ? $user->id : null,
+            'has_senha' => $user ? !empty($user->senha) : false,
+            'senha_len' => $user ? strlen($user->senha) : 0
+        ]);
+        
+        if ($user) {
+            $verifyResult = password_verify($password, $user->senha);
+            LogService::info('[AUTH DEBUG] password_verify resultado', [
+                'result' => $verifyResult,
+                'hash_prefix' => substr($user->senha, 0, 10) . '...'
+            ]);
+            
+            if ($verifyResult) {
+                return $user;
+            }
+        }
 
         LogService::warning('Tentativa de login inválida', ['email' => $email]);
         return null;

@@ -69,6 +69,8 @@ class LoginController extends BaseController
      */
     public function processLogin(): void
     {
+        LogService::info('[LOGIN DEBUG] Início processLogin');
+        
         if (!$this->request->isPost()) {
             LogService::warning('Login request rejected: not POST');
             $this->fail('Requisição inválida. Método esperado: POST.', 405);
@@ -76,28 +78,42 @@ class LoginController extends BaseController
         }
 
         try {
+            LogService::info('[LOGIN DEBUG] Validando CSRF');
             // Segurança
             $this->validateCsrfToken();
+            
+            LogService::info('[LOGIN DEBUG] Aplicando rate limit');
             $this->applyRateLimit();
 
             // Autenticação
             $remember = $this->request->post('remember', '0') === '1';
+            $email = $this->request->post('email', '');
+            
+            LogService::info('[LOGIN DEBUG] Tentando autenticar', ['email' => $email]);
 
             $result = $this->authService->login(
-                $this->request->post('email', ''),
+                $email,
                 $this->request->post('password', ''),
                 $remember
             );
 
+            LogService::info('[LOGIN DEBUG] Login OK, limpando tokens');
             $this->clearOldCsrfTokens();
 
+            LogService::info('[LOGIN DEBUG] Retornando sucesso');
             $this->ok([
                 'message'  => 'Login realizado com sucesso!',
                 'redirect' => $result['redirect']
             ]);
         } catch (ValidationException $e) {
+            LogService::warning('[LOGIN DEBUG] ValidationException', ['message' => $e->getMessage()]);
             $this->handleValidationException($e);
         } catch (Throwable $e) {
+            LogService::error('[LOGIN DEBUG] Throwable', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             $this->handleLoginError($e);
         }
     }
