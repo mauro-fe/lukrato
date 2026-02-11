@@ -178,23 +178,59 @@ class ContasManager {
      */
     async loadInstituicoes() {
         try {
-            const response = await fetch(`${this.baseUrl}/instituicoes`);
-            if (!response.ok) throw new Error('Erro ao carregar instituições');
+            let data;
+            
+            // Usar lkFetch se disponível (com timeout e retry)
+            if (window.lkFetch) {
+                const result = await window.lkFetch.get(`${this.baseUrl}/instituicoes`, {
+                    timeout: 15000,
+                    maxRetries: 2,
+                    showLoading: false
+                });
+                data = result.data;
+            } else {
+                // Fallback com timeout manual
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
+                const response = await fetch(`${this.baseUrl}/instituicoes`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error('Erro ao carregar instituições');
+                data = await response.json();
+            }
 
-            this.instituicoes = await response.json();
-
+            this.instituicoes = Array.isArray(data) ? data : (data.data || []);
 
             if (this.instituicoes.length > 0) {
                 const nubank = this.instituicoes.find(i => i.codigo === 'nubank');
                 if (nubank) {
-
+                    // Nubank encontrado
                 }
             }
 
             this.renderInstituicoesSelect();
         } catch (error) {
             console.error('Erro ao carregar instituições:', error);
-            this.showToast('Erro ao carregar instituições financeiras', 'error');
+            
+            // Mensagem mais amigável para timeout
+            let message = 'Erro ao carregar instituições financeiras';
+            if (error.name === 'AbortError' || error.message?.includes('demorou')) {
+                message = 'A conexão está lenta. Tente novamente.';
+            } else if (!navigator.onLine) {
+                message = 'Sem conexão com a internet';
+            }
+            
+            this.showToast(message, 'error');
         }
     }
 
@@ -202,6 +238,8 @@ class ContasManager {
      * Carregar contas do usuário
      */
     async loadContas() {
+        const grid = document.getElementById('accountsGrid');
+        
         try {
             this.showLoading(true);
 
@@ -211,27 +249,77 @@ class ContasManager {
                 only_active: '1'
             });
 
-            const response = await fetch(`${this.baseUrl}/contas?${params}`);
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro na resposta:', errorText);
-                throw new Error(`Erro ao carregar contas: ${response.status}`);
+            let data;
+            
+            // Usar lkFetch se disponível (com timeout, retry e indicadores)
+            if (window.lkFetch) {
+                const result = await window.lkFetch.get(`${this.baseUrl}/contas?${params}`, {
+                    timeout: 20000,
+                    maxRetries: 2,
+                    showLoading: true,
+                    loadingTarget: '#accountsGrid'
+                });
+                data = result.data;
+            } else {
+                // Fallback com timeout manual
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
+                
+                const response = await fetch(`${this.baseUrl}/contas?${params}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Erro na resposta:', errorText);
+                    throw new Error(`Erro ao carregar contas: ${response.status}`);
+                }
+                
+                data = await response.json();
             }
-
-            const data = await response.json();
 
             // A resposta pode ser um array direto ou um objeto com data
             this.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
 
             if (this.contas.length > 0) {
-
+                // Contas carregadas
             }
 
             this.renderContas();
             this.updateStats();
         } catch (error) {
             console.error('Erro ao carregar contas:', error);
-            this.showToast('Erro ao carregar contas', 'error');
+            
+            // Mensagem mais amigável para timeout
+            let message = 'Erro ao carregar contas';
+            if (error.name === 'AbortError' || error.message?.includes('demorou')) {
+                message = 'A conexão está lenta. Tente novamente.';
+            } else if (!navigator.onLine) {
+                message = 'Sem conexão com a internet';
+            }
+            
+            this.showToast(message, 'error');
+            
+            // Mostrar estado de erro com botão de retry
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p class="error-message">${message}</p>
+                        <button class="btn btn-primary btn-retry" onclick="window.contasManager.loadContas()">
+                            <i class="fas fa-redo"></i> Tentar novamente
+                        </button>
+                    </div>
+                `;
+            }
         } finally {
             this.showLoading(false);
         }
