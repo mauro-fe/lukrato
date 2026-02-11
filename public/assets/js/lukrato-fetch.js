@@ -194,6 +194,10 @@ class LukratoFetch {
                 clearTimeout(timeoutId);
                 lastError = error;
 
+                console.error(`🌐 [LukratoFetch] ERRO na tentativa ${attempt + 1}:`, error);
+                console.error(`🌐 [LukratoFetch] Error name: ${error.name}`);
+                console.error(`🌐 [LukratoFetch] Error message: ${error.message}`);
+
                 // Se foi cancelado por timeout
                 if (error.name === 'AbortError') {
                     console.warn(`[LukratoFetch] Timeout na tentativa ${attempt + 1}/${maxRetries + 1}: ${url}`);

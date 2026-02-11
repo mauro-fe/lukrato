@@ -311,8 +311,13 @@ class CartoesManager {
             this.filteredCartoes = [...this.cartoes];
 
             if (this.cartoes.length === 0) {
+                console.log('🎨 [DEBUG] Cartões vazios, limpando grid e mostrando emptyState');
+                console.log('🎨 [DEBUG] grid element:', grid);
+                console.log('🎨 [DEBUG] emptyState element:', emptyState);
                 grid.innerHTML = '';
+                console.log('🎨 [DEBUG] grid.innerHTML após limpar:', grid.innerHTML);
                 emptyState.style.display = 'block';
+                console.log('🎨 [DEBUG] emptyState.style.display:', emptyState.style.display);
             } else {
                 console.log('🔄 [DEBUG] Chamando renderCartoes()...');
                 this.renderCartoes();
