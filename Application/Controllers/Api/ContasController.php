@@ -49,13 +49,31 @@ class ContasController
             return;
         }
         
+        // Debug timing
+        $startTime = microtime(true);
+        $debugMode = isset($_GET['debug']) && $_GET['debug'] === '1';
+        $timings = [];
+        
         try {
+            $timings['start'] = microtime(true) - $startTime;
+            
             $userId = Auth::id();
+            $timings['auth'] = microtime(true) - $startTime;
+            
+            if ($debugMode) {
+                error_log("[CONTAS DEBUG] userId: $userId");
+            }
 
             $archived = (int) ($_GET['archived'] ?? 0) === 1;
             $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
             $withBalances = (int) ($_GET['with_balances'] ?? 0) === 1;
             $month = trim((string) ($_GET['month'] ?? date('Y-m')));
+            
+            $timings['params'] = microtime(true) - $startTime;
+            
+            if ($debugMode) {
+                error_log("[CONTAS DEBUG] params: archived=$archived, onlyActive=$onlyActive, withBalances=$withBalances, month=$month");
+            }
 
             $contas = $this->service->listarContas(
                 userId: $userId,
@@ -64,6 +82,13 @@ class ContasController
                 comSaldos: $withBalances,
                 mes: $month
             );
+            
+            $timings['service'] = microtime(true) - $startTime;
+            
+            if ($debugMode) {
+                error_log("[CONTAS DEBUG] contas count: " . count($contas));
+                error_log("[CONTAS DEBUG] timings: " . json_encode($timings));
+            }
 
             Response::json($contas);
         } catch (\Throwable $e) {

@@ -23,6 +23,9 @@ class ContaService
         bool $comSaldos = false,
         string $mes = null
     ): array {
+        $startTime = microtime(true);
+        error_log("[ContaService] listarContas START - userId: $userId, comSaldos: " . ($comSaldos ? 'true' : 'false'));
+        
         $query = Conta::forUser($userId)->with('instituicaoFinanceira');
 
         if ($arquivadas) {
@@ -32,10 +35,13 @@ class ContaService
         }
 
         $contas = $query->orderBy('created_at', 'desc')->get();
+        error_log("[ContaService] Query executed in " . round((microtime(true) - $startTime) * 1000, 2) . "ms, count: " . $contas->count());
 
         if ($comSaldos && $contas->count() > 0) {
             $mes = $mes ?? date('Y-m');
+            error_log("[ContaService] Calculating saldos for month: $mes");
             $saldos = $this->calcularSaldos($userId, $contas->pluck('id')->all(), $mes);
+            error_log("[ContaService] Saldos calculated in " . round((microtime(true) - $startTime) * 1000, 2) . "ms");
 
             return $contas->map(function ($conta) use ($saldos) {
                 $saldo = $saldos[$conta->id] ?? null;
@@ -43,6 +49,7 @@ class ContaService
             })->all();
         }
 
+        error_log("[ContaService] listarContas END - total time: " . round((microtime(true) - $startTime) * 1000, 2) . "ms");
         return $contas->toArray();
     }
 
