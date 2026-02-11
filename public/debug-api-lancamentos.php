@@ -1,4 +1,17 @@
 <?php
+/**
+ * ARQUIVO DE DEBUG - SOMENTE DESENVOLVIMENTO
+ * Bloqueado em produção por motivos de segurança
+ */
+
+// Bloqueia acesso em produção
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' || !in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'])) {
+    http_response_code(404);
+    header('Content-Type: text/html');
+    echo '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>Not Found</h1></body></html>';
+    exit;
+}
+
 require_once __DIR__ . '/../bootstrap.php';
 
 use Application\Lib\Auth;

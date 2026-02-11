@@ -12,15 +12,15 @@ use Application\Core\Router;
 
 // Login
 Router::add('GET',  '/login',        'Auth\\LoginController@login');
-Router::add('POST', '/login/entrar', 'Auth\\LoginController@processLogin');
+Router::add('POST', '/login/entrar', 'Auth\\LoginController@processLogin', ['csrf', 'ratelimit']);
 Router::add('GET',  '/logout',       'Auth\\LoginController@logout');
 
-// Cadastro
-Router::add('POST', '/register/criar', 'Auth\\RegistroController@store');
+// Cadastro - Proteção contra bots e CSRF
+Router::add('POST', '/register/criar', 'Auth\\RegistroController@store', ['csrf', 'ratelimit']);
 
 // Verificação de email
 Router::add('GET',  '/verificar-email',          'Auth\\EmailVerificationController@verify');
-Router::add('POST', '/verificar-email/reenviar', 'Auth\\EmailVerificationController@resend');
+Router::add('POST', '/verificar-email/reenviar', 'Auth\\EmailVerificationController@resend', ['csrf', 'ratelimit']);
 Router::add('GET',  '/verificar-email/aviso',    'Auth\\EmailVerificationController@notice');
 
 // Login com Google
@@ -31,11 +31,11 @@ Router::add('GET', '/auth/google/confirm-page', 'Auth\\GoogleCallbackController@
 Router::add('GET', '/auth/google/confirm',      'Auth\\GoogleCallbackController@confirm');
 Router::add('GET', '/auth/google/cancel',       'Auth\\GoogleCallbackController@cancel');
 
-// Recuperação de senha
+// Recuperação de senha - Proteção contra enumerar emails e spam
 Router::add('GET',  '/recuperar-senha', 'Auth\\ForgotPasswordController@showRequestForm');
-Router::add('POST', '/recuperar-senha', 'Auth\\ForgotPasswordController@sendResetLink');
+Router::add('POST', '/recuperar-senha', 'Auth\\ForgotPasswordController@sendResetLink', ['csrf', 'ratelimit']);
 Router::add('GET',  '/resetar-senha',   'Auth\\ForgotPasswordController@showResetForm');
-Router::add('POST', '/resetar-senha',   'Auth\\ForgotPasswordController@resetPassword');
+Router::add('POST', '/resetar-senha',   'Auth\\ForgotPasswordController@resetPassword', ['csrf', 'ratelimit']);
 
 // Exclusão de conta
 Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete', ['auth', 'csrf']);

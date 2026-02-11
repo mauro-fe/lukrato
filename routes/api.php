@@ -27,11 +27,11 @@ Router::add('POST', '/api/session/renew',     'Api\\SessionController@renew');
 Router::add('POST', '/api/session/heartbeat', 'Api\\SessionController@heartbeat', ['auth']);
 
 // ============================================
-// CONTATO / SUPORTE (Público)
+// CONTATO / SUPORTE (Público) - Rate limiting para evitar spam
 // ============================================
 
-Router::add('POST', '/api/contato/enviar', 'Api\\ContactController@send');
-Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send');
+Router::add('POST', '/api/contato/enviar', 'Api\\ContactController@send', ['ratelimit']);
+Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send', ['ratelimit']);
 
 // ============================================
 // PERFIL
@@ -199,15 +199,15 @@ Router::add('GET',  '/premium/pending-payment', 'PremiumController@getPendingPay
 Router::add('POST', '/premium/cancel-pending', 'PremiumController@cancelPendingPayment', ['auth', 'csrf']);
 
 // ============================================
-// CUPONS DE DESCONTO
+// CUPONS DE DESCONTO (CRUD: SysAdmin | Validar: Usuários)
 // ============================================
 
-Router::add('GET',    '/api/cupons',           'SysAdmin\\CupomController@index',        ['auth']);
-Router::add('POST',   '/api/cupons',           'SysAdmin\\CupomController@store',        ['auth', 'csrf']);
-Router::add('PUT',    '/api/cupons',           'SysAdmin\\CupomController@update',       ['auth', 'csrf']);
-Router::add('DELETE', '/api/cupons',           'SysAdmin\\CupomController@destroy',      ['auth', 'csrf']);
-Router::add('GET',    '/api/cupons/validar',   'SysAdmin\\CupomController@validar',      ['auth']);
-Router::add('GET',    '/api/cupons/estatisticas', 'SysAdmin\\CupomController@estatisticas', ['auth']);
+Router::add('GET',    '/api/cupons',              'SysAdmin\\CupomController@index',        ['auth', 'sysadmin']);
+Router::add('POST',   '/api/cupons',              'SysAdmin\\CupomController@store',        ['auth', 'sysadmin', 'csrf']);
+Router::add('PUT',    '/api/cupons',              'SysAdmin\\CupomController@update',       ['auth', 'sysadmin', 'csrf']);
+Router::add('DELETE', '/api/cupons',              'SysAdmin\\CupomController@destroy',      ['auth', 'sysadmin', 'csrf']);
+Router::add('GET',    '/api/cupons/validar',      'SysAdmin\\CupomController@validar',      ['auth']);  // Usuários validam no checkout
+Router::add('GET',    '/api/cupons/estatisticas', 'SysAdmin\\CupomController@estatisticas', ['auth', 'sysadmin']);
 
 // ============================================
 // FATURAS DE CARTÃO (REST)
@@ -230,29 +230,29 @@ Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\FaturasController
 Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController@store',       ['auth', 'csrf']);
 
 // ============================================
-// SYSADMIN
+// SYSADMIN - Acesso restrito a administradores
 // ============================================
 
-Router::add('GET', '/api/sysadmin/users', 'Api\\SysAdminController@listUsers', ['auth']);
-Router::add('GET', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@getUser', ['auth']);
-Router::add('PUT', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@updateUser', ['auth', 'csrf']);
-Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@deleteUser', ['auth', 'csrf']);
-Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'csrf']);
-Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'csrf']);
-Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth']);
+Router::add('GET', '/api/sysadmin/users', 'Api\\SysAdminController@listUsers', ['auth', 'sysadmin']);
+Router::add('GET', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@getUser', ['auth', 'sysadmin']);
+Router::add('PUT', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@updateUser', ['auth', 'sysadmin', 'csrf']);
+Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@deleteUser', ['auth', 'sysadmin', 'csrf']);
+Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'sysadmin', 'csrf']);
+Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'sysadmin', 'csrf']);
+Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth', 'sysadmin']);
 
 // ============================================
 // CAMPANHAS DE MENSAGENS (SYSADMIN)
 // ============================================
 
-Router::add('GET',  '/api/campaigns',          'Api\\CampaignController@index',   ['auth']);
-Router::add('POST', '/api/campaigns',          'Api\\CampaignController@store',   ['auth', 'csrf']);
-Router::add('GET',  '/api/campaigns/preview',  'Api\\CampaignController@preview', ['auth']);
-Router::add('GET',  '/api/campaigns/stats',    'Api\\CampaignController@stats',   ['auth']);
-Router::add('GET',  '/api/campaigns/options',  'Api\\CampaignController@options', ['auth']);
-Router::add('GET',  '/api/campaigns/birthdays',      'Api\\CampaignController@birthdays',    ['auth']);
-Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\CampaignController@sendBirthdays', ['auth', 'csrf']);
-Router::add('GET',  '/api/campaigns/{id}',     'Api\\CampaignController@show',    ['auth']);
+Router::add('GET',  '/api/campaigns',                'Api\\CampaignController@index',        ['auth', 'sysadmin']);
+Router::add('POST', '/api/campaigns',                'Api\\CampaignController@store',        ['auth', 'sysadmin', 'csrf']);
+Router::add('GET',  '/api/campaigns/preview',        'Api\\CampaignController@preview',      ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns/stats',          'Api\\CampaignController@stats',        ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns/options',        'Api\\CampaignController@options',      ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns/birthdays',      'Api\\CampaignController@birthdays',    ['auth', 'sysadmin']);
+Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\CampaignController@sendBirthdays', ['auth', 'sysadmin', 'csrf']);
+Router::add('GET',  '/api/campaigns/{id}',           'Api\\CampaignController@show',         ['auth', 'sysadmin']);
 
 // ============================================
 // NOTIFICAÇÕES (USUÁRIO)

@@ -293,6 +293,12 @@ class ReferralService
                 ];
             });
 
+        // Informações de limite mensal (anti-fraude)
+        $antifraudService = new ReferralAntifraudService();
+        $indicacoesMes = $antifraudService->countMonthlyReferrals($user->id);
+        $limiteMenusal = ReferralAntifraudService::MAX_REFERRALS_PER_MONTH;
+        $indicacoesRestantes = max(0, $limiteMenusal - $indicacoesMes);
+
         return [
             'referral_code' => $user->referral_code,
             'referral_link' => $this->getReferralLink($user),
@@ -301,6 +307,10 @@ class ReferralService
             'indicacoes_pendentes' => $indicacoesPendentes,
             'dias_ganhos' => $diasGanhos,
             'ultimas_indicacoes' => $ultimasIndicacoes,
+            // Limites anti-fraude
+            'indicacoes_mes' => $indicacoesMes,
+            'limite_mensal' => $limiteMenusal,
+            'indicacoes_restantes' => $indicacoesRestantes,
         ];
     }
 

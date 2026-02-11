@@ -184,7 +184,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
         if (metaToken) return metaToken;
 
         // Tentar pegar da sessão
-        const sessionToken = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+        const sessionToken = '<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>';
         if (sessionToken) return sessionToken;
 
         console.warn('CSRF Token não encontrado!');

@@ -9,4 +9,5 @@ return [
     'auth' => AuthMiddleware::class,
     'csrf' => CsrfMiddleware::class,
     'ratelimit' => RateLimitMiddleware::class,
+    'sysadmin' => SysadminMiddleware::class,
 ];

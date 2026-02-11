@@ -266,10 +266,22 @@
                 </div>
             </div>
 
+            <!-- Barra de limite mensal -->
+            <div class="referral-limit-bar" id="referral-limit-bar">
+                <div class="limit-bar-header">
+                    <span class="limit-bar-title">Indicações este mês</span>
+                    <span class="limit-bar-count"><span id="limit-current">0</span> / <span id="limit-max">5</span></span>
+                </div>
+                <div class="limit-bar-track">
+                    <div class="limit-bar-fill" id="limit-bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="limit-bar-hint" id="limit-bar-hint">Você pode indicar mais 5 amigos este mês</span>
+            </div>
+
             <div class="referral-stats" id="referral-stats">
                 <div class="stat-item">
                     <span class="stat-value" id="stat-total">-</span>
-                    <span class="stat-label">Indicações</span>
+                    <span class="stat-label">Total</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value" id="stat-completed">-</span>
@@ -532,6 +544,7 @@
                                 <li>Plano PRO (será cancelado automaticamente)</li>
                             </ul>
                             <p style="color: #e74c3c; font-weight: bold; margin-top: 1rem;">⚠️ Não será possível recuperar estes dados!</p>
+                            <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1rem;">📋 Após a exclusão, você precisará aguardar <strong>90 dias</strong> para criar uma nova conta com o mesmo email.</p>
                         </div>
                     `,
                     icon: 'warning',
@@ -648,6 +661,47 @@
                 document.getElementById('stat-total').textContent = stats.total_indicacoes || 0;
                 document.getElementById('stat-completed').textContent = stats.indicacoes_completadas || 0;
                 document.getElementById('stat-days').textContent = stats.dias_ganhos || 0;
+                
+                // Atualiza barra de limite mensal
+                const current = stats.indicacoes_mes || 0;
+                const max = stats.limite_mensal || 5;
+                const remaining = stats.indicacoes_restantes ?? max;
+                const percentage = Math.min((current / max) * 100, 100);
+                
+                document.getElementById('limit-current').textContent = current;
+                document.getElementById('limit-max').textContent = max;
+                
+                const barFill = document.getElementById('limit-bar-fill');
+                const barHint = document.getElementById('limit-bar-hint');
+                const limitBar = document.getElementById('referral-limit-bar');
+                
+                if (barFill) {
+                    barFill.style.width = percentage + '%';
+                    
+                    // Muda cor conforme enche
+                    if (percentage >= 100) {
+                        barFill.classList.add('full');
+                        barFill.classList.remove('warning');
+                    } else if (percentage >= 80) {
+                        barFill.classList.add('warning');
+                        barFill.classList.remove('full');
+                    } else {
+                        barFill.classList.remove('warning', 'full');
+                    }
+                }
+                
+                if (barHint) {
+                    if (remaining === 0) {
+                        barHint.textContent = '🔒 Limite atingido! Renova no próximo mês';
+                        barHint.classList.add('limit-reached');
+                    } else if (remaining === 1) {
+                        barHint.textContent = '⚡ Última indicação disponível este mês';
+                        barHint.classList.remove('limit-reached');
+                    } else {
+                        barHint.textContent = `Você pode indicar mais ${remaining} amigos este mês`;
+                        barHint.classList.remove('limit-reached');
+                    }
+                }
             }
         } catch (err) {
             console.error('Erro ao carregar estatísticas de indicação:', err);

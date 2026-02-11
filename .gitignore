@@ -11,6 +11,7 @@ node_modules/
 
 
 *client_secret*.json
+config/google_credentials.json
 
 # Database config (example)
 DB_HOST=localhost
