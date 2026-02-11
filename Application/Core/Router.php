@@ -84,6 +84,8 @@ class Router
             if ($name === 'ratelimit') {
                 $identifier = $request->ip() ?? 'unknown';
                 (new $middlewareClass(new CacheService()))->handle($request, $identifier);
+            } elseif ($name === 'sysadmin') {
+                (new $middlewareClass())->handle($request);
             } else {
                 $middlewareClass::handle($request);
             }
