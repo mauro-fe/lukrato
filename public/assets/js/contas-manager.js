@@ -115,6 +115,32 @@ class ContasManager {
         await this.loadInstituicoes();
         await this.loadContas();
         this.attachEventListeners();
+        this.initKeyboardShortcuts();
+    }
+
+    /**
+     * Inicializar atalhos de teclado
+     */
+    initKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ignorar se estiver em input ou modal aberto
+            const activeEl = document.activeElement;
+            const isInputFocused = activeEl && (
+                activeEl.tagName === 'INPUT' ||
+                activeEl.tagName === 'TEXTAREA' ||
+                activeEl.tagName === 'SELECT' ||
+                activeEl.isContentEditable
+            );
+            const isModalOpen = document.querySelector('.modal.show, .modal-overlay.active');
+
+            if (isInputFocused || isModalOpen) return;
+
+            // N = Nova conta
+            if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                this.openModal('create');
+            }
+        });
     }
 
     getCurrentMonth() {
@@ -260,6 +286,11 @@ class ContasManager {
         let saldo = conta.saldo_atual || conta.saldoAtual || 0;
         if (Math.abs(saldo) < 0.01) saldo = 0;
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
+        
+        // Badge do tipo de conta para list view
+        const tipoConta = conta.tipo_conta || conta.tipo || 'conta_corrente';
+        const tipoLabel = this.formatTipoConta(tipoConta);
+        const tipoClass = this.getTipoContaClass(tipoConta);
 
         return `
             <div class="account-card" data-account-id="${conta.id}">
@@ -288,6 +319,7 @@ class ContasManager {
                 <div class="account-body">
                     <h3 class="account-name">${conta.nome}</h3>
                     <div class="account-institution">${instituicao ? instituicao.nome : 'Instituição não definida'}</div>
+                    <span class="account-type-badge ${tipoClass}">${tipoLabel}</span>
                     <div class="account-balance ${saldoClass}">
                         ${this.formatCurrency(saldo)}
                     </div>
@@ -298,8 +330,44 @@ class ContasManager {
                     </div>
                     ${this.renderCartoesBadge(conta)}
                 </div>
+                <div class="account-list-actions">
+                    <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais opções">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
             </div>
         `;
+    }
+
+    /**
+     * Formatar label do tipo de conta
+     */
+    formatTipoConta(tipo) {
+        const labels = {
+            'conta_corrente': 'Corrente',
+            'conta_poupanca': 'Poupança',
+            'conta_investimento': 'Investimento',
+            'carteira_digital': 'Carteira',
+            'dinheiro': 'Dinheiro'
+        };
+        return labels[tipo] || 'Conta';
+    }
+
+    /**
+     * Obter classe CSS do tipo de conta
+     */
+    getTipoContaClass(tipo) {
+        const classes = {
+            'conta_corrente': 'tipo-corrente',
+            'conta_poupanca': 'tipo-poupanca',
+            'conta_investimento': 'tipo-investimento',
+            'carteira_digital': 'tipo-carteira',
+            'dinheiro': 'tipo-carteira'
+        };
+        return classes[tipo] || 'tipo-corrente';
     }
 
     /**
@@ -1200,6 +1268,7 @@ class ContasManager {
     initViewToggle() {
         const viewToggle = document.querySelector('.view-toggle');
         const accountsGrid = document.getElementById('accountsGrid');
+        const listHeader = document.getElementById('contasListHeader');
 
         if (!viewToggle || !accountsGrid) return;
 
@@ -1209,6 +1278,7 @@ class ContasManager {
         const savedView = localStorage.getItem('contas_view_mode') || 'grid';
         if (savedView === 'list') {
             accountsGrid.classList.add('list-view');
+            if (listHeader) listHeader.classList.add('visible');
         }
 
         // Atualizar estado dos botões
@@ -1223,8 +1293,10 @@ class ContasManager {
 
                 if (view === 'list') {
                     accountsGrid.classList.add('list-view');
+                    if (listHeader) listHeader.classList.add('visible');
                 } else {
                     accountsGrid.classList.remove('list-view');
+                    if (listHeader) listHeader.classList.remove('visible');
                 }
 
                 // Salvar preferência

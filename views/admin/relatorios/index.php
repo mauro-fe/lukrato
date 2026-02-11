@@ -8,7 +8,7 @@
 
     <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->
     <div class="quick-stats-grid">
-        <div class="stat-card stat-receitas">
+        <div class="stat-card stat-receitas" title="Total de entradas financeiras registradas neste mês" tabindex="0">
             <div class="stat-icon">
                 <i class="fas fa-arrow-trend-up"></i>
             </div>
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <div class="stat-card stat-despesas">
+        <div class="stat-card stat-despesas" title="Total de saídas e gastos registrados neste mês" tabindex="0">
             <div class="stat-icon">
                 <i class="fas fa-arrow-trend-down"></i>
             </div>
@@ -30,7 +30,7 @@
             </div>
         </div>
 
-        <div class="stat-card stat-saldo">
+        <div class="stat-card stat-saldo" title="Diferença entre receitas e despesas (receitas - despesas)" tabindex="0">
             <div class="stat-icon">
                 <i class="fas fa-wallet"></i>
             </div>
@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <div class="stat-card stat-cartoes">
+        <div class="stat-card stat-cartoes" title="Soma de todas as faturas de cartões de crédito neste mês" tabindex="0">
             <div class="stat-icon">
                 <i class="fas fa-credit-card"></i>
             </div>

@@ -909,9 +909,17 @@
             if (area) {
                 area.setAttribute('aria-busy', 'true');
                 area.innerHTML = `
-                    <div class="loading-state">
-                        <div class="spinner" aria-label="Carregando"></div>
-                        <p>Carregando relatório...</p>
+                    <div class="skeleton-chart" aria-label="Carregando relatório">
+                        <div class="skeleton-chart-bars">
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                        </div>
+                        <div class="skeleton-line medium" style="margin-top: var(--spacing-4);"></div>
+                        <div class="skeleton-line short"></div>
                     </div>
                 `;
             }
@@ -920,9 +928,13 @@
         showEmptyState() {
             this.setContent(`
                 <div class="empty-state">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>Nenhum registro encontrado</h3>
-                    <p>Não há informações disponíveis para o perí­odo selecionado.</p>
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Nenhum dado encontrado</h3>
+                    <p>Não há lançamentos registrados para o período selecionado. Adicione receitas ou despesas para visualizar seus relatórios.</p>
+                    <a href="${BASE_URL}lancamentos" class="empty-cta">
+                        <i class="fas fa-plus"></i>
+                        <span>Adicionar lançamento</span>
+                    </a>
                 </div>
             `);
         },
@@ -1607,9 +1619,35 @@
             link.click();
             link.remove();
             URL.revokeObjectURL(url);
+
+            // Toast de sucesso
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Relatório exportado!',
+                    text: filename,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
         } catch (error) {
             console.error('Export error:', error);
-            alert('Erro ao exportar relatÃ³rio. Tente novamente.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Erro ao exportar',
+                    text: 'Tente novamente.',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            } else {
+                alert('Erro ao exportar relatório. Tente novamente.');
+            }
         } finally {
             exportBtn.disabled = false;
             exportBtn.innerHTML = originalHTML;

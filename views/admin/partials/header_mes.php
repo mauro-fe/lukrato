@@ -86,6 +86,19 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         transform: scale(0.95);
     }
 
+    .dash-lk-header .month-nav-btn.nav-disabled,
+    .dash-lk-header .month-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .dash-lk-header .month-nav-btn:focus-visible,
+    .dash-lk-header .month-dropdown-btn:focus-visible {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
     .dash-lk-header .month-dropdown-btn {
         gap: var(--spacing-2);
         font-weight: 600;
@@ -654,7 +667,13 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         };
 
         // ---- navegação mês/ano
+        let shiftTimeout = null;
+
         const shiftMonth = (delta) => {
+            // Debounce para evitar múltiplos cliques rápidos
+            if (shiftTimeout) return;
+            shiftTimeout = setTimeout(() => { shiftTimeout = null; }, 150);
+
             const [y, m] = state.split('-').map(Number);
             const d = new Date(y, (m - 1) + delta, 1);
             setState(toYM(d));
@@ -766,5 +785,20 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
             silent: true
         });
         setPickerModeDisplay(pickerMode);
+
+        // ---- Atalhos de teclado para navegação de mês
+        document.addEventListener('keydown', (e) => {
+            // Ignorar se estiver em input, textarea, select ou modal aberto
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+            if (e.target.closest('.modal.show') || e.target.closest('.swal2-container')) return;
+
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                shiftMonth(-1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                shiftMonth(+1);
+            }
+        });
     })();
 </script>

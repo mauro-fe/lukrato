@@ -56,6 +56,15 @@
 
         <!-- Cards das contas -->
         <div class="lk-card">
+            <!-- Headers da lista (visível apenas em modo lista) -->
+            <div id="contasListHeader" class="contas-list-header">
+                <span></span>
+                <span>Conta</span>
+                <span>Instituição</span>
+                <span>Tipo</span>
+                <span>Saldo</span>
+                <span>Ações</span>
+            </div>
             <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="false">
                 <!-- Skeleton loader inicial -->
                 <div class="acc-skeleton" aria-hidden="true"></div>
