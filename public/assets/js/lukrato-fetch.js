@@ -392,55 +392,31 @@ window.lkFetch = new LukratoFetch({
 
 /**
  * Interceptor Global de Fetch
- * Adiciona barra de loading automaticamente em TODAS as requisições API
+ * Mostra aviso de conexão lenta quando requisições demoram
+ * NÃO mostra barra de loading (cada página tem seu próprio loader)
  */
 (function() {
     const originalFetch = window.fetch;
+    const SLOW_THRESHOLD = 5000; // 5 segundos para considerar lento
     let activeRequests = 0;
     let slowTimer = null;
     
-    // Criar elementos de loading se não existirem
-    function ensureLoadingBar() {
-        if (document.getElementById('lk-loading-bar')) return;
+    function showSlowWarning() {
+        if (document.getElementById('lk-slow-connection')) return;
         
-        const bar = document.createElement('div');
-        bar.id = 'lk-loading-bar';
-        bar.className = 'lk-loading-bar';
-        bar.innerHTML = '<div class="lk-loading-progress"></div>';
-        document.body.appendChild(bar);
+        const warning = document.createElement('div');
+        warning.id = 'lk-slow-connection';
+        warning.className = 'lk-slow-connection visible';
+        warning.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Conexão lenta detectada. Aguarde...</span>';
+        document.body.appendChild(warning);
     }
     
-    function showLoading() {
-        ensureLoadingBar();
-        const bar = document.getElementById('lk-loading-bar');
-        if (bar) bar.classList.add('active');
-        
-        // Timer para conexão lenta - só mostra se ainda houver requisições ativas
-        if (!slowTimer) {
-            slowTimer = setTimeout(() => {
-                // Só mostra aviso se ainda houver requisições pendentes
-                if (activeRequests > 0) {
-                    let warning = document.getElementById('lk-slow-connection');
-                    if (!warning) {
-                        warning = document.createElement('div');
-                        warning.id = 'lk-slow-connection';
-                        warning.className = 'lk-slow-connection';
-                        warning.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Conexão lenta detectada. Aguarde...</span>';
-                        document.body.appendChild(warning);
-                    }
-                    warning.classList.add('visible');
-                }
-                slowTimer = null;
-            }, 4000);
-        }
-    }
-    
-    function hideLoading() {
-        const bar = document.getElementById('lk-loading-bar');
-        if (bar) bar.classList.remove('active');
-        
+    function hideSlowWarning() {
         const warning = document.getElementById('lk-slow-connection');
-        if (warning) warning.classList.remove('visible');
+        if (warning) {
+            warning.classList.remove('visible');
+            setTimeout(() => warning.remove(), 300);
+        }
         
         if (slowTimer) {
             clearTimeout(slowTimer);
@@ -459,18 +435,22 @@ window.lkFetch = new LukratoFetch({
         }
         
         activeRequests++;
-        showLoading();
+        
+        // Timer para conexão lenta
+        if (!slowTimer && activeRequests === 1) {
+            slowTimer = setTimeout(() => {
+                if (activeRequests > 0) {
+                    showSlowWarning();
+                }
+            }, SLOW_THRESHOLD);
+        }
         
         return originalFetch.apply(this, arguments)
-            .then(response => {
+            .finally(() => {
                 activeRequests = Math.max(0, activeRequests - 1);
-                if (activeRequests === 0) hideLoading();
-                return response;
-            })
-            .catch(error => {
-                activeRequests = Math.max(0, activeRequests - 1);
-                if (activeRequests === 0) hideLoading();
-                throw error;
+                if (activeRequests === 0) {
+                    hideSlowWarning();
+                }
             });
     };
 })();
