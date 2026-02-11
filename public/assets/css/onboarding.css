@@ -407,6 +407,53 @@
   color: var(--color-text-muted);
 }
 
+/* Plan Info in Onboarding */
+.onboarding-plan-info {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.plan-badge-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.plan-badge-info i {
+  font-size: 11px;
+}
+
+.onboarding-plan-info p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.onboarding-plan-info strong {
+  color: var(--color-text);
+}
+
+.plan-upgrade-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.plan-upgrade-link:hover {
+  text-decoration: underline;
+}
+
 .onboarding-modal-body {
   padding: 24px 40px;
 }

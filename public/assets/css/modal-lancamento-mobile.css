@@ -1,0 +1,306 @@
+/**
+ * ============================================
+ * MODAL LANÇAMENTO - MELHORIAS MOBILE
+ * ============================================
+ * Otimizações específicas para experiência mobile
+ */
+
+/* ============================================
+   MOBILE STICKY FOOTER
+   ============================================ */
+
+@media (max-width: 480px) {
+    /* Modal fullscreen com footer fixo */
+    .lk-modal-lancamento,
+    .lk-modal-modern {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height para iOS */
+    }
+    
+    .lk-modal-body-modern {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 100px !important; /* Espaço para footer */
+    }
+    
+    /* Footer fixo no fundo */
+    .lk-modal-footer-modern {
+        position: fixed !important;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--card-bg, #ffffff);
+        border-top: 1px solid var(--border-color, #e2e8f0);
+        padding: 12px 16px !important;
+        z-index: 100;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        gap: 12px;
+    }
+    
+    [data-theme="dark"] .lk-modal-footer-modern {
+        background: var(--card-bg, #1e293b);
+        border-top-color: var(--border-color, #334155);
+    }
+    
+    .lk-modal-footer-modern .lk-btn {
+        flex: 1;
+        padding: 14px 16px !important;
+        font-size: 15px !important;
+    }
+    
+    /* Esconder botão cancelar em mobile para dar mais espaço */
+    .lk-modal-footer-modern .btn-secondary,
+    .lk-modal-footer-modern .lk-btn-secondary {
+        display: none;
+    }
+    
+    /* Botão primário ocupa 100% */
+    .lk-modal-footer-modern .btn-primary,
+    .lk-modal-footer-modern .lk-btn-primary {
+        width: 100%;
+    }
+}
+
+/* ============================================
+   SCROLL SUAVE AO FOCAR EM INPUT
+   ============================================ */
+
+@media (max-width: 480px) {
+    /* Evitar que teclado virtual cubra inputs */
+    .lk-modal-body-modern input:focus,
+    .lk-modal-body-modern select:focus,
+    .lk-modal-body-modern textarea:focus {
+        scroll-margin-bottom: 150px;
+    }
+    
+    /* Garantir que inputs focados sejam visíveis */
+    .lk-form-group:focus-within {
+        scroll-margin-top: 20px;
+        scroll-margin-bottom: 100px;
+    }
+}
+
+/* ============================================
+   TIPOS DE LANÇAMENTO - GRID MELHORADO
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-type-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    
+    .lk-type-btn {
+        padding: 14px 8px !important;
+        min-height: auto !important;
+    }
+    
+    .lk-type-btn .lk-type-icon {
+        font-size: 1.5rem !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .lk-type-btn .lk-type-label {
+        font-size: 12px !important;
+    }
+}
+
+/* ============================================
+   CAMPOS GRANDES PARA TOQUE
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-input,
+    .lk-select,
+    .lk-modal-body-modern input,
+    .lk-modal-body-modern select {
+        min-height: 48px !important;
+        font-size: 16px !important; /* Evita zoom no iOS */
+        padding: 12px 14px !important;
+    }
+    
+    .lk-label {
+        font-size: 13px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    /* Checkbox e radio maiores */
+    .lk-modal-body-modern input[type="checkbox"],
+    .lk-modal-body-modern input[type="radio"] {
+        min-width: 22px !important;
+        min-height: 22px !important;
+    }
+}
+
+/* ============================================
+   SEÇÕES COLAPSÁVEIS EM MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-section {
+        margin-bottom: 16px !important;
+    }
+    
+    .lk-section-title {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+    }
+    
+    .lk-section-title::after {
+        content: '\f078'; /* fa-chevron-down */
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 12px;
+        color: var(--text-muted);
+        transition: transform 0.2s ease;
+    }
+    
+    .lk-section.collapsed .lk-section-title::after {
+        transform: rotate(-90deg);
+    }
+    
+    .lk-section.collapsed .lk-section-content {
+        display: none;
+    }
+}
+
+/* ============================================
+   FORMA DE PAGAMENTO - SCROLL HORIZONTAL
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-forma-pagamento-grid {
+        display: flex !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .lk-forma-pagamento-grid::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .lk-forma-btn {
+        flex: 0 0 auto !important;
+        min-width: 70px !important;
+        padding: 10px 8px !important;
+    }
+}
+
+/* ============================================
+   INDICADOR DE PROGRESSO (WIZARD VISUAL)
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-wizard-progress {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .lk-wizard-step {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--border-color);
+        transition: all 0.3s ease;
+    }
+    
+    .lk-wizard-step.active {
+        width: 24px;
+        border-radius: 4px;
+        background: var(--primary-color);
+    }
+    
+    .lk-wizard-step.completed {
+        background: var(--success-color, #10b981);
+    }
+}
+
+/* ============================================
+   ANIMAÇÕES SUAVES
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-modal-lancamento {
+        animation: slideFromBottom 0.3s ease-out;
+    }
+    
+    @keyframes slideFromBottom {
+        from {
+            transform: translateY(100%);
+            opacity: 0.5;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+}
+
+/* ============================================
+   SAFE AREA (NOTCH/ISLAND)
+   ============================================ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    @media (max-width: 480px) {
+        .lk-modal-footer-modern {
+            padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        }
+        
+        .lk-modal-body-modern {
+            padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+}
+
+/* ============================================
+   FEEDBACK VISUAL DE SUCESSO/ERRO
+   ============================================ */
+
+@media (max-width: 480px) {
+    .lk-input.success,
+    .lk-select.success {
+        border-color: var(--success-color, #10b981) !important;
+        background: rgba(16, 185, 129, 0.05) !important;
+    }
+    
+    .lk-input.error,
+    .lk-select.error {
+        border-color: var(--danger-color, #ef4444) !important;
+        background: rgba(239, 68, 68, 0.05) !important;
+        animation: shake-input 0.3s ease-in-out;
+    }
+    
+    @keyframes shake-input {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
+    
+    /* Mensagem de erro inline */
+    .lk-field-error {
+        font-size: 12px;
+        color: var(--danger-color, #ef4444);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .lk-field-error i {
+        font-size: 11px;
+    }
+}

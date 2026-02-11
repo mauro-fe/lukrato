@@ -13,6 +13,22 @@ if ($topNavName) {
 
 $isPro = $topNavUser && method_exists($topNavUser, 'isPro') && $topNavUser->isPro();
 $planLabel = $isPro ? 'PRO' : 'FREE';
+
+// Definir breadcrumbs baseado no menu atual
+$breadcrumbsMap = [
+    'dashboard'    => [],
+    'contas'       => [['label' => 'Finanças', 'icon' => 'fa-wallet']],
+    'cartoes'      => [['label' => 'Finanças', 'icon' => 'fa-wallet']],
+    'faturas'      => [['label' => 'Finanças', 'icon' => 'fa-wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'fa-credit-card']],
+    'categorias'   => [['label' => 'Organização', 'icon' => 'fa-folder']],
+    'lancamentos'  => [['label' => 'Finanças', 'icon' => 'fa-wallet']],
+    'relatorios'   => [['label' => 'Análises', 'icon' => 'fa-chart-bar']],
+    'agendamentos' => [['label' => 'Automações', 'icon' => 'fa-clock']],
+    'gamification' => [['label' => 'Perfil', 'icon' => 'fa-user']],
+    'perfil'       => [],
+    'billing'      => [['label' => 'Perfil', 'icon' => 'fa-user']],
+];
+$currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
 ?>
 
 <div class="top-navbar">
@@ -26,6 +42,35 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
         <!-- Page Title / Breadcrumb -->
         <div class="top-navbar-title">
             <h1><?= $pageTitle ?? 'Dashboard' ?></h1>
+            <?php if (!empty($currentBreadcrumbs) || ($menu ?? '') !== 'dashboard'): ?>
+            <nav class="lk-breadcrumbs-wrapper" aria-label="Navegação">
+                <ol class="lk-breadcrumbs">
+                    <li class="lk-breadcrumb-item">
+                        <a href="<?= BASE_URL ?>dashboard" title="Início">
+                            <i class="fas fa-home lk-breadcrumb-home"></i>
+                        </a>
+                    </li>
+                    <?php foreach ($currentBreadcrumbs as $crumb): ?>
+                    <li class="lk-breadcrumb-separator"><i class="fas fa-chevron-right"></i></li>
+                    <li class="lk-breadcrumb-item">
+                        <?php if (!empty($crumb['url'])): ?>
+                        <a href="<?= BASE_URL . $crumb['url'] ?>">
+                            <?php if (!empty($crumb['icon'])): ?><i class="fas <?= $crumb['icon'] ?>"></i><?php endif; ?>
+                            <?= htmlspecialchars($crumb['label']) ?>
+                        </a>
+                        <?php else: ?>
+                        <span>
+                            <?php if (!empty($crumb['icon'])): ?><i class="fas <?= $crumb['icon'] ?>"></i><?php endif; ?>
+                            <?= htmlspecialchars($crumb['label']) ?>
+                        </span>
+                        <?php endif; ?>
+                    </li>
+                    <?php endforeach; ?>
+                    <li class="lk-breadcrumb-separator"><i class="fas fa-chevron-right"></i></li>
+                    <li class="lk-breadcrumb-item current"><?= $pageTitle ?? 'Dashboard' ?></li>
+                </ol>
+            </nav>
+            <?php endif; ?>
         </div>
 
         <!-- Actions -->

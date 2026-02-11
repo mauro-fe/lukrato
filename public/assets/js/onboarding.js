@@ -563,6 +563,19 @@ class OnboardingManager {
             return;
         }
 
+        // Verificar se é Pro ou Free
+        const isPro = window.PlanLimits?.isPro?.() || false;
+        const planInfo = isPro ? '' : `
+            <div class="onboarding-plan-info">
+                <div class="plan-badge-info">
+                    <i class="fas fa-leaf"></i>
+                    <span>Plano Gratuito</span>
+                </div>
+                <p>Você tem <strong>30 lançamentos/mês</strong>, 2 contas e 1 cartão. 
+                   <a href="billing" class="plan-upgrade-link">Faça upgrade</a> para recursos ilimitados!</p>
+            </div>
+        `;
+
         const modalHTML = `
             <div class="onboarding-modal-overlay" id="onboardingModalOverlay">
                 <div class="onboarding-modal">
@@ -570,6 +583,7 @@ class OnboardingManager {
                         <div class="modal-icon">🎉</div>
                         <h2>Bem-vindo ao Lukrato!</h2>
                         <p>Sua jornada para uma vida financeira organizada começa aqui</p>
+                        ${planInfo}
                     </div>
 
                     <div class="onboarding-modal-body">

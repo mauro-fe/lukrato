@@ -14,9 +14,11 @@ return [
     'limits' => [
 
         'free' => [
-            'lancamentos_per_month' => 30,   // Reduzido para forçar conversão
-            'warning_at'            => 20,   // Aviso quando atingir 67% do limite
-            'warning_critical_at'   => 25,   // Aviso crítico quando atingir 83%
+            'lancamentos_per_month' => 30,   // Limite mensal de lançamentos
+            'warning_at'            => 15,   // Aviso suave quando atingir 50% (15/30)
+            'warning_medium_at'     => 24,   // Aviso médio quando atingir 80% (24/30)
+            'warning_critical_at'   => 27,   // Aviso crítico quando atingir 90% (27/30)
+            'grace_extra'           => 5,    // Lançamentos extras de cortesia após limite
             'max_contas'            => 2,    // Máximo de contas bancárias
             'max_categorias_custom' => 10,   // Máximo de categorias personalizadas
             'historico_meses'       => 3,    // Apenas 3 meses de histórico visível
@@ -47,17 +49,24 @@ return [
 
     'messages' => [
 
-        'limit_reached' => '🚫 Você atingiu o limite de {limit} lançamentos deste mês no plano gratuito. ' .
-            'Ative o Lukrato Pro para continuar com lançamentos ilimitados!',
+        'limit_reached' => '🚫 Você usou todos os {limit} lançamentos deste mês. ' .
+            'Faça upgrade para o Pro e tenha lançamentos ilimitados!',
 
-        'warning_normal' => '⚠️ <strong>Atenção:</strong> Você já usou {used} de {limit} lançamentos ' .
-            'do plano gratuito ({percentage}%). Faltam <strong>{remaining} lançamentos</strong> este mês.',
+        'grace_period' => '🎁 <strong>Cortesia:</strong> Você passou do limite, mas liberamos +{grace} lançamentos extras este mês. ' .
+            'No próximo mês, considere fazer upgrade para continuar sem interrupções.',
 
-        'warning_critical' => '🔴 <strong>Quase no limite!</strong> Você já usou {used} de {limit} lançamentos ' .
-            '({percentage}%). Restam apenas <strong>{remaining} lançamentos</strong>! ' .
-            '<a href="/assinatura" class="alert-link">Faça upgrade agora</a>',
+        'warning_soft' => '💡 <strong>Dica:</strong> Você já usou {used} de {limit} lançamentos ({percentage}%). ' .
+            'Restam <strong>{remaining}</strong> este mês.',
 
-        'upgrade_cta' => '🚀 Assine o Lukrato Pro: lançamentos ilimitados + relatórios avançados + exportação!',
+        'warning_medium' => '⚠️ <strong>Atenção:</strong> {used} de {limit} lançamentos usados ({percentage}%). ' .
+            'Apenas <strong>{remaining} restantes</strong>. ' .
+            '<a href="/billing" class="alert-link fw-bold">Considere o upgrade</a>',
+
+        'warning_critical' => '🔴 <strong>Quase no limite!</strong> Você usou {used} de {limit} lançamentos ({percentage}%). ' .
+            'Restam apenas <strong>{remaining}</strong>! ' .
+            '<a href="/billing" class="alert-link fw-bold">Faça upgrade agora</a>',
+
+        'upgrade_cta' => '🚀 Lukrato Pro: lançamentos ilimitados + relatórios avançados + exportação PDF/Excel!',
 
         'contas_limit' => 'Você atingiu o limite de {limit} contas no plano gratuito. ' .
             'Faça upgrade para adicionar contas ilimitadas.',
@@ -74,6 +83,27 @@ return [
         'metas_limit' => 'Limite de {limit} metas atingido. ' .
             'Faça upgrade para criar metas ilimitadas.',
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mensagens Contextuais de Upgrade (por página)
+    |--------------------------------------------------------------------------
+    |
+    | Mensagens específicas para cada contexto, evitando repetição.
+    |
+    */
+
+    'contextual_messages' => [
+        'relatorios'   => '📊 Análises completas e exportação com o Pro',
+        'cartoes'      => '💳 Gerencie todos os seus cartões de crédito',
+        'contas'       => '🏦 Organize todas as suas contas bancárias',
+        'agendamentos' => '⏰ Lembretes automáticos por email e notificações',
+        'metas'        => '🎯 Crie metas ilimitadas e acompanhe seu progresso',
+        'categorias'   => '🏷️ Personalize suas categorias sem limites',
+        'lancamentos'  => '💰 Registre suas transações sem preocupações',
+        'dashboard'    => '📈 Dashboard avançado com insights personalizados',
+        'default'      => '🚀 Desbloqueie todo o potencial do Lukrato',
     ],
 
     /*

@@ -1,0 +1,169 @@
+/**
+ * ============================================
+ * LUKRATO FEEDBACK - CSS
+ * ============================================
+ * Estilos customizados para SweetAlert2
+ */
+
+/* Base popup styling */
+.lk-swal-popup {
+    font-family: inherit;
+    border-radius: 16px !important;
+    padding: 24px !important;
+}
+
+.lk-swal-popup .swal2-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.lk-swal-popup .swal2-html-container {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Upgrade prompt */
+.lk-swal-upgrade .upgrade-prompt-content {
+    text-align: left;
+}
+
+.lk-swal-upgrade .upgrade-context-msg {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+}
+
+.lk-swal-upgrade .upgrade-features-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0 0;
+}
+
+.lk-swal-upgrade .upgrade-features-list li {
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lk-swal-upgrade .upgrade-features-list li i {
+    color: #10b981;
+    font-size: 14px;
+}
+
+/* Limit reached */
+.lk-swal-limit .limit-reached-content {
+    text-align: center;
+}
+
+.lk-swal-limit .limit-progress-bar {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.lk-swal-limit .limit-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.lk-swal-limit .limit-stats {
+    font-weight: 600;
+    color: #ef4444;
+    margin-bottom: 8px;
+}
+
+/* Toast customization */
+.swal2-popup.swal2-toast {
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Loading */
+.lk-swal-loading .swal2-title {
+    font-size: 1rem;
+    margin-top: 12px;
+}
+
+/* Button styling */
+.lk-swal-popup .swal2-confirm {
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+}
+
+.lk-swal-popup .swal2-cancel {
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+}
+
+.lk-swal-btn-danger {
+    background: #ef4444 !important;
+}
+
+.lk-swal-btn-danger:hover {
+    background: #dc2626 !important;
+}
+
+/* Danger/Error popup */
+.lk-swal-error .swal2-icon.swal2-error {
+    border-color: #ef4444;
+}
+
+.lk-swal-error .swal2-icon.swal2-error .swal2-x-mark-line-left,
+.lk-swal-error .swal2-icon.swal2-error .swal2-x-mark-line-right {
+    background-color: #ef4444;
+}
+
+/* Warning popup */
+.lk-swal-warning .swal2-icon.swal2-warning {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .lk-swal-popup {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .lk-swal-popup .swal2-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .lk-swal-popup .swal2-html-container {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .lk-swal-limit .limit-progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .lk-swal-upgrade .upgrade-context-msg {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+}
+
+/* Animations */
+@keyframes swal-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.lk-swal-error {
+    animation: swal-shake 0.3s ease-in-out;
+}

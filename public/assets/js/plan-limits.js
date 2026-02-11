@@ -26,6 +26,19 @@
         cacheKey: 'lukrato_plan_limits',
         cacheTTL: 5 * 60 * 1000, // 5 minutos
         upgradeUrl: '/billing',
+        // Mensagens contextuais por página
+        contextualMessages: {
+            relatorios: '📊 Análises completas e exportação com o Pro',
+            cartoes: '💳 Gerencie todos os seus cartões de crédito',
+            contas: '🏦 Organize todas as suas contas bancárias',
+            agendamentos: '⏰ Lembretes automáticos por email',
+            metas: '🎯 Crie metas ilimitadas',
+            categorias: '🏷️ Personalize sem limites',
+            lancamentos: '💰 Registre sem preocupações',
+            dashboard: '📈 Dashboard avançado com insights',
+            faturas: '📄 Visualize todo o histórico de faturas',
+            default: '🚀 Desbloqueie todo o potencial do Lukrato',
+        },
     };
 
     // ============================================
@@ -215,7 +228,12 @@
                 'Exportação PDF e Excel',
                 'Histórico completo',
             ],
+            context = null,
         } = options;
+
+        // Detectar contexto automaticamente se não fornecido
+        const detectedContext = context || getCurrentPageContext();
+        const contextMsg = CONFIG.contextualMessages[detectedContext] || CONFIG.contextualMessages.default;
 
         // Verificar se já existe modal
         let modal = document.getElementById('planUpgradeModal');
@@ -224,29 +242,30 @@
         }
 
         const modalHtml = `
-            <div class="modal fade" id="planUpgradeModal" tabindex="-1">
+            <div class="modal fade" id="planUpgradeModal" tabindex="-1" role="dialog" aria-labelledby="upgradeModalTitle" aria-modal="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header bg-gradient-primary text-white">
-                            <h5 class="modal-title">${title}</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            <h5 class="modal-title" id="upgradeModalTitle">${title}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
                         </div>
                         <div class="modal-body text-center py-4">
-                            <div class="mb-4">
-                                <i class="fas fa-crown fa-3x text-warning mb-3"></i>
-                                <p class="lead">${message}</p>
+                            <div class="mb-3">
+                                <i class="fas fa-crown fa-3x text-warning mb-3" aria-hidden="true"></i>
+                                <p class="upgrade-context-message">${contextMsg}</p>
+                                <p class="text-muted">${message}</p>
                             </div>
                             <div class="text-start mb-4">
                                 <h6 class="text-muted mb-3">Com o Pro você tem:</h6>
-                                <ul class="list-unstyled">
-                                    ${features.map(f => `<li class="mb-2"><i class="fas fa-check text-success me-2"></i>${f}</li>`).join('')}
+                                <ul class="list-unstyled upgrade-features-list">
+                                    ${features.map(f => `<li class="mb-2"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>${f}</li>`).join('')}
                                 </ul>
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Agora não</button>
                             <a href="${CONFIG.upgradeUrl}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-rocket me-2"></i> Quero ser Pro!
+                                <i class="fas fa-rocket me-2" aria-hidden="true"></i> Quero ser Pro!
                             </a>
                         </div>
                     </div>
@@ -265,6 +284,19 @@
         });
 
         return modal;
+    }
+
+    // Helper para detectar contexto da página atual
+    function getCurrentPageContext() {
+        const path = window.location.pathname.toLowerCase();
+        const contexts = ['relatorios', 'cartoes', 'contas', 'agendamentos', 'metas', 'categorias', 'lancamentos', 'dashboard', 'faturas'];
+        
+        for (const ctx of contexts) {
+            if (path.includes(ctx)) {
+                return ctx;
+            }
+        }
+        return 'default';
     }
 
     // ============================================

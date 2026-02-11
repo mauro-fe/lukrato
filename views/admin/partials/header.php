@@ -66,9 +66,13 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento-mobile.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/onboarding.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/plan-limits.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tooltips.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/first-visit-tooltips.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lukrato-feedback.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/breadcrumbs.css?v=<?= time() ?>">
 
     <?php loadPageCss(); ?>
 
@@ -98,8 +102,16 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <?php endif; ?>
 
     <!-- Sistema de Onboarding (carrega em todas as páginas) -->
-    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>">
-    </script>
+    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"></script>
+
+    <!-- Sistema de Feedback Unificado -->
+    <script src="<?= BASE_URL ?>assets/js/lukrato-feedback.js?v=<?= time() ?>"></script>
+
+    <!-- Tooltips de Primeira Visita -->
+    <script src="<?= BASE_URL ?>assets/js/first-visit-tooltips.js?v=<?= time() ?>" defer></script>
+
+    <!-- Melhorias de Acessibilidade -->
+    <script src="<?= BASE_URL ?>assets/js/accessibility.js?v=<?= time() ?>" defer></script>
 
     <!-- ============================================================================
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
