@@ -43,6 +43,8 @@ class Indicacao extends Model
         'referrer_id',
         'referred_id',
         'status',
+        'blocked_reason',
+        'ip_address',
         'referrer_reward_days',
         'referred_reward_days',
         'referrer_rewarded',

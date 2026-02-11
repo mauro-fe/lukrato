@@ -8,6 +8,7 @@ use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
 use Application\Services\AchievementService;
 use Application\Services\LogService;
+use Application\Services\ReferralAntifraudService;
 use Illuminate\Support\Str;
 
 class ReferralService
@@ -125,6 +126,20 @@ class ReferralService
         }
 
         $referrer = $validation['referrer'];
+        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+
+        // Validação anti-fraude
+        $antifraudService = new ReferralAntifraudService();
+        $canProcess = $antifraudService->canProcessReferral($referredUser->email, $referrer->id, $ip);
+        
+        if (!$canProcess['allowed']) {
+            LogService::warning('[ReferralService] Indicação bloqueada por anti-fraude', [
+                'referred_email' => $referredUser->email,
+                'referrer_id' => $referrer->id,
+                'reason' => $canProcess['reason'],
+            ]);
+            return null;
+        }
 
         // Verifica se já existe uma indicação pendente ou completada para este usuário
         $existingReferral = Indicacao::where('referred_id', $referredUser->id)->first();
@@ -142,11 +157,15 @@ class ReferralService
             'referred_reward_days' => self::REFERRED_REWARD_DAYS,
             'referrer_rewarded' => false,
             'referred_rewarded' => false,
+            'ip_address' => $ip,
         ]);
 
         // Atualiza o referred_by do usuário
         $referredUser->referred_by = $referrer->id;
         $referredUser->save();
+
+        // Registra uso de indicação no anti-fraude
+        $antifraudService->onReferralUsed($referredUser, $referrer->id, $ip);
 
         LogService::info('[ReferralService] Indicação registrada - aguardando verificação de email', [
             'referrer_id' => $referrer->id,
