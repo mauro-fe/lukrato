@@ -1,0 +1,177 @@
+# ==========================================
+# LUKRATO - .HTACCESS PRODUÇÃO
+# ==========================================
+
+# ==========================================
+# LiteSpeed Cache Control
+# ==========================================
+<IfModule LiteSpeed>
+    RewriteEngine On
+    CacheLookup on
+    
+    # Desabilitar cache do LiteSpeed para JS/CSS permitir atualizações
+    RewriteRule \.js$ - [E=Cache-Control:no-cache]
+    RewriteRule \.css$ - [E=Cache-Control:no-cache]
+    
+    # Bloquear arquivos internos do LiteSpeed
+    RewriteRule litespeed/debug/.*\.log$ - [F,L]
+    RewriteRule \.litespeed_conf\.dat - [F,L]
+    
+    # Remover query strings de tracking do cache
+    CacheKeyModify -qs:fbclid
+    CacheKeyModify -qs:gclid
+    CacheKeyModify -qs:utm*
+    CacheKeyModify -qs:_ga
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # ==========================================
+    # GOOGLE SEARCH CONSOLE VERIFICATION
+    # ==========================================
+    # Arquivo de verificação do Google - servir diretamente se existir
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^google[a-zA-Z0-9]+\.html$ - [NC,L]
+
+    # ==========================================
+    # BLOQUEAR ARQUIVOS DE DEBUG/TESTE
+    # ==========================================
+    RewriteRule ^(debug-|test-|teste-) - [F,L]
+
+    # ==========================================
+    # FORÇAR HTTPS
+    # ==========================================
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # ==========================================
+    # REMOVE TRAILING SLASH
+    # ==========================================
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [R=301,L]
+
+    # ==========================================
+    # FRONT CONTROLLER
+    # ==========================================
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# ==========================================
+# SEGURANÇA E HEADERS
+# ==========================================
+<IfModule mod_headers.c>
+    # Segurança
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # Cache para assets estáticos
+    <FilesMatch "\.(ico|pdf|jpg|jpeg|png|gif|webp|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+    
+    # CSS e JS - cache curto para permitir atualizações
+    <FilesMatch "\.(js|css)$">
+        Header set Cache-Control "max-age=3600, public, must-revalidate"
+    </FilesMatch>
+
+    # HTML/PHP - sem cache
+    <FilesMatch "\.(html|htm|php)$">
+        Header set Cache-Control "max-age=0, private, must-revalidate"
+    </FilesMatch>
+    
+    # Remover ETag
+    Header unset ETag
+</IfModule>
+FileETag None
+
+# ==========================================
+# COMPRESSÃO GZIP
+# ==========================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/atom+xml
+    AddOutputFilterByType DEFLATE font/ttf
+    AddOutputFilterByType DEFLATE font/otf
+    AddOutputFilterByType DEFLATE font/woff
+    AddOutputFilterByType DEFLATE font/woff2
+</IfModule>
+
+# ==========================================
+# EXPIRES HEADERS
+# ==========================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    
+    ExpiresByType text/html "access plus 0 seconds"
+    ExpiresByType text/css "access plus 1 hour"
+    ExpiresByType application/javascript "access plus 1 hour"
+    ExpiresByType text/javascript "access plus 1 hour"
+    
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    
+    ExpiresByType application/json "access plus 0 seconds"
+    ExpiresByType application/xml "access plus 0 seconds"
+</IfModule>
+
+# ==========================================
+# PROTEÇÃO DE ARQUIVOS SENSÍVEIS
+# ==========================================
+<FilesMatch "\.(env|lock|gitignore|sql|log|bak|backup)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ==========================================
+# PERMITIR ARQUIVOS PÚBLICOS
+# ==========================================
+<Files "manifest.json">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+</Files>
+
+<Files "sitemap.xml">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+</Files>
+
+<Files "robots.txt">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+</Files>

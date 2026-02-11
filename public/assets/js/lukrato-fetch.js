@@ -415,18 +415,22 @@ window.lkFetch = new LukratoFetch({
         const bar = document.getElementById('lk-loading-bar');
         if (bar) bar.classList.add('active');
         
-        // Timer para conexão lenta
+        // Timer para conexão lenta - só mostra se ainda houver requisições ativas
         if (!slowTimer) {
             slowTimer = setTimeout(() => {
-                let warning = document.getElementById('lk-slow-connection');
-                if (!warning) {
-                    warning = document.createElement('div');
-                    warning.id = 'lk-slow-connection';
-                    warning.className = 'lk-slow-connection';
-                    warning.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Conexão lenta detectada. Aguarde...</span>';
-                    document.body.appendChild(warning);
+                // Só mostra aviso se ainda houver requisições pendentes
+                if (activeRequests > 0) {
+                    let warning = document.getElementById('lk-slow-connection');
+                    if (!warning) {
+                        warning = document.createElement('div');
+                        warning.id = 'lk-slow-connection';
+                        warning.className = 'lk-slow-connection';
+                        warning.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Conexão lenta detectada. Aguarde...</span>';
+                        document.body.appendChild(warning);
+                    }
+                    warning.classList.add('visible');
                 }
-                warning.classList.add('visible');
+                slowTimer = null;
             }, 4000);
         }
     }
@@ -445,7 +449,7 @@ window.lkFetch = new LukratoFetch({
     }
     
     window.fetch = function(input, init) {
-        const url = typeof input === 'string' ? input : input.url;
+        const url = typeof input === 'string' ? input : (input?.url || '');
         
         // Só intercepta requisições para API do Lukrato
         const isApiCall = url && (url.includes('/api/') || url.includes('api/'));
@@ -459,12 +463,12 @@ window.lkFetch = new LukratoFetch({
         
         return originalFetch.apply(this, arguments)
             .then(response => {
-                activeRequests--;
+                activeRequests = Math.max(0, activeRequests - 1);
                 if (activeRequests === 0) hideLoading();
                 return response;
             })
             .catch(error => {
-                activeRequests--;
+                activeRequests = Math.max(0, activeRequests - 1);
                 if (activeRequests === 0) hideLoading();
                 throw error;
             });
