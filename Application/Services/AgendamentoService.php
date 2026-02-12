@@ -160,6 +160,11 @@ class AgendamentoService
             throw new RuntimeException('Falha ao criar lançamento.');
         }
 
+        // Capturar data_pagamento ANTES de qualquer modificação para logging
+        $dataBaseOriginal = $agendamento->data_pagamento instanceof \DateTimeInterface
+            ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
+            : (string) $agendamento->data_pagamento;
+
         // 2. CASO C: PARCELADO
         if ($agendamento->eh_parcelado && $agendamento->numero_parcelas > 1) {
             $parcelaAtual = $agendamento->parcela_atual ?? 1;
@@ -191,11 +196,20 @@ class AgendamentoService
                 ];
             } else {
                 // Ainda há parcelas - avançar para próximo mês
+                // IMPORTANTE: usar EXATAMENTE 'monthly' com intervalo 1
                 $proximaData = $this->calcularProximaData(
                     $agendamento->data_pagamento,
                     'monthly', // Parcelas sempre mensais
                     1
                 );
+
+                LogService::info('Agendamento parcelado - calculando próxima data', [
+                    'agendamento_id' => $agendamento->id,
+                    'data_pagamento_base' => $dataBaseOriginal,
+                    'proxima_data_calculada' => $proximaData,
+                    'parcela_atual' => $parcelaAtual,
+                    'proxima_parcela' => $proximaParcela,
+                ]);
 
                 // Calcular próxima execução baseada no lembrete
                 $lembrarSegundos = (int) ($agendamento->lembrar_antes_segundos ?? 0);
@@ -217,6 +231,7 @@ class AgendamentoService
                     'agendamento_id' => $agendamento->id,
                     'parcela_paga' => $parcelaAtual,
                     'proxima_parcela' => $proximaParcela,
+                    'data_pagamento_anterior' => $dataBaseOriginal,
                     'proxima_data' => $proximaData,
                 ]);
 
@@ -235,11 +250,25 @@ class AgendamentoService
 
         // 3. CASO B: RECORRENTE
         if ($agendamento->recorrente && $agendamento->recorrencia_freq) {
+            // Forçar intervalo 1 - recorrência avança SEMPRE 1 período por execução
+            $intervalo = (int) ($agendamento->recorrencia_intervalo ?? 1);
+            if ($intervalo < 1) {
+                $intervalo = 1;
+            }
+
             $proximaData = $this->calcularProximaData(
                 $agendamento->data_pagamento,
                 $agendamento->recorrencia_freq,
-                $agendamento->recorrencia_intervalo ?? 1
+                $intervalo
             );
+
+            LogService::info('Agendamento recorrente - calculando próxima data', [
+                'agendamento_id' => $agendamento->id,
+                'data_pagamento_base' => $dataBaseOriginal,
+                'recorrencia_freq' => $agendamento->recorrencia_freq,
+                'recorrencia_intervalo' => $intervalo,
+                'proxima_data_calculada' => $proximaData,
+            ]);
 
             // Calcular próxima execução baseada no lembrete
             $lembrarSegundos = (int) ($agendamento->lembrar_antes_segundos ?? 0);
@@ -259,6 +288,7 @@ class AgendamentoService
 
             LogService::info('Agendamento recorrente executado e avançado', [
                 'agendamento_id' => $agendamento->id,
+                'data_pagamento_anterior' => $dataBaseOriginal,
                 'proxima_data' => $proximaData,
             ]);
 
