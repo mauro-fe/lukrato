@@ -242,6 +242,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             if (refCode && referralInput) {
                 referralInput.value = refCode.toUpperCase();
                 validateReferralCode(refCode);
+                updateGoogleRegisterLink();
 
                 // Ativa a aba de cadastro automaticamente se veio com código
                 const card = document.querySelector('.card');
@@ -252,6 +253,15 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     registerBtn.classList.add('is-active');
                 }
             }
+        }
+
+        // Atualiza o link do Google Register com o código de indicação
+        function updateGoogleRegisterLink() {
+            const googleRegisterBtn = document.querySelector('a[href*="auth/google/register"]');
+            if (!googleRegisterBtn) return;
+            const base = '<?= BASE_URL ?>auth/google/register';
+            const code = referralInput ? referralInput.value.trim() : '';
+            googleRegisterBtn.href = code ? `${base}?ref=${encodeURIComponent(code)}` : base;
         }
 
         // Valida o código de indicação via API
@@ -299,6 +309,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             referralInput.addEventListener('input', (e) => {
                 // Força uppercase
                 e.target.value = e.target.value.toUpperCase();
+                updateGoogleRegisterLink();
 
                 // Debounce para não fazer muitas requisições
                 clearTimeout(referralValidationTimeout);
