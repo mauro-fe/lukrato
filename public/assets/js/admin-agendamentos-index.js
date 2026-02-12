@@ -2261,6 +2261,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = document.getElementById('execAgendamentoId')?.value;
             if (!id) return;
 
+            // Proteção contra execução consecutiva rápida do mesmo agendamento
+            const agId = String(id);
+            if (this._recentlyExecuted && this._recentlyExecuted.id === agId) {
+                const elapsed = Date.now() - this._recentlyExecuted.time;
+                if (elapsed < 15000) { // 15 segundos de cooldown
+                    console.warn('[Actions.confirmarExecucao] Agendamento executado recentemente, ignorando');
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Aguarde',
+                        text: 'Este agendamento acabou de ser executado. Aguarde alguns segundos antes de executar novamente.',
+                        confirmButtonColor: '#10b981',
+                    });
+                    return;
+                }
+            }
+
             this._executing = true;
 
             const contaId = document.getElementById('execConta')?.value || null;
@@ -2298,9 +2314,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(json?.message || 'Falha ao executar o agendamento.');
                 }
 
+                // Registrar que este agendamento foi executado recentemente (cooldown)
+                this._recentlyExecuted = { id: agId, time: Date.now() };
+
+                // Se duplicata foi prevenida, apenas informar — NÃO contar como sucesso
+                if (json?.data?.duplicate_prevented) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Já executado',
+                        text: 'Este agendamento já foi executado. A próxima data já foi atualizada.',
+                        confirmButtonColor: '#10b981',
+                    });
+                    await Agendamentos.load();
+                    return;
+                }
+
                 const mensagemSucesso = json?.data?.message || 'Agendamento executado com sucesso!';
 
-                Swal.fire({
+                // Aguardar o Swal de sucesso ANTES de recarregar, para que o usuário
+                // não interaja com o agendamento avançado durante o reload
+                await Swal.fire({
                     icon: 'success',
                     title: 'Executado!',
                     html: `<p>${mensagemSucesso}</p>`,
@@ -2677,7 +2710,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Remover badge antigo se existir
                 let badge = btn.querySelector('.quick-filter-count');
-                
+
                 if (count > 0) {
                     if (!badge) {
                         badge = document.createElement('span');

@@ -185,7 +185,7 @@ class AgendamentoController extends BaseController
                 // Recorrentes sempre aparecem, mesmo com concluido_em preenchido
                 ->where(function ($q) {
                     $q->whereNull('concluido_em')
-                      ->orWhere('recorrente', true);
+                        ->orWhere('recorrente', true);
                 });
 
             // Filtrar por mês se fornecido (formato: YYYY-MM)
@@ -301,7 +301,7 @@ class AgendamentoController extends BaseController
             // Se a data de pagamento ou tempo de antecedência mudou, resetar flags de notificação
             // para que o lembrete seja reenviado na nova data/configuração
             $updateData = $dto->toArray();
-            
+
             $dataAlterada = false;
             $antecedenciaAlterada = false;
 
@@ -603,11 +603,19 @@ class AgendamentoController extends BaseController
                 // Proteção contra execução duplicada (concorrência otimista)
                 // Agora dentro da transação com lock, então os dados são garantidamente atuais
                 if ($expectedData) {
+                    // Normalizar data esperada (frontend envia em UTC ISO: 2026-02-13T13:00:00.000000Z)
+                    // Converter para o mesmo timezone do servidor para comparação precisa
+                    try {
+                        $expectedDT = new \DateTimeImmutable($expectedData);
+                        $expectedDT = $expectedDT->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                        $expectedDate = $expectedDT->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        $expectedDate = substr($expectedData, 0, 10);
+                    }
+
                     $currentData = $agendamento->data_pagamento instanceof \DateTimeInterface
                         ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
                         : (string) $agendamento->data_pagamento;
-
-                    $expectedDate = substr($expectedData, 0, 10);
                     $currentDate = substr($currentData, 0, 10);
 
                     if ($expectedDate !== $currentDate) {
@@ -615,6 +623,33 @@ class AgendamentoController extends BaseController
                             'agendamento_id' => $id,
                             'expected_date' => $expectedDate,
                             'current_date' => $currentDate,
+                            'expected_raw' => $expectedData,
+                            'user_id' => $userId
+                        ]);
+                        return ['duplicate' => true, 'agendamento' => $agendamento];
+                    }
+                }
+
+                // Proteção contra execução rápida consecutiva (recorrentes)
+                // Se data_pagamento foi alterada nos últimos 10 segundos, provavelmente é uma execução duplicada
+                // (recorrentes voltam para 'pendente' imediatamente, então precisam desta proteção)
+                if ($agendamento->recorrente && $agendamento->updated_at && $agendamento->created_at) {
+                    $updatedAt = $agendamento->updated_at instanceof \DateTimeInterface
+                        ? $agendamento->updated_at->getTimestamp()
+                        : strtotime((string) $agendamento->updated_at);
+                    $createdAt = $agendamento->created_at instanceof \DateTimeInterface
+                        ? $agendamento->created_at->getTimestamp()
+                        : strtotime((string) $agendamento->created_at);
+                    $diffSeconds = time() - $updatedAt;
+                    $isNewlyCreated = abs($updatedAt - $createdAt) < 15; // Criado há pouco
+
+                    // Se foi atualizado há menos de 10 segundos E não é recém-criado,
+                    // bloquear como possível execução duplicada
+                    if ($diffSeconds >= 0 && $diffSeconds < 10 && !$isNewlyCreated && $expectedData) {
+                        LogService::warning('Execução duplicada bloqueada (updated_at recente para recorrente)', [
+                            'agendamento_id' => $id,
+                            'updated_at' => (string) $agendamento->updated_at,
+                            'diff_seconds' => $diffSeconds,
                             'user_id' => $userId
                         ]);
                         return ['duplicate' => true, 'agendamento' => $agendamento];

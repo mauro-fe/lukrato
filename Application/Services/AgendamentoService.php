@@ -196,9 +196,9 @@ class AgendamentoService
                 ];
             } else {
                 // Ainda há parcelas - avançar para próximo mês
-                // IMPORTANTE: usar EXATAMENTE 'monthly' com intervalo 1
+                // IMPORTANTE: usar $dataBaseOriginal (string) para evitar bugs de timezone
                 $proximaData = $this->calcularProximaData(
-                    $agendamento->data_pagamento,
+                    $dataBaseOriginal,
                     'monthly', // Parcelas sempre mensais
                     1
                 );
@@ -256,8 +256,10 @@ class AgendamentoService
                 $intervalo = 1;
             }
 
+            // IMPORTANTE: usar $dataBaseOriginal (string capturada ANTES de qualquer modificação)
+            // para evitar problemas de referência/timezone com o objeto Carbon
             $proximaData = $this->calcularProximaData(
-                $agendamento->data_pagamento,
+                $dataBaseOriginal,
                 $agendamento->recorrencia_freq,
                 $intervalo
             );
@@ -375,35 +377,56 @@ class AgendamentoService
         ?string $recorrenciaFreq = null,
         int $intervalo = 1
     ): string {
-        // Converter para DateTime
+        // Sempre extrair como string primeiro para evitar ambiguidade de timezone/referência
+        $dataString = null;
         if ($dataBase instanceof \DateTimeInterface) {
-            $data = \DateTime::createFromFormat('Y-m-d H:i:s', $dataBase->format('Y-m-d H:i:s'));
-        } else {
-            $data = \DateTime::createFromFormat('Y-m-d H:i:s', $dataBase);
+            $dataString = $dataBase->format('Y-m-d H:i:s');
+        } elseif (is_string($dataBase) && !empty($dataBase)) {
+            $dataString = $dataBase;
+        }
+
+        if (!$dataString || !$recorrenciaFreq) {
+            return date('Y-m-d H:i:s');
+        }
+
+        // Criar DateTime a partir da string (sempre novo objeto, sem referências compartilhadas)
+        $data = \DateTime::createFromFormat('Y-m-d H:i:s', $dataString);
+        if (!$data) {
+            $data = \DateTime::createFromFormat('Y-m-d', $dataString);
             if (!$data) {
-                $data = \DateTime::createFromFormat('Y-m-d', $dataBase);
-                if (!$data) {
-                    $data = new \DateTime($dataBase);
-                }
+                $data = new \DateTime($dataString);
             }
         }
 
-        if (!$data || !$recorrenciaFreq) {
+        if (!$data) {
             return date('Y-m-d H:i:s');
         }
 
         $intervalo = max(1, $intervalo); // Mínimo 1
 
+        // Guardar data original para log/validação
+        $dataOriginal = $data->format('Y-m-d');
+
         // Normalizar frequência - aceitar tanto português quanto inglês
         $freq = strtolower($recorrenciaFreq);
 
-        return match ($freq) {
+        $resultado = match ($freq) {
             'daily', 'diario' => $data->modify("+{$intervalo} day")->format('Y-m-d H:i:s'),
             'weekly', 'semanal' => $data->modify("+{$intervalo} week")->format('Y-m-d H:i:s'),
             'monthly', 'mensal' => $data->modify("+{$intervalo} month")->format('Y-m-d H:i:s'),
             'yearly', 'anual' => $data->modify("+{$intervalo} year")->format('Y-m-d H:i:s'),
             default => $data->format('Y-m-d H:i:s'),
         };
+
+        // Log para rastreabilidade (ajuda a diagnosticar se o bug ocorrer novamente)
+        LogService::info('calcularProximaData resultado', [
+            'data_base_original' => $dataString,
+            'frequencia' => $freq,
+            'intervalo' => $intervalo,
+            'resultado' => $resultado,
+        ]);
+
+        return $resultado;
     }
 
     /**
