@@ -2207,6 +2207,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Preencher modal de execução
             document.getElementById('execAgendamentoId').value = id;
+            // Guardar data_pagamento esperada para proteção contra execução duplicada
+            document.getElementById('execExpectedData').value = agendamento.data_pagamento || '';
             document.getElementById('execResumoTitulo').textContent = agendamento.titulo || 'Agendamento';
             document.getElementById('execResumoValor').textContent = Format.currency(agendamento.valor_centavos);
 
@@ -2281,6 +2283,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payload = {};
                 if (contaId) payload.conta_id = contaId;
                 if (formaPagamento) payload.forma_pagamento = formaPagamento;
+
+                // Enviar data_pagamento esperada para proteção contra execução duplicada
+                const expectedData = document.getElementById('execExpectedData')?.value;
+                if (expectedData) payload.expected_data_pagamento = expectedData;
 
                 const json = await HTTP.fetchWithCSRF(`${CONFIG.BASE_URL}api/agendamentos/${id}/executar`, {
                     method: 'POST',

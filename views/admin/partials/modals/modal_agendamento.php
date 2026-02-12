@@ -939,6 +939,7 @@
 
             <div class="modal-body" style="padding: var(--spacing-5);">
                 <input type="hidden" id="execAgendamentoId">
+                <input type="hidden" id="execExpectedData">
 
                 <!-- Resumo do Agendamento -->
                 <div class="agendamento-resumo">

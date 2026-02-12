@@ -298,10 +298,13 @@ class DashboardController
         $end = date('Y-m-t', strtotime($start));
         $now = date('Y-m-d H:i:s');
 
-        // Agendamentos pendentes/notificados do mês (não concluídos)
+        // Agendamentos pendentes/notificados do mês (não concluídos ou recorrentes)
         $agendamentosMes = Agendamento::where('user_id', $userId)
             ->whereIn('status', ['pendente', 'notificado'])
-            ->whereNull('concluido_em')
+            ->where(function ($q) {
+                $q->whereNull('concluido_em')
+                  ->orWhere('recorrente', true);
+            })
             ->whereBetween('data_pagamento', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->get();
 
@@ -333,11 +336,14 @@ class DashboardController
 
         $saldoProjetado = $saldoAtual + $totalReceber - $totalPagar;
 
-        // Próximos 5 vencimentos (a partir de agora, qualquer mês, não concluídos)
+        // Próximos 5 vencimentos (a partir de agora, qualquer mês, não concluídos ou recorrentes)
         $proximos = Agendamento::with(['categoria:id,nome'])
             ->where('user_id', $userId)
             ->whereIn('status', ['pendente', 'notificado'])
-            ->whereNull('concluido_em')
+            ->where(function ($q) {
+                $q->whereNull('concluido_em')
+                  ->orWhere('recorrente', true);
+            })
             ->where('data_pagamento', '>=', $now)
             ->orderBy('data_pagamento', 'asc')
             ->limit(5)
@@ -357,10 +363,13 @@ class DashboardController
                 'recorrente' => (bool) $ag->recorrente,
             ]);
 
-        // Agendamentos vencidos (data_pagamento já passou e não concluídos)
+        // Agendamentos vencidos (data_pagamento já passou e não concluídos, ou recorrentes)
         $vencidosQuery = Agendamento::where('user_id', $userId)
             ->whereIn('status', ['pendente', 'notificado'])
-            ->whereNull('concluido_em')
+            ->where(function ($q) {
+                $q->whereNull('concluido_em')
+                  ->orWhere('recorrente', true);
+            })
             ->where('data_pagamento', '<', $now)
             ->orderBy('data_pagamento', 'asc')
             ->get();

@@ -584,17 +584,50 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            // Proteção contra execução duplicada (requisição duplicada/retry)
-            // Se foi executado nos últimos 5 segundos, ignorar
+            // Obter dados opcionais do request
+            $data = $this->getRequestData();
+
+            // Proteção contra execução duplicada (concorrência otimista)
+            // O frontend envia a data_pagamento que ele conhece. Se já mudou no banco,
+            // significa que outra requisição já executou e avançou a data.
+            $expectedData = $data['expected_data_pagamento'] ?? null;
+            if ($expectedData) {
+                $currentData = $agendamento->data_pagamento instanceof \DateTimeInterface
+                    ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
+                    : (string) $agendamento->data_pagamento;
+
+                // Comparar apenas a parte da data (Y-m-d) para evitar problemas de formatação de hora
+                $expectedDate = substr($expectedData, 0, 10);
+                $currentDate = substr($currentData, 0, 10);
+
+                if ($expectedDate !== $currentDate) {
+                    LogService::warning('Execução duplicada detectada via expected_data_pagamento', [
+                        'agendamento_id' => $id,
+                        'expected_date' => $expectedDate,
+                        'current_date' => $currentDate,
+                        'user_id' => $this->getUserId()
+                    ]);
+                    $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
+                    $agendamentoData = $agendamento->toArray();
+                    $agendamentoData['status_dinamico'] = $this->service->calcularStatusDinamico($agendamento);
+                    Response::success([
+                        'message' => 'Agendamento já foi executado. Próxima data atualizada.',
+                        'agendamento' => $agendamentoData,
+                        'duplicate_prevented' => true,
+                    ]);
+                    return;
+                }
+            }
+
+            // Proteção secundária via concluido_em (para agendamentos únicos/finalizados)
             if ($agendamento->concluido_em) {
                 $ultimaExecucao = strtotime($agendamento->concluido_em);
-                if (time() - $ultimaExecucao < 5) {
-                    LogService::warning('Execução duplicada detectada e ignorada', [
+                if (time() - $ultimaExecucao < 10) {
+                    LogService::warning('Execução duplicada detectada via concluido_em', [
                         'agendamento_id' => $id,
                         'concluido_em' => $agendamento->concluido_em,
                         'user_id' => $this->getUserId()
                     ]);
-                    // Retornar sucesso mesmo assim para não confundir o frontend
                     $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
                     Response::success([
                         'message' => 'Agendamento já foi executado.',
@@ -604,9 +637,6 @@ class AgendamentoController extends BaseController
                     return;
                 }
             }
-
-            // Obter dados opcionais do request
-            $data = $this->getRequestData();
             $contaId = !empty($data['conta_id']) ? (int) $data['conta_id'] : null;
             $formaPagamento = !empty($data['forma_pagamento']) ? trim($data['forma_pagamento']) : null;
 

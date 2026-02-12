@@ -35,12 +35,13 @@ class AgendamentoService
     private function gerarObservacao(Agendamento $agendamento): string
     {
         $observacaoBase = trim((string) ($agendamento->descricao ?? ''));
+        $dataPag = $this->extrairDataPagamento($agendamento->data_pagamento);
 
         if ($observacaoBase !== '') {
-            return "{$observacaoBase} (Agendamento #{$agendamento->id})";
+            return "{$observacaoBase} (Agendamento #{$agendamento->id} - venc. {$dataPag})";
         }
 
-        return "Gerado automaticamente do agendamento #{$agendamento->id}";
+        return "Gerado automaticamente do agendamento #{$agendamento->id} - venc. {$dataPag}";
     }
 
     private function extrairDataPagamento($dataPagamento): string
@@ -208,6 +209,8 @@ class AgendamentoService
                     'proxima_execucao' => $proximaExecucao,
                     'status' => 'pendente',
                     'notificado_em' => null,
+                    'lembrete_antecedencia_em' => null,
+                    // concluido_em NÃO é setado - parcelado só conclui na última parcela
                 ]);
 
                 LogService::info('Agendamento parcelado - parcela paga, avançando', [
@@ -250,7 +253,8 @@ class AgendamentoService
                 'proxima_execucao' => $proximaExecucao,
                 'status' => 'pendente', // Volta para pendente
                 'notificado_em' => null, // Limpa para permitir nova notificação
-                'concluido_em' => null, // Limpa para nova ocorrência aparecer nas consultas
+                'lembrete_antecedencia_em' => null, // Limpa para permitir novo lembrete de antecedência
+                // concluido_em NÃO é setado - recorrentes nunca ficam concluídos
             ]);
 
             LogService::info('Agendamento recorrente executado e avançado', [
