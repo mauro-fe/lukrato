@@ -240,6 +240,8 @@ Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@delet
 Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'sysadmin', 'csrf']);
 Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'sysadmin', 'csrf']);
 Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth', 'sysadmin']);
+Router::add('POST', '/api/sysadmin/maintenance', 'Api\\SysAdminController@toggleMaintenance', ['auth', 'sysadmin', 'csrf']);
+Router::add('GET', '/api/sysadmin/maintenance', 'Api\\SysAdminController@maintenanceStatus', ['auth', 'sysadmin']);
 
 // ============================================
 // CAMPANHAS DE MENSAGENS (SYSADMIN)

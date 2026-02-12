@@ -176,9 +176,9 @@
                         <i class="fas fa-broom"></i>
                         Limpar Cache do Sistema
                     </button>
-                    <button class="btn-control danger" onclick="toggleMaintenance()">
-                        <i class="fas fa-wrench"></i>
-                        Ativar Modo Manutencao
+                    <button class="btn-control danger" id="btnMaintenance" onclick="toggleMaintenance()">
+                        <i class="fas fa-wrench" id="btnMaintenanceIcon"></i>
+                        <span id="btnMaintenanceText">Verificando...</span>
                     </button>
                 </div>
             </div>
@@ -282,6 +282,8 @@
 </div>
 
 <script>
+    const BASE_URL = '<?= BASE_URL ?>';
+
     function limparCache() {
         if (window.Swal) {
             Swal.fire({
@@ -311,33 +313,148 @@
         }
     }
 
-    function toggleMaintenance() {
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Modo Manutencao',
-                text: 'Deseja ativar o modo manutencao? O site ficara indisponivel para usuarios.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sim, ativar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Modo Manutencao Ativado',
-                        text: 'O sistema esta agora em modo manutencao.',
-                        timer: 2000
-                    });
+    // ============ MODO MANUTENÇÃO ============
+    let maintenanceActive = false;
+
+    async function checkMaintenanceStatus() {
+        try {
+            const res = await fetch(`${BASE_URL}api/sysadmin/maintenance`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+            const data = await res.json();
+            maintenanceActive = data.active || false;
+            updateMaintenanceButton();
+        } catch (e) {
+            console.error('Erro ao verificar manutenção:', e);
+        }
+    }
+
+    function updateMaintenanceButton() {
+        const btn = document.getElementById('btnMaintenance');
+        const icon = document.getElementById('btnMaintenanceIcon');
+        const text = document.getElementById('btnMaintenanceText');
+        if (!btn) return;
+
+        if (maintenanceActive) {
+            btn.className = 'btn-control success';
+            icon.className = 'fas fa-check-circle';
+            text.textContent = 'Desativar Manutenção (ATIVO)';
         } else {
-            if (confirm('Deseja ativar o modo manutencao?')) {
-                alert('Modo manutencao ativado!');
+            btn.className = 'btn-control danger';
+            icon.className = 'fas fa-wrench';
+            text.textContent = 'Ativar Modo Manutenção';
+        }
+    }
+
+    async function toggleMaintenance() {
+        const action = maintenanceActive ? 'deactivate' : 'activate';
+        const title = maintenanceActive ? 'Desativar Manutenção' : 'Ativar Modo Manutenção';
+        const text = maintenanceActive ?
+            'O sistema voltará ao normal para todos os usuários.' :
+            'O site ficará indisponível para usuários (admins continuam acessando).';
+        const confirmText = maintenanceActive ? 'Sim, desativar!' : 'Sim, ativar!';
+        const icon = maintenanceActive ? 'question' : 'warning';
+
+        const doToggle = async (reason, minutes) => {
+            try {
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                };
+                if (csrfMeta) headers['X-CSRF-Token'] = csrfMeta.content;
+
+                const res = await fetch(`${BASE_URL}api/sysadmin/maintenance`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        action,
+                        reason: reason || '',
+                        estimated_minutes: minutes || null
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    maintenanceActive = data.active;
+                    updateMaintenanceButton();
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: data.active ? 'Manutenção Ativada' : 'Sistema Online',
+                            text: data.message,
+                            timer: 2500
+                        });
+                    } else {
+                        alert(data.message);
+                    }
+                } else {
+                    throw new Error(data.message || 'Erro desconhecido');
+                }
+            } catch (e) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: e.message
+                    });
+                } else {
+                    alert('Erro: ' + e.message);
+                }
+            }
+        };
+
+        if (window.Swal) {
+            if (action === 'activate') {
+                const {
+                    value: formValues
+                } = await Swal.fire({
+                    title: title,
+                    icon: icon,
+                    html: '<p class="mb-3" style="color:#64748b;font-size:0.9rem;">' + text + '</p>' +
+                        '<input id="swal-reason" class="swal2-input" placeholder="Motivo (opcional)" style="font-size:0.9rem;">' +
+                        '<input id="swal-minutes" type="number" class="swal2-input" placeholder="Tempo estimado em minutos" min="1" style="font-size:0.9rem;">',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74c3c',
+                    cancelButtonColor: '#95a5a6',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        return {
+                            reason: document.getElementById('swal-reason').value,
+                            minutes: document.getElementById('swal-minutes').value
+                        };
+                    }
+                });
+                if (formValues) {
+                    await doToggle(formValues.reason, formValues.minutes ? parseInt(formValues.minutes) : null);
+                }
+            } else {
+                const result = await Swal.fire({
+                    title,
+                    text,
+                    icon,
+                    showCancelButton: true,
+                    confirmButtonColor: '#2ecc71',
+                    cancelButtonColor: '#95a5a6',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: 'Cancelar'
+                });
+                if (result.isConfirmed) {
+                    await doToggle();
+                }
+            }
+        } else {
+            if (confirm(text)) {
+                await doToggle();
             }
         }
     }
+
+    // Verificar status ao carregar
+    checkMaintenanceStatus();
 
     function searchUser() {
         const query = document.getElementById('userSearch');

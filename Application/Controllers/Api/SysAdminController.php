@@ -8,11 +8,65 @@ use Application\Models\Usuario;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Endereco;
 use Application\Models\Plano;
+use Application\Services\MaintenanceService;
 use Carbon\Carbon;
 use Exception;
 
 class SysAdminController extends BaseController
 {
+    /**
+     * POST /api/sysadmin/maintenance
+     * Ativar/desativar modo manutenção
+     */
+    public function toggleMaintenance(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $payload = $this->getRequestPayload();
+            $action = $payload['action'] ?? 'toggle'; // 'activate', 'deactivate', 'toggle'
+            $reason = trim($payload['reason'] ?? '');
+            $estimatedMinutes = isset($payload['estimated_minutes']) ? (int) $payload['estimated_minutes'] : null;
+
+            if ($action === 'toggle') {
+                $action = MaintenanceService::isActive() ? 'deactivate' : 'activate';
+            }
+
+            if ($action === 'activate') {
+                MaintenanceService::activate($reason, $estimatedMinutes);
+                Response::json([
+                    'success' => true,
+                    'active' => true,
+                    'message' => 'Modo manutenção ativado com sucesso.',
+                    'data' => MaintenanceService::getData(),
+                ]);
+            } else {
+                MaintenanceService::deactivate();
+                Response::json([
+                    'success' => true,
+                    'active' => false,
+                    'message' => 'Modo manutenção desativado. Sistema online.',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Response::json(['success' => false, 'message' => 'Erro: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/sysadmin/maintenance
+     * Status atual do modo manutenção
+     */
+    public function maintenanceStatus(): void
+    {
+        $this->requireAuthApi();
+
+        Response::json([
+            'success' => true,
+            'active' => MaintenanceService::isActive(),
+            'data' => MaintenanceService::getData(),
+        ]);
+    }
     /**
      * POST /api/sysadmin/grant-access
      * Liberar acesso PRO temporário para um usuário
