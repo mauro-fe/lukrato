@@ -364,39 +364,26 @@
 
         const doToggle = async (reason, minutes) => {
             try {
-                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                };
-                if (csrfMeta) headers['X-CSRF-Token'] = csrfMeta.content;
-
-                const res = await fetch(`${BASE_URL}api/sysadmin/maintenance`, {
+                const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/maintenance`, {
                     method: 'POST',
-                    headers,
                     body: JSON.stringify({
                         action,
                         reason: reason || '',
                         estimated_minutes: minutes || null
                     })
                 });
-                const data = await res.json();
 
-                if (data.success) {
-                    maintenanceActive = data.active;
-                    updateMaintenanceButton();
-                    if (window.Swal) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: data.active ? 'Manutenção Ativada' : 'Sistema Online',
-                            text: data.message,
-                            timer: 2500
-                        });
-                    } else {
-                        alert(data.message);
-                    }
+                maintenanceActive = data.active;
+                updateMaintenanceButton();
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: data.active ? 'Manutenção Ativada' : 'Sistema Online',
+                        text: data.message,
+                        timer: 2500
+                    });
                 } else {
-                    throw new Error(data.message || 'Erro desconhecido');
+                    alert(data.message);
                 }
             } catch (e) {
                 if (window.Swal) {
