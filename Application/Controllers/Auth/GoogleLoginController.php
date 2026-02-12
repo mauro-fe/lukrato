@@ -31,6 +31,12 @@ class GoogleLoginController extends BaseController
         }
 
         try {
+            // Salva código de indicação na sessão (se veio via ?ref=)
+            $ref = $_GET['ref'] ?? '';
+            if (!empty($ref)) {
+                $_SESSION['pending_referral_code'] = strtoupper(trim($ref));
+            }
+
             $authUrl = $this->googleAuthService->getAuthUrl();
 
             LogService::info('Iniciando login com Google OAuth', [

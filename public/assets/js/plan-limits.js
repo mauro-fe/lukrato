@@ -290,7 +290,7 @@
     function getCurrentPageContext() {
         const path = window.location.pathname.toLowerCase();
         const contexts = ['relatorios', 'cartoes', 'contas', 'agendamentos', 'metas', 'categorias', 'lancamentos', 'dashboard', 'faturas'];
-        
+
         for (const ctx of contexts) {
             if (path.includes(ctx)) {
                 return ctx;
@@ -332,11 +332,25 @@
         Object.entries(buttonMap).forEach(([selector, resource]) => {
             const buttons = document.querySelectorAll(selector);
             buttons.forEach(btn => {
-                // Remover badges antigos
-                btn.querySelectorAll('.limit-badge').forEach(b => b.remove());
-
                 const limit = canCreate(resource);
-                if (!limit.allowed) {
+                const isBlocked = !limit.allowed;
+                const alreadyBlocked = btn.hasAttribute('data-limit-blocked');
+                const isWarning = limit.allowed && limit.remaining !== undefined && limit.remaining <= 2;
+                const alreadyWarning = btn.hasAttribute('data-limit-warning');
+
+                // Skip if state hasn't changed (avoid DOM mutations that re-trigger MutationObserver)
+                if (isBlocked && alreadyBlocked) return;
+                if (isWarning && alreadyWarning) return;
+                if (!isBlocked && !isWarning && !alreadyBlocked && !alreadyWarning) return;
+
+                // Remove old badges
+                btn.querySelectorAll('.limit-badge').forEach(b => b.remove());
+                btn.removeAttribute('data-limit-blocked');
+                btn.removeAttribute('data-limit-warning');
+                btn.classList.remove('disabled');
+                btn.removeEventListener('click', handleBlockedClick, { capture: true });
+
+                if (isBlocked) {
                     // Desabilitar botão
                     btn.classList.add('disabled');
                     btn.setAttribute('data-limit-blocked', 'true');
@@ -349,8 +363,9 @@
 
                     // Interceptar clique
                     btn.addEventListener('click', handleBlockedClick, { capture: true });
-                } else if (limit.remaining !== undefined && limit.remaining <= 2) {
+                } else if (isWarning) {
                     // Aviso de quase no limite
+                    btn.setAttribute('data-limit-warning', 'true');
                     const badge = document.createElement('span');
                     badge.className = 'limit-badge badge bg-warning text-dark ms-2';
                     badge.textContent = limit.remaining;
@@ -467,9 +482,14 @@
         // Aplicar restrição de histórico
         applyHistoryRestriction();
 
-        // Observar mudanças no DOM para novos botões
+        // Observar mudanças no DOM para novos botões (debounced para evitar loop infinito)
+        let updateTimeout = null;
         const observer = new MutationObserver(() => {
-            updateAddButtons();
+            if (updateTimeout) return;
+            updateTimeout = setTimeout(() => {
+                updateTimeout = null;
+                updateAddButtons();
+            }, 300);
         });
 
         observer.observe(document.body, {

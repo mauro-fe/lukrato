@@ -242,6 +242,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             if (refCode && referralInput) {
                 referralInput.value = refCode.toUpperCase();
                 validateReferralCode(refCode);
+                updateGoogleRegisterLink();
 
                 // Ativa a aba de cadastro automaticamente se veio com código
                 const card = document.querySelector('.card');
@@ -252,6 +253,15 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     registerBtn.classList.add('is-active');
                 }
             }
+        }
+
+        // Atualiza o link do Google Register com o código de indicação
+        function updateGoogleRegisterLink() {
+            const googleRegisterBtn = document.querySelector('a[href*="auth/google/register"]');
+            if (!googleRegisterBtn) return;
+            const base = '<?= BASE_URL ?>auth/google/register';
+            const code = referralInput ? referralInput.value.trim() : '';
+            googleRegisterBtn.href = code ? `${base}?ref=${encodeURIComponent(code)}` : base;
         }
 
         // Valida o código de indicação via API
@@ -299,6 +309,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             referralInput.addEventListener('input', (e) => {
                 // Força uppercase
                 e.target.value = e.target.value.toUpperCase();
+                updateGoogleRegisterLink();
 
                 // Debounce para não fazer muitas requisições
                 clearTimeout(referralValidationTimeout);
@@ -689,6 +700,49 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                         if (isCsrfError(response, data)) {
                             throw new Error('Sessão expirada. A página será recarregada...');
                         }
+
+                        // Erros de validação (422) — mostra erros específicos nos campos
+                        if (response.status === 422 && data?.errors) {
+                            if (data.errors.email) {
+                                const emailMsg = Array.isArray(data.errors.email) ? data.errors.email[0] : data
+                                    .errors.email;
+                                showError('reg_email', 'regEmailError', emailMsg);
+                            }
+                            if (data.errors.name) {
+                                const nameMsg = Array.isArray(data.errors.name) ? data.errors.name[0] : data
+                                    .errors.name;
+                                showError('name', 'nameError', nameMsg);
+                            }
+                            if (data.errors.password) {
+                                const passMsg = Array.isArray(data.errors.password) ? data.errors.password[0] :
+                                    data.errors.password;
+                                showError('reg_password', 'regPasswordError', passMsg);
+                            }
+                            if (data.errors.password_confirmation) {
+                                const confirmMsg = Array.isArray(data.errors.password_confirmation) ? data
+                                    .errors.password_confirmation[0] : data.errors.password_confirmation;
+                                showError('reg_password_confirm', 'regPasswordConfirmError', confirmMsg);
+                            }
+
+                            // Título contextual para o SweetAlert
+                            const apiMessage = data.message || '';
+                            const isEmailDuplicate = apiMessage.toLowerCase().includes('cadastrado') ||
+                                apiMessage.toLowerCase().includes('já existe') ||
+                                (data.errors.email && String(data.errors.email).toLowerCase().includes(
+                                    'cadastrado'));
+
+                            Swal.fire({
+                                icon: isEmailDuplicate ? 'warning' : 'error',
+                                title: isEmailDuplicate ? 'E-mail já cadastrado' : 'Erro no cadastro',
+                                text: isEmailDuplicate ?
+                                    'Já existe uma conta com este e-mail. Tente fazer login ou use outro e-mail.' : (apiMessage || 'Corrija os campos destacados e tente novamente.'),
+                            });
+
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnHtml;
+                            return;
+                        }
+
                         throw new Error(data?.message || 'Erro ao criar conta.');
                     }
 

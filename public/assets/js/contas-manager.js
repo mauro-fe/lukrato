@@ -112,9 +112,6 @@ class ContasManager {
     }
 
     async init() {
-        console.log('🔧 ContasManager init - baseUrl:', this.baseUrl);
-        console.log('🔧 window.BASE_URL:', window.BASE_URL);
-        
         await this.loadInstituicoes();
         await this.loadContas();
         this.attachEventListeners();
@@ -180,30 +177,23 @@ class ContasManager {
      * Carregar instituições financeiras
      */
     async loadInstituicoes() {
-        console.log('🔄 [DEBUG] loadInstituicoes() chamado');
-        console.log('🔄 [DEBUG] URL:', `${this.baseUrl}/instituicoes`);
-        console.log('🔄 [DEBUG] lkFetch disponível:', !!window.lkFetch);
-        
         try {
             let data;
             const startTime = performance.now();
-            
+
             // Usar lkFetch se disponível (com timeout e retry)
             if (window.lkFetch) {
-                console.log('🔄 [DEBUG] Usando lkFetch...');
                 const result = await window.lkFetch.get(`${this.baseUrl}/instituicoes`, {
                     timeout: 15000,
                     maxRetries: 2,
                     showLoading: false
                 });
-                console.log('✅ [DEBUG] lkFetch retornou:', result);
                 data = result.data;
             } else {
-                console.log('🔄 [DEBUG] Usando fetch nativo...');
                 // Fallback com timeout manual
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000);
-                
+
                 const response = await fetch(`${this.baseUrl}/instituicoes`, {
                     method: 'GET',
                     headers: {
@@ -213,20 +203,16 @@ class ContasManager {
                     credentials: 'same-origin',
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                console.log('✅ [DEBUG] fetch retornou status:', response.status);
-                
+
                 if (!response.ok) throw new Error('Erro ao carregar instituições');
                 data = await response.json();
-                console.log('✅ [DEBUG] JSON parseado:', data);
             }
 
             const elapsed = performance.now() - startTime;
-            console.log(`✅ [DEBUG] loadInstituicoes concluído em ${elapsed.toFixed(2)}ms`);
-            
+
             this.instituicoes = Array.isArray(data) ? data : (data.data || []);
-            console.log('✅ [DEBUG] Total instituições:', this.instituicoes.length);
 
             if (this.instituicoes.length > 0) {
                 const nubank = this.instituicoes.find(i => i.codigo === 'nubank');
@@ -241,7 +227,7 @@ class ContasManager {
             console.error('❌ [DEBUG] Error name:', error.name);
             console.error('❌ [DEBUG] Error message:', error.message);
             console.error('❌ [DEBUG] Error stack:', error.stack);
-            
+
             // Mensagem mais amigável para timeout
             let message = 'Erro ao carregar instituições financeiras';
             if (error.name === 'AbortError' || error.message?.includes('demorou')) {
@@ -249,7 +235,7 @@ class ContasManager {
             } else if (!navigator.onLine) {
                 message = 'Sem conexão com a internet';
             }
-            
+
             this.showToast(message, 'error');
         }
     }
@@ -258,9 +244,8 @@ class ContasManager {
      * Carregar contas do usuário
      */
     async loadContas() {
-        console.log('🔄 [DEBUG] loadContas() chamado');
         const grid = document.getElementById('accountsGrid');
-        
+
         try {
             this.showLoading(true);
 
@@ -271,29 +256,24 @@ class ContasManager {
             });
 
             const url = `${this.baseUrl}/contas?${params}`;
-            console.log('🔄 [DEBUG] loadContas URL:', url);
-            console.log('🔄 [DEBUG] lkFetch disponível:', !!window.lkFetch);
 
             let data;
             const startTime = performance.now();
-            
+
             // Usar lkFetch se disponível (com timeout, retry e indicadores)
             if (window.lkFetch) {
-                console.log('🔄 [DEBUG] Usando lkFetch para contas...');
                 const result = await window.lkFetch.get(url, {
                     timeout: 20000,
                     maxRetries: 2,
                     showLoading: true,
                     loadingTarget: '#accountsGrid'
                 });
-                console.log('✅ [DEBUG] lkFetch contas retornou:', result);
                 data = result.data;
             } else {
-                console.log('🔄 [DEBUG] Usando fetch nativo para contas...');
                 // Fallback com timeout manual
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 20000);
-                
+
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {
@@ -303,42 +283,35 @@ class ContasManager {
                     credentials: 'same-origin',
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                console.log('✅ [DEBUG] fetch contas status:', response.status);
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('❌ [DEBUG] Erro na resposta:', errorText);
                     throw new Error(`Erro ao carregar contas: ${response.status}`);
                 }
-                
+
                 data = await response.json();
-                console.log('✅ [DEBUG] JSON contas parseado:', data);
             }
 
             const elapsed = performance.now() - startTime;
-            console.log(`✅ [DEBUG] loadContas concluído em ${elapsed.toFixed(2)}ms`);
 
             // A resposta pode ser um array direto ou um objeto com data
             this.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
-            console.log('✅ [DEBUG] Total contas carregadas:', this.contas.length);
 
             if (this.contas.length > 0) {
                 // Contas carregadas
             }
 
-            console.log('🔄 [DEBUG] Chamando renderContas()...');
             this.renderContas();
-            console.log('🔄 [DEBUG] Chamando updateStats()...');
             this.updateStats();
-            console.log('✅ [DEBUG] loadContas() finalizado com sucesso');
         } catch (error) {
             console.error('❌ [DEBUG] Erro ao carregar contas:', error);
             console.error('❌ [DEBUG] Error name:', error.name);
             console.error('❌ [DEBUG] Error message:', error.message);
             console.error('❌ [DEBUG] Error stack:', error.stack);
-            
+
             // Mensagem mais amigável para timeout
             let message = 'Erro ao carregar contas';
             if (error.name === 'AbortError' || error.message?.includes('demorou')) {
@@ -346,9 +319,9 @@ class ContasManager {
             } else if (!navigator.onLine) {
                 message = 'Sem conexão com a internet';
             }
-            
+
             this.showToast(message, 'error');
-            
+
             // Mostrar estado de erro com botão de retry
             if (grid) {
                 grid.innerHTML = `
@@ -370,18 +343,14 @@ class ContasManager {
      * Renderizar lista de contas
      */
     renderContas() {
-        console.log('🎨 [DEBUG] renderContas() iniciado');
         const container = document.getElementById('accountsGrid');
-        console.log('🎨 [DEBUG] accountsGrid encontrado:', !!container);
         if (!container) {
             console.error('❌ [DEBUG] accountsGrid NÃO encontrado!');
             return;
         }
 
-        console.log('🎨 [DEBUG] Total de contas para renderizar:', this.contas.length);
 
         if (this.contas.length === 0) {
-            console.log('🎨 [DEBUG] Renderizando empty-state...');
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -394,7 +363,6 @@ class ContasManager {
                     </button>
                 </div>
             `;
-            console.log('🎨 [DEBUG] innerHTML após empty-state:', container.innerHTML.substring(0, 100));
             // Anexar listener para o botão de criar primeira conta
             setTimeout(() => {
                 const btnCriarPrimeira = document.getElementById('btnCriarPrimeiraConta');
@@ -407,9 +375,7 @@ class ContasManager {
             return;
         }
 
-        console.log('🎨 [DEBUG] Renderizando cards de contas...');
         container.innerHTML = this.contas.map(conta => this.createContaCard(conta)).join('');
-        console.log('🎨 [DEBUG] innerHTML após renderizar cards:', container.innerHTML.substring(0, 100));
         this.attachContaCardListeners();
     }
 
@@ -426,7 +392,7 @@ class ContasManager {
         let saldo = conta.saldo_atual || conta.saldoAtual || 0;
         if (Math.abs(saldo) < 0.01) saldo = 0;
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
-        
+
         // Badge do tipo de conta para list view
         const tipoConta = conta.tipo_conta || conta.tipo || 'conta_corrente';
         const tipoLabel = this.formatTipoConta(tipoConta);

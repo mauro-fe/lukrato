@@ -176,9 +176,9 @@
                         <i class="fas fa-broom"></i>
                         Limpar Cache do Sistema
                     </button>
-                    <button class="btn-control danger" onclick="toggleMaintenance()">
-                        <i class="fas fa-wrench"></i>
-                        Ativar Modo Manutencao
+                    <button class="btn-control danger" id="btnMaintenance" onclick="toggleMaintenance()">
+                        <i class="fas fa-wrench" id="btnMaintenanceIcon"></i>
+                        <span id="btnMaintenanceText">Verificando...</span>
                     </button>
                 </div>
             </div>
@@ -265,6 +265,11 @@
                 <option value="admin">Admin</option>
                 <option value="user">Usuário</option>
             </select>
+            <select name="plan" class="filter-select">
+                <option value="">Todos os Planos</option>
+                <option value="pro">⭐ Pro</option>
+                <option value="free">Free</option>
+            </select>
             <select name="perPage" class="filter-select">
                 <option value="10">10 por página</option>
                 <option value="25">25 por página</option>
@@ -282,6 +287,8 @@
 </div>
 
 <script>
+    const BASE_URL = '<?= BASE_URL ?>';
+
     function limparCache() {
         if (window.Swal) {
             Swal.fire({
@@ -311,33 +318,135 @@
         }
     }
 
-    function toggleMaintenance() {
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Modo Manutencao',
-                text: 'Deseja ativar o modo manutencao? O site ficara indisponivel para usuarios.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sim, ativar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Modo Manutencao Ativado',
-                        text: 'O sistema esta agora em modo manutencao.',
-                        timer: 2000
-                    });
+    // ============ MODO MANUTENÇÃO ============
+    let maintenanceActive = false;
+
+    async function checkMaintenanceStatus() {
+        try {
+            const res = await fetch(`${BASE_URL}api/sysadmin/maintenance`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+            const data = await res.json();
+            maintenanceActive = data.active || false;
+            updateMaintenanceButton();
+        } catch (e) {
+            console.error('Erro ao verificar manutenção:', e);
+        }
+    }
+
+    function updateMaintenanceButton() {
+        const btn = document.getElementById('btnMaintenance');
+        const icon = document.getElementById('btnMaintenanceIcon');
+        const text = document.getElementById('btnMaintenanceText');
+        if (!btn) return;
+
+        if (maintenanceActive) {
+            btn.className = 'btn-control success';
+            icon.className = 'fas fa-check-circle';
+            text.textContent = 'Desativar Manutenção (ATIVO)';
         } else {
-            if (confirm('Deseja ativar o modo manutencao?')) {
-                alert('Modo manutencao ativado!');
+            btn.className = 'btn-control danger';
+            icon.className = 'fas fa-wrench';
+            text.textContent = 'Ativar Modo Manutenção';
+        }
+    }
+
+    async function toggleMaintenance() {
+        const action = maintenanceActive ? 'deactivate' : 'activate';
+        const title = maintenanceActive ? 'Desativar Manutenção' : 'Ativar Modo Manutenção';
+        const text = maintenanceActive ?
+            'O sistema voltará ao normal para todos os usuários.' :
+            'O site ficará indisponível para usuários (admins continuam acessando).';
+        const confirmText = maintenanceActive ? 'Sim, desativar!' : 'Sim, ativar!';
+        const icon = maintenanceActive ? 'question' : 'warning';
+
+        const doToggle = async (reason, minutes) => {
+            try {
+                const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/maintenance`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action,
+                        reason: reason || '',
+                        estimated_minutes: minutes || null
+                    })
+                });
+
+                maintenanceActive = data.active;
+                updateMaintenanceButton();
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: data.active ? 'Manutenção Ativada' : 'Sistema Online',
+                        text: data.message,
+                        timer: 2500
+                    });
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: e.message
+                    });
+                } else {
+                    alert('Erro: ' + e.message);
+                }
+            }
+        };
+
+        if (window.Swal) {
+            if (action === 'activate') {
+                const {
+                    value: formValues
+                } = await Swal.fire({
+                    title: title,
+                    icon: icon,
+                    html: '<p class="mb-3" style="color:#64748b;font-size:0.9rem;">' + text + '</p>' +
+                        '<input id="swal-reason" class="swal2-input" placeholder="Motivo (opcional)" style="font-size:0.9rem;">' +
+                        '<input id="swal-minutes" type="number" class="swal2-input" placeholder="Tempo estimado em minutos" min="1" style="font-size:0.9rem;">',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74c3c',
+                    cancelButtonColor: '#95a5a6',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        return {
+                            reason: document.getElementById('swal-reason').value,
+                            minutes: document.getElementById('swal-minutes').value
+                        };
+                    }
+                });
+                if (formValues) {
+                    await doToggle(formValues.reason, formValues.minutes ? parseInt(formValues.minutes) : null);
+                }
+            } else {
+                const result = await Swal.fire({
+                    title,
+                    text,
+                    icon,
+                    showCancelButton: true,
+                    confirmButtonColor: '#2ecc71',
+                    cancelButtonColor: '#95a5a6',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: 'Cancelar'
+                });
+                if (result.isConfirmed) {
+                    await doToggle();
+                }
+            }
+        } else {
+            if (confirm(text)) {
+                await doToggle();
             }
         }
     }
+
+    // Verificar status ao carregar
+    checkMaintenanceStatus();
 
     function searchUser() {
         const query = document.getElementById('userSearch');
@@ -527,6 +636,10 @@
                                     <span class="detail-label">ID</span>
                                     <span class="detail-value">#${user.id}</span>
                                 </div>
+                                ${user.support_code ? `<div class="detail-row">
+                                    <span class="detail-label">Código de Suporte</span>
+                                    <span class="detail-value" style="font-family: 'Courier New', monospace; font-weight: 600; letter-spacing: 1px; color: var(--color-primary);">${user.support_code}</span>
+                                </div>` : ''}
                                 <div class="detail-row">
                                     <span class="detail-label">Nome</span>
                                     <span class="detail-value">${user.nome || 'N/A'}</span>
@@ -1070,16 +1183,20 @@
     function renderUserTable(users, total, page, perPage) {
         let html = `<div class='modern-table-card'><div class='table-responsive'><table class='modern-table'>`;
         html +=
-            `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
+            `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Plano</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
         if (users.length === 0) {
             html +=
-                `<tr><td colspan='6' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
+                `<tr><td colspan='7' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
         } else {
             users.forEach(u => {
+                const planBadge = u.is_pro ?
+                    `<span class='badge-status pro' style='background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;'><i class='fas fa-crown'></i> Pro</span>` :
+                    `<span class='badge-status free' style='background:#e5e7eb;color:#6b7280;font-weight:500;'><i class='fas fa-user'></i> Free</span>`;
                 html += `<tr>
                     <td><span class='user-id'>#${u.id}</span></td>
                     <td><div class='user-info'><div class='user-avatar'>${(u.nome||'U')[0].toUpperCase()}</div><span class='user-name'>${u.nome||'-'}</span></div></td>
                     <td><span class='user-email'>${u.email||'-'}</span></td>
+                    <td>${planBadge}</td>
                     <td>${u.is_admin==1?`<span class='badge-status admin'><i class='fas fa-shield-alt'></i>Admin</span>`:`<span class='badge-status user'><i class='fas fa-user'></i>Usuário</span>`}</td>
                     <td><span class='user-date'>${u.created_at?formatDate(u.created_at):'-'}</span></td>
                     <td class='text-center'><div class='action-buttons'><button class='btn-action view' title='Ver detalhes' onclick='viewUser(${u.id})'><i class='fas fa-eye'></i></button><button class='btn-action edit' title='Editar usuário' onclick='editUser(${u.id})'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Excluir usuário' onclick='deleteUser(${u.id})'><i class='fas fa-trash'></i></button></div></td>

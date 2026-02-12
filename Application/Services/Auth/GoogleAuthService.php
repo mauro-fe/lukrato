@@ -121,22 +121,32 @@ class GoogleAuthService
     /**
      * Cria usuário a partir dos dados pendentes (após confirmação)
      */
-    public function createUserFromPending(array $userInfo): Usuario
+    public function createUserFromPending(array $userInfo, string $referralCode = ''): Usuario
     {
-        return $this->createUserFromGoogle($userInfo);
+        return $this->createUserFromGoogle($userInfo, $referralCode);
     }
 
-    private function createUserFromGoogle(array $userInfo): Usuario
+    private function createUserFromGoogle(array $userInfo, string $referralCode = ''): Usuario
     {
         $randomPassword = bin2hex(random_bytes(16));
 
-        $result = $this->authService->register([
+        $registerData = [
             'name' => $userInfo['name'] ?: strtok($userInfo['email'], '@'),
             'email' => $userInfo['email'],
             'password' => $randomPassword,
             'password_confirmation' => $randomPassword,
             'google_id' => $userInfo['id'],
-        ]);
+        ];
+
+        if (!empty($referralCode)) {
+            $registerData['referral_code'] = $referralCode;
+            LogService::info('Código de indicação aplicado no registro via Google', [
+                'email' => $userInfo['email'],
+                'referral_code' => $referralCode,
+            ]);
+        }
+
+        $result = $this->authService->register($registerData);
 
         if (empty($result['user_id'])) {
             throw new Exception('Falha ao criar usuário via Google');
@@ -197,7 +207,7 @@ class GoogleAuthService
     {
         try {
             $usuario = Usuario::find($userId);
-            
+
             if (!$usuario) {
                 LogService::warning('Usuário não encontrado para login após registro', [
                     'user_id' => $userId,

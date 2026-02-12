@@ -158,4 +158,18 @@ class Indicacao extends Model
     {
         return self::where('referred_id', $userId)->exists();
     }
+
+    /**
+     * Retorna label legível do status
+     */
+    public function getStatusLabel(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PENDING   => 'Pendente',
+            self::STATUS_COMPLETED => 'Completada',
+            self::STATUS_EXPIRED   => 'Expirada',
+            self::STATUS_CANCELLED => 'Cancelada',
+            default                => ucfirst($this->status ?? 'Desconhecido'),
+        };
+    }
 }

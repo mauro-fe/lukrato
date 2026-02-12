@@ -8,11 +8,65 @@ use Application\Models\Usuario;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Endereco;
 use Application\Models\Plano;
+use Application\Services\MaintenanceService;
 use Carbon\Carbon;
 use Exception;
 
 class SysAdminController extends BaseController
 {
+    /**
+     * POST /api/sysadmin/maintenance
+     * Ativar/desativar modo manutenção
+     */
+    public function toggleMaintenance(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $payload = $this->getRequestPayload();
+            $action = $payload['action'] ?? 'toggle'; // 'activate', 'deactivate', 'toggle'
+            $reason = trim($payload['reason'] ?? '');
+            $estimatedMinutes = isset($payload['estimated_minutes']) ? (int) $payload['estimated_minutes'] : null;
+
+            if ($action === 'toggle') {
+                $action = MaintenanceService::isActive() ? 'deactivate' : 'activate';
+            }
+
+            if ($action === 'activate') {
+                MaintenanceService::activate($reason, $estimatedMinutes);
+                Response::json([
+                    'success' => true,
+                    'active' => true,
+                    'message' => 'Modo manutenção ativado com sucesso.',
+                    'data' => MaintenanceService::getData(),
+                ]);
+            } else {
+                MaintenanceService::deactivate();
+                Response::json([
+                    'success' => true,
+                    'active' => false,
+                    'message' => 'Modo manutenção desativado. Sistema online.',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Response::json(['success' => false, 'message' => 'Erro: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/sysadmin/maintenance
+     * Status atual do modo manutenção
+     */
+    public function maintenanceStatus(): void
+    {
+        $this->requireAuthApi();
+
+        Response::json([
+            'success' => true,
+            'active' => MaintenanceService::isActive(),
+            'data' => MaintenanceService::getData(),
+        ]);
+    }
     /**
      * POST /api/sysadmin/grant-access
      * Liberar acesso PRO temporário para um usuário
@@ -198,7 +252,8 @@ class SysAdminController extends BaseController
                 $searchTerm = "%{$query}%";
                 $usuarios = $usuarios->where(function ($q) use ($query, $searchTerm) {
                     $q->where('nome', 'LIKE', $searchTerm)
-                        ->orWhere('email', 'LIKE', $searchTerm);
+                        ->orWhere('email', 'LIKE', $searchTerm)
+                        ->orWhere('support_code', 'LIKE', $searchTerm);
                     if (is_numeric($query)) {
                         $q->orWhere('id', (int)$query);
                     }
@@ -211,18 +266,46 @@ class SysAdminController extends BaseController
                 $usuarios = $usuarios->where('is_admin', 0);
             }
 
+            // Filtro por plano (pro/free)
+            $planFilter = $_GET['plan'] ?? '';
+
             $total = $usuarios->count();
             $usersList = $usuarios->orderByDesc('id')
                 ->limit($perPage)
                 ->offset($offset)
-                ->get(['id', 'nome', 'email', 'is_admin', 'created_at']);
+                ->with(['assinaturaAtiva.plano'])
+                ->get();
+
+            // Mapear dados com info de plano
+            $mapped = $usersList->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'support_code' => $u->support_code,
+                    'nome' => $u->nome,
+                    'email' => $u->email,
+                    'is_admin' => $u->is_admin,
+                    'is_pro' => $u->isPro(),
+                    'plano_nome' => $u->isPro() ? 'Pro' : 'Free',
+                    'email_verified' => $u->email_verified_at !== null,
+                    'created_at' => $u->created_at,
+                ];
+            });
+
+            // Filtrar por plano após o mapeamento (precisa calcular isPro primeiro)
+            if ($planFilter === 'pro') {
+                $mapped = $mapped->filter(fn($u) => $u['is_pro'] === true)->values();
+                $total = $mapped->count();
+            } elseif ($planFilter === 'free') {
+                $mapped = $mapped->filter(fn($u) => $u['is_pro'] === false)->values();
+                $total = $mapped->count();
+            }
 
             Response::success([
                 'total' => $total,
                 'page' => $page,
                 'perPage' => $perPage,
                 'totalPages' => ceil($total / $perPage),
-                'users' => $usersList,
+                'users' => $mapped,
             ]);
         } catch (Exception $e) {
             error_log("🚨 [SYSADMIN] Erro ao listar usuários: " . $e->getMessage());

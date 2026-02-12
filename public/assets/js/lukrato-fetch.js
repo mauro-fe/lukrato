@@ -21,19 +21,19 @@ class LukratoFetch {
         this.enableCache = options.enableCache || false;
         this.cachePrefix = 'lk_cache_';
         this.cacheDuration = options.cacheDuration || 5 * 60 * 1000; // 5 minutos
-        
+
         // Estado
         this.pendingRequests = new Map();
         this.isSlowConnection = false;
-        
+
         // Detectar tipo de conexão
         this.detectConnection();
-        
+
         // Listener para mudanças de conexão
         if (navigator.connection) {
             navigator.connection.addEventListener('change', () => this.detectConnection());
         }
-        
+
         // Listener para online/offline
         window.addEventListener('online', () => this.onConnectionChange(true));
         window.addEventListener('offline', () => this.onConnectionChange(false));
@@ -47,7 +47,7 @@ class LukratoFetch {
             const conn = navigator.connection;
             // Conexões lentas: slow-2g, 2g, ou effectiveType lento
             this.isSlowConnection = ['slow-2g', '2g'].includes(conn.effectiveType) ||
-                                   (conn.downlink && conn.downlink < 1);
+                (conn.downlink && conn.downlink < 1);
         }
     }
 
@@ -67,7 +67,7 @@ class LukratoFetch {
      */
     showOfflineNotification() {
         if (document.getElementById('lk-offline-notification')) return;
-        
+
         const notification = document.createElement('div');
         notification.id = 'lk-offline-notification';
         notification.className = 'lk-offline-notification';
@@ -105,7 +105,7 @@ class LukratoFetch {
         const showLoading = config.showLoading ?? true;
         const loadingTarget = config.loadingTarget || null;
         const cacheKey = config.cacheKey || null;
-        
+
         // Verificar cache primeiro
         if (this.enableCache && cacheKey && options.method === 'GET') {
             const cached = this.getFromCache(cacheKey);
@@ -153,15 +153,12 @@ class LukratoFetch {
                     credentials: options.credentials || 'same-origin'
                 };
 
-                console.log(`🌐 [LukratoFetch] Iniciando fetch: ${url}`);
                 const response = await fetch(url, fetchOptions);
-                console.log(`🌐 [LukratoFetch] Response recebido: status=${response.status}`);
                 clearTimeout(timeoutId);
                 clearTimeout(slowTimer);
 
                 const elapsed = Date.now() - startTime;
-                console.log(`🌐 [LukratoFetch] Tempo de resposta: ${elapsed}ms`);
-                
+
                 // Log de performance
                 if (elapsed > this.slowThreshold) {
                     console.warn(`[LukratoFetch] Requisição lenta: ${url} (${elapsed}ms)`);
@@ -179,9 +176,7 @@ class LukratoFetch {
                     throw new Error(errorData.message || `Erro ${response.status}`);
                 }
 
-                console.log(`🌐 [LukratoFetch] Parseando JSON...`);
                 const data = await response.json();
-                console.log(`🌐 [LukratoFetch] JSON parseado com sucesso`);
 
                 // Salvar no cache
                 if (this.enableCache && cacheKey && options.method === 'GET') {
@@ -208,11 +203,10 @@ class LukratoFetch {
                 if (attempt < maxRetries) {
                     // Backoff exponencial: 1s, 2s, 4s
                     const delay = this.retryDelay * Math.pow(2, attempt);
-                    console.log(`[LukratoFetch] Tentando novamente em ${delay}ms...`);
-                    
+
                     // Atualizar UI com status de retry
                     this.showRetryIndicator(loadingTarget, attempt + 1, maxRetries);
-                    
+
                     await this.sleep(delay);
                 }
             }
@@ -356,7 +350,7 @@ class LukratoFetch {
         try {
             const item = localStorage.getItem(this.cachePrefix + key);
             if (!item) return null;
-            
+
             const { data, timestamp } = JSON.parse(item);
             if (Date.now() - timestamp > this.cacheDuration) {
                 localStorage.removeItem(this.cachePrefix + key);
@@ -405,47 +399,47 @@ window.lkFetch = new LukratoFetch({
  * Mostra aviso de conexão lenta quando requisições demoram
  * NÃO mostra barra de loading (cada página tem seu próprio loader)
  */
-(function() {
+(function () {
     const originalFetch = window.fetch;
     const SLOW_THRESHOLD = 5000; // 5 segundos para considerar lento
     let activeRequests = 0;
     let slowTimer = null;
-    
+
     function showSlowWarning() {
         if (document.getElementById('lk-slow-connection')) return;
-        
+
         const warning = document.createElement('div');
         warning.id = 'lk-slow-connection';
         warning.className = 'lk-slow-connection visible';
         warning.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Conexão lenta detectada. Aguarde...</span>';
         document.body.appendChild(warning);
     }
-    
+
     function hideSlowWarning() {
         const warning = document.getElementById('lk-slow-connection');
         if (warning) {
             warning.classList.remove('visible');
             setTimeout(() => warning.remove(), 300);
         }
-        
+
         if (slowTimer) {
             clearTimeout(slowTimer);
             slowTimer = null;
         }
     }
-    
-    window.fetch = function(input, init) {
+
+    window.fetch = function (input, init) {
         const url = typeof input === 'string' ? input : (input?.url || '');
-        
+
         // Só intercepta requisições para API do Lukrato
         const isApiCall = url && (url.includes('/api/') || url.includes('api/'));
-        
+
         if (!isApiCall) {
             return originalFetch.apply(this, arguments);
         }
-        
+
         activeRequests++;
-        
+
         // Timer para conexão lenta
         if (!slowTimer && activeRequests === 1) {
             slowTimer = setTimeout(() => {
@@ -454,7 +448,7 @@ window.lkFetch = new LukratoFetch({
                 }
             }, SLOW_THRESHOLD);
         }
-        
+
         return originalFetch.apply(this, arguments)
             .finally(() => {
                 activeRequests = Math.max(0, activeRequests - 1);

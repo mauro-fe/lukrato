@@ -39,6 +39,7 @@ class PerfilPayloadBuilder
 
         return [
             'id' => (int) $user->id,
+            'support_code' => (string) ($user->support_code ?? ''),
             'nome' => (string) ($user->nome ?? ''),
             'email' => (string) ($user->email ?? ''),
             'avatar' => (string) ($user->avatar ?? ''),

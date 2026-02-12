@@ -121,11 +121,15 @@ class GoogleCallbackController extends BaseController
                 return;
             }
 
+            // Recupera código de indicação da sessão (se existir)
+            $referralCode = $_SESSION['pending_referral_code'] ?? '';
+
             // Cria o usuário
-            $usuario = $this->googleAuthService->createUserFromPending($pendingUser);
+            $usuario = $this->googleAuthService->createUserFromPending($pendingUser, $referralCode);
 
             // Limpa dados pendentes
             unset($_SESSION['google_pending_user']);
+            unset($_SESSION['pending_referral_code']);
 
             // Faz login
             $userInfo = [

@@ -454,6 +454,144 @@ TEXT;
   }
 
   /**
+   * Envia lembrete de verificação de email (24h após cadastro)
+   */
+  public function sendVerificationReminder(string $toEmail, string $userName, string $verificationUrl): bool
+  {
+    $firstName = explode(' ', trim($userName))[0];
+    $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+    $subject = "⏰ Lembrete: confirme seu e-mail - Lukrato";
+
+    $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">⏰</div>
+      </div>
+
+      <p style="font-size: 17px; line-height: 1.8; color: #2c3e50; margin: 0 0 24px 0; text-align: center;">
+        <strong>Sua conta está quase pronta!</strong>
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Notamos que você criou uma conta no Lukrato, mas ainda não confirmou seu e-mail. 
+        Sem a confirmação, você não conseguirá fazer login.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #e74c3c; margin: 0 0: 20px 0; font-weight: 600;">
+        ⚠️ Contas não verificadas são removidas automaticamente após 7 dias.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 32px 0;">
+        Clique no botão abaixo para verificar agora:
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$verificationUrl}" 
+           style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(230, 126, 34, 0.4);">
+          Verificar meu e-mail agora ✓
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+        <p style="font-size: 13px; color: #7f8c8d; line-height: 1.6; margin: 0;">
+          Se o link acima expirou, acesse <strong>lukrato.com.br/login</strong>, tente fazer login com seu e-mail e clique em "Reenviar e-mail" para receber um novo link.
+        </p>
+      </div>
+HTML;
+
+    $html = EmailTemplate::wrap(
+      $subject,
+      'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
+      "Olá, {$safeFirstName}! 👋",
+      'Lembrete: confirme seu e-mail para ativar sua conta',
+      $content,
+      'Você recebeu este email porque criou uma conta no Lukrato e ainda não verificou seu e-mail. © ' . date('Y') . ' Lukrato'
+    );
+
+    $text = <<<TEXT
+Olá, {$firstName}!
+
+Sua conta no Lukrato está quase pronta!
+
+Notamos que você se cadastrou mas ainda não confirmou seu e-mail.
+Sem a confirmação, não será possível fazer login.
+
+ATENÇÃO: Contas não verificadas são removidas automaticamente após 7 dias.
+
+Clique no link abaixo para verificar agora:
+{$verificationUrl}
+
+Se o link expirou, acesse lukrato.com.br/login, tente fazer login e clique em "Reenviar e-mail".
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+    return $this->send($toEmail, $userName, $subject, $html, $text);
+  }
+
+  /**
+   * Envia aviso de remoção de conta não verificada
+   */
+  public function sendAccountRemovedNotice(string $toEmail, string $userName): bool
+  {
+    $firstName = explode(' ', trim($userName))[0];
+    $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+    $subject = "Sua conta no Lukrato foi removida";
+
+    $baseUrl = rtrim($_ENV['APP_URL'] ?? (defined('BASE_URL') ? BASE_URL : ''), '/');
+    $registerUrl = $baseUrl . '/login';
+
+    $content = <<<HTML
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">👋</div>
+      </div>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;">
+        Sua conta no Lukrato foi removida porque o e-mail não foi verificado dentro do prazo de 7 dias.
+      </p>
+
+      <p style="font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 32px 0;">
+        Se ainda quiser usar o Lukrato, basta criar uma nova conta:
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{$registerUrl}" 
+           style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); 
+                  color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; 
+                  font-size: 16px; box-shadow: 0 4px 14px rgba(39, 174, 96, 0.4);">
+          Criar nova conta
+        </a>
+      </div>
+HTML;
+
+    $html = EmailTemplate::wrap(
+      $subject,
+      'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)',
+      "Olá, {$safeFirstName}",
+      'Sua conta foi removida por falta de verificação',
+      $content,
+      'Você recebeu este email porque sua conta no Lukrato foi removida. © ' . date('Y') . ' Lukrato'
+    );
+
+    $text = <<<TEXT
+Olá, {$firstName}!
+
+Sua conta no Lukrato foi removida porque o e-mail não foi verificado dentro do prazo de 7 dias.
+
+Se ainda quiser usar o Lukrato, basta criar uma nova conta em lukrato.com.br/login
+
+Atenciosamente,
+Time Lukrato
+TEXT;
+
+    return $this->send($toEmail, $userName, $subject, $html, $text);
+  }
+
+  /**
    * Envia email de recompensa para quem FOI INDICADO (ganhou 7 dias PRO)
    */
   public function sendReferralRewardToReferred(string $toEmail, string $userName, int $days = 7): bool
