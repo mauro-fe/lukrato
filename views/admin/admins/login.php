@@ -210,612 +210,611 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
 
     <script>
-    // Partículas
-    function createParticles() {
-        const container = document.getElementById('particles');
-        for (let i = 0; i < 20; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 8 + 's';
-            particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
-            container.appendChild(particle);
-        }
-    }
-    createParticles();
-
-    // ======================
-    // CÓDIGO DE INDICAÇÃO
-    // ======================
-
-    const referralInput = document.getElementById('referral_code');
-    const referralHint = document.getElementById('referralHint');
-    const referralError = document.getElementById('referralError');
-    let referralValidationTimeout = null;
-    let validatedReferralCode = null;
-
-    // Captura o código da URL se existir (?ref=XXXXXXXX)
-    function initReferralCode() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const refCode = urlParams.get('ref');
-
-        if (refCode && referralInput) {
-            referralInput.value = refCode.toUpperCase();
-            validateReferralCode(refCode);
-
-            // Ativa a aba de cadastro automaticamente se veio com código
-            const card = document.querySelector('.card');
-            const registerBtn = document.querySelector('.tab-btn[data-tab="register"]');
-            if (card && registerBtn) {
-                card.dataset.active = 'register';
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('is-active'));
-                registerBtn.classList.add('is-active');
+        // Partículas
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                container.appendChild(particle);
             }
         }
-    }
+        createParticles();
 
-    // Valida o código de indicação via API
-    async function validateReferralCode(code) {
-        if (!code || code.length < 4) {
-            referralHint.textContent = '';
-            referralHint.className = 'field-hint';
-            referralError.textContent = '';
-            validatedReferralCode = null;
-            return;
+        // ======================
+        // CÓDIGO DE INDICAÇÃO
+        // ======================
+
+        const referralInput = document.getElementById('referral_code');
+        const referralHint = document.getElementById('referralHint');
+        const referralError = document.getElementById('referralError');
+        let referralValidationTimeout = null;
+        let validatedReferralCode = null;
+
+        // Captura o código da URL se existir (?ref=XXXXXXXX)
+        function initReferralCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+
+            if (refCode && referralInput) {
+                referralInput.value = refCode.toUpperCase();
+                validateReferralCode(refCode);
+
+                // Ativa a aba de cadastro automaticamente se veio com código
+                const card = document.querySelector('.card');
+                const registerBtn = document.querySelector('.tab-btn[data-tab="register"]');
+                if (card && registerBtn) {
+                    card.dataset.active = 'register';
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('is-active'));
+                    registerBtn.classList.add('is-active');
+                }
+            }
         }
 
-        try {
-            const base = document.querySelector('meta[name="base-url"]')?.content || '<?= BASE_URL ?>';
-            const response = await fetch(`${base}api/referral/validate?code=${encodeURIComponent(code)}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                referralHint.innerHTML =
-                    `<i class="fa-solid fa-check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
-                referralHint.className = 'field-hint valid';
-                referralError.textContent = '';
-                validatedReferralCode = code;
-            } else {
+        // Valida o código de indicação via API
+        async function validateReferralCode(code) {
+            if (!code || code.length < 4) {
                 referralHint.textContent = '';
                 referralHint.className = 'field-hint';
-                referralError.textContent = data.message || 'Código inválido';
+                referralError.textContent = '';
                 validatedReferralCode = null;
-            }
-        } catch (err) {
-            referralHint.textContent = '';
-            referralHint.className = 'field-hint';
-            referralError.textContent = 'Erro ao validar código';
-            validatedReferralCode = null;
-        }
-    }
-
-    // Evento de input no campo de código
-    if (referralInput) {
-        referralInput.addEventListener('input', (e) => {
-            // Força uppercase
-            e.target.value = e.target.value.toUpperCase();
-
-            // Debounce para não fazer muitas requisições
-            clearTimeout(referralValidationTimeout);
-            referralValidationTimeout = setTimeout(() => {
-                validateReferralCode(e.target.value.trim());
-            }, 500);
-        });
-
-        // Inicializa se veio código na URL
-        initReferralCode();
-    }
-
-    // Tabs
-    const card = document.querySelector('.card');
-    const tabBtns = document.querySelectorAll('.tab-btn');
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            card.dataset.active = tab;
-
-            tabBtns.forEach(b => b.classList.remove('is-active'));
-            btn.classList.add('is-active');
-        });
-    });
-
-    // Toggle password
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.toggle-password');
-        if (!btn) return;
-
-        const targetId = btn.dataset.target;
-        const input = document.getElementById(targetId);
-        if (!input) return;
-
-        const icon = btn.querySelector('i');
-        const isPassword = input.type === 'password';
-
-        input.type = isPassword ? 'text' : 'password';
-        icon.classList.toggle('fa-eye', !isPassword);
-        icon.classList.toggle('fa-eye-slash', isPassword);
-    });
-
-    // Helpers de erro
-    function showError(inputId, errorId, message) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        if (error) error.textContent = message;
-        if (input) {
-            input.style.borderColor = 'var(--error)';
-            input.addEventListener('input', () => {
-                input.style.borderColor = 'transparent';
-                if (error) error.textContent = '';
-            }, {
-                once: true
-            });
-        }
-    }
-
-    function clearErrors(form) {
-        form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-        form.querySelectorAll('input').forEach(el => el.style.borderColor = 'transparent');
-        form.querySelectorAll('.general-message').forEach(el => {
-            el.textContent = '';
-            el.classList.remove('show');
-        });
-    }
-
-    // ======================
-    // FUNÇÕES DE CSRF
-    // ======================
-
-    /**
-     * Renova o token CSRF para um formulário específico
-     */
-    async function refreshCsrfForForm(tokenId) {
-        try {
-            const base = document.querySelector('meta[name="base-url"]')?.content || '<?= BASE_URL ?>';
-            const response = await fetch(`${base}api/csrf/refresh`, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    token_id: tokenId
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.token) {
-                // Atualizar meta tag
-                const metaTag = document.querySelector('meta[name="csrf-token"]');
-                if (metaTag) metaTag.content = data.token;
-
-                // Atualizar inputs hidden do formulário
-                document.querySelectorAll(`input[name="csrf_token"]`).forEach(input => {
-                    // Verificar se o input pertence ao formulário correto
-                    const formId = input.closest('form')?.id;
-                    if (tokenId === 'login_form' && formId === 'loginForm') {
-                        input.value = data.token;
-                    } else if (tokenId === 'register_form' && formId === 'registerForm') {
-                        input.value = data.token;
-                    }
-                });
-
-                return data.token;
-            }
-            throw new Error('Token não recebido');
-        } catch (err) {
-            console.error('Erro ao renovar CSRF:', err);
-            throw err;
-        }
-    }
-
-    /**
-     * Verifica se o erro é relacionado a CSRF expirado
-     */
-    function isCsrfError(response, data) {
-        if (response.status === 419) return true;
-        if (response.status === 403 && data?.errors?.csrf_token) return true;
-        if (data?.csrf_expired === true) return true;
-        const msg = String(data?.message || '').toLowerCase();
-        return msg.includes('csrf') || msg.includes('token');
-    }
-
-    // ======================
-    // LOGIN REAL COM AJAX
-    // ======================
-    const loginForm = document.getElementById('loginForm');
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearErrors(loginForm);
-
-            const emailVal = document.getElementById('email').value.trim();
-            const passwordVal = document.getElementById('password').value;
-
-            let hasError = false;
-
-            if (!emailVal) {
-                showError('email', 'emailError', 'Digite seu e-mail');
-                hasError = true;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-                showError('email', 'emailError', 'E-mail inválido');
-                hasError = true;
+                return;
             }
 
-            if (!passwordVal) {
-                showError('password', 'passwordError', 'Digite sua senha');
-                hasError = true;
-            }
-
-            if (hasError) return;
-
-            const btn = loginForm.querySelector('.btn-primary');
-            const originalBtnHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span>Entrando...</span>';
-
-            const generalError = document.getElementById('generalError');
-            const generalSuccess = document.getElementById('generalSuccess');
-
-            // Flag para evitar loop infinito de retry
-            let hasRetried = false;
-
-            async function attemptLogin() {
-                const formData = new FormData(loginForm);
-
-                const response = await fetch(loginForm.action, {
-                    method: 'POST',
-                    body: formData,
+            try {
+                const base = document.querySelector('meta[name="base-url"]')?.content || '<?= BASE_URL ?>';
+                const response = await fetch(`${base}api/referral/validate?code=${encodeURIComponent(code)}`, {
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     }
                 });
 
-                let data = null;
-                try {
-                    data = await response.json();
-                } catch (e) {
-                    // Se não veio JSON, tratamos como erro genérico
-                }
+                const data = await response.json();
 
-                // Se for erro de CSRF e ainda não tentamos renovar, renova e tenta de novo
-                if (isCsrfError(response, data) && !hasRetried) {
-                    hasRetried = true;
-                    try {
-                        await refreshCsrfForForm('login_form');
-                        // Tenta novamente após renovar
-                        return attemptLogin();
-                    } catch (refreshErr) {
-                        // Falha na renovação, mostra erro de sessão
-                        return {
-                            response,
-                            data: {
-                                success: false,
-                                message: 'Sessão expirada. Por favor, recarregue a página e tente novamente.'
-                            }
-                        };
-                    }
+                if (response.ok && data.success) {
+                    referralHint.innerHTML =
+                        `<i class="fa-solid fa-check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
+                    referralHint.className = 'field-hint valid';
+                    referralError.textContent = '';
+                    validatedReferralCode = code;
+                } else {
+                    referralHint.textContent = '';
+                    referralHint.className = 'field-hint';
+                    referralError.textContent = data.message || 'Código inválido';
+                    validatedReferralCode = null;
                 }
-
-                return {
-                    response,
-                    data
-                };
+            } catch (err) {
+                referralHint.textContent = '';
+                referralHint.className = 'field-hint';
+                referralError.textContent = 'Erro ao validar código';
+                validatedReferralCode = null;
             }
+        }
 
-            try {
-                const {
-                    response,
-                    data
-                } = await attemptLogin();
+        // Evento de input no campo de código
+        if (referralInput) {
+            referralInput.addEventListener('input', (e) => {
+                // Força uppercase
+                e.target.value = e.target.value.toUpperCase();
 
-                const payload = (data && typeof data.data === 'object') ? data.data : {};
-                const success = data && (data.success === true || data.status === 'success');
+                // Debounce para não fazer muitas requisições
+                clearTimeout(referralValidationTimeout);
+                referralValidationTimeout = setTimeout(() => {
+                    validateReferralCode(e.target.value.trim());
+                }, 500);
+            });
 
-                if (!response.ok || !success) {
-                    // Mensagem especial para erro de CSRF após retry
-                    let message;
-                    if (isCsrfError(response, data)) {
-                        message = 'Sessão expirada. A página será recarregada...';
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                        message = (data && data.message) ||
-                            (response.status === 429 ?
-                                'Muitas tentativas. Aguarde um pouco e tente novamente.' :
-                                'E-mail ou senha inválidos.');
-                    }
+            // Inicializa se veio código na URL
+            initReferralCode();
+        }
 
-                    if (generalError) {
-                        generalError.textContent = message;
-                        generalError.classList.add('show');
-                    }
+        // Tabs
+        const card = document.querySelector('.card');
+        const tabBtns = document.querySelectorAll('.tab-btn');
 
-                    // Exibir erros de campos, se a API mandar
-                    if (data && data.errors && typeof data.errors === 'object') {
-                        if (data.errors.email) {
-                            const msg = Array.isArray(data.errors.email) ?
-                                data.errors.email[0] :
-                                data.errors.email;
-                            showError('email', 'emailError', msg);
-                        }
-                        if (data.errors.password) {
-                            const msg = Array.isArray(data.errors.password) ?
-                                data.errors.password[0] :
-                                data.errors.password;
-                            showError('password', 'passwordError', msg);
-                        }
-                    }
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                card.dataset.active = tab;
 
-                    btn.disabled = false;
-                    btn.innerHTML = originalBtnHtml;
-                    return;
-                }
-
-                // Sucesso
-                if (generalSuccess) {
-                    generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
-                    generalSuccess.classList.add('show');
-                }
-
-                const redirectUrl = (data && data.redirect) ? data.redirect : '<?= BASE_URL ?>dashboard';
-
-                setTimeout(() => {
-                    window.location.href = redirectUrl;
-                }, 800);
-
-            } catch (error) {
-                console.error('Erro na requisição de login:', error);
-                if (generalError) {
-                    generalError.textContent =
-                        'Não foi possível realizar o login. Tente novamente em instantes.';
-                    generalError.classList.add('show');
-                }
-                btn.disabled = false;
-                btn.innerHTML = originalBtnHtml;
-            }
+                tabBtns.forEach(b => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+            });
         });
-    }
 
-    // ======================
-    // REGISTER (VALIDA E ENVIA NORMAL)
-    // ======================
-    const registerForm = document.getElementById('registerForm');
+        // Toggle password
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.toggle-password');
+            if (!btn) return;
 
-    if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearErrors(registerForm);
+            const targetId = btn.dataset.target;
+            const input = document.getElementById(targetId);
+            if (!input) return;
 
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('reg_email').value.trim();
-            const password = document.getElementById('reg_password').value;
-            const confirm = document.getElementById('reg_password_confirm').value;
+            const icon = btn.querySelector('i');
+            const isPassword = input.type === 'password';
 
-            let hasError = false;
+            input.type = isPassword ? 'text' : 'password';
+            icon.classList.toggle('fa-eye', !isPassword);
+            icon.classList.toggle('fa-eye-slash', isPassword);
+        });
 
-            // Validações
-            if (!name) {
-                showError('name', 'nameError', 'Digite seu nome completo');
-                hasError = true;
+        // Helpers de erro
+        function showError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            if (error) error.textContent = message;
+            if (input) {
+                input.style.borderColor = 'var(--error)';
+                input.addEventListener('input', () => {
+                    input.style.borderColor = 'transparent';
+                    if (error) error.textContent = '';
+                }, {
+                    once: true
+                });
             }
+        }
 
-            if (!email) {
-                showError('reg_email', 'regEmailError', 'Digite seu e-mail');
-                hasError = true;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showError('reg_email', 'regEmailError', 'E-mail inválido');
-                hasError = true;
-            }
+        function clearErrors(form) {
+            form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+            form.querySelectorAll('input').forEach(el => el.style.borderColor = 'transparent');
+            form.querySelectorAll('.general-message').forEach(el => {
+                el.textContent = '';
+                el.classList.remove('show');
+            });
+        }
 
-            if (!password) {
-                showError('reg_password', 'regPasswordError', 'Digite sua senha');
-                hasError = true;
-            } else if (password.length < 8) {
-                showError('reg_password', 'regPasswordError', 'Senha deve ter no mínimo 8 caracteres');
-                hasError = true;
-            }
+        // ======================
+        // FUNÇÕES DE CSRF
+        // ======================
 
-            if (!confirm) {
-                showError('reg_password_confirm', 'regPasswordConfirmError', 'Confirme sua senha');
-                hasError = true;
-            } else if (password !== confirm) {
-                showError('reg_password_confirm', 'regPasswordConfirmError', 'As senhas não coincidem');
-                hasError = true;
-            }
-
-            if (hasError) return;
-
-            const btn = registerForm.querySelector('.btn-primary');
-            const originalBtnHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span>Criando conta...</span>';
-
-            // Flag para evitar loop infinito de retry
-            let hasRetried = false;
-
-            async function attemptRegister() {
-                const formData = new FormData(registerForm);
-
-                const response = await fetch(registerForm.action, {
+        /**
+         * Renova o token CSRF para um formulário específico
+         */
+        async function refreshCsrfForForm(tokenId) {
+            try {
+                const base = document.querySelector('meta[name="base-url"]')?.content || '<?= BASE_URL ?>';
+                const response = await fetch(`${base}api/csrf/refresh`, {
                     method: 'POST',
-                    body: formData,
+                    credentials: 'same-origin',
                     headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token_id: tokenId
+                    })
                 });
 
-                let data = null;
-                try {
-                    data = await response.json();
-                } catch (e) {
-                    // Se não veio JSON
-                }
+                const data = await response.json();
 
-                // Se for erro de CSRF e ainda não tentamos renovar, renova e tenta de novo
-                if (isCsrfError(response, data) && !hasRetried) {
-                    hasRetried = true;
-                    try {
-                        await refreshCsrfForForm('register_form');
-                        return attemptRegister();
-                    } catch (refreshErr) {
-                        throw new Error('Sessão expirada. Por favor, recarregue a página.');
-                    }
-                }
+                if (data.token) {
+                    // Atualizar meta tag
+                    const metaTag = document.querySelector('meta[name="csrf-token"]');
+                    if (metaTag) metaTag.content = data.token;
 
-                return {
-                    response,
-                    data
-                };
+                    // Atualizar inputs hidden do formulário
+                    document.querySelectorAll(`input[name="csrf_token"]`).forEach(input => {
+                        // Verificar se o input pertence ao formulário correto
+                        const formId = input.closest('form')?.id;
+                        if (tokenId === 'login_form' && formId === 'loginForm') {
+                            input.value = data.token;
+                        } else if (tokenId === 'register_form' && formId === 'registerForm') {
+                            input.value = data.token;
+                        }
+                    });
+
+                    return data.token;
+                }
+                throw new Error('Token não recebido');
+            } catch (err) {
+                console.error('Erro ao renovar CSRF:', err);
+                throw err;
             }
+        }
 
-            try {
-                const {
-                    response,
-                    data
-                } = await attemptRegister();
+        /**
+         * Verifica se o erro é relacionado a CSRF expirado
+         */
+        function isCsrfError(response, data) {
+            if (response.status === 419) return true;
+            if (response.status === 403 && data?.errors?.csrf_token) return true;
+            if (data?.csrf_expired === true) return true;
+            const msg = String(data?.message || '').toLowerCase();
+            return msg.includes('csrf') || msg.includes('token');
+        }
 
-                if (!response.ok || data?.success !== true) {
-                    // Mensagem especial para erro de CSRF
-                    if (isCsrfError(response, data)) {
-                        throw new Error('Sessão expirada. A página será recarregada...');
+        // ======================
+        // LOGIN REAL COM AJAX
+        // ======================
+        const loginForm = document.getElementById('loginForm');
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearErrors(loginForm);
+
+                const emailVal = document.getElementById('email').value.trim();
+                const passwordVal = document.getElementById('password').value;
+
+                let hasError = false;
+
+                if (!emailVal) {
+                    showError('email', 'emailError', 'Digite seu e-mail');
+                    hasError = true;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+                    showError('email', 'emailError', 'E-mail inválido');
+                    hasError = true;
+                }
+
+                if (!passwordVal) {
+                    showError('password', 'passwordError', 'Digite sua senha');
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
+                const btn = loginForm.querySelector('.btn-primary');
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span>Entrando...</span>';
+
+                const generalError = document.getElementById('generalError');
+                const generalSuccess = document.getElementById('generalSuccess');
+
+                // Flag para evitar loop infinito de retry
+                let hasRetried = false;
+
+                async function attemptLogin() {
+                    const formData = new FormData(loginForm);
+
+                    const response = await fetch(loginForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    let data = null;
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        // Se não veio JSON, tratamos como erro genérico
                     }
 
-                    // Erros de validação (422) — mostra erros específicos nos campos
-                    if (response.status === 422 && data?.errors) {
-                        if (data.errors.email) {
-                            const emailMsg = Array.isArray(data.errors.email) ? data.errors.email[0] : data
-                                .errors.email;
-                            showError('reg_email', 'regEmailError', emailMsg);
+                    // Se for erro de CSRF e ainda não tentamos renovar, renova e tenta de novo
+                    if (isCsrfError(response, data) && !hasRetried) {
+                        hasRetried = true;
+                        try {
+                            await refreshCsrfForForm('login_form');
+                            // Tenta novamente após renovar
+                            return attemptLogin();
+                        } catch (refreshErr) {
+                            // Falha na renovação, mostra erro de sessão
+                            return {
+                                response,
+                                data: {
+                                    success: false,
+                                    message: 'Sessão expirada. Por favor, recarregue a página e tente novamente.'
+                                }
+                            };
                         }
-                        if (data.errors.name) {
-                            const nameMsg = Array.isArray(data.errors.name) ? data.errors.name[0] : data
-                                .errors.name;
-                            showError('name', 'nameError', nameMsg);
-                        }
-                        if (data.errors.password) {
-                            const passMsg = Array.isArray(data.errors.password) ? data.errors.password[0] :
-                                data.errors.password;
-                            showError('reg_password', 'regPasswordError', passMsg);
-                        }
-                        if (data.errors.password_confirmation) {
-                            const confirmMsg = Array.isArray(data.errors.password_confirmation) ? data
-                                .errors.password_confirmation[0] : data.errors.password_confirmation;
-                            showError('reg_password_confirm', 'regPasswordConfirmError', confirmMsg);
+                    }
+
+                    return {
+                        response,
+                        data
+                    };
+                }
+
+                try {
+                    const {
+                        response,
+                        data
+                    } = await attemptLogin();
+
+                    const payload = (data && typeof data.data === 'object') ? data.data : {};
+                    const success = data && (data.success === true || data.status === 'success');
+
+                    if (!response.ok || !success) {
+                        // Mensagem especial para erro de CSRF após retry
+                        let message;
+                        if (isCsrfError(response, data)) {
+                            message = 'Sessão expirada. A página será recarregada...';
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            message = (data && data.message) ||
+                                (response.status === 429 ?
+                                    'Muitas tentativas. Aguarde um pouco e tente novamente.' :
+                                    'E-mail ou senha inválidos.');
                         }
 
-                        // Título contextual para o SweetAlert
-                        const apiMessage = data.message || '';
-                        const isEmailDuplicate = apiMessage.toLowerCase().includes('cadastrado') ||
-                            apiMessage.toLowerCase().includes('já existe') ||
-                            (data.errors.email && String(data.errors.email).toLowerCase().includes(
-                                'cadastrado'));
+                        if (generalError) {
+                            generalError.textContent = message;
+                            generalError.classList.add('show');
+                        }
 
-                        Swal.fire({
-                            icon: isEmailDuplicate ? 'warning' : 'error',
-                            title: isEmailDuplicate ? 'E-mail já cadastrado' : 'Erro no cadastro',
-                            text: isEmailDuplicate ?
-                                'Já existe uma conta com este e-mail. Tente fazer login ou use outro e-mail.' :
-                                (apiMessage || 'Corrija os campos destacados e tente novamente.'),
-                        });
+                        // Exibir erros de campos, se a API mandar
+                        if (data && data.errors && typeof data.errors === 'object') {
+                            if (data.errors.email) {
+                                const msg = Array.isArray(data.errors.email) ?
+                                    data.errors.email[0] :
+                                    data.errors.email;
+                                showError('email', 'emailError', msg);
+                            }
+                            if (data.errors.password) {
+                                const msg = Array.isArray(data.errors.password) ?
+                                    data.errors.password[0] :
+                                    data.errors.password;
+                                showError('password', 'passwordError', msg);
+                            }
+                        }
 
                         btn.disabled = false;
                         btn.innerHTML = originalBtnHtml;
                         return;
                     }
 
-                    throw new Error(data?.message || 'Erro ao criar conta.');
+                    // Sucesso
+                    if (generalSuccess) {
+                        generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
+                        generalSuccess.classList.add('show');
+                    }
+
+                    const redirectUrl = (data && data.redirect) ? data.redirect : '<?= BASE_URL ?>dashboard';
+
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 800);
+
+                } catch (error) {
+                    console.error('Erro na requisição de login:', error);
+                    if (generalError) {
+                        generalError.textContent =
+                            'Não foi possível realizar o login. Tente novamente em instantes.';
+                        generalError.classList.add('show');
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                }
+            });
+        }
+
+        // ======================
+        // REGISTER (VALIDA E ENVIA NORMAL)
+        // ======================
+        const registerForm = document.getElementById('registerForm');
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearErrors(registerForm);
+
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('reg_email').value.trim();
+                const password = document.getElementById('reg_password').value;
+                const confirm = document.getElementById('reg_password_confirm').value;
+
+                let hasError = false;
+
+                // Validações
+                if (!name) {
+                    showError('name', 'nameError', 'Digite seu nome completo');
+                    hasError = true;
                 }
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Conta criada com sucesso!',
-                    text: data.message || 'Agora você pode fazer login.',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                if (!email) {
+                    showError('reg_email', 'regEmailError', 'Digite seu e-mail');
+                    hasError = true;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showError('reg_email', 'regEmailError', 'E-mail inválido');
+                    hasError = true;
+                }
 
-                setTimeout(() => {
-                    window.location.href = data.redirect || '<?= BASE_URL ?>login';
-                }, 2000);
+                if (!password) {
+                    showError('reg_password', 'regPasswordError', 'Digite sua senha');
+                    hasError = true;
+                } else if (password.length < 8) {
+                    showError('reg_password', 'regPasswordError', 'Senha deve ter no mínimo 8 caracteres');
+                    hasError = true;
+                }
 
-            } catch (err) {
-                const message = err.message || 'Erro ao criar conta.';
+                if (!confirm) {
+                    showError('reg_password_confirm', 'regPasswordConfirmError', 'Confirme sua senha');
+                    hasError = true;
+                } else if (password !== confirm) {
+                    showError('reg_password_confirm', 'regPasswordConfirmError', 'As senhas não coincidem');
+                    hasError = true;
+                }
 
-                // Se a mensagem indicar CSRF expirado, recarrega a página
-                if (message.toLowerCase().includes('sessão expirada') || message.toLowerCase().includes(
-                        'csrf')) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Sessão expirada',
-                        text: 'A página será recarregada...',
-                        timer: 1500,
-                        showConfirmButton: false
+                if (hasError) return;
+
+                const btn = registerForm.querySelector('.btn-primary');
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span>Criando conta...</span>';
+
+                // Flag para evitar loop infinito de retry
+                let hasRetried = false;
+
+                async function attemptRegister() {
+                    const formData = new FormData(registerForm);
+
+                    const response = await fetch(registerForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
                     });
-                    setTimeout(() => window.location.reload(), 1500);
-                    return;
+
+                    let data = null;
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        // Se não veio JSON
+                    }
+
+                    // Se for erro de CSRF e ainda não tentamos renovar, renova e tenta de novo
+                    if (isCsrfError(response, data) && !hasRetried) {
+                        hasRetried = true;
+                        try {
+                            await refreshCsrfForForm('register_form');
+                            return attemptRegister();
+                        } catch (refreshErr) {
+                            throw new Error('Sessão expirada. Por favor, recarregue a página.');
+                        }
+                    }
+
+                    return {
+                        response,
+                        data
+                    };
                 }
 
-                // Se a mensagem indicar sucesso, mostre o modal de sucesso
-                if (message.toLowerCase().includes('sucesso')) {
+                try {
+                    const {
+                        response,
+                        data
+                    } = await attemptRegister();
+
+                    if (!response.ok || data?.success !== true) {
+                        // Mensagem especial para erro de CSRF
+                        if (isCsrfError(response, data)) {
+                            throw new Error('Sessão expirada. A página será recarregada...');
+                        }
+
+                        // Erros de validação (422) — mostra erros específicos nos campos
+                        if (response.status === 422 && data?.errors) {
+                            if (data.errors.email) {
+                                const emailMsg = Array.isArray(data.errors.email) ? data.errors.email[0] : data
+                                    .errors.email;
+                                showError('reg_email', 'regEmailError', emailMsg);
+                            }
+                            if (data.errors.name) {
+                                const nameMsg = Array.isArray(data.errors.name) ? data.errors.name[0] : data
+                                    .errors.name;
+                                showError('name', 'nameError', nameMsg);
+                            }
+                            if (data.errors.password) {
+                                const passMsg = Array.isArray(data.errors.password) ? data.errors.password[0] :
+                                    data.errors.password;
+                                showError('reg_password', 'regPasswordError', passMsg);
+                            }
+                            if (data.errors.password_confirmation) {
+                                const confirmMsg = Array.isArray(data.errors.password_confirmation) ? data
+                                    .errors.password_confirmation[0] : data.errors.password_confirmation;
+                                showError('reg_password_confirm', 'regPasswordConfirmError', confirmMsg);
+                            }
+
+                            // Título contextual para o SweetAlert
+                            const apiMessage = data.message || '';
+                            const isEmailDuplicate = apiMessage.toLowerCase().includes('cadastrado') ||
+                                apiMessage.toLowerCase().includes('já existe') ||
+                                (data.errors.email && String(data.errors.email).toLowerCase().includes(
+                                    'cadastrado'));
+
+                            Swal.fire({
+                                icon: isEmailDuplicate ? 'warning' : 'error',
+                                title: isEmailDuplicate ? 'E-mail já cadastrado' : 'Erro no cadastro',
+                                text: isEmailDuplicate ?
+                                    'Já existe uma conta com este e-mail. Tente fazer login ou use outro e-mail.' : (apiMessage || 'Corrija os campos destacados e tente novamente.'),
+                            });
+
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnHtml;
+                            return;
+                        }
+
+                        throw new Error(data?.message || 'Erro ao criar conta.');
+                    }
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Conta criada com sucesso!',
-                        text: message,
+                        text: data.message || 'Agora você pode fazer login.',
                         timer: 2000,
                         showConfirmButton: false
                     });
+
                     setTimeout(() => {
-                        window.location.href = '<?= BASE_URL ?>login';
+                        window.location.href = data.redirect || '<?= BASE_URL ?>login';
                     }, 2000);
-                    return;
+
+                } catch (err) {
+                    const message = err.message || 'Erro ao criar conta.';
+
+                    // Se a mensagem indicar CSRF expirado, recarrega a página
+                    if (message.toLowerCase().includes('sessão expirada') || message.toLowerCase().includes(
+                            'csrf')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sessão expirada',
+                            text: 'A página será recarregada...',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        setTimeout(() => window.location.reload(), 1500);
+                        return;
+                    }
+
+                    // Se a mensagem indicar sucesso, mostre o modal de sucesso
+                    if (message.toLowerCase().includes('sucesso')) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Conta criada com sucesso!',
+                            text: message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        setTimeout(() => {
+                            window.location.href = '<?= BASE_URL ?>login';
+                        }, 2000);
+                        return;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Não foi possível criar a conta',
+                        text: message
+                    });
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
                 }
 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Não foi possível criar a conta',
-                    text: message
-                });
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalBtnHtml;
-            }
+            });
 
-        });
-
-    }
-
-    // Confete de celebração (você pode usar depois no cadastro se quiser)
-    function createConfetti() {
-        const colors = ['#e67e22', '#f39c12', '#79e6a0', '#7aa7ff'];
-        for (let i = 0; i < 40; i++) {
-            const confetti = document.createElement('div');
-            confetti.style.position = 'fixed';
-            confetti.style.width = '10px';
-            confetti.style.height = '10px';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.top = '-10px';
-            confetti.style.borderRadius = '50%';
-            confetti.style.pointerEvents = 'none';
-            confetti.style.zIndex = '9999';
-            confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s ease-out forwards`;
-            document.body.appendChild(confetti);
-            setTimeout(() => confetti.remove(), 4000);
         }
-    }
 
-    const style = document.createElement('style');
-    style.textContent = `
+        // Confete de celebração (você pode usar depois no cadastro se quiser)
+        function createConfetti() {
+            const colors = ['#e67e22', '#f39c12', '#79e6a0', '#7aa7ff'];
+            for (let i = 0; i < 40; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.borderRadius = '50%';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '9999';
+                confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s ease-out forwards`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
         @keyframes confettiFall {
             to {
                 transform: translateY(100vh) rotate(${Math.random() * 360}deg);
@@ -823,7 +822,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             }
         }
     `;
-    document.head.appendChild(style);
+        document.head.appendChild(style);
     </script>
 
 </body>

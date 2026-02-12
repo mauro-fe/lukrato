@@ -265,6 +265,11 @@
                 <option value="admin">Admin</option>
                 <option value="user">Usuário</option>
             </select>
+            <select name="plan" class="filter-select">
+                <option value="">Todos os Planos</option>
+                <option value="pro">⭐ Pro</option>
+                <option value="free">Free</option>
+            </select>
             <select name="perPage" class="filter-select">
                 <option value="10">10 por página</option>
                 <option value="25">25 por página</option>
@@ -644,6 +649,10 @@
                                     <span class="detail-label">ID</span>
                                     <span class="detail-value">#${user.id}</span>
                                 </div>
+                                ${user.support_code ? `<div class="detail-row">
+                                    <span class="detail-label">Código de Suporte</span>
+                                    <span class="detail-value" style="font-family: 'Courier New', monospace; font-weight: 600; letter-spacing: 1px; color: var(--color-primary);">${user.support_code}</span>
+                                </div>` : ''}
                                 <div class="detail-row">
                                     <span class="detail-label">Nome</span>
                                     <span class="detail-value">${user.nome || 'N/A'}</span>
@@ -1187,16 +1196,20 @@
     function renderUserTable(users, total, page, perPage) {
         let html = `<div class='modern-table-card'><div class='table-responsive'><table class='modern-table'>`;
         html +=
-            `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
+            `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Plano</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
         if (users.length === 0) {
             html +=
-                `<tr><td colspan='6' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
+                `<tr><td colspan='7' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
         } else {
             users.forEach(u => {
+                const planBadge = u.is_pro ?
+                    `<span class='badge-status pro' style='background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;'><i class='fas fa-crown'></i> Pro</span>` :
+                    `<span class='badge-status free' style='background:#e5e7eb;color:#6b7280;font-weight:500;'><i class='fas fa-user'></i> Free</span>`;
                 html += `<tr>
                     <td><span class='user-id'>#${u.id}</span></td>
                     <td><div class='user-info'><div class='user-avatar'>${(u.nome||'U')[0].toUpperCase()}</div><span class='user-name'>${u.nome||'-'}</span></div></td>
                     <td><span class='user-email'>${u.email||'-'}</span></td>
+                    <td>${planBadge}</td>
                     <td>${u.is_admin==1?`<span class='badge-status admin'><i class='fas fa-shield-alt'></i>Admin</span>`:`<span class='badge-status user'><i class='fas fa-user'></i>Usuário</span>`}</td>
                     <td><span class='user-date'>${u.created_at?formatDate(u.created_at):'-'}</span></td>
                     <td class='text-center'><div class='action-buttons'><button class='btn-action view' title='Ver detalhes' onclick='viewUser(${u.id})'><i class='fas fa-eye'></i></button><button class='btn-action edit' title='Editar usuário' onclick='editUser(${u.id})'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Excluir usuário' onclick='deleteUser(${u.id})'><i class='fas fa-trash'></i></button></div></td>

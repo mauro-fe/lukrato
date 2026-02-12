@@ -54,6 +54,7 @@ class Usuario extends Model
         'original_email_hash',
         'registration_ip',
         'last_login_ip',
+        'support_code',
     ];
 
     protected $hidden = ['senha', 'password', 'email_verification_token'];
@@ -232,9 +233,54 @@ class Usuario extends Model
     }
 
 
+    /**
+     * Gera um código de suporte único no formato LUK-XXXX-XXXX
+     * Usa caracteres sem ambiguidade (sem 0/O, 1/I/L)
+     */
+    public static function generateSupportCode(): string
+    {
+        // Caracteres sem ambiguidade visual
+        $chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        $maxAttempts = 10;
+
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            $part1 = '';
+            $part2 = '';
+            for ($i = 0; $i < 4; $i++) {
+                $part1 .= $chars[random_int(0, strlen($chars) - 1)];
+                $part2 .= $chars[random_int(0, strlen($chars) - 1)];
+            }
+            $code = "LUK-{$part1}-{$part2}";
+
+            // Verifica unicidade
+            if (!self::where('support_code', $code)->exists()) {
+                return $code;
+            }
+        }
+
+        // Fallback com timestamp
+        $ts = strtoupper(base_convert((string)time(), 10, 36));
+        return 'LUK-' . substr($ts, 0, 4) . '-' . substr($ts, 4, 4);
+    }
+
+    /**
+     * Busca usuário pelo código de suporte
+     */
+    public static function findBySupportCode(string $code): ?self
+    {
+        return self::where('support_code', strtoupper(trim($code)))->first();
+    }
+
     protected static function boot()
     {
         parent::boot();
+
+        // Gera support_code automaticamente ao criar
+        static::creating(function (Usuario $u) {
+            if (empty($u->support_code)) {
+                $u->support_code = self::generateSupportCode();
+            }
+        });
 
         static::saving(function (Usuario $u) {
             if (!empty($u->email)) $u->email = trim(strtolower($u->email));
