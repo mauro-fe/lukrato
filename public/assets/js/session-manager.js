@@ -422,24 +422,23 @@
         // Inicia timer de auto-logout após exibir modal
         startAutoLogoutTimer() {
             this.stopAutoLogoutTimer();
-            
+
             let secondsLeft = CONFIG.autoLogoutDelay;
             const countdownEl = document.getElementById('lk-session-auto-logout-countdown');
-            
+
             const tick = () => {
                 if (countdownEl) {
                     countdownEl.textContent = `Logout automático em ${secondsLeft}s`;
                 }
-                
+
                 secondsLeft--;
-                
+
                 if (secondsLeft < 0) {
-                    console.log('[SessionManager] Auto-logout após timeout');
                     this.stopAutoLogoutTimer();
                     SessionManager.logout();
                 }
             };
-            
+
             tick(); // Primeira execução imediata
             state.autoLogoutTimeoutId = setInterval(tick, 1000);
         },
@@ -697,7 +696,7 @@
             }
 
             const result = await utils.apiRequest(CONFIG.endpoints.heartbeat, 'POST');
-            
+
             if (result.ok && result.data) {
                 // Atualiza o tempo restante com o valor retornado
                 if (result.data.remainingTime) {
@@ -706,7 +705,6 @@
                 if (result.data.isRemembered !== undefined) {
                     state.isRemembered = result.data.isRemembered;
                 }
-                console.log('[SessionManager] Heartbeat OK - Sessão renovada silenciosamente');
             }
         },
 
@@ -762,7 +760,6 @@
             if (data.expired && data.canRenew) {
                 // Se usuário está ativo, renova automaticamente
                 if (state.isUserActive) {
-                    console.log('[SessionManager] Sessão expirou mas usuário ativo - renovando automaticamente');
                     this.renewSession();
                     return;
                 }
@@ -778,7 +775,6 @@
             if (data.showWarning && !state.isWarningShown && !state.isLoggedOutShown) {
                 // Se usuário está ativo, renova silenciosamente ao invés de mostrar aviso
                 if (state.isUserActive) {
-                    console.log('[SessionManager] Sessão próxima de expirar mas usuário ativo - renovando silenciosamente');
                     this.sendHeartbeat();
                     return;
                 }

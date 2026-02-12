@@ -95,8 +95,6 @@ class CartoesManager {
      * Inicialização
      */
     init() {
-        console.log('🔧 CartoesManager init - baseUrl:', this.baseUrl);
-        console.log('🔧 window.BASE_URL:', window.BASE_URL);
         this.setupEventListeners();
         this.loadCartoes();
     }
@@ -241,10 +239,6 @@ class CartoesManager {
      * Carregar cartões do servidor
      */
     async loadCartoes() {
-        console.log('🔄 [DEBUG] loadCartoes() chamado');
-        console.log('🔄 [DEBUG] window.BASE_URL:', window.BASE_URL);
-        console.log('🔄 [DEBUG] URL:', `${window.BASE_URL}api/cartoes`);
-        
         const grid = document.getElementById('cartoesGrid');
         const emptyState = document.getElementById('emptyState');
 
@@ -258,26 +252,22 @@ class CartoesManager {
             emptyState.style.display = 'none';
 
             const startTime = performance.now();
-            console.log('🔄 [DEBUG] lkFetch disponível:', !!window.lkFetch);
 
             // Usar lkFetch se disponível (com timeout, retry e indicadores)
             let data;
             if (window.lkFetch) {
-                console.log('🔄 [DEBUG] Usando lkFetch para cartões...');
                 const result = await window.lkFetch.get(`${window.BASE_URL}api/cartoes`, {
                     timeout: 20000,      // 20 segundos
                     maxRetries: 2,       // 2 tentativas extras
                     showLoading: true,
                     loadingTarget: '#cartoesContainer'
                 });
-                console.log('✅ [DEBUG] lkFetch cartões retornou:', result);
                 data = result.data;
             } else {
-                console.log('🔄 [DEBUG] Usando fetch nativo para cartões...');
                 // Fallback para fetch simples com timeout
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000);
-                
+
                 const response = await fetch(`${window.BASE_URL}api/cartoes`, {
                     method: 'GET',
                     headers: {
@@ -287,51 +277,37 @@ class CartoesManager {
                     credentials: 'same-origin',
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                console.log('✅ [DEBUG] fetch cartões status:', response.status);
 
                 if (!response.ok) {
                     throw new Error('Erro ao carregar cartões');
                 }
 
                 data = await response.json();
-                console.log('✅ [DEBUG] JSON cartões parseado:', data);
             }
-            
-            const elapsed = performance.now() - startTime;
-            console.log(`✅ [DEBUG] loadCartoes concluído em ${elapsed.toFixed(2)}ms`);
-            
-            this.cartoes = Array.isArray(data) ? data : (data.data || []);
-            console.log('✅ [DEBUG] Total cartões carregados:', this.cartoes.length);
 
+            const elapsed = performance.now() - startTime;
+            this.cartoes = Array.isArray(data) ? data : (data.data || []);
             // Verificar faturas pendentes
             await this.verificarFaturasPendentes();
 
             this.filteredCartoes = [...this.cartoes];
 
             if (this.cartoes.length === 0) {
-                console.log('🎨 [DEBUG] Cartões vazios, limpando grid e mostrando emptyState');
-                console.log('🎨 [DEBUG] grid element:', grid);
-                console.log('🎨 [DEBUG] emptyState element:', emptyState);
                 grid.innerHTML = '';
-                console.log('🎨 [DEBUG] grid.innerHTML após limpar:', grid.innerHTML);
                 emptyState.style.display = 'block';
-                console.log('🎨 [DEBUG] emptyState.style.display:', emptyState.style.display);
             } else {
-                console.log('🔄 [DEBUG] Chamando renderCartoes()...');
                 this.renderCartoes();
-                console.log('🔄 [DEBUG] Chamando updateStats()...');
                 this.updateStats();
             }
-            console.log('✅ [DEBUG] loadCartoes() finalizado com sucesso');
 
         } catch (error) {
             console.error('❌ [DEBUG] Erro ao carregar cartões:', error);
             console.error('❌ [DEBUG] Error name:', error.name);
             console.error('❌ [DEBUG] Error message:', error.message);
             console.error('❌ [DEBUG] Error stack:', error.stack);
-            
+
             // Mensagem mais amigável para timeout
             let message = 'Erro ao carregar cartões';
             if (error.name === 'AbortError' || error.message.includes('demorou')) {
@@ -339,7 +315,7 @@ class CartoesManager {
             } else if (!navigator.onLine) {
                 message = 'Sem conexão com a internet';
             }
-            
+
             this.showToast('error', message);
             grid.innerHTML = `
                 <div class="error-state">
@@ -418,7 +394,7 @@ class CartoesManager {
             } else {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
-                
+
                 const response = await fetch(`${this.baseUrl}api/cartoes/alertas`, {
                     method: 'GET',
                     headers: {
@@ -428,7 +404,7 @@ class CartoesManager {
                     credentials: 'same-origin',
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
 
                 if (response.ok) {
@@ -439,7 +415,7 @@ class CartoesManager {
                     this.alertas = [];
                 }
             }
-            
+
             this.renderAlertas();
         } catch (error) {
             console.warn('Erro ao carregar alertas:', error);
@@ -549,15 +525,10 @@ class CartoesManager {
      * Renderizar cartões
      */
     renderCartoes() {
-        console.log('🎨 [DEBUG] renderCartoes() iniciado');
         const grid = document.getElementById('cartoesGrid');
         const emptyState = document.getElementById('emptyState');
-        console.log('🎨 [DEBUG] cartoesGrid encontrado:', !!grid);
-        console.log('🎨 [DEBUG] emptyState encontrado:', !!emptyState);
-        console.log('🎨 [DEBUG] filteredCartoes.length:', this.filteredCartoes?.length);
 
         if (this.filteredCartoes.length === 0) {
-            console.log('🎨 [DEBUG] Renderizando empty state...');
             grid.innerHTML = '';
             emptyState.style.display = 'block';
             emptyState.querySelector('h3').textContent =
@@ -569,13 +540,10 @@ class CartoesManager {
 
         emptyState.style.display = 'none';
 
-        console.log('🎨 [DEBUG] Renderizando cards de cartões...');
         grid.innerHTML = this.filteredCartoes.map(cartao => this.createCardHTML(cartao)).join('');
-        console.log('🎨 [DEBUG] innerHTML atualizado');
 
         // Add event listeners para ações
         this.setupCardActions();
-        console.log('🎨 [DEBUG] renderCartoes() concluído');
     }
 
     /**
