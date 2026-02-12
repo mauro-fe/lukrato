@@ -313,4 +313,120 @@ class EmailVerificationService
             'message' => 'Não foi possível enviar o email. Tente novamente mais tarde.',
         ];
     }
+
+    /**
+     * Busca contas não verificadas criadas há mais de 24h que ainda não receberam lembrete
+     */
+    public function getUnverifiedForReminder(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Usuario::whereNull('email_verified_at')
+            ->whereNull('email_verification_reminder_sent_at')
+            ->where('created_at', '<=', now()->subHours(24))
+            ->where('created_at', '>', now()->subDays(7)) // Não enviar lembrete para contas que já vão ser excluídas
+            ->whereNull('deleted_at')
+            ->get();
+    }
+
+    /**
+     * Envia lembrete de verificação para um usuário
+     */
+    public function sendReminder(Usuario $user): bool
+    {
+        // Gera novo token para o lembrete
+        $token = $user->generateEmailVerificationToken();
+
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? (defined('BASE_URL') ? BASE_URL : ''), '/');
+        $verificationUrl = $baseUrl . '/verificar-email?token=' . urlencode($token);
+
+        try {
+            $result = $this->mailService->sendVerificationReminder(
+                $user->email,
+                $user->nome ?? 'Usuário',
+                $verificationUrl
+            );
+
+            if ($result) {
+                $user->forceFill([
+                    'email_verification_reminder_sent_at' => now(),
+                ])->save();
+
+                LogService::info('[EmailVerification] Lembrete de verificação enviado', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            LogService::error('[EmailVerification] Falha ao enviar lembrete', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Busca contas não verificadas criadas há mais de 7 dias (para exclusão)
+     */
+    public function getExpiredUnverifiedAccounts(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Usuario::whereNull('email_verified_at')
+            ->where('created_at', '<=', now()->subDays(7))
+            ->whereNull('deleted_at')
+            ->get();
+    }
+
+    /**
+     * Remove conta não verificada e envia aviso por email
+     */
+    public function removeUnverifiedAccount(Usuario $user): bool
+    {
+        try {
+            $email = $user->email;
+            $nome = $user->nome ?? 'Usuário';
+            $userId = $user->id;
+
+            // Remove dados relacionados antes de excluir (soft delete)
+            // Indicações pendentes
+            \Application\Models\Indicacao::where('referred_id', $userId)
+                ->where('status', \Application\Models\Indicacao::STATUS_PENDING)
+                ->delete();
+
+            // Assinaturas
+            $user->assinaturas()->delete();
+
+            // Categorias
+            if (method_exists($user, 'categorias')) {
+                $user->categorias()->delete();
+            }
+
+            // Soft delete do usuário
+            $user->delete();
+
+            LogService::info('[EmailVerification] Conta não verificada removida', [
+                'user_id' => $userId,
+                'email' => $email,
+                'created_at' => $user->created_at?->toDateTimeString(),
+            ]);
+
+            // Envia aviso por email
+            try {
+                $this->mailService->sendAccountRemovedNotice($email, $nome);
+            } catch (\Throwable $e) {
+                LogService::warning('[EmailVerification] Não foi possível enviar aviso de remoção', [
+                    'email' => $email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            LogService::error('[EmailVerification] Erro ao remover conta não verificada', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
 }

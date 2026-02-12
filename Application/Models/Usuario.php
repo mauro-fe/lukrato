@@ -50,6 +50,7 @@ class Usuario extends Model
         'email_verified_at',
         'email_verification_token',
         'email_verification_sent_at',
+        'email_verification_reminder_sent_at',
         'original_email_hash',
         'registration_ip',
         'last_login_ip',
@@ -63,6 +64,7 @@ class Usuario extends Model
         'onboarding_tour_skipped_at' => 'datetime',
         'email_verified_at' => 'datetime',
         'email_verification_sent_at' => 'datetime',
+        'email_verification_reminder_sent_at' => 'datetime',
     ];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'onboarding_completed'];
 
@@ -255,23 +257,23 @@ class Usuario extends Model
     public static function authenticate(string $email, string $password): ?self
     {
         LogService::info('[AUTH DEBUG] Buscando usuário', ['email' => strtolower(trim($email))]);
-        
+
         $user = self::whereRaw('LOWER(email)=?', [trim(strtolower($email))])->first();
-        
+
         LogService::info('[AUTH DEBUG] Usuário encontrado?', [
             'found' => $user !== null,
             'user_id' => $user ? $user->id : null,
             'has_senha' => $user ? !empty($user->senha) : false,
             'senha_len' => $user ? strlen($user->senha) : 0
         ]);
-        
+
         if ($user) {
             $verifyResult = password_verify($password, $user->senha);
             LogService::info('[AUTH DEBUG] password_verify resultado', [
                 'result' => $verifyResult,
                 'hash_prefix' => substr($user->senha, 0, 10) . '...'
             ]);
-            
+
             if ($verifyResult) {
                 return $user;
             }
