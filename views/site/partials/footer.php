@@ -5,7 +5,7 @@ $extraJs = $extraJs ?? [];
 </main>
 
 <!-- Footer Moderno -->
-<footer class="lk-footer" role="contentinfo" itemscope itemtype="https://schema.org/WPFooter">
+<footer class="lk-footer" style="background: #092741 !important; color: #fff;" role="contentinfo" itemscope itemtype="https://schema.org/WPFooter">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
 

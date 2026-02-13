@@ -10,10 +10,13 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   margin: 0;
+  padding: 0;
   font-family: var(
     --font-sans,
     system-ui,
@@ -22,11 +25,14 @@ body {
     "Segoe UI",
     sans-serif
   );
-  background: var(--color-bg, #020617);
-  color: var(--color-text, #e5e7eb);
+  background: #fff;
+  color: #1f2937;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+}
+header{
+  background-color: var(--color-bg) !important;
 }
 
 /* Touch-friendly sizing */
@@ -277,7 +283,7 @@ svg {
 
 .lk-footer {
   background: #092741 !important;
-  border-top: 1px solid #e2e8f0;
+  border-top: none;
   padding: 48px 24px 24px;
   font-size: 0.95rem;
   color: #fff;

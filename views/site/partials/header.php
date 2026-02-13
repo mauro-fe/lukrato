@@ -120,7 +120,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Style para Alpine.js x-cloak -->
+    <!-- Style para Alpine.js x-cloak + Preloader anti-FOUC -->
     <style>
         [x-cloak] {
             display: none !important;
@@ -131,6 +131,36 @@ $breadcrumbItems = $breadcrumbItems ?? [];
             overflow-x: hidden;
             width: 100%;
             max-width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Preloader para evitar FOUC (flash de conteúdo sem estilo) */
+        #lk-preloader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        #lk-preloader.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #lk-preloader img {
+            width: 120px;
+            height: auto;
+            animation: lk-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes lk-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
         }
     </style>
 
@@ -383,6 +413,31 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 </head>
 
 <body class="antialiased" x-data="{ mobileMenuOpen: false }">
+    <!-- Preloader anti-FOUC -->
+    <div id="lk-preloader">
+        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Carregando Lukrato..." width="120" height="42">
+    </div>
+    <script>
+        // Esconde o preloader assim que o DOM e Tailwind estiverem prontos
+        (function() {
+            function hidePreloader() {
+                var p = document.getElementById('lk-preloader');
+                if (p) {
+                    p.classList.add('hide');
+                    setTimeout(function() { p.remove(); }, 500);
+                }
+            }
+            // Aguarda o DOMContentLoaded + pequeno delay para Tailwind processar
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(hidePreloader, 150);
+                });
+            } else {
+                setTimeout(hidePreloader, 150);
+            }
+        })();
+    </script>
+
     <!-- Header Premium -->
     <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 50"
         :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.08)] border-b border-gray-200/50' : 'bg-transparent backdrop-blur-none border-b border-transparent'"
