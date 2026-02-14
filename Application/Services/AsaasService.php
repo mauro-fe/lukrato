@@ -203,6 +203,11 @@ class AsaasService
             $payload['creditCardHolderInfo'] = $data['creditCardHolderInfo'];
         }
 
+        // Adiciona desconto na primeira cobrança (se houver)
+        if (!empty($data['discount'])) {
+            $payload['discount'] = $data['discount'];
+        }
+
         $payload = array_filter(
             $payload,
             static fn($value) => !is_null($value)

@@ -83,10 +83,11 @@ class CupomController extends BaseController
                     'tipo_desconto' => $cupom->tipo_desconto,
                     'valor_desconto' => $cupom->valor_desconto,
                     'desconto_formatado' => $cupom->getDescontoFormatado(),
-                    'valido_ate' => $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y') : 'Sem limite',
+                    'valido_ate' => $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y H:i') : 'Sem limite',
                     'limite_uso' => $cupom->limite_uso,
                     'uso_atual' => $cupom->uso_atual,
                     'ativo' => $cupom->ativo,
+                    'apenas_primeira_assinatura' => $cupom->apenas_primeira_assinatura ?? true,
                     'is_valid' => $cupom->isValid(),
                     'descricao' => $cupom->descricao,
                     'created_at' => $cupom->created_at->format('d/m/Y H:i')
@@ -149,10 +150,20 @@ class CupomController extends BaseController
             $cupom->codigo = strtoupper(trim($data['codigo']));
             $cupom->tipo_desconto = $data['tipo_desconto'];
             $cupom->valor_desconto = $data['valor_desconto'];
-            $cupom->valido_ate = !empty($data['valido_ate']) ? $data['valido_ate'] : null;
+
+            // Combinar data e hora de validade
+            if (!empty($data['valido_ate'])) {
+                $hora = $data['hora_valido_ate'] ?? '23:59';
+                $cupom->valido_ate = $data['valido_ate'] . ' ' . $hora . ':59';
+            } else {
+                $cupom->valido_ate = null;
+            }
             $cupom->limite_uso = $data['limite_uso'] ?? 0;
             $cupom->uso_atual = 0;
             $cupom->ativo = isset($data['ativo']) ? (bool)$data['ativo'] : true;
+            $cupom->apenas_primeira_assinatura = isset($data['apenas_primeira_assinatura']) ? (bool)$data['apenas_primeira_assinatura'] : true;
+            $cupom->permite_reativacao = isset($data['permite_reativacao']) ? (bool)$data['permite_reativacao'] : false;
+            $cupom->meses_inatividade_reativacao = isset($data['meses_inatividade_reativacao']) ? (int)$data['meses_inatividade_reativacao'] : 3;
             $cupom->descricao = $data['descricao'] ?? null;
             $cupom->save();
 
@@ -164,7 +175,7 @@ class CupomController extends BaseController
                     'tipo_desconto' => $cupom->tipo_desconto,
                     'valor_desconto' => $cupom->valor_desconto,
                     'desconto_formatado' => $cupom->getDescontoFormatado(),
-                    'valido_ate' => $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y') : 'Sem limite',
+                    'valido_ate' => $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y H:i') : 'Sem limite',
                     'limite_uso' => $cupom->limite_uso,
                     'uso_atual' => $cupom->uso_atual,
                     'ativo' => $cupom->ativo,
@@ -330,7 +341,12 @@ class CupomController extends BaseController
             }
 
             if (isset($data['valido_ate'])) {
-                $cupom->valido_ate = $data['valido_ate'];
+                if (!empty($data['valido_ate'])) {
+                    $hora = $data['hora_valido_ate'] ?? '23:59';
+                    $cupom->valido_ate = $data['valido_ate'] . ' ' . $hora . ':59';
+                } else {
+                    $cupom->valido_ate = null;
+                }
             }
 
             if (isset($data['limite_uso'])) {
@@ -347,7 +363,7 @@ class CupomController extends BaseController
                     'tipo_desconto' => $cupom->tipo_desconto,
                     'valor_desconto' => $cupom->valor_desconto,
                     'desconto_formatado' => $cupom->getDescontoFormatado(),
-                    'valido_ate' => $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y') : 'Sem limite',
+                    'valido_ate' => $cupom->valido_ate ? $cupom->valido_ate->format('d/m/Y H:i') : 'Sem limite',
                     'limite_uso' => $cupom->limite_uso,
                     'uso_atual' => $cupom->uso_atual,
                     'ativo' => $cupom->ativo,

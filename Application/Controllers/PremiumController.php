@@ -500,6 +500,12 @@ class PremiumController extends BaseController
                     throw new \RuntimeException('Você já utilizou este cupom anteriormente.');
                 }
 
+                // Verificar se o cupom é apenas para primeira assinatura
+                if ($cupom->apenas_primeira_assinatura ?? true) {
+                    // Verificar elegibilidade do usuário para usar o cupom
+                    $this->validarElegibilidadeCupom($usuario, $cupom);
+                }
+
                 // Calcular desconto do cupom
                 $descontoCupom = $cupom->calcularDesconto($total);
                 $total = $cupom->aplicarDesconto($total);
@@ -519,7 +525,9 @@ class PremiumController extends BaseController
             if ($dto->isPix() || $dto->isBoleto()) {
                 $result = $this->createPixOrBoletoPayment($usuario, $plano, $dto, $total);
             } else {
-                $result = $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $total);
+                // Para cartão de crédito, passamos o valor original e o desconto separadamente
+                // para que o desconto seja aplicado apenas na primeira cobrança
+                $result = $this->createSubscription($usuario, $plano, $dto, $customerData, $valorMensal, $valorOriginal, $cupomAplicado);
             }
 
             $assinatura = $this->saveAssinatura($usuario, $plano, $result, $dto->billingType);
@@ -725,7 +733,7 @@ class PremiumController extends BaseController
         ];
     }
 
-    private function createSubscription(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $valorMensal, float $total): array
+    private function createSubscription(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $valorMensal, float $total, ?array $cupomAplicado = null): array
     {
         $cycle = SubscriptionCycle::fromMonths($dto->months);
 
@@ -752,6 +760,20 @@ class PremiumController extends BaseController
                 12 => 'y1',
                 default => 'm1',
             });
+
+        // Se há cupom de desconto, aplicar apenas na primeira cobrança
+        // Para planos mensais: desconto na primeira fatura, depois volta ao valor integral
+        // Para planos semestrais/anuais: desconto já está aplicado em $total (cobrança única por período)
+        if ($cupomAplicado && $dto->isMensal()) {
+            $cupom = $cupomAplicado['cupom'];
+            $tipoDesconto = $cupom->tipo_desconto === 'percentual' ? 'PERCENTAGE' : 'FIXED';
+            $valorDesconto = (float) $cupom->valor_desconto;
+
+            // dueDateLimitDays = 0 significa aplicar sempre (na primeira cobrança)
+            $builder->withDiscount($valorDesconto, $tipoDesconto, 0);
+
+            error_log("✨ [CHECKOUT] Desconto configurado no Asaas: {$valorDesconto} ({$tipoDesconto}) - apenas primeira cobrança");
+        }
 
         if ($dto->hasCreditCard()) {
             $builder->withCreditCard($dto->creditCard, $customerData);
@@ -897,5 +919,77 @@ class PremiumController extends BaseController
             // Não falhar o checkout por causa disso
             error_log("⚠️ [CHECKOUT] Erro ao salvar dados no perfil: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Valida se o usuário é elegível para usar um cupom de primeira assinatura
+     * 
+     * Regras:
+     * - Assinaturas que nunca foram pagas (status pending) não contam
+     * - Se permite_reativacao = true, ex-assinantes inativos há X meses podem usar
+     */
+    private function validarElegibilidadeCupom(Usuario $usuario, \Application\Models\Cupom $cupom): void
+    {
+        // Buscar assinaturas que realmente foram pagas (active, canceled, expired, past_due)
+        // Ignorar pending pois nunca chegaram a pagar
+        $assinaturasEfetivas = $usuario->assinaturas()
+            ->where('gateway', 'asaas')
+            ->whereIn('status', [
+                AssinaturaUsuario::ST_ACTIVE,
+                AssinaturaUsuario::ST_CANCELED,
+                AssinaturaUsuario::ST_EXPIRED,
+                AssinaturaUsuario::ST_PAST_DUE,
+                AssinaturaUsuario::ST_PAUSED,
+            ]);
+
+        // Se não tem nenhuma assinatura efetiva, é novo cliente - pode usar o cupom
+        if (!$assinaturasEfetivas->exists()) {
+            return;
+        }
+
+        // Usuário já foi assinante pago
+        // Verificar se o cupom permite reativação
+        if ($cupom->permite_reativacao ?? false) {
+            $mesesInatividade = $cupom->meses_inatividade_reativacao ?? 3;
+
+            // Verificar se tem assinatura ativa atualmente
+            $temAssinaturaAtiva = $usuario->assinaturas()
+                ->where('gateway', 'asaas')
+                ->where('status', AssinaturaUsuario::ST_ACTIVE)
+                ->exists();
+
+            if ($temAssinaturaAtiva) {
+                throw new \RuntimeException('Você já possui uma assinatura ativa.');
+            }
+
+            // Verificar última assinatura (mais recente)
+            $ultimaAssinatura = $usuario->assinaturas()
+                ->where('gateway', 'asaas')
+                ->whereIn('status', [
+                    AssinaturaUsuario::ST_CANCELED,
+                    AssinaturaUsuario::ST_EXPIRED,
+                ])
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            if ($ultimaAssinatura) {
+                $dataReferencia = $ultimaAssinatura->cancelada_em ?? $ultimaAssinatura->updated_at;
+                $mesesDesdeInativacao = now()->diffInMonths($dataReferencia);
+
+                if ($mesesDesdeInativacao >= $mesesInatividade) {
+                    // Ex-assinante inativo há tempo suficiente - pode usar o cupom de win-back
+                    error_log("✨ [CUPOM] Win-back: usuário {$usuario->id} inativo há {$mesesDesdeInativacao} meses (mínimo: {$mesesInatividade})");
+                    return;
+                }
+
+                throw new \RuntimeException(
+                    "Este cupom é válido para ex-assinantes inativos há pelo menos {$mesesInatividade} meses. " .
+                        "Você está inativo há apenas {$mesesDesdeInativacao} meses."
+                );
+            }
+        }
+
+        // Cupom não permite reativação e usuário já foi assinante
+        throw new \RuntimeException('Este cupom é válido apenas para a primeira assinatura.');
     }
 }

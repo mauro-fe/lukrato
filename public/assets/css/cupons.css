@@ -924,3 +924,263 @@
     font-size: var(--font-size-base);
   }
 }
+
+/* Checkbox customizado */
+.checkbox-group {
+  margin-top: var(--spacing-2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-custom {
+  position: relative;
+  height: 22px;
+  width: 22px;
+  background-color: var(--color-surface-muted);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.checkbox-label:hover .checkbox-custom {
+  border-color: var(--color-primary);
+}
+
+.checkbox-label input:checked ~ .checkbox-custom {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox-custom:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 11px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label input:checked ~ .checkbox-custom:after {
+  display: block;
+}
+
+.checkbox-label span:last-child {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.checkbox-group small {
+  display: block;
+  margin-top: var(--spacing-1);
+  margin-left: 34px;
+  color: var(--color-text-muted);
+}
+
+/* Seção de Elegibilidade */
+.elegibilidade-section {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.elegibilidade-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--color-card-border);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.elegibilidade-header i {
+  color: var(--color-primary);
+}
+
+.elegibilidade-content {
+  padding: var(--spacing-4);
+}
+
+.elegibilidade-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option-title {
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.option-title i {
+  font-size: 0.85em;
+  color: var(--color-primary);
+}
+
+.option-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.toggle-switch.small {
+  width: 40px;
+  height: 22px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-card-border);
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.small .toggle-slider:before {
+  height: 16px;
+  width: 16px;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+.toggle-switch.small input:checked + .toggle-slider:before {
+  transform: translateX(18px);
+}
+
+/* Sub-opções */
+.elegibilidade-suboption {
+  margin-top: var(--spacing-3);
+  padding-left: var(--spacing-4);
+  border-left: 2px solid var(--color-primary);
+  margin-left: 23px;
+}
+
+.suboption-divider {
+  height: 1px;
+  background: linear-gradient(to right, var(--color-card-border), transparent);
+  margin-bottom: var(--spacing-3);
+  display: none;
+}
+
+/* Meses de inatividade */
+.meses-inatividade-box {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-card-border);
+}
+
+.meses-inatividade-box label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-2);
+}
+
+.meses-inatividade-box label i {
+  color: var(--color-primary);
+}
+
+.meses-input-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.meses-input-group input {
+  width: 70px;
+  padding: var(--spacing-2) var(--spacing-3);
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
+
+.meses-input-group input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+}
+
+.meses-suffix {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}

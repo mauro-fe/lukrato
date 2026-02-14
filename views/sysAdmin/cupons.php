@@ -139,10 +139,65 @@ require_once __DIR__ . '/../admin/partials/header.php';
                     </div>
 
                     <div class="form-group">
+                        <label for="hora_valido_ate">Até que Horas</label>
+                        <input type="time" id="hora_valido_ate" name="hora_valido_ate" value="23:59">
+                        <small>Horário limite de validade</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label for="limite_uso">Limite de Usos</label>
                         <input type="number" id="limite_uso" name="limite_uso" min="0" value="0"
                             placeholder="0 = Ilimitado">
                         <small>0 = Usos ilimitados</small>
+                    </div>
+                </div>
+
+                <!-- Seção de Elegibilidade -->
+                <div class="elegibilidade-section">
+                    <div class="elegibilidade-header">
+                        <i class="fas fa-users"></i>
+                        <span>Elegibilidade do Cupom</span>
+                    </div>
+
+                    <div class="elegibilidade-content">
+                        <div class="elegibilidade-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="apenas_primeira_assinatura" name="apenas_primeira_assinatura" checked onchange="toggleReativacao()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="option-text">
+                                <span class="option-title">Apenas novos assinantes</span>
+                                <span class="option-desc">Somente quem nunca assinou pode usar</span>
+                            </div>
+                        </div>
+
+                        <div class="elegibilidade-suboption" id="reativacaoGroup" style="display: none;">
+                            <div class="suboption-divider"></div>
+                            <div class="elegibilidade-option">
+                                <label class="toggle-switch small">
+                                    <input type="checkbox" id="permite_reativacao" name="permite_reativacao" onchange="toggleMesesInatividade()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="option-text">
+                                    <span class="option-title"><i class="fas fa-redo-alt"></i> Win-back</span>
+                                    <span class="option-desc">Permitir ex-assinantes inativos</span>
+                                </div>
+                            </div>
+
+                            <div class="meses-inatividade-box" id="mesesInatividadeGroup" style="display: none;">
+                                <label for="meses_inatividade_reativacao">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Mínimo de inatividade
+                                </label>
+                                <div class="meses-input-group">
+                                    <input type="number" id="meses_inatividade_reativacao" name="meses_inatividade_reativacao"
+                                        min="1" max="24" value="3">
+                                    <span class="meses-suffix">meses</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -296,11 +351,36 @@ require_once __DIR__ . '/../admin/partials/header.php';
     function abrirModalCriarCupom() {
         document.getElementById('modalCupom').classList.add('show');
         document.getElementById('formCupom').reset();
+        document.getElementById('hora_valido_ate').value = '23:59';
+        document.getElementById('apenas_primeira_assinatura').checked = true;
+        document.getElementById('permite_reativacao').checked = false;
+        document.getElementById('meses_inatividade_reativacao').value = '3';
+        document.getElementById('reativacaoGroup').style.display = 'block';
+        document.getElementById('mesesInatividadeGroup').style.display = 'none';
         document.getElementById('modalTitle').textContent = 'Criar Novo Cupom';
     }
 
     function fecharModalCupom() {
         document.getElementById('modalCupom').classList.remove('show');
+    }
+
+    function toggleReativacao() {
+        const apenasPrimeira = document.getElementById('apenas_primeira_assinatura').checked;
+        const reativacaoGroup = document.getElementById('reativacaoGroup');
+
+        reativacaoGroup.style.display = apenasPrimeira ? 'block' : 'none';
+
+        if (!apenasPrimeira) {
+            document.getElementById('permite_reativacao').checked = false;
+            toggleMesesInatividade();
+        }
+    }
+
+    function toggleMesesInatividade() {
+        const permiteReativacao = document.getElementById('permite_reativacao').checked;
+        const mesesGroup = document.getElementById('mesesInatividadeGroup');
+
+        mesesGroup.style.display = permiteReativacao ? 'block' : 'none';
     }
 
     function atualizarPlaceholder() {
@@ -326,6 +406,9 @@ require_once __DIR__ . '/../admin/partials/header.php';
         data.valor_desconto = parseFloat(data.valor_desconto);
         data.limite_uso = parseInt(data.limite_uso) || 0;
         data.ativo = true;
+        data.apenas_primeira_assinatura = document.getElementById('apenas_primeira_assinatura').checked;
+        data.permite_reativacao = document.getElementById('permite_reativacao').checked;
+        data.meses_inatividade_reativacao = parseInt(document.getElementById('meses_inatividade_reativacao').value) || 3;
 
 
         try {

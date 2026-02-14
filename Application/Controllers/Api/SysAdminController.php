@@ -576,23 +576,34 @@ class SysAdminController extends BaseController
             // Taxa de conversão
             $conversionRate = $totalUsers > 0 ? round(($proUsers / $totalUsers) * 100, 1) : 0;
 
-            // Novos usuários hoje
-            $newToday = Usuario::whereDate('created_at', $now->toDateString())->count();
+            // Novos usuários hoje (usando range explícito para garantir timezone correto)
+            $todayStart = Carbon::today()->toDateTimeString();
+            $todayEnd = Carbon::today()->endOfDay()->toDateTimeString();
+            $newToday = Usuario::whereBetween('created_at', [$todayStart, $todayEnd])->count();
 
             // Novos usuários esta semana
-            $newThisWeek = Usuario::where('created_at', '>=', $sevenDaysAgo)->count();
+            $weekStart = $sevenDaysAgo->copy()->startOfDay()->toDateTimeString();
+            $newThisWeek = Usuario::where('created_at', '>=', $weekStart)->count();
 
             // Novos usuários este mês
-            $newThisMonth = Usuario::where('created_at', '>=', $thirtyDaysAgo)->count();
+            $monthStart = $thirtyDaysAgo->copy()->startOfDay()->toDateTimeString();
+            $newThisMonth = Usuario::where('created_at', '>=', $monthStart)->count();
 
             // Usuários por dia (últimos 30 dias)
-            $usersByDay = Usuario::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->where('created_at', '>=', $thirtyDaysAgo)
-                ->groupBy('date')
-                ->orderBy('date')
-                ->get()
-                ->pluck('count', 'date')
+            // Buscar timestamps e agrupar em PHP usando Carbon para garantir timezone correto
+            $usersCreatedAt = Usuario::where('created_at', '>=', $thirtyDaysAgo->startOfDay())
+                ->pluck('created_at')
                 ->toArray();
+            
+            $usersByDay = [];
+            foreach ($usersCreatedAt as $createdAt) {
+                // Carbon converte automaticamente para o timezone do PHP (America/Sao_Paulo)
+                $date = Carbon::parse($createdAt)->format('Y-m-d');
+                if (!isset($usersByDay[$date])) {
+                    $usersByDay[$date] = 0;
+                }
+                $usersByDay[$date]++;
+            }
 
             // Preencher dias sem cadastros
             $usersByDayFilled = [];

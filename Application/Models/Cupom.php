@@ -17,6 +17,9 @@ class Cupom extends Model
         'limite_uso',
         'uso_atual',
         'ativo',
+        'apenas_primeira_assinatura',
+        'permite_reativacao',
+        'meses_inatividade_reativacao',
         'descricao'
     ];
 
@@ -25,7 +28,10 @@ class Cupom extends Model
         'limite_uso' => 'integer',
         'uso_atual' => 'integer',
         'ativo' => 'boolean',
-        'valido_ate' => 'date'
+        'apenas_primeira_assinatura' => 'boolean',
+        'permite_reativacao' => 'boolean',
+        'meses_inatividade_reativacao' => 'integer',
+        'valido_ate' => 'datetime'
     ];
 
     /**
@@ -38,11 +44,13 @@ class Cupom extends Model
             return false;
         }
 
-        // Verifica se está dentro da validade
+        // Verifica se está dentro da validade (considerando data e hora)
         if ($this->valido_ate) {
-            $hoje = new DateTime();
-            $validade = new DateTime($this->valido_ate);
-            if ($hoje > $validade) {
+            $agora = new DateTime();
+            $validade = $this->valido_ate instanceof DateTime
+                ? $this->valido_ate
+                : new DateTime($this->valido_ate);
+            if ($agora > $validade) {
                 return false;
             }
         }

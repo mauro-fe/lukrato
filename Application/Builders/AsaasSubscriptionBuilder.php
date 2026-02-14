@@ -54,6 +54,22 @@ class AsaasSubscriptionBuilder
         return $this;
     }
 
+    /**
+     * Adiciona desconto na primeira cobrança
+     * @param float $value Valor ou percentual do desconto
+     * @param string $type 'FIXED' ou 'PERCENTAGE' 
+     * @param int $dueDateLimitDays Dias de antecedência para aplicar o desconto (0 = sempre aplicar)
+     */
+    public function withDiscount(float $value, string $type = 'FIXED', int $dueDateLimitDays = 0): self
+    {
+        $this->data['discount'] = [
+            'value' => $value,
+            'dueDateLimitDays' => $dueDateLimitDays,
+            'type' => $type
+        ];
+        return $this;
+    }
+
     public function withCreditCard(array $creditCard, CustomerDataDTO $holderInfo): self
     {
         $this->data['creditCard'] = $creditCard;
