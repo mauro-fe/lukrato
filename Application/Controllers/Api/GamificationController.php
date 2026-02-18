@@ -13,6 +13,7 @@ use Application\Models\UserAchievement;
 use Application\Models\Lancamento;
 use Application\Models\Categoria;
 use Carbon\Carbon;
+use Application\Lib\Auth;
 use Exception;
 
 class GamificationController extends BaseController
@@ -40,7 +41,7 @@ class GamificationController extends BaseController
 
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
-            $user = \Application\Lib\Auth::user();
+            $user = Auth::user();
 
             // Verificar conquistas que não dependem de lançamentos (perfil completo, etc)
             // Isso garante que conquistas sejam verificadas ao entrar no dashboard
@@ -91,7 +92,7 @@ class GamificationController extends BaseController
         $this->requireAuthApi();
 
         try {
-            $user = \Application\Lib\Auth::user();
+            $user = Auth::user();
             error_log("🎮 [ACHIEVEMENTS API] User ID: {$this->userId}, isPro: " . ($user->isPro() ? 'true' : 'false'));
 
             // Filtro por mês (opcional)
@@ -250,7 +251,7 @@ class GamificationController extends BaseController
         $this->requireAuthApi();
 
         try {
-            $user = \Application\Lib\Auth::user();
+            $user = Auth::user();
 
             // Total de lançamentos
             $totalLancamentos = Lancamento::where('user_id', $this->userId)->count();

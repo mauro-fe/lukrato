@@ -11,6 +11,8 @@ use Application\Core\Router;
  * Todas as rotas exigem autenticação
  */
 
+Router::add('GET', '/onboarding', 'Admin\\OnboardingController@index', ['auth']);
+
 // Dashboard
 Router::add('GET', '/dashboard', 'Admin\\DashboardController@dashboard', ['auth']);
 
@@ -61,6 +63,8 @@ Router::add('GET', '/super_admin/users', 'SysAdmin\UserAdminController@list', ['
 
 // SysAdmin - Listagem de usuários com filtros (rota alternativa com hífen)
 Router::add('GET', '/super-admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
+
+
 
 // Redirects legados
 Router::add('GET', '/admin', function () {

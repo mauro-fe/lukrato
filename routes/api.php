@@ -11,6 +11,12 @@ use Application\Core\Router;
  * Padrão REST com autenticação e CSRF
  */
 
+Router::add('GET', '/api/onboarding/status', 'Api\OnboardingController@status', ['auth']);
+Router::add('POST', '/api/onboarding/complete', 'Api\OnboardingController@complete', ['auth', 'csrf']);
+
+Router::add('POST', '/api/tour/complete', 'Api\TourController@complete', ['auth', 'csrf']);
+
+
 // ============================================
 // SEGURANÇA / UTILIDADES
 // ============================================
