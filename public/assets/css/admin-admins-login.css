@@ -494,7 +494,7 @@ main.lukrato-auth::before {
 .toggle-password {
   position: absolute;
   right: 12px;
-  top: 35%;
+  top: 22px;
   transform: translateY(-50%);
   background: transparent;
   border: none;
@@ -509,6 +509,10 @@ main.lukrato-auth::before {
   color: var(--orange);
   background: rgba(230, 126, 34, 0.1);
   transform: translateY(-50%) scale(1.1);
+}
+
+.toggle-password:focus {
+  outline: none;
 }
 
 /* Remember Me Checkbox */

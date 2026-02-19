@@ -55,6 +55,37 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
         if ($result === false) {
             $this->errors = array_merge($this->errors, $this->mapGumpErrors($gump->get_errors_array()));
         }
+
+        // Validação de senha forte (além do min_len do GUMP)
+        $this->validatePasswordStrength();
+    }
+
+    private function validatePasswordStrength(): void
+    {
+        $senha = $this->registration->password;
+
+        if (empty($senha)) {
+            return; // O GUMP já trata o required
+        }
+
+        $missing = [];
+
+        if (!preg_match('/[a-z]/', $senha)) {
+            $missing[] = 'uma letra minúscula';
+        }
+        if (!preg_match('/[A-Z]/', $senha)) {
+            $missing[] = 'uma letra maiúscula';
+        }
+        if (!preg_match('/[0-9]/', $senha)) {
+            $missing[] = 'um número';
+        }
+        if (!preg_match('/[^a-zA-Z0-9]/', $senha)) {
+            $missing[] = 'um caractere especial (!@#$%&*)';
+        }
+
+        if (!empty($missing)) {
+            $this->addError('password', 'A senha deve conter: ' . implode(', ', $missing) . '.');
+        }
     }
 
     private function validateUniqueEmail(): void
