@@ -8,180 +8,372 @@ if ($showOnboardingCongrats) {
 ?>
 
 <?php if ($showOnboardingCongrats): ?>
-    <style>
-        .lk-congrats-banner {
-            background: linear-gradient(135deg, var(--color-primary), #6366f1);
-            border-radius: var(--radius-xl);
-            padding: var(--spacing-8);
-            margin-bottom: var(--spacing-6);
-            color: white;
-            position: relative;
-            overflow: hidden;
-            animation: lk-slideDown 0.5s ease-out;
-        }
+<script>window.__lkFirstVisit = true;</script>
+<?php endif; ?>
 
-        @keyframes lk-slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
+<style>
+/* ── Onboarding Checklist ── */
+.lk-checklist {
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--spacing-6);
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    animation: lk-checkIn 0.5s ease-out;
+    display: none; /* shown by JS */
+}
+@keyframes lk-checkIn {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+.lk-checklist-accent {
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary), #6366f1, var(--color-success));
+}
+.lk-checklist-body {
+    padding: var(--spacing-5) var(--spacing-6);
+    position: relative;
+}
+.lk-checklist-dismiss {
+    position: absolute;
+    top: var(--spacing-3);
+    right: var(--spacing-3);
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+.lk-checklist-dismiss:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
 
-        .lk-congrats-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-        }
+/* Header */
+.lk-checklist-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+}
+.lk-checklist-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    background: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+.lk-checklist-title { flex: 1; }
+.lk-checklist-title h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 2px 0;
+}
+.lk-checklist-title p {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+.lk-checklist-badge {
+    background: var(--color-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+.lk-checklist-badge.complete {
+    background: var(--color-success);
+    color: #fff;
+    border-color: var(--color-success);
+}
 
-        .lk-congrats-header {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-3);
-            margin-bottom: var(--spacing-3);
-        }
+/* Progress bar */
+.lk-checklist-progress {
+    height: 6px;
+    background: var(--color-surface-muted);
+    border-radius: 3px;
+    margin-bottom: var(--spacing-4);
+    overflow: hidden;
+}
+.lk-checklist-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+    transition: width 0.6s ease;
+    width: 0%;
+}
 
-        .lk-congrats-emoji {
-            font-size: 2rem;
-        }
+/* Item rows */
+.lk-checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+.lk-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+.lk-checklist-item:not(.done):hover {
+    background: var(--color-surface);
+    border-color: var(--glass-border);
+}
+.lk-checklist-item.done {
+    opacity: 0.55;
+}
 
-        .lk-congrats-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
+/* Check circle */
+.lk-checklist-check {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    transition: all 0.3s;
+}
+.lk-checklist-item:not(.done) .lk-checklist-check {
+    border: 2px solid var(--color-border);
+    background: transparent;
+    color: transparent;
+}
+.lk-checklist-item.done .lk-checklist-check {
+    border: none;
+    background: var(--color-success);
+    color: #fff;
+}
 
-        .lk-congrats-text {
-            font-size: var(--font-size-base);
-            opacity: 0.9;
-            margin-bottom: var(--spacing-6);
-            max-width: 600px;
-            line-height: 1.6;
-        }
+/* Icon + text */
+.lk-checklist-item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+.lk-checklist-item-text { flex: 1; min-width: 0; }
+.lk-checklist-item-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: block;
+    line-height: 1.3;
+}
+.lk-checklist-item-desc {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    display: block;
+    line-height: 1.3;
+}
+.lk-checklist-item.done .lk-checklist-item-label {
+    text-decoration: line-through;
+}
+.lk-checklist-item-arrow {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.lk-checklist-item:not(.done):hover .lk-checklist-item-arrow {
+    opacity: 1;
+}
+.lk-checklist-item.done .lk-checklist-item-arrow {
+    display: none;
+}
 
-        .lk-congrats-steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: var(--spacing-3);
-            margin-bottom: var(--spacing-5);
-        }
+/* All-complete celebration */
+.lk-checklist-complete {
+    text-align: center;
+    padding: var(--spacing-4) 0;
+}
+.lk-checklist-complete-icon { font-size: 2.5rem; margin-bottom: var(--spacing-2); }
+.lk-checklist-complete h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 4px 0;
+}
+.lk-checklist-complete p {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
 
-        .lk-congrats-step {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-4);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-3);
-            cursor: pointer;
-            transition: var(--transition-normal);
-            text-decoration: none;
-            color: white;
-        }
+@media (max-width: 600px) {
+    .lk-checklist-body { padding: var(--spacing-4); }
+    .lk-checklist-item-desc { display: none; }
+}
+</style>
 
-        .lk-congrats-step:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .lk-congrats-step-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-sm);
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .lk-congrats-step-text {
-            font-size: var(--font-size-sm);
-            font-weight: 600;
-            line-height: 1.3;
-        }
-
-        .lk-congrats-dismiss {
-            position: absolute;
-            top: var(--spacing-4);
-            right: var(--spacing-4);
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: var(--radius-full);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition-normal);
-        }
-
-        .lk-congrats-dismiss:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        @media (max-width: 600px) {
-            .lk-congrats-banner {
-                padding: var(--spacing-6);
-            }
-
-            .lk-congrats-steps {
-                grid-template-columns: 1fr;
-            }
-
-            .lk-congrats-title {
-                font-size: 1.2rem;
-            }
-        }
-    </style>
-
-    <div class="lk-congrats-banner" id="congratsBanner">
-        <button class="lk-congrats-dismiss" onclick="document.getElementById('congratsBanner').style.display='none'" title="Fechar">
+<!-- Onboarding Checklist (persistent) -->
+<div class="lk-checklist" id="onboardingChecklist">
+    <div class="lk-checklist-accent"></div>
+    <div class="lk-checklist-body">
+        <button class="lk-checklist-dismiss" id="checklistDismiss" title="Fechar">
             <i class="fas fa-times"></i>
         </button>
 
-        <div class="lk-congrats-header">
-            <span class="lk-congrats-emoji">🎉</span>
-            <span class="lk-congrats-title">Parabéns! Seus primeiros passos foram concluídos!</span>
+        <div class="lk-checklist-header">
+            <div class="lk-checklist-icon-box">🚀</div>
+            <div class="lk-checklist-title">
+                <h2>Primeiros passos</h2>
+                <p>Complete as etapas para aproveitar o melhor do Lukrato</p>
+            </div>
+            <div class="lk-checklist-badge" id="checklistBadge">0/6</div>
         </div>
 
-        <p class="lk-congrats-text">
-            Sua conta e primeiro lançamento já estão registrados. Agora o Lukrato já está trabalhando para você!
-            Continue adicionando seus lançamentos para ter controle total das suas finanças.
-        </p>
+        <div class="lk-checklist-progress">
+            <div class="lk-checklist-progress-fill" id="checklistProgressFill"></div>
+        </div>
 
-        <div class="lk-congrats-steps">
-            <a href="lancamentos" class="lk-congrats-step">
-                <div class="lk-congrats-step-icon"><i class="fas fa-plus"></i></div>
-                <div class="lk-congrats-step-text">Adicionar mais lançamentos</div>
-            </a>
-            <a href="categorias" class="lk-congrats-step">
-                <div class="lk-congrats-step-icon"><i class="fas fa-tags"></i></div>
-                <div class="lk-congrats-step-text">Personalizar categorias</div>
-            </a>
-            <a href="contas" class="lk-congrats-step">
-                <div class="lk-congrats-step-icon"><i class="fas fa-wallet"></i></div>
-                <div class="lk-congrats-step-text">Adicionar outra conta</div>
-            </a>
-            <a href="relatorios" class="lk-congrats-step">
-                <div class="lk-congrats-step-icon"><i class="fas fa-chart-pie"></i></div>
-                <div class="lk-congrats-step-text">Ver relatórios</div>
-            </a>
+        <div class="lk-checklist-items" id="checklistItems">
+            <!-- JS populates -->
         </div>
     </div>
-<?php endif; ?>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var firstVisit = !!window.__lkFirstVisit;
+    var DISMISS_KEY = 'lk_checklist_dismissed';
+    var el = document.getElementById('onboardingChecklist');
+
+    // Already dismissed?
+    if (localStorage.getItem(DISMISS_KEY) === '1' && !firstVisit) return;
+
+    fetch(BASE_URL + 'api/onboarding/checklist', { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (!res.success) return;
+            var data = res.data;
+
+            // If all complete and not the very first dashboard visit, don't show
+            if (data.all_complete && !firstVisit) return;
+
+            renderChecklist(data);
+            el.style.display = 'block';
+
+            if (firstVisit) {
+                fireConfetti();
+                setTimeout(function() {
+                    if (typeof window.checkPendingAchievements === 'function') {
+                        window.gamificationPaused = false;
+                        window.checkPendingAchievements();
+                    }
+                }, 1500);
+            }
+        })
+        .catch(function() {});
+
+    // Dismiss handler
+    document.getElementById('checklistDismiss').addEventListener('click', function() {
+        localStorage.setItem(DISMISS_KEY, '1');
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-16px)';
+        el.style.transition = 'all 0.3s ease';
+        setTimeout(function() { el.style.display = 'none'; }, 300);
+    });
+
+    function renderChecklist(data) {
+        var badge = document.getElementById('checklistBadge');
+        var fill  = document.getElementById('checklistProgressFill');
+        var box   = document.getElementById('checklistItems');
+
+        badge.textContent = data.done_count + '/' + data.total;
+        if (data.all_complete) badge.classList.add('complete');
+
+        var pct = (data.done_count / data.total) * 100;
+        setTimeout(function() { fill.style.width = pct + '%'; }, 100);
+
+        // All complete → celebration
+        if (data.all_complete) {
+            box.innerHTML =
+                '<div class="lk-checklist-complete">' +
+                    '<div class="lk-checklist-complete-icon">🎉</div>' +
+                    '<h3>Parabéns! Você completou tudo</h3>' +
+                    '<p>Agora é só manter o controle das suas finanças</p>' +
+                '</div>';
+
+            if (firstVisit) {
+                setTimeout(function() {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(-16px)';
+                    el.style.transition = 'all 0.5s ease';
+                    setTimeout(function() { el.style.display = 'none'; }, 500);
+                }, 8000);
+            }
+            return;
+        }
+
+        // Sort: pending first, done last
+        var sorted = data.items.slice().sort(function(a, b) { return a.done - b.done; });
+
+        box.innerHTML = sorted.map(function(item) {
+            return '<a href="' + BASE_URL + item.href + '" class="lk-checklist-item ' + (item.done ? 'done' : '') + '">' +
+                '<div class="lk-checklist-check"><i class="fas fa-check"></i></div>' +
+                '<div class="lk-checklist-item-icon" style="background:color-mix(in srgb, ' + item.color + ' 15%, var(--color-surface));color:' + item.color + ';">' +
+                    '<i class="fas ' + item.icon + '"></i>' +
+                '</div>' +
+                '<div class="lk-checklist-item-text">' +
+                    '<span class="lk-checklist-item-label">' + item.label + '</span>' +
+                    '<span class="lk-checklist-item-desc">' + item.description + '</span>' +
+                '</div>' +
+                '<i class="fas fa-chevron-right lk-checklist-item-arrow"></i>' +
+            '</a>';
+        }).join('');
+    }
+
+    function fireConfetti() {
+        if (typeof confetti !== 'function') return;
+        var duration = 3500;
+        var end = Date.now() + duration;
+        var defaults = { startVelocity: 35, spread: 360, ticks: 70, zIndex: 99999 };
+
+        var interval = setInterval(function() {
+            var timeLeft = end - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+            var count = 60 * (timeLeft / duration);
+            try {
+                confetti(Object.assign({}, defaults, {
+                    particleCount: count,
+                    origin: { x: Math.random() * 0.3 + 0.1, y: Math.random() - 0.2 }
+                }));
+                confetti(Object.assign({}, defaults, {
+                    particleCount: count,
+                    origin: { x: Math.random() * 0.3 + 0.6, y: Math.random() - 0.2 }
+                }));
+            } catch(e) { clearInterval(interval); }
+        }, 200);
+    }
+});
+</script>
 
 <section class="modern-dashboard">
     <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>

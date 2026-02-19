@@ -360,4 +360,13 @@ class ContaService
 
         return $resultado;
     }
+
+    /**
+     * Retorna o saldo atual de uma conta específica (calculado até hoje)
+     */
+    public function getSaldoAtual(int $contaId, int $userId): float
+    {
+        $saldos = $this->calcularSaldos($userId, [$contaId], date('Y-m'));
+        return (float) ($saldos[$contaId]['saldoAtual'] ?? 0);
+    }
 }

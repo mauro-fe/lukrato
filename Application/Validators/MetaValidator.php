@@ -36,6 +36,14 @@ class MetaValidator
             Meta::TIPO_INVESTIMENTO,
             Meta::TIPO_COMPRA,
             Meta::TIPO_EMERGENCIA,
+            Meta::TIPO_VIAGEM,
+            Meta::TIPO_EDUCACAO,
+            Meta::TIPO_MORADIA,
+            Meta::TIPO_VEICULO,
+            Meta::TIPO_SAUDE,
+            Meta::TIPO_NEGOCIO,
+            Meta::TIPO_APOSENTADORIA,
+            Meta::TIPO_OUTRO,
         ];
         if (!empty($tipo) && !in_array($tipo, $tiposValidos, true)) {
             $errors['tipo'] = 'Tipo de meta inválido.';

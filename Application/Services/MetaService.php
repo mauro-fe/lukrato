@@ -7,6 +7,7 @@ namespace Application\Services;
 use Application\Models\Meta;
 use Application\Models\Lancamento;
 use Application\Repositories\MetaRepository;
+use Application\Services\ContaService;
 
 /**
  * Serviço de Metas Financeiras
@@ -18,11 +19,13 @@ class MetaService
 {
     private MetaRepository $repo;
     private PlanLimitService $planLimit;
+    private ContaService $contaService;
 
     public function __construct()
     {
         $this->repo = new MetaRepository();
         $this->planLimit = new PlanLimitService();
+        $this->contaService = new ContaService();
     }
 
     /**
@@ -31,7 +34,7 @@ class MetaService
     public function listar(int $userId, ?string $status = null): array
     {
         $metas = $this->repo->findByUser($userId, $status);
-        return $metas->map(fn(Meta $m) => $m->toApiArray())->toArray();
+        return $metas->map(fn(Meta $m) => $this->syncContaSaldo($m, $userId)->toApiArray())->toArray();
     }
 
     /**
@@ -41,7 +44,7 @@ class MetaService
     {
         $meta = $this->repo->findByIdAndUser($id, $userId);
         if (!$meta) return null;
-        return $meta->toApiArray();
+        return $this->syncContaSaldo($meta, $userId)->toApiArray();
     }
 
     /**
@@ -57,8 +60,13 @@ class MetaService
         $data['data_inicio'] = $data['data_inicio'] ?? date('Y-m-d');
         $data['status'] = Meta::STATUS_ATIVA;
 
+        // Se vinculada a conta, inicializar valor_atual com saldo atual da conta
+        if (!empty($data['conta_id'])) {
+            $data['valor_atual'] = $this->contaService->getSaldoAtual((int) $data['conta_id'], $userId);
+        }
+
         $meta = $this->repo->createForUser($userId, $data);
-        return $meta->fresh()->toApiArray();
+        return $this->syncContaSaldo($meta->fresh(), $userId)->toApiArray();
     }
 
     /**
@@ -87,8 +95,19 @@ class MetaService
         $meta = $this->repo->findByIdAndUser($id, $userId);
         if (!$meta) return null;
 
+        if ($meta->conta_id) {
+            throw new \DomainException('Esta meta está vinculada a uma conta e o progresso é calculado automaticamente.');
+        }
+
         $novoValor = $meta->valor_atual + $valor;
         $this->repo->atualizarValor($id, $userId, $novoValor);
+
+        $metaAtualizada = $this->repo->findByIdAndUser($id, $userId);
+
+        // Auto-concluir se atingiu o alvo via aporte
+        if ($metaAtualizada && $novoValor >= $metaAtualizada->valor_alvo && $metaAtualizada->status === Meta::STATUS_ATIVA) {
+            $metaAtualizada->update(['status' => Meta::STATUS_CONCLUIDA]);
+        }
 
         return $this->repo->findByIdAndUser($id, $userId)->toApiArray();
     }
@@ -131,42 +150,90 @@ class MetaService
         return [
             [
                 'titulo'    => 'Reserva de Emergência',
-                'descricao' => 'Economize o equivalente a 6 meses de despesas para emergências',
+                'descricao' => '6 meses de despesas guardados para imprevistos — a base de qualquer planejamento',
                 'tipo'      => Meta::TIPO_EMERGENCIA,
                 'icone'     => 'fa-shield-halved',
                 'cor'       => '#10b981',
                 'sugestao'  => 'O ideal é ter 6x seus gastos mensais médios',
             ],
             [
-                'titulo'    => 'Viagem dos Sonhos',
-                'descricao' => 'Junte dinheiro para aquela viagem que você sempre quis',
+                'titulo'    => 'Trocar de Celular',
+                'descricao' => 'Junte para comprar à vista e evitar juros de parcelamento',
                 'tipo'      => Meta::TIPO_COMPRA,
+                'icone'     => 'fa-mobile-screen',
+                'cor'       => '#8b5cf6',
+                'valor_sugerido' => 3000,
+                'sugestao'  => null,
+            ],
+            [
+                'titulo'    => 'Viagem de Férias',
+                'descricao' => 'Planeje com antecedência e viaje sem apertar o orçamento',
+                'tipo'      => Meta::TIPO_VIAGEM,
                 'icone'     => 'fa-plane',
                 'cor'       => '#3b82f6',
+                'valor_sugerido' => 5000,
                 'sugestao'  => null,
             ],
             [
                 'titulo'    => 'Quitar Dívida',
-                'descricao' => 'Livre-se das dívidas e conquiste sua liberdade financeira',
+                'descricao' => 'Livre-se dos juros e reconquiste sua liberdade financeira',
                 'tipo'      => Meta::TIPO_QUITACAO,
                 'icone'     => 'fa-hand-holding-dollar',
                 'cor'       => '#ef4444',
                 'sugestao'  => null,
             ],
             [
-                'titulo'    => 'Compra Planejada',
-                'descricao' => 'Economize para comprar algo específico sem parcelar',
-                'tipo'      => Meta::TIPO_COMPRA,
-                'icone'     => 'fa-cart-shopping',
-                'cor'       => '#8b5cf6',
+                'titulo'    => 'Entrada do Carro',
+                'descricao' => 'Quanto maior a entrada, menores as parcelas e os juros',
+                'tipo'      => Meta::TIPO_VEICULO,
+                'icone'     => 'fa-car',
+                'cor'       => '#f59e0b',
+                'valor_sugerido' => 15000,
                 'sugestao'  => null,
             ],
             [
-                'titulo'    => 'Investir Mais',
-                'descricao' => 'Acumule capital para investir e fazer seu dinheiro trabalhar',
+                'titulo'    => 'Entrada do Imóvel',
+                'descricao' => 'Junte para a entrada e reduza o valor financiado',
+                'tipo'      => Meta::TIPO_MORADIA,
+                'icone'     => 'fa-house',
+                'cor'       => '#14b8a6',
+                'valor_sugerido' => 50000,
+                'sugestao'  => null,
+            ],
+            [
+                'titulo'    => 'Curso / Faculdade',
+                'descricao' => 'Invista em você — educação é o melhor retorno a longo prazo',
+                'tipo'      => Meta::TIPO_EDUCACAO,
+                'icone'     => 'fa-graduation-cap',
+                'cor'       => '#6366f1',
+                'valor_sugerido' => 5000,
+                'sugestao'  => null,
+            ],
+            [
+                'titulo'    => 'Montar Negócio Próprio',
+                'descricao' => 'Capital inicial para tirar sua ideia do papel',
+                'tipo'      => Meta::TIPO_NEGOCIO,
+                'icone'     => 'fa-store',
+                'cor'       => '#ec4899',
+                'valor_sugerido' => 10000,
+                'sugestao'  => null,
+            ],
+            [
+                'titulo'    => 'Primeiro Milhão',
+                'descricao' => 'A jornada começa com o primeiro passo — e com disciplina',
                 'tipo'      => Meta::TIPO_INVESTIMENTO,
-                'icone'     => 'fa-chart-line',
+                'icone'     => 'fa-gem',
                 'cor'       => '#f59e0b',
+                'valor_sugerido' => 1000000,
+                'sugestao'  => null,
+            ],
+            [
+                'titulo'    => 'Fundo para os Filhos',
+                'descricao' => 'Garanta o futuro dos seus filhos com planejamento desde cedo',
+                'tipo'      => Meta::TIPO_ECONOMIA,
+                'icone'     => 'fa-children',
+                'cor'       => '#3b82f6',
+                'valor_sugerido' => 20000,
                 'sugestao'  => null,
             ],
         ];
@@ -185,6 +252,30 @@ class MetaService
     /**
      * Calcula média de gastos mensais do usuário
      */
+    /**
+     * Sincroniza valor_atual da meta com o saldo atual da conta vinculada.
+     * Atualiza no banco e retorna a meta (possivelmente modificada).
+     */
+    private function syncContaSaldo(Meta $meta, int $userId): Meta
+    {
+        if (!$meta->conta_id) return $meta;
+
+        $saldo = $this->contaService->getSaldoAtual($meta->conta_id, $userId);
+
+        // Apenas persiste se mudou (evita writes desnecessários)
+        if (abs($meta->valor_atual - $saldo) > 0.001) {
+            $meta->valor_atual = $saldo;
+            $meta->save();
+
+            // Auto-concluir se atingiu o alvo
+            if ($saldo >= $meta->valor_alvo && $meta->status === Meta::STATUS_ATIVA) {
+                $meta->update(['status' => Meta::STATUS_CONCLUIDA]);
+            }
+        }
+
+        return $meta;
+    }
+
     private function calcularMediaGastosMensais(int $userId, int $meses = 3): float
     {
         $total = 0;

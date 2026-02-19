@@ -11,6 +11,9 @@ use Application\Core\Router;
  * Padrão REST com autenticação e CSRF
  */
 
+
+Router::add('POST', '/api/onboarding/complete', 'Api\OnboardingController@complete', ['auth', 'csrf']);
+
 Router::add('POST', '/api/tour/complete', 'Api\TourController@complete', ['auth', 'csrf']);
 
 
@@ -49,9 +52,13 @@ Router::add('DELETE', '/api/perfil/delete', 'Api\\PerfilController@delete', ['au
 // ONBOARDING
 // ============================================
 
-Router::add('GET',  '/api/onboarding/status',       'Api\\OnboardingController@status',         ['auth']);
-Router::add('POST', '/api/onboarding/conta',         'Api\\OnboardingController@storeConta',     ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/lancamento',    'Api\\OnboardingController@storeLancamento', ['auth', 'csrf']);
+Router::add('GET',  '/api/onboarding/status',    'Api\\OnboardingController@status',   ['auth']);
+Router::add('GET',  '/api/onboarding/checklist', 'Api\\OnboardingController@checklist', ['auth']);
+Router::add('POST', '/api/onboarding/complete',  'Api\\OnboardingController@complete', ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/skip-tour', 'Api\\OnboardingController@skipTour', ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/reset',     'Api\\OnboardingController@reset',    ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/conta',       'Api\\OnboardingController@storeConta',      ['auth']);
+Router::add('POST', '/api/onboarding/lancamento',  'Api\\OnboardingController@storeLancamento', ['auth']);
 
 // ============================================
 // DASHBOARD
@@ -268,30 +275,6 @@ Router::add('POST',   '/api/notifications/{id}/read',  'Api\\NotificationControl
 Router::add('POST',   '/api/notifications/read-all',   'Api\\NotificationController@markAllAsRead', ['auth', 'csrf']);
 Router::add('DELETE', '/api/notifications/{id}',       'Api\\NotificationController@destroy',       ['auth', 'csrf']);
 Router::add('DELETE', '/api/notifications/read',       'Api\\NotificationController@deleteRead',    ['auth', 'csrf']);
-
-// ============================================
-// FINANÇAS (Metas + Orçamentos)
-// ============================================
-
-Router::add('GET',  '/api/financas/resumo',                    'Api\\FinancasController@resumo',                  ['auth']);
-Router::add('GET',  '/api/financas/insights',                  'Api\\FinancasController@insights',                ['auth']);
-
-// Metas
-Router::add('GET',    '/api/financas/metas',                   'Api\\FinancasController@metasIndex',              ['auth']);
-Router::add('GET',    '/api/financas/metas/templates',         'Api\\FinancasController@metasTemplates',          ['auth']);
-Router::add('POST',   '/api/financas/metas',                   'Api\\FinancasController@metasStore',              ['auth', 'csrf']);
-Router::add('PUT',    '/api/financas/metas/{id}',              'Api\\FinancasController@metasUpdate',             ['auth', 'csrf']);
-Router::add('POST',   '/api/financas/metas/{id}/aporte',       'Api\\FinancasController@metasAporte',             ['auth', 'csrf']);
-Router::add('DELETE', '/api/financas/metas/{id}',              'Api\\FinancasController@metasDestroy',            ['auth', 'csrf']);
-
-// Orçamentos
-Router::add('GET',  '/api/financas/orcamentos',                'Api\\FinancasController@orcamentosIndex',         ['auth']);
-Router::add('GET',  '/api/financas/orcamentos/sugestoes',      'Api\\FinancasController@orcamentosSugestoes',     ['auth']);
-Router::add('POST', '/api/financas/orcamentos',                'Api\\FinancasController@orcamentosStore',         ['auth', 'csrf']);
-Router::add('POST', '/api/financas/orcamentos/bulk',           'Api\\FinancasController@orcamentosBulk',          ['auth', 'csrf']);
-Router::add('POST', '/api/financas/orcamentos/aplicar-sugestoes', 'Api\\FinancasController@orcamentosAplicarSugestoes', ['auth', 'csrf']);
-Router::add('POST', '/api/financas/orcamentos/copiar-mes',     'Api\\FinancasController@orcamentosCopiarMes',     ['auth', 'csrf']);
-Router::add('DELETE', '/api/financas/orcamentos/{id}',         'Api\\FinancasController@orcamentosDestroy',       ['auth', 'csrf']);
 
 // ============================================
 // PLANO / LIMITES

@@ -12,7 +12,7 @@ class FinancasController extends BaseController
         $this->render(
             'admin/financas/index',
             [
-                'pageTitle' => 'Finanças - Lukrato',
+                'pageTitle' => 'Finanças',
                 'subTitle'  => 'Gerencie seus orçamentos e metas financeiras',
                 'menu'      => 'financas',
             ],

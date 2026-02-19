@@ -3,6 +3,7 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
+use Application\Lib\Auth;
 use Application\Models\Conta;
 use Application\Models\Categoria;
 use Application\Models\Lancamento;
@@ -14,6 +15,8 @@ class OnboardingController extends BaseController
      * Exibe o passo atual do onboarding
      * Passo 1: Criar conta (se não tem conta)
      * Passo 2: Criar lançamento (se já tem conta)
+     * 
+     * Renderiza SEM header/footer do admin (tela limpa, sem distração)
      */
     public function index()
     {
@@ -28,11 +31,21 @@ class OnboardingController extends BaseController
             return;
         }
 
+        // Dados comuns para o tema
+        $currentUser = Auth::user();
+        $userTheme = 'dark';
+        if ($currentUser && isset($currentUser->theme_preference)) {
+            $userTheme = in_array($currentUser->theme_preference, ['light', 'dark'])
+                ? $currentUser->theme_preference
+                : 'dark';
+        }
+
         if (!$temConta) {
             $instituicoes = InstituicaoFinanceira::orderBy('nome')->get();
 
-            return $this->renderAdmin('admin/onboarding/index', [
-                'instituicoes' => $instituicoes
+            return $this->render('admin/onboarding/index', [
+                'instituicoes' => $instituicoes,
+                'userTheme' => $userTheme,
             ]);
         }
 
@@ -41,10 +54,11 @@ class OnboardingController extends BaseController
         $categoriasDespesa = Categoria::forUser($this->userId)->despesas()->orderBy('nome')->get();
         $categoriasReceita = Categoria::forUser($this->userId)->receitas()->orderBy('nome')->get();
 
-        return $this->renderAdmin('admin/onboarding/lancamento', [
+        return $this->render('admin/onboarding/lancamento', [
             'conta' => $conta,
             'categoriasDespesa' => $categoriasDespesa,
             'categoriasReceita' => $categoriasReceita,
+            'userTheme' => $userTheme,
         ]);
     }
 }

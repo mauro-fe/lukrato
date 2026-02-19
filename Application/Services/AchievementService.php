@@ -469,8 +469,10 @@ class AchievementService
     {
         if (!$user->isPro()) return false;
 
-        // TODO: Implementar quando houver tabela de metas
-        return false;
+        // Verifica se o usuário tem ao menos 1 meta concluída
+        return \Application\Models\Meta::where('user_id', $userId)
+            ->where('status', 'concluida')
+            ->exists();
     }
 
     private function checkLevel(?UserProgress $progress, int $level): bool

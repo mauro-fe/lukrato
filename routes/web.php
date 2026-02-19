@@ -263,6 +263,24 @@ function registerApiRoutes(): void
     Router::add('GET',  '/api/gamification/leaderboard',   'Api\\GamificationController@getLeaderboard',      ['auth']);
 
 
+    // Finanças (Metas + Orçamentos)
+    Router::add('GET',    '/api/financas/resumo',                    'Api\\FinancasController@resumo',                  ['auth']);
+    Router::add('GET',    '/api/financas/metas',                     'Api\\FinancasController@metasIndex',              ['auth']);
+    Router::add('POST',   '/api/financas/metas',                     'Api\\FinancasController@metasStore',              ['auth', 'csrf']);
+    Router::add('PUT',    '/api/financas/metas/{id}',                'Api\\FinancasController@metasUpdate',             ['auth', 'csrf']);
+    Router::add('POST',   '/api/financas/metas/{id}/aporte',        'Api\\FinancasController@metasAporte',             ['auth', 'csrf']);
+    Router::add('DELETE', '/api/financas/metas/{id}',                'Api\\FinancasController@metasDestroy',            ['auth', 'csrf']);
+    Router::add('GET',    '/api/financas/metas/templates',           'Api\\FinancasController@metasTemplates',          ['auth']);
+    Router::add('GET',    '/api/financas/orcamentos',                'Api\\FinancasController@orcamentosIndex',         ['auth']);
+    Router::add('POST',   '/api/financas/orcamentos',                'Api\\FinancasController@orcamentosStore',         ['auth', 'csrf']);
+    Router::add('POST',   '/api/financas/orcamentos/bulk',           'Api\\FinancasController@orcamentosBulk',          ['auth', 'csrf']);
+    Router::add('DELETE', '/api/financas/orcamentos/{id}',           'Api\\FinancasController@orcamentosDestroy',       ['auth', 'csrf']);
+    Router::add('GET',    '/api/financas/orcamentos/sugestoes',      'Api\\FinancasController@orcamentosSugestoes',     ['auth']);
+    Router::add('POST',   '/api/financas/orcamentos/aplicar-sugestoes', 'Api\\FinancasController@orcamentosAplicarSugestoes', ['auth', 'csrf']);
+    Router::add('POST',   '/api/financas/orcamentos/copiar-mes',    'Api\\FinancasController@orcamentosCopiarMes',     ['auth', 'csrf']);
+    Router::add('GET',    '/api/financas/insights',                  'Api\\FinancasController@insights',                ['auth']);
+
+
     // Investimentos
 
     Router::add('GET',    '/api/investimentos',                       'Api\\InvestimentosController@index');

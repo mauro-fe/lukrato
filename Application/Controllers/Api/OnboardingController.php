@@ -7,6 +7,9 @@ use Application\Core\Response;
 use Application\Models\Conta;
 use Application\Models\Categoria;
 use Application\Models\Lancamento;
+use Application\Models\Meta;
+use Application\Models\OrcamentoCategoria;
+use Application\Models\Agendamento;
 use Application\Models\Usuario;
 use Application\Services\ContaService;
 use Application\DTO\CreateContaDTO;
@@ -203,6 +206,96 @@ class OnboardingController extends BaseController
             ]);
             $this->setError('Erro inesperado. Tente novamente.');
             $this->redirect('onboarding');
+        }
+    }
+
+    /**
+     * GET /api/onboarding/checklist
+     * Retorna status da checklist de primeiros passos
+     */
+    public function checklist(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $userId = $this->userId;
+
+            $contasCount     = Conta::where('user_id', $userId)->count();
+            $lancamentosCount = Lancamento::where('user_id', $userId)
+                ->where('eh_saldo_inicial', false)
+                ->count();
+            $categoriasCount = Categoria::where('user_id', $userId)->count();
+            $hasMeta         = Meta::where('user_id', $userId)->exists();
+            $hasOrcamento    = OrcamentoCategoria::where('user_id', $userId)->exists();
+            $hasAgendamento  = Agendamento::where('user_id', $userId)->exists();
+
+            $items = [
+                [
+                    'key'         => 'lancamentos',
+                    'label'       => 'Adicionar mais lançamentos',
+                    'description' => 'Registre pelo menos 3 transações',
+                    'icon'        => 'fa-plus',
+                    'color'       => '#22c55e',
+                    'href'        => 'lancamentos',
+                    'done'        => $lancamentosCount >= 3,
+                ],
+                [
+                    'key'         => 'categorias',
+                    'label'       => 'Criar uma categoria',
+                    'description' => 'Personalize suas categorias de gastos',
+                    'icon'        => 'fa-tags',
+                    'color'       => '#8b5cf6',
+                    'href'        => 'categorias',
+                    'done'        => $categoriasCount > 19,
+                ],
+                [
+                    'key'         => 'meta',
+                    'label'       => 'Criar uma meta',
+                    'description' => 'Defina um objetivo financeiro',
+                    'icon'        => 'fa-bullseye',
+                    'color'       => '#3b82f6',
+                    'href'        => 'financas',
+                    'done'        => $hasMeta,
+                ],
+                [
+                    'key'         => 'orcamento',
+                    'label'       => 'Definir orçamentos',
+                    'description' => 'Controle seus gastos por categoria',
+                    'icon'        => 'fa-chart-pie',
+                    'color'       => '#f59e0b',
+                    'href'        => 'financas',
+                    'done'        => $hasOrcamento,
+                ],
+                [
+                    'key'         => 'conta',
+                    'label'       => 'Adicionar outra conta',
+                    'description' => 'Tenha visão completa do seu dinheiro',
+                    'icon'        => 'fa-wallet',
+                    'color'       => '#06b6d4',
+                    'href'        => 'contas',
+                    'done'        => $contasCount >= 2,
+                ],
+                [
+                    'key'         => 'agendamento',
+                    'label'       => 'Agendar recorrência',
+                    'description' => 'Automatize lançamentos que se repetem',
+                    'icon'        => 'fa-calendar-check',
+                    'color'       => '#ec4899',
+                    'href'        => 'agendamentos',
+                    'done'        => $hasAgendamento,
+                ],
+            ];
+
+            $doneCount = count(array_filter($items, fn($i) => $i['done']));
+
+            Response::success([
+                'items'        => $items,
+                'done_count'   => $doneCount,
+                'total'        => count($items),
+                'all_complete' => $doneCount === count($items),
+            ]);
+        } catch (Throwable $e) {
+            $this->failAndLog($e, 'Erro ao buscar checklist do onboarding');
         }
     }
 }

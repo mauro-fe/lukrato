@@ -334,7 +334,6 @@
 }
 
 .category-card:hover {
-  transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
@@ -429,12 +428,13 @@
 /* Lista de Categorias */
 .category-list {
   flex: 1;
-  padding: var(--spacing-4);
-  display: flex;
-  flex-direction: column;
+  padding: var(--spacing-3);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--spacing-2);
   overflow-y: auto;
-  max-height: 500px;
+  max-height: 600px;
+  align-content: start;
 }
 
 .category-list::-webkit-scrollbar {
@@ -455,115 +455,249 @@
   background: var(--color-secondary);
 }
 
-/* Item de Categoria */
-.category-item {
+/* ============================================================================
+   CARD DE CATEGORIA INDIVIDUAL
+   ============================================================================ */
+
+.cat-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface);
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background: var(--color-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.category-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.cat-card.receita {
+  border-left: 3px solid var(--color-success);
 }
 
-.receitas-card .category-item::before {
-  background: linear-gradient(180deg, var(--color-success), #27ae60);
+.cat-card.despesa {
+  border-left: 3px solid var(--color-danger);
 }
 
-.despesas-card .category-item::before {
-  background: linear-gradient(180deg, var(--color-danger), #c0392b);
-}
-
-.category-item:hover::before {
-  opacity: 1;
-}
-
-.category-item:hover {
-  transform: translateX(6px);
+.cat-card:hover {
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--glass-border));
+  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 40%,
-    var(--glass-border)
-  );
 }
 
-.category-name {
-  flex: 1;
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: var(--font-size-base);
+/* Header do card: ícone + nome + ações */
+.cat-card-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  min-width: 0;
 }
 
-.category-name i {
-  font-size: 14px;
-  opacity: 0.7;
+/* Ícone da categoria */
+.cat-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-.receitas-card .category-name i {
+.cat-card:hover .cat-card-icon {
+  transform: scale(1.05);
+}
+
+.cat-card-icon.receita {
+  background: color-mix(in srgb, var(--color-success) 15%, var(--color-surface));
   color: var(--color-success);
 }
 
-.despesas-card .category-name i {
+.cat-card-icon.despesa {
+  background: color-mix(in srgb, var(--color-danger) 15%, var(--color-surface));
   color: var(--color-danger);
 }
 
-.category-actions {
-  display: flex;
-  gap: var(--spacing-2);
+.cat-card-icon i {
+  font-size: 13px;
 }
 
-.category-actions .action-btn {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  background: var(--color-primary);
+.cat-card-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Nome da categoria */
+.cat-card-name {
+  font-weight: 600;
+  font-size: 0.875rem;
   color: var(--color-text);
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ações do card */
+.cat-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: auto;
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.cat-card:hover .cat-card-actions {
+  opacity: 1;
+}
+
+.cat-card-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+  color: var(--color-text-muted);
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.cat-card-btn.edit:hover {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.cat-card-btn.delete:hover {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+}
+
+/* ============================================================================
+   ORÇAMENTO INLINE NOS CARDS
+   ============================================================================ */
+
+.cat-card-budget {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
-}
-.category-actions .action-btn.delete {
-  background-color: #dd0000 !important;
-}
-.category-actions .action-btn:hover {
-  transform: scale(1.1);
+  padding-left: 38px; /* alinha com texto após o ícone */
 }
 
-.category-actions .action-btn.edit:hover {
-  background: var(--color-primary);
-  color: var(--color-text);
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+.cat-card-budget.has-budget:hover {
+  opacity: 0.85;
 }
 
-.category-actions .action-btn.delete:hover {
-  background: linear-gradient(135deg, var(--color-danger), #c0392b);
-  color: var(--color-text);
-  border-color: var(--color-danger);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+/* Info row: texto + porcentagem */
+.cat-budget-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+.cat-budget-pct {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.cat-budget-pct.ok {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.cat-budget-pct.warn {
+  color: #f39c12;
+  background: color-mix(in srgb, #f39c12 12%, transparent);
+}
+
+.cat-budget-pct.over {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+/* Sem orçamento */
+.cat-card-budget.no-budget {
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  padding: 4px 8px 4px 38px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  opacity: 0.4;
+  width: fit-content;
+}
+
+.cat-card:hover .cat-card-budget.no-budget {
+  opacity: 0.7;
+}
+
+.cat-card-budget.no-budget:hover {
+  opacity: 1 !important;
+  color: var(--color-primary);
+}
+
+.cat-card-budget.no-budget i {
+  font-size: 10px;
+}
+
+/* Mini barra de progresso */
+.cat-budget-bar {
+  width: 100%;
+  height: 5px;
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cat-budget-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.cat-budget-fill.ok {
+  background: var(--color-success);
+}
+
+.cat-budget-fill.warn {
+  background: #f39c12;
+}
+
+.cat-budget-fill.over {
+  background: var(--color-danger);
+}
+
+/* Texto "R$ gasto / R$ limite" */
+.cat-budget-text {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Estado Vazio */
@@ -577,6 +711,7 @@
   color: var(--color-text-muted);
   text-align: center;
   flex: 1;
+  grid-column: 1 / -1;
 }
 
 .empty-state i {
@@ -620,9 +755,13 @@
   }
 }
 
+/* ============================================================================
+   RESPONSIVIDADE - TABLET
+   ============================================================================ */
 @media (max-width: 768px) {
   .cat-page {
-    padding: var(--spacing-4) var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-2);
+    gap: var(--spacing-4);
   }
 
   .modern-card {
@@ -654,11 +793,11 @@
   }
 
   .categories-grid {
-    gap: var(--spacing-4);
+    gap: var(--spacing-3);
   }
 
   .category-header {
-    padding: var(--spacing-4);
+    padding: var(--spacing-3) var(--spacing-4);
   }
 
   .header-icon {
@@ -671,27 +810,50 @@
     font-size: var(--font-size-lg);
   }
 
+  .category-card {
+    min-height: 300px;
+  }
+
   .category-list {
-    padding: var(--spacing-3);
-    max-height: 400px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    max-height: 450px;
   }
 
-  .category-item {
-    padding: var(--spacing-3);
+  .cat-card-icon {
+    width: 26px;
+    height: 26px;
   }
 
-  .category-name {
-    font-size: var(--font-size-sm);
+  .cat-card-name {
+    font-size: 0.8rem;
   }
 
-  .category-actions .action-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
+  .cat-card-actions {
+    opacity: 0.7;
+  }
+
+  .cat-card-budget.no-budget {
+    opacity: 0.5;
+  }
+
+  .cat-budget-text {
+    font-size: 0.6rem;
   }
 }
 
+/* ============================================================================
+   RESPONSIVIDADE - MOBILE
+   ============================================================================ */
 @media (max-width: 480px) {
+  .cat-page {
+    padding: var(--spacing-2);
+    gap: var(--spacing-3);
+  }
+
+  .modern-card {
+    padding: var(--spacing-3);
+  }
+
   .card-title {
     font-size: var(--font-size-base);
   }
@@ -723,27 +885,60 @@
     font-size: var(--font-size-xs);
   }
 
+  .category-card {
+    min-height: auto;
+  }
+
   .category-list {
-    padding: var(--spacing-2);
+    grid-template-columns: 1fr;
+    max-height: 400px;
   }
 
-  .category-item {
+  .cat-card {
     padding: var(--spacing-2) var(--spacing-3);
-    gap: var(--spacing-2);
   }
 
-  .category-name {
+  .cat-card-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cat-card-icon i {
+    font-size: 11px;
+  }
+
+  .cat-card-emoji {
+    font-size: 13px;
+  }
+
+  .cat-card-name {
     font-size: 0.8rem;
   }
 
-  .category-actions {
-    gap: var(--spacing-1);
+  .cat-card-actions {
+    opacity: 0.7;
   }
 
-  .category-actions .action-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
+  .cat-card-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .cat-card-budget {
+    padding-left: 32px;
+  }
+
+  .cat-card-budget.no-budget {
+    padding-left: 32px;
+    font-size: 0.65rem;
+  }
+
+  .cat-budget-text {
+    font-size: 0.55rem;
+  }
+
+  .empty-state {
+    padding: var(--spacing-4);
   }
 
   .empty-state i {
@@ -753,4 +948,181 @@
   .empty-state p {
     font-size: 0.8rem;
   }
+}
+
+/* ============================================================================
+   RESPONSIVIDADE - MOBILE PEQUENO
+   ============================================================================ */
+@media (max-width: 360px) {
+  .cat-card-name {
+    font-size: 0.75rem;
+  }
+
+  .cat-card-budget {
+    padding-left: 0;
+  }
+
+  .cat-card-budget.no-budget {
+    padding-left: 0;
+  }
+}
+
+/* ============================================================================
+   MODAL DE ORÇAMENTO
+   ============================================================================ */
+
+#modalOrcamento .modal-content {
+  background: var(--color-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-primary);
+}
+
+#modalOrcamento .modal-header {
+  border: 0;
+  background: var(--color-bg);
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+#modalOrcamento .modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+#modalOrcamento .btn-close-custom {
+  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%)
+    hue-rotate(351deg) brightness(99%) contrast(89%);
+  opacity: 1;
+}
+
+#modalOrcamento .btn-close-custom:hover {
+  opacity: 0.8;
+}
+
+#modalOrcamento .modal-body {
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+.orc-modal-description {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.orc-modal-description i {
+  color: var(--color-primary);
+  font-size: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.orc-modal-cat-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.orc-modal-cat-name strong {
+  color: var(--color-text);
+}
+
+.orc-modal-gasto {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.orc-modal-gasto strong {
+  color: var(--color-primary);
+}
+
+#modalOrcamento .form-label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-bottom: var(--spacing-2);
+}
+
+#modalOrcamento .form-control {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  padding: var(--spacing-3);
+  transition: var(--transition-smooth);
+}
+
+#modalOrcamento .form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
+  background: var(--color-surface);
+}
+
+#modalOrcamento .form-control::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+#modalOrcamento .modal-footer {
+  border: 0;
+  background: transparent;
+  padding: var(--spacing-3) var(--spacing-5) var(--spacing-4);
+  gap: var(--spacing-2);
+}
+
+#modalOrcamento .btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+#modalOrcamento .btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+#modalOrcamento .btn-secondary {
+  background: var(--color-surface-muted, #333);
+  border-color: var(--glass-border);
+  color: var(--color-text-muted);
+}
+
+#modalOrcamento .btn-outline-danger {
+  margin-right: auto;
+}
+
+/* Input com prefixo R$ */
+.orc-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.orc-input-prefix {
+  position: absolute;
+  left: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.orc-input-currency {
+  padding-left: 38px !important;
+  font-size: var(--font-size-lg) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }

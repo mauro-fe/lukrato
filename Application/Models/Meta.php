@@ -40,6 +40,14 @@ class Meta extends Model
     public const TIPO_INVESTIMENTO  = 'investimento';
     public const TIPO_COMPRA        = 'compra';
     public const TIPO_EMERGENCIA    = 'emergencia';
+    public const TIPO_VIAGEM        = 'viagem';
+    public const TIPO_EDUCACAO      = 'educacao';
+    public const TIPO_MORADIA       = 'moradia';
+    public const TIPO_VEICULO       = 'veiculo';
+    public const TIPO_SAUDE         = 'saude';
+    public const TIPO_NEGOCIO       = 'negocio';
+    public const TIPO_APOSENTADORIA = 'aposentadoria';
+    public const TIPO_OUTRO         = 'outro';
 
     public const STATUS_ATIVA       = 'ativa';
     public const STATUS_CONCLUIDA   = 'concluida';

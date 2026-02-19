@@ -2,36 +2,37 @@
 
 <section class="fin-page">
 
-    <!-- ==================== SELETOR DE MÊS ==================== -->
-    <div class="fin-month-selector" data-aos="fade-down">
-        <button class="month-nav-btn" id="btnMesAnterior" title="Mês anterior">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <div class="month-display">
-            <span class="month-label" id="mesAtualLabel">Fevereiro 2026</span>
-        </div>
-        <button class="month-nav-btn" id="btnMesProximo" title="Próximo mês">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
+    <!-- ==================== SELETOR DE MÊS (compartilhado) ==================== -->
+    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 
-    <!-- ==================== CARDS RESUMO ==================== -->
-    <div class="fin-summary-grid" data-aos="fade-up">
+    <!-- ==================== CARDS RESUMO: ORÇAMENTOS ==================== -->
+    <div class="fin-summary-grid" id="summaryOrcamentos" data-aos="fade-up">
         <!-- Saúde Financeira -->
         <div class="summary-card saude-card">
-            <div class="summary-icon">
-                <div class="saude-ring" id="saudeRing">
-                    <svg viewBox="0 0 36 36">
-                        <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path class="ring-fill" id="saudeRingFill" stroke-dasharray="100, 100"
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    </svg>
-                    <span class="ring-text" id="saudeScore">--</span>
+            <div class="saude-content" id="saudeContent">
+                <div class="summary-icon">
+                    <div class="saude-ring" id="saudeRing">
+                        <svg viewBox="0 0 36 36">
+                            <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="ring-fill" id="saudeRingFill" stroke-dasharray="100, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <span class="ring-text" id="saudeScore">--</span>
+                    </div>
+                </div>
+                <div class="summary-info">
+                    <span class="summary-label">Saúde Financeira</span>
+                    <span class="summary-status" id="saudeLabel">Carregando...</span>
                 </div>
             </div>
-            <div class="summary-info">
-                <span class="summary-label">Saúde Financeira</span>
-                <span class="summary-status" id="saudeLabel">Carregando...</span>
+            <div class="saude-cta" id="saudeCta" style="display:none">
+                <div class="saude-cta-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="saude-cta-text">
+                    <span class="summary-label">Saúde Financeira</span>
+                    <span class="saude-cta-msg">Defina orçamentos nas categorias para acompanhar sua saúde financeira</span>
+                </div>
             </div>
         </div>
 
@@ -67,7 +68,10 @@
                 <span class="summary-value" id="totalDisponivel">R$ --</span>
             </div>
         </div>
+    </div>
 
+    <!-- ==================== CARDS RESUMO: METAS ==================== -->
+    <div class="fin-summary-grid" id="summaryMetas" data-aos="fade-up" style="display:none;">
         <!-- Metas Ativas -->
         <div class="summary-card">
             <div class="summary-icon purple">
@@ -76,6 +80,46 @@
             <div class="summary-info">
                 <span class="summary-label">Metas Ativas</span>
                 <span class="summary-value" id="metasAtivas">--</span>
+            </div>
+        </div>
+
+        <!-- Total Acumulado -->
+        <div class="summary-card">
+            <div class="summary-icon green">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Acumulado</span>
+                <span class="summary-value" id="metasTotalAtual">R$ --</span>
+            </div>
+        </div>
+
+        <!-- Objetivo Total -->
+        <div class="summary-card">
+            <div class="summary-icon blue">
+                <i class="fas fa-flag-checkered"></i>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Objetivo Total</span>
+                <span class="summary-value" id="metasTotalAlvo">R$ --</span>
+            </div>
+        </div>
+
+        <!-- Progresso Geral -->
+        <div class="summary-card">
+            <div class="summary-icon">
+                <div class="saude-ring" id="metasProgressRing">
+                    <svg viewBox="0 0 36 36">
+                        <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="ring-fill score-good" id="metasProgressRingFill" stroke-dasharray="0, 100"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <span class="ring-text" id="metasProgressScore">0%</span>
+                </div>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Progresso Geral</span>
+                <span class="summary-status status-good" id="metasProgressLabel">--</span>
             </div>
         </div>
     </div>
@@ -89,10 +133,6 @@
         <button class="fin-tab" data-tab="metas">
             <i class="fas fa-bullseye"></i>
             <span>Metas</span>
-        </button>
-        <button class="fin-tab" data-tab="insights">
-            <i class="fas fa-lightbulb"></i>
-            <span>Insights</span>
         </button>
     </div>
 
@@ -138,6 +178,15 @@
                 <span>Configurar Automaticamente</span>
             </button>
         </div>
+
+        <!-- Insights (dentro da tab orçamentos) -->
+        <div class="fin-insights-section" id="insightsSection" style="display:none;">
+            <div class="fin-section-label">
+                <i class="fas fa-lightbulb"></i>
+                <span>Insights</span>
+            </div>
+            <div class="insights-grid" id="insightsGrid"></div>
+        </div>
     </div>
 
     <!-- ==================== TAB: METAS ==================== -->
@@ -177,25 +226,6 @@
                 <i class="fas fa-wand-magic-sparkles"></i>
                 <span>Escolher Template</span>
             </button>
-        </div>
-    </div>
-
-    <!-- ==================== TAB: INSIGHTS ==================== -->
-    <div class="fin-tab-content" id="tab-insights">
-        <div class="insights-grid" id="insightsGrid">
-            <div class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Analisando suas finanças...</p>
-            </div>
-        </div>
-
-        <div class="fin-empty-state" id="insightsEmpty" style="display: none;">
-            <div class="empty-icon">
-                <i class="fas fa-lightbulb"></i>
-            </div>
-            <h3>Sem insights no momento</h3>
-            <p>Configure orçamentos para categoria para que possamos gerar<br>
-                insights inteligentes sobre seus gastos.</p>
         </div>
     </div>
 
@@ -271,7 +301,7 @@
         </div>
         <div class="fin-modal-body">
             <p class="fin-modal-desc">
-                Analisamos seus gastos dos últimos 3 meses e sugerimos limites para cada categoria.
+                Analisamos seus gastos dos últimos 3 meses e sugerimos limites <strong>abaixo da sua média</strong> para ajudar você a economizar em cada categoria.
                 Você pode ajustar os valores antes de aplicar.
             </p>
             <div class="sugestoes-list" id="sugestoesList">
@@ -306,6 +336,13 @@
                     <label class="fin-label"><i class="fas fa-pencil"></i> Título</label>
                     <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergência" required maxlength="150">
                 </div>
+                <div class="fin-form-group">
+                    <label class="fin-label"><i class="fas fa-university"></i> Vincular a uma conta <span class="fin-badge-optional">opcional</span></label>
+                    <select id="metaContaId" class="fin-select">
+                        <option value="">— Sem vínculo (aporte manual) —</option>
+                    </select>
+                    <span class="fin-hint" id="metaContaHint" style="display:none"><i class="fas fa-info-circle"></i> O progresso será atualizado automaticamente com o saldo da conta.</span>
+                </div>
                 <div class="fin-form-row-2">
                     <div class="fin-form-group">
                         <label class="fin-label"><i class="fas fa-bullseye"></i> Valor da Meta</label>
@@ -325,6 +362,14 @@
                             <option value="quitacao">💳 Quitar Dívida</option>
                             <option value="emergencia">🛡️ Emergência</option>
                             <option value="investimento">📈 Investimento</option>
+                            <option value="viagem">✈️ Viagem</option>
+                            <option value="educacao">🎓 Educação</option>
+                            <option value="moradia">🏠 Moradia</option>
+                            <option value="veiculo">🚗 Veículo</option>
+                            <option value="saude">🏥 Saúde</option>
+                            <option value="negocio">🏪 Negócio</option>
+                            <option value="aposentadoria">🏖️ Aposentadoria</option>
+                            <option value="outro">🎯 Outro</option>
                         </select>
                     </div>
                     <div class="fin-form-group">

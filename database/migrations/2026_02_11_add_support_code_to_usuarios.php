@@ -21,7 +21,7 @@ try {
 
     if (!empty($columns)) {
         echo "Coluna 'support_code' já existe. Pulando." . PHP_EOL;
-        exit(0);
+        return;
     }
 
     DB::statement('ALTER TABLE usuarios ADD COLUMN support_code VARCHAR(13) NULL DEFAULT NULL AFTER id');
