@@ -65,12 +65,20 @@
                 <span>Saldo</span>
                 <span>Ações</span>
             </div>
-            <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="false">
+            <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="true">
                 <!-- Skeleton loader inicial -->
                 <div class="acc-skeleton" aria-hidden="true"></div>
                 <div class="acc-skeleton" aria-hidden="true"></div>
                 <div class="acc-skeleton" aria-hidden="true"></div>
             </div>
+            <!-- Fallback caso JS não carregue -->
+            <noscript>
+                <div class="empty-state" style="text-align:center;padding:3rem 1rem;">
+                    <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;"><i class="fas fa-wallet" style="color:var(--color-primary);"></i></div>
+                    <h3 style="color:var(--color-text);margin-bottom:0.5rem;">JavaScript necessário</h3>
+                    <p style="color:var(--color-text-muted);">Ative o JavaScript no seu navegador para visualizar suas contas.</p>
+                </div>
+            </noscript>
         </div>
     </div>
 </div>

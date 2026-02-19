@@ -233,6 +233,14 @@
                 <option value="">Todas as Contas</option>
             </select>
         </div>
+
+        <!-- Botão Limpar Filtros -->
+        <div class="control-group" id="clearFiltersWrapper" style="display:none; align-items: flex-end;">
+            <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary" title="Resetar filtros para padrão" style="white-space: nowrap;">
+                <i class="fas fa-eraser"></i>
+                Limpar Filtros
+            </button>
+        </div>
     </div>
 
     <!-- ==================== ÁREA DE RELATÓRIO ==================== -->

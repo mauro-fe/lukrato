@@ -43,6 +43,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--spacing-3);
+  transition: opacity 0.25s ease;
 }
 
 .summary-card {
@@ -282,6 +283,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+  animation: finTabFadeIn 0.3s ease;
+}
+
+@keyframes finTabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================================================

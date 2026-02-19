@@ -84,6 +84,10 @@
                     <img src="<?= BASE_URL ?>assets/img/bandeiras/elo.png" alt="Elo" class="brand-logo-filter">
                     Elo
                 </button>
+                <button class="filter-btn btn-clear-filters" id="btnLimparFiltrosCartoes" title="Limpar busca e filtros" style="display:none;">
+                    <i class="fas fa-eraser"></i>
+                    Limpar
+                </button>
             </div>
         </div>
 

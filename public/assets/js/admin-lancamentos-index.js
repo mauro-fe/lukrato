@@ -61,6 +61,7 @@
         selectCategoria: document.getElementById('filtroCategoria'),
         selectConta: document.getElementById('filtroConta'),
         btnFiltrar: document.getElementById('btnFiltrar'),
+        btnLimparFiltros: document.getElementById('btnLimparFiltros'),
 
         // Exportação
         btnExportar: document.getElementById('btnExportar'),
@@ -2212,6 +2213,14 @@
 
             // Botão de filtrar
             DOM.btnFiltrar?.addEventListener('click', DataManager.load);
+
+            // Botão de limpar filtros
+            DOM.btnLimparFiltros?.addEventListener('click', () => {
+                if (DOM.selectTipo) DOM.selectTipo.value = '';
+                if (DOM.selectCategoria) DOM.selectCategoria.value = '';
+                if (DOM.selectConta) DOM.selectConta.value = '';
+                DataManager.load();
+            });
 
             // Filtros automáticos ao mudar select
             DOM.selectTipo?.addEventListener('change', DataManager.load);

@@ -134,6 +134,10 @@
                         <i class="fas fa-search"></i>
                         <span>Aplicar Filtros</span>
                     </button>
+                    <button id="btnLimparFiltros" type="button" class="modern-btn" aria-label="Limpar filtros" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+                        <i class="fas fa-eraser"></i>
+                        <span>Limpar Filtros</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -195,7 +199,17 @@
                             </tr>
                         </thead>
                         <tbody id="lancamentosTableBody">
-                            <!-- Linhas serão inseridas via JS -->
+                            <!-- Loading state inicial -->
+                            <tr class="lk-loading-row">
+                                <td colspan="8" style="text-align:center; padding:3rem 1rem;">
+                                    <div class="lk-loading-state">
+                                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando lançamentos...</p>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -226,7 +240,15 @@
             <!-- MOBILE: Cards + pager -->
             <section class="lan-cards-wrapper cards-wrapper">
                 <!-- Cards -->
-                <section class="lan-cards-container cards-container" id="lanCards"></section>
+                <section class="lan-cards-container cards-container" id="lanCards">
+                    <!-- Loading state mobile -->
+                    <div class="lk-loading-state" id="lanCardsLoading" style="text-align:center;padding:2rem 1rem;grid-column:1/-1;">
+                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando lançamentos...</p>
+                    </div>
+                </section>
 
                 <!-- Pager -->
                 <nav class="lan-cards-pager cards-pager" id="lanCardsPager" aria-label="Paginação de lançamentos">

@@ -125,19 +125,21 @@
     </div>
 
     <!-- ==================== TABS ==================== -->
-    <div class="fin-tabs" data-aos="fade-up" data-aos-delay="100">
-        <button class="fin-tab active" data-tab="orcamentos">
+    <div class="fin-tabs" data-aos="fade-up" data-aos-delay="100" role="tablist" aria-label="Seções de finanças">
+        <button class="fin-tab active" data-tab="orcamentos" role="tab"
+            aria-selected="true" aria-controls="tab-orcamentos" id="fin-tab-orcamentos">
             <i class="fas fa-chart-pie"></i>
             <span>Orçamentos</span>
         </button>
-        <button class="fin-tab" data-tab="metas">
+        <button class="fin-tab" data-tab="metas" role="tab"
+            aria-selected="false" aria-controls="tab-metas" id="fin-tab-metas">
             <i class="fas fa-bullseye"></i>
             <span>Metas</span>
         </button>
     </div>
 
     <!-- ==================== TAB: ORÇAMENTOS ==================== -->
-    <div class="fin-tab-content active" id="tab-orcamentos">
+    <div class="fin-tab-content active" id="tab-orcamentos" role="tabpanel" aria-labelledby="fin-tab-orcamentos">
 
         <!-- Ações rápidas -->
         <div class="fin-actions-bar" data-aos="fade-up" data-aos-delay="150">
@@ -190,7 +192,7 @@
     </div>
 
     <!-- ==================== TAB: METAS ==================== -->
-    <div class="fin-tab-content" id="tab-metas">
+    <div class="fin-tab-content" id="tab-metas" role="tabpanel" aria-labelledby="fin-tab-metas">
 
         <!-- Ações -->
         <div class="fin-actions-bar" data-aos="fade-up">

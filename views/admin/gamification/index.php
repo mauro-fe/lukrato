@@ -52,7 +52,7 @@
                 <span>Progresso para o Nível <span id="nextLevel">2</span></span>
                 <span class="progress-points" id="progressPointsLarge">0 / 300</span>
             </div>
-            <div class="progress-bar-large">
+            <div class="progress-bar-large" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso para o próximo nível">
                 <div class="progress-fill" id="progressFillLarge" style="width: 0%"></div>
             </div>
         </div>
@@ -69,7 +69,13 @@
         </div>
 
         <div class="achievements-grid" id="achievementsGridPage">
-            <!-- Preenchido via JavaScript -->
+            <!-- Loading state -->
+            <div class="lk-loading-state" id="achievementsLoading" style="grid-column:1/-1;text-align:center;padding:2rem;">
+                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando conquistas...</p>
+            </div>
         </div>
     </section>
 
@@ -77,7 +83,13 @@
     <section class="history-section">
         <h2><i class="fas fa-history"></i> Histórico Recente</h2>
         <div class="history-list" id="pointsHistory">
-            <!-- Preenchido via JavaScript -->
+            <!-- Loading state -->
+            <div class="lk-loading-state" style="text-align:center;padding:2rem;">
+                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando histórico...</p>
+            </div>
         </div>
     </section>
 
@@ -88,7 +100,13 @@
         <?php if ($isPro ?? false): ?>
             <!-- Ranking para usuários PRO -->
             <div class="leaderboard-container" id="leaderboardContainer">
-                <!-- Preenchido via JavaScript -->
+                <!-- Loading state -->
+                <div class="lk-loading-state" style="text-align:center;padding:2rem;">
+                    <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando ranking...</p>
+                </div>
             </div>
         <?php else: ?>
             <!-- CTA de Upgrade para acessar o Ranking -->

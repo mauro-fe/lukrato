@@ -26,6 +26,21 @@ class FinancasManager {
         this.attachEventListeners();
         this.setupMoneyInputs();
         await Promise.all([this.loadCategorias(), this.loadContas()]);
+
+        // Restore tab from hash or localStorage
+        const hash = location.hash.replace('#', '');
+        const validTabs = ['orcamentos', 'metas'];
+        let initialTab = 'orcamentos';
+        if (hash && validTabs.includes(hash)) {
+            initialTab = hash;
+        } else {
+            try {
+                const stored = localStorage.getItem('financas_tab');
+                if (stored && validTabs.includes(stored)) initialTab = stored;
+            } catch(e) {}
+        }
+        if (initialTab !== 'orcamentos') this.switchTab(initialTab);
+
         await this.loadAll();
     }
 
@@ -72,9 +87,22 @@ class FinancasManager {
             }
         });
 
-        // Tabs
-        document.querySelectorAll('.fin-tab').forEach(tab => {
+        // Tabs + keyboard nav
+        const tabButtons = document.querySelectorAll('.fin-tab');
+        const tabNames = [...tabButtons].map(t => t.dataset.tab);
+        tabButtons.forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+            tab.addEventListener('keydown', (e) => {
+                const idx = tabNames.indexOf(tab.dataset.tab);
+                let next = -1;
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % tabNames.length;
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + tabNames.length) % tabNames.length;
+                if (next >= 0) {
+                    e.preventDefault();
+                    tabButtons[next].focus();
+                    this.switchTab(tabNames[next]);
+                }
+            });
         });
 
         // Orçamentos
@@ -541,14 +569,32 @@ class FinancasManager {
 
     switchTab(tabName) {
         this.currentTab = tabName;
-        document.querySelectorAll('.fin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+
+        // Update tab buttons + ARIA
+        document.querySelectorAll('.fin-tab').forEach(t => {
+            const isActive = t.dataset.tab === tabName;
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        // Update tab panels
         document.querySelectorAll('.fin-tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabName}`));
 
-        // Toggle summary card groups
+        // Crossfade summary card groups
         const sumOrc  = document.getElementById('summaryOrcamentos');
         const sumMeta = document.getElementById('summaryMetas');
-        if (sumOrc)  sumOrc.style.display  = tabName === 'orcamentos' ? '' : 'none';
-        if (sumMeta) sumMeta.style.display = tabName === 'metas' ? '' : 'none';
+        if (sumOrc) {
+            sumOrc.style.opacity = tabName === 'orcamentos' ? '1' : '0';
+            sumOrc.style.display = tabName === 'orcamentos' ? '' : 'none';
+        }
+        if (sumMeta) {
+            sumMeta.style.display = tabName === 'metas' ? '' : 'none';
+            sumMeta.style.opacity = tabName === 'metas' ? '1' : '0';
+        }
+
+        // Persist tab choice
+        try { localStorage.setItem('financas_tab', tabName); } catch(e) {}
+        history.replaceState(null, '', `#${tabName}`);
     }
 
     // ==================== MODAIS ====================

@@ -1,163 +1,4 @@
 ﻿<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-perfil-index.css">
-<style>
-    /* ── Password Strength Panel (Profile) ── */
-    .pwd-strength {
-        display: none;
-        margin-top: 10px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
-        border: 1px solid rgba(255,255,255,0.07);
-        padding: 14px 16px 12px;
-        animation: pwd-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        margin-bottom: 6px;
-    }
-    @keyframes pwd-fade-in {
-        from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-        to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .pwd-strength.visible { display: block; }
-
-    .pwd-bar-label {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.6px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .pwd-bar-label span:first-child {
-        color: rgba(255,255,255,0.3);
-        text-transform: uppercase;
-    }
-    .pwd-bar-label .pwd-level {
-        transition: color 0.3s;
-        font-weight: 700;
-    }
-    .pwd-level.s1 { color: #ef4444; }
-    .pwd-level.s2 { color: #f97316; }
-    .pwd-level.s3 { color: #eab308; }
-    .pwd-level.s4 { color: #22d3ee; }
-    .pwd-level.s5 { color: #22c55e; }
-
-    .pwd-bar-wrap {
-        height: 6px;
-        border-radius: 3px;
-        background: rgba(255,255,255,0.06);
-        margin-bottom: 14px;
-        overflow: hidden;
-    }
-    .pwd-bar-fill {
-        height: 100%;
-        border-radius: 3px;
-        width: 0%;
-        transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, box-shadow 0.4s ease;
-    }
-    .pwd-bar-fill.s1 { width: 20%; background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.4); }
-    .pwd-bar-fill.s2 { width: 40%; background: #f97316; box-shadow: 0 0 8px rgba(249,115,22,0.4); }
-    .pwd-bar-fill.s3 { width: 60%; background: #eab308; box-shadow: 0 0 8px rgba(234,179,8,0.3); }
-    .pwd-bar-fill.s4 { width: 80%; background: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.3); }
-    .pwd-bar-fill.s5 { width: 100%; background: linear-gradient(90deg, #22d3ee, #22c55e); box-shadow: 0 0 12px rgba(34,197,94,0.4); }
-
-    .pwd-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.06);
-        margin-bottom: 12px;
-    }
-
-    .pwd-reqs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px 16px;
-    }
-    .pwd-req {
-        font-size: 0.7rem;
-        color: rgba(255,255,255,0.3);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        padding: 3px 0;
-    }
-    .pwd-req .req-icon {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        border: 1.5px solid rgba(255,255,255,0.12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-    }
-    .pwd-req.pass {
-        color: rgba(255,255,255,0.7);
-    }
-    .pwd-req.pass .req-icon {
-        background: #22c55e;
-        border-color: #22c55e;
-        box-shadow: 0 0 8px rgba(34,197,94,0.35);
-        transform: scale(1.05);
-    }
-    .pwd-req.pass .req-icon::after {
-        content: '\f00c';
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-        font-size: 0.48rem;
-        color: #fff;
-    }
-
-    .pwd-match {
-        display: none;
-        align-items: center;
-        gap: 8px;
-        margin-top: 8px;
-        padding: 6px 10px;
-        border-radius: 8px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        animation: pwd-fade-in 0.25s ease;
-    }
-    .pwd-match.visible { display: flex; }
-    .pwd-match .match-icon {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.55rem;
-        flex-shrink: 0;
-    }
-    .pwd-match.match {
-        color: #22c55e;
-        background: rgba(34,197,94,0.08);
-        border: 1px solid rgba(34,197,94,0.15);
-    }
-    .pwd-match.match .match-icon {
-        background: #22c55e;
-        color: #fff;
-        box-shadow: 0 0 6px rgba(34,197,94,0.3);
-    }
-    .pwd-match.no-match {
-        color: #f87171;
-        background: rgba(239,68,68,0.08);
-        border: 1px solid rgba(239,68,68,0.15);
-    }
-    .pwd-match.no-match .match-icon {
-        background: #ef4444;
-        color: #fff;
-        box-shadow: 0 0 6px rgba(239,68,68,0.3);
-    }
-
-    @media (max-width: 600px) {
-        .pwd-reqs { grid-template-columns: 1fr; }
-        .pwd-strength { padding: 12px; }
-    }
-</style>
 
 <div class="profile-page">
     <div class="profile-header">
@@ -176,12 +17,42 @@
         </p>
     </div>
 
+    <!-- Tab Navigation -->
+    <nav class="profile-tabs" role="tablist" aria-label="Seções do perfil">
+        <button type="button" class="profile-tab active" data-tab="dados" role="tab"
+            aria-selected="true" aria-controls="panel-dados">
+            <span class="tab-icon">👤</span>
+            <span class="tab-label">Dados Pessoais</span>
+        </button>
+        <button type="button" class="profile-tab" data-tab="endereco" role="tab"
+            aria-selected="false" aria-controls="panel-endereco">
+            <span class="tab-icon">📍</span>
+            <span class="tab-label">Endereço</span>
+        </button>
+        <button type="button" class="profile-tab" data-tab="seguranca" role="tab"
+            aria-selected="false" aria-controls="panel-seguranca">
+            <span class="tab-icon">🔒</span>
+            <span class="tab-label">Segurança</span>
+        </button>
+        <button type="button" class="profile-tab" data-tab="plano" role="tab"
+            aria-selected="false" aria-controls="panel-plano">
+            <span class="tab-icon">👑</span>
+            <span class="tab-label">Plano & Indicação</span>
+        </button>
+        <button type="button" class="profile-tab tab-danger" data-tab="perigo" role="tab"
+            aria-selected="false" aria-controls="panel-perigo">
+            <span class="tab-icon">⚠️</span>
+            <span class="tab-label">Zona de Perigo</span>
+        </button>
+    </nav>
+
 
     <form id="profileForm" autocomplete="off">
         <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
-        <div class="profile-grid">
-            <div class="profile-section" data-aos="fade-up">
+        <!-- Tab: Dados Pessoais -->
+        <div class="profile-tab-panel active" id="panel-dados" role="tabpanel" aria-labelledby="tab-dados">
+        <div class="profile-section">
                 <div class="section-header">
                     <div class="section-icon">👤</div>
                     <div class="section-header-text">
@@ -248,19 +119,29 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">⚧️</span> Sexo</label>
+                        <label class="form-label"><span class="emoji">⚧️</span> Gênero</label>
                         <select class="form-select" name="sexo" id="sexo">
                             <option value="">Selecione</option>
                             <option value="M">Masculino</option>
                             <option value="F">Feminino</option>
                             <option value="O">Outro</option>
+                            <option value="NB">Não-binário</option>
                             <option value="N">Prefiro não informar</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div class="profile-section" data-aos="fade-up" data-aos-delay="100">
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="btn-save-dados">
+                    <span>💾 Salvar Dados Pessoais</span>
+                </button>
+            </div>
+        </div><!-- /panel-dados -->
+
+        <!-- Tab: Endereço -->
+        <div class="profile-tab-panel" id="panel-endereco" role="tabpanel" aria-labelledby="tab-endereco">
+            <div class="profile-section">
                 <div class="section-header">
                     <div class="section-icon">📍</div>
                     <div class="section-header-text">
@@ -318,9 +199,17 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="profile-section" data-aos="fade-up" data-aos-delay="200">
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="btn-save-endereco">
+                    <span>💾 Salvar Endereço</span>
+                </button>
+            </div>
+        </div><!-- /panel-endereco -->
+
+        <!-- Tab: Segurança -->
+        <div class="profile-tab-panel" id="panel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca">
+        <div class="profile-section">
             <div class="section-header">
                 <div class="section-icon">🔒</div>
                 <div class="section-header-text">
@@ -374,14 +263,17 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-save" id="btn-save">
-                <span>💾 Salvar Alterações</span>
+            <button type="submit" class="btn-save" id="btn-save-seguranca">
+                <span>🔐 Alterar Senha</span>
             </button>
         </div>
+        </div><!-- /panel-seguranca -->
     </form>
 
+    <!-- Tab: Plano & Indicação -->
+    <div class="profile-tab-panel" id="panel-plano" role="tabpanel" aria-labelledby="tab-plano">
     <!-- Seção de Plano -->
-    <div class="profile-section plan-section" data-aos="fade-up" data-aos-delay="250">
+    <div class="profile-section plan-section">
         <div class="section-header">
             <div class="section-icon">👑</div>
             <div class="section-header-text">
@@ -419,7 +311,7 @@
     </div>
 
     <!-- Seção de Indicação -->
-    <div class="profile-section referral-section" data-aos="fade-up" data-aos-delay="275">
+    <div class="profile-section referral-section">
         <div class="section-header">
             <div class="section-icon">🎁</div>
             <div class="section-header-text">
@@ -512,9 +404,11 @@
             </div>
         </div>
     </div>
+    </div><!-- /panel-plano -->
 
-    <!-- Zona de Perigo -->
-    <div class="profile-section danger-zone" data-aos="fade-up" data-aos-delay="300">
+    <!-- Tab: Zona de Perigo -->
+    <div class="profile-tab-panel" id="panel-perigo" role="tabpanel" aria-labelledby="tab-perigo">
+    <div class="profile-section danger-zone">
         <div class="section-header">
             <div class="section-icon">⚠️</div>
             <div class="section-header-text">
@@ -542,6 +436,7 @@
             </button>
         </div>
     </div>
+    </div><!-- /panel-perigo -->
 </div>
 
 <script>
@@ -555,6 +450,47 @@
 
         const API = `${BASE}api/`;
         const form = document.getElementById('profileForm');
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        const tabs = document.querySelectorAll('.profile-tab');
+        const panels = document.querySelectorAll('.profile-tab-panel');
+
+        function switchTab(tabId) {
+            tabs.forEach(t => {
+                const isActive = t.dataset.tab === tabId;
+                t.classList.toggle('active', isActive);
+                t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach(p => {
+                p.classList.toggle('active', p.id === `panel-${tabId}`);
+            });
+            // Persist
+            try { localStorage.setItem('perfil_tab', tabId); } catch(e) {}
+            // Update hash without scroll
+            history.replaceState(null, '', `#${tabId}`);
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        // Restore tab from hash or localStorage
+        (() => {
+            const hash = location.hash.replace('#', '');
+            const validTabs = ['dados', 'endereco', 'seguranca', 'plano', 'perigo'];
+            let initial = 'dados';
+            if (hash && validTabs.includes(hash)) {
+                initial = hash;
+            } else {
+                try {
+                    const stored = localStorage.getItem('perfil_tab');
+                    if (stored && validTabs.includes(stored)) initial = stored;
+                } catch(e) {}
+            }
+            if (initial !== 'dados') switchTab(initial);
+        })();
 
         // Campos do formulário
         const fieldNome = document.getElementById('nome');
@@ -656,7 +592,7 @@
             e.preventDefault();
             form.classList.add('form-loading');
 
-            const submitBtn = document.getElementById('btn-save');
+            const submitBtn = e.submitter || form.querySelector('.btn-save');
             const originalContent = submitBtn?.innerHTML || '';
             if (submitBtn) {
                 submitBtn.innerHTML = '<span class="spinner"></span><span>Salvando...</span>';

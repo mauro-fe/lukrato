@@ -97,7 +97,14 @@ if (!isset($categories))       $categories = [];
                 <div class="container-table">
                     <section class="table-container invest-table-desktop">
                         <!-- ID padronizado para o Tabulator -->
-                        <div id="tab-investimentos" class="tab-investimentos"></div>
+                        <div id="tab-investimentos" class="tab-investimentos">
+                            <div class="lk-loading-state" style="text-align:center;padding:2rem;">
+                                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                                <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando investimentos...</p>
+                            </div>
+                        </div>
                     </section>
 
                     <!-- Cards para mobile -->

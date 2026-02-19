@@ -110,6 +110,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- Sistema de Feedback Unificado -->
     <script src="<?= BASE_URL ?>assets/js/lukrato-feedback.js?v=<?= time() ?>"></script>
 
+    <!-- Facade Unificada: LK.toast / LK.api / LK.confirm -->
+    <script src="<?= BASE_URL ?>assets/js/lukrato-ui.js?v=<?= time() ?>"></script>
+
     <!-- Tooltips de Primeira Visita -->
     <script src="<?= BASE_URL ?>assets/js/first-visit-tooltips.js?v=<?= time() ?>" defer></script>
 

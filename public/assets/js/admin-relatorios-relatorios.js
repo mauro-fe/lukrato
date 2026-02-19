@@ -1745,6 +1745,28 @@
             accountSelect.addEventListener('change', (e) => handleAccountChange(e.target.value));
         }
 
+        // Botão Limpar Filtros
+        const btnLimparRel = document.getElementById('btnLimparFiltrosRel');
+        const clearFiltersWrapper = document.getElementById('clearFiltersWrapper');
+
+        const showClearBtn = () => {
+            if (!clearFiltersWrapper) return;
+            const hasTypeFilter = reportType && reportType.selectedIndex > 0;
+            const hasAccountFilter = accountSelect && accountSelect.value !== '';
+            clearFiltersWrapper.style.display = (hasTypeFilter || hasAccountFilter) ? 'flex' : 'none';
+        };
+
+        if (reportType) reportType.addEventListener('change', showClearBtn);
+        if (accountSelect) accountSelect.addEventListener('change', showClearBtn);
+
+        if (btnLimparRel) {
+            btnLimparRel.addEventListener('click', () => {
+                if (reportType) { reportType.selectedIndex = 0; handleTypeChange(reportType.value); }
+                if (accountSelect) { accountSelect.value = ''; handleAccountChange(''); }
+                showClearBtn();
+            });
+        }
+
         document.addEventListener('lukrato:theme-changed', () => {
             setupChartDefaults();
             renderReport();

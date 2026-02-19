@@ -216,26 +216,22 @@
     };
 
     // ==================== API ====================
+    // Usa LK.api (facade unificada) quando disponível, com fallback local
     const API = {
         fetch: async (url) => {
+            if (window.LK?.api) {
+                const res = await LK.api.get(url);
+                if (!res.ok) throw new Error(res.message || 'Erro na API');
+                return res.raw || res.data;
+            }
+            // fallback para fetch nativo
             const response = await fetch(url, {
                 credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const json = await response.json();
-
-            if (json?.error || json?.status === 'error') {
-                throw new Error(json?.message || json?.error || 'Erro na API');
-            }
-
+            if (json?.error || json?.status === 'error') throw new Error(json?.message || 'Erro na API');
             return json;
         },
 
@@ -253,130 +249,88 @@
 
         getTransactions: async (month, limit) => {
             const url1 = `${CONFIG.API_URL}lancamentos?month=${encodeURIComponent(month)}&limit=${limit}`;
-
             try {
                 const data = await API.fetch(url1);
                 return Array.isArray(data) ? data : (data.items || data.data || data.lancamentos || []);
             } catch {
-                const url2 =
-                    `${CONFIG.API_URL}dashboard/transactions?month=${encodeURIComponent(month)}&limit=${limit}`;
+                const url2 = `${CONFIG.API_URL}dashboard/transactions?month=${encodeURIComponent(month)}&limit=${limit}`;
                 return await API.fetch(url2);
             }
         },
 
         deleteTransaction: async (id) => {
+            if (window.LK?.api) {
+                // Tenta o endpoint primário via facade
+                const res = await LK.api.delete(`${CONFIG.API_URL}lancamentos/${id}`);
+                if (res.ok) return res.raw || res.data;
+                throw new Error(res.message || 'Erro ao excluir');
+            }
+            // Fallback com múltiplos endpoints
             const csrf = Utils.getCsrfToken();
             const headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                ...(csrf ? {
-                    'X-CSRF-Token': csrf
-                } : {})
+                ...(csrf ? { 'X-CSRF-Token': csrf } : {})
             };
-
-            const endpoints = [{
-                url: `${CONFIG.API_URL}lancamentos/${id}`,
-                method: 'DELETE'
-            },
-            {
-                url: `${CONFIG.API_URL}lancamentos/${id}/delete`,
-                method: 'POST'
-            },
-            {
-                url: `${CONFIG.API_URL}lancamentos/delete`,
-                method: 'POST',
-                body: JSON.stringify({
-                    id
-                })
-            }
+            const endpoints = [
+                { url: `${CONFIG.API_URL}lancamentos/${id}`, method: 'DELETE' },
+                { url: `${CONFIG.API_URL}lancamentos/${id}/delete`, method: 'POST' },
+                { url: `${CONFIG.API_URL}lancamentos/delete`, method: 'POST', body: JSON.stringify({ id }) }
             ];
-
             for (const endpoint of endpoints) {
                 try {
-                    const response = await fetch(endpoint.url, {
-                        credentials: 'include',
-                        headers,
-                        method: endpoint.method,
-                        body: endpoint.body
-                    });
-
-                    if (response.ok) {
-                        return await response.json();
-                    }
-
+                    const response = await fetch(endpoint.url, { credentials: 'include', headers, method: endpoint.method, body: endpoint.body });
+                    if (response.ok) return await response.json();
                     if (response.status !== 404) {
                         const json = await response.json().catch(() => ({}));
                         throw new Error(json?.message || `HTTP ${response.status}`);
                     }
                 } catch (err) {
-                    if (endpoint === endpoints[endpoints.length - 1]) {
-                        throw err;
-                    }
+                    if (endpoint === endpoints[endpoints.length - 1]) throw err;
                 }
             }
-
-            throw new Error('Endpoint de exclusão encontrado.');
+            throw new Error('Endpoint de exclusão não encontrado.');
         }
     };
 
+    // ==================== NOTIFICATIONS ====================
+    // Delega para LK.toast / LK.confirm / LK.loading (facade unificada)
     const Notifications = {
         ensureSwal: async () => {
+            // SweetAlert2 já é carregado globalmente no header
             if (window.Swal) return;
-            await new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
         },
 
         toast: (icon, title) => {
-            window.Swal.fire({
-                toast: true,
-                position: 'top-end',
-                timer: 2500,
-                timerProgressBar: true,
-                showConfirmButton: false,
-                icon,
-                title
-            });
+            if (window.LK?.toast) {
+                return LK.toast[icon]?.(title) || LK.toast.info(title);
+            }
+            window.Swal?.fire({ toast: true, position: 'top-end', timer: 2500, timerProgressBar: true, showConfirmButton: false, icon, title });
         },
 
         loading: (title = 'Processando...') => {
-            window.Swal.fire({
-                title,
-                didOpen: () => window.Swal.showLoading(),
-                allowOutsideClick: false,
-                showConfirmButton: false
-            });
+            if (window.LK?.loading) return LK.loading(title);
+            window.Swal?.fire({ title, didOpen: () => window.Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
         },
 
         close: () => {
-            window.Swal.close();
+            if (window.LK?.hideLoading) return LK.hideLoading();
+            window.Swal?.close();
         },
 
         confirm: async (title, text) => {
-            const result = await window.Swal.fire({
-                title,
-                text,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sim, confirmar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: 'var(--color-danger)',
-                cancelButtonColor: 'var(--color-text-muted)'
+            if (window.LK?.confirm) return LK.confirm({ title, text, confirmText: 'Sim, confirmar', danger: true });
+            const result = await window.Swal?.fire({
+                title, text, icon: 'warning', showCancelButton: true,
+                confirmButtonText: 'Sim, confirmar', cancelButtonText: 'Cancelar',
+                confirmButtonColor: 'var(--color-danger)', cancelButtonColor: 'var(--color-text-muted)'
             });
-            return result.isConfirmed;
+            return result?.isConfirmed;
         },
 
         error: (title, text) => {
-            window.Swal.fire({
-                icon: 'error',
-                title,
-                text,
-                confirmButtonColor: 'var(--color-primary)'
-            });
+            if (window.LK?.toast) return LK.toast.error(text || title);
+            window.Swal?.fire({ icon: 'error', title, text, confirmButtonColor: 'var(--color-primary)' });
         }
     };
 

@@ -202,22 +202,45 @@ class CartoesManager {
 
         // Search
         const searchInput = document.getElementById('searchCartoes');
+        const btnLimpar = document.getElementById('btnLimparFiltrosCartoes');
+
+        const toggleClearBtn = () => {
+            if (btnLimpar) {
+                btnLimpar.style.display = (this.searchTerm || this.currentFilter !== 'all') ? '' : 'none';
+            }
+        };
+
         if (searchInput) {
             searchInput.addEventListener('input', this.debounce((e) => {
                 this.searchTerm = e.target.value.toLowerCase();
                 this.filterCartoes();
+                toggleClearBtn();
             }, 300));
         }
 
         // Filters
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+        document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 this.currentFilter = e.target.dataset.filter;
                 this.filterCartoes();
+                toggleClearBtn();
             });
         });
+
+        // Limpar todos os filtros
+        if (btnLimpar) {
+            btnLimpar.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                this.searchTerm = '';
+                this.currentFilter = 'all';
+                document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
+                this.filterCartoes();
+                toggleClearBtn();
+            });
+        }
 
         // View toggle
         document.querySelectorAll('.view-btn').forEach(btn => {

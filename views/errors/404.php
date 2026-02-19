@@ -281,7 +281,11 @@
             teve seu nome alterado ou está temporariamente indisponível.
         </p>
         <div class="buttons">
-            <a href="<?= BASE_URL ?>/dashboard" class="btn btn-primary">Voltar ao Início</a>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <a href="<?= BASE_URL ?>dashboard" class="btn btn-primary">Voltar ao Dashboard</a>
+            <?php else: ?>
+                <a href="<?= BASE_URL ?>" class="btn btn-primary">Voltar ao Início</a>
+            <?php endif; ?>
             <a href="javascript:history.back()" class="btn btn-secondary">Voltar</a>
         </div>
     </div>

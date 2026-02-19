@@ -87,11 +87,11 @@
                 <span>Vencidos</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="receitas">
-                <i class="fas fa-arrow-down"></i>
+                <i class="fas fa-arrow-up" style="color: var(--color-success)"></i>
                 <span>Receitas</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="despesas">
-                <i class="fas fa-arrow-up"></i>
+                <i class="fas fa-arrow-down" style="color: var(--color-danger)"></i>
                 <span>Despesas</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="recorrentes">
@@ -141,8 +141,15 @@
                             </tr>
                         </thead>
                         <tbody id="agendamentosTableBody">
-                            <tr>
-                                <td colspan="8" class="text-center">Carregando agendamentos...</td>
+                            <tr class="lk-loading-row">
+                                <td colspan="8" style="text-align:center;padding:2rem 1rem;">
+                                    <div class="lk-loading-state">
+                                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                        <p style="margin:0.75rem 0 0;color:var(--color-text-muted);font-size:0.85rem;">Carregando agendamentos...</p>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -270,16 +277,7 @@
         </div>
     </div>
 
-    <!-- ==================== PAYWALL ==================== -->
-    <div id="agPaywall" class="paywall-message d-none" role="alert" hidden>
-        <i class="fas fa-crown"></i>
-        <h3>Recurso Premium</h3>
-        <p id="agPaywallMessage">Agendamentos são exclusivos do plano Pro.</p>
-        <button type="button" class="btn-upgrade" id="agPaywallCta">
-            <i class="fas fa-crown"></i>
-            Fazer Upgrade para PRO
-        </button>
-    </div>
+
 
 
 </section>

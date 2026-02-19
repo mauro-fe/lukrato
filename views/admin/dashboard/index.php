@@ -762,7 +762,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         <th style="text-align: right;">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="transactionsTableBody"></tbody>
+                <tbody id="transactionsTableBody">
+                    <tr class="lk-loading-row">
+                        <td colspan="7" style="text-align:center;padding:2rem 1rem;">
+                            <div class="lk-loading-state">
+                                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                                <p style="margin:0.75rem 0 0;color:var(--color-text-muted);font-size:0.85rem;">Carregando transações...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </section>
