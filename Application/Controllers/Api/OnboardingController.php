@@ -10,7 +10,10 @@ use Application\Models\Lancamento;
 use Application\Models\Meta;
 use Application\Models\OrcamentoCategoria;
 use Application\Models\Agendamento;
+use Application\Models\Usuario;
 
+use Application\DTO\CreateContaDTO;
+use Application\Services\ContaService;
 use Application\Services\LogService;
 use Throwable;
 
@@ -295,3 +298,4 @@ class OnboardingController extends BaseController
             $this->failAndLog($e, 'Erro ao buscar checklist do onboarding');
         }
     }
+}
