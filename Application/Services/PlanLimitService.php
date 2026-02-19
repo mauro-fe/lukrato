@@ -8,7 +8,7 @@ use Application\Models\Usuario;
 use Application\Models\Conta;
 use Application\Models\CartaoCredito;
 use Application\Models\Categoria;
-// use Application\Models\Meta; // TODO: Criar model Meta quando implementar
+use Application\Models\Meta;
 
 /**
  * Serviço para gerenciar limites de recursos por plano.
@@ -273,15 +273,12 @@ class PlanLimitService
 
     /**
      * Conta quantas metas ativas o usuário possui
-     * TODO: Implementar quando o model Meta for criado
      */
     public function countMetas(int $userId): int
     {
-        // TODO: Descomentar quando criar o model Meta
-        // return Meta::where('user_id', $userId)
-        //     ->where('status', '!=', 'cancelled')
-        //     ->count();
-        return 0; // Temporário até criar o model
+        return Meta::where('user_id', $userId)
+            ->whereNotIn('status', ['cancelada', 'concluida'])
+            ->count();
     }
 
     /**

@@ -228,6 +228,7 @@ abstract class BaseController
             'parcelamentos' => 'faturas', // Redirecionar para faturas
             'relatorios'    => 'relatorios',
             'categorias'    => 'categorias',
+            'financas'      => 'financas',
             'perfil'        => 'perfil',
             default         => null,
         };

@@ -1,5 +1,188 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
+<?php
+$showOnboardingCongrats = !empty($_SESSION['onboarding_just_completed']);
+if ($showOnboardingCongrats) {
+    unset($_SESSION['onboarding_just_completed']);
+}
+?>
+
+<?php if ($showOnboardingCongrats): ?>
+    <style>
+        .lk-congrats-banner {
+            background: linear-gradient(135deg, var(--color-primary), #6366f1);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-8);
+            margin-bottom: var(--spacing-6);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            animation: lk-slideDown 0.5s ease-out;
+        }
+
+        @keyframes lk-slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .lk-congrats-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+
+        .lk-congrats-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-3);
+        }
+
+        .lk-congrats-emoji {
+            font-size: 2rem;
+        }
+
+        .lk-congrats-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .lk-congrats-text {
+            font-size: var(--font-size-base);
+            opacity: 0.9;
+            margin-bottom: var(--spacing-6);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .lk-congrats-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-5);
+        }
+
+        .lk-congrats-step {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-4);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            text-decoration: none;
+            color: white;
+        }
+
+        .lk-congrats-step:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .lk-congrats-step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .lk-congrats-step-text {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .lk-congrats-dismiss {
+            position: absolute;
+            top: var(--spacing-4);
+            right: var(--spacing-4);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-normal);
+        }
+
+        .lk-congrats-dismiss:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        @media (max-width: 600px) {
+            .lk-congrats-banner {
+                padding: var(--spacing-6);
+            }
+
+            .lk-congrats-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .lk-congrats-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+
+    <div class="lk-congrats-banner" id="congratsBanner">
+        <button class="lk-congrats-dismiss" onclick="document.getElementById('congratsBanner').style.display='none'" title="Fechar">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="lk-congrats-header">
+            <span class="lk-congrats-emoji">🎉</span>
+            <span class="lk-congrats-title">Parabéns! Seus primeiros passos foram concluídos!</span>
+        </div>
+
+        <p class="lk-congrats-text">
+            Sua conta e primeiro lançamento já estão registrados. Agora o Lukrato já está trabalhando para você!
+            Continue adicionando seus lançamentos para ter controle total das suas finanças.
+        </p>
+
+        <div class="lk-congrats-steps">
+            <a href="lancamentos" class="lk-congrats-step">
+                <div class="lk-congrats-step-icon"><i class="fas fa-plus"></i></div>
+                <div class="lk-congrats-step-text">Adicionar mais lançamentos</div>
+            </a>
+            <a href="categorias" class="lk-congrats-step">
+                <div class="lk-congrats-step-icon"><i class="fas fa-tags"></i></div>
+                <div class="lk-congrats-step-text">Personalizar categorias</div>
+            </a>
+            <a href="contas" class="lk-congrats-step">
+                <div class="lk-congrats-step-icon"><i class="fas fa-wallet"></i></div>
+                <div class="lk-congrats-step-text">Adicionar outra conta</div>
+            </a>
+            <a href="relatorios" class="lk-congrats-step">
+                <div class="lk-congrats-step-icon"><i class="fas fa-chart-pie"></i></div>
+                <div class="lk-congrats-step-text">Ver relatórios</div>
+            </a>
+        </div>
+    </div>
+<?php endif; ?>
+
 <section class="modern-dashboard">
     <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 

@@ -67,7 +67,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento-mobile.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/onboarding.css?v=<?= time() ?>">
+    <!-- Onboarding removido -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/plan-limits.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tooltips.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/first-visit-tooltips.css?v=<?= time() ?>">
@@ -105,8 +105,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
         <script src="<?= BASE_URL ?>assets/js/plan-limits.js?v=<?= time() ?>" defer></script>
     <?php endif; ?>
 
-    <!-- Sistema de Onboarding (carrega em todas as páginas) -->
-    <script src="<?= BASE_URL ?>assets/js/onboarding.js?v=<?= filemtime(PUBLIC_PATH . '/assets/js/onboarding.js') ?>"></script>
+    <!-- Sistema de Onboarding removido -->
 
     <!-- Sistema de Feedback Unificado -->
     <script src="<?= BASE_URL ?>assets/js/lukrato-feedback.js?v=<?= time() ?>"></script>
@@ -351,6 +350,13 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 title="Relatórios">
                 <i class="fa fa-pie-chart"></i>
                 <span>Relatórios</span>
+            </a>
+
+            <!-- Finanças -->
+            <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>"
+                <?= $aria('financas') ?> title="Finanças">
+                <i class="fas fa-wallet"></i>
+                <span>Finanças</span>
             </a>
 
             <!-- Agendamentos -->

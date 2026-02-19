@@ -1,5 +1,5 @@
 <style>
-    .lk-onboarding-wrapper {
+.lk-onboarding-wrapper {
     min-height: 100vh;
     background: var(--color-bg);
     display: flex;
@@ -11,7 +11,7 @@
 .lk-onboarding-card {
     width: 100%;
     max-width: 520px;
-    background: var(--color-surface);
+    background: var(--color-bg);
     border-radius: var(--radius-xl);
     padding: var(--spacing-8);
     box-shadow: var(--shadow-xl);
@@ -138,15 +138,35 @@
     margin-top: var(--spacing-4);
 }
 
+.lk-onboarding-error {
+    background: var(--color-danger-bg, rgba(239, 68, 68, 0.1));
+    color: var(--color-danger, #ef4444);
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-5);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
 @media (max-width: 600px) {
     .lk-onboarding-card {
         padding: var(--spacing-6);
     }
 }
-
 </style>
 <div class="lk-onboarding-wrapper">
     <div class="lk-onboarding-card">
+
+        <!-- Erro -->
+        <?php if (!empty($_SESSION['error'])): ?>
+        <div class="lk-onboarding-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <?= htmlspecialchars($_SESSION['error']) ?>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
 
         <!-- Progresso -->
         <div class="lk-onboarding-progress">
@@ -163,7 +183,8 @@
         </div>
 
         <!-- Form -->
-        <form method="POST" action="/onboarding/conta" class="lk-onboarding-form">
+        <form method="POST" action="<?= BASE_URL ?>api/onboarding/conta" class="lk-onboarding-form">
+            <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
             <!-- Nome da Conta -->
             <div class="lk-form-group">
@@ -171,32 +192,23 @@
                     <i class="fas fa-wallet"></i>
                     Nome da Conta
                 </label>
-                <input 
-                    type="text" 
-                    name="nome" 
-                    class="lk-input"
-                    placeholder="Ex: Nubank, Itaú, Carteira..."
-                    required
-                >
+                <input type="text" name="nome" class="lk-input" placeholder="Ex: Nubank, Itaú, Carteira..." required>
             </div>
 
             <!-- Instituição Financeira -->
             <div class="lk-form-group">
-                <label class="lk-label">
+                <label class="lk-label required">
                     <i class="fas fa-building"></i>
                     Instituição Financeira
                 </label>
-                <select name="instituicao_financeira_id" class="lk-select">
-                    <option value="">Selecione (opcional)</option>
-                    <?php foreach($instituicoes as $inst): ?>
-                        <option value="<?= $inst->id ?>">
-                            <?= htmlspecialchars($inst->nome) ?>
-                        </option>
+                <select name="instituicao_financeira_id" class="lk-select" required>
+                    <option value="">Selecione a instituição</option>
+                    <?php foreach ($instituicoes as $inst): ?>
+                    <option value="<?= $inst->id ?>">
+                        <?= htmlspecialchars($inst->nome) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
-                <small class="lk-helper-text">
-                    Você pode alterar depois.
-                </small>
             </div>
 
             <!-- Saldo Inicial -->
@@ -207,18 +219,16 @@
                 </label>
                 <div class="lk-input-money">
                     <span class="lk-currency">R$</span>
-                    <input 
-                        type="text" 
-                        name="saldo_inicial" 
-                        value="0,00"
-                        class="lk-input lk-input-with-prefix"
-                    >
+                    <input type="text" name="saldo_inicial" value="0,00" class="lk-input lk-input-with-prefix">
                 </div>
+                <small class="lk-helper-text">
+                    Opcional — você pode ajustar depois.
+                </small>
             </div>
 
             <!-- Botão -->
             <button type="submit" class="lk-btn-primary">
-                Continuar
+                Continuar <i class="fas fa-arrow-right"></i>
             </button>
 
             <p class="lk-onboarding-hint">

@@ -1,0 +1,421 @@
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/financas-modern.css?v=<?= time() ?>">
+
+<section class="fin-page">
+
+    <!-- ==================== SELETOR DE MÊS ==================== -->
+    <div class="fin-month-selector" data-aos="fade-down">
+        <button class="month-nav-btn" id="btnMesAnterior" title="Mês anterior">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="month-display">
+            <span class="month-label" id="mesAtualLabel">Fevereiro 2026</span>
+        </div>
+        <button class="month-nav-btn" id="btnMesProximo" title="Próximo mês">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- ==================== CARDS RESUMO ==================== -->
+    <div class="fin-summary-grid" data-aos="fade-up">
+        <!-- Saúde Financeira -->
+        <div class="summary-card saude-card">
+            <div class="summary-icon">
+                <div class="saude-ring" id="saudeRing">
+                    <svg viewBox="0 0 36 36">
+                        <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="ring-fill" id="saudeRingFill" stroke-dasharray="100, 100"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <span class="ring-text" id="saudeScore">--</span>
+                </div>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Saúde Financeira</span>
+                <span class="summary-status" id="saudeLabel">Carregando...</span>
+            </div>
+        </div>
+
+        <!-- Total Orçado -->
+        <div class="summary-card">
+            <div class="summary-icon blue">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Orçado</span>
+                <span class="summary-value" id="totalOrcado">R$ --</span>
+            </div>
+        </div>
+
+        <!-- Total Gasto -->
+        <div class="summary-card">
+            <div class="summary-icon orange">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Gasto</span>
+                <span class="summary-value" id="totalGasto">R$ --</span>
+            </div>
+        </div>
+
+        <!-- Disponível -->
+        <div class="summary-card">
+            <div class="summary-icon green">
+                <i class="fas fa-piggy-bank"></i>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Disponível</span>
+                <span class="summary-value" id="totalDisponivel">R$ --</span>
+            </div>
+        </div>
+
+        <!-- Metas Ativas -->
+        <div class="summary-card">
+            <div class="summary-icon purple">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="summary-info">
+                <span class="summary-label">Metas Ativas</span>
+                <span class="summary-value" id="metasAtivas">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TABS ==================== -->
+    <div class="fin-tabs" data-aos="fade-up" data-aos-delay="100">
+        <button class="fin-tab active" data-tab="orcamentos">
+            <i class="fas fa-chart-pie"></i>
+            <span>Orçamentos</span>
+        </button>
+        <button class="fin-tab" data-tab="metas">
+            <i class="fas fa-bullseye"></i>
+            <span>Metas</span>
+        </button>
+        <button class="fin-tab" data-tab="insights">
+            <i class="fas fa-lightbulb"></i>
+            <span>Insights</span>
+        </button>
+    </div>
+
+    <!-- ==================== TAB: ORÇAMENTOS ==================== -->
+    <div class="fin-tab-content active" id="tab-orcamentos">
+
+        <!-- Ações rápidas -->
+        <div class="fin-actions-bar" data-aos="fade-up" data-aos-delay="150">
+            <div class="actions-left">
+                <button class="fin-action-btn primary" id="btnAutoSugerir" title="A IA analisa seus últimos 3 meses e sugere orçamentos automaticamente">
+                    <i class="fas fa-magic"></i>
+                    <span>Sugestão Inteligente</span>
+                </button>
+                <button class="fin-action-btn" id="btnCopiarMes" title="Copiar orçamentos do mês anterior">
+                    <i class="fas fa-copy"></i>
+                    <span>Copiar Mês Anterior</span>
+                </button>
+            </div>
+            <button class="fin-action-btn success" id="btnNovoOrcamento">
+                <i class="fas fa-plus"></i>
+                <span>Novo Orçamento</span>
+            </button>
+        </div>
+
+        <!-- Grid de orçamentos -->
+        <div class="orcamentos-grid" id="orcamentosGrid">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Carregando orçamentos...</p>
+            </div>
+        </div>
+
+        <!-- Estado vazio -->
+        <div class="fin-empty-state" id="orcamentosEmpty" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h3>Nenhum orçamento configurado</h3>
+            <p>Configure orçamentos por categoria para controlar seus gastos.<br>
+                Clique em <strong>"Sugestão Inteligente"</strong> para configurar automaticamente!</p>
+            <button class="fin-action-btn primary" id="btnAutoSugerirEmpty">
+                <i class="fas fa-magic"></i>
+                <span>Configurar Automaticamente</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: METAS ==================== -->
+    <div class="fin-tab-content" id="tab-metas">
+
+        <!-- Ações -->
+        <div class="fin-actions-bar" data-aos="fade-up">
+            <div class="actions-left">
+                <button class="fin-action-btn" id="btnTemplates">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>Usar Template</span>
+                </button>
+            </div>
+            <button class="fin-action-btn success" id="btnNovaMeta">
+                <i class="fas fa-plus"></i>
+                <span>Nova Meta</span>
+            </button>
+        </div>
+
+        <!-- Grid de metas -->
+        <div class="metas-grid" id="metasGrid">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Carregando metas...</p>
+            </div>
+        </div>
+
+        <!-- Estado vazio -->
+        <div class="fin-empty-state" id="metasEmpty" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <h3>Nenhuma meta financeira</h3>
+            <p>Crie metas para acompanhar seus objetivos financeiros.<br>
+                Use um <strong>template pronto</strong> para começar rapidamente!</p>
+            <button class="fin-action-btn primary" id="btnTemplatesEmpty">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                <span>Escolher Template</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: INSIGHTS ==================== -->
+    <div class="fin-tab-content" id="tab-insights">
+        <div class="insights-grid" id="insightsGrid">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Analisando suas finanças...</p>
+            </div>
+        </div>
+
+        <div class="fin-empty-state" id="insightsEmpty" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <h3>Sem insights no momento</h3>
+            <p>Configure orçamentos para categoria para que possamos gerar<br>
+                insights inteligentes sobre seus gastos.</p>
+        </div>
+    </div>
+
+</section>
+
+<!-- ==================== MODAL: NOVO/EDITAR ORÇAMENTO ==================== -->
+<div class="fin-modal-overlay" id="modalOrcamento">
+    <div class="fin-modal">
+        <div class="fin-modal-header">
+            <h3 id="modalOrcamentoTitle">Novo Orçamento</h3>
+            <button class="fin-modal-close" data-close-modal="modalOrcamento">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="formOrcamento">
+            <?= csrf_input('default') ?>
+            <div class="fin-modal-body">
+                <div class="fin-form-group">
+                    <label class="fin-label">
+                        <i class="fas fa-tag"></i> Categoria
+                    </label>
+                    <select id="orcCategoria" class="fin-select" required>
+                        <option value="">Selecione uma categoria</option>
+                    </select>
+                </div>
+                <div class="fin-form-group">
+                    <label class="fin-label">
+                        <i class="fas fa-dollar-sign"></i> Limite Mensal
+                    </label>
+                    <input type="text" id="orcValor" class="fin-input" placeholder="R$ 0,00" required>
+                    <span class="fin-hint" id="orcSugestao"></span>
+                </div>
+                <div class="fin-form-row">
+                    <label class="fin-toggle">
+                        <input type="checkbox" id="orcRollover">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Acumular sobra do mês anterior</span>
+                    </label>
+                </div>
+                <div class="fin-form-row">
+                    <label class="fin-toggle">
+                        <input type="checkbox" id="orcAlerta80" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Alertar ao atingir 80%</span>
+                    </label>
+                </div>
+                <div class="fin-form-row">
+                    <label class="fin-toggle">
+                        <input type="checkbox" id="orcAlerta100" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Alertar ao estourar</span>
+                    </label>
+                </div>
+            </div>
+            <div class="fin-modal-footer">
+                <button type="button" class="fin-btn secondary" data-close-modal="modalOrcamento">Cancelar</button>
+                <button type="submit" class="fin-btn primary">
+                    <i class="fas fa-check"></i> Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== MODAL: SUGESTÕES INTELIGENTES ==================== -->
+<div class="fin-modal-overlay" id="modalSugestoes">
+    <div class="fin-modal large">
+        <div class="fin-modal-header">
+            <h3><i class="fas fa-magic"></i> Sugestão Inteligente</h3>
+            <button class="fin-modal-close" data-close-modal="modalSugestoes">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="fin-modal-body">
+            <p class="fin-modal-desc">
+                Analisamos seus gastos dos últimos 3 meses e sugerimos limites para cada categoria.
+                Você pode ajustar os valores antes de aplicar.
+            </p>
+            <div class="sugestoes-list" id="sugestoesList">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Analisando seu histórico...</p>
+                </div>
+            </div>
+        </div>
+        <div class="fin-modal-footer">
+            <button type="button" class="fin-btn secondary" data-close-modal="modalSugestoes">Cancelar</button>
+            <button type="button" class="fin-btn primary" id="btnAplicarSugestoes">
+                <i class="fas fa-check-double"></i> Aplicar Todas
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: NOVA/EDITAR META ==================== -->
+<div class="fin-modal-overlay" id="modalMeta">
+    <div class="fin-modal">
+        <div class="fin-modal-header">
+            <h3 id="modalMetaTitle">Nova Meta</h3>
+            <button class="fin-modal-close" data-close-modal="modalMeta">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="formMeta">
+            <?= csrf_input('default') ?>
+            <div class="fin-modal-body">
+                <div class="fin-form-group">
+                    <label class="fin-label"><i class="fas fa-pencil"></i> Título</label>
+                    <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergência" required maxlength="150">
+                </div>
+                <div class="fin-form-row-2">
+                    <div class="fin-form-group">
+                        <label class="fin-label"><i class="fas fa-bullseye"></i> Valor da Meta</label>
+                        <input type="text" id="metaValorAlvo" class="fin-input" placeholder="R$ 0,00" required>
+                    </div>
+                    <div class="fin-form-group">
+                        <label class="fin-label"><i class="fas fa-coins"></i> Valor Atual</label>
+                        <input type="text" id="metaValorAtual" class="fin-input" placeholder="R$ 0,00" value="0">
+                    </div>
+                </div>
+                <div class="fin-form-row-2">
+                    <div class="fin-form-group">
+                        <label class="fin-label"><i class="fas fa-tag"></i> Tipo</label>
+                        <select id="metaTipo" class="fin-select">
+                            <option value="economia">💰 Economia</option>
+                            <option value="compra">🛒 Compra</option>
+                            <option value="quitacao">💳 Quitar Dívida</option>
+                            <option value="emergencia">🛡️ Emergência</option>
+                            <option value="investimento">📈 Investimento</option>
+                        </select>
+                    </div>
+                    <div class="fin-form-group">
+                        <label class="fin-label"><i class="fas fa-flag"></i> Prioridade</label>
+                        <select id="metaPrioridade" class="fin-select">
+                            <option value="baixa">🟢 Baixa</option>
+                            <option value="media" selected>🟡 Média</option>
+                            <option value="alta">🔴 Alta</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fin-form-group">
+                    <label class="fin-label"><i class="fas fa-calendar"></i> Prazo (opcional)</label>
+                    <input type="date" id="metaPrazo" class="fin-input">
+                    <span class="fin-hint" id="metaAporteSugerido"></span>
+                </div>
+                <div class="fin-form-group">
+                    <label class="fin-label"><i class="fas fa-palette"></i> Cor</label>
+                    <div class="color-picker-grid" id="metaCorPicker">
+                        <button type="button" class="color-dot active" data-color="#6366f1" style="background:#6366f1"></button>
+                        <button type="button" class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></button>
+                        <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981"></button>
+                        <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b"></button>
+                        <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444"></button>
+                        <button type="button" class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+                        <button type="button" class="color-dot" data-color="#ec4899" style="background:#ec4899"></button>
+                        <button type="button" class="color-dot" data-color="#14b8a6" style="background:#14b8a6"></button>
+                    </div>
+                </div>
+                <input type="hidden" id="metaCor" value="#6366f1">
+                <input type="hidden" id="metaId" value="">
+            </div>
+            <div class="fin-modal-footer">
+                <button type="button" class="fin-btn secondary" data-close-modal="modalMeta">Cancelar</button>
+                <button type="submit" class="fin-btn primary">
+                    <i class="fas fa-check"></i> Salvar Meta
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== MODAL: TEMPLATES DE METAS ==================== -->
+<div class="fin-modal-overlay" id="modalTemplates">
+    <div class="fin-modal large">
+        <div class="fin-modal-header">
+            <h3><i class="fas fa-wand-magic-sparkles"></i> Templates de Metas</h3>
+            <button class="fin-modal-close" data-close-modal="modalTemplates">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="fin-modal-body">
+            <p class="fin-modal-desc">Escolha um template para criar sua meta rapidamente.</p>
+            <div class="templates-grid" id="templatesGrid">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Carregando templates...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: APORTE ==================== -->
+<div class="fin-modal-overlay" id="modalAporte">
+    <div class="fin-modal small">
+        <div class="fin-modal-header">
+            <h3><i class="fas fa-plus-circle"></i> Registrar Aporte</h3>
+            <button class="fin-modal-close" data-close-modal="modalAporte">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="formAporte">
+            <?= csrf_input('default') ?>
+            <div class="fin-modal-body">
+                <p class="aporte-meta-info" id="aporteMetaInfo"></p>
+                <div class="fin-form-group">
+                    <label class="fin-label"><i class="fas fa-dollar-sign"></i> Valor do Aporte</label>
+                    <input type="text" id="aporteValor" class="fin-input" placeholder="R$ 0,00" required>
+                </div>
+                <input type="hidden" id="aporteMetaId" value="">
+            </div>
+            <div class="fin-modal-footer">
+                <button type="button" class="fin-btn secondary" data-close-modal="modalAporte">Cancelar</button>
+                <button type="submit" class="fin-btn primary">
+                    <i class="fas fa-plus"></i> Adicionar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="<?= BASE_URL ?>assets/js/admin-financas-index.js?v=<?= time() ?>"></script>

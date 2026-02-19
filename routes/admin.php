@@ -9,41 +9,43 @@ use Application\Core\Router;
  * ROTAS DO PAINEL ADMINISTRATIVO
  * ============================================
  * Todas as rotas exigem autenticação
+ * Rotas com 'onboarding' middleware exigem onboarding completo
  */
 
+// Onboarding (SEM middleware de onboarding - senão dá loop)
 Router::add('GET', '/onboarding', 'Admin\\OnboardingController@index', ['auth']);
 
 // Dashboard
-Router::add('GET', '/dashboard', 'Admin\\DashboardController@dashboard', ['auth']);
+Router::add('GET', '/dashboard', 'Admin\\DashboardController@dashboard', ['auth', 'onboarding']);
 
 // Lançamentos
-Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth']);
+Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth', 'onboarding']);
 
 // Relatórios
-Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth']);
+Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth', 'onboarding']);
 
 // Configurações
-Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth']);
+Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth', 'onboarding']);
 Router::add('POST', '/api/config', 'Api\\ConfigController@update',  ['auth', 'csrf']);
 
 // Perfil
-Router::add('GET', '/perfil', 'Admin\\PerfilController@index', ['auth']);
+Router::add('GET', '/perfil', 'Admin\\PerfilController@index', ['auth', 'onboarding']);
 
 // Contas
-Router::add('GET', '/contas',            'Admin\\ContasController@index',    ['auth']);
-Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['auth']);
+Router::add('GET', '/contas',            'Admin\\ContasController@index',    ['auth', 'onboarding']);
+Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['auth', 'onboarding']);
 
 // Categorias
-Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth']);
+Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth', 'onboarding']);
 
 // Agendamentos
-Router::add('GET', '/agendamentos', 'Admin\\AgendamentoController@index', ['auth']);
+Router::add('GET', '/agendamentos', 'Admin\\AgendamentoController@index', ['auth', 'onboarding']);
 
 // Investimentos
-Router::add('GET', '/investimentos', 'Admin\\InvestimentosController@index', ['auth']);
+Router::add('GET', '/investimentos', 'Admin\\InvestimentosController@index', ['auth', 'onboarding']);
 
 // Billing / Planos
-Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);
+Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth', 'onboarding']);
 
 // Super Admin
 Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth']);

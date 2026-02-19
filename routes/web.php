@@ -88,31 +88,33 @@ function registerAppRoutes(): void
 
 {
 
-    Router::add('GET', '/dashboard',         'Admin\\DashboardController@dashboard', ['auth']);
+    Router::add('GET', '/dashboard',         'Admin\\DashboardController@dashboard', ['auth', 'onboarding']);
 
-    Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth']);
+    Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth', 'onboarding']);
 
-    Router::add('GET', '/parcelamentos',     'Admin\FaturaController@index',  ['auth']);
-    Router::add('GET', '/faturas',           'Admin\FaturaController@index',  ['auth']);
+    Router::add('GET', '/parcelamentos',     'Admin\FaturaController@index',  ['auth', 'onboarding']);
+    Router::add('GET', '/faturas',           'Admin\FaturaController@index',  ['auth', 'onboarding']);
 
-    Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth']);
+    Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth', 'onboarding']);
 
 
-    Router::add('GET', '/perfil',            'Admin\\PerfilController@index',        ['auth']);
+    Router::add('GET', '/perfil',            'Admin\\PerfilController@index',        ['auth', 'onboarding']);
 
-    Router::add('GET', '/contas',            'Admin\\ContasController@index',        ['auth']);
+    Router::add('GET', '/contas',            'Admin\\ContasController@index',        ['auth', 'onboarding']);
 
-    Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth']);
+    Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth', 'onboarding']);
 
-    Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth']);
+    Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth', 'onboarding']);
 
-    Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived',    ['auth']);
+    Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived',    ['auth', 'onboarding']);
 
-    Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth']);
+    Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth', 'onboarding']);
 
-    Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth']);
+    Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth', 'onboarding']);
 
-    Router::add('GET', '/investimentos',      'Admin\\InvestimentosController@index',   ['auth']);
+    Router::add('GET', '/investimentos',      'Admin\\InvestimentosController@index',   ['auth', 'onboarding']);
+
+    Router::add('GET', '/financas',           'Admin\\FinancasController@index',       ['auth', 'onboarding']);
 
     Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth']);
     Router::add('POST', '/premium/cancel', 'PremiumController@cancel', ['auth']);
@@ -358,7 +360,7 @@ function registerBillingRoutes(): void
 
     // Página do plano
 
-    Router::add('GET',  '/billing',                      'Admin\\BillingController@index',        ['auth']);
+    Router::add('GET',  '/billing',                      'Admin\\BillingController@index',        ['auth', 'onboarding']);
 }
 
 
