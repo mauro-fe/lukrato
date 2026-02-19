@@ -20,7 +20,7 @@ try {
 
     if (!empty($columns)) {
         echo "Coluna 'email_verification_reminder_sent_at' já existe. Pulando." . PHP_EOL;
-        exit(0);
+        return;
     }
 
     DB::statement('ALTER TABLE usuarios ADD COLUMN email_verification_reminder_sent_at TIMESTAMP NULL DEFAULT NULL AFTER email_verification_sent_at');

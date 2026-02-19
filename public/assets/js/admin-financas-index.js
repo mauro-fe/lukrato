@@ -11,6 +11,7 @@ class FinancasManager {
         this.orcamentos = [];
         this.metas = [];
         this.categorias = [];
+        this.contas = [];
         this.sugestoes = [];
         this.editingOrcamentoId = null;
         this.editingMetaId = null;
@@ -21,11 +22,23 @@ class FinancasManager {
     // ==================== INICIALIZAÇÃO ====================
 
     async init() {
+        this.syncFromHeader();
         this.attachEventListeners();
         this.setupMoneyInputs();
-        this.updateMonthLabel();
-        await this.loadCategorias();
+        await Promise.all([this.loadCategorias(), this.loadContas()]);
         await this.loadAll();
+    }
+
+    /**
+     * Sincronizar mês/ano com o header global (LukratoHeader)
+     */
+    syncFromHeader() {
+        const ym = window.LukratoHeader?.getMonth?.() || sessionStorage.getItem('lkMes');
+        if (ym && /^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
+            const [y, m] = ym.split('-').map(Number);
+            this.currentYear = y;
+            this.currentMonth = m;
+        }
     }
 
     getBaseUrl() {
@@ -48,9 +61,16 @@ class FinancasManager {
     // ==================== EVENT LISTENERS ====================
 
     attachEventListeners() {
-        // Navegação de mês
-        document.getElementById('btnMesAnterior')?.addEventListener('click', () => this.changeMonth(-1));
-        document.getElementById('btnMesProximo')?.addEventListener('click', () => this.changeMonth(1));
+        // Navegação de mês via header global
+        document.addEventListener('lukrato:month-changed', (e) => {
+            const ym = e.detail?.month;
+            if (ym && /^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
+                const [y, m] = ym.split('-').map(Number);
+                this.currentYear = y;
+                this.currentMonth = m;
+                this.loadAll();
+            }
+        });
 
         // Tabs
         document.querySelectorAll('.fin-tab').forEach(tab => {
@@ -108,6 +128,9 @@ class FinancasManager {
         document.getElementById('metaPrazo')?.addEventListener('change', () => this.updateAporteSugerido());
         document.getElementById('metaValorAlvo')?.addEventListener('input', () => this.updateAporteSugerido());
         document.getElementById('metaValorAtual')?.addEventListener('input', () => this.updateAporteSugerido());
+
+        // Conta vinculada → toggle valor_atual field
+        document.getElementById('metaContaId')?.addEventListener('change', () => this.onMetaContaChange());
     }
 
     setupMoneyInputs() {
@@ -122,21 +145,6 @@ class FinancasManager {
     }
 
     // ==================== NAVEGAÇÃO DE MÊS ====================
-
-    changeMonth(delta) {
-        this.currentMonth += delta;
-        if (this.currentMonth > 12) { this.currentMonth = 1; this.currentYear++; }
-        if (this.currentMonth < 1) { this.currentMonth = 12; this.currentYear--; }
-        this.updateMonthLabel();
-        this.loadAll();
-    }
-
-    updateMonthLabel() {
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        const label = document.getElementById('mesAtualLabel');
-        if (label) label.textContent = `${meses[this.currentMonth - 1]} ${this.currentYear}`;
-    }
 
     // ==================== CARREGAMENTO DE DADOS ====================
 
@@ -163,6 +171,43 @@ class FinancasManager {
             }
         } catch (e) {
             console.error('Erro ao carregar categorias:', e);
+        }
+    }
+
+    async loadContas() {
+        try {
+            const res = await this.apiGet('api/contas?only_active=1&with_balances=1');
+            // A API de contas retorna array direto (sem wrapper {success, data})
+            if (Array.isArray(res)) {
+                this.contas = res;
+            } else if (res.success !== false && Array.isArray(res.data)) {
+                this.contas = res.data;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar contas:', e);
+        }
+    }
+
+    onMetaContaChange() {
+        const contaId = document.getElementById('metaContaId')?.value;
+        const valorAtualGroup = document.getElementById('metaValorAtual')?.closest('.fin-form-group');
+        const hint = document.getElementById('metaContaHint');
+        if (contaId) {
+            // Esconder campo manual de valor atual
+            if (valorAtualGroup) valorAtualGroup.style.display = 'none';
+            // Mostrar hint com saldo atual da conta
+            const conta = this.contas.find(c => String(c.id) === String(contaId));
+            const saldo = conta?.saldoAtual ?? 0;
+            if (hint) {
+                hint.innerHTML = `<i class="fas fa-info-circle"></i> Saldo atual da conta: <strong>${this.formatCurrency(saldo)}</strong> — será usado como valor inicial. O progresso atualiza automaticamente.`;
+                hint.style.display = '';
+            }
+        } else {
+            if (valorAtualGroup) valorAtualGroup.style.display = '';
+            if (hint) {
+                hint.style.display = 'none';
+                hint.innerHTML = '';
+            }
         }
     }
 
@@ -227,14 +272,30 @@ class FinancasManager {
     renderResumo(data) {
         if (!data) return;
 
-        const orc = data.orcamentos || {};
+        const orc = data.orcamento || data.orcamentos || {};
         const met = data.metas || {};
 
         // Saúde financeira
-        const score = orc.saude_score ?? 0;
+        const saude = orc.saude_financeira || {};
+        const score = saude.score ?? orc.saude_score ?? 0;
         const ringFill = document.getElementById('saudeRingFill');
         const scoreEl = document.getElementById('saudeScore');
         const labelEl = document.getElementById('saudeLabel');
+        const saudeContent = document.getElementById('saudeContent');
+        const saudeCta = document.getElementById('saudeCta');
+
+        // Verificar se há orçamentos configurados
+        const temOrcamentos = (orc.total_limite ?? orc.total_orcado ?? 0) > 0 || this.orcamentos.length > 0;
+
+        if (!temOrcamentos && saudeContent && saudeCta) {
+            // Sem orçamentos: mostrar CTA
+            saudeContent.style.display = 'none';
+            saudeCta.style.display = '';
+        } else if (saudeContent && saudeCta) {
+            // Com orçamentos: mostrar score real
+            saudeContent.style.display = '';
+            saudeCta.style.display = 'none';
+        }
 
         if (ringFill) {
             ringFill.style.strokeDasharray = `${score}, 100`;
@@ -257,10 +318,51 @@ class FinancasManager {
         }
 
         // Values
-        this.setText('totalOrcado', this.formatCurrency(orc.total_orcado || 0));
-        this.setText('totalGasto', this.formatCurrency(orc.total_gasto || 0));
-        this.setText('totalDisponivel', this.formatCurrency((orc.total_orcado || 0) - (orc.total_gasto || 0)));
-        this.setText('metasAtivas', `${met.ativas || 0} ativas`);
+        const totalOrcado = orc.total_limite ?? orc.total_orcado ?? 0;
+        const totalGasto = orc.total_gasto ?? 0;
+        this.setText('totalOrcado', this.formatCurrency(totalOrcado));
+        this.setText('totalGasto', this.formatCurrency(totalGasto));
+        this.setText('totalDisponivel', this.formatCurrency(totalOrcado - totalGasto));
+
+        // Metas summary cards
+        const totalMetas = met.total_metas ?? met.ativas ?? 0;
+        const totalAtual = met.total_atual ?? 0;
+        const totalAlvo  = met.total_alvo ?? 0;
+        const progressoGeral = met.progresso_geral ?? 0;
+        const atrasadas = met.atrasadas ?? 0;
+
+        this.setText('metasAtivas', `${totalMetas} ativa${totalMetas !== 1 ? 's' : ''}`);
+        this.setText('metasTotalAtual', this.formatCurrency(totalAtual));
+        this.setText('metasTotalAlvo', this.formatCurrency(totalAlvo));
+
+        // Metas progress ring
+        const metasRingFill = document.getElementById('metasProgressRingFill');
+        const metasScore    = document.getElementById('metasProgressScore');
+        const metasLabel    = document.getElementById('metasProgressLabel');
+
+        if (metasRingFill) {
+            metasRingFill.style.strokeDasharray = `${progressoGeral}, 100`;
+            metasRingFill.classList.remove('score-good', 'score-warn', 'score-bad');
+            if (progressoGeral >= 60) metasRingFill.classList.add('score-good');
+            else if (progressoGeral >= 30) metasRingFill.classList.add('score-warn');
+            else metasRingFill.classList.add('score-bad');
+        }
+        if (metasScore) metasScore.textContent = `${Math.round(progressoGeral)}%`;
+        if (metasLabel) {
+            if (atrasadas > 0) {
+                metasLabel.textContent = `${atrasadas} atrasada${atrasadas > 1 ? 's' : ''}`;
+                metasLabel.className = 'summary-status status-bad';
+            } else if (totalMetas === 0) {
+                metasLabel.textContent = 'Nenhuma meta';
+                metasLabel.className = 'summary-status';
+            } else if (progressoGeral >= 80) {
+                metasLabel.textContent = 'Quase lá!';
+                metasLabel.className = 'summary-status status-good';
+            } else {
+                metasLabel.textContent = 'Em progresso';
+                metasLabel.className = 'summary-status status-good';
+            }
+        }
     }
 
     // ==================== RENDER: ORÇAMENTOS ====================
@@ -282,7 +384,7 @@ class FinancasManager {
         grid.innerHTML = this.orcamentos.map(orc => {
             const pct = orc.percentual || 0;
             const statusClass = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
-            const catNome = orc.categoria?.nome || 'Categoria';
+            const catNome = orc.categoria?.nome || orc.categoria_nome || 'Categoria';
             const catIcone = orc.categoria?.icone || '📁';
             const gasto = orc.gasto_real || 0;
             const limite = orc.valor_limite || 0;
@@ -360,6 +462,9 @@ class FinancasManager {
             const aporteSugerido = meta.aporte_mensal_sugerido > 0
                 ? `<span class="meta-aporte-hint">${this.formatCurrency(meta.aporte_mensal_sugerido)}/mês sugerido</span>`
                 : '';
+            const contaBadge = meta.conta_id
+                ? `<span class="meta-conta-badge"><i class="fas fa-university"></i> ${this.escHtml(meta.conta_nome || 'Conta vinculada')}</span>`
+                : '';
 
             return `
             <div class="meta-card" style="--meta-color: ${cor}" data-aos="fade-up">
@@ -370,7 +475,7 @@ class FinancasManager {
                         ${statusTag}
                     </div>
                     <div class="meta-actions">
-                        ${meta.status === 'ativa' ? `
+                        ${meta.status === 'ativa' && !meta.conta_id ? `
                         <button class="meta-action-btn" onclick="financasManager.openAporteModal(${meta.id})" title="Adicionar aporte">
                             <i class="fas fa-plus-circle"></i>
                         </button>` : ''}
@@ -395,6 +500,7 @@ class FinancasManager {
                 <div class="meta-footer">
                     ${prioridadeTag}
                     ${prazoInfo}
+                    ${contaBadge}
                     ${aporteSugerido}
                 </div>
             </div>`;
@@ -404,18 +510,16 @@ class FinancasManager {
     // ==================== RENDER: INSIGHTS ====================
 
     renderInsights(insights) {
+        const section = document.getElementById('insightsSection');
         const grid = document.getElementById('insightsGrid');
-        const empty = document.getElementById('insightsEmpty');
-        if (!grid || !empty) return;
+        if (!grid) return;
 
         if (!insights.length) {
-            grid.style.display = 'none';
-            empty.style.display = 'flex';
+            if (section) section.style.display = 'none';
             return;
         }
 
-        grid.style.display = '';
-        empty.style.display = 'none';
+        if (section) section.style.display = '';
 
         grid.innerHTML = insights.map(insight => {
             const icon = this.getInsightIcon(insight.tipo);
@@ -439,6 +543,12 @@ class FinancasManager {
         this.currentTab = tabName;
         document.querySelectorAll('.fin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
         document.querySelectorAll('.fin-tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabName}`));
+
+        // Toggle summary card groups
+        const sumOrc  = document.getElementById('summaryOrcamentos');
+        const sumMeta = document.getElementById('summaryMetas');
+        if (sumOrc)  sumOrc.style.display  = tabName === 'orcamentos' ? '' : 'none';
+        if (sumMeta) sumMeta.style.display = tabName === 'metas' ? '' : 'none';
     }
 
     // ==================== MODAIS ====================
@@ -578,15 +688,22 @@ class FinancasManager {
         list.innerHTML = this.sugestoes.map((sug, idx) => {
             const trendIcon = sug.tendencia === 'subindo' ? 'arrow-up' : sug.tendencia === 'descendo' ? 'arrow-down' : 'minus';
             const trendClass = sug.tendencia === 'subindo' ? 'up' : sug.tendencia === 'descendo' ? 'down' : 'stable';
+            const catNome = sug.categoria?.nome || sug.categoria_nome || 'Categoria';
+            const catIcone = sug.categoria?.icone || '📁';
+            const mediaGastos = sug.media_gastos || sug.media_3_meses || 0;
+            const economiaTag = sug.economia_sugerida > 0
+                ? `<span class="sugestao-economia">economia de ${this.formatCurrency(sug.economia_sugerida)}/mês</span>`
+                : '';
             return `
             <div class="sugestao-item">
                 <div class="sugestao-info">
-                    <span class="sugestao-icon">${sug.categoria?.icone || '📁'}</span>
+                    <span class="sugestao-icon">${catIcone}</span>
                     <div class="sugestao-detail">
-                        <span class="sugestao-nome">${this.escHtml(sug.categoria?.nome || 'Categoria')}</span>
-                        <span class="sugestao-media">Média: ${this.formatCurrency(sug.media_gastos || 0)}
+                        <span class="sugestao-nome">${this.escHtml(catNome)}</span>
+                        <span class="sugestao-media">Média: ${this.formatCurrency(mediaGastos)}
                             <i class="fas fa-${trendIcon} trend-${trendClass}"></i>
                         </span>
+                        ${economiaTag}
                     </div>
                 </div>
                 <div class="sugestao-valor">
@@ -705,6 +822,19 @@ class FinancasManager {
         const title = document.getElementById('modalMetaTitle');
         const form = document.getElementById('formMeta');
 
+        // Populate conta select
+        const contaSelect = document.getElementById('metaContaId');
+        if (contaSelect) {
+            contaSelect.innerHTML = '<option value="">— Sem vínculo (aporte manual) —</option>';
+            this.contas.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                const saldo = c.saldoAtual != null ? ` • ${this.formatCurrency(c.saldoAtual)}` : '';
+                opt.textContent = c.nome + (c.instituicao ? ` (${c.instituicao})` : '') + saldo;
+                contaSelect.appendChild(opt);
+            });
+        }
+
         if (metaId) {
             const meta = this.metas.find(m => m.id === metaId);
             if (!meta) return;
@@ -717,6 +847,7 @@ class FinancasManager {
             document.getElementById('metaPrazo').value = meta.data_prazo || '';
             document.getElementById('metaCor').value = meta.cor || '#6366f1';
             document.getElementById('metaId').value = meta.id;
+            if (contaSelect) contaSelect.value = meta.conta_id || '';
 
             // Set active color
             document.querySelectorAll('#metaCorPicker .color-dot').forEach(d => {
@@ -728,11 +859,13 @@ class FinancasManager {
             document.getElementById('metaValorAtual').value = '0,00';
             document.getElementById('metaCor').value = '#6366f1';
             document.getElementById('metaId').value = '';
+            if (contaSelect) contaSelect.value = '';
             document.querySelectorAll('#metaCorPicker .color-dot').forEach(d => {
                 d.classList.toggle('active', d.dataset.color === '#6366f1');
             });
         }
 
+        this.onMetaContaChange();
         this.updateAporteSugerido();
         this.openModal('modalMeta');
     }
@@ -741,14 +874,16 @@ class FinancasManager {
         e.preventDefault();
 
         const metaId = document.getElementById('metaId').value;
+        const contaIdRaw = document.getElementById('metaContaId')?.value;
         const data = {
             titulo: document.getElementById('metaTitulo').value.trim(),
             valor_alvo: this.parseMoney(document.getElementById('metaValorAlvo').value),
-            valor_atual: this.parseMoney(document.getElementById('metaValorAtual').value),
+            valor_atual: contaIdRaw ? 0 : this.parseMoney(document.getElementById('metaValorAtual').value),
             tipo: document.getElementById('metaTipo').value,
             prioridade: document.getElementById('metaPrioridade').value,
             data_prazo: document.getElementById('metaPrazo').value || null,
-            cor: document.getElementById('metaCor').value
+            cor: document.getElementById('metaCor').value,
+            conta_id: contaIdRaw ? parseInt(contaIdRaw) : null,
         };
 
         if (!data.titulo) return this.showToast('Informe o título da meta', 'error');
@@ -763,6 +898,11 @@ class FinancasManager {
             }
 
             if (res.success !== false) {
+                // Processar conquistas desbloqueadas
+                const responseData = res.data;
+                const gamification = responseData?.gamification || res.gamification;
+                this.processGamification(gamification);
+
                 this.closeModal('modalMeta');
                 this.showToast(metaId ? 'Meta atualizada!' : 'Meta criada!', 'success');
                 await this.loadAll();
@@ -833,7 +973,12 @@ class FinancasManager {
 
             if (res.success !== false) {
                 this.closeModal('modalAporte');
-                const meta = res.data;
+
+                // Extrair meta e gamificação da resposta
+                const responseData = res.data;
+                const meta = responseData?.meta || responseData;
+                const gamification = responseData?.gamification || res.gamification;
+
                 if (meta?.status === 'concluida') {
                     await Swal.fire({
                         icon: 'success',
@@ -844,6 +989,10 @@ class FinancasManager {
                 } else {
                     this.showToast('Aporte registrado!', 'success');
                 }
+
+                // Processar conquistas desbloqueadas (após o modal de conclusão)
+                this.processGamification(gamification);
+
                 await this.loadAll();
             } else {
                 this.showToast(res.message || 'Erro ao registrar aporte', 'error');
@@ -855,6 +1004,17 @@ class FinancasManager {
 
     // ==================== METAS: TEMPLATES ====================
 
+    /**
+     * Processa conquistas desbloqueadas na resposta da API
+     */
+    processGamification(gamification) {
+        if (!gamification) return;
+        const achievements = gamification.achievements || [];
+        if (achievements.length > 0 && typeof window.notifyMultipleAchievements === 'function') {
+            window.notifyMultipleAchievements(achievements);
+        }
+    }
+
     async openTemplates() {
         this.openModal('modalTemplates');
         const grid = document.getElementById('templatesGrid');
@@ -863,17 +1023,21 @@ class FinancasManager {
         try {
             const res = await this.apiGet('api/financas/metas/templates');
             if (res.success !== false && res.data?.length) {
-                grid.innerHTML = res.data.map(tmpl => `
+                grid.innerHTML = res.data.map(tmpl => {
+                    const iconeHtml = tmpl.icone && tmpl.icone.startsWith('fa-')
+                        ? `<i class="fas ${tmpl.icone}"></i>`
+                        : (tmpl.icone || '🎯');
+                    return `
                     <div class="template-card" onclick="financasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
-                        <span class="template-icon">${tmpl.icone || '🎯'}</span>
+                        <span class="template-icon">${iconeHtml}</span>
                         <div class="template-info">
                             <strong>${this.escHtml(tmpl.titulo)}</strong>
                             <p>${this.escHtml(tmpl.descricao || '')}</p>
                             ${tmpl.valor_sugerido ? `<span class="template-valor">Sugestão: ${this.formatCurrency(tmpl.valor_sugerido)}</span>` : ''}
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
-                    </div>
-                `).join('');
+                    </div>`;
+                }).join('');
             } else {
                 grid.innerHTML = '<div class="fin-empty-state"><p>Nenhum template disponível.</p></div>';
             }
@@ -906,17 +1070,38 @@ class FinancasManager {
         if (!hint) return;
 
         const valorAlvo = this.parseMoney(document.getElementById('metaValorAlvo')?.value || '0');
-        const valorAtual = this.parseMoney(document.getElementById('metaValorAtual')?.value || '0');
         const prazo = document.getElementById('metaPrazo')?.value;
 
-        if (!prazo || valorAlvo <= valorAtual) { hint.textContent = ''; return; }
+        // Determinar valor atual: se conta vinculada, usar saldo da conta
+        let valorAtual = 0;
+        const contaId = document.getElementById('metaContaId')?.value;
+        if (contaId) {
+            const conta = this.contas.find(c => String(c.id) === String(contaId));
+            valorAtual = conta?.saldoAtual ?? 0;
+        } else {
+            valorAtual = this.parseMoney(document.getElementById('metaValorAtual')?.value || '0');
+        }
+
+        if (!prazo || valorAlvo <= 0) { hint.textContent = ''; return; }
 
         const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
         const dataPrazo = new Date(prazo + 'T00:00:00');
-        const mesesRestantes = Math.max(1, Math.ceil((dataPrazo - hoje) / (1000 * 60 * 60 * 24 * 30.44)));
-        const aporteMensal = (valorAlvo - valorAtual) / mesesRestantes;
 
-        hint.textContent = `💡 Para atingir no prazo: ${this.formatCurrency(aporteMensal)} por mês (${mesesRestantes} meses)`;
+        if (dataPrazo <= hoje) {
+            hint.textContent = '⚠️ Esse prazo já passou. Ajuste para uma data futura.';
+            return;
+        }
+
+        const restante = valorAlvo - valorAtual;
+        if (restante <= 0) { hint.textContent = '🎉 Valor já atingido!'; return; }
+
+        const diffDias = Math.ceil((dataPrazo - hoje) / (1000 * 60 * 60 * 24));
+        const mesesRestantes = Math.max(1, Math.ceil(diffDias / 30.44));
+        const aporteMensal = restante / mesesRestantes;
+
+        const plural = mesesRestantes === 1 ? 'mês' : 'meses';
+        hint.textContent = `💡 Para atingir no prazo: ${this.formatCurrency(aporteMensal)} por mês (${mesesRestantes} ${plural})`;
     }
 
     // ==================== API HELPERS ====================
@@ -1011,7 +1196,11 @@ class FinancasManager {
     }
 
     getTipoEmoji(tipo) {
-        const map = { economia: '💰', compra: '🛒', quitacao: '💳', emergencia: '🛡️', investimento: '📈' };
+        const map = {
+            economia: '💰', compra: '🛒', quitacao: '💳', emergencia: '🛡️', investimento: '📈',
+            viagem: '✈️', educacao: '🎓', moradia: '🏠', veiculo: '🚗', saude: '🏥',
+            negocio: '🏪', aposentadoria: '🏖️', outro: '🎯'
+        };
         return map[tipo] || '🎯';
     }
 

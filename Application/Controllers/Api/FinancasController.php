@@ -95,7 +95,16 @@ class FinancasController extends BaseController
             }
 
             $meta = $this->metaService->criar($this->userId, $payload);
-            Response::success($meta, 'Meta criada com sucesso!', 201);
+
+            // Verificar conquistas desbloqueadas
+            $achievementService = new \Application\Services\AchievementService();
+            $newAchievements = $achievementService->checkAndUnlockAchievements($this->userId, 'meta_criada');
+            $gamification = [];
+            if (!empty($newAchievements)) {
+                $gamification['achievements'] = $newAchievements;
+            }
+
+            Response::success(array_merge(['meta' => $meta], $gamification ? ['gamification' => $gamification] : []), 'Meta criada com sucesso!', 201);
         } catch (\DomainException $e) {
             $this->fail($e->getMessage(), 403);
         } catch (\Throwable $e) {
@@ -155,7 +164,17 @@ class FinancasController extends BaseController
                 return;
             }
 
-            Response::success($meta, 'Aporte registrado com sucesso!');
+            // Verificar conquistas desbloqueadas (meta pode ter sido concluída)
+            $achievementService = new \Application\Services\AchievementService();
+            $newAchievements = $achievementService->checkAndUnlockAchievements($this->userId, 'meta_aporte');
+            $gamification = [];
+            if (!empty($newAchievements)) {
+                $gamification['achievements'] = $newAchievements;
+            }
+
+            Response::success(array_merge(['meta' => $meta], $gamification ? ['gamification' => $gamification] : []), 'Aporte registrado com sucesso!');
+        } catch (\DomainException $e) {
+            $this->fail($e->getMessage(), 400);
         } catch (\Throwable $e) {
             $this->failAndLog($e, 'Erro ao registrar aporte.');
         }

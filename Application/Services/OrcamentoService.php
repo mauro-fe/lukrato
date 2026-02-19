@@ -48,6 +48,11 @@ class OrcamentoService
                 'id'                => $orc->id,
                 'categoria_id'      => $orc->categoria_id,
                 'categoria_nome'    => $orc->categoria?->nome ?? 'Sem categoria',
+                'categoria'         => [
+                    'id'    => $orc->categoria_id,
+                    'nome'  => $orc->categoria?->nome ?? 'Sem categoria',
+                    'icone' => $orc->categoria?->icone ?? null,
+                ],
                 'valor_limite'      => $orc->valor_limite,
                 'rollover'          => $orc->rollover,
                 'rollover_valor'    => $rolloverValor,
@@ -125,19 +130,35 @@ class OrcamentoService
             $media = $this->repo->getMediaGastos($userId, $cat->id, 3);
 
             if ($media > 0) {
-                // Sugere +10% acima da média (margem de segurança)
-                $sugerido = ceil($media * 1.10);
-                // Arredondar para múltiplo de 10
-                $sugerido = ceil($sugerido / 10) * 10;
-
                 $tendencia = $this->calcularTendencia($userId, $cat->id);
 
+                // Sugere um limite ABAIXO da média para incentivar economia:
+                // - tendência subindo:  corte de 15% (maior disciplina necessária)
+                // - tendência estável:  corte de 10%
+                // - tendência descendo: corte de  5% (já está melhorando)
+                $fator = match ($tendencia) {
+                    'subindo'  => 0.85,
+                    'descendo' => 0.95,
+                    default    => 0.90,
+                };
+
+                // Arredondar para cima para o múltiplo de 10 mais próximo
+                $sugerido = ceil(($media * $fator) / 10) * 10;
+                $economiaSugerida = round($media - $sugerido, 2);
+
                 $sugestoes[] = [
-                    'categoria_id'   => $cat->id,
-                    'categoria_nome' => $cat->nome,
-                    'media_3_meses'  => $media,
-                    'valor_sugerido' => $sugerido,
-                    'tendencia'      => $tendencia,
+                    'categoria_id'     => $cat->id,
+                    'categoria_nome'   => $cat->nome,
+                    'categoria'        => [
+                        'id'    => $cat->id,
+                        'nome'  => $cat->nome,
+                        'icone' => $cat->icone ?? null,
+                    ],
+                    'media_gastos'     => round($media, 2),
+                    'media_3_meses'    => round($media, 2),
+                    'valor_sugerido'   => $sugerido,
+                    'economia_sugerida'=> $economiaSugerida,
+                    'tendencia'        => $tendencia,
                 ];
             }
         }

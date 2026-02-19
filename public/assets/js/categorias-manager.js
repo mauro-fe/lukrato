@@ -6,8 +6,25 @@
 class CategoriasManager {
     constructor() {
         this.categorias = [];
+        this.orcamentos = [];
         this.categoriaEmEdicao = null;
+        this.syncMesFromHeader();
         this.init();
+    }
+
+    /**
+     * Sincronizar mês/ano com o LukratoHeader global
+     */
+    syncMesFromHeader() {
+        if (window.LukratoHeader?.getMonth) {
+            const ym = window.LukratoHeader.getMonth(); // "2026-02"
+            const [y, m] = ym.split('-').map(Number);
+            this.mesSelecionado = m || (new Date().getMonth() + 1);
+            this.anoSelecionado = y || new Date().getFullYear();
+        } else {
+            this.mesSelecionado = new Date().getMonth() + 1;
+            this.anoSelecionado = new Date().getFullYear();
+        }
     }
 
     /**
@@ -15,7 +32,15 @@ class CategoriasManager {
      */
     init() {
         this.attachEventListeners();
-        this.loadCategorias();
+        this.loadAll();
+    }
+
+    /**
+     * Carregar tudo em paralelo
+     */
+    async loadAll() {
+        await Promise.all([this.loadCategorias(), this.loadOrcamentos()]);
+        this.renderCategorias();
     }
 
     /**
@@ -39,6 +64,17 @@ class CategoriasManager {
                 this.handleEditarCategoria(e.target);
             });
         }
+
+        // Escutar mudança de mês do header global
+        document.addEventListener('lukrato:month-changed', (e) => {
+            const ym = e.detail?.month; // "2026-02"
+            if (ym) {
+                const [y, m] = ym.split('-').map(Number);
+                this.mesSelecionado = m;
+                this.anoSelecionado = y;
+                this.loadOrcamentos().then(() => this.renderCategorias());
+            }
+        });
     }
 
     /**
@@ -85,12 +121,44 @@ class CategoriasManager {
                 this.categorias = [];
             }
 
-            this.renderCategorias();
-
+            // Não renderizar aqui — loadAll() faz após ambas cargas
         } catch (error) {
             console.error('❌ Erro ao carregar categorias:', error);
             this.showError('Erro ao carregar categorias. Tente novamente.');
         }
+    }
+
+    /**
+     * Carregar orçamentos do mês atual
+     */
+    async loadOrcamentos() {
+        try {
+            const mes = this.mesSelecionado;
+            const ano = this.anoSelecionado;
+            const baseUrl = this.getBaseUrl();
+            const response = await fetch(`${baseUrl}api/financas/orcamentos?mes=${mes}&ano=${ano}`);
+            if (!response.ok) return;
+            const result = await response.json();
+            if (result.success !== false && Array.isArray(result.data)) {
+                this.orcamentos = result.data;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar orçamentos:', e);
+        }
+    }
+
+    /**
+     * Obter orçamento de uma categoria pelo ID
+     */
+    getOrcamento(categoriaId) {
+        return this.orcamentos.find(o => Number(o.categoria_id) === Number(categoriaId)) || null;
+    }
+
+    /**
+     * Formatar moeda
+     */
+    formatCurrency(val) {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
     }
 
     /**
@@ -148,32 +216,254 @@ class CategoriasManager {
     }
 
     /**
-     * Renderizar item de categoria
+     * Renderizar item de categoria como card
      */
     renderCategoriaItem(categoria, tipo) {
         // Verificar se o nome já tem emoji (caracteres Unicode > U+1F300)
         const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(categoria.nome);
+        const iconHtml = hasEmoji
+            ? `<span class="cat-card-emoji">${categoria.nome.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || ''}</span>`
+            : `<i class="fas fa-tag"></i>`;
+
+        // Nome sem emoji (remover se presente)
+        const displayName = categoria.nome.replace(/[\u{1F300}-\u{1F9FF}]\s*/gu, '').trim() || categoria.nome;
+
+        // Seção de orçamento (apenas despesas)
+        let budgetHtml = '';
+        if (tipo === 'despesa') {
+            const orc = this.getOrcamento(categoria.id);
+            if (orc) {
+                const pct = Math.round(orc.percentual || 0);
+                const statusClass = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
+                budgetHtml = `
+                    <div class="cat-card-budget has-budget ${statusClass}" onclick="categoriasManager.editarOrcamento(${categoria.id}, event)" title="Clique para editar orçamento">
+                        <div class="cat-budget-info">
+                            <span class="cat-budget-text">${this.formatCurrency(orc.gasto_real)} / ${this.formatCurrency(orc.valor_limite)}</span>
+                            <span class="cat-budget-pct ${statusClass}">${pct}%</span>
+                        </div>
+                        <div class="cat-budget-bar">
+                            <div class="cat-budget-fill ${statusClass}" style="width: ${Math.min(pct, 100)}%"></div>
+                        </div>
+                    </div>`;
+            } else {
+                budgetHtml = `
+                    <div class="cat-card-budget no-budget" onclick="categoriasManager.editarOrcamento(${categoria.id}, event)" title="Defina quanto deseja gastar no máximo por mês nesta categoria">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Definir orçamento mensal</span>
+                    </div>`;
+            }
+        }
 
         return `
-            <div class="category-item" data-id="${categoria.id}">
-                <span class="category-name">
-                    ${hasEmoji ? '' : '<i class="fas fa-tag"></i>'}
-                    ${this.escapeHtml(categoria.nome)}
-                </span>
-                <div class="category-actions">
-                    <button type="button" class="action-btn edit" 
-                            onclick="categoriasManager.editarCategoria(${categoria.id})"
-                            title="Editar categoria">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" class="action-btn delete" 
-                            onclick="categoriasManager.excluirCategoria(${categoria.id})"
-                            title="Excluir categoria">
-                        <i class="fas fa-trash"></i>
-                    </button>
+            <div class="cat-card ${tipo}" data-id="${categoria.id}">
+                <div class="cat-card-header">
+                    <div class="cat-card-icon ${tipo}">
+                        ${iconHtml}
+                    </div>
+                    <span class="cat-card-name">${this.escapeHtml(displayName)}</span>
+                    <div class="cat-card-actions">
+                        <button type="button" class="cat-card-btn edit" 
+                                onclick="categoriasManager.editarCategoria(${categoria.id})"
+                                title="Editar">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button type="button" class="cat-card-btn delete" 
+                                onclick="categoriasManager.excluirCategoria(${categoria.id})"
+                                title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
+                ${budgetHtml}
             </div>
         `;
+    }
+
+    /**
+     * Editar/criar orçamento via Modal Bootstrap
+     */
+    editarOrcamento(categoriaId, event) {
+        if (event) event.stopPropagation();
+        
+        const cat = this.categorias.find(c => c.id === categoriaId);
+        if (!cat) return;
+
+        const orc = this.getOrcamento(categoriaId);
+        const currentValue = orc ? parseFloat(orc.valor_limite) : 0;
+
+        // Preencher modal
+        document.getElementById('orcCategoriaNome').textContent = cat.nome;
+        const gastoEl = document.getElementById('orcGastoAtual');
+        const gastoValorEl = document.getElementById('orcGastoValor');
+        const btnRemover = document.getElementById('btnRemoverOrcamento');
+        const btnText = document.getElementById('btnOrcText');
+        const inputValor = document.getElementById('orcValorLimite');
+        const alertEl = document.getElementById('orcAlertError');
+
+        // Reset
+        alertEl.classList.add('d-none');
+        inputValor.value = currentValue > 0 ? this.formatOrcamentoInput(currentValue) : '';
+
+        if (orc) {
+            gastoEl.classList.remove('d-none');
+            gastoValorEl.textContent = this.formatCurrency(orc.gasto_real);
+            btnRemover.classList.remove('d-none');
+            btnText.textContent = 'Atualizar';
+        } else {
+            gastoEl.classList.add('d-none');
+            btnRemover.classList.add('d-none');
+            btnText.textContent = 'Definir';
+        }
+
+        // Salvar categoriaId no form
+        const form = document.getElementById('formOrcamento');
+        form.dataset.categoriaId = categoriaId;
+
+        // Eventos (remover anteriores para evitar duplicatas)
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+
+        // Máscara de moeda no input
+        const newInput = newForm.querySelector('#orcValorLimite');
+        newInput.addEventListener('input', () => {
+            this.applyCurrencyMask(newInput);
+        });
+
+        newForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const raw = document.getElementById('orcValorLimite').value;
+            const val = this.parseCurrencyInput(raw);
+            const errEl = document.getElementById('orcAlertError');
+            if (!val || isNaN(val) || val <= 0) {
+                errEl.textContent = 'Informe um valor maior que zero';
+                errEl.classList.remove('d-none');
+                return;
+            }
+            errEl.classList.add('d-none');
+            await this.salvarOrcamento(parseInt(newForm.dataset.categoriaId), val);
+            bootstrap.Modal.getInstance(document.getElementById('modalOrcamento'))?.hide();
+        });
+
+        // Botão remover
+        const newBtnRemover = document.getElementById('btnRemoverOrcamento');
+        const clonedBtn = newBtnRemover.cloneNode(true);
+        newBtnRemover.parentNode.replaceChild(clonedBtn, newBtnRemover);
+        clonedBtn.addEventListener('click', async () => {
+            if (orc) {
+                await this.removerOrcamento(orc.id);
+                bootstrap.Modal.getInstance(document.getElementById('modalOrcamento'))?.hide();
+            }
+        });
+
+        // Re-apontar o botão submit ao novo form
+        document.getElementById('btnSalvarOrcamento').setAttribute('form', 'formOrcamento');
+
+        // Abrir modal
+        const modal = new bootstrap.Modal(document.getElementById('modalOrcamento'));
+        modal.show();
+
+        // Focar no input após abrir
+        document.getElementById('modalOrcamento').addEventListener('shown.bs.modal', () => {
+            document.getElementById('orcValorLimite').focus();
+        }, { once: true });
+    }
+
+    /**
+     * Salvar orçamento via API (usa o mesmo endpoint de financas)
+     */
+    async salvarOrcamento(categoriaId, valorLimite) {
+        try {
+            const mes = this.mesSelecionado;
+            const ano = this.anoSelecionado;
+            const baseUrl = this.getBaseUrl();
+
+            const response = await fetch(`${baseUrl}api/financas/orcamentos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': this.getCsrfToken()
+                },
+                body: JSON.stringify({
+                    categoria_id: categoriaId,
+                    valor_limite: valorLimite,
+                    mes: mes,
+                    ano: ano
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao salvar orçamento');
+            }
+
+            this.showSuccess('Limite atualizado!');
+            await this.loadOrcamentos();
+            this.renderCategorias();
+        } catch (e) {
+            console.error('Erro ao salvar orçamento:', e);
+            this.showError('Erro ao salvar limite. Tente novamente.');
+        }
+    }
+
+    /**
+     * Remover orçamento via API
+     */
+    async removerOrcamento(orcamentoId) {
+        try {
+            const baseUrl = this.getBaseUrl();
+            const response = await fetch(`${baseUrl}api/financas/orcamentos/${orcamentoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': this.getCsrfToken()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao remover orçamento');
+            }
+
+            this.showSuccess('Limite removido!');
+            await this.loadOrcamentos();
+            this.renderCategorias();
+        } catch (e) {
+            console.error('Erro ao remover orçamento:', e);
+            this.showError('Erro ao remover limite. Tente novamente.');
+        }
+    }
+
+    /**
+     * Formatar valor para exibição no input (1500.50 → "1.500,50")
+     */
+    formatOrcamentoInput(value) {
+        const num = parseFloat(value);
+        if (isNaN(num)) return '';
+        return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /**
+     * Aplicar máscara de moeda no input (aceita só números, formata automaticamente)
+     */
+    applyCurrencyMask(input) {
+        // Remove tudo que não é dígito
+        let digits = input.value.replace(/\D/g, '');
+        // Remove zeros à esquerda (mantém pelo menos 1)
+        digits = digits.replace(/^0+(?=\d)/, '');
+        if (!digits) {
+            input.value = '';
+            return;
+        }
+        // Converter para centavos → reais
+        const value = parseInt(digits) / 100;
+        input.value = value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /**
+     * Parse valor formatado BR para float ("1.500,50" → 1500.50)
+     */
+    parseCurrencyInput(str) {
+        if (!str) return 0;
+        const cleaned = str.replace(/\./g, '').replace(',', '.');
+        return parseFloat(cleaned);
     }
 
     /**
@@ -223,8 +513,8 @@ class CategoriasManager {
             this.showSuccess('Categoria criada com sucesso!');
             form.reset();
 
-            // Recarregar categorias
-            await this.loadCategorias();
+            // Recarregar tudo
+            await this.loadAll();
 
         } catch (error) {
             console.error('❌ Erro ao criar categoria:', error);
@@ -287,8 +577,8 @@ class CategoriasManager {
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditCategoria'));
             modal.hide();
 
-            // Recarregar categorias
-            await this.loadCategorias();
+            // Recarregar tudo
+            await this.loadAll();
 
         } catch (error) {
             console.error('❌ Erro ao editar categoria:', error);
@@ -335,8 +625,8 @@ class CategoriasManager {
 
             this.showSuccess('Categoria excluída com sucesso!');
 
-            // Recarregar categorias
-            await this.loadCategorias();
+            // Recarregar tudo
+            await this.loadAll();
 
         } catch (error) {
             console.error('❌ Erro ao excluir categoria:', error);

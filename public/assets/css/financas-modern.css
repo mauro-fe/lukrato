@@ -33,51 +33,7 @@
   }
 }
 
-/* ============================================================================
-   SELETOR DE MÊS
-   ============================================================================ */
-
-.fin-month-selector {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) 0;
-}
-
-.month-nav-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  color: var(--color-text);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.month-nav-btn:hover {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
-  transform: scale(1.05);
-}
-
-.month-display {
-  min-width: 200px;
-  text-align: center;
-}
-
-.month-label {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text);
-}
+/* Seletor de mês agora usa o componente compartilhado header_mes.php */
 
 /* ============================================================================
    CARDS RESUMO (GRID)
@@ -175,6 +131,55 @@
 /* Saúde Ring */
 .saude-card {
   position: relative;
+}
+
+.saude-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* CTA: sem orçamentos */
+.saude-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+}
+
+.saude-cta-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.saude-cta-icon i {
+  font-size: 20px;
+  color: var(--color-primary);
+  animation: saudePulse 2s ease-in-out infinite;
+}
+
+@keyframes saudePulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.saude-cta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.saude-cta-msg {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  max-width: 200px;
 }
 
 .saude-ring {
@@ -723,6 +728,30 @@
   font-weight: 500;
 }
 
+.meta-conta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-weight: 500;
+}
+
+.fin-badge-optional {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  background: rgba(100, 100, 120, 0.12);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 /* ============================================================================
    INSIGHTS GRID
    ============================================================================ */
@@ -731,6 +760,26 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
+}
+
+/* Section label inside tabs */
+.fin-section-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-3);
+}
+.fin-section-label i {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+}
+.fin-insights-section {
+  margin-top: var(--spacing-5);
 }
 
 .insight-card {
@@ -891,7 +940,7 @@
 }
 
 .fin-modal {
-  background: var(--color-surface, #fff);
+  background: var(--color-bg, #fff);
   border-radius: var(--radius-xl, 16px);
   width: 100%;
   max-width: 480px;
@@ -1014,7 +1063,7 @@
   padding: 10px 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
-  background: var(--color-surface, #fff);
+  background: var(--color-bg, #fff) !important;
   color: var(--color-text);
   font-size: 0.9rem;
   font-family: inherit;
@@ -1218,6 +1267,25 @@
   font-size: 0.7rem;
 }
 
+.sugestao-economia {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-top: 3px;
+}
+
+.sugestao-economia::before {
+  content: '💰';
+  font-size: 0.7rem;
+}
+
 .sugestao-valor {
   width: 120px;
   flex-shrink: 0;
@@ -1286,6 +1354,9 @@
 .template-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
+  color: var(--color-primary);
+  width: 2rem;
+  text-align: center;
 }
 
 .template-info {
