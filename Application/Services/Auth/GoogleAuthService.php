@@ -164,6 +164,21 @@ class GoogleAuthService
             ]);
         }
 
+        // Envia email de boas-vindas (Google já verifica o email, então envia direto)
+        try {
+            $mailService = new \Application\Services\MailService();
+            $mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuário');
+            LogService::info('Email de boas-vindas enviado (registro via Google)', [
+                'user_id' => $usuario->id,
+                'email' => $usuario->email,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::error('Erro ao enviar email de boas-vindas (registro via Google)', [
+                'user_id' => $usuario->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return $usuario;
     }
 

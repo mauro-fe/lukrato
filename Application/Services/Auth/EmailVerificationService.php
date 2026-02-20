@@ -111,6 +111,20 @@ class EmailVerificationService
             'email' => $user->email,
         ]);
 
+        // Envia email de boas-vindas após confirmação do email
+        try {
+            $this->mailService->sendWelcomeEmail($user->email, $user->nome ?? 'Usuário');
+            LogService::info('[EmailVerification] Email de boas-vindas enviado após verificação', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::error('[EmailVerification] Erro ao enviar email de boas-vindas', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         // Processa recompensas de indicação que estavam pendentes
         $this->processReferralReward($user);
 
