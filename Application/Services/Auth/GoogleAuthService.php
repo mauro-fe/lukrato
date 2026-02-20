@@ -128,7 +128,8 @@ class GoogleAuthService
 
     private function createUserFromGoogle(array $userInfo, string $referralCode = ''): Usuario
     {
-        $randomPassword = bin2hex(random_bytes(16));
+        // Gera senha aleatória forte que passa na validação (maiúscula, minúscula, número, especial)
+        $randomPassword = bin2hex(random_bytes(12)) . 'A1@x';
 
         $registerData = [
             'name' => $userInfo['name'] ?: strtok($userInfo['email'], '@'),
