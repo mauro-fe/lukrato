@@ -216,6 +216,7 @@
                 icon: 'star'
             }
         ],
+<<<<<<< HEAD
         'billing': [
             {
                 selector: '.plan-card--recommended, .plan-card.pro',
@@ -232,6 +233,10 @@
                 icon: 'calendar-check'
             }
         ]
+=======
+        // Página de billing não precisa de tooltips - já é autoexplicativa
+        'billing': []
+>>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
     };
 
     // ============================================

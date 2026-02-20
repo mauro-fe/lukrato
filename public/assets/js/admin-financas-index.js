@@ -671,7 +671,10 @@ class FinancasManager {
                 alerta_100: alerta100
             });
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 this.closeModal('modalOrcamento');
                 this.showToast('Orçamento salvo!', 'success');
                 await this.loadAll();
@@ -798,7 +801,10 @@ class FinancasManager {
                 orcamentos: orcamentos
             });
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 this.closeModal('modalSugestoes');
                 this.showToast(`${res.data?.aplicados || orcamentos.length} orçamentos configurados!`, 'success');
                 await this.loadAll();
@@ -837,7 +843,10 @@ class FinancasManager {
                 ano_destino: this.currentYear
             });
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 this.showToast(`${res.data?.copiados || 0} orçamentos copiados!`, 'success');
                 await this.loadAll();
             } else {
@@ -949,7 +958,10 @@ class FinancasManager {
                 res = await this.apiPost('api/financas/metas', data);
             }
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 // Processar conquistas desbloqueadas
                 const responseData = res.data;
                 const gamification = responseData?.gamification || res.gamification;
@@ -1219,6 +1231,55 @@ class FinancasManager {
             }
         });
         return await response.json();
+    }
+
+    /**
+     * Verifica se a resposta da API indica erro de limite do plano
+     * e exibe modal de upgrade se necessário
+     * @returns true se foi erro de limite tratado, false caso contrário
+     */
+    handleLimitError(res) {
+        const isError = res.status === 'error' || res.success === false;
+        if (!isError) return false;
+
+        const msg = res.message || '';
+        const isLimitError = /limite|plano gratuito|upgrade|faça upgrade/i.test(msg);
+
+        if (isLimitError) {
+            Swal.fire({
+                icon: 'warning',
+                title: '🚀 Limite Atingido',
+                html: `
+                    <p>${msg}</p>
+                    <p style="margin-top: 12px; color: #6c757d; font-size: 0.9em;">
+                        Desbloqueie metas e orçamentos ilimitados com o plano Pro!
+                    </p>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '✨ Ver Plano Pro',
+                cancelButtonText: 'Depois',
+                confirmButtonColor: '#6366f1',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.goToBilling();
+                }
+            });
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Redireciona para a página de billing/assinatura
+     */
+    goToBilling() {
+        if (typeof openBillingModal === 'function') {
+            openBillingModal();
+        } else {
+            window.location.href = `${this.baseUrl}billing`;
+        }
     }
 
     // ==================== UTILS ====================

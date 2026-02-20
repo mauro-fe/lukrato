@@ -18,10 +18,12 @@ use Application\Repositories\OrcamentoRepository;
 class OrcamentoService
 {
     private OrcamentoRepository $repo;
+    private PlanLimitService $planLimit;
 
     public function __construct()
     {
         $this->repo = new OrcamentoRepository();
+        $this->planLimit = new PlanLimitService();
     }
 
     /**
@@ -72,9 +74,23 @@ class OrcamentoService
 
     /**
      * Criar ou atualizar orçamento
+     * 
+     * @throws \DomainException Se limite do plano for atingido ao criar novo
      */
     public function salvar(int $userId, int $categoriaId, int $mes, int $ano, array $data): array
     {
+        // Verificar se já existe orçamento para esta categoria/mês/ano
+        $existente = OrcamentoCategoria::where('user_id', $userId)
+            ->where('categoria_id', $categoriaId)
+            ->where('mes', $mes)
+            ->where('ano', $ano)
+            ->exists();
+
+        // Se não existe, validar limite do plano antes de criar
+        if (!$existente) {
+            $this->planLimit->assertCanCreateOrcamento($userId);
+        }
+
         $orc = $this->repo->upsert($userId, $categoriaId, $mes, $ano, [
             'valor_limite' => (float) ($data['valor_limite'] ?? 0),
             'rollover'     => (bool) ($data['rollover'] ?? false),
@@ -87,9 +103,47 @@ class OrcamentoService
 
     /**
      * Salvar múltiplos orçamentos de uma vez (bulk save)
+     * 
+     * @throws \DomainException Se limite do plano for excedido
      */
     public function salvarMultiplos(int $userId, int $mes, int $ano, array $orcamentos): array
     {
+        // Contar quantos novos orçamentos serão criados (que não existem ainda)
+        $novosCount = 0;
+        foreach ($orcamentos as $item) {
+            $catId = (int) ($item['categoria_id'] ?? 0);
+            $valor = (float) ($item['valor_limite'] ?? 0);
+
+            if ($catId <= 0 || $valor <= 0) continue;
+
+            $existente = OrcamentoCategoria::where('user_id', $userId)
+                ->where('categoria_id', $catId)
+                ->where('mes', $mes)
+                ->where('ano', $ano)
+                ->exists();
+
+            if (!$existente) {
+                $novosCount++;
+            }
+        }
+
+        // Verificar se o limite será excedido
+        if ($novosCount > 0) {
+            $canCreate = $this->planLimit->canCreateOrcamento($userId);
+            if (!$canCreate['allowed']) {
+                throw new \DomainException($canCreate['message']);
+            }
+
+            // Verificar se os novos orçamentos excedem o limite restante
+            if ($canCreate['limit'] !== null && $novosCount > $canCreate['remaining']) {
+                $restantes = $canCreate['remaining'];
+                throw new \DomainException(
+                    "Você só pode criar mais {$restantes} orçamento(s) no plano gratuito. " .
+                        "Faça upgrade para orçamentos ilimitados."
+                );
+            }
+        }
+
         foreach ($orcamentos as $item) {
             $catId = (int) ($item['categoria_id'] ?? 0);
             $valor = (float) ($item['valor_limite'] ?? 0);
@@ -157,7 +211,7 @@ class OrcamentoService
                     'media_gastos'     => round($media, 2),
                     'media_3_meses'    => round($media, 2),
                     'valor_sugerido'   => $sugerido,
-                    'economia_sugerida'=> $economiaSugerida,
+                    'economia_sugerida' => $economiaSugerida,
                     'tendencia'        => $tendencia,
                 ];
             }
