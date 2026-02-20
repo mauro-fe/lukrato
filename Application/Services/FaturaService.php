@@ -137,8 +137,10 @@ class FaturaService
             $fatura = Fatura::where('id', $faturaId)
                 ->where('user_id', $usuarioId)
                 ->with(['cartaoCredito', 'itens' => function ($query) {
-                    $query->orderBy('mes_referencia')
-                        ->orderBy('ano_referencia');
+                    $query->orderBy('ano_referencia')
+                        ->orderBy('mes_referencia')
+                        ->orderBy('data_compra')
+                        ->orderBy('parcela_atual');
                 }])
                 ->first();
 
@@ -1176,6 +1178,7 @@ class FaturaService
                 'total_parcelas' => $item->total_parcelas ?? $fatura->numero_parcelas,
                 'valor_parcela' => round((float) $item->valor, 2),
                 'descricao' => $item->descricao ?? $fatura->descricao,
+                'data_compra' => $item->data_compra?->format('Y-m-d'),
                 'mes_referencia' => $item->mes_referencia,
                 'ano_referencia' => $item->ano_referencia,
                 'pago' => (bool) $item->pago,
@@ -1247,10 +1250,10 @@ class FaturaService
     private function formatarCartao(CartaoCredito $cartao): array
     {
         // Cor: prioridade para cor_cartao, depois cor da instituição financeira
-        $cor = $cartao->cor_cartao 
-            ?? $cartao->conta?->instituicaoFinanceira?->cor_primaria 
+        $cor = $cartao->cor_cartao
+            ?? $cartao->conta?->instituicaoFinanceira?->cor_primaria
             ?? null;
-        
+
         return [
             'id' => $cartao->id,
             'nome' => $cartao->nome_cartao ?? $cartao->bandeira,

@@ -62,7 +62,8 @@ class CartaoFaturaService
         $itens = FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
             ->whereYear('data_vencimento', $ano)
             ->whereMonth('data_vencimento', $mes)
-            ->orderBy('data_compra')
+            ->orderBy('data_compra', 'desc')
+            ->orderBy('id', 'desc')
             ->get();
 
         $total = $itens->where('pago', false)->sum('valor');

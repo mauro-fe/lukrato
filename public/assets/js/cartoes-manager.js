@@ -1701,6 +1701,7 @@ class CartoesManager {
                                         <div class="lancamento-item lancamento-pago">
                                             <div class="lanc-info">
                                                 <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                                ${parcela.data_compra ? `<span class="lanc-data-compra"><i class="fas fa-shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                                 <span class="lanc-data-pagamento">
                                                     <i class="fas fa-calendar-check"></i>
                                                     Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
@@ -1749,6 +1750,7 @@ class CartoesManager {
                                         </label>
                                         <div class="lanc-info">
                                             <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                            ${parcela.data_compra ? `<span class="lanc-data-compra"><i class="fas fa-shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                         </div>
                                         <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
                                     </div>
@@ -1767,6 +1769,7 @@ class CartoesManager {
                                         <div class="lancamento-item lancamento-pago">
                                             <div class="lanc-info">
                                                 <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                                ${parcela.data_compra ? `<span class="lanc-data-compra"><i class="fas fa-shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                                 <span class="lanc-data-pagamento">
                                                     <i class="fas fa-calendar-check"></i>
                                                     Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
@@ -1973,6 +1976,7 @@ class CartoesManager {
                                 <div class="lancamento-item lancamento-pago">
                                     <div class="lanc-info">
                                         <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                        ${parcela.data_compra ? `<span class="lanc-data-compra"><i class="fas fa-shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                         <span class="lanc-data-pagamento">
                                             <i class="fas fa-calendar-check"></i>
                                             ${parcela.parcela_atual}/${parcela.total_parcelas}

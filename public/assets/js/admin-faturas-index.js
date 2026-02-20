@@ -64,6 +64,8 @@
         parcelamentos: [],
         cartoes: [],
         faturaAtual: null,
+        sortColumn: 'data_compra',
+        sortDirection: 'asc',
         filtros: {
             status: '',
             cartao_id: '',
@@ -331,11 +333,11 @@
             const cartaoInfo = this.getCartaoInfo(parc);
             const resumoPrincipal = this.getResumoPrincipal(parc);
             const progressoSection = this.getProgressoSection(totalItens, itensPagos, progresso);
-            
+
             // Nome e número do cartão para exibir na lista
             const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartão') : 'Cartão';
             const cartaoNumero = parc.cartao?.ultimos_digitos ? `•••• ${parc.cartao.ultimos_digitos}` : '';
-            
+
             // Cor do cartão (definida pelo usuário, instituição ou bandeira)
             const cardColor = this.getCardColor(parc.cartao);
             const bandeira = parc.cartao?.bandeira?.toLowerCase() || 'outros';
@@ -510,11 +512,11 @@
                 this.attachDetalhesEventListeners(parc.id);
 
                 // Remover foco antes de mostrar modal
-                document.activeElement?.blur();
+                document.activeElement?.blur();;
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
                 console.error('Erro ao abrir detalhes:', error);
-                
+
                 // Se erro 404, a fatura foi excluída - apenas fechar modal silenciosamente
                 if (error.message && error.message.includes('404')) {
                     if (STATE.modalDetalhesInstance) {
@@ -522,7 +524,7 @@
                     }
                     return;
                 }
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
@@ -532,6 +534,25 @@
         },
 
         attachDetalhesEventListeners(faturaId) {
+            // Botões de ordenação nas colunas
+            const thSortable = DOM.detalhesContent.querySelectorAll('.th-sortable');
+            thSortable.forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sort;
+                    if (STATE.sortColumn === col) {
+                        STATE.sortDirection = STATE.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        STATE.sortColumn = col;
+                        STATE.sortDirection = 'asc';
+                    }
+                    // Re-renderizar detalhes mantendo estado
+                    if (STATE.faturaAtual) {
+                        DOM.detalhesContent.innerHTML = this.renderDetalhes(STATE.faturaAtual);
+                        this.attachDetalhesEventListeners(faturaId);
+                    }
+                });
+            });
+
             // Botões de pagar/desfazer pagamento
             const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-pagar, .btn-desfazer');
             btnToggles.forEach(btn => {
@@ -702,6 +723,18 @@
         },
 
         renderParcelasTabela(parc) {
+            const sortIcon = (col) => {
+                if (STATE.sortColumn === col) {
+                    return STATE.sortDirection === 'asc'
+                        ? '<i class="fas fa-sort-up sort-icon active"></i>'
+                        : '<i class="fas fa-sort-down sort-icon active"></i>';
+                }
+                return '<i class="fas fa-sort sort-icon"></i>';
+            };
+
+            // Ordenar parcelas
+            const parcelasOrdenadas = this.sortParcelas(parc.parcelas || []);
+
             // Versão desktop: tabela
             let html = `
                 <h4 class="parcelas-titulo">📋 Lista de Itens</h4>
@@ -712,17 +745,17 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Descrição</th>
-                                <th>Valor</th>
-                                <th>Status</th>
+                                <th class="th-sortable" data-sort="descricao">Descrição ${sortIcon('descricao')}</th>
+                                <th class="th-sortable" data-sort="data_compra">Data Compra ${sortIcon('data_compra')}</th>
+                                <th class="th-sortable" data-sort="valor">Valor ${sortIcon('valor')}</th>
                                 <th>Ação</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
-            if (parc.parcelas && parc.parcelas.length > 0) {
-                parc.parcelas.forEach((parcela, index) => {
+            if (parcelasOrdenadas.length > 0) {
+                parcelasOrdenadas.forEach((parcela, index) => {
                     html += this.renderParcelaRow(parcela, index, parc.descricao);
                 });
             } else {
@@ -745,7 +778,8 @@
             `;
 
             if (parc.parcelas && parc.parcelas.length > 0) {
-                parc.parcelas.forEach((parcela, index) => {
+                const parcelasOrdMobile = this.sortParcelas(parc.parcelas);
+                parcelasOrdMobile.forEach((parcela, index) => {
                     html += this.renderParcelaCard(parcela, index, parc.descricao);
                 });
             } else {
@@ -759,6 +793,33 @@
             html += `</div>`;
 
             return html;
+        },
+
+        sortParcelas(parcelas) {
+            if (!parcelas || parcelas.length === 0) return [];
+            const sorted = [...parcelas];
+            const dir = STATE.sortDirection === 'asc' ? 1 : -1;
+            const col = STATE.sortColumn;
+
+            sorted.sort((a, b) => {
+                if (col === 'descricao') {
+                    const descA = (a.descricao || '').toLowerCase();
+                    const descB = (b.descricao || '').toLowerCase();
+                    return descA.localeCompare(descB) * dir;
+                }
+                if (col === 'data_compra') {
+                    const dA = a.data_compra || '0000-00-00';
+                    const dB = b.data_compra || '0000-00-00';
+                    return dA.localeCompare(dB) * dir;
+                }
+                if (col === 'valor') {
+                    const vA = parseFloat(a.valor_parcela || a.valor || 0);
+                    const vB = parseFloat(b.valor_parcela || b.valor || 0);
+                    return (vA - vB) * dir;
+                }
+                return 0;
+            });
+            return sorted;
         },
 
         renderParcelaCard(parcela, index, descricaoFatura) {
@@ -819,6 +880,12 @@
                             <span class="parcela-card-label">Descrição</span>
                             <span class="parcela-card-value">${Utils.escapeHtml(descricaoItem)}</span>
                         </div>
+                        ${parcela.data_compra ? `
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Data Compra</span>
+                            <span class="parcela-card-value"><i class="fas fa-shopping-cart" style="margin-right: 4px; font-size: 0.75rem;"></i>${Utils.formatDate(parcela.data_compra)}</span>
+                        </div>
+                        ` : ''}
                         <div class="parcela-card-info">
                             <span class="parcela-card-label">Valor</span>
                             <span class="parcela-card-value parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
@@ -881,6 +948,9 @@
                 descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
             }
 
+            // Formatar data de compra
+            const dataCompraFormatada = parcela.data_compra ? Utils.formatDate(parcela.data_compra) : '-';
+
             // Estornos aparecem diferente
             if (isEstorno) {
                 return `
@@ -891,13 +961,13 @@
                         <td data-label="Descrição" class="td-descricao">
                             <div class="parcela-desc" style="color: #10b981;">${Utils.escapeHtml(descricaoItem)}</div>
                         </td>
+                        <td data-label="Data Compra">
+                            <span style="color: #10b981; font-size: 0.85rem;">${dataCompraFormatada}</span>
+                        </td>
                         <td data-label="Valor">
                             <span class="parcela-valor" style="color: #10b981; font-weight: 600;">
                                 - ${Utils.formatMoney(Math.abs(parcela.valor_parcela))}
                             </span>
-                        </td>
-                        <td data-label="Status" class="td-status">
-                            <span class="status-badge parcela-paga" style="background: #10b981;">✅ Creditado</span>
                         </td>
                         <td data-label="Ação" class="td-acoes">
                             <span style="color: #10b981; font-size: 0.85rem;">Estorno aplicado</span>
@@ -914,11 +984,11 @@
                     <td data-label="Descrição" class="td-descricao">
                         <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}</div>
                     </td>
+                    <td data-label="Data Compra">
+                        <span style="font-size: 0.85rem; color: #9ca3af;">${dataCompraFormatada}</span>
+                    </td>
                     <td data-label="Valor">
                         <span class="parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
-                    </td>
-                    <td data-label="Status" class="td-status">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
                     <td data-label="Ação" class="td-acoes">
                         ${this.renderParcelaButton(parcela, isPaga)}
@@ -1336,7 +1406,7 @@
 
                 // Verificar se a fatura ainda existe antes de reabrir o modal
                 const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
-                
+
                 if (faturaAindaExiste) {
                     // Reabrir o modal com dados atualizados
                     setTimeout(() => {
@@ -1432,7 +1502,7 @@
 
                 // Verificar se a fatura ainda existe antes de reabrir o modal
                 const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
-                
+
                 if (faturaAindaExiste) {
                     // Reabrir o modal com dados atualizados
                     setTimeout(() => {
@@ -1674,23 +1744,23 @@
         initViewToggle() {
             const viewToggle = document.querySelector('.view-toggle');
             const container = DOM.containerEl;
-            
+
             if (!viewToggle || !container) return;
 
             const viewButtons = viewToggle.querySelectorAll('.view-btn');
-            
+
             // Restaurar preferência salva
             const savedView = localStorage.getItem('faturas_view_mode') || 'grid';
             if (savedView === 'list') {
                 container.classList.add('list-view');
             }
-            
+
             // Atualizar estado dos botões
             this.updateViewToggleState(viewButtons, savedView);
 
             // Referência ao header da lista
             const listHeader = document.getElementById('faturasListHeader');
-            
+
             // Mostrar/ocultar header conforme view inicial
             if (savedView === 'list' && listHeader) {
                 listHeader.classList.add('visible');
@@ -1700,7 +1770,7 @@
             viewButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     const view = btn.dataset.view;
-                    
+
                     if (view === 'list') {
                         container.classList.add('list-view');
                         if (listHeader) listHeader.classList.add('visible');
@@ -1708,10 +1778,10 @@
                         container.classList.remove('list-view');
                         if (listHeader) listHeader.classList.remove('visible');
                     }
-                    
+
                     // Salvar preferência
                     localStorage.setItem('faturas_view_mode', view);
-                    
+
                     // Atualizar estado dos botões
                     this.updateViewToggleState(viewButtons, view);
                 });
@@ -2175,7 +2245,7 @@
     // ============================================================================
     // MODAL PAGAR FATURA - BOOTSTRAP
     // ============================================================================
-    
+
     // Estado do modal de pagamento
     const ModalPagarFatura = {
         instance: null,
@@ -2227,9 +2297,9 @@
                         return;
                     }
                     value = (parseInt(value) / 100).toFixed(2);
-                    e.target.value = parseFloat(value).toLocaleString('pt-BR', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
+                    e.target.value = parseFloat(value).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     });
                 });
 
