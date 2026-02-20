@@ -13,7 +13,10 @@ $theme = $userTheme ?? 'dark';
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <?= csrf_meta('default') ?>
     <link rel="icon" type="image/png" href="<?= $favicon ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" crossorigin="anonymous">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="<?= $base ?>assets/css/lucide-compat.css">
+    <script src="<?= $base ?>assets/js/lucide.min.js"></script>
     <link rel="stylesheet" href="<?= $base ?>assets/css/variables.css">
 </head>
 <body style="margin:0;padding:0;background:var(--color-bg);">
@@ -390,7 +393,7 @@ $theme = $userTheme ?? 'dark';
         <!-- Erro -->
         <?php if (!empty($_SESSION['error'])): ?>
             <div class="lk-onboarding-error">
-                <i class="fas fa-exclamation-circle"></i>
+                <i data-lucide="circle-alert"></i>
                 <?= htmlspecialchars($_SESSION['error']) ?>
             </div>
             <?php unset($_SESSION['error']); ?>
@@ -399,7 +402,7 @@ $theme = $userTheme ?? 'dark';
         <!-- Steps -->
         <div class="lk-steps">
             <div class="lk-step done">
-                <div class="lk-step-circle"><i class="fas fa-check" style="font-size:0.7rem"></i></div>
+                <div class="lk-step-circle"><i data-lucide="check" style="font-size:0.7rem"></i></div>
             </div>
             <div class="lk-step active">
                 <div class="lk-step-line"></div>
@@ -410,7 +413,7 @@ $theme = $userTheme ?? 'dark';
         <!-- Hero -->
         <div class="lk-ob-hero">
             <div class="lk-ob-hero-icon">
-                <i class="fas fa-receipt"></i>
+                <i data-lucide="receipt"></i>
             </div>
             <h1>Registre seu primeiro lançamento</h1>
             <p>Pode ser algo simples — uma despesa recente ou seu salário do mês.</p>
@@ -425,12 +428,12 @@ $theme = $userTheme ?? 'dark';
             <!-- Conta (visual, não editável) -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-wallet"></i>
+                    <i data-lucide="wallet"></i>
                     Conta
                 </label>
                 <div class="lk-conta-info">
                     <div class="lk-conta-icon">
-                        <i class="fas fa-university"></i>
+                        <i data-lucide="landmark"></i>
                     </div>
                     <div class="lk-conta-details">
                         <div class="lk-conta-name"><?= htmlspecialchars($conta->nome) ?></div>
@@ -439,7 +442,7 @@ $theme = $userTheme ?? 'dark';
                         <?php endif; ?>
                     </div>
                     <div class="lk-conta-check">
-                        <i class="fas fa-check-circle"></i>
+                        <i data-lucide="circle-check"></i>
                     </div>
                 </div>
             </div>
@@ -447,16 +450,16 @@ $theme = $userTheme ?? 'dark';
             <!-- Tipo: Receita / Despesa -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-exchange-alt"></i>
+                    <i data-lucide="arrow-left-right"></i>
                     Tipo <span class="lk-req">*</span>
                 </label>
                 <input type="hidden" name="tipo" id="tipoInput" value="despesa">
                 <div class="lk-tipo-toggle">
                     <button type="button" class="lk-tipo-btn active-despesa" data-tipo="despesa" id="btnDespesa">
-                        <i class="fas fa-arrow-down"></i> Despesa
+                        <i data-lucide="arrow-down"></i> Despesa
                     </button>
                     <button type="button" class="lk-tipo-btn" data-tipo="receita" id="btnReceita">
-                        <i class="fas fa-arrow-up"></i> Receita
+                        <i data-lucide="arrow-up"></i> Receita
                     </button>
                 </div>
             </div>
@@ -464,7 +467,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Valor -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-dollar-sign"></i>
+                    <i data-lucide="dollar-sign"></i>
                     Valor <span class="lk-req">*</span>
                 </label>
                 <div class="lk-input-money">
@@ -477,7 +480,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Categoria -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-tag"></i>
+                    <i data-lucide="tag"></i>
                     Categoria <span class="lk-req">*</span>
                 </label>
                 <select name="categoria_id" class="lk-select" required id="categoriaSelect">
@@ -498,7 +501,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Descrição -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-pencil-alt"></i>
+                    <i data-lucide="pencil"></i>
                     Descrição <span class="lk-req">*</span>
                 </label>
                 <input type="text" name="descricao" class="lk-input" placeholder="Ex: Almoço, Salário, Uber..." required
@@ -508,11 +511,11 @@ $theme = $userTheme ?? 'dark';
             <!-- Botão -->
             <button type="submit" class="lk-btn-primary" id="btnSubmit">
                 Concluir e começar a usar!
-                <i class="fas fa-check"></i>
+                <i data-lucide="check"></i>
             </button>
 
             <p class="lk-onboarding-hint">
-                <i class="fas fa-info-circle"></i>
+                <i data-lucide="info"></i>
                 Você poderá adicionar mais lançamentos depois
             </p>
 
@@ -580,5 +583,6 @@ $theme = $userTheme ?? 'dark';
         }
     });
 </script>
+<script src="<?= $base ?>assets/js/lucide-init.js"></script>
 </body>
 </html>

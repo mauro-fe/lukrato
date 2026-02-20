@@ -418,7 +418,7 @@ class ReportService
                 $variacao = (($valores[2] - $valores[0]) / $valorBase) * 100;
                 $insights['tendencia'] = [
                     'type' => 'warning',
-                    'icon' => 'fa-arrow-trend-up',
+                    'icon' => 'trending-up',
                     'status' => 'Gastos Aumentando',
                     'variacao' => sprintf('+%.1f%%', $variacao),
                     'descricao' => 'Seus gastos aumentaram nos últimos 3 meses',
@@ -430,7 +430,7 @@ class ReportService
                 $variacao = (($valores[0] - $valores[2]) / $valorBase) * 100;
                 $insights['tendencia'] = [
                     'type' => 'success',
-                    'icon' => 'fa-arrow-trend-down',
+                    'icon' => 'trending-down',
                     'status' => 'Gastos Reduzindo',
                     'variacao' => sprintf('-%.1f%%', $variacao),
                     'descricao' => 'Você está controlando bem seus gastos',
@@ -439,7 +439,7 @@ class ReportService
             } else {
                 $insights['tendencia'] = [
                     'type' => 'info',
-                    'icon' => 'fa-minus',
+                    'icon' => 'minus',
                     'status' => 'Gastos Estáveis',
                     'variacao' => '~0%',
                     'descricao' => 'Seus gastos estão consistentes',
@@ -456,7 +456,7 @@ class ReportService
 
             $insights['parcelamentos'] = [
                 'type' => $percentualComprometido > 30 ? 'warning' : 'info',
-                'icon' => 'fa-calendar-days',
+                'icon' => 'calendar-days',
                 'status' => sprintf('%d Parcelamento%s Ativo%s', $qtdParcelas, $qtdParcelas > 1 ? 's' : '', $qtdParcelas > 1 ? 's' : ''),
                 'valor' => sprintf('R$ %.2f', $totalComprometido),
                 'descricao' => sprintf('%.1f%% do limite comprometido mensalmente', $percentualComprometido),
@@ -471,7 +471,7 @@ class ReportService
         if ($percentualUso < 30) {
             $insights['limite'] = [
                 'type' => 'success',
-                'icon' => 'fa-circle-check',
+                'icon' => 'circle-check',
                 'status' => 'Uso Excelente',
                 'percentual' => sprintf('%.1f%%', $percentualUso),
                 'descricao' => 'Você está usando pouco do seu limite',
@@ -480,7 +480,7 @@ class ReportService
         } elseif ($percentualUso < 50) {
             $insights['limite'] = [
                 'type' => 'info',
-                'icon' => 'fa-circle-info',
+                'icon' => 'info',
                 'status' => 'Uso Moderado',
                 'percentual' => sprintf('%.1f%%', $percentualUso),
                 'descricao' => 'Você está usando uma parte razoável do limite',
@@ -489,7 +489,7 @@ class ReportService
         } elseif ($percentualUso < 80) {
             $insights['limite'] = [
                 'type' => 'warning',
-                'icon' => 'fa-triangle-exclamation',
+                'icon' => 'triangle-alert',
                 'status' => 'Uso Elevado',
                 'percentual' => sprintf('%.1f%%', $percentualUso),
                 'descricao' => 'Você está usando mais da metade do limite',
@@ -498,7 +498,7 @@ class ReportService
         } else {
             $insights['limite'] = [
                 'type' => 'danger',
-                'icon' => 'fa-circle-exclamation',
+                'icon' => 'circle-alert',
                 'status' => 'Uso Crítico',
                 'percentual' => sprintf('%.1f%%', $percentualUso),
                 'descricao' => 'Você está próximo ou acima do limite recomendado',

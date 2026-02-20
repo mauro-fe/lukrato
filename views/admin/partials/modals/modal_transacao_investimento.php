@@ -74,7 +74,7 @@
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary" form="form-transacao-investimento">
-                    <i class="fa-solid fa-floppy-disk me-2"></i>Salvar transação
+                    <i data-lucide="save" class="me-2"></i>Salvar transação
                 </button>
             </div>
         </div>

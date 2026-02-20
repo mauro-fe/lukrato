@@ -175,7 +175,7 @@
         let html = `
             <div class="d-flex align-items-center">
                 <div class="flex-grow-1">
-                    <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'exclamation-triangle'} me-2"></i>
+                    <i data-lucide="${type === 'error' ? 'circle-alert' : 'triangle-alert'}" style="width:16px;height:16px;display:inline-block;"></i>
                     <span>${message}</span>
                 </div>
         `;
@@ -183,7 +183,7 @@
         if (showUpgrade) {
             html += `
                 <a href="${CONFIG.upgradeUrl}" class="btn btn-sm btn-${type === 'error' ? 'light' : 'primary'} ms-3">
-                    <i class="fas fa-rocket me-1"></i> Fazer Upgrade
+                    <i data-lucide="rocket" style="width:16px;height:16px;display:inline-block;"></i> Fazer Upgrade
                 </a>
             `;
         }
@@ -251,21 +251,21 @@
                         </div>
                         <div class="modal-body text-center py-4">
                             <div class="mb-3">
-                                <i class="fas fa-crown fa-3x text-warning mb-3" aria-hidden="true"></i>
+                                <i data-lucide="crown" style="width:48px;height:48px;" class="text-warning mb-3" aria-hidden="true"></i>
                                 <p class="upgrade-context-message">${contextMsg}</p>
                                 <p class="text-muted">${message}</p>
                             </div>
                             <div class="text-start mb-4">
                                 <h6 class="text-muted mb-3">Com o Pro você tem:</h6>
                                 <ul class="list-unstyled upgrade-features-list">
-                                    ${features.map(f => `<li class="mb-2"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>${f}</li>`).join('')}
+                                    ${features.map(f => `<li class="mb-2"><i data-lucide="check" style="width:16px;height:16px;display:inline-block;" class="text-success me-2" aria-hidden="true"></i>${f}</li>`).join('')}
                                 </ul>
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Agora não</button>
                             <a href="${CONFIG.upgradeUrl}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-rocket me-2" aria-hidden="true"></i> Quero ser Pro!
+                                <i data-lucide="rocket" style="width:16px;height:16px;display:inline-block;" aria-hidden="true"></i> Quero ser Pro!
                             </a>
                         </div>
                     </div>
@@ -309,14 +309,14 @@
         if (limit.allowed) {
             if (limit.remaining !== undefined && limit.remaining <= 2 && limit.remaining > 0) {
                 return `<span class="badge bg-warning text-dark ms-2" title="Restam ${limit.remaining}">
-                    <i class="fas fa-exclamation-triangle me-1"></i>${limit.remaining} restante${limit.remaining > 1 ? 's' : ''}
+                    <i data-lucide="triangle-alert" style="width:14px;height:14px;display:inline-block;"></i>${limit.remaining} restante${limit.remaining > 1 ? 's' : ''}
                 </span>`;
             }
             return '';
         }
 
         return `<span class="badge bg-danger ms-2" title="Limite atingido">
-            <i class="fas fa-lock me-1"></i>Limite atingido
+            <i data-lucide="lock" style="width:14px;height:14px;display:inline-block;"></i>Limite atingido
         </span>`;
     }
 
@@ -358,7 +358,8 @@
                     // Adicionar badge
                     const badge = document.createElement('span');
                     badge.className = 'limit-badge badge bg-danger ms-2';
-                    badge.innerHTML = '<i class="fas fa-lock"></i>';
+                    badge.innerHTML = '<i data-lucide="lock" style="width:14px;height:14px;"></i>';
+                    if(window.lucide) lucide.createIcons({nodes:[badge]});
                     btn.appendChild(badge);
 
                     // Interceptar clique
@@ -452,7 +453,7 @@
             if (container && !container.querySelector('.history-restriction-info')) {
                 const info = document.createElement('small');
                 info.className = 'history-restriction-info text-muted d-block mt-1';
-                info.innerHTML = `<i class="fas fa-info-circle me-1"></i>${restriction.message}`;
+                info.innerHTML = `<i data-lucide="info" style="width:14px;height:14px;display:inline-block;"></i>${restriction.message}`;
                 container.appendChild(info);
             }
         }

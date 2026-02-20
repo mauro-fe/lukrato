@@ -459,7 +459,8 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.fa-spin {
+.fa-spin,
+.icon-spin {
   animation: spin 1s linear infinite;
 }
 

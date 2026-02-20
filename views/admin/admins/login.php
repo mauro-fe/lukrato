@@ -21,7 +21,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         content="<?= htmlspecialchars(csrf_token('register_form'), ENT_QUOTES, 'UTF-8') ?>">
 
     <title>Login / Cadastro - Lukrato</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/lucide-compat.css">
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
     <?php loadPageCss('admin-admins-login'); ?>
     <style>
         /* ── Password Strength Panel ── */
@@ -130,11 +133,14 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             transform: scale(1.05);
         }
         .pwd-req.pass .req-icon::after {
-            content: '\f00c';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 0.48rem;
-            color: #fff;
+            content: '';
+            display: block;
+            width: 5px;
+            height: 8px;
+            border-right: 1.5px solid #fff;
+            border-bottom: 1.5px solid #fff;
+            transform: rotate(45deg);
+            margin-top: -1px;
         }
 
         /* ── Confirm match indicator ── */
@@ -239,7 +245,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <input type="password" id="password" name="password" placeholder="Senha"
                                             required>
                                         <button type="button" class="toggle-password" data-target="password">
-                                            <i class="fa-solid fa-eye"></i>
+                                            <i data-lucide="eye"></i>
                                         </button>
                                         <small class="field-error" id="passwordError"></small>
                                     </div>
@@ -302,7 +308,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <input type="password" id="reg_password" name="password"
                                             placeholder="Senha" required>
                                         <button type="button" class="toggle-password" data-target="reg_password">
-                                            <i class="fa-solid fa-eye"></i>
+                                            <i data-lucide="eye"></i>
                                         </button>
                                         <div class="pwd-strength" id="pwdStrength">
                                             <div class="pwd-bar-label">
@@ -329,10 +335,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                             placeholder="Confirmar senha" required>
                                         <button type="button" class="toggle-password"
                                             data-target="reg_password_confirm">
-                                            <i class="fa-solid fa-eye"></i>
+                                            <i data-lucide="eye"></i>
                                         </button>
                                         <div class="pwd-match" id="pwdMatch">
-                                            <span class="match-icon"><i class="fas fa-check"></i></span>
+                                            <span class="match-icon"><i data-lucide="check"></i></span>
                                             <span class="match-text"></span>
                                         </div>
                                         <small class="field-error" id="regPasswordConfirmError"></small>
@@ -341,7 +347,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
                                     <div class="field referral-field">
                                         <div class="input-with-icon">
-                                            <i class="fa-solid fa-gift referral-icon"></i>
+                                            <i data-lucide="gift" class="referral-icon"></i>
                                             <input type="text" id="referral_code" name="referral_code"
                                                 placeholder="Código de indicação (opcional)" maxlength="8"
                                                 style="text-transform: uppercase;">
@@ -459,8 +465,9 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                 matchEl.classList.toggle('no-match', !ok);
                 var icon = matchEl.querySelector('.match-icon');
                 var text = matchEl.querySelector('.match-text');
-                icon.innerHTML = ok ? '<i class="fas fa-check"></i>' : '<i class="fas fa-xmark"></i>';
+                icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
                 text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
 
             confirm.addEventListener('input', checkMatch);
@@ -547,10 +554,11 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
                 if (response.ok && data.success) {
                     referralHint.innerHTML =
-                        `<i class="fa-solid fa-check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
+                        `<i data-lucide="check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
                     referralHint.className = 'field-hint valid';
                     referralError.textContent = '';
                     validatedReferralCode = code;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 } else {
                     referralHint.textContent = '';
                     referralHint.className = 'field-hint';
@@ -606,12 +614,16 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             const input = document.getElementById(targetId);
             if (!input) return;
 
-            const icon = btn.querySelector('i');
             const isPassword = input.type === 'password';
-
             input.type = isPassword ? 'text' : 'password';
-            icon.classList.toggle('fa-eye', !isPassword);
-            icon.classList.toggle('fa-eye-slash', isPassword);
+
+            const oldIcon = btn.querySelector('svg, i');
+            if (oldIcon) {
+                const newIcon = document.createElement('i');
+                newIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                oldIcon.replaceWith(newIcon);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
         });
 
         // Helpers de erro
@@ -1105,6 +1117,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         document.head.appendChild(style);
     </script>
 
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide-init.js"></script>
 </body>
 
 </html>

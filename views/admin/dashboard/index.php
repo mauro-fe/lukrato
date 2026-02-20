@@ -313,7 +313,7 @@ if ($showOnboardingCongrats) {
     <div class="lk-checklist-body">
         <button class="lk-checklist-dismiss" id="checklistDismiss" title="Pular etapas">
             <span>Pular</span>
-            <i class="fas fa-times" style="font-size:0.7rem;"></i>
+            <i data-lucide="x" style="font-size:0.7rem;"></i>
         </button>
 
         <div class="lk-checklist-header">
@@ -433,15 +433,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         box.innerHTML = sorted.map(function(item) {
             return '<a href="' + BASE_URL + item.href + '" class="lk-checklist-item ' + (item.done ? 'done' : '') + '">' +
-                '<div class="lk-checklist-check"><i class="fas fa-check"></i></div>' +
+                '<div class="lk-checklist-check"><i data-lucide="check"></i></div>' +
                 '<div class="lk-checklist-item-icon" style="background:color-mix(in srgb, ' + item.color + ' 15%, var(--color-surface));color:' + item.color + ';">' +
-                    '<i class="fas ' + item.icon + '"></i>' +
+                    '<i data-lucide="' + item.icon + '"></i>' +
                 '</div>' +
                 '<div class="lk-checklist-item-text">' +
                     '<span class="lk-checklist-item-label">' + item.label + '</span>' +
                     '<span class="lk-checklist-item-desc">' + item.description + '</span>' +
                 '</div>' +
-                '<i class="fas fa-chevron-right lk-checklist-item-arrow"></i>' +
+                '<i data-lucide="chevron-right" class="lk-checklist-item-arrow"></i>' +
             '</a>';
         }).join('');
     }
@@ -478,14 +478,14 @@ document.addEventListener('DOMContentLoaded', function() {
     <section class="gamification-section" data-aos="fade-up" data-aos-duration="500">
         <div class="gamification-header">
             <div class="gamification-title">
-                <i class="fas fa-trophy"></i>
+                <i data-lucide="trophy"></i>
                 <span>Seu Progresso</span>
                 <span class="pro-badge" id="proBadge" style="display: none;">
-                    <i class="fas fa-gem"></i> PRO
+                    <i data-lucide="gem"></i> PRO
                 </span>
             </div>
             <div class="level-badge" id="userLevel">
-                <i class="fas fa-star"></i>
+                <i data-lucide="star"></i>
                 <span>Nível 1</span>
             </div>
         </div>
@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="streak-number" id="streakDays">0</div>
                 <div class="streak-label">Dias Ativos</div>
                 <div class="streak-protection" id="streakProtection" style="display: none;">
-                    <i class="fas fa-shield-alt"></i>
+                    <i data-lucide="shield"></i>
                     <span>Proteção disponível</span>
                 </div>
             </div>
@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- Badges -->
             <div class="badges-card">
                 <div class="badges-title">
-                    <i class="fas fa-medal"></i>
+                    <i data-lucide="medal"></i>
                     <span>Conquistas</span>
                     <a href="<?= BASE_URL ?>gamification" class="btn-view-all">Ver todas</a>
                 </div>
@@ -557,14 +557,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="pro-cta-card" id="proCTA" style="display: none;">
             <div class="pro-cta-content">
                 <div class="pro-cta-icon">
-                    <i class="fas fa-rocket"></i>
+                    <i data-lucide="rocket"></i>
                 </div>
                 <div class="pro-cta-text">
                     <h3>Acelere seu progresso com o Plano Pro</h3>
                     <p>Ganhe 1.5x mais pontos, proteção de streak e conquistas exclusivas!</p>
                 </div>
                 <button class="btn-pro-upgrade">
-                    <i class="fas fa-gem"></i>
+                    <i data-lucide="gem"></i>
                     Conhecer o Pro
                 </button>
             </div>
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modern-kpi" id="saldoCard">
                 <div class="kpi-header">
                     <div class="kpi-icon balance">
-                        <i class="fas fa-wallet"></i>
+                        <i data-lucide="wallet"></i>
                     </div>
                     <span class="kpi-label">Saldo Atual</span>
                 </div>
@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modern-kpi" id="receitasCard">
                 <div class="kpi-header">
                     <div class="kpi-icon income">
-                        <i class="fas fa-arrow-up"></i>
+                        <i data-lucide="arrow-up"></i>
                     </div>
                     <span class="kpi-label">Receitas do Mês</span>
                 </div>
@@ -601,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modern-kpi" id="despesasCard">
                 <div class="kpi-header">
                     <div class="kpi-icon expense">
-                        <i class="fas fa-arrow-down"></i>
+                        <i data-lucide="arrow-down"></i>
                     </div>
                     <span class="kpi-label">Despesas do Mês</span>
                 </div>
@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modern-kpi" id="saldoMesCard">
                 <div class="kpi-header">
                     <div class="kpi-icon balance">
-                        <i class="fas fa-balance-scale"></i>
+                        <i data-lucide="scale"></i>
                     </div>
                     <span class="kpi-label">Saldo do Mês</span>
                 </div>
@@ -625,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Previsão Financeira (Agendamentos) -->
     <section class="provisao-section" id="provisaoSection" data-aos="fade-up" data-aos-duration="500">
         <h2 class="provisao-title">
-            <i class="fas fa-calendar-check"></i>
+            <i data-lucide="calendar-check"></i>
             Previsão Financeira
         </h2>
 
@@ -633,37 +633,37 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="provisao-alerts-container" id="provisaoAlertsContainer">
             <!-- Alerta de despesas vencidas -->
             <div class="provisao-alert despesas" id="provisaoAlertDespesas" style="display:none;">
-                <div class="provisao-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="provisao-alert-icon"><i data-lucide="triangle-alert"></i></div>
                 <div class="provisao-alert-text">
                     <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
                     <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i class="fas fa-arrow-right"></i></a>
+                <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de receitas vencidas (não recebidas) -->
             <div class="provisao-alert receitas" id="provisaoAlertReceitas" style="display:none;">
-                <div class="provisao-alert-icon"><i class="fas fa-info-circle"></i></div>
+                <div class="provisao-alert-icon"><i data-lucide="info"></i></div>
                 <div class="provisao-alert-text">
                     <strong id="provisaoAlertReceitasCount">0</strong> recebimento(s) atrasado(s) totalizando
                     <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i class="fas fa-arrow-right"></i></a>
+                <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de faturas vencidas -->
             <div class="provisao-alert faturas" id="provisaoAlertFaturas" style="display:none;">
-                <div class="provisao-alert-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="provisao-alert-icon"><i data-lucide="credit-card"></i></div>
                 <div class="provisao-alert-text">
                     <strong id="provisaoAlertFaturasCount">0</strong> fatura(s) vencida(s) totalizando
                     <strong id="provisaoAlertFaturasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>faturas" class="provisao-alert-link">Ver <i class="fas fa-arrow-right"></i></a>
+                <a href="<?= BASE_URL ?>faturas" class="provisao-alert-link">Ver <i data-lucide="arrow-right"></i></a>
             </div>
         </div>
 
         <!-- Cards de Provisão -->
         <div class="provisao-grid">
             <div class="provisao-card pagar">
-                <div class="provisao-card-icon"><i class="fas fa-arrow-up"></i></div>
+                <div class="provisao-card-icon"><i data-lucide="arrow-up"></i></div>
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">A Pagar</span>
                     <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
@@ -671,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
             <div class="provisao-card receber">
-                <div class="provisao-card-icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="provisao-card-icon"><i data-lucide="arrow-down"></i></div>
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">A Receber</span>
                     <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
             <div class="provisao-card projetado">
-                <div class="provisao-card-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="provisao-card-icon"><i data-lucide="line-chart"></i></div>
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">Saldo Projetado</span>
                     <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
@@ -691,12 +691,12 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Próximos Vencimentos -->
         <div class="provisao-proximos">
             <div class="provisao-proximos-header">
-                <span class="provisao-proximos-title" id="provisaoProximosTitle"><i class="fas fa-clock"></i> Próximos Vencimentos</span>
-                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i class="fas fa-arrow-right"></i></a>
+                <span class="provisao-proximos-title" id="provisaoProximosTitle"><i data-lucide="clock"></i> Próximos Vencimentos</span>
+                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i data-lucide="arrow-right"></i></a>
             </div>
             <div class="provisao-proximos-list" id="provisaoProximosList">
                 <div class="provisao-empty" id="provisaoEmpty">
-                    <i class="fas fa-check-circle"></i>
+                    <i data-lucide="circle-check"></i>
                     <span>Nenhum vencimento pendente</span>
                 </div>
             </div>
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <!-- Parcelas Ativas -->
         <div class="provisao-parcelas" id="provisaoParcelas" style="display:none;">
-            <div class="provisao-parcelas-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="provisao-parcelas-icon"><i data-lucide="layers"></i></div>
             <span class="provisao-parcelas-text" id="provisaoParcelasText">0 parcelamentos ativos</span>
             <span class="provisao-parcelas-valor" id="provisaoParcelasValor">R$ 0,00/mês</span>
         </div>
@@ -713,12 +713,12 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="provisao-pro-overlay" id="provisaoProOverlay" style="display:none;">
             <div class="provisao-pro-content">
                 <div class="provisao-pro-icon">
-                    <i class="fas fa-gem"></i>
+                    <i data-lucide="gem"></i>
                 </div>
                 <h3>Previsão Financeira</h3>
                 <p>Veja quanto vai pagar, receber e como ficará seu saldo. Disponível no plano <strong>Pro</strong>.</p>
                 <button class="provisao-pro-btn" onclick="window.location.href='<?= BASE_URL ?>planos'">
-                    <i class="fas fa-rocket"></i> Conhecer o Pro
+                    <i data-lucide="rocket"></i> Conhecer o Pro
                 </button>
             </div>
         </div>
@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div class="empty-state" id="emptyState" style="display:none;">
             <div class="empty-icon">
-                <i class="fas fa-receipt"></i>
+                <i data-lucide="receipt"></i>
             </div>
             <h3>Nenhum lançamento encontrado</h3>
             <p>Comece adicionando sua primeira transação para acompanhar suas finanças</p>

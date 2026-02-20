@@ -105,7 +105,7 @@
             <div class="modal-footer">
 
                 <button type="submit" form="form-investimento" class="btn btn-primary">
-                    <i class="fa-solid fa-floppy-disk me-1"></i> Salvar
+                    <i data-lucide="save" class="me-1"></i> Salvar
                 </button>
             </div>
 

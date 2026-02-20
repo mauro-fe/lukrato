@@ -757,13 +757,14 @@
                 if (!icon) return;
 
                 if (field === STATE.sortField) {
-                    icon.className = STATE.sortDirection === 'asc'
-                        ? 'fas fa-sort-up sort-icon active'
-                        : 'fas fa-sort-down sort-icon active';
+                    icon.setAttribute('data-lucide', STATE.sortDirection === 'asc' ? 'arrow-up' : 'arrow-down');
+                    icon.className = 'sort-icon active';
                 } else {
-                    icon.className = 'fas fa-sort sort-icon';
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                    icon.className = 'sort-icon';
                 }
             });
+            if (window.lucide) lucide.createIcons();
         },
 
         /**
@@ -853,19 +854,20 @@
                         <td colspan="10" class="empty-state-cell">
                             <div class="empty-state" style="text-align:center; padding: 3rem 1rem;">
                                 <div class="empty-icon" style="width:120px;height:120px;margin:0 auto 1.5rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                                    <i class="fas fa-exchange-alt" style="font-size:3rem;color:white;"></i>
+                                    <i data-lucide="arrow-left-right" style="font-size:3rem;color:white;"></i>
                                 </div>
                                 <h3 style="color:var(--color-text);margin-bottom:0.75rem;font-size:1.5rem;font-weight:600;">Nenhum lançamento encontrado</h3>
                                 <p style="color:var(--color-text-muted);margin-bottom:1.5rem;font-size:1rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p>
                                 <div style="display:flex;justify-content:center;">
                                     <button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.75rem 1.5rem;font-size:1rem;border-radius:var(--radius-md);color:white;font-weight:500;">
-                                        <i class="fas fa-plus"></i> Criar primeiro lançamento
+                                        <i data-lucide="plus"></i> Criar primeiro lançamento
                                     </button>
                                 </div>
                             </div>
                         </td>
                     </tr>
                 `;
+                if (window.lucide) lucide.createIcons();
                 this.updatePagination();
                 this.updateSelectionInfo();
                 return;
@@ -874,6 +876,7 @@
             // Render rows
             const rows = pageData.map(item => this.renderRow(item)).join('');
             DOM.tableBody.innerHTML = rows;
+            if (window.lucide) lucide.createIcons();
 
             this.updatePagination();
             this.updateSelectionInfo();
@@ -955,7 +958,7 @@
                             <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
                                     data-parcelamento-id="${String(id).replace('grupo_', '')}"
                                     title="Ver parcelas">
-                                <i class="fas fa-chevron-right"></i>
+                                <i data-lucide="chevron-right"></i>
                             </button>
                             <div>
                                 <div class="fw-bold">📦 ${Utils.escapeHtml(descricao)}</div>
@@ -985,8 +988,8 @@
             const isPago = Boolean(item.pago);
             const statusClass = isPago ? 'status-pago' : 'status-pendente';
             const statusLabel = isPago ? 'Pago' : 'Pendente';
-            const statusIcon = isPago ? 'fa-check-circle' : 'fa-clock';
-            const statusCell = `<td class="td-status"><span class="badge-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span></td>`;
+            const statusLucideIcon = isPago ? 'circle-check' : 'clock';
+            const statusCell = `<td class="td-status"><span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span></td>`;
 
             // Valor cell (special for groups)
             let valorCell;
@@ -1020,18 +1023,18 @@
                     <td class="td-acoes">
                         <div class="dropdown">
                             <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                                <i class="fas fa-ellipsis-v"></i>
+                                <i data-lucide="more-vertical"></i>
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
                                     <a class="dropdown-item toggle-parcelas-menu" href="#" data-parcelamento-id="${parcelamentoId}">
-                                        <i class="fas fa-list"></i> Ver Parcelas
+                                        <i data-lucide="list"></i> Ver Parcelas
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger delete-parcelamento" href="#" data-parcelamento-id="${parcelamentoId}">
-                                        <i class="fas fa-trash"></i> Cancelar Parcelamento
+                                        <i data-lucide="trash-2"></i> Cancelar Parcelamento
                                     </a>
                                 </li>
                             </ul>
@@ -1041,11 +1044,11 @@
             } else {
                 const buttons = [];
                 // Botão de visualização (olhinho)
-                buttons.push(`<button class="lk-btn ghost" data-action="view" data-id="${id}" title="Visualizar"><i class="fas fa-eye"></i></button>`);
+                buttons.push(`<button class="lk-btn ghost" data-action="view" data-id="${id}" title="Visualizar"><i data-lucide="eye"></i></button>`);
                 if (Utils.canEditLancamento(item)) {
-                    buttons.push(`<button class="lk-btn ghost" data-action="edit" data-id="${id}" title="Editar"><i class="fas fa-pen"></i></button>`);
+                    buttons.push(`<button class="lk-btn ghost" data-action="edit" data-id="${id}" title="Editar"><i data-lucide="pen"></i></button>`);
                 }
-                buttons.push(`<button class="lk-btn delete" data-action="delete" data-id="${id}" title="Excluir"><i class="fas fa-trash"></i></button>`);
+                buttons.push(`<button class="lk-btn delete" data-action="delete" data-id="${id}" title="Excluir"><i data-lucide="trash-2"></i></button>`);
                 actionsCell = `<td class="td-acoes"><div class="lk-actions">${buttons.join('')}</div></td>`;
             }
 
@@ -1359,16 +1362,17 @@
                 <div class="lan-card card-item" style="border-radius:0 0 16px 16px;">
                     <div class="empty-state" style="grid-column:1/-1;padding:2rem 1rem;text-align:center;">
                         <div class="empty-icon" style="width:100px;height:100px;margin:0 auto 1rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-exchange-alt" style="font-size:2.5rem;color:white;"></i>
+                            <i data-lucide="arrow-left-right" style="font-size:2.5rem;color:white;"></i>
                         </div>
                         <h3 style="color:var(--color-text);margin-bottom:0.5rem;font-size:1.25rem;font-weight:600;">Nenhum lançamento encontrado</h3>
                         <p style="color:var(--color-text-muted);margin-bottom:1.25rem;font-size:0.9rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p>
                         <button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.65rem 1.25rem;font-size:0.95rem;border-radius:var(--radius-md);color:white;font-weight:500;">
-                            <i class="fas fa-plus"></i> Criar primeiro lançamento
+                            <i data-lucide="plus"></i> Criar primeiro lançamento
                         </button>
                     </div>
                 </div>
             `;
+                if (window.lucide) lucide.createIcons();
                 this.updatePager(0, 1, 1);
                 this.updateSortIndicators();
                 return;
@@ -1447,19 +1451,19 @@
                 const isPago = Boolean(item.pago);
                 const statusClass = isPago ? 'status-pago' : 'status-pendente';
                 const statusLabel = isPago ? 'Pago' : 'Pendente';
-                const statusIcon = isPago ? 'fa-check-circle' : 'fa-clock';
+                const statusLucideIcon = isPago ? 'circle-check' : 'clock';
 
                 // Botões de ação para desktop/tablet
                 const actionsHtml = `
                 ${Utils.canEditLancamento(item)
                         ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento">
-                           <i class="fas fa-pen"></i>
+                           <i data-lucide="pen"></i>
                        </button>`
                         : ''
                     }
                 ${!Utils.isSaldoInicial(item)
                         ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento">
-                           <i class="fas fa-trash"></i>
+                           <i data-lucide="trash-2"></i>
                        </button>`
                         : ''
                     }
@@ -1477,18 +1481,18 @@
                     if (canEdit || canDelete) {
                         mobileActionsHtml = `
                         ${canEdit ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento" style="${buttonStyle} background: rgba(230, 126, 34, 0.3) !important; color: #e67e22 !important; border: 1px solid #e67e22 !important;">
-                               <i class="fas fa-pen" style="font-size: 0.75rem; color: #e67e22;"></i>
+                               <i data-lucide="pen" style="font-size: 0.75rem; color: #e67e22;"></i>
                            </button>` : ''}
                         ${canDelete ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento" style="${buttonStyle} background: rgba(231, 76, 60, 0.3) !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;">
-                               <i class="fas fa-trash" style="font-size: 0.75rem; color: #e74c3c;"></i>
+                               <i data-lucide="trash-2" style="font-size: 0.75rem; color: #e74c3c;"></i>
                            </button>` : ''}`.trim();
                     } else {
                         // Fallback: sempre mostra os botões em telas pequenas
                         mobileActionsHtml = `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento" style="${buttonStyle} background: rgba(230, 126, 34, 0.3) !important; color: #e67e22 !important; border: 1px solid #e67e22 !important;">
-                               <i class="fas fa-pen" style="font-size: 0.75rem; color: #e67e22;"></i>
+                               <i data-lucide="pen" style="font-size: 0.75rem; color: #e67e22;"></i>
                            </button>
                            <button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento" style="${buttonStyle} background: rgba(231, 76, 60, 0.3) !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;">
-                               <i class="fas fa-trash" style="font-size: 0.75rem; color: #e74c3c;"></i>
+                               <i data-lucide="trash-2" style="font-size: 0.75rem; color: #e74c3c;"></i>
                            </button>`.trim();
                     }
                 }
@@ -1508,7 +1512,7 @@
                     </div>
 
                     <button class="lan-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">
-                        <span class="lan-card-toggle-icon card-toggle-icon"><i class="fas fa-chevron-right"></i></span>
+                        <span class="lan-card-toggle-icon card-toggle-icon"><i data-lucide="chevron-right"></i></span>
                         <span class="detalhes"> Ver detalhes</span>
                     </button>
 
@@ -1536,7 +1540,7 @@
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Status</span>
                             <span class="lan-card-detail-value card-detail-value">
-                                <span class="badge-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span>
+                                <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                             </span>
                         </div>
                         <div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
@@ -1551,6 +1555,7 @@
             }
 
             DOM.lanCards.innerHTML = parts.join('');
+            if (window.lucide) lucide.createIcons();
 
             // Debug: verificar se os botões foram inseridos no DOM
             if (isXs) {
@@ -2037,8 +2042,9 @@
             if (!DOM.btnExportar) return;
             DOM.btnExportar.disabled = isLoading;
             DOM.btnExportar.innerHTML = isLoading ?
-                '<i class="fas fa-circle-notch fa-spin"></i> Exportando...' :
-                '<i class="fas fa-file-export"></i> Exportar';
+                '<i data-lucide="loader-2" class="icon-spin"></i> Exportando...' :
+                '<i data-lucide="file-output"></i> Exportar';
+            if (window.lucide) lucide.createIcons();
         },
 
         export: async (forcedFormat) => {
@@ -2341,7 +2347,7 @@
                         <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
                                 data-parcelamento-id="${grupo.id}"
                                 title="Ver parcelas">
-                            <i class="fas fa-chevron-right"></i>
+                            <i data-lucide="chevron-right"></i>
                         </button>
                         <div>
                             <div class="fw-bold">
@@ -2378,14 +2384,14 @@
                 <td class="text-center">
                     <div class="dropdown">
                         <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                            <i class="fas fa-ellipsis-v"></i>
+                            <i data-lucide="more-vertical"></i>
                         </button>
                         <ul class="dropdown-menu">
                             <li>
                                 <a class="dropdown-item toggle-parcelas-menu" 
                                    href="#" 
                                    data-parcelamento-id="${grupo.id}">
-                                    <i class="fas fa-list"></i> Ver Parcelas
+                                    <i data-lucide="list"></i> Ver Parcelas
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
@@ -2393,7 +2399,7 @@
                                 <a class="dropdown-item text-danger delete-parcelamento" 
                                    href="#" 
                                    data-parcelamento-id="${grupo.id}">
-                                    <i class="fas fa-trash"></i> Cancelar Parcelamento
+                                    <i data-lucide="trash-2"></i> Cancelar Parcelamento
                                 </a>
                             </li>
                         </ul>
@@ -2417,7 +2423,9 @@
             // Se já está expandido, colapsar
             if (existingDetails?.classList.contains('parcelas-detalhes')) {
                 existingDetails.remove();
-                icon.className = 'fas fa-chevron-right';
+                icon.setAttribute('data-lucide', 'chevron-right');
+                icon.className = '';
+                if (window.lucide) lucide.createIcons();
                 return;
             }
 
@@ -2462,12 +2470,12 @@
                                                         data-lancamento-id="${parcela.id}"
                                                         data-pago="${!parcela.pago}"
                                                         title="${parcela.pago ? 'Marcar como não pago' : 'Marcar como pago'}">
-                                                    <i class="fas ${parcela.pago ? 'fa-times' : 'fa-check'}"></i>
+                                                    <i data-lucide="${parcela.pago ? 'x' : 'check'}"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-primary edit-lancamento"
                                                         data-lancamento-id="${parcela.id}"
                                                         title="Editar">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i data-lucide="pencil"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -2480,7 +2488,9 @@
             `;
 
             grupoRow.after(detailsRow);
-            icon.className = 'fas fa-chevron-down';
+            icon.setAttribute('data-lucide', 'chevron-down');
+            icon.className = '';
+            if (window.lucide) lucide.createIcons();
         },
 
         /**

@@ -1105,7 +1105,7 @@ function formatInterval(string $interval): string
         <div class="plans-grid plans-grid--empty">
             <div class="empty-state">
                 <div class="empty-state__icon">
-                    <i class="fa-solid fa-inbox" aria-hidden="true"></i>
+                    <i data-lucide="inbox" aria-hidden="true"></i>
                 </div>
                 <h2 class="empty-state__title">Nenhum plano cadastrado</h2>
                 <p class="empty-state__description">
@@ -1118,7 +1118,24 @@ function formatInterval(string $interval): string
             <?php foreach ($planItems as $plan): ?>
                 <?php
                 $meta = $plan['metadata'];
-                $icon = trim($meta['icone'] ?? $meta['icon'] ?? 'fa-layer-group');
+                // Map FA icon names to Lucide equivalents
+                $faToLucide = [
+                    'fa-layer-group' => 'layers', 'layer-group' => 'layers',
+                    'fa-rocket' => 'rocket', 'rocket' => 'rocket',
+                    'fa-crown' => 'crown', 'crown' => 'crown',
+                    'fa-gem' => 'gem', 'gem' => 'gem',
+                    'fa-star' => 'star', 'star' => 'star',
+                    'fa-bolt' => 'zap', 'bolt' => 'zap',
+                    'fa-shield-alt' => 'shield', 'shield-alt' => 'shield',
+                    'fa-infinity' => 'infinity', 'infinity' => 'infinity',
+                    'fa-gift' => 'gift', 'gift' => 'gift',
+                    'fa-trophy' => 'trophy', 'trophy' => 'trophy',
+                    'fa-fire' => 'flame', 'fire' => 'flame',
+                    'fa-briefcase' => 'briefcase', 'briefcase' => 'briefcase',
+                    'fa-wallet' => 'wallet', 'wallet' => 'wallet',
+                ];
+                $rawIcon = trim($meta['icone'] ?? $meta['icon'] ?? 'fa-layer-group');
+                $icon = $faToLucide[$rawIcon] ?? $faToLucide[ltrim($rawIcon, 'fa-')] ?? 'layers';
                 $description = trim($meta['descricao'] ?? $meta['description'] ?? 'Plano completo para organizar suas finanças.');
                 $features = array_values(array_filter(array_map('trim', $meta['features'] ?? [])));
                 $missingFeatures = array_values(array_filter(array_map('trim', $meta['missing_features'] ?? [])));
@@ -1147,14 +1164,14 @@ function formatInterval(string $interval): string
                     <!-- Cabeçalho do Card -->
                     <div class="plan-card__header">
                         <div class="plan-card__icon" aria-hidden="true">
-                            <i class="fa-solid fa-<?= htmlspecialchars($icon) ?>"></i>
+                            <i data-lucide="<?= htmlspecialchars($icon) ?>"></i>
                         </div>
                         <div class="plan-card__title-wrapper">
                             <h2 class="plan-card__title">
                                 <?= htmlspecialchars($plan['name']) ?>
                                 <?php if ($isCurrentPlan): ?>
                                     <span class="plan-card__badge">
-                                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                        <i data-lucide="check" aria-hidden="true"></i>
                                         Ativo
                                     </span>
                                 <?php endif; ?>
@@ -1186,7 +1203,7 @@ function formatInterval(string $interval): string
                         <?php foreach ($features as $feature): ?>
                             <li class="plan-card__feature">
                                 <span class="plan-card__feature-icon plan-card__feature-icon--check" aria-label="Incluído">
-                                    <i class="fa-solid fa-check"></i>
+                                    <i data-lucide="check"></i>
                                 </span>
                                 <?= htmlspecialchars($feature) ?>
                             </li>
@@ -1195,7 +1212,7 @@ function formatInterval(string $interval): string
                         <?php foreach ($missingFeatures as $feature): ?>
                             <li class="plan-card__feature">
                                 <span class="plan-card__feature-icon plan-card__feature-icon--times" aria-label="Não incluído">
-                                    <i class="fa-solid fa-times"></i>
+                                    <i data-lucide="x"></i>
                                 </span>
                                 <?= htmlspecialchars($feature) ?>
                             </li>
@@ -1204,7 +1221,7 @@ function formatInterval(string $interval): string
                         <?php if (empty($features) && empty($missingFeatures)): ?>
                             <li class="plan-card__feature">
                                 <span class="plan-card__feature-icon plan-card__feature-icon--times">
-                                    <i class="fa-solid fa-circle-info"></i>
+                                    <i data-lucide="info"></i>
                                 </span>
                                 Recursos serão exibidos em breve
                             </li>
@@ -1217,7 +1234,7 @@ function formatInterval(string $interval): string
                             <!-- Status: Em período de carência - MOSTRAR RENOVAR -->
                             <div class="plan-card__grace-alert" role="alert">
                                 <div class="plan-card__grace-alert-icon">
-                                    <i class="fa-solid fa-clock"></i>
+                                    <i data-lucide="clock"></i>
                                 </div>
                                 <div class="plan-card__grace-alert-content">
                                     <strong>⚠️ Plano vencido!</strong>
@@ -1239,7 +1256,7 @@ function formatInterval(string $interval): string
                                 data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
                                 data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
                                 aria-label="Renovar assinatura do plano Pro">
-                                <i class="plan-card__button-icon fa-solid fa-sync-alt" aria-hidden="true"></i>
+                                <i class="plan-card__button-icon" data-lucide="refresh-cw" aria-hidden="true"></i>
                                 <span>Renovar agora</span>
                             </button>
 
@@ -1247,7 +1264,7 @@ function formatInterval(string $interval): string
                             <!-- Status: Cancelado mas ainda tem acesso -->
                             <button class="plan-card__button plan-card__button--warning" disabled
                                 aria-label="Plano cancelado - acesso até <?= $accessUntil ?? '' ?>">
-                                <i class="plan-card__button-icon fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+                                <i class="plan-card__button-icon" data-lucide="triangle-alert" aria-hidden="true"></i>
                                 <span>
                                     Cancelado - Acesso até <?= htmlspecialchars($accessUntil ?? $renewDate ?? '') ?>
                                 </span>
@@ -1260,14 +1277,14 @@ function formatInterval(string $interval): string
                                 data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
                                 data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
                                 aria-label="Reativar assinatura do plano Pro">
-                                <i class="plan-card__button-icon fa-solid fa-redo" aria-hidden="true"></i>
+                                <i class="plan-card__button-icon" data-lucide="refresh-cw" aria-hidden="true"></i>
                                 <span>Reativar assinatura</span>
                             </button>
 
                         <?php elseif ($isExpired ?? false): ?>
                             <!-- Status: Expirado/Bloqueado -->
                             <div class="plan-card__expired-alert" role="alert">
-                                <i class="fa-solid fa-lock"></i>
+                                <i data-lucide="lock"></i>
                                 <span>Acesso suspenso - Renove para continuar</span>
                             </div>
 
@@ -1277,7 +1294,7 @@ function formatInterval(string $interval): string
                                 data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
                                 data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
                                 aria-label="Renovar assinatura do plano Pro">
-                                <i class="plan-card__button-icon fa-solid fa-sync-alt" aria-hidden="true"></i>
+                                <i class="plan-card__button-icon" data-lucide="refresh-cw" aria-hidden="true"></i>
                                 <span>Renovar assinatura</span>
                             </button>
 
@@ -1285,7 +1302,7 @@ function formatInterval(string $interval): string
                             <!-- Status: Ativo normalmente -->
                             <button class="plan-card__button plan-card__button--active" disabled
                                 aria-label="<?= $renewDate ? 'Plano ativo até ' . $renewDate : 'Plano atual' ?>">
-                                <i class="plan-card__button-icon fa-solid fa-check-circle" aria-hidden="true"></i>
+                                <i class="plan-card__button-icon" data-lucide="circle-check" aria-hidden="true"></i>
                                 <span>
                                     <?php if ($renewDate && !$isFreePlan): ?>
                                         Ativo até <?= htmlspecialchars($renewDate) ?>
@@ -1299,7 +1316,7 @@ function formatInterval(string $interval): string
                                 <!-- Botão de Cancelar Plano PRO -->
                                 <button type="button" class="plan-card__cancel-btn" id="btn-cancel-subscription"
                                     aria-label="Cancelar assinatura do plano Pro">
-                                    <i class="fa-solid fa-times-circle"></i>
+                                    <i data-lucide="x-circle"></i>
                                     <span>Cancelar assinatura</span>
                                 </button>
                             <?php endif; ?>
@@ -1336,7 +1353,7 @@ function formatInterval(string $interval): string
                             data-plan-amount="<?= number_format($priceValue, 2, '.', '') ?>"
                             data-plan-monthly="<?= number_format($priceValue, 2, '.', '') ?>"
                             data-plan-interval="<?= htmlspecialchars($intervalLabel) ?>">
-                            <i class="plan-card__button-icon fa-solid fa-rocket" aria-hidden="true"></i>
+                            <i class="plan-card__button-icon" data-lucide="rocket" aria-hidden="true"></i>
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
                         </button>
 

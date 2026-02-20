@@ -31,7 +31,7 @@
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary btn-sm" form="formEditCategoria">
-                    <i class="fas fa-save"></i> Salvar
+                    <i data-lucide="save"></i> Salvar
                 </button>
             </div>
         </div>

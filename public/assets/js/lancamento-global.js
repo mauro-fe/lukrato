@@ -100,10 +100,10 @@ const lancamentoGlobalManager = {
             aviso.className = 'no-accounts-warning';
             aviso.innerHTML = `
                 <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem; border-radius: 8px;">
-                    <i class="fas fa-info-circle"></i>
+                    <i data-lucide="info"></i>
                     <span>Você não possui contas cadastradas.</span>
                     <a href="${this.baseUrl}contas" class="btn btn-sm btn-primary ms-auto" style="font-size: 0.75rem;">
-                        <i class="fas fa-plus me-1"></i>Criar Conta
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i>Criar Conta
                     </a>
                 </div>
             `;
@@ -262,7 +262,7 @@ const lancamentoGlobalManager = {
                     <p class="text-muted mt-2">É necessário criar pelo menos uma conta para registrar lançamentos.</p>
                 `,
                 showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-plus me-2"></i>Criar Conta',
+                confirmButtonText: '<i data-lucide="plus" style="width:16px;height:16px;display:inline-block;"></i> Criar Conta',
                 cancelButtonText: 'Agora não',
                 confirmButtonColor: 'var(--color-primary)',
                 customClass: {
@@ -803,7 +803,8 @@ const lancamentoGlobalManager = {
             const btnSalvar = document.getElementById('globalBtnSalvar');
             if (btnSalvar) {
                 btnSalvar.disabled = true;
-                btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                btnSalvar.innerHTML = '<i data-lucide="loader-2" class="icon-spin" style="width:16px;height:16px;display:inline-block;"></i> Salvando...';
+                if(window.lucide) lucide.createIcons();
             }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -957,7 +958,7 @@ const lancamentoGlobalManager = {
                             ${result.message || 'Seu lançamento foi salvo com sucesso!'}
                         </p>
                         <p style="color: #666; font-size: 0.9rem;">
-                            <i class="fas fa-check-circle"></i> Dados atualizados
+                            <i data-lucide="circle-check" style="width:16px;height:16px;display:inline-block;"></i> Dados atualizados
                         </p>
                     `,
                     confirmButtonText: 'Ok, entendi!',
@@ -994,7 +995,8 @@ const lancamentoGlobalManager = {
                 const btnSalvar = document.getElementById('globalBtnSalvar');
                 if (btnSalvar) {
                     btnSalvar.disabled = false;
-                    btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                    btnSalvar.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;display:inline-block;"></i> Salvar';
+                    if(window.lucide) lucide.createIcons();
                 }
             } else {
                 // Mostrar erros específicos da validação
@@ -1021,7 +1023,8 @@ const lancamentoGlobalManager = {
                     const btnSalvar = document.getElementById('globalBtnSalvar');
                     if (btnSalvar) {
                         btnSalvar.disabled = false;
-                        btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                        btnSalvar.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;display:inline-block;"></i> Salvar';
+                        if(window.lucide) lucide.createIcons();
                     }
                     return;
                 }
@@ -1036,7 +1039,8 @@ const lancamentoGlobalManager = {
             const btnSalvar = document.getElementById('globalBtnSalvar');
             if (btnSalvar) {
                 btnSalvar.disabled = false;
-                btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                btnSalvar.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;display:inline-block;"></i> Salvar';
+                if(window.lucide) lucide.createIcons();
             }
 
             Swal.fire({
@@ -1237,7 +1241,7 @@ const lancamentoGlobalManager = {
             const valorParcela = valor / parcelas;
             preview.innerHTML = `
                 <div class="preview-info">
-                    <i class="fas fa-calculator"></i>
+                    <i data-lucide="calculator" style="width:16px;height:16px;display:inline-block;"></i>
                     <span>${parcelas}x de ${this.formatMoney(valorParcela)}</span>
                 </div>
             `;

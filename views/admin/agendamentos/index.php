@@ -12,7 +12,7 @@
         <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">
                 <div class="icon-wrapper filter">
-                    <i class="fas fa-filter"></i>
+                    <i data-lucide="filter"></i>
                 </div>
                 <div class="card-title-group">
                     <h3 class="card-title">Filtros Avançados</h3>
@@ -26,7 +26,7 @@
 
                     <div class="filter-group">
                         <label for="filtroCategoria" class="filter-label">
-                            <i class="fas fa-folder"></i>
+                            <i data-lucide="folder"></i>
                             <span>Categoria</span>
                         </label>
                         <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
@@ -36,7 +36,7 @@
 
                     <div class="filter-group">
                         <label for="filtroConta" class="filter-label">
-                            <i class="fas fa-wallet"></i>
+                            <i data-lucide="wallet"></i>
                             <span>Conta</span>
                         </label>
                         <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
@@ -46,7 +46,7 @@
 
                     <div class="filter-group">
                         <label for="filtroStatus" class="filter-label">
-                            <i class="fas fa-info-circle"></i>
+                            <i data-lucide="info"></i>
                             <span>Status</span>
                         </label>
                         <select id="filtroStatus" class="modern-select" aria-label="Filtrar por status">
@@ -61,7 +61,7 @@
 
                 <div class="filter-actions">
                     <button type="button" id="btnLimparFiltros" class="modern-btn primary" aria-label="Limpar filtros">
-                        <i class="fas fa-eraser"></i>
+                        <i data-lucide="eraser"></i>
                         <span>Limpar Filtros</span>
                     </button>
                 </div>
@@ -75,27 +75,27 @@
         <!-- Filtros Rápidos -->
         <div class="quick-filters" id="quickFilters" data-aos="fade-up">
             <button type="button" class="quick-filter-btn" data-filter="hoje">
-                <i class="fas fa-calendar-day"></i>
+                <i data-lucide="calendar"></i>
                 <span>Hoje</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="semana">
-                <i class="fas fa-calendar-week"></i>
+                <i data-lucide="calendar-range"></i>
                 <span>Esta Semana</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="vencidos">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i data-lucide="triangle-alert"></i>
                 <span>Vencidos</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="receitas">
-                <i class="fas fa-arrow-up" style="color: var(--color-success)"></i>
+                <i data-lucide="arrow-up" style="color: var(--color-success)"></i>
                 <span>Receitas</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="despesas">
-                <i class="fas fa-arrow-down" style="color: var(--color-danger)"></i>
+                <i data-lucide="arrow-down" style="color: var(--color-danger)"></i>
                 <span>Despesas</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="recorrentes">
-                <i class="fas fa-sync-alt"></i>
+                <i data-lucide="refresh-cw"></i>
                 <span>Recorrentes</span>
             </button>
         </div>
@@ -104,13 +104,13 @@
         <div class="modern-table-wrapper" style="margin-bottom: var(--spacing-4);">
             <div class="table-header-info">
                 <div class="info-group">
-                    <i class="fas fa-clock"></i>
+                    <i data-lucide="clock"></i>
                     <span>Seus Agendamentos</span>
                 </div>
                 <div class="table-actions">
                     <button type="button" id="btnAddAgendamento" class="modern-btn primary"
                         aria-label="Novo agendamento">
-                        <i class="fas fa-plus"></i>
+                        <i data-lucide="plus"></i>
                         <span>Novo Agendamento</span>
                     </button>
                 </div>
@@ -124,17 +124,17 @@
                                 <th>Título</th>
                                 <th class="sortable" data-sort="tipo">
                                     <span>Tipo</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th>Categoria</th>
                                 <th>Conta</th>
                                 <th class="sortable" data-sort="valor_centavos">
                                     <span>Valor</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th class="sortable" data-sort="data_pagamento">
                                     <span>Data</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th>Status</th>
                                 <th>Ações</th>
@@ -168,11 +168,11 @@
                             <option value="100">100 por página</option>
                         </select>
                         <button type="button" id="agPrevPage" class="pagination-btn" disabled>
-                            <i class="fas fa-chevron-left"></i>
+                            <i data-lucide="chevron-left"></i>
                         </button>
                         <span id="agPageNumbers" class="page-numbers"></span>
                         <button type="button" id="agNextPage" class="pagination-btn" disabled>
-                            <i class="fas fa-chevron-right"></i>
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -183,17 +183,17 @@
 
                 <nav class="ag-cards-pager cards-pager" id="agCardsPager">
                     <button type="button" id="agPagerFirst" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-angle-double-left"></i>
+                        <i data-lucide="chevrons-left"></i>
                     </button>
                     <button type="button" id="agPagerPrev" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
+                        <i data-lucide="chevron-left"></i>
                     </button>
                     <span id="agPagerInfo" class="ag-pager-info pager-info">Nenhum agendamento</span>
                     <button type="button" id="agPagerNext" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-chevron-right"></i>
+                        <i data-lucide="chevron-right"></i>
                     </button>
                     <button type="button" id="agPagerLast" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-angle-double-right"></i>
+                        <i data-lucide="chevrons-right"></i>
                     </button>
                 </nav>
             </section>
@@ -204,13 +204,13 @@
                         <div class="ag-card-title-group">
                             <h3 class="ag-card-title"></h3>
                             <p class="ag-card-subtitle">
-                                <i class="fas fa-calendar-alt"></i>
+                                <i data-lucide="calendar-days"></i>
                                 <span data-field="data"></span>
                             </p>
                             <p class="ag-card-value"></p>
                             <button type="button" class="card-toggle" data-toggle="details">
                                 <span class="card-toggle-text">Ver detalhes</span>
-                                <i class="fas fa-chevron-down"></i>
+                                <i data-lucide="chevron-down"></i>
                             </button>
                         </div>
 
@@ -268,7 +268,7 @@
 
     <div id="agPaywall" class="paywall-message d-none" role="alert">
         <div class="paywall-content">
-            <i class="fas fa-crown"></i>
+            <i data-lucide="crown"></i>
             <h3>Recurso Premium</h3>
             <p id="agPaywallMessage">Agendamentos são exclusivos do plano Pro.</p>
             <button type="button" class="btn-upgrade" id="agPaywallCta">
@@ -289,7 +289,7 @@
         <div class="modal-content modal-view-content">
             <div class="modal-header modal-view-header">
                 <div class="view-header-content">
-                    <i class="fas fa-eye view-icon"></i>
+                    <i data-lucide="eye" class="view-icon"></i>
                     <div>
                         <h5 class="modal-title" id="modalVisualizacaoLabel">Detalhes do Agendamento</h5>
                         <p class="modal-subtitle" id="viewSubtitle">Visualização completa</p>
@@ -302,7 +302,7 @@
                     <!-- Informações Principais -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-info-circle"></i> Informações Principais
+                            <i data-lucide="info"></i> Informações Principais
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Título:</span>
@@ -325,7 +325,7 @@
                     <!-- Classificação -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-tag"></i> Classificação
+                            <i data-lucide="tag"></i> Classificação
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Categoria:</span>
@@ -344,7 +344,7 @@
                     <!-- Datas e Prazos -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-calendar-alt"></i> Datas e Prazos
+                            <i data-lucide="calendar-days"></i> Datas e Prazos
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Data Agendada:</span>
@@ -367,7 +367,7 @@
                     <!-- Recorrência -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-sync-alt"></i> Recorrência
+                            <i data-lucide="refresh-cw"></i> Recorrência
                         </h6>
                         <div class="view-item">
                             <span class="view-label">É Recorrente:</span>
@@ -386,7 +386,7 @@
                     <!-- Notificações -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-bell"></i> Notificações
+                            <i data-lucide="bell"></i> Notificações
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Canal E-mail:</span>
@@ -405,7 +405,7 @@
                     <!-- Descrição -->
                     <div class="view-section view-section-full" id="viewDescricaoSection" style="display: none;">
                         <h6 class="view-section-title">
-                            <i class="fas fa-align-left"></i> Descrição
+                            <i data-lucide="align-left"></i> Descrição
                         </h6>
                         <div class="view-description" id="viewDescricao">-</div>
                     </div>
@@ -413,10 +413,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Fechar
+                    <i data-lucide="x"></i> Fechar
                 </button>
                 <button type="button" class="btn btn-primary" id="btnEditarFromView">
-                    <i class="fas fa-edit"></i> Editar
+                    <i data-lucide="pencil"></i> Editar
                 </button>
             </div>
         </div>

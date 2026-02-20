@@ -276,15 +276,15 @@ class OnboardingManager {
                 </div>
                 <button class="nsb-action-btn" data-step="${nextStep}">
                     ${stepInfo.actionText}
-                    <i class="fas fa-arrow-right"></i>
+                    <i data-lucide="arrow-right"></i>
                 </button>
                 <div class="nsb-progress">
                     <div class="nsb-step ${progress.hasContas ? 'completed' : ''}">
-                        <i class="fas ${progress.hasContas ? 'fa-check-circle' : 'fa-circle'}"></i>
+                        <i data-lucide="${progress.hasContas ? 'circle-check' : 'circle'}"></i>
                         <span>Conta</span>
                     </div>
                     <div class="nsb-step ${progress.hasLancamentos ? 'completed' : ''}">
-                        <i class="fas ${progress.hasLancamentos ? 'fa-check-circle' : 'fa-circle'}"></i>
+                        <i data-lucide="${progress.hasLancamentos ? 'circle-check' : 'circle'}"></i>
                         <span>Lançamentos</span>
                     </div>
                 </div>
@@ -299,6 +299,7 @@ class OnboardingManager {
 
         // Inserir no topo do container
         container.insertAdjacentHTML('afterbegin', nextStepHTML);
+        if (window.lucide) lucide.createIcons();
 
         // Adicionar evento ao botão
         const actionBtn = document.querySelector('.nsb-action-btn');
@@ -371,27 +372,27 @@ class OnboardingManager {
                     
                     <div class="cc-achievements">
                         <div class="cc-achievement">
-                            <i class="fas fa-check-circle"></i>
+                            <i data-lucide="circle-check"></i>
                             <span>Conta criada</span>
                         </div>
                         <div class="cc-achievement">
-                            <i class="fas fa-check-circle"></i>
+                            <i data-lucide="circle-check"></i>
                             <span>Categorias padrão já configuradas</span>
                         </div>
                         <div class="cc-achievement">
-                            <i class="fas fa-check-circle"></i>
+                            <i data-lucide="circle-check"></i>
                             <span>Primeiro lançamento registrado</span>
                         </div>
                     </div>
 
                     <div class="cc-rewards">
                         <div class="cc-reward">
-                            <i class="fas fa-star"></i>
+                            <i data-lucide="star"></i>
                             <strong>+50 Pontos</strong>
                             <small>Bônus de início</small>
                         </div>
                         <div class="cc-reward">
-                            <i class="fas fa-trophy"></i>
+                            <i data-lucide="trophy"></i>
                             <strong>Conquista Desbloqueada</strong>
                             <small>Primeiro Passo</small>
                         </div>
@@ -400,9 +401,9 @@ class OnboardingManager {
                     <div class="cc-next-steps">
                         <h3>Próximos Passos:</h3>
                         <ul>
-                            <li><i class="fas fa-chart-line"></i> Explore os relatórios financeiros</li>
-                            <li><i class="fas fa-calendar-alt"></i> Configure lembretes de contas</li>
-                            <li><i class="fas fa-target"></i> Defina suas metas financeiras</li>
+                            <li><i data-lucide="line-chart"></i> Explore os relatórios financeiros</li>
+                            <li><i data-lucide="calendar-days"></i> Configure lembretes de contas</li>
+                            <li><i data-lucide="target"></i> Defina suas metas financeiras</li>
                         </ul>
                     </div>
 
@@ -414,6 +415,7 @@ class OnboardingManager {
         `;
 
         document.body.insertAdjacentHTML('beforeend', celebrationHTML);
+        if (window.lucide) lucide.createIcons();
 
         // Remover os cards de onboarding
         setTimeout(() => {
@@ -462,14 +464,14 @@ class OnboardingManager {
                 <div class="quick-start-grid">
                     <div class="quick-start-card" data-action="create-account">
                         <div class="qsc-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">
-                            <i class="fas fa-wallet"></i>
+                            <i data-lucide="wallet"></i>
                         </div>
                         <div class="qsc-content">
                             <h3>1. Crie sua primeira conta</h3>
                             <p>Adicione sua conta bancária, carteira ou cartão de crédito</p>
                             <button class="qsc-btn">
                                 <span>Criar Conta</span>
-                                <i class="fas fa-arrow-right"></i>
+                                <i data-lucide="arrow-right"></i>
                             </button>
                         </div>
                         <div class="qsc-badge">Passo 1</div>
@@ -477,7 +479,7 @@ class OnboardingManager {
 
                     <div class="quick-start-card" data-action="create-transaction">
                         <div class="qsc-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
-                            <i class="fas fa-receipt"></i>
+                            <i data-lucide="receipt"></i>
                         </div>
                         <div class="qsc-content">
                             <h3>2. Registre lançamentos</h3>
@@ -485,7 +487,7 @@ class OnboardingManager {
                             <p class="qsc-detail">✨ Categorias já estão configuradas para você!</p>
                             <button class="qsc-btn">
                                 <span>Adicionar Lançamento</span>
-                                <i class="fas fa-arrow-right"></i>
+                                <i data-lucide="arrow-right"></i>
                             </button>
                         </div>
                         <div class="qsc-badge">Passo 2</div>
@@ -498,15 +500,15 @@ class OnboardingManager {
                     </button>
                     <div class="welcome-features">
                         <div class="feature-item">
-                            <i class="fas fa-gamepad"></i>
+                            <i data-lucide="gamepad-2"></i>
                             <span>Sistema de Pontos</span>
                         </div>
                         <div class="feature-item">
-                            <i class="fas fa-trophy"></i>
+                            <i data-lucide="trophy"></i>
                             <span>Conquistas</span>
                         </div>
                         <div class="feature-item">
-                            <i class="fas fa-chart-line"></i>
+                            <i data-lucide="line-chart"></i>
                             <span>Relatórios</span>
                         </div>
                     </div>
@@ -527,6 +529,7 @@ class OnboardingManager {
         }
 
         this.attachQuickStartEvents();
+        if (window.lucide) lucide.createIcons();
     }
 
     attachQuickStartEvents() {
@@ -568,7 +571,7 @@ class OnboardingManager {
         const planInfo = isPro ? '' : `
             <div class="onboarding-plan-info">
                 <div class="plan-badge-info">
-                    <i class="fas fa-leaf"></i>
+                    <i data-lucide="leaf"></i>
                     <span>Plano Gratuito</span>
                 </div>
                 <p>Você tem <strong>30 lançamentos/mês</strong>, 2 contas e 1 cartão. 
@@ -589,28 +592,28 @@ class OnboardingManager {
                     <div class="onboarding-modal-body">
                         <div class="benefit-list">
                             <div class="benefit-item">
-                                <i class="fas fa-chart-line"></i>
+                                <i data-lucide="line-chart"></i>
                                 <div>
                                     <strong>Controle Total</strong>
                                     <p>Veja para onde seu dinheiro está indo</p>
                                 </div>
                             </div>
                             <div class="benefit-item">
-                                <i class="fas fa-trophy"></i>
+                                <i data-lucide="trophy"></i>
                                 <div>
                                     <strong>Gamificação</strong>
                                     <p>Ganhe pontos e conquistas organizando suas finanças</p>
                                 </div>
                             </div>
                             <div class="benefit-item">
-                                <i class="fas fa-mobile-alt"></i>
+                                <i data-lucide="smartphone"></i>
                                 <div>
                                     <strong>Acesso em Qualquer Lugar</strong>
                                     <p>Use no celular, tablet ou computador</p>
                                 </div>
                             </div>
                             <div class="benefit-item">
-                                <i class="fas fa-shield-alt"></i>
+                                <i data-lucide="shield"></i>
                                 <div>
                                     <strong>Seguro e Privado</strong>
                                     <p>Seus dados protegidos com criptografia</p>
@@ -625,7 +628,7 @@ class OnboardingManager {
                         </button>
                         <button class="btn-primary" onclick="window.onboardingManager.startGuide()">
                             <span>Começar Tour Guiado</span>
-                            <i class="fas fa-arrow-right"></i>
+                            <i data-lucide="arrow-right"></i>
                         </button>
                     </div>
                 </div>
@@ -633,6 +636,7 @@ class OnboardingManager {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+        if (window.lucide) lucide.createIcons();
     }
 
     /**

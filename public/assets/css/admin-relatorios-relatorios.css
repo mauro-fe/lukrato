@@ -6823,7 +6823,8 @@ canvas {
   box-sizing: border-box;
 }
 
-.pro-message i.fa-crown {
+.pro-message i[data-lucide="crown"],
+.pro-message i.lucide-crown {
   font-size: 2.5rem;
   color: #f59e0b;
   margin-bottom: var(--spacing-3);
@@ -6890,7 +6891,8 @@ canvas {
     padding: var(--spacing-3);
   }
 
-  .pro-message i.fa-crown {
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
     font-size: 2rem;
     margin-bottom: var(--spacing-2);
   }
@@ -6919,7 +6921,8 @@ canvas {
     padding: var(--spacing-2);
   }
 
-  .pro-message i.fa-crown {
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
     font-size: 1.75rem;
     margin-bottom: var(--spacing-2);
   }

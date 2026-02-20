@@ -35,7 +35,9 @@
    ============================================================================ */
 
 .fa-plus-circle,
-.fa-circle-plus {
+.fa-circle-plus,
+[data-lucide="circle-plus"],
+.lucide-circle-plus {
   color: var(--color-primary);
 }
 

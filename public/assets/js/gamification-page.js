@@ -290,7 +290,7 @@
         }
 
         const proTag = achievement.is_pro_only
-            ? '<p style="color: #f59e0b; font-weight: 600; margin-top: 10px;"><i class="fas fa-gem"></i> Conquista exclusiva PRO</p>'
+            ? '<p style="color: #f59e0b; font-weight: 600; margin-top: 10px;"><i data-lucide="gem"></i> Conquista exclusiva PRO</p>'
             : '';
 
         Swal.fire({

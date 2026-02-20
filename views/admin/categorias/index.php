@@ -6,7 +6,7 @@
     <div class="modern-card create-card" data-aos="fade-up">
         <div class="card-header-icon">
             <div class="icon-wrapper create">
-                <i class="fas fa-plus-circle"></i>
+                <i data-lucide="circle-plus"></i>
             </div>
             <div class="card-title-group">
                 <h3 class="card-title">Criar Nova Categoria</h3>
@@ -19,7 +19,7 @@
             <div class="form-grid">
                 <div class="input-group">
                     <label for="catNome" class="input-label">
-                        <i class="fas fa-tag"></i>
+                        <i data-lucide="tag"></i>
                         <span>Nome da Categoria</span>
                     </label>
                     <input id="catNome" class="modern-input" name="nome" placeholder="Ex: Alimentação, Salário..."
@@ -28,7 +28,7 @@
 
                 <div class="input-group">
                     <label for="catTipo" class="input-label">
-                        <i class="fas fa-exchange-alt"></i>
+                        <i data-lucide="arrow-left-right"></i>
                         <span>Tipo</span>
                     </label>
                     <select id="catTipo" class="modern-select" name="tipo" required aria-label="Tipo de categoria">
@@ -39,7 +39,7 @@
             </div>
 
             <button class="modern-btn primary submit-btn" type="submit">
-                <i class="fas fa-plus"></i>
+                <i data-lucide="plus"></i>
                 <span>Adicionar Categoria</span>
             </button>
         </form>
@@ -55,7 +55,7 @@
             <div class="category-header receitas">
                 <div class="header-content">
                     <div class="header-icon">
-                        <i class="fas fa-arrow-up"></i>
+                        <i data-lucide="arrow-up"></i>
                     </div>
                     <div class="header-text">
                         <h3 class="category-title">Receitas</h3>
@@ -66,13 +66,13 @@
                 </div>
                 <button type="button" class="icon-btn refresh-btn" title="Atualizar receitas"
                     onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i>
+                    <i data-lucide="refresh-cw"></i>
                 </button>
             </div>
 
             <div class="category-list" id="receitasList">
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
+                    <i data-lucide="inbox"></i>
                     <p>Nenhuma categoria de receita cadastrada</p>
                 </div>
             </div>
@@ -83,7 +83,7 @@
             <div class="category-header despesas">
                 <div class="header-content">
                     <div class="header-icon">
-                        <i class="fas fa-arrow-down"></i>
+                        <i data-lucide="arrow-down"></i>
                     </div>
                     <div class="header-text">
                         <h3 class="category-title">Despesas</h3>
@@ -94,13 +94,13 @@
                 </div>
                 <button type="button" class="icon-btn refresh-btn" title="Atualizar despesas"
                     onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i>
+                    <i data-lucide="refresh-cw"></i>
                 </button>
             </div>
 
             <div class="category-list" id="despesasList">
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
+                    <i data-lucide="inbox"></i>
                     <p>Nenhuma categoria de despesa cadastrada</p>
                 </div>
             </div>
@@ -116,14 +116,14 @@
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalOrcamentoLabel">
-                    <i class="fas fa-wallet"></i> Limite Mensal
+                    <i data-lucide="wallet"></i> Limite Mensal
                 </h5>
                 <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
 
             <div class="modal-body">
                 <div class="orc-modal-description">
-                    <i class="fas fa-info-circle"></i>
+                    <i data-lucide="info"></i>
                     <span>Defina o valor máximo que deseja gastar por mês nesta categoria. Você será alertado quando estiver próximo ou ultrapassar o limite.</span>
                 </div>
 
@@ -146,11 +146,11 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-danger btn-sm d-none" id="btnRemoverOrcamento">
-                    <i class="fas fa-trash"></i> Remover limite
+                    <i data-lucide="trash-2"></i> Remover limite
                 </button>
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
                 <button type="submit" class="btn btn-primary btn-sm" form="formOrcamento" id="btnSalvarOrcamento">
-                    <i class="fas fa-check"></i> <span id="btnOrcText">Definir</span>
+                    <i data-lucide="check"></i> <span id="btnOrcText">Definir</span>
                 </button>
             </div>
         </div>

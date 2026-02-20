@@ -261,7 +261,7 @@ class OrcamentoService
                 $disponivel = $orc['disponivel'];
                 $insights[] = [
                     'tipo'      => 'alerta',
-                    'icone'     => 'fa-triangle-exclamation',
+                    'icone'     => 'triangle-alert',
                     'cor'       => '#f59e0b',
                     'titulo'    => "{$orc['categoria_nome']} está em {$orc['percentual']}%",
                     'mensagem'  => "Restam R$ " . number_format($disponivel, 2, ',', '.') . " nesta categoria",
@@ -272,7 +272,7 @@ class OrcamentoService
             if ($orc['percentual'] > 100) {
                 $insights[] = [
                     'tipo'      => 'perigo',
-                    'icone'     => 'fa-circle-exclamation',
+                    'icone'     => 'circle-alert',
                     'cor'       => '#ef4444',
                     'titulo'    => "{$orc['categoria_nome']} estourou o orçamento!",
                     'mensagem'  => "Excedido em R$ " . number_format($orc['excedido'], 2, ',', '.'),
@@ -286,7 +286,7 @@ class OrcamentoService
                     $direcao = $variacao > 0 ? 'mais' : 'menos';
                     $insights[] = [
                         'tipo'      => $variacao > 0 ? 'info' : 'positivo',
-                        'icone'     => $variacao > 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down',
+                        'icone'     => $variacao > 0 ? 'trending-up' : 'trending-down',
                         'cor'       => $variacao > 0 ? '#f97316' : '#10b981',
                         'titulo'    => "{$orc['categoria_nome']}: " . abs(round($variacao)) . "% {$direcao}",
                         'mensagem'  => "Comparado ao mês anterior",
@@ -298,7 +298,7 @@ class OrcamentoService
             if ($orc['percentual'] <= 30 && $orc['gasto_real'] > 0) {
                 $insights[] = [
                     'tipo'      => 'positivo',
-                    'icone'     => 'fa-circle-check',
+                    'icone'     => 'circle-check',
                     'cor'       => '#10b981',
                     'titulo'    => "{$orc['categoria_nome']} está sob controle",
                     'mensagem'  => "Apenas {$orc['percentual']}% utilizado",

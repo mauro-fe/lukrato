@@ -122,7 +122,8 @@ a[data-limit-blocked="true"]::after {
   color: var(--color-text);
 }
 
-#planUpgradeModal .fa-crown {
+#planUpgradeModal [data-lucide="crown"],
+#planUpgradeModal .lucide-crown {
   animation: float 3s ease-in-out infinite;
 }
 

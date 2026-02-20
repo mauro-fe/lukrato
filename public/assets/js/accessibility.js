@@ -195,13 +195,27 @@
         // Botões sem texto visível
         document.querySelectorAll('button, a').forEach((el) => {
             if (!el.textContent?.trim() && !el.getAttribute('aria-label')) {
-                // Tentar usar title ou inferir do ícone
-                const icon = el.querySelector('i[class*="fa-"]');
+                // Tentar usar title ou inferir do ícone (svg.lucide, i[data-lucide], ou FA Brands)
+                const icon = el.querySelector('svg.lucide, i[data-lucide], i[class*="fa-"]');
                 if (icon) {
-                    const iconClass = Array.from(icon.classList).find(c => c.startsWith('fa-'));
-                    if (iconClass) {
-                        const label = iconClass.replace('fa-', '').replace(/-/g, ' ');
+                    // Lucide SVG processado → "lucide lucide-home" → extrair "home"
+                    const lucideClass = Array.from(icon.classList).find(c => c.startsWith('lucide-') && c !== 'lucide');
+                    if (lucideClass) {
+                        const label = lucideClass.replace('lucide-', '').replace(/-/g, ' ');
                         el.setAttribute('aria-label', capitalizeFirst(label));
+                    }
+                    // Lucide não processado ainda → data-lucide="home"
+                    else if (icon.getAttribute('data-lucide')) {
+                        const label = icon.getAttribute('data-lucide').replace(/-/g, ' ');
+                        el.setAttribute('aria-label', capitalizeFirst(label));
+                    }
+                    // FA Brands
+                    else {
+                        const iconClass = Array.from(icon.classList).find(c => c.startsWith('fa-'));
+                        if (iconClass) {
+                            const label = iconClass.replace('fa-', '').replace(/-/g, ' ');
+                            el.setAttribute('aria-label', capitalizeFirst(label));
+                        }
                     }
                 } else if (el.title) {
                     el.setAttribute('aria-label', el.title);

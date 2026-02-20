@@ -333,8 +333,9 @@
                 ? !body.classList.contains('sidebar-open-mobile')
                 : body.classList.contains('sidebar-collapsed');
 
-            icon.classList.remove('fa-angle-right', 'fa-angle-left');
-            icon.classList.add(isClosed ? 'fa-angle-right' : 'fa-angle-left');
+            icon.setAttribute('data-lucide', isClosed ? 'chevron-right' : 'chevron-left');
+            icon.className = '';
+            if(window.lucide) lucide.createIcons({nodes:[icon]});
         };
 
         const setDesktopState = (collapsed) => {

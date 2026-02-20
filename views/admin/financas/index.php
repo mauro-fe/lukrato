@@ -27,7 +27,7 @@
             </div>
             <div class="saude-cta" id="saudeCta" style="display:none">
                 <div class="saude-cta-icon">
-                    <i class="fas fa-heartbeat"></i>
+                    <i data-lucide="heart-pulse"></i>
                 </div>
                 <div class="saude-cta-text">
                     <span class="summary-label">Saúde Financeira</span>
@@ -39,7 +39,7 @@
         <!-- Total Orçado -->
         <div class="summary-card">
             <div class="summary-icon blue">
-                <i class="fas fa-wallet"></i>
+                <i data-lucide="wallet"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Orçado</span>
@@ -50,7 +50,7 @@
         <!-- Total Gasto -->
         <div class="summary-card">
             <div class="summary-icon orange">
-                <i class="fas fa-receipt"></i>
+                <i data-lucide="receipt"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Gasto</span>
@@ -61,7 +61,7 @@
         <!-- Disponível -->
         <div class="summary-card">
             <div class="summary-icon green">
-                <i class="fas fa-piggy-bank"></i>
+                <i data-lucide="piggy-bank"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Disponível</span>
@@ -75,7 +75,7 @@
         <!-- Metas Ativas -->
         <div class="summary-card">
             <div class="summary-icon purple">
-                <i class="fas fa-bullseye"></i>
+                <i data-lucide="target"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Metas Ativas</span>
@@ -86,7 +86,7 @@
         <!-- Total Acumulado -->
         <div class="summary-card">
             <div class="summary-icon green">
-                <i class="fas fa-coins"></i>
+                <i data-lucide="coins"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Acumulado</span>
@@ -97,7 +97,7 @@
         <!-- Objetivo Total -->
         <div class="summary-card">
             <div class="summary-icon blue">
-                <i class="fas fa-flag-checkered"></i>
+                <i data-lucide="flag"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Objetivo Total</span>
@@ -128,12 +128,12 @@
     <div class="fin-tabs" data-aos="fade-up" data-aos-delay="100" role="tablist" aria-label="Seções de finanças">
         <button class="fin-tab active" data-tab="orcamentos" role="tab"
             aria-selected="true" aria-controls="tab-orcamentos" id="fin-tab-orcamentos">
-            <i class="fas fa-chart-pie"></i>
+            <i data-lucide="pie-chart"></i>
             <span>Orçamentos</span>
         </button>
         <button class="fin-tab" data-tab="metas" role="tab"
             aria-selected="false" aria-controls="tab-metas" id="fin-tab-metas">
-            <i class="fas fa-bullseye"></i>
+            <i data-lucide="target"></i>
             <span>Metas</span>
         </button>
     </div>
@@ -145,16 +145,16 @@
         <div class="fin-actions-bar" data-aos="fade-up" data-aos-delay="150">
             <div class="actions-left">
                 <button class="fin-action-btn primary" id="btnAutoSugerir" title="A IA analisa seus últimos 3 meses e sugere orçamentos automaticamente">
-                    <i class="fas fa-magic"></i>
+                    <i data-lucide="wand-2"></i>
                     <span>Sugestão Inteligente</span>
                 </button>
                 <button class="fin-action-btn" id="btnCopiarMes" title="Copiar orçamentos do mês anterior">
-                    <i class="fas fa-copy"></i>
+                    <i data-lucide="copy"></i>
                     <span>Copiar Mês Anterior</span>
                 </button>
             </div>
             <button class="fin-action-btn success" id="btnNovoOrcamento">
-                <i class="fas fa-plus"></i>
+                <i data-lucide="plus"></i>
                 <span>Novo Orçamento</span>
             </button>
         </div>
@@ -162,7 +162,7 @@
         <!-- Grid de orçamentos -->
         <div class="orcamentos-grid" id="orcamentosGrid">
             <div class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i>
+                <i data-lucide="loader-2" class="animate-spin"></i>
                 <p>Carregando orçamentos...</p>
             </div>
         </div>
@@ -170,13 +170,13 @@
         <!-- Estado vazio -->
         <div class="fin-empty-state" id="orcamentosEmpty" style="display: none;">
             <div class="empty-icon">
-                <i class="fas fa-chart-pie"></i>
+                <i data-lucide="pie-chart"></i>
             </div>
             <h3>Nenhum orçamento configurado</h3>
             <p>Configure orçamentos por categoria para controlar seus gastos.<br>
                 Clique em <strong>"Sugestão Inteligente"</strong> para configurar automaticamente!</p>
             <button class="fin-action-btn primary" id="btnAutoSugerirEmpty">
-                <i class="fas fa-magic"></i>
+                <i data-lucide="wand-2"></i>
                 <span>Configurar Automaticamente</span>
             </button>
         </div>
@@ -184,7 +184,7 @@
         <!-- Insights (dentro da tab orçamentos) -->
         <div class="fin-insights-section" id="insightsSection" style="display:none;">
             <div class="fin-section-label">
-                <i class="fas fa-lightbulb"></i>
+                <i data-lucide="lightbulb"></i>
                 <span>Insights</span>
             </div>
             <div class="insights-grid" id="insightsGrid"></div>
@@ -198,12 +198,12 @@
         <div class="fin-actions-bar" data-aos="fade-up">
             <div class="actions-left">
                 <button class="fin-action-btn" id="btnTemplates">
-                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <i data-lucide="wand-sparkles"></i>
                     <span>Usar Template</span>
                 </button>
             </div>
             <button class="fin-action-btn success" id="btnNovaMeta">
-                <i class="fas fa-plus"></i>
+                <i data-lucide="plus"></i>
                 <span>Nova Meta</span>
             </button>
         </div>
@@ -211,7 +211,7 @@
         <!-- Grid de metas -->
         <div class="metas-grid" id="metasGrid">
             <div class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i>
+                <i data-lucide="loader-2" class="animate-spin"></i>
                 <p>Carregando metas...</p>
             </div>
         </div>
@@ -219,13 +219,13 @@
         <!-- Estado vazio -->
         <div class="fin-empty-state" id="metasEmpty" style="display: none;">
             <div class="empty-icon">
-                <i class="fas fa-bullseye"></i>
+                <i data-lucide="target"></i>
             </div>
             <h3>Nenhuma meta financeira</h3>
             <p>Crie metas para acompanhar seus objetivos financeiros.<br>
                 Use um <strong>template pronto</strong> para começar rapidamente!</p>
             <button class="fin-action-btn primary" id="btnTemplatesEmpty">
-                <i class="fas fa-wand-magic-sparkles"></i>
+                <i data-lucide="wand-sparkles"></i>
                 <span>Escolher Template</span>
             </button>
         </div>
@@ -239,7 +239,7 @@
         <div class="fin-modal-header">
             <h3 id="modalOrcamentoTitle">Novo Orçamento</h3>
             <button class="fin-modal-close" data-close-modal="modalOrcamento">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
         <form id="formOrcamento">
@@ -247,7 +247,7 @@
             <div class="fin-modal-body">
                 <div class="fin-form-group">
                     <label class="fin-label">
-                        <i class="fas fa-tag"></i> Categoria
+                        <i data-lucide="tag"></i> Categoria
                     </label>
                     <select id="orcCategoria" class="fin-select" required>
                         <option value="">Selecione uma categoria</option>
@@ -255,7 +255,7 @@
                 </div>
                 <div class="fin-form-group">
                     <label class="fin-label">
-                        <i class="fas fa-dollar-sign"></i> Limite Mensal
+                        <i data-lucide="dollar-sign"></i> Limite Mensal
                     </label>
                     <input type="text" id="orcValor" class="fin-input" placeholder="R$ 0,00" required>
                     <span class="fin-hint" id="orcSugestao"></span>
@@ -285,7 +285,7 @@
             <div class="fin-modal-footer">
                 <button type="button" class="fin-btn secondary" data-close-modal="modalOrcamento">Cancelar</button>
                 <button type="submit" class="fin-btn primary">
-                    <i class="fas fa-check"></i> Salvar
+                    <i data-lucide="check"></i> Salvar
                 </button>
             </div>
         </form>
@@ -296,9 +296,9 @@
 <div class="fin-modal-overlay" id="modalSugestoes">
     <div class="fin-modal large">
         <div class="fin-modal-header">
-            <h3><i class="fas fa-magic"></i> Sugestão Inteligente</h3>
+            <h3><i data-lucide="wand-2"></i> Sugestão Inteligente</h3>
             <button class="fin-modal-close" data-close-modal="modalSugestoes">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
         <div class="fin-modal-body">
@@ -308,7 +308,7 @@
             </p>
             <div class="sugestoes-list" id="sugestoesList">
                 <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <i data-lucide="loader-2" class="animate-spin"></i>
                     <p>Analisando seu histórico...</p>
                 </div>
             </div>
@@ -316,7 +316,7 @@
         <div class="fin-modal-footer">
             <button type="button" class="fin-btn secondary" data-close-modal="modalSugestoes">Cancelar</button>
             <button type="button" class="fin-btn primary" id="btnAplicarSugestoes">
-                <i class="fas fa-check-double"></i> Aplicar Todas
+                <i data-lucide="check-check"></i> Aplicar Todas
             </button>
         </div>
     </div>
@@ -328,36 +328,36 @@
         <div class="fin-modal-header">
             <h3 id="modalMetaTitle">Nova Meta</h3>
             <button class="fin-modal-close" data-close-modal="modalMeta">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
         <form id="formMeta">
             <?= csrf_input('default') ?>
             <div class="fin-modal-body">
                 <div class="fin-form-group">
-                    <label class="fin-label"><i class="fas fa-pencil"></i> Título</label>
+                    <label class="fin-label"><i data-lucide="pencil"></i> Título</label>
                     <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergência" required maxlength="150">
                 </div>
                 <div class="fin-form-group">
-                    <label class="fin-label"><i class="fas fa-university"></i> Vincular a uma conta <span class="fin-badge-optional">opcional</span></label>
+                    <label class="fin-label"><i data-lucide="landmark"></i> Vincular a uma conta <span class="fin-badge-optional">opcional</span></label>
                     <select id="metaContaId" class="fin-select">
                         <option value="">— Sem vínculo (aporte manual) —</option>
                     </select>
-                    <span class="fin-hint" id="metaContaHint" style="display:none"><i class="fas fa-info-circle"></i> O progresso será atualizado automaticamente com o saldo da conta.</span>
+                    <span class="fin-hint" id="metaContaHint" style="display:none"><i data-lucide="info"></i> O progresso será atualizado automaticamente com o saldo da conta.</span>
                 </div>
                 <div class="fin-form-row-2">
                     <div class="fin-form-group">
-                        <label class="fin-label"><i class="fas fa-bullseye"></i> Valor da Meta</label>
+                        <label class="fin-label"><i data-lucide="target"></i> Valor da Meta</label>
                         <input type="text" id="metaValorAlvo" class="fin-input" placeholder="R$ 0,00" required>
                     </div>
                     <div class="fin-form-group">
-                        <label class="fin-label"><i class="fas fa-coins"></i> Valor Atual</label>
+                        <label class="fin-label"><i data-lucide="coins"></i> Valor Atual</label>
                         <input type="text" id="metaValorAtual" class="fin-input" placeholder="R$ 0,00" value="0">
                     </div>
                 </div>
                 <div class="fin-form-row-2">
                     <div class="fin-form-group">
-                        <label class="fin-label"><i class="fas fa-tag"></i> Tipo</label>
+                        <label class="fin-label"><i data-lucide="tag"></i> Tipo</label>
                         <select id="metaTipo" class="fin-select">
                             <option value="economia">💰 Economia</option>
                             <option value="compra">🛒 Compra</option>
@@ -375,7 +375,7 @@
                         </select>
                     </div>
                     <div class="fin-form-group">
-                        <label class="fin-label"><i class="fas fa-flag"></i> Prioridade</label>
+                        <label class="fin-label"><i data-lucide="flag"></i> Prioridade</label>
                         <select id="metaPrioridade" class="fin-select">
                             <option value="baixa">🟢 Baixa</option>
                             <option value="media" selected>🟡 Média</option>
@@ -384,12 +384,12 @@
                     </div>
                 </div>
                 <div class="fin-form-group">
-                    <label class="fin-label"><i class="fas fa-calendar"></i> Prazo (opcional)</label>
+                    <label class="fin-label"><i data-lucide="calendar"></i> Prazo (opcional)</label>
                     <input type="date" id="metaPrazo" class="fin-input">
                     <span class="fin-hint" id="metaAporteSugerido"></span>
                 </div>
                 <div class="fin-form-group">
-                    <label class="fin-label"><i class="fas fa-palette"></i> Cor</label>
+                    <label class="fin-label"><i data-lucide="palette"></i> Cor</label>
                     <div class="color-picker-grid" id="metaCorPicker">
                         <button type="button" class="color-dot active" data-color="#6366f1" style="background:#6366f1"></button>
                         <button type="button" class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></button>
@@ -407,7 +407,7 @@
             <div class="fin-modal-footer">
                 <button type="button" class="fin-btn secondary" data-close-modal="modalMeta">Cancelar</button>
                 <button type="submit" class="fin-btn primary">
-                    <i class="fas fa-check"></i> Salvar Meta
+                    <i data-lucide="check"></i> Salvar Meta
                 </button>
             </div>
         </form>
@@ -418,16 +418,16 @@
 <div class="fin-modal-overlay" id="modalTemplates">
     <div class="fin-modal large">
         <div class="fin-modal-header">
-            <h3><i class="fas fa-wand-magic-sparkles"></i> Templates de Metas</h3>
+            <h3><i data-lucide="wand-sparkles"></i> Templates de Metas</h3>
             <button class="fin-modal-close" data-close-modal="modalTemplates">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
         <div class="fin-modal-body">
             <p class="fin-modal-desc">Escolha um template para criar sua meta rapidamente.</p>
             <div class="templates-grid" id="templatesGrid">
                 <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <i data-lucide="loader-2" class="animate-spin"></i>
                     <p>Carregando templates...</p>
                 </div>
             </div>
@@ -439,9 +439,9 @@
 <div class="fin-modal-overlay" id="modalAporte">
     <div class="fin-modal small">
         <div class="fin-modal-header">
-            <h3><i class="fas fa-plus-circle"></i> Registrar Aporte</h3>
+            <h3><i data-lucide="plus-circle"></i> Registrar Aporte</h3>
             <button class="fin-modal-close" data-close-modal="modalAporte">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
         <form id="formAporte">
@@ -449,7 +449,7 @@
             <div class="fin-modal-body">
                 <p class="aporte-meta-info" id="aporteMetaInfo"></p>
                 <div class="fin-form-group">
-                    <label class="fin-label"><i class="fas fa-dollar-sign"></i> Valor do Aporte</label>
+                    <label class="fin-label"><i data-lucide="dollar-sign"></i> Valor do Aporte</label>
                     <input type="text" id="aporteValor" class="fin-input" placeholder="R$ 0,00" required>
                 </div>
                 <input type="hidden" id="aporteMetaId" value="">
@@ -457,7 +457,7 @@
             <div class="fin-modal-footer">
                 <button type="button" class="fin-btn secondary" data-close-modal="modalAporte">Cancelar</button>
                 <button type="submit" class="fin-btn primary">
-                    <i class="fas fa-plus"></i> Adicionar
+                    <i data-lucide="plus"></i> Adicionar
                 </button>
             </div>
         </form>

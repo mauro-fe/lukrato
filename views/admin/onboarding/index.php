@@ -13,7 +13,10 @@ $theme = $userTheme ?? 'dark';
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <?= csrf_meta('default') ?>
     <link rel="icon" type="image/png" href="<?= $favicon ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" crossorigin="anonymous">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="<?= $base ?>assets/css/lucide-compat.css">
+    <script src="<?= $base ?>assets/js/lucide.min.js"></script>
     <link rel="stylesheet" href="<?= $base ?>assets/css/variables.css">
 </head>
 <body style="margin:0;padding:0;background:var(--color-bg);">
@@ -402,7 +405,7 @@ $theme = $userTheme ?? 'dark';
         <!-- Erro -->
         <?php if (!empty($_SESSION['error'])): ?>
         <div class="lk-onboarding-error">
-            <i class="fas fa-exclamation-circle"></i>
+            <i data-lucide="circle-alert"></i>
             <?= htmlspecialchars($_SESSION['error']) ?>
         </div>
         <?php unset($_SESSION['error']); ?>
@@ -422,7 +425,7 @@ $theme = $userTheme ?? 'dark';
         <!-- Hero -->
         <div class="lk-ob-hero">
             <div class="lk-ob-hero-icon">
-                <i class="fas fa-wallet"></i>
+                <i data-lucide="wallet"></i>
             </div>
             <h1>Onde você guarda seu dinheiro?</h1>
             <p>Adicione sua principal conta para começar a organizar suas finanças.</p>
@@ -435,7 +438,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Nome da Conta -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-pen"></i>
+                    <i data-lucide="pen"></i>
                     Nome da Conta <span class="lk-req">*</span>
                 </label>
                 <input type="text" name="nome" class="lk-input" placeholder="Ex: Nubank, Itaú, Carteira..." required autocomplete="off" id="contaNomeInput">
@@ -444,14 +447,14 @@ $theme = $userTheme ?? 'dark';
             <!-- Instituição Financeira (searchable) -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-university"></i>
+                    <i data-lucide="landmark"></i>
                     Instituição Financeira <span class="lk-req">*</span>
                 </label>
                 <input type="hidden" name="instituicao_financeira_id" id="instituicaoHidden" required>
                 <div class="lk-select-wrapper" id="instSelectWrapper">
                     <input type="text" class="lk-select-search" id="instSearchInput"
                            placeholder="Busque ou selecione..." autocomplete="off" readonly>
-                    <i class="fas fa-chevron-down lk-select-arrow"></i>
+                    <i data-lucide="chevron-down" class="lk-select-arrow"></i>
                     <div class="lk-select-dropdown" id="instDropdown">
                         <?php foreach ($instituicoes as $inst): ?>
                         <div class="lk-select-option" data-value="<?= $inst->id ?>"><?= htmlspecialchars($inst->nome) ?></div>
@@ -463,7 +466,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Saldo Inicial -->
             <div class="lk-form-group">
                 <label class="lk-label">
-                    <i class="fas fa-coins"></i>
+                    <i data-lucide="coins"></i>
                     Saldo Inicial
                 </label>
                 <div class="lk-input-money">
@@ -472,7 +475,7 @@ $theme = $userTheme ?? 'dark';
                            inputmode="decimal" id="saldoInput">
                 </div>
                 <small class="lk-helper-text">
-                    <i class="fas fa-info-circle"></i>
+                    <i data-lucide="info"></i>
                     Opcional — você pode ajustar depois.
                 </small>
             </div>
@@ -480,11 +483,11 @@ $theme = $userTheme ?? 'dark';
             <!-- Botão -->
             <button type="submit" class="lk-btn-primary" id="btnSubmitConta">
                 Continuar
-                <i class="fas fa-arrow-right"></i>
+                <i data-lucide="arrow-right"></i>
             </button>
 
             <p class="lk-onboarding-hint">
-                <i class="fas fa-bolt"></i>
+                <i data-lucide="zap"></i>
                 Leva menos de 30 segundos
             </p>
 
@@ -624,5 +627,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<script src="<?= $base ?>assets/js/lucide-init.js"></script>
 </body>
 </html>

@@ -1836,7 +1836,8 @@
   margin: var(--spacing-6) 0;
 }
 
-.paywall-message i.fa-crown {
+.paywall-message i[data-lucide="crown"],
+.paywall-message i.lucide-crown {
   font-size: 4rem;
   background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
   -webkit-background-clip: text;
@@ -2614,11 +2615,11 @@ input#agNumeroParcelas,
 }
 
 .ag-table thead th.sortable.sort-asc .sort-icon::before {
-  content: "\f0de"; /* fa-sort-up */
+  content: "\25B2"; /* sort-up triangle */
 }
 
 .ag-table thead th.sortable.sort-desc .sort-icon::before {
-  content: "\f0dd"; /* fa-sort-down */
+  content: "\25BC"; /* sort-down triangle */
 }
 
 .ag-table thead th.sortable.sort-asc .sort-icon,

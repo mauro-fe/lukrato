@@ -3,7 +3,7 @@
 
 <!-- Botão Scroll to Top -->
 <button id="scrollToTopBtn" class="scroll-to-top" aria-label="Voltar ao topo" title="Voltar ao topo">
-    <i class="fas fa-arrow-up"></i>
+    <i data-lucide="arrow-up"></i>
 </button>
 
 <?php loadPageCss('admin-partials-footer'); ?>

@@ -227,8 +227,9 @@ class FinancasManager {
             const conta = this.contas.find(c => String(c.id) === String(contaId));
             const saldo = conta?.saldoAtual ?? 0;
             if (hint) {
-                hint.innerHTML = `<i class="fas fa-info-circle"></i> Saldo atual da conta: <strong>${this.formatCurrency(saldo)}</strong> — será usado como valor inicial. O progresso atualiza automaticamente.`;
+                hint.innerHTML = `<i data-lucide="info"></i> Saldo atual da conta: <strong>${this.formatCurrency(saldo)}</strong> — será usado como valor inicial. O progresso atualiza automaticamente.`;
                 hint.style.display = '';
+                if(window.lucide) lucide.createIcons();
             }
         } else {
             if (valorAtualGroup) valorAtualGroup.style.display = '';
@@ -430,10 +431,10 @@ class FinancasManager {
                     </div>
                     <div class="orc-actions">
                         <button class="orc-action-btn" onclick="financasManager.openOrcamentoModal(${orc.id})" title="Editar">
-                            <i class="fas fa-pencil"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="orc-action-btn danger" onclick="financasManager.deleteOrcamento(${orc.id})" title="Excluir">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 </div>
@@ -455,6 +456,7 @@ class FinancasManager {
                 </div>
             </div>`;
         }).join('');
+        if(window.lucide) lucide.createIcons();
     }
 
     // ==================== RENDER: METAS ====================
@@ -491,7 +493,7 @@ class FinancasManager {
                 ? `<span class="meta-aporte-hint">${this.formatCurrency(meta.aporte_mensal_sugerido)}/mês sugerido</span>`
                 : '';
             const contaBadge = meta.conta_id
-                ? `<span class="meta-conta-badge"><i class="fas fa-university"></i> ${this.escHtml(meta.conta_nome || 'Conta vinculada')}</span>`
+                ? `<span class="meta-conta-badge"><i data-lucide="landmark"></i> ${this.escHtml(meta.conta_nome || 'Conta vinculada')}</span>`
                 : '';
 
             return `
@@ -505,13 +507,13 @@ class FinancasManager {
                     <div class="meta-actions">
                         ${meta.status === 'ativa' && !meta.conta_id ? `
                         <button class="meta-action-btn" onclick="financasManager.openAporteModal(${meta.id})" title="Adicionar aporte">
-                            <i class="fas fa-plus-circle"></i>
+                            <i data-lucide="circle-plus"></i>
                         </button>` : ''}
                         <button class="meta-action-btn" onclick="financasManager.openMetaModal(${meta.id})" title="Editar">
-                            <i class="fas fa-pencil"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="meta-action-btn danger" onclick="financasManager.deleteMeta(${meta.id})" title="Excluir">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 </div>
@@ -533,6 +535,7 @@ class FinancasManager {
                 </div>
             </div>`;
         }).join('');
+        if(window.lucide) lucide.createIcons();
     }
 
     // ==================== RENDER: INSIGHTS ====================
@@ -555,7 +558,7 @@ class FinancasManager {
             return `
             <div class="insight-card ${level}" data-aos="fade-up">
                 <div class="insight-icon ${level}">
-                    <i class="fas fa-${icon}"></i>
+                    <i data-lucide="${icon}"></i>
                 </div>
                 <div class="insight-content">
                     <span class="insight-title">${this.escHtml(insight.titulo || '')}</span>
@@ -563,6 +566,7 @@ class FinancasManager {
                 </div>
             </div>`;
         }).join('');
+        if(window.lucide) lucide.createIcons();
     }
 
     // ==================== TABS ====================
@@ -714,7 +718,8 @@ class FinancasManager {
     async openSugestoes() {
         this.openModal('modalSugestoes');
         const list = document.getElementById('sugestoesList');
-        list.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Analisando seu histórico...</p></div>';
+        list.innerHTML = '<div class="loading-state"><i data-lucide="loader-2" class="icon-spin"></i><p>Analisando seu histórico...</p></div>';
+        if(window.lucide) lucide.createIcons();
 
         try {
             const res = await this.apiGet(`api/financas/orcamentos/sugestoes?mes=${this.currentMonth}&ano=${this.currentYear}`);
@@ -747,7 +752,7 @@ class FinancasManager {
                     <div class="sugestao-detail">
                         <span class="sugestao-nome">${this.escHtml(catNome)}</span>
                         <span class="sugestao-media">Média: ${this.formatCurrency(mediaGastos)}
-                            <i class="fas fa-${trendIcon} trend-${trendClass}"></i>
+                            <i data-lucide="${trendIcon}" class="trend-${trendClass}"></i>
                         </span>
                         ${economiaTag}
                     </div>
@@ -759,10 +764,11 @@ class FinancasManager {
                 </div>
                 <label class="sugestao-check">
                     <input type="checkbox" checked data-sug-idx="${idx}">
-                    <span class="checkmark"><i class="fas fa-check"></i></span>
+                    <span class="checkmark"><i data-lucide="check"></i></span>
                 </label>
             </div>`;
         }).join('');
+        if(window.lucide) lucide.createIcons();
     }
 
     async aplicarSugestoes() {
@@ -1064,15 +1070,28 @@ class FinancasManager {
     async openTemplates() {
         this.openModal('modalTemplates');
         const grid = document.getElementById('templatesGrid');
-        grid.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando templates...</p></div>';
+        grid.innerHTML = '<div class="loading-state"><i data-lucide="loader-2" class="icon-spin"></i><p>Carregando templates...</p></div>';
+        if(window.lucide) lucide.createIcons();
 
         try {
             const res = await this.apiGet('api/financas/metas/templates');
             if (res.success !== false && res.data?.length) {
+                const _faToLucide = {
+                    'fa-arrow-down':'arrow-down','fa-arrow-up':'arrow-up','fa-calendar-alt':'calendar-days',
+                    'fa-check':'check','fa-check-circle':'circle-check','fa-chevron-right':'chevron-right',
+                    'fa-credit-card':'credit-card','fa-exclamation-circle':'circle-alert',
+                    'fa-exclamation-triangle':'triangle-alert','fa-eye':'eye','fa-eye-slash':'eye-off',
+                    'fa-info-circle':'info','fa-pencil':'pencil','fa-pencil-alt':'pencil',
+                    'fa-plus':'plus','fa-plus-circle':'circle-plus','fa-redo':'refresh-cw',
+                    'fa-shopping-cart':'shopping-cart','fa-sort':'arrow-up-down','fa-sort-down':'arrow-down',
+                    'fa-sort-up':'arrow-up','fa-spinner':'loader-2','fa-times':'x','fa-trash':'trash-2',
+                    'fa-undo':'undo-2','fa-university':'landmark','fa-wallet':'wallet'
+                };
                 grid.innerHTML = res.data.map(tmpl => {
-                    const iconeHtml = tmpl.icone && tmpl.icone.startsWith('fa-')
-                        ? `<i class="fas ${tmpl.icone}"></i>`
-                        : (tmpl.icone || '🎯');
+                    // icone agora vem como nome Lucide direto (ex: 'shield', 'smartphone')
+                    const iconeHtml = tmpl.icone
+                        ? `<i data-lucide="${tmpl.icone}"></i>`
+                        : '<i data-lucide="target"></i>';
                     return `
                     <div class="template-card" onclick="financasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
                         <span class="template-icon">${iconeHtml}</span>
@@ -1081,9 +1100,10 @@ class FinancasManager {
                             <p>${this.escHtml(tmpl.descricao || '')}</p>
                             ${tmpl.valor_sugerido ? `<span class="template-valor">Sugestão: ${this.formatCurrency(tmpl.valor_sugerido)}</span>` : ''}
                         </div>
-                        <i class="fas fa-chevron-right template-arrow"></i>
+                        <i data-lucide="chevron-right" class="template-arrow"></i>
                     </div>`;
                 }).join('');
+                if(window.lucide) lucide.createIcons();
             } else {
                 grid.innerHTML = '<div class="fin-empty-state"><p>Nenhum template disponível.</p></div>';
             }
@@ -1261,13 +1281,13 @@ class FinancasManager {
 
     getInsightIcon(tipo) {
         const map = {
-            alerta_80: 'exclamation-triangle',
-            alerta_100: 'skull-crossbones',
+            alerta_80: 'triangle-alert',
+            alerta_100: 'circle-alert',
             economia: 'thumbs-up',
-            tendencia_alta: 'chart-line',
-            tendencia_baixa: 'chart-line',
-            comparativo: 'balance-scale',
-            sem_orcamento: 'question-circle',
+            tendencia_alta: 'trending-up',
+            tendencia_baixa: 'trending-down',
+            comparativo: 'scale',
+            sem_orcamento: 'circle-help',
             meta_atrasada: 'clock'
         };
         return map[tipo] || 'lightbulb';

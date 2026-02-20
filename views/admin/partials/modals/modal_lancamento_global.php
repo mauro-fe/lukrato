@@ -5,12 +5,12 @@
         <!-- Header com Gradiente -->
         <div class="lk-modal-header-gradient">
             <div class="lk-modal-icon-wrapper">
-                <i class="fas fa-exchange-alt"></i>
+                <i data-lucide="arrow-left-right"></i>
             </div>
             <h2 class="lk-modal-title" id="modalLancamentoGlobalTitulo">Nova Movimentação</h2>
             <button class="lk-modal-close-btn" onclick="lancamentoGlobalManager.closeModal()" type="button"
                 aria-label="Fechar modal">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
 
@@ -19,7 +19,7 @@
             <!-- Seleção de Conta -->
             <div class="lk-form-group">
                 <label for="globalContaSelect" class="lk-label required">
-                    <i class="fas fa-wallet"></i>
+                    <i data-lucide="wallet"></i>
                     Selecione a Conta
                 </label>
                 <div class="lk-select-wrapper">
@@ -28,14 +28,14 @@
                         <option value="">Escolha uma conta...</option>
                         <!-- Preenchido via JS -->
                     </select>
-                    <i class="fas fa-chevron-down lk-select-icon"></i>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
                 </div>
             </div>
 
             <!-- Saldo da Conta Selecionada -->
             <div class="lk-conta-info" id="globalContaInfo" style="display: none;">
                 <div class="lk-conta-badge">
-                    <i class="fas fa-wallet"></i>
+                    <i data-lucide="wallet"></i>
                     <span id="globalContaNome">Conta</span>
                 </div>
                 <div class="lk-conta-saldo">
@@ -46,7 +46,7 @@
             <!-- Escolha do Tipo de Lançamento -->
             <div class="lk-tipo-section" id="globalTipoSection">
                 <h3 class="lk-section-title">
-                    <i class="fas fa-tasks"></i>
+                    <i data-lucide="list-checks"></i>
                     Escolha o tipo de movimentação
                 </h3>
 
@@ -55,7 +55,7 @@
                     <button type="button" class="lk-tipo-card lk-tipo-receita"
                         onclick="lancamentoGlobalManager.mostrarFormulario('receita')">
                         <div class="lk-tipo-icon">
-                            <i class="fas fa-arrow-down"></i>
+                            <i data-lucide="arrow-down"></i>
                         </div>
                         <h4>Receita</h4>
                         <p>Dinheiro que entra</p>
@@ -66,7 +66,7 @@
                     <button type="button" class="lk-tipo-card lk-tipo-despesa"
                         onclick="lancamentoGlobalManager.mostrarFormulario('despesa')">
                         <div class="lk-tipo-icon">
-                            <i class="fas fa-arrow-up"></i>
+                            <i data-lucide="arrow-up"></i>
                         </div>
                         <h4>Despesa</h4>
                         <p>Dinheiro que sai</p>
@@ -77,7 +77,7 @@
                     <button type="button" class="lk-tipo-card lk-tipo-transferencia"
                         onclick="lancamentoGlobalManager.mostrarFormulario('transferencia')">
                         <div class="lk-tipo-icon">
-                            <i class="fas fa-exchange-alt"></i>
+                            <i data-lucide="arrow-left-right"></i>
                         </div>
                         <h4>Transferência</h4>
                         <p>Entre contas</p>
@@ -88,7 +88,7 @@
                     <button type="button" class="lk-tipo-card lk-tipo-agendamento"
                         onclick="lancamentoGlobalManager.mostrarFormulario('agendamento')">
                         <div class="lk-tipo-icon">
-                            <i class="fas fa-calendar-plus"></i>
+                            <i data-lucide="calendar-plus"></i>
                         </div>
                         <h4>Agendamento</h4>
                         <p>Programar para depois</p>
@@ -101,7 +101,7 @@
             <div class="lk-form-section" id="globalFormSection" style="display: none;">
                 <!-- Botão voltar -->
                 <button type="button" class="lk-btn-voltar" onclick="lancamentoGlobalManager.voltarEscolhaTipo()">
-                    <i class="fas fa-arrow-left"></i>
+                    <i data-lucide="arrow-left"></i>
                     Voltar
                 </button>
 
@@ -113,17 +113,17 @@
                     Tipo de Agendamento (somente para agendamento)
                     <div class="lk-form-group" id="globalTipoAgendamentoGroup" style="display: none;">
                         <label class="lk-label required">
-                            <i class="fas fa-tag"></i>
+                            <i data-lucide="tag"></i>
                             Tipo de Agendamento
                         </label>
                         <div class="lk-tipo-agendamento-btns">
                             <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita"
                                 onclick="lancamentoGlobalManager.selecionarTipoAgendamento('receita')">
-                                <i class="fas fa-arrow-down"></i> Receita
+                                <i data-lucide="arrow-down"></i> Receita
                             </button>
                             <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active"
                                 onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
-                                <i class="fas fa-arrow-up"></i> Despesa
+                                <i data-lucide="arrow-up"></i> Despesa
                             </button>
 
                         </div>
@@ -132,7 +132,7 @@
                     <!-- Descrição -->
                     <div class="lk-form-group">
                         <label for="globalLancamentoDescricao" class="lk-label required">
-                            <i class="fas fa-align-left"></i>
+                            <i data-lucide="align-left"></i>
                             Descrição
                         </label>
                         <input type="text" id="globalLancamentoDescricao" name="descricao" class="lk-input"
@@ -142,7 +142,7 @@
                     <!-- Valor -->
                     <div class="lk-form-group">
                         <label for="globalLancamentoValor" class="lk-label required">
-                            <i class="fas fa-dollar-sign"></i>
+                            <i data-lucide="dollar-sign"></i>
                             Valor
                         </label>
                         <div class="lk-input-money">
@@ -156,7 +156,7 @@
                     <!-- Conta Destino (somente para transferência) -->
                     <div class="lk-form-group" id="globalContaDestinoGroup" style="display: none;">
                         <label for="globalLancamentoContaDestino" class="lk-label required">
-                            <i class="fas fa-exchange-alt"></i>
+                            <i data-lucide="arrow-left-right"></i>
                             Conta de Destino
                         </label>
                         <div class="lk-select-wrapper">
@@ -164,7 +164,7 @@
                                 <option value="">Selecione a conta de destino</option>
                                 <!-- Preenchido via JS -->
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                         <small class="lk-helper-text">Para onde o dinheiro vai ser transferido</small>
                     </div>
@@ -175,7 +175,7 @@
                         style="display: none;">
                         <input type="hidden" id="globalFormaPagamento" name="forma_pagamento" value="">
                         <label class="lk-forma-pagamento-label">
-                            <i class="fas fa-wallet"></i>
+                            <i data-lucide="wallet"></i>
                             Como você vai pagar?
                         </label>
                         <div class="lk-forma-pagamento-grid" id="globalFormaPagamentoGrid">
@@ -186,22 +186,22 @@
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="cartao_credito"
                                 onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_credito')">
-                                <i class="fa-solid fa-credit-card lk-forma-icon"></i>
+                                <i data-lucide="credit-card" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Crédito</span>
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="cartao_debito"
                                 onclick="lancamentoGlobalManager.selecionarFormaPagamento('cartao_debito')">
-                                <i class="fa-solid fa-credit-card lk-forma-icon"></i>
+                                <i data-lucide="credit-card" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Débito</span>
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="dinheiro"
                                 onclick="lancamentoGlobalManager.selecionarFormaPagamento('dinheiro')">
-                                <i class="fa-solid fa-money-bill-wave lk-forma-icon"></i>
+                                <i data-lucide="banknote" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Dinheiro</span>
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="boleto"
                                 onclick="lancamentoGlobalManager.selecionarFormaPagamento('boleto')">
-                                <i class="fa-solid fa-barcode lk-forma-icon"></i>
+                                <i data-lucide="scan-line" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Boleto</span>
                             </button>
                         </div>
@@ -212,7 +212,7 @@
                         style="display: none;">
                         <input type="hidden" id="globalFormaRecebimento" name="forma_pagamento" value="">
                         <label class="lk-forma-pagamento-label">
-                            <i class="fas fa-hand-holding-usd"></i>
+                            <i data-lucide="hand-coins"></i>
                             Como você vai receber?
                         </label>
                         <div class="lk-forma-pagamento-grid" id="globalFormaRecebimentoGrid">
@@ -223,22 +223,22 @@
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="deposito"
                                 onclick="lancamentoGlobalManager.selecionarFormaRecebimento('deposito')">
-                                <i class="fa-solid fa-building-columns lk-forma-icon"></i>
+                                <i data-lucide="landmark" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Depósito</span>
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="dinheiro"
                                 onclick="lancamentoGlobalManager.selecionarFormaRecebimento('dinheiro')">
-                                <i class="fa-solid fa-money-bill-wave lk-forma-icon"></i>
+                                <i data-lucide="banknote" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Dinheiro</span>
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="transferencia"
                                 onclick="lancamentoGlobalManager.selecionarFormaRecebimento('transferencia')">
-                                <i class="fa-solid fa-arrow-right-arrow-left lk-forma-icon"></i>
+                                <i data-lucide="arrow-left-right" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Transf.</span>
                             </button>
                             <button type="button" class="lk-forma-btn" data-forma="estorno_cartao"
                                 onclick="lancamentoGlobalManager.selecionarFormaRecebimento('estorno_cartao')">
-                                <i class="fa-solid fa-rotate-left lk-forma-icon"></i>
+                                <i data-lucide="rotate-ccw" class="lk-forma-icon"></i>
                                 <span class="lk-forma-label">Estorno</span>
                             </button>
                         </div>
@@ -247,7 +247,7 @@
                     <!-- Seleção de Cartão (quando forma é cartão de crédito) -->
                     <div class="lk-form-group lk-forma-cartao-info" id="globalCartaoCreditoGroup">
                         <label for="globalLancamentoCartaoCredito" class="lk-label">
-                            <i class="fas fa-credit-card"></i>
+                            <i data-lucide="credit-card"></i>
                             Qual cartão?
                         </label>
                         <div class="lk-select-wrapper">
@@ -256,7 +256,7 @@
                                 <option value="">Selecione o cartão</option>
                                 <!-- Preenchido via JS -->
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                         <small class="lk-helper-text">O débito será na data de vencimento da fatura</small>
                     </div>
@@ -264,14 +264,14 @@
                     <!-- Seleção de Fatura para Estorno -->
                     <div class="lk-form-group" id="globalFaturaEstornoGroup" style="display: none;">
                         <label for="globalLancamentoFaturaEstorno" class="lk-label">
-                            <i class="fas fa-file-invoice-dollar"></i>
+                            <i data-lucide="receipt"></i>
                             Em qual fatura aplicar o estorno?
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select">
                                 <option value="">Carregando faturas...</option>
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                         <small class="lk-helper-text">O estorno será creditado na fatura selecionada</small>
                     </div>
@@ -284,7 +284,7 @@
                                     class="lk-checkbox">
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
-                                    <i class="fas fa-calendar-alt"></i>
+                                    <i data-lucide="calendar-days"></i>
                                     Parcelar compra
                                 </span>
                             </label>
@@ -294,7 +294,7 @@
                     <!-- Número de Parcelas (quando parcelado) -->
                     <div class="lk-form-group" id="globalNumeroParcelasGroup" style="display: none;">
                         <label for="globalLancamentoTotalParcelas" class="lk-label required">
-                            <i class="fas fa-list-ol"></i>
+                            <i data-lucide="list-ordered"></i>
                             Número de Parcelas
                         </label>
                         <div class="lk-input-group">
@@ -310,7 +310,7 @@
                     <!-- Data -->
                     <div class="lk-form-group">
                         <label for="globalLancamentoData" class="lk-label required">
-                            <i class="fas fa-calendar"></i>
+                            <i data-lucide="calendar"></i>
                             Data
                         </label>
                         <input type="date" id="globalLancamentoData" name="data" class="lk-input" required>
@@ -319,7 +319,7 @@
                     <!-- Hora (somente para agendamento) -->
                     <div class="lk-form-group" id="globalHoraGroup" style="display: none;">
                         <label for="globalLancamentoHora" class="lk-label">
-                            <i class="fas fa-clock"></i>
+                            <i data-lucide="clock"></i>
                             Hora
                         </label>
                         <input type="time" id="globalLancamentoHora" name="hora" class="lk-input" value="12:00">
@@ -329,12 +329,12 @@
                     <!-- Categoria -->
                     <div class="lk-form-group" id="globalCategoriaGroup">
                         <label for="globalLancamentoCategoria" class="lk-label">
-                            <i class="fas fa-tag"></i>
+                            <i data-lucide="tag"></i>
                             Categoria
                             <button type="button" class="lk-info"
                                 data-lk-tooltip="A categoria ajuda a organizar seus gastos. Escolha a que melhor representa essa despesa."
                                 aria-label="Ajuda: Categoria">
-                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                <i data-lucide="info" aria-hidden="true"></i>
                             </button>
                         </label>
                         <div class="lk-select-wrapper">
@@ -342,14 +342,14 @@
                                 <option value="">Sem categoria</option>
                                 <!-- Preenchido via JS -->
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                     </div>
 
                     <!-- Recorrência (somente para agendamento) -->
                     <div class="lk-form-group" id="globalRecorrenciaGroup" style="display: none;">
                         <label for="globalLancamentoRecorrencia" class="lk-label">
-                            <i class="fas fa-sync-alt"></i>
+                            <i data-lucide="refresh-cw"></i>
                             Recorrência
                         </label>
                         <div class="lk-select-wrapper">
@@ -360,7 +360,7 @@
                                 <option value="mensal">Mensalmente</option>
                                 <option value="anual">Anualmente</option>
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                         <small class="lk-helper-text">🔁 Repete para sempre até você cancelar</small>
                     </div>
@@ -371,7 +371,7 @@
                     <!-- Tempo de Aviso (somente para agendamento) -->
                     <div class="lk-form-group" id="globalTempoAvisoGroup" style="display: none;">
                         <label for="globalLancamentoTempoAviso" class="lk-label">
-                            <i class="fas fa-clock"></i>
+                            <i data-lucide="clock"></i>
                             Avisar com antecedência
                         </label>
                         <div class="lk-select-wrapper">
@@ -389,7 +389,7 @@
                                 <option value="4320">3 dias antes</option>
                                 <option value="10080">1 semana antes</option>
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                         <small class="lk-helper-text">Quando você será notificado sobre este agendamento</small>
                     </div>
@@ -397,7 +397,7 @@
                     <!-- Canais de Notificação (somente para agendamento) -->
                     <div class="lk-form-group" id="globalCanaisNotificacaoGroup" style="display: none;">
                         <label class="lk-label">
-                            <i class="fas fa-bell"></i>
+                            <i data-lucide="bell"></i>
                             Canais de Notificação
                         </label>
                         <div class="lk-checkbox-wrapper">
@@ -406,7 +406,7 @@
                                     class="lk-checkbox" checked>
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
-                                    <i class="fas fa-desktop"></i>
+                                    <i data-lucide="monitor"></i>
                                     Aviso no sistema
                                 </span>
                             </label>
@@ -417,7 +417,7 @@
                                     class="lk-checkbox" checked>
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
-                                    <i class="fas fa-envelope"></i>
+                                    <i data-lucide="mail"></i>
                                     E-mail
                                 </span>
                             </label>
@@ -427,7 +427,7 @@
                     <!-- Forma de Pagamento (somente para agendamento) -->
                     <div class="lk-form-group" id="globalFormaPagamentoAgendamentoGroup" style="display: none;">
                         <label for="globalFormaPagamentoAg" class="lk-label">
-                            <i class="fas fa-credit-card"></i>
+                            <i data-lucide="credit-card"></i>
                             Forma de Pagamento
                             <span class="lk-optional-badge">opcional</span>
                         </label>
@@ -440,7 +440,7 @@
                                 <option value="transferencia">🏦 Transferência</option>
                                 <option value="deposito">🏦 Depósito</option>
                             </select>
-                            <i class="fas fa-chevron-down lk-select-icon"></i>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                     </div>
 
@@ -448,11 +448,11 @@
                     <div class="lk-form-actions">
                         <button type="button" class="lk-btn lk-btn-secondary"
                             onclick="lancamentoGlobalManager.closeModal()">
-                            <i class="fas fa-times"></i>
+                            <i data-lucide="x"></i>
                             Cancelar
                         </button>
                         <button type="submit" class="lk-btn lk-btn-primary" id="globalBtnSalvar">
-                            <i class="fas fa-save"></i>
+                            <i data-lucide="save"></i>
                             Salvar
                         </button>
                     </div>

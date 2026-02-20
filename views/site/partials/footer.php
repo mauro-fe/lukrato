@@ -112,7 +112,7 @@ $extraJs = $extraJs ?? [];
                         <span
                             class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-orange-500/20"
                             aria-hidden="true">
-                            <i class="fa-regular fa-envelope text-lg"></i>
+                            <i data-lucide="mail" class="text-lg"></i>
                         </span>
                         <span class="break-all">lukratosistema@gmail.com</span>
                     </a>
@@ -128,7 +128,7 @@ $extraJs = $extraJs ?? [];
             </p>
             <p class="text-white/40 text-sm italic flex items-center gap-2">
                 <span>Feito com</span>
-                <i class="fas fa-heart text-red-400 animate-pulse" aria-hidden="true"></i>
+                <i data-lucide="heart" class="text-red-400 animate-pulse" aria-hidden="true"></i>
                 <span>para quem quer organizar suas finanças pessoais.</span>
             </p>
         </div>
@@ -149,6 +149,7 @@ $extraJs = $extraJs ?? [];
 <script>
     window.APP_BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
 </script>
+<script src="<?= BASE_URL ?>assets/js/lucide-init.js"></script>
 
 
 </body>

@@ -72,10 +72,10 @@ class LukratoFetch {
         notification.id = 'lk-offline-notification';
         notification.className = 'lk-offline-notification';
         notification.innerHTML = `
-            <i class="fas fa-wifi" style="opacity: 0.5;"></i>
+            <i data-lucide="wifi" style="opacity: 0.5;"></i>
             <span>Sem conexão com a internet</span>
             <button onclick="location.reload()" class="btn-retry-connection">
-                <i class="fas fa-redo"></i> Tentar novamente
+                <i data-lucide="refresh-cw"></i> Tentar novamente
             </button>
         `;
         document.body.appendChild(notification);
@@ -307,7 +307,7 @@ class LukratoFetch {
             warning.id = 'lk-slow-connection';
             warning.className = 'lk-slow-connection';
             warning.innerHTML = `
-                <i class="fas fa-hourglass-half"></i>
+                <i data-lucide="hourglass"></i>
                 <span>Conexão lenta detectada. Aguarde...</span>
             `;
             document.body.appendChild(warning);
@@ -337,7 +337,7 @@ class LukratoFetch {
             document.body.appendChild(indicator);
         }
         indicator.innerHTML = `
-            <i class="fas fa-sync-alt fa-spin"></i>
+            <i data-lucide="refresh-cw" class="icon-spin"></i>
             <span>Tentando novamente... (${attempt}/${maxAttempts})</span>
         `;
         indicator.classList.add('visible');
@@ -411,7 +411,7 @@ window.lkFetch = new LukratoFetch({
         const warning = document.createElement('div');
         warning.id = 'lk-slow-connection';
         warning.className = 'lk-slow-connection visible';
-        warning.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Conexão lenta detectada. Aguarde...</span>';
+        warning.innerHTML = '<i data-lucide="hourglass"></i><span>Conexão lenta detectada. Aguarde...</span>';
         document.body.appendChild(warning);
     }
 

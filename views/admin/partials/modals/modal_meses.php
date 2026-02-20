@@ -450,11 +450,11 @@
                 <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                     <div class="btn-group" role="group" aria-label="Navegar entre anos">
                         <button type="button" class="btn btn-outline-light btn-sm" id="mpPrevYear" title="Ano anterior">
-                            <i class="fas fa-chevron-left"></i>
+                            <i data-lucide="chevron-left"></i>
                         </button>
                         <span class="px-3 fw-semibold" id="mpYearLabel">2024</span>
                         <button type="button" class="btn btn-outline-light btn-sm" id="mpNextYear" title="Proximo ano">
-                            <i class="fas fa-chevron-right"></i>
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                     <div class="d-flex gap-2">

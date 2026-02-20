@@ -8,7 +8,7 @@
             <button type="button" class="lk-info" data-lk-tooltip-title="Perfil completo"
                 data-lk-tooltip="Manter seus dados sempre completos ajuda na segurança da conta, recuperação de acesso, faturamento e melhor funcionamento do Lukrato."
                 aria-label="Ajuda: Perfil completo">
-                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <i data-lucide="info" aria-hidden="true"></i>
             </button>
         </div>
 
@@ -63,7 +63,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">✏️</span> Nome Completo *</label>
+                        <label class="form-label"><i data-lucide="pencil" class="icon-label"></i> Nome Completo *</label>
                         <input class="form-input" id="nome" name="nome" type="text"
                             placeholder="Digite seu nome completo" required>
                     </div>
@@ -71,7 +71,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📧</span> E-mail *</label>
+                        <label class="form-label"><i data-lucide="mail" class="icon-label"></i> E-mail *</label>
                         <input class="form-input" id="email" name="email" type="email" placeholder="seu@email.com"
                             required>
                     </div>
@@ -80,14 +80,14 @@
                 <!-- Código de Suporte -->
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏷️</span> Código de Suporte</label>
+                        <label class="form-label"><i data-lucide="tag" class="icon-label"></i> Código de Suporte</label>
                         <div style="display:flex;align-items:center;gap:8px;">
                             <input class="form-input" id="support_code" type="text" readonly
                                 style="font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
                                 value="Carregando...">
                             <button type="button" class="btn-copy-support" onclick="copySupportCode()" title="Copiar código"
                                 style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-bg);cursor:pointer;color:var(--color-text-muted);transition:all .2s;">
-                                <i class="fa-regular fa-copy"></i>
+                                <i data-lucide="copy"></i>
                             </button>
                         </div>
                         <small style="color:var(--color-text-muted);font-size:12px;margin-top:4px;display:block;">
@@ -98,7 +98,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🆔</span> CPF</label>
+                        <label class="form-label"><i data-lucide="fingerprint" class="icon-label"></i> CPF</label>
                         <input class="form-input" id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14"
                             placeholder="000.000.000-00">
                     </div>
@@ -106,12 +106,12 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📅</span> Nascimento</label>
+                        <label class="form-label"><i data-lucide="calendar" class="icon-label"></i> Nascimento</label>
                         <input class="form-input" id="data_nascimento" name="data_nascimento" type="date"
                             max="<?= date('Y-m-d') ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📱</span> Telefone</label>
+                        <label class="form-label"><i data-lucide="smartphone" class="icon-label"></i> Telefone</label>
                         <input class="form-input" id="telefone" name="telefone" type="tel" inputmode="tel"
                             maxlength="15" placeholder="(00) 00000-0000">
                     </div>
@@ -119,7 +119,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">⚧️</span> Gênero</label>
+                        <label class="form-label"><i data-lucide="users" class="icon-label"></i> Gênero</label>
                         <select class="form-select" name="sexo" id="sexo">
                             <option value="">Selecione</option>
                             <option value="M">Masculino</option>
@@ -152,12 +152,12 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📮</span> CEP</label>
+                        <label class="form-label"><i data-lucide="mail-open" class="icon-label"></i> CEP</label>
                         <input class="form-input" id="end_cep" name="endereco[cep]" type="text" inputmode="numeric"
                             placeholder="00000-000" maxlength="9">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🗺️</span> Estado</label>
+                        <label class="form-label"><i data-lucide="map" class="icon-label"></i> Estado</label>
                         <input class="form-input" id="end_estado" name="endereco[estado]" type="text" placeholder="SP"
                             maxlength="2" style="text-transform: uppercase;">
                     </div>
@@ -165,7 +165,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏙️</span> Cidade</label>
+                        <label class="form-label"><i data-lucide="building-2" class="icon-label"></i> Cidade</label>
                         <input class="form-input" id="end_cidade" name="endereco[cidade]" type="text"
                             placeholder="São Paulo">
                     </div>
@@ -173,7 +173,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏘️</span> Bairro</label>
+                        <label class="form-label"><i data-lucide="home" class="icon-label"></i> Bairro</label>
                         <input class="form-input" id="end_bairro" name="endereco[bairro]" type="text"
                             placeholder="Centro">
                     </div>
@@ -181,7 +181,7 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🛣️</span> Rua/Avenida</label>
+                        <label class="form-label"><i data-lucide="route" class="icon-label"></i> Rua/Avenida</label>
                         <input class="form-input" id="end_rua" name="endereco[rua]" type="text"
                             placeholder="Rua das Flores">
                     </div>
@@ -189,11 +189,11 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🔢</span> Número</label>
+                        <label class="form-label"><i data-lucide="hash" class="icon-label"></i> Número</label>
                         <input class="form-input" id="end_numero" name="endereco[numero]" type="text" placeholder="123">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏢</span> Complemento</label>
+                        <label class="form-label"><i data-lucide="building" class="icon-label"></i> Complemento</label>
                         <input class="form-input" id="end_complemento" name="endereco[complemento]" type="text"
                             placeholder="Apto, Bloco (opcional)">
                     </div>
@@ -224,12 +224,12 @@
 
             <div class="form-row cols-3">
                 <div class="form-group">
-                    <label class="form-label"><span class="emoji">🔑</span> Senha Atual</label>
+                    <label class="form-label"><i data-lucide="key-round" class="icon-label"></i> Senha Atual</label>
                     <input class="form-input" id="senha_atual" name="senha_atual" type="password"
                         placeholder="Digite sua senha atual" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span class="emoji">🔐</span> Nova Senha</label>
+                    <label class="form-label"><i data-lucide="lock" class="icon-label"></i> Nova Senha</label>
                     <input class="form-input" id="nova_senha" name="nova_senha" type="password"
                         placeholder="Mínimo 8 caracteres" autocomplete="off" minlength="8">
                     <div class="pwd-strength" id="pwdStrengthProfile">
@@ -251,11 +251,11 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span class="emoji">✅</span> Confirmar Senha</label>
+                    <label class="form-label"><i data-lucide="circle-check" class="icon-label"></i> Confirmar Senha</label>
                     <input class="form-input" id="conf_senha" name="conf_senha" type="password"
                         placeholder="Digite novamente" autocomplete="off" minlength="8">
                     <div class="pwd-match" id="pwdMatchProfile">
-                        <span class="match-icon"><i class="fas fa-check"></i></span>
+                        <span class="match-icon"><i data-lucide="check"></i></span>
                         <span class="match-text"></span>
                     </div>
                 </div>
@@ -287,11 +287,11 @@
                 <?php
                 $isPro = isset($currentUser) && method_exists($currentUser, 'isPro') && $currentUser->isPro();
                 $planName = $isPro ? 'PRO' : 'Gratuito';
-                $planIcon = $isPro ? 'fa-crown' : 'fa-leaf';
+                $planIcon = $isPro ? 'crown' : 'leaf';
                 $planClass = $isPro ? 'pro' : 'free';
                 ?>
                 <div class="current-plan <?= $planClass ?>">
-                    <i class="fa-solid <?= $planIcon ?>"></i>
+                    <i data-lucide="<?= $planIcon ?>"></i>
                     <span class="plan-name">Plano <?= $planName ?></span>
                 </div>
                 <p class="plan-description">
@@ -304,7 +304,7 @@
                 </p>
             </div>
             <a href="<?= BASE_URL ?>billing" class="btn-manage-plan <?= $planClass ?>">
-                <i class="fa-solid <?= $isPro ? 'fa-gear' : 'fa-rocket' ?>"></i>
+                <i data-lucide="<?= $isPro ? 'settings' : 'rocket' ?>"></i>
                 <span><?= $isPro ? 'Gerenciar Plano' : 'Fazer Upgrade' ?></span>
             </a>
         </div>
@@ -341,7 +341,7 @@
                         <input type="text" id="referral-code" class="referral-code-input" readonly
                             value="Carregando...">
                         <button type="button" class="btn-copy-code" id="btn-copy-code" title="Copiar código">
-                            <i class="fa-solid fa-copy"></i>
+                            <i data-lucide="copy"></i>
                         </button>
                     </div>
                 </div>
@@ -352,7 +352,7 @@
                         <input type="text" id="referral-link" class="referral-link-input" readonly
                             value="Carregando...">
                         <button type="button" class="btn-copy-link" id="btn-copy-link" title="Copiar link">
-                            <i class="fa-solid fa-copy"></i>
+                            <i data-lucide="copy"></i>
                         </button>
                     </div>
                 </div>
@@ -431,7 +431,7 @@
                 </ul>
             </div>
             <button type="button" class="btn-delete-account" id="btn-delete-account">
-                <i class="fas fa-trash-alt"></i>
+                <i data-lucide="trash-2"></i>
                 <span>Excluir Minha Conta</span>
             </button>
         </div>
@@ -852,7 +852,7 @@
         function copyToClipboard(text, button) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalIcon = button.innerHTML;
-                button.innerHTML = '<i class="fa-solid fa-check"></i>';
+                button.innerHTML = '<i data-lucide="check"></i>';
                 button.classList.add('copied');
 
                 setTimeout(() => {
@@ -921,7 +921,7 @@
 
         const originalIcon = btn.innerHTML;
         navigator.clipboard.writeText(input.value).then(() => {
-            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.innerHTML = '<i data-lucide="check"></i>';
             btn.style.color = '#22c55e';
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
@@ -930,7 +930,7 @@
         }).catch(() => {
             input.select();
             document.execCommand('copy');
-            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.innerHTML = '<i data-lucide="check"></i>';
             btn.style.color = '#22c55e';
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
@@ -1017,7 +1017,7 @@
         matchEl.classList.toggle('no-match', !ok);
         var icon = matchEl.querySelector('.match-icon');
         var text = matchEl.querySelector('.match-text');
-        icon.innerHTML = ok ? '<i class="fas fa-check"></i>' : '<i class="fas fa-xmark"></i>';
+        icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
         text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
     }
 

@@ -49,8 +49,11 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- ============================================================================
          STYLES EXTERNOS
          ============================================================================ -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
+    <!-- Lucide Icons (substitui FA) + FA Brands (para ícones de marca) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lucide-compat.css?v=<?= time() ?>">
+    <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -112,6 +115,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <!-- Facade Unificada: LK.toast / LK.api / LK.confirm -->
     <script src="<?= BASE_URL ?>assets/js/lukrato-ui.js?v=<?= time() ?>"></script>
+
+    <!-- Lucide Icons Init (auto-refresh para conteúdo dinâmico) -->
+    <script src="<?= BASE_URL ?>assets/js/lucide-init.js?v=<?= time() ?>"></script>
 
     <!-- Tooltips de Primeira Visita -->
     <script src="<?= BASE_URL ?>assets/js/first-visit-tooltips.js?v=<?= time() ?>" defer></script>
@@ -299,7 +305,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <img src="<?= BASE_URL ?>assets/img/logo-top.png" alt="Lukrato" class="logo-icon">
             </a>
             <button class="sidebar-close-btn" aria-label="Fechar menu" title="Fechar menu">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
 
@@ -308,42 +314,42 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Dashboard -->
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
                 title="Dashboard">
-                <i class="fas fa-home"></i>
+                <i data-lucide="home"></i>
                 <span>Dashboard</span>
             </a>
 
             <!-- Contas -->
             <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
                 title="Contas">
-                <i class="fa fa-university" aria-hidden="true"></i>
+                <i data-lucide="landmark"></i>
                 <span>Contas</span>
             </a>
 
             <!-- Cartões -->
             <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
                 title="Cartões de Crédito">
-                <i class="fa-regular fa-credit-card"></i>
+                <i data-lucide="credit-card"></i>
                 <span>Cartões</span>
             </a>
 
             <!-- Faturas de Cartão -->
             <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
                 title="Faturas de Cartão">
-                <i class="fa-solid fa-file-invoice"></i>
+                <i data-lucide="file-text"></i>
                 <span>Faturas</span>
             </a>
 
             <!-- Categorias -->
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
                 title="Categorias">
-                <i class="fas fa-tags"></i>
+                <i data-lucide="tags"></i>
                 <span>Categorias</span>
             </a>
 
             <!-- Lançamentos -->
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                 <?= $aria('lancamentos') ?> title="lançamentos">
-                <i class="fa-solid fa-layer-group"></i>
+                <i data-lucide="layers"></i>
                 <span>lançamentos</span>
             </a>
 
@@ -351,55 +357,55 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Relatórios -->
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
                 title="Relatórios">
-                <i class="fa fa-pie-chart"></i>
+                <i data-lucide="pie-chart"></i>
                 <span>Relatórios</span>
             </a>
 
             <!-- Finanças -->
             <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>"
                 <?= $aria('financas') ?> title="Finanças">
-                <i class="fas fa-wallet"></i>
+                <i data-lucide="wallet"></i>
                 <span>Finanças</span>
             </a>
 
             <!-- Agendamentos -->
             <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
                 <?= $aria('agendamentos') ?> title="Agendamentos">
-                <i class="fas fa-clock"></i>
+                <i data-lucide="clock"></i>
                 <span>Agendados</span>
             </a>
 
             <!-- Gamificação -->
             <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
                 <?= $aria('gamification') ?> title="Gamificação">
-                <i class="fas fa-trophy"></i>
+                <i data-lucide="trophy"></i>
                 <span>Conquistas</span>
             </a>
 
             <!-- Investimentos -->
             <!-- <a href="<?= BASE_URL ?>investimentos" class="nav-item <?= $active('investimentos') ?>"
                 <?= $aria('investimentos') ?> title="Investimentos">
-                <i class="fa fa-line-chart" aria-hidden="true"></i>
+                <i data-lucide="line-chart" aria-hidden="true"></i>
                 <span>Investimentos</span>
             </a> -->
 
             <!-- Perfil -->
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
                 title="Perfil">
-                <i class="fas fa-user-circle"></i>
+                <i data-lucide="circle-user"></i>
                 <span>Perfil</span>
             </a>
             <?php if ($isSysAdmin): ?>
                 <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
                     <?= $aria('super_admin') ?> title="SysAdmin">
-                    <i class="fa-solid fa-user-shield"></i>
+                    <i data-lucide="shield-check"></i>
                     <span>SysAdmin</span>
                 </a>
             <?php endif; ?>
 
             <!-- Sair -->
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
-                <i class="fas fa-sign-out-alt"></i>
+                <i data-lucide="log-out"></i>
                 <span>Sair</span>
             </a>
 
@@ -407,7 +413,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <?php if ($showUpgradeCTA): ?>
                 <div class="sidebar-pro-cta">
                     <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                        <i class="fa-solid fa-star"></i>
+                        <i data-lucide="star"></i>
                         <span>Pro</span>
                     </a>
                 </div>
@@ -417,7 +423,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <!-- ================ BOTÃO TOGGLE SIDEBAR ======================== -->
     <button id="edgeMenuBtn" class="edge-menu-btn" aria-label="Expandir/Colapsar Menu" title="Expandir/Colapsar Menu">
-        <i class="fas fa-angle-left"></i>
+        <i data-lucide="chevron-left"></i>
     </button>
 
     <!-- ================ BOTÕES ======================== -->

@@ -296,6 +296,7 @@
 
             DOM.containerEl.innerHTML = '';
             DOM.containerEl.appendChild(fragment);
+            if(window.lucide) lucide.createIcons();
         },
 
         createParcelamentoCard(parc) {
@@ -356,7 +357,7 @@
                     </div>
                     <div class="header-right">
                         <div class="header-periodo">
-                            <i class="fas fa-calendar-alt"></i>
+                            <i data-lucide="calendar-days"></i>
                             <span>${mes}/${ano}</span>
                         </div>
                         ${statusBadge}
@@ -372,7 +373,7 @@
                 <div class="fatura-status-col">${statusBadge}</div>
                 <div class="parc-card-actions">
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
-                        <i class="fas fa-eye"></i>
+                        <i data-lucide="eye"></i>
                         <span>Ver Detalhes</span>
                     </button>
                 </div>
@@ -413,10 +414,10 @@
                 'discover': '<i class="fab fa-cc-discover"></i>',
                 'diners': '<i class="fab fa-cc-diners-club"></i>',
                 'jcb': '<i class="fab fa-cc-jcb"></i>',
-                'elo': '<i class="fas fa-credit-card"></i>',
-                'hipercard': '<i class="fas fa-credit-card"></i>'
+                'elo': '<i data-lucide="credit-card"></i>',
+                'hipercard': '<i data-lucide="credit-card"></i>'
             };
-            return icons[bandeira] || '<i class="fas fa-credit-card"></i>';
+            return icons[bandeira] || '<i data-lucide="credit-card"></i>';
         },
 
         getCartaoInfo(parc) {
@@ -509,6 +510,7 @@
 
                 STATE.faturaAtual = parc;
                 DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
+                if(window.lucide) lucide.createIcons();
                 this.attachDetalhesEventListeners(parc.id);
 
                 // Remover foco antes de mostrar modal
@@ -548,6 +550,7 @@
                     // Re-renderizar detalhes mantendo estado
                     if (STATE.faturaAtual) {
                         DOM.detalhesContent.innerHTML = this.renderDetalhes(STATE.faturaAtual);
+                        if(window.lucide) lucide.createIcons();
                         this.attachDetalhesEventListeners(faturaId);
                     }
                 });
@@ -642,7 +645,7 @@
                                 <button class="btn-pagar-fatura" 
                                         onclick="window.abrirModalPagarFatura(${parc.id}, ${valorRestante})"
                                         style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
-                                    <i class="fas fa-credit-card"></i>
+                                    <i data-lucide="credit-card"></i>
                                     <span class="btn-text-desktop">Pagar Fatura</span>
                                     <span class="btn-text-mobile">Pagar</span>
                                 </button>
@@ -651,7 +654,7 @@
                                 <button class="btn-reverter-fatura" 
                                         onclick="window.reverterPagamentoFaturaGlobal(${parc.id})"
                                         style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
-                                    <i class="fas fa-undo"></i>
+                                    <i data-lucide="undo-2"></i>
                                     <span class="btn-text-desktop">Reverter Pagamento</span>
                                     <span class="btn-text-mobile">Reverter</span>
                                 </button>
@@ -726,10 +729,10 @@
             const sortIcon = (col) => {
                 if (STATE.sortColumn === col) {
                     return STATE.sortDirection === 'asc'
-                        ? '<i class="fas fa-sort-up sort-icon active"></i>'
-                        : '<i class="fas fa-sort-down sort-icon active"></i>';
+                        ? '<i data-lucide="arrow-up" class="sort-icon active"></i>'
+                        : '<i data-lucide="arrow-down" class="sort-icon active"></i>';
                 }
-                return '<i class="fas fa-sort sort-icon"></i>';
+                return '<i data-lucide="arrow-up-down" class="sort-icon"></i>';
             };
 
             // Ordenar parcelas
@@ -883,7 +886,7 @@
                         ${parcela.data_compra ? `
                         <div class="parcela-card-info">
                             <span class="parcela-card-label">Data Compra</span>
-                            <span class="parcela-card-value"><i class="fas fa-shopping-cart" style="margin-right: 4px; font-size: 0.75rem;"></i>${Utils.formatDate(parcela.data_compra)}</span>
+                            <span class="parcela-card-value"><i data-lucide="shopping-cart" style="margin-right: 4px; font-size: 0.75rem;"></i>${Utils.formatDate(parcela.data_compra)}</span>
                         </div>
                         ` : ''}
                         <div class="parcela-card-info">
@@ -1009,7 +1012,7 @@
                 return `
                     <div class="btn-group-parcela">
                         <span class="badge-pago" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">
-                            <i class="fas fa-check"></i> Pago
+                            <i data-lucide="check"></i> Pago
                         </span>
                     </div>
                 `;
@@ -1023,14 +1026,14 @@
                             data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
                             data-valor="${parcela.valor_parcela || 0}"
                             title="Editar item">
-                            <i class="fas fa-pencil-alt"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="btn-toggle-parcela btn-excluir" 
                             data-lancamento-id="${parcela.id}"
                             data-eh-parcelado="${ehParcelado}"
                             data-total-parcelas="${parcela.total_parcelas || 1}"
                             title="Excluir item">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 `;
@@ -1442,7 +1445,7 @@
                 title: 'Excluir Parcelamento Completo?',
                 html: `
                     <p>Deseja realmente excluir <strong>todas as ${totalParcelas} parcelas</strong> deste parcelamento?</p>
-                    <p style="color: #ef4444; margin-top: 1rem;"><i class="fas fa-exclamation-triangle"></i> Esta ação não pode ser desfeita!</p>
+                    <p style="color: #ef4444; margin-top: 1rem;"><i data-lucide="triangle-alert"></i> Esta ação não pode ser desfeita!</p>
                 `,
                 icon: 'warning',
                 showCancelButton: true,
@@ -1457,6 +1460,7 @@
                 didOpen: () => {
                     const container = document.querySelector('.swal2-container');
                     if (container) container.style.zIndex = '99999';
+                    if(window.lucide) lucide.createIcons();
                 }
             });
 
@@ -1604,7 +1608,7 @@
                         </div>
                         <div style="margin-bottom: 1rem;">
                             <label style="display: block; text-align: left; margin-bottom: 0.5rem; color: #374151; font-weight: 500;">
-                                <i class="fas fa-university"></i> Conta para débito:
+                                <i data-lucide="landmark"></i> Conta para débito:
                             </label>
                             <select id="swalContaSelect" class="swal2-select" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem;">
                                 ${contasOptions}
@@ -1616,7 +1620,7 @@
                     showCancelButton: true,
                     confirmButtonColor: '#10b981',
                     cancelButtonColor: '#6b7280',
-                    confirmButtonText: '<i class="fas fa-check"></i> Sim, pagar tudo',
+                    confirmButtonText: '<i data-lucide="check"></i> Sim, pagar tudo',
                     cancelButtonText: 'Cancelar',
                     heightAuto: false,
                     customClass: {
@@ -1625,6 +1629,7 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
+                        if(window.lucide) lucide.createIcons();
                     },
                     preConfirm: () => {
                         const contaSelect = document.getElementById('swalContaSelect');
@@ -1675,7 +1680,7 @@
                             </div>
                         </div>
                         <div style="color: #059669;">
-                            <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+                            <i data-lucide="circle-check" style="font-size: 2rem;"></i>
                         </div>
                     `,
                     timer: 3000,
@@ -1687,6 +1692,7 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
+                        if(window.lucide) lucide.createIcons();
                     }
                 });
 
@@ -2185,10 +2191,12 @@
                     <span class="filter-badge">
                         ${badge.label}
                         <button class="filter-badge-remove" data-filter="${badge.key}" title="Remover filtro">
-                            <i class="fas fa-times"></i>
+                            <i data-lucide="x"></i>
                         </button>
                     </span>
                 `).join('');
+
+                if(window.lucide) lucide.createIcons();
 
                 // Adicionar eventos de remover
                 DOM.activeFilters.querySelectorAll('.filter-badge-remove').forEach(btn => {
@@ -2563,7 +2571,7 @@
                 <p>Você está prestes a <strong>reverter o pagamento</strong> de todos os itens desta fatura.</p>
                 <div style="margin: 1rem 0; padding: 0.75rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
                     <p style="margin: 0; color: #92400e; font-size: 0.875rem;">
-                        <i class="fas fa-exclamation-triangle"></i> 
+                        <i data-lucide="triangle-alert"></i> 
                         O lançamento de pagamento será excluído e o valor voltará para a conta.
                     </p>
                 </div>
@@ -2572,8 +2580,9 @@
             showCancelButton: true,
             confirmButtonColor: '#f59e0b',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-undo"></i> Sim, reverter',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: '<i data-lucide="undo-2"></i> Sim, reverter',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => { if(window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2602,12 +2611,13 @@
                     html: `
                         <p>${response.message || 'O pagamento foi revertido com sucesso.'}</p>
                         <p style="color: #059669; margin-top: 0.5rem;">
-                            <i class="fas fa-check-circle"></i> 
+                            <i data-lucide="circle-check"></i> 
                             ${response.itens_revertidos || 0} item(s) voltou(aram) para pendente.
                         </p>
                     `,
                     timer: 3000,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    didOpen: () => { if(window.lucide) lucide.createIcons(); }
                 });
 
                 // Fechar modal e recarregar
@@ -2639,8 +2649,9 @@
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => { if(window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2688,11 +2699,12 @@
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
+            confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
             cancelButtonText: 'Cancelar',
             customClass: {
                 container: 'swal-above-modal'
-            }
+            },
+            didOpen: () => { if(window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2755,7 +2767,10 @@
             // Atualizar ícone do botão
             const icon = btn.querySelector('i');
             if (icon) {
-                icon.className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+                icon.setAttribute('data-lucide', isVisible ? 'eye' : 'eye-off');
+                icon.className = '';
+                icon.innerHTML = '';
+                if(window.lucide) lucide.createIcons({nodes: [icon]});
             }
         }
     };

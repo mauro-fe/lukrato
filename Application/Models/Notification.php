@@ -132,12 +132,12 @@ class Notification extends Model
     public function getIconAttribute(): string
     {
         return match ($this->type) {
-            self::TYPE_PROMO => 'fa-crown',
-            self::TYPE_UPDATE => 'fa-rocket',
-            self::TYPE_ALERT => 'fa-exclamation-triangle',
-            self::TYPE_SUCCESS => 'fa-check-circle',
-            self::TYPE_REMINDER => 'fa-bell',
-            default => 'fa-info-circle',
+            self::TYPE_PROMO => 'crown',
+            self::TYPE_UPDATE => 'rocket',
+            self::TYPE_ALERT => 'triangle-alert',
+            self::TYPE_SUCCESS => 'circle-check',
+            self::TYPE_REMINDER => 'bell',
+            default => 'info',
         };
     }
 

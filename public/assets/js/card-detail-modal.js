@@ -59,6 +59,18 @@
         }
     };
 
+    const _faToLucide = {
+        'fa-arrow-trend-up':'trending-up','fa-arrow-trend-down':'trending-down',
+        'fa-arrow-up':'arrow-up','fa-arrow-down':'arrow-down',
+        'fa-check-circle':'circle-check','fa-exclamation-triangle':'triangle-alert',
+        'fa-exclamation-circle':'circle-alert','fa-chart-line':'line-chart',
+        'fa-star':'star','fa-bolt':'zap','fa-shield-alt':'shield',
+        'fa-crown':'crown','fa-leaf':'leaf','fa-lightbulb':'lightbulb',
+        'fa-wallet':'wallet','fa-credit-card':'credit-card',
+        'fa-calendar-check':'calendar-check'
+    };
+    function faToLucide(faIcon) { return _faToLucide[faIcon] || faIcon; }
+
     async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
         if (!cardId) {
             console.error('ID do cartão não fornecido');
@@ -131,7 +143,7 @@
                     <div class="card-detail-header-content">
                         <div class="card-detail-title-area">
                             <div class="card-detail-icon" style="background: linear-gradient(135deg, ${cardColor}, ${cardColor}DD);">
-                                <i class="fas fa-credit-card"></i>
+                                <i data-lucide="credit-card"></i>
                             </div>
                             <div class="card-detail-info">
                                 <h2>${Utils.escapeHtml(data.cartao.nome)}</h2>
@@ -139,7 +151,7 @@
                             </div>
                         </div>
                         <button class="card-detail-close" onclick="window.LK_CardDetail?.close?.()">
-                            <i class="fas fa-times"></i>
+                            <i data-lucide="x"></i>
                         </button>
                     </div>
                     
@@ -167,7 +179,7 @@
                     <!-- Fatura do Mês -->
                     <div class="detail-section">
                         <div class="detail-section-header">
-                            <h3><i class="fas fa-list"></i> Lançamentos do Mês</h3>
+                            <h3><i data-lucide="list"></i> Lançamentos do Mês</h3>
                             <span class="section-badge">${data.fatura_mes.lancamentos.length} ${data.fatura_mes.lancamentos.length === 1 ? 'lançamento' : 'lançamentos'}</span>
                         </div>
                         
@@ -186,7 +198,7 @@
                                     </div>
                                     <div class="lancamento-amount">${Utils.formatCurrency(lanc.valor)}</div>
                                 </div>
-                            `).join('') : '<div class="empty-message"><i class="fas fa-inbox"></i><p>Nenhum lançamento neste mês</p></div>'}
+                            `).join('') : '<div class="empty-message"><i data-lucide="inbox"></i><p>Nenhum lançamento neste mês</p></div>'}
                         </div>
                         
                         <div class="summary-boxes">
@@ -219,10 +231,10 @@
                     <!-- Evolução Mensal -->
                     <div class="detail-section">
                         <div class="detail-section-header">
-                            <i class="fas fa-chart-line"></i>
+                            <i data-lucide="line-chart"></i>
                             <h3>Evolução Mensal</h3>
                             <span class="tendencia-indicator ${data.evolucao.tendencia}">
-                                <i class="fas fa-arrow-${data.evolucao.tendencia === 'subindo' ? 'up' : data.evolucao.tendencia === 'caindo' ? 'down' : 'right'}"></i>
+                                <i data-lucide="${data.evolucao.tendencia === 'subindo' ? 'arrow-up' : data.evolucao.tendencia === 'caindo' ? 'arrow-down' : 'arrow-right'}"></i>
                                 ${data.evolucao.tendencia.charAt(0).toUpperCase() + data.evolucao.tendencia.slice(1)}
                             </span>
                         </div>
@@ -239,7 +251,7 @@
                     <!-- Parcelamentos Ativos -->
                     <div class="detail-section">
                         <div class="detail-section-header">
-                            <i class="fas fa-calendar-check"></i>
+                            <i data-lucide="calendar-check"></i>
                             <h3>Parcelamentos Ativos</h3>
                             ${data.parcelamentos.quantidade > 0 ? `
                                 <span class="badge">${Utils.formatCurrency(data.parcelamentos.total_comprometido)} comprometidos</span>
@@ -300,7 +312,7 @@
                                                 <strong>${Utils.escapeHtml(parc.descricao)}</strong>
                                             </div>
                                             <button class="btn-ver-detalhes" onclick="this.closest('.parcelamento-card-mobile').classList.toggle('expanded')">
-                                                <i class="fas fa-chevron-down"></i>
+                                                <i data-lucide="chevron-down"></i>
                                                 <span>Detalhes</span>
                                             </button>
                                         </div>
@@ -338,13 +350,13 @@
                                 `;
         }).join('')}
                         </div>
-                        ` : '<div class="empty-message"><i class="fas fa-check-circle"></i><p>Nenhum parcelamento ativo</p></div>'}
+                        ` : '<div class="empty-message"><i data-lucide="circle-check"></i><p>Nenhum parcelamento ativo</p></div>'}
                     </div>
                     
                     <!-- Impacto Futuro -->
                     <div class="detail-section">
                         <div class="detail-section-header">
-                            <i class="fas fa-crystal-ball"></i>
+                            <i data-lucide="sparkles"></i>
                             <h3>Impacto Futuro</h3>
                         </div>
                         
@@ -355,7 +367,7 @@
                         ${data.insights ? `
                         <div class="insights-section">
                             <div class="insights-header">
-                                <i class="fas fa-lightbulb"></i>
+                                <i data-lucide="lightbulb"></i>
                                 <h3>Análise Inteligente</h3>
                             </div>
                             
@@ -363,7 +375,7 @@
                                 ${data.insights.tendencia ? `
                                 <div class="insight-card insight-${data.insights.tendencia.type}">
                                     <div class="insight-icon">
-                                        <i class="fas ${data.insights.tendencia.icon}"></i>
+                                        <i data-lucide="${faToLucide(data.insights.tendencia.icon)}"></i>
                                     </div>
                                     <div class="insight-content">
                                         <div class="insight-header-row">
@@ -373,7 +385,7 @@
                                         <h4 class="insight-status">${data.insights.tendencia.status}</h4>
                                         <p class="insight-desc">${data.insights.tendencia.descricao}</p>
                                         <p class="insight-recommendation">
-                                            <i class="fas fa-star"></i> ${data.insights.tendencia.recomendacao}
+                                            <i data-lucide="star"></i> ${data.insights.tendencia.recomendacao}
                                         </p>
                                     </div>
                                 </div>
@@ -382,7 +394,7 @@
                                 ${data.insights.parcelamentos ? `
                                 <div class="insight-card insight-${data.insights.parcelamentos.type}">
                                     <div class="insight-icon">
-                                        <i class="fas ${data.insights.parcelamentos.icon}"></i>
+                                        <i data-lucide="${faToLucide(data.insights.parcelamentos.icon)}"></i>
                                     </div>
                                     <div class="insight-content">
                                         <div class="insight-header-row">
@@ -392,7 +404,7 @@
                                         <h4 class="insight-status">${data.insights.parcelamentos.status}</h4>
                                         <p class="insight-desc">${data.insights.parcelamentos.descricao}</p>
                                         <p class="insight-recommendation">
-                                            <i class="fas fa-star"></i> ${data.insights.parcelamentos.recomendacao}
+                                            <i data-lucide="star"></i> ${data.insights.parcelamentos.recomendacao}
                                         </p>
                                     </div>
                                 </div>
@@ -401,7 +413,7 @@
                                 ${data.insights.limite ? `
                                 <div class="insight-card insight-${data.insights.limite.type}">
                                     <div class="insight-icon">
-                                        <i class="fas ${data.insights.limite.icon}"></i>
+                                        <i data-lucide="${faToLucide(data.insights.limite.icon)}"></i>
                                     </div>
                                     <div class="insight-content">
                                         <div class="insight-header-row">
@@ -411,7 +423,7 @@
                                         <h4 class="insight-status">${data.insights.limite.status}</h4>
                                         <p class="insight-desc">${data.insights.limite.descricao}</p>
                                         <p class="insight-recommendation">
-                                            <i class="fas fa-star"></i> ${data.insights.limite.recomendacao}
+                                            <i data-lucide="star"></i> ${data.insights.limite.recomendacao}
                                         </p>
                                     </div>
                                 </div>
@@ -425,6 +437,7 @@
         `;
 
         document.body.appendChild(modal);
+        if (window.lucide) lucide.createIcons();
 
         // Ativar modal com animação
         requestAnimationFrame(() => {
@@ -465,7 +478,7 @@
     function renderFaturaChart(categorias) {
         const canvas = document.getElementById('faturaChart');
         if (!canvas || categorias.length === 0) {
-            if (canvas) canvas.parentElement.innerHTML = '<div class="empty-state-detail"><i class="fas fa-chart-pie"></i><p>Sem dados para exibir</p></div>';
+            if (canvas) canvas.parentElement.innerHTML = '<div class="empty-state-detail"><i data-lucide="pie-chart"></i><p>Sem dados para exibir</p></div>';
             return;
         }
 

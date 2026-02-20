@@ -5,7 +5,7 @@
             <div class="card-detail-header-content">
                 <div class="card-detail-title-area">
                     <div class="card-detail-icon" data-color>
-                        <i class="fas fa-credit-card"></i>
+                        <i data-lucide="credit-card"></i>
                     </div>
                     <div class="card-detail-info">
                         <h2 data-cartao-nome></h2>
@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <button class="card-detail-close" onclick="window.LK_CardDetail?.close?.()">
-                    <i class="fas fa-times"></i>
+                    <i data-lucide="x"></i>
                 </button>
             </div>
 
@@ -41,7 +41,7 @@
             <!-- Fatura do Mês -->
             <div class="detail-section">
                 <div class="detail-section-header">
-                    <h3><i class="fas fa-list"></i> Lançamentos do Mês</h3>
+                    <h3><i data-lucide="list"></i> Lançamentos do Mês</h3>
                     <span class="section-badge" data-lancamentos-count></span>
                 </div>
 
@@ -69,7 +69,7 @@
             <div class="detail-section-grid">
                 <div class="detail-section detail-section-grid-item">
                     <div class="detail-section-header">
-                        <i class="fas fa-chart-line"></i>
+                        <i data-lucide="line-chart"></i>
                         <h3>Evolução Mensal</h3>
                         <span class="tendencia-indicator" data-tendencia></span>
                     </div>
@@ -86,7 +86,7 @@
                 <!-- Impacto Futuro -->
                 <div class="detail-section detail-section-grid-item">
                     <div class="detail-section-header">
-                        <i class="fas fa-crystal-ball"></i>
+                        <i data-lucide="sparkles"></i>
                         <h3>Impacto Futuro</h3>
                     </div>
 
@@ -100,7 +100,7 @@
             <!-- Parcelamentos Ativos -->
             <div class="detail-section">
                 <div class="detail-section-header">
-                    <i class="fas fa-calendar-check"></i>
+                    <i data-lucide="calendar-check"></i>
                     <h3>Parcelamentos Ativos</h3>
                     <span class="badge" data-comprometido style="display: none;"></span>
                 </div>

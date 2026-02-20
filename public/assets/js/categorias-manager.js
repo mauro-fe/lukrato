@@ -186,7 +186,7 @@ class CategoriasManager {
         if (receitas.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
+                    <i data-lucide="inbox"></i>
                     <p>Nenhuma categoria de receita cadastrada</p>
                 </div>
             `;
@@ -205,7 +205,7 @@ class CategoriasManager {
         if (despesas.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
+                    <i data-lucide="inbox"></i>
                     <p>Nenhuma categoria de despesa cadastrada</p>
                 </div>
             `;
@@ -223,7 +223,7 @@ class CategoriasManager {
         const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(categoria.nome);
         const iconHtml = hasEmoji
             ? `<span class="cat-card-emoji">${categoria.nome.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || ''}</span>`
-            : `<i class="fas fa-tag"></i>`;
+            : `<i data-lucide="tag"></i>`;
 
         // Nome sem emoji (remover se presente)
         const displayName = categoria.nome.replace(/[\u{1F300}-\u{1F9FF}]\s*/gu, '').trim() || categoria.nome;
@@ -248,7 +248,7 @@ class CategoriasManager {
             } else {
                 budgetHtml = `
                     <div class="cat-card-budget no-budget" onclick="categoriasManager.editarOrcamento(${categoria.id}, event)" title="Defina quanto deseja gastar no máximo por mês nesta categoria">
-                        <i class="fas fa-chart-pie"></i>
+                        <i data-lucide="pie-chart"></i>
                         <span>Definir orçamento mensal</span>
                     </div>`;
             }
@@ -265,12 +265,12 @@ class CategoriasManager {
                         <button type="button" class="cat-card-btn edit" 
                                 onclick="categoriasManager.editarCategoria(${categoria.id})"
                                 title="Editar">
-                            <i class="fas fa-pen"></i>
+                            <i data-lucide="pen"></i>
                         </button>
                         <button type="button" class="cat-card-btn delete" 
                                 onclick="categoriasManager.excluirCategoria(${categoria.id})"
                                 title="Excluir">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 </div>

@@ -473,11 +473,11 @@
 }
 
 .lk-table thead th.sortable.sort-asc .sort-icon::before {
-  content: "\f0de"; /* fa-sort-up */
+  content: "\25B2"; /* sort-up triangle */
 }
 
 .lk-table thead th.sortable.sort-desc .sort-icon::before {
-  content: "\f0dd"; /* fa-sort-down */
+  content: "\25BC"; /* sort-down triangle */
 }
 
 .lk-table thead th.sortable.sort-asc .sort-icon,
@@ -1361,7 +1361,8 @@
   box-sizing: border-box;
 }
 
-.pro-message i.fa-crown {
+.pro-message i[data-lucide="crown"],
+.pro-message i.lucide-crown {
   font-size: 2.5rem;
   color: #f59e0b;
   margin-bottom: var(--spacing-3);
@@ -1428,7 +1429,8 @@
     padding: var(--spacing-3);
   }
 
-  .pro-message i.fa-crown {
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
     font-size: 2rem;
     margin-bottom: var(--spacing-2);
   }
@@ -1457,7 +1459,8 @@
     padding: var(--spacing-2);
   }
 
-  .pro-message i.fa-crown {
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
     font-size: 1.75rem;
     margin-bottom: var(--spacing-2);
   }

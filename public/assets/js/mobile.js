@@ -187,7 +187,8 @@
         if (wrapper && wrapper.scrollWidth > wrapper.clientWidth) {
           const indicator = document.createElement('div');
           indicator.className = 'scroll-indicator';
-          indicator.innerHTML = '<i class="fas fa-arrows-alt-h"></i> Deslize para ver mais';
+          indicator.innerHTML = '<i data-lucide="move-horizontal"></i> Deslize para ver mais';
+          if(window.lucide) lucide.createIcons();
           indicator.style.cssText = `
             text-align: center;
             padding: 8px;
@@ -277,7 +278,8 @@
       backToTopBtn = document.createElement('button');
       backToTopBtn.id = 'backToTop';
       backToTopBtn.className = 'btn-back-to-top';
-      backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+      backToTopBtn.innerHTML = '<i data-lucide="arrow-up"></i>';
+      if(window.lucide) lucide.createIcons();
       backToTopBtn.setAttribute('aria-label', 'Voltar ao topo');
       backToTopBtn.style.cssText = `
         position: fixed;

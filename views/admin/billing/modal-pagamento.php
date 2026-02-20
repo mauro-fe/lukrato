@@ -844,7 +844,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         <div class="payment-modal__header">
             <button class="payment-modal__close" aria-label="Fechar modal" type="button"
                 onclick="window.closeBillingModal?.()">
-                <i class="fa-solid fa-times" aria-hidden="true"></i>
+                <i data-lucide="x" aria-hidden="true"></i>
             </button>
 
             <h2 id="billing-modal-title" class="payment-modal__title">
@@ -863,7 +863,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         <!-- ========== SEÇÃO DE PAGAMENTO PENDENTE (BLOQUEIO) ========== -->
         <div id="pending-payment-section" class="pending-payment-section">
             <div class="pending-payment-section__icon">
-                <i class="fa-solid fa-clock"></i>
+                <i data-lucide="clock"></i>
             </div>
             <h3 class="pending-payment-section__title">
                 Você tem um pagamento pendente
@@ -893,7 +893,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 <div class="pix-copy-paste__wrapper" style="margin-top: var(--spacing-2);">
                     <input type="text" id="pending-pix-code" class="pix-copy-paste__input" readonly>
                     <button type="button" id="pending-pix-copy-btn" class="pix-copy-paste__btn">
-                        <i class="fa-solid fa-copy"></i>
+                        <i data-lucide="copy"></i>
                         <span>Copiar</span>
                     </button>
                 </div>
@@ -904,15 +904,15 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
             <div class="pending-payment-section__actions">
                 <a id="pending-boleto-download" href="#" target="_blank" class="btn-primary" style="display:none">
-                    <i class="fa-solid fa-download"></i>
+                    <i data-lucide="download"></i>
                     <span>Baixar Boleto</span>
                 </a>
                 <button type="button" id="pending-copy-btn" class="btn-primary" style="display:none">
-                    <i class="fa-solid fa-copy"></i>
+                    <i data-lucide="copy"></i>
                     <span>Copiar código do boleto</span>
                 </button>
                 <button type="button" id="cancel-pending-btn" class="pending-payment-section__cancel-btn">
-                    <i class="fa-solid fa-times-circle"></i>
+                    <i data-lucide="x-circle"></i>
                     <span>Cancelar e escolher outro método</span>
                 </button>
             </div>
@@ -923,7 +923,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             <div class="payment-method-selector" role="tablist" aria-label="Método de pagamento">
                 <button type="button" class="payment-method-btn is-active" data-method="CREDIT_CARD" role="tab"
                     aria-selected="true">
-                    <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+                    <i data-lucide="credit-card" aria-hidden="true"></i>
                     <span>Cartão</span>
                 </button>
                 <button type="button" class="payment-method-btn" data-method="PIX" role="tab" aria-selected="false">
@@ -931,7 +931,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                     <span>PIX</span>
                 </button>
                 <button type="button" class="payment-method-btn" data-method="BOLETO" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-barcode" aria-hidden="true"></i>
+                    <i data-lucide="scan-line" aria-hidden="true"></i>
                     <span>Boleto</span>
                 </button>
             </div>
@@ -1013,7 +1013,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                         <h3 class="pix-boleto-area__title">Pagamento via PIX</h3>
                         <?php if ($pixDataComplete): ?>
                             <p class="pix-boleto-area__description pix-boleto-area__description--auto">
-                                <i class="fa-solid fa-check-circle"></i>
+                                <i data-lucide="circle-check"></i>
                                 Seus dados já estão cadastrados! Clique em "Gerar PIX" para continuar.
                             </p>
                         <?php else: ?>
@@ -1050,13 +1050,13 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                                 <div class="pix-copy-paste__wrapper">
                                     <input type="text" id="pix-copy-paste-code" class="pix-copy-paste__input" readonly>
                                     <button type="button" id="pix-copy-btn" class="pix-copy-paste__btn">
-                                        <i class="fa-solid fa-copy"></i>
+                                        <i data-lucide="copy"></i>
                                         <span>Copiar</span>
                                     </button>
                                 </div>
                             </div>
                             <div id="pix-pending-status" class="payment-pending-status">
-                                <i class="fa-solid fa-clock"></i>
+                                <i data-lucide="clock"></i>
                                 <span>Aguardando pagamento...</span>
                             </div>
                         </div>
@@ -1067,12 +1067,12 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 <div id="boleto-section" class="payment-section">
                     <div class="pix-boleto-area">
                         <div class="pix-boleto-area__icon">
-                            <i class="fa-solid fa-barcode"></i>
+                            <i data-lucide="scan-line"></i>
                         </div>
                         <h3 class="pix-boleto-area__title">Pagamento via Boleto</h3>
                         <?php if ($boletoDataComplete): ?>
                             <p class="pix-boleto-area__description pix-boleto-area__description--auto">
-                                <i class="fa-solid fa-check-circle"></i>
+                                <i data-lucide="circle-check"></i>
                                 Seus dados já estão cadastrados! Clique em "Gerar Boleto" para continuar.
                             </p>
                         <?php else: ?>
@@ -1122,16 +1122,16 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                             <div class="boleto-linha-digitavel" id="boleto-linha-digitavel"></div>
                             <div class="boleto-actions">
                                 <button type="button" id="boleto-copy-btn" class="btn-primary">
-                                    <i class="fa-solid fa-copy"></i>
+                                    <i data-lucide="copy"></i>
                                     <span>Copiar código</span>
                                 </button>
                                 <a id="boleto-download-link" href="#" target="_blank" class="btn-primary">
-                                    <i class="fa-solid fa-download"></i>
+                                    <i data-lucide="download"></i>
                                     <span>Baixar boleto</span>
                                 </a>
                             </div>
                             <div id="boleto-pending-status" class="payment-pending-status">
-                                <i class="fa-solid fa-clock"></i>
+                                <i data-lucide="clock"></i>
                                 <span>Aguardando pagamento (até 3 dias úteis)</span>
                             </div>
                         </div>
@@ -1143,7 +1143,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                         Cancelar
                     </button>
                     <button type="submit" class="btn-primary" id="asaasSubmitBtn">
-                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                        <i data-lucide="lock" aria-hidden="true"></i>
                         <span>Pagar com cartão</span>
                     </button>
                 </div>
@@ -1388,9 +1388,18 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
 
         function updateSubmitButton() {
             const btnSpan = submitBtn?.querySelector('span');
-            const btnIcon = submitBtn?.querySelector('i');
+            const btnIcon = submitBtn?.querySelector('i, svg.lucide');
 
             if (!btnSpan || !btnIcon) return;
+
+            // Função helper: trocar ícone Lucide dinamicamente
+            function swapIcon(iconName) {
+                const parent = btnIcon.parentNode;
+                const newIcon = document.createElement('i');
+                newIcon.setAttribute('data-lucide', iconName);
+                parent.replaceChild(newIcon, btnIcon);
+                if (window.lucide) lucide.createIcons();
+            }
 
             switch (currentBillingType) {
                 case 'PIX':
@@ -1399,11 +1408,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                     break;
                 case 'BOLETO':
                     btnSpan.textContent = 'Gerar Boleto';
-                    btnIcon.className = 'fa-solid fa-barcode';
+                    swapIcon('scan-line');
                     break;
                 default:
                     btnSpan.textContent = 'Pagar com cartão';
-                    btnIcon.className = 'fa-solid fa-lock';
+                    swapIcon('lock');
             }
         }
 
@@ -1692,7 +1701,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             try {
                 cancelPendingBtn.disabled = true;
                 cancelPendingBtn.innerHTML =
-                    '<i class="fa-solid fa-spinner fa-spin"></i> <span>Cancelando...</span>';
+                    '<i data-lucide="loader-2" class="icon-spin"></i> <span>Cancelando...</span>';
 
                 const resp = await fetch(`${BASE_URL}premium/cancel-pending`, {
                     method: 'POST',
@@ -1727,7 +1736,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             } finally {
                 cancelPendingBtn.disabled = false;
                 cancelPendingBtn.innerHTML =
-                    '<i class="fa-solid fa-times-circle"></i> <span>Cancelar e escolher outro método</span>';
+                    '<i data-lucide="x-circle"></i> <span>Cancelar e escolher outro método</span>';
             }
         }
 

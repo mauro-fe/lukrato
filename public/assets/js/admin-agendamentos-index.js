@@ -1024,11 +1024,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const empty = document.createElement('div');
             empty.className = 'ag-card card-item card-empty';
             empty.innerHTML = `
-                <i class="fas fa-calendar-plus card-empty-icon"></i>
+                <i data-lucide="calendar-plus" class="card-empty-icon"></i>
                 <h3 class="card-empty-title">Nenhum agendamento encontrado</h3>
                 <p class="card-empty-text">Comece agendando suas contas fixas como aluguel, assinaturas e salário para nunca esquecer um pagamento.</p>
                 <button type="button" class="card-empty-cta" id="btnAddFromEmpty">
-                    <i class="fas fa-plus"></i>
+                    <i data-lucide="plus"></i>
                     <span>Criar primeiro agendamento</span>
                 </button>
             `;
@@ -1109,8 +1109,10 @@ document.addEventListener('DOMContentLoaded', () => {
             badge.classList.add(tipoClass);
             badge.querySelector('[data-field="tipo"]').textContent =
                 tipo.charAt(0).toUpperCase() + tipo.slice(1);
-            badge.querySelector('i').className =
-                `fas ${tipo === 'receita' ? 'fa-arrow-up' : 'fa-arrow-down'}`;
+            const badgeIcon = badge.querySelector('i');
+            badgeIcon.setAttribute('data-lucide', tipo === 'receita' ? 'arrow-up' : 'arrow-down');
+            badgeIcon.className = '';
+            if(window.lucide) lucide.createIcons({nodes:[badgeIcon]});
 
             // Categoria e Conta
             clone.querySelector('[data-field="categoria"]').textContent =
@@ -1150,13 +1152,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const viewBtn = `
                 <button class="lk-btn primary ag-card-btn" data-ag-action="visualizar" data-id="${itemId}" title="Visualizar">
-                    <i class="fas fa-eye"></i>
+                    <i data-lucide="eye"></i>
                 </button>
             `;
 
             const editBtn = `
                 <button class="lk-btn ghost ag-card-btn" data-ag-action="editar" data-id="${itemId}" title="Editar">
-                    <i class="fas fa-pencil-alt"></i>
+                    <i data-lucide="pencil"></i>
                 </button>
             `;
 
@@ -1166,20 +1168,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${viewBtn}
                     ${editBtn}
                     <button class="lk-btn ghost ag-card-btn" data-ag-action="reativar" data-id="${itemId}" title="Reativar">
-                        <i class="fas fa-undo-alt"></i>
+                        <i data-lucide="undo-2"></i>
                     </button>
                 `;
+                if(window.lucide) lucide.createIcons();
             } else {
                 actionsContainer.innerHTML = `
                     ${viewBtn}
                     <button class="lk-btn ghost-pagar ag-card-btn" data-ag-action="pagar" data-id="${itemId}" title="Executar">
-                        <i class="fas fa-check"></i>
+                        <i data-lucide="check"></i>
                     </button>
                     ${editBtn}
                     <button class="lk-btn danger ag-card-btn" data-ag-action="cancelar" data-id="${itemId}" title="Cancelar">
-                        <i class="fas fa-times"></i>
+                        <i data-lucide="x"></i>
                     </button>
                 `;
+                if(window.lucide) lucide.createIcons();
             }
         },
 
@@ -1432,14 +1436,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const viewBtn = `
                 <button type="button" class="btn-action btn-view" data-action="visualizar" data-id="${itemId}" 
                     title="👁️ Visualizar detalhes completos">
-                    <i class="fas fa-eye"></i>
+                    <i data-lucide="eye"></i>
                 </button>
             `;
 
             const editBtn = `
                 <button type="button" class="btn-action btn-edit" data-action="editar" data-id="${itemId}" 
                     title="✏️ Editar agendamento">
-                    <i class="fas fa-pencil-alt"></i>
+                    <i data-lucide="pencil"></i>
                 </button>
             `;
 
@@ -1450,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${editBtn}
                     <button type="button" class="btn-action btn-restore" data-action="reativar" data-id="${itemId}" 
                         title="🔄 Reativar agendamento">
-                        <i class="fas fa-undo-alt"></i>
+                        <i data-lucide="undo-2"></i>
                     </button>
                 `;
             }
@@ -1459,12 +1463,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${viewBtn}
                 <button type="button" class="btn-action btn-pay" data-action="pagar" data-id="${itemId}" 
                     title="✅ Executar agendamento - Cria lançamento">
-                    <i class="fas fa-check"></i>
+                    <i data-lucide="check"></i>
                 </button>
                 ${editBtn}
                 <button type="button" class="btn-action btn-cancel" data-action="cancelar" data-id="${itemId}" 
                     title="❌ Cancelar agendamento">
-                    <i class="fas fa-times"></i>
+                    <i data-lucide="x"></i>
                 </button>
             `;
         }

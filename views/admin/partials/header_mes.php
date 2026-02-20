@@ -422,12 +422,12 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         <div class="month-selector">
             <div class="lk-period">
                 <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
-                    <i class="fas fa-chevron-left"></i>
+                    <i data-lucide="chevron-left"></i>
                 </button>
                 <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal"
                     data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
                     <span id="currentMonthText">Carregando...</span>
-                    <i class="fas fa-chevron-down"></i>
+                    <i data-lucide="chevron-down"></i>
                 </button>
 
                 <div class="month-display">
@@ -435,20 +435,20 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
                 </div>
 
                 <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
-                    <i class="fas fa-chevron-right"></i>
+                    <i data-lucide="chevron-right"></i>
                 </button>
             </div>
             <div class="lk-year-picker" id="yearPicker" aria-hidden="true">
                 <button class="month-nav-btn" id="prevYearBtn" type="button" aria-label="Ano anterior">
-                    <i class="fas fa-chevron-left"></i>
+                    <i data-lucide="chevron-left"></i>
                 </button>
                 <button class="month-dropdown-btn year-btn" id="yearDropdownBtn" type="button" aria-haspopup="true"
                     aria-expanded="false">
                     <span id="currentYearText"><?= date('Y') ?></span>
-                    <i class="fas fa-chevron-down"></i>
+                    <i data-lucide="chevron-down"></i>
                 </button>
                 <button class="month-nav-btn" id="nextYearBtn" type="button" aria-label="Próximo ano">
-                    <i class="fas fa-chevron-right"></i>
+                    <i data-lucide="chevron-right"></i>
                 </button>
             </div>
         </div>

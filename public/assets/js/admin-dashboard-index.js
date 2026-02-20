@@ -574,7 +574,7 @@
               <td data-label="Ações" class="text-end">
                 <div class="actions-cell">
                   <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
-                    <i class="fas fa-trash-alt"></i>
+                    <i data-lucide="trash-2"></i>
                   </button>
                 </div>
               </td>
@@ -924,8 +924,8 @@
             const verTodosEl = document.getElementById('provisaoVerTodos');
             if (titleEl) {
                 titleEl.innerHTML = isPro 
-                    ? '<i class="fas fa-clock"></i> Próximos Vencimentos'
-                    : '<i class="fas fa-credit-card"></i> Próximas Faturas';
+                    ? '<i data-lucide="clock"></i> Próximos Vencimentos'
+                    : '<i data-lucide="credit-card"></i> Próximas Faturas';
             }
             if (verTodosEl) {
                 verTodosEl.href = isPro 
@@ -1071,7 +1071,7 @@
                         
                         if (isFatura) {
                             // Badge especial para fatura de cartão
-                            badges += '<span class="provisao-item-badge fatura"><i class="fas fa-credit-card"></i> Fatura</span>';
+                            badges += '<span class="provisao-item-badge fatura"><i data-lucide="credit-card"></i> Fatura</span>';
                             if (item.cartao_ultimos_digitos) {
                                 badges += `<span>****${item.cartao_ultimos_digitos}</span>`;
                             }

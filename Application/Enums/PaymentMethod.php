@@ -40,19 +40,19 @@ enum PaymentMethod: string
     }
 
     /**
-     * Retorna ícone FontAwesome
+     * Retorna ícone Lucide
      */
     public function icon(): string
     {
         return match ($this) {
-            self::PIX => 'fa-brands fa-pix',
-            self::CARTAO_CREDITO => 'fa-solid fa-credit-card',
-            self::CARTAO_DEBITO => 'fa-solid fa-credit-card',
-            self::DINHEIRO => 'fa-solid fa-money-bill-wave',
-            self::BOLETO => 'fa-solid fa-barcode',
-            self::DEPOSITO => 'fa-solid fa-building-columns',
-            self::TRANSFERENCIA => 'fa-solid fa-arrow-right-arrow-left',
-            self::ESTORNO_CARTAO => 'fa-solid fa-rotate-left',
+            self::PIX => 'qr-code',
+            self::CARTAO_CREDITO => 'credit-card',
+            self::CARTAO_DEBITO => 'credit-card',
+            self::DINHEIRO => 'banknote',
+            self::BOLETO => 'scan-line',
+            self::DEPOSITO => 'landmark',
+            self::TRANSFERENCIA => 'arrow-left-right',
+            self::ESTORNO_CARTAO => 'rotate-ccw',
         };
     }
 

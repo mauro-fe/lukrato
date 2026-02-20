@@ -13,7 +13,7 @@
     <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
         <div class="card-header-icon">
             <div class="icon-wrapper filter">
-                <i class="fas fa-filter"></i>
+                <i data-lucide="filter"></i>
             </div>
             <div class="card-title-group">
                 <h3 class="card-title">Filtros</h3>
@@ -25,7 +25,7 @@
             <div class="filter-row">
                 <div class="filter-group">
                     <label for="filtroStatus" class="filter-label">
-                        <i class="fas fa-toggle-on"></i>
+                        <i data-lucide="toggle-right"></i>
                         <span>Status</span>
                     </label>
                     <select id="filtroStatus" class="modern-select">
@@ -38,7 +38,7 @@
 
                 <div class="filter-group">
                     <label for="filtroCartao" class="filter-label">
-                        <i class="fas fa-credit-card"></i>
+                        <i data-lucide="credit-card"></i>
                         <span>Cartão</span>
                     </label>
                     <select id="filtroCartao" class="modern-select">
@@ -48,7 +48,7 @@
 
                 <div class="filter-group">
                     <label for="filtroAno" class="filter-label">
-                        <i class="fas fa-calendar-alt"></i>
+                        <i data-lucide="calendar"></i>
                         <span>Ano</span>
                     </label>
                     <select id="filtroAno" class="modern-select">
@@ -57,7 +57,7 @@
                 </div>
 
                 <button type="button" id="btnFiltrar" class="modern-btn secondary">
-                    <i class="fas fa-search"></i>
+                    <i data-lucide="search"></i>
                     <span>Filtrar</span>
                 </button>
             </div>
@@ -67,7 +67,7 @@
     <!-- ==================== LOADING ==================== -->
     <div id="loadingParcelamentos" class="loading-container" style="display: none;">
         <div class="loading-spinner">
-            <i class="fas fa-circle-notch fa-spin"></i>
+            <i class="icon-spin" data-lucide="loader-2"></i>
             <p>Carregando faturas...</p>
         </div>
     </div>
@@ -80,7 +80,7 @@
     <!-- ==================== EMPTY STATE ==================== -->
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-icon">
-            <i class="fas fa-credit-card"></i>
+            <i data-lucide="credit-card"></i>
         </div>
         <h3>Nenhuma fatura encontrada</h3>
         <p>Suas faturas de cartão aparecerão aqui quando você fizer compras parceladas</p>
@@ -93,7 +93,7 @@
         <div class="modal-content modern-modal">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-list"></i>
+                    <i data-lucide="list"></i>
                     <span>Detalhes da Fatura</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

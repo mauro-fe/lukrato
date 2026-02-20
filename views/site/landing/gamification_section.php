@@ -75,7 +75,7 @@
                         class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mb-3">
-                            <i class="fas fa-star text-white text-xl"></i>
+                            <i data-lucide="star" class="text-white text-xl"></i>
                         </div>
                         <p class="text-3xl font-bold text-gray-900 mb-1">1.450</p>
                         <p class="text-sm text-gray-500">Pontos Totais</p>
@@ -85,7 +85,7 @@
                         class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center mb-3">
-                            <i class="fas fa-trophy text-white text-xl"></i>
+                            <i data-lucide="trophy" class="text-white text-xl"></i>
                         </div>
                         <p class="text-3xl font-bold text-gray-900 mb-1">12</p>
                         <p class="text-sm text-gray-500">Conquistas</p>
@@ -95,7 +95,7 @@
                         class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center mb-3">
-                            <i class="fas fa-fire text-white text-xl"></i>
+                            <i data-lucide="flame" class="text-white text-xl"></i>
                         </div>
                         <p class="text-3xl font-bold text-gray-900 mb-1">7</p>
                         <p class="text-sm text-gray-500">Dias de Streak</p>
@@ -105,7 +105,7 @@
                         class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center mb-3">
-                            <i class="fas fa-chart-line text-white text-xl"></i>
+                            <i data-lucide="line-chart" class="text-white text-xl"></i>
                         </div>
                         <p class="text-3xl font-bold text-gray-900 mb-1">15</p>
                         <p class="text-sm text-gray-500">Níveis Máximos</p>
@@ -133,7 +133,7 @@
                             </div>
                             <p class="text-gray-600 text-sm mb-2">Criou sua primeira conta no sistema</p>
                             <div class="flex items-center gap-2 text-primary">
-                                <i class="fas fa-star text-sm"></i>
+                                <i data-lucide="star" class="text-sm"></i>
                                 <span class="text-sm font-bold">+50 pontos</span>
                             </div>
                         </div>
@@ -156,7 +156,7 @@
                             </div>
                             <p class="text-gray-600 text-sm mb-2">Criou seu primeiro lançamento</p>
                             <div class="flex items-center gap-2 text-primary">
-                                <i class="fas fa-star text-sm"></i>
+                                <i data-lucide="star" class="text-sm"></i>
                                 <span class="text-sm font-bold">+50 pontos</span>
                             </div>
                         </div>
@@ -179,7 +179,7 @@
                             </div>
                             <p class="text-gray-600 text-sm mb-2">Manteve um streak de 7 dias seguidos</p>
                             <div class="flex items-center gap-2 text-primary">
-                                <i class="fas fa-star text-sm"></i>
+                                <i data-lucide="star" class="text-sm"></i>
                                 <span class="text-sm font-bold">+100 pontos</span>
                             </div>
                         </div>
@@ -202,7 +202,7 @@
                             </div>
                             <p class="text-gray-500 text-sm mb-2">Complete 30 lançamentos</p>
                             <div class="flex items-center gap-2 text-gray-400">
-                                <i class="fas fa-star text-sm"></i>
+                                <i data-lucide="star" class="text-sm"></i>
                                 <span class="text-sm font-bold">+200 pontos</span>
                             </div>
                         </div>
@@ -229,7 +229,7 @@
                     <div class="text-center">
                         <div
                             class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-rocket text-4xl"></i>
+                            <i data-lucide="rocket" class="text-4xl"></i>
                         </div>
                         <h4 class="text-xl font-bold mb-2">Motivação Extra</h4>
                         <p class="text-white/80 text-sm">
@@ -240,7 +240,7 @@
                     <div class="text-center">
                         <div
                             class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-chart-line text-4xl"></i>
+                            <i data-lucide="line-chart" class="text-4xl"></i>
                         </div>
                         <h4 class="text-xl font-bold mb-2">Progresso Visível</h4>
                         <p class="text-white/80 text-sm">
@@ -251,7 +251,7 @@
                     <div class="text-center">
                         <div
                             class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-trophy text-4xl"></i>
+                            <i data-lucide="trophy" class="text-4xl"></i>
                         </div>
                         <h4 class="text-xl font-bold mb-2">Hábitos Positivos</h4>
                         <p class="text-white/80 text-sm">
@@ -264,7 +264,7 @@
                     <a href="<?= BASE_URL ?>login"
                         class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold bg-white text-primary rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                         Começar minha jornada
-                        <i class="fas fa-arrow-right ml-3"></i>
+                        <i data-lucide="arrow-right" class="ml-3"></i>
                     </a>
                 </div>
             </div>

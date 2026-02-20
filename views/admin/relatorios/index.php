@@ -10,7 +10,7 @@
     <div class="quick-stats-grid">
         <div class="stat-card stat-receitas" title="Total de entradas financeiras registradas neste mês" tabindex="0">
             <div class="stat-icon">
-                <i class="fas fa-arrow-trend-up"></i>
+                <i data-lucide="trending-up"></i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Receitas do Mês</span>
@@ -21,7 +21,7 @@
 
         <div class="stat-card stat-despesas" title="Total de saídas e gastos registrados neste mês" tabindex="0">
             <div class="stat-icon">
-                <i class="fas fa-arrow-trend-down"></i>
+                <i data-lucide="trending-down"></i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Despesas do Mês</span>
@@ -32,7 +32,7 @@
 
         <div class="stat-card stat-saldo" title="Diferença entre receitas e despesas (receitas - despesas)" tabindex="0">
             <div class="stat-icon">
-                <i class="fas fa-wallet"></i>
+                <i data-lucide="wallet"></i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Saldo do Mês</span>
@@ -43,7 +43,7 @@
 
         <div class="stat-card stat-cartoes" title="Soma de todas as faturas de cartões de crédito neste mês" tabindex="0">
             <div class="stat-icon">
-                <i class="fas fa-credit-card"></i>
+                <i data-lucide="credit-card"></i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Faturas Cartões</span>
@@ -57,7 +57,7 @@
     <div class="modern-card insights-card">
         <div class="card-header">
             <div class="header-left">
-                <i class="fas fa-lightbulb"></i>
+                <i data-lucide="lightbulb"></i>
                 <div class="header-text">
                     <h3>Insights Inteligentes</h3>
                     <p>Análise automática dos seus dados financeiros</p>
@@ -78,7 +78,7 @@
     <div class="modern-card comparatives-card">
         <div class="card-header">
             <div class="header-left">
-                <i class="fas fa-chart-line"></i>
+                <i data-lucide="line-chart"></i>
                 <div class="header-text">
                     <h3>Comparativos</h3>
                     <p>Análise de evolução temporal</p>
@@ -99,7 +99,7 @@
     <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>">
         <div class="card-header">
             <div class="header-left">
-                <i class="fas fa-file-export"></i>
+                <i data-lucide="file-output"></i>
                 <div class="header-text">
                     <h3>Exportar Relatório</h3>
                     <p>Baixe seus dados em PDF ou Excel</p>
@@ -107,7 +107,7 @@
             </div>
             <?php if (!$isPro): ?>
                 <span class="pro-badge">
-                    <i class="fas fa-crown"></i> PRO
+                    <i data-lucide="crown"></i> PRO
                 </span>
             <?php endif; ?>
         </div>
@@ -116,7 +116,7 @@
             <?php if (!$isPro): ?>
                 <div class="pro-overlay">
                     <div class="pro-message">
-                        <i class="fas fa-crown"></i>
+                        <i data-lucide="crown"></i>
                         <h4>Recurso Premium</h4>
                         <p style="font-size:0.9rem;margin:0 0 var(--spacing-4);line-height:1.5;">
                             Exportação de relatórios é exclusiva do <a href="<?= BASE_URL ?>billing">
@@ -128,7 +128,7 @@
             <div class="export-controls <?= !$isPro ? 'disabled-blur' : '' ?>">
                 <div class="form-group">
                     <label for="exportType">
-                        <i class="fas fa-chart-bar"></i>
+                        <i data-lucide="bar-chart-3"></i>
                         Tipo de Relatório
                     </label>
                     <select id="exportType" class="form-select" <?= !$isPro ? 'disabled' : '' ?>>
@@ -147,7 +147,7 @@
 
                 <div class="form-group">
                     <label for="exportFormat">
-                        <i class="fas fa-file"></i>
+                        <i data-lucide="file"></i>
                         Formato
                     </label>
                     <select id="exportFormat" class="form-select" <?= !$isPro ? 'disabled' : '' ?>>
@@ -157,7 +157,7 @@
                 </div>
 
                 <button id="exportBtn" class="btn btn-primary btn-export" <?= !$isPro ? 'disabled' : '' ?>>
-                    <i class="fas fa-download"></i>
+                    <i data-lucide="download"></i>
                     <span>Exportar</span>
                 </button>
             </div>
@@ -168,42 +168,42 @@
     <div class="modern-card tabs-card">
         <div class="tabs-container" role="tablist">
             <button class="tab-btn active" data-view="category" role="tab">
-                <i class="fas fa-chart-pie"></i>
+                <i data-lucide="pie-chart"></i>
                 <span>Por Categoria</span>
             </button>
 
             <button class="tab-btn" data-view="balance" role="tab">
-                <i class="fas fa-chart-line"></i>
+                <i data-lucide="line-chart"></i>
                 <span>Saldo Diário</span>
             </button>
 
             <button class="tab-btn" data-view="comparison" role="tab">
-                <i class="fas fa-chart-column"></i>
+                <i data-lucide="bar-chart-2"></i>
                 <span>Receitas x Despesas</span>
             </button>
 
             <button class="tab-btn" data-view="accounts" role="tab">
-                <i class="fas fa-wallet"></i>
+                <i data-lucide="wallet"></i>
                 <span>Por Conta</span>
             </button>
 
             <button class="tab-btn" data-view="cards" role="tab">
-                <i class="fas fa-credit-card"></i>
+                <i data-lucide="credit-card"></i>
                 <span>Cartões de Crédito</span>
             </button>
 
             <button class="tab-btn" data-view="evolution" role="tab">
-                <i class="fas fa-timeline"></i>
+                <i data-lucide="git-branch"></i>
                 <span>Evolução 12m</span>
             </button>
 
             <button class="tab-btn" data-view="annual_summary" role="tab">
-                <i class="fas fa-calendar-alt"></i>
+                <i data-lucide="calendar-days"></i>
                 <span>Resumo Anual</span>
             </button>
 
             <button class="tab-btn" data-view="annual_category" role="tab">
-                <i class="fas fa-chart-pie"></i>
+                <i data-lucide="pie-chart"></i>
                 <span>Categoria Anual</span>
             </button>
         </div>
@@ -214,7 +214,7 @@
         <!-- Select de tipo de relatório (visível para views específicas) -->
         <div class="control-group hidden" id="typeSelectWrapper">
             <label for="reportType">
-                <i class="fas fa-filter"></i>
+                <i data-lucide="filter"></i>
                 Filtrar por
             </label>
             <select id="reportType" class="form-select">
@@ -226,7 +226,7 @@
         <!-- Filtro de conta -->
         <div class="control-group hidden" id="accountSelectWrapper">
             <label for="accountFilter">
-                <i class="fas fa-building-columns"></i>
+                <i data-lucide="landmark"></i>
                 Conta
             </label>
             <select id="accountFilter" class="form-select">
@@ -237,7 +237,7 @@
         <!-- Botão Limpar Filtros -->
         <div class="control-group" id="clearFiltersWrapper" style="display:none; align-items: flex-end;">
             <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary" title="Resetar filtros para padrão" style="white-space: nowrap;">
-                <i class="fas fa-eraser"></i>
+                <i data-lucide="eraser"></i>
                 Limpar Filtros
             </button>
         </div>

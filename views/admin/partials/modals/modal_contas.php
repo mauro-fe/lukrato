@@ -1,11 +1,11 @@
-﻿<!-- Modal de Nova Conta -->
+<!-- Modal de Nova Conta -->
 <div class="modal-overlay" id="modalContaOverlay">
     <div class="modal-container" id="modalConta" onclick="event.stopPropagation()">
         <!-- Header -->
         <div class="modal-header">
             <div class="modal-header-content">
                 <div class="modal-icon">
-                    <i class="fas fa-university"></i>
+                    <i data-lucide="landmark"></i>
                 </div>
                 <div>
                     <h2 class="modal-title" id="modalContaTitulo">Nova Conta</h2>
@@ -13,7 +13,7 @@
                 </div>
             </div>
             <button class="modal-close modal-close-btn" type="button" aria-label="Fechar modal">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
 
@@ -25,7 +25,7 @@
                 <!-- Nome da Conta -->
                 <div class="form-group">
                     <label for="nomeConta" class="form-label required">
-                        <i class="fas fa-tag"></i>
+                        <i data-lucide="tag"></i>
                         Nome da Conta
                     </label>
                     <input type="text" id="nomeConta" name="nome" class="form-input"
@@ -35,7 +35,7 @@
                 <!-- Instituição Financeira -->
                 <div class="form-group">
                     <label for="instituicaoFinanceiraSelect" class="form-label">
-                        <i class="fas fa-building"></i>
+                        <i data-lucide="building-2"></i>
                         Instituição Financeira
                     </label>
                     <div class="input-with-action">
@@ -44,7 +44,7 @@
                         </select>
                         <button type="button" class="btn-add-instituicao" id="btnAddInstituicao"
                             title="Adicionar nova instituição">
-                            <i class="fas fa-plus"></i>
+                            <i data-lucide="plus"></i>
                         </button>
                     </div>
                     <small class="form-help">Escolha o banco ou fintech desta conta</small>
@@ -55,7 +55,7 @@
                     <!-- Tipo de Conta -->
                     <div class="form-group">
                         <label for="tipoContaSelect" class="form-label required">
-                            <i class="fas fa-wallet"></i>
+                            <i data-lucide="wallet"></i>
                             Tipo de Conta
                         </label>
                         <select id="tipoContaSelect" name="tipo_conta" class="form-select" required>
@@ -70,7 +70,7 @@
                     <!-- Moeda -->
                     <div class="form-group">
                         <label for="moedaSelect" class="form-label required">
-                            <i class="fas fa-dollar-sign"></i>
+                            <i data-lucide="dollar-sign"></i>
                             Moeda
                         </label>
                         <select id="moedaSelect" name="moeda" class="form-select" required>
@@ -84,7 +84,7 @@
                 <!-- Saldo Inicial -->
                 <div class="form-group">
                     <label for="saldoInicial" class="form-label">
-                        <i class="fas fa-coins"></i>
+                        <i data-lucide="coins"></i>
                         Saldo Inicial
                     </label>
                     <div class="input-with-prefix">
@@ -98,7 +98,7 @@
                 <!-- Cor da Conta -->
                 <div class="form-group" style="display: none;">
                     <label for="corConta" class="form-label">
-                        <i class="fas fa-palette"></i>
+                        <i data-lucide="palette"></i>
                         Cor de Identificação
                     </label>
                     <input type="color" id="corConta" name="cor" class="form-input" value="#e67e22">
@@ -119,7 +119,7 @@
                 <!-- Footer -->
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i>
+                        <i data-lucide="save"></i>
                         Salvar Conta
                     </button>
                 </div>
@@ -522,7 +522,7 @@
         <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
             <div class="modal-header-content">
                 <div class="modal-icon">
-                    <i class="fas fa-plus-circle"></i>
+                    <i data-lucide="circle-plus"></i>
                 </div>
                 <div>
                     <h2 class="modal-title">Nova Instituição</h2>
@@ -531,7 +531,7 @@
             </div>
             <button class="modal-close modal-close-btn" type="button"
                 onclick="contasManager.closeNovaInstituicaoModal()" aria-label="Fechar modal">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
 
@@ -541,7 +541,7 @@
                 <!-- Nome da Instituição -->
                 <div class="form-group">
                     <label for="nomeInstituicao" class="form-label required">
-                        <i class="fas fa-building"></i>
+                        <i data-lucide="building-2"></i>
                         Nome da Instituição
                     </label>
                     <input type="text" id="nomeInstituicao" name="nome" class="form-input"
@@ -551,7 +551,7 @@
                 <!-- Tipo -->
                 <div class="form-group">
                     <label for="tipoInstituicao" class="form-label required">
-                        <i class="fas fa-tag"></i>
+                        <i data-lucide="tag"></i>
                         Tipo
                     </label>
                     <select id="tipoInstituicao" name="tipo" class="form-select" required>
@@ -567,7 +567,7 @@
                 <!-- Cor -->
                 <div class="form-group">
                     <label for="corInstituicao" class="form-label">
-                        <i class="fas fa-palette"></i>
+                        <i data-lucide="palette"></i>
                         Cor de Identificação
                     </label>
                     <div class="color-picker-row">
@@ -581,11 +581,11 @@
                 <!-- Footer -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="contasManager.closeNovaInstituicaoModal()">
-                        <i class="fas fa-times"></i>
+                        <i data-lucide="x"></i>
                         Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
+                        <i data-lucide="plus"></i>
                         Adicionar Instituição
                     </button>
                 </div>

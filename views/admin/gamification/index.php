@@ -8,7 +8,7 @@
             </div>
         </div>
         <div class="level-badge-large" id="userLevelLarge">
-            <i class="fas fa-star"></i>
+            <i data-lucide="star"></i>
             <span>Nível 1</span>
         </div>
     </div>
@@ -60,7 +60,7 @@
 
     <!-- Conquistas -->
     <section class="achievements-section">
-        <h2><i class="fas fa-medal"></i> Conquistas</h2>
+        <h2><i data-lucide="medal"></i> Conquistas</h2>
 
         <div class="achievements-filter">
             <button class="filter-btn active" data-filter="all">Todas</button>
@@ -81,7 +81,7 @@
 
     <!-- Histórico de Pontos -->
     <section class="history-section">
-        <h2><i class="fas fa-history"></i> Histórico Recente</h2>
+        <h2><i data-lucide="history"></i> Histórico Recente</h2>
         <div class="history-list" id="pointsHistory">
             <!-- Loading state -->
             <div class="lk-loading-state" style="text-align:center;padding:2rem;">
@@ -95,7 +95,7 @@
 
     <!-- Ranking -->
     <section class="leaderboard-section">
-        <h2><i class="fas fa-trophy"></i> Ranking</h2>
+        <h2><i data-lucide="trophy"></i> Ranking</h2>
 
         <?php if ($isPro ?? false): ?>
             <!-- Ranking para usuários PRO -->
@@ -112,26 +112,26 @@
             <!-- CTA de Upgrade para acessar o Ranking -->
             <div class="leaderboard-locked">
                 <div class="locked-icon">
-                    <i class="fas fa-crown"></i>
+                    <i data-lucide="crown"></i>
                 </div>
                 <h3>🏆 Ranking Exclusivo PRO</h3>
                 <p>Compare seu progresso com outros usuários e veja sua posição no ranking global!</p>
                 <div class="locked-features">
                     <div class="locked-feature">
-                        <i class="fas fa-medal"></i>
+                        <i data-lucide="medal"></i>
                         <span>Top 10 usuários</span>
                     </div>
                     <div class="locked-feature">
-                        <i class="fas fa-chart-line"></i>
+                        <i data-lucide="line-chart"></i>
                         <span>Sua posição no ranking</span>
                     </div>
                     <div class="locked-feature">
-                        <i class="fas fa-trophy"></i>
+                        <i data-lucide="trophy"></i>
                         <span>Pontuação global</span>
                     </div>
                 </div>
                 <a href="<?= BASE_URL ?>billing" class="btn-upgrade-ranking">
-                    <i class="fas fa-crown"></i>
+                    <i data-lucide="crown"></i>
                     <span>Fazer Upgrade para PRO</span>
                 </a>
             </div>

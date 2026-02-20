@@ -176,9 +176,11 @@ $breadcrumbItems = $breadcrumbItems ?? [];
         <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
     <?php endforeach; ?>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    <!-- Lucide Icons + FA Brands (para ícones de marca) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lucide-compat.css">
+    <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
 
     <!-- Schema.org Markup (JSON-LD) - SoftwareApplication -->
     <script type="application/ld+json">
@@ -512,7 +514,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                         class="inline-flex items-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 group"
                         :class="scrolled ? 'text-gray-600 hover:text-primary hover:bg-orange-50' : 'text-gray-700 hover:text-primary hover:bg-white/20'"
                         aria-label="Entrar na sua conta">
-                        <i class="fa-regular fa-user text-sm transition-transform group-hover:scale-110"
+                        <i data-lucide="user" class="text-sm transition-transform group-hover:scale-110"
                             aria-hidden="true"></i>
                         <span>Entrar</span>
                     </a>
@@ -520,7 +522,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                         class="inline-flex items-center gap-2 px-7 py-2.5 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-full shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-300 group"
                         aria-label="Começar a usar grátis">
                         <span>Começar grátis</span>
-                        <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-1"
+                        <i data-lucide="arrow-right" class="text-sm transition-transform group-hover:translate-x-1"
                             aria-hidden="true"></i>
                     </a>
                 </div>
@@ -531,8 +533,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     :class="scrolled ? 'text-gray-700' : 'text-gray-700'"
                     type="button" aria-label="Abrir menu de navegação" aria-expanded="false"
                     :aria-expanded="mobileMenuOpen">
-                    <i class="fa-solid fa-bars text-2xl" x-show="!mobileMenuOpen" aria-hidden="true"></i>
-                    <i class="fa-solid fa-xmark text-2xl" x-show="mobileMenuOpen" x-cloak aria-hidden="true"></i>
+                    <i data-lucide="menu" class="text-2xl" x-show="!mobileMenuOpen" aria-hidden="true"></i>
+                    <i data-lucide="x" class="text-2xl" x-show="mobileMenuOpen" x-cloak aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -586,7 +588,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 <button @click="mobileMenuOpen = false"
                     class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     type="button" aria-label="Fechar menu">
-                    <i class="fa-solid fa-xmark text-2xl" aria-hidden="true"></i>
+                    <i data-lucide="x" class="text-2xl" aria-hidden="true"></i>
                 </button>
             </div>
 
@@ -622,14 +624,14 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 <a href="<?= BASE_URL ?>login"
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 text-gray-700 hover:text-primary font-semibold border-2 border-gray-200 rounded-xl hover:border-primary transition-all duration-300"
                     aria-label="Entrar">
-                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <i data-lucide="user" aria-hidden="true"></i>
                     <span>Entrar</span>
                 </a>
                 <a href="<?= BASE_URL ?>login?tab=register"
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                     aria-label="Começar a usar grátis">
                     <span>Começar grátis</span>
-                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    <i data-lucide="arrow-right" aria-hidden="true"></i>
                 </a>
             </div>
         </div>

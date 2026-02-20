@@ -9,6 +9,9 @@
 const CardModalRenderers = (() => {
     'use strict';
 
+    const _faLucide = {'check-circle':'circle-check','exclamation-triangle':'triangle-alert','arrow-trend-up':'trending-up','arrow-trend-down':'trending-down','info-circle':'info','times-circle':'x-circle','lightbulb':'lightbulb','chart-line':'line-chart'};
+    const _lucideIcon = (faName) => { const clean = faName.replace(/^fa-/, ''); return _faLucide[clean] || clean; };
+
     const Utils = {
         formatCurrency(value) {
             return new Intl.NumberFormat('pt-BR', {
@@ -33,7 +36,7 @@ const CardModalRenderers = (() => {
 
     function renderLancamentos(lancamentos) {
         if (!lancamentos || lancamentos.length === 0) {
-            return '<div class="empty-message"><i class="fas fa-inbox"></i><p>Nenhum lançamento neste mês</p></div>';
+            return '<div class="empty-message"><i data-lucide="inbox"></i><p>Nenhum lançamento neste mês</p></div>';
         }
 
         return lancamentos.map(lanc => `
@@ -119,7 +122,7 @@ const CardModalRenderers = (() => {
                             <strong>${Utils.escapeHtml(parc.descricao)}</strong>
                         </div>
                         <button class="btn-ver-detalhes" onclick="this.closest('.parcelamento-card-mobile').classList.toggle('expanded')">
-                            <i class="fas fa-chevron-down"></i>
+                            <i data-lucide="chevron-down"></i>
                             <span>Detalhes</span>
                         </button>
                     </div>
@@ -160,7 +163,7 @@ const CardModalRenderers = (() => {
 
     function renderParcelamentos(data) {
         if (!data || data.quantidade === 0) {
-            return '<div class="empty-message"><i class="fas fa-check-circle"></i><p>Nenhum parcelamento ativo</p></div>';
+            return '<div class="empty-message"><i data-lucide="circle-check"></i><p>Nenhum parcelamento ativo</p></div>';
         }
 
         return `
@@ -182,7 +185,7 @@ const CardModalRenderers = (() => {
             cards.push(`
                 <div class="insight-card insight-${insights.tendencia.type}">
                     <div class="insight-icon">
-                        <i class="fas ${insights.tendencia.icon}"></i>
+                        <i data-lucide="${_lucideIcon(insights.tendencia.icon)}"></i>
                     </div>
                     <div class="insight-content">
                         <div class="insight-header-row">
@@ -192,7 +195,7 @@ const CardModalRenderers = (() => {
                         <h4 class="insight-status">${insights.tendencia.status}</h4>
                         <p class="insight-desc">${insights.tendencia.descricao}</p>
                         <p class="insight-recommendation">
-                            <i class="fas fa-star"></i> ${insights.tendencia.recomendacao}
+                            <i data-lucide="star"></i> ${insights.tendencia.recomendacao}
                         </p>
                     </div>
                 </div>
@@ -203,7 +206,7 @@ const CardModalRenderers = (() => {
             cards.push(`
                 <div class="insight-card insight-${insights.parcelamentos.type}">
                     <div class="insight-icon">
-                        <i class="fas ${insights.parcelamentos.icon}"></i>
+                        <i data-lucide="${_lucideIcon(insights.parcelamentos.icon)}"></i>
                     </div>
                     <div class="insight-content">
                         <div class="insight-header-row">
@@ -213,7 +216,7 @@ const CardModalRenderers = (() => {
                         <h4 class="insight-status">${insights.parcelamentos.status}</h4>
                         <p class="insight-desc">${insights.parcelamentos.descricao}</p>
                         <p class="insight-recommendation">
-                            <i class="fas fa-star"></i> ${insights.parcelamentos.recomendacao}
+                            <i data-lucide="star"></i> ${insights.parcelamentos.recomendacao}
                         </p>
                     </div>
                 </div>
@@ -224,7 +227,7 @@ const CardModalRenderers = (() => {
             cards.push(`
                 <div class="insight-card insight-${insights.limite.type}">
                     <div class="insight-icon">
-                        <i class="fas ${insights.limite.icon}"></i>
+                        <i data-lucide="${_lucideIcon(insights.limite.icon)}"></i>
                     </div>
                     <div class="insight-content">
                         <div class="insight-header-row">
@@ -234,7 +237,7 @@ const CardModalRenderers = (() => {
                         <h4 class="insight-status">${insights.limite.status}</h4>
                         <p class="insight-desc">${insights.limite.descricao}</p>
                         <p class="insight-recommendation">
-                            <i class="fas fa-star"></i> ${insights.limite.recomendacao}
+                            <i data-lucide="star"></i> ${insights.limite.recomendacao}
                         </p>
                     </div>
                 </div>
@@ -245,7 +248,7 @@ const CardModalRenderers = (() => {
 
         return `
             <div class="insights-header">
-                <i class="fas fa-lightbulb"></i>
+                <i data-lucide="lightbulb"></i>
                 <h3>Análise Inteligente</h3>
             </div>
             <div class="insights-grid">

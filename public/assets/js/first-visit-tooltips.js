@@ -34,21 +34,21 @@
                 title: 'Dias Ativos',
                 message: 'Mantenha seu streak! Acesse o sistema todos os dias para ganhar mais pontos e manter sua sequência.',
                 position: 'bottom',
-                icon: 'fa-fire'
+                icon: 'flame'
             },
             {
                 selector: '.level-progress-card',
                 title: 'Seu Nível',
                 message: 'Ganhe pontos registrando lançamentos e organizando suas finanças. Cada nível desbloqueia novas conquistas!',
                 position: 'bottom',
-                icon: 'fa-star'
+                icon: 'star'
             },
             {
                 selector: '.stats-row, .stat-mini',
                 title: 'Resumo Rápido',
                 message: 'Veja seu progresso: total de lançamentos, categorias usadas, meses ativos e pontos acumulados.',
                 position: 'top',
-                icon: 'fa-chart-bar'
+                icon: 'bar-chart'
             }
         ],
         'lancamentos': [
@@ -57,14 +57,14 @@
                 title: 'Filtros Avançados',
                 message: 'Use os filtros para encontrar lançamentos por tipo (receita/despesa), categoria ou conta específica.',
                 position: 'bottom',
-                icon: 'fa-filter'
+                icon: 'filter'
             },
             {
                 selector: '.export-card',
                 title: 'Exportar Dados',
                 message: 'Exporte seus lançamentos em PDF ou Excel para análises externas ou backup. Recurso disponível no plano Pro.',
                 position: 'bottom',
-                icon: 'fa-download',
+                icon: 'download',
                 proOnly: true
             },
             {
@@ -72,7 +72,7 @@
                 title: 'Seus Lançamentos',
                 message: 'Clique em qualquer lançamento para editar ou excluir. Use as colunas para ordenar por data, valor ou tipo.',
                 position: 'top',
-                icon: 'fa-list'
+                icon: 'list'
             }
         ],
         'cartoes': [
@@ -81,21 +81,21 @@
                 title: 'Adicionar Cartão',
                 message: 'Cadastre seus cartões de crédito para acompanhar limites, faturas e gastos de forma automática.',
                 position: 'bottom',
-                icon: 'fa-plus'
+                icon: 'plus'
             },
             {
                 selector: '.stats-grid .stat-card[data-stat="disponivel"]',
                 title: 'Limite Disponível',
                 message: 'Acompanhe quanto ainda pode gastar nos seus cartões. O valor é atualizado conforme você registra compras.',
                 position: 'bottom',
-                icon: 'fa-check-circle'
+                icon: 'circle-check'
             },
             {
                 selector: '.cartoes-toolbar .search-box',
                 title: 'Busca Rápida',
                 message: 'Encontre rapidamente um cartão específico digitando o nome ou bandeira.',
                 position: 'bottom',
-                icon: 'fa-search'
+                icon: 'search'
             }
         ],
         'faturas': [
@@ -104,14 +104,14 @@
                 title: 'Detalhes da Fatura',
                 message: 'Veja o valor total, data de vencimento e status de pagamento da sua fatura.',
                 position: 'bottom',
-                icon: 'fa-receipt'
+                icon: 'receipt'
             },
             {
                 selector: '.btn-pagar, [data-action="pagar"]',
                 title: 'Pagar Fatura',
                 message: 'Ao pagar a fatura, um lançamento de despesa será criado automaticamente na conta selecionada.',
                 position: 'left',
-                icon: 'fa-money-bill'
+                icon: 'banknote'
             }
         ],
         'relatorios': [
@@ -120,21 +120,21 @@
                 title: 'Resumo do Mês',
                 message: 'Visualize rapidamente receitas, despesas e saldo do período selecionado.',
                 position: 'bottom',
-                icon: 'fa-chart-pie'
+                icon: 'pie-chart'
             },
             {
                 selector: '.insights-card',
                 title: 'Insights Inteligentes',
                 message: 'Análise automática dos seus dados financeiros com dicas personalizadas.',
                 position: 'bottom',
-                icon: 'fa-lightbulb'
+                icon: 'lightbulb'
             },
             {
                 selector: '.export-card',
                 title: 'Exportar Relatório',
                 message: 'Baixe seus relatórios em PDF ou Excel. Recurso exclusivo do plano Pro.',
                 position: 'left',
-                icon: 'fa-file-export',
+                icon: 'file-output',
                 proOnly: true
             }
         ],
@@ -144,21 +144,21 @@
                 title: 'Nova Conta',
                 message: 'Cadastre suas contas bancárias, carteiras ou qualquer local onde guarda dinheiro.',
                 position: 'bottom',
-                icon: 'fa-plus'
+                icon: 'plus'
             },
             {
                 selector: '.stat-card',
                 title: 'Saldo Total',
                 message: 'O saldo é calculado automaticamente com base nos lançamentos de cada conta.',
                 position: 'bottom',
-                icon: 'fa-coins'
+                icon: 'coins'
             },
             {
                 selector: '#viewToggle',
                 title: 'Modo de Visualização',
                 message: 'Alterne entre visualização em cards ou lista conforme sua preferência.',
                 position: 'left',
-                icon: 'fa-th-large'
+                icon: 'layout-grid'
             }
         ],
         'categorias': [
@@ -167,21 +167,21 @@
                 title: 'Criar Categoria',
                 message: 'Crie categorias personalizadas para organizar seus gastos e receitas da forma que fizer mais sentido para você.',
                 position: 'bottom',
-                icon: 'fa-plus-circle'
+                icon: 'circle-plus'
             },
             {
                 selector: '.receitas-card',
                 title: 'Categorias de Receita',
                 message: 'Aqui ficam suas categorias de entrada: salário, investimentos, vendas, etc.',
                 position: 'right',
-                icon: 'fa-arrow-up'
+                icon: 'arrow-up'
             },
             {
                 selector: '.despesas-card',
                 title: 'Categorias de Despesa',
                 message: 'Organize seus gastos: alimentação, transporte, lazer, contas fixas, etc.',
                 position: 'left',
-                icon: 'fa-arrow-down'
+                icon: 'arrow-down'
             }
         ],
         'agendamentos': [
@@ -190,14 +190,14 @@
                 title: 'Transações Agendadas',
                 message: 'Configure lançamentos recorrentes (salário, aluguel, streaming) para serem registrados automaticamente.',
                 position: 'top',
-                icon: 'fa-clock'
+                icon: 'clock'
             },
             {
                 selector: '.btn-novo-agendamento, #btnNovoAgendamento',
                 title: 'Novo Agendamento',
                 message: 'Crie um agendamento definindo valor, frequência (diária, semanal, mensal) e data de início.',
                 position: 'bottom',
-                icon: 'fa-plus'
+                icon: 'plus'
             }
         ],
         'gamification': [
@@ -206,14 +206,14 @@
                 title: 'Conquistas',
                 message: 'Desbloqueie conquistas completando desafios financeiros. Cada uma vale pontos!',
                 position: 'bottom',
-                icon: 'fa-medal'
+                icon: 'medal'
             },
             {
                 selector: '.nivel-progress, .level-section',
                 title: 'Sistema de Níveis',
                 message: 'Suba de nível acumulando pontos. Níveis mais altos desbloqueiam emblemas exclusivos.',
                 position: 'right',
-                icon: 'fa-star'
+                icon: 'star'
             }
         ],
         'billing': [
@@ -222,14 +222,14 @@
                 title: 'Plano Pro',
                 message: 'Com o Pro você tem recursos ilimitados, relatórios avançados, exportação e suporte prioritário.',
                 position: 'left',
-                icon: 'fa-crown'
+                icon: 'crown'
             },
             {
                 selector: '.billing-cycle-toggle, .cycle-toggle',
                 title: 'Ciclo de Pagamento',
                 message: 'Escolha entre mensal, semestral ou anual. Quanto maior o período, maior o desconto!',
                 position: 'bottom',
-                icon: 'fa-calendar-check'
+                icon: 'calendar-check'
             }
         ]
     };
@@ -324,11 +324,11 @@
         tooltip.innerHTML = `
             <div class="fvt-tooltip-content">
                 <div class="fvt-tooltip-header">
-                    <i class="fas ${config.icon} fvt-icon"></i>
+                    <i data-lucide="${config.icon}" class="fvt-icon"></i>
                     <span class="fvt-title">${config.title}</span>
                     ${proTag}
                     <button class="fvt-close" aria-label="Fechar dica" title="Fechar">
-                        <i class="fas fa-times"></i>
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
                 <p class="fvt-message">${config.message}</p>
@@ -340,6 +340,7 @@
             <div class="fvt-arrow"></div>
         `;
         
+        if(window.lucide) lucide.createIcons({nodes:[tooltip]});
         return tooltip;
     }
 

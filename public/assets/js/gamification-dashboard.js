@@ -408,9 +408,9 @@
             html: `
                 <p class="achievement-description">${achievement.description}</p>
                 <p class="achievement-points">
-                    <i class="fas fa-star"></i> ${achievement.points_reward} pontos
+                    <i data-lucide="star"></i> ${achievement.points_reward} pontos
                 </p>
-                ${achievement.is_pro_only ? '<p class="achievement-pro-tag"><i class="fas fa-gem"></i> Conquista exclusiva Pro</p>' : ''}
+                ${achievement.is_pro_only ? '<p class="achievement-pro-tag"><i data-lucide="gem"></i> Conquista exclusiva Pro</p>' : ''}
                 ${statusHtml}
             `,
             icon: isUnlocked ? 'success' : 'info',
@@ -471,7 +471,7 @@
                                 <div class="achievement-name">${ach.name} ${proTag}</div>
                                 <div class="achievement-desc">${ach.description}</div>
                                 <div class="achievement-points-small">
-                                    <i class="fas fa-star"></i> ${ach.points_reward} pts
+                                    <i data-lucide="star"></i> ${ach.points_reward} pts
                                 </div>
                             </div>
                             ${ach.unlocked ? '<div class="achievement-check">✓</div>' : ''}
@@ -532,19 +532,19 @@
                     <h3>Acelere seu progresso!</h3>
                     <div class="pro-benefits">
                         <div class="pro-benefit">
-                            <i class="fas fa-star"></i>
+                            <i data-lucide="star"></i>
                             <span>Ganhe <strong>1.5x mais pontos</strong> em todas as ações</span>
                         </div>
                         <div class="pro-benefit">
-                            <i class="fas fa-shield-alt"></i>
+                            <i data-lucide="shield"></i>
                             <span><strong>Proteção de streak</strong> - 1 dia grátis por mês</span>
                         </div>
                         <div class="pro-benefit">
-                            <i class="fas fa-trophy"></i>
+                            <i data-lucide="trophy"></i>
                             <span><strong>Conquistas exclusivas</strong> com mais recompensas</span>
                         </div>
                         <div class="pro-benefit">
-                            <i class="fas fa-crown"></i>
+                            <i data-lucide="crown"></i>
                             <span>Alcance o <strong>nível máximo 15</strong></span>
                         </div>
                     </div>
@@ -552,7 +552,7 @@
             `,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-gem"></i> Assinar Pro',
+            confirmButtonText: '<i data-lucide="gem"></i> Assinar Pro',
             cancelButtonText: 'Agora não',
             customClass: {
                 popup: 'pro-upgrade-modal',

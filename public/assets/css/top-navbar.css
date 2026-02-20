@@ -297,24 +297,28 @@ body.sidebar-collapsed .top-navbar {
   font-size: 16px;
 }
 
-.theme-toggle .fa-sun {
+.theme-toggle .fa-sun,
+.theme-toggle [data-lucide="sun"] {
   opacity: 1;
   transform: rotate(0deg) scale(1);
   color: #f59e0b;
 }
 
-.theme-toggle .fa-moon {
+.theme-toggle .fa-moon,
+.theme-toggle [data-lucide="moon"] {
   opacity: 0;
   transform: rotate(-90deg) scale(0);
   color: #60a5fa;
 }
 
-.theme-toggle.dark .fa-sun {
+.theme-toggle.dark .fa-sun,
+.theme-toggle.dark [data-lucide="sun"] {
   opacity: 0;
   transform: rotate(90deg) scale(0);
 }
 
-.theme-toggle.dark .fa-moon {
+.theme-toggle.dark .fa-moon,
+.theme-toggle.dark [data-lucide="moon"] {
   opacity: 1;
   transform: rotate(0deg) scale(1);
 }

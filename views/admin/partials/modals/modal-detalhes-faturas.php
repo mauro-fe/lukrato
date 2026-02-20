@@ -4,7 +4,7 @@
         <div class="modal-content modern-modal">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-list"></i>
+                    <i data-lucide="list"></i>
                     <span>Detalhes da Fatura</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -22,7 +22,7 @@
         <div class="modal-content modern-modal">
             <div class="modal-header" style="border-bottom: 1px solid var(--glass-border);">
                 <h5 class="modal-title">
-                    <i class="fas fa-credit-card" style="color: #10b981;"></i>
+                    <i data-lucide="credit-card" style="color: #10b981;"></i>
                     <span>Pagar Fatura</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -51,7 +51,7 @@
                             width: 100%;
                         ">
                             <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-check-double" style="font-size: 1.25rem;"></i>
+                                <i data-lucide="check-check" style="font-size: 1.25rem;"></i>
                             </div>
                             <div>
                                 <div style="font-weight: 600; font-size: 1rem;">Pagar Valor Total</div>
@@ -72,7 +72,7 @@
                             width: 100%;
                         ">
                             <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-hand-holding-usd" style="font-size: 1.25rem;"></i>
+                                <i data-lucide="hand-coins" style="font-size: 1.25rem;"></i>
                             </div>
                             <div>
                                 <div style="font-weight: 600; font-size: 1rem;">Pagar Outro Valor</div>
@@ -94,14 +94,14 @@
                             border-radius: 8px;
                             transition: all 0.2s;
                         ">
-                            <i class="fas fa-arrow-left"></i>
+                            <i data-lucide="arrow-left"></i>
                         </button>
                         <span style="color: var(--color-text); font-weight: 500;">Pagar valor personalizado</span>
                     </div>
                     
                     <div class="mb-3">
                         <label for="valorPagamentoParcial" class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-money-bill-wave" style="color: #10b981;"></i>
+                            <i data-lucide="banknote" style="color: #10b981;"></i>
                             Valor do pagamento
                         </label>
                         <div class="input-group">
@@ -117,7 +117,7 @@
                     
                     <div class="mb-3">
                         <label for="contaPagamentoFatura" class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-university" style="color: #3b82f6;"></i>
+                            <i data-lucide="landmark" style="color: #3b82f6;"></i>
                             Conta para débito
                         </label>
                         <select id="contaPagamentoFatura" class="form-select" style="background: var(--color-surface); border-color: var(--glass-border); color: var(--color-text);">
@@ -127,7 +127,7 @@
                     
                     <div style="margin: 1rem 0; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
                         <p style="margin: 0; color: #60a5fa; font-size: 0.875rem;">
-                            <i class="fas fa-info-circle"></i> 
+                            <i data-lucide="info"></i> 
                             O valor informado será debitado da conta selecionada. Os itens serão marcados como pagos proporcionalmente.
                         </p>
                     </div>
@@ -135,10 +135,10 @@
             </div>
             <div class="modal-footer" id="pagarFaturaFooter" style="border-top: 1px solid var(--glass-border); display: none;">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancelar
+                    <i data-lucide="x"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-success" id="btnConfirmarPagamento">
-                    <i class="fas fa-check"></i> Confirmar Pagamento
+                    <i data-lucide="check"></i> Confirmar Pagamento
                 </button>
             </div>
         </div>
@@ -151,7 +151,7 @@
         <div class="modal-content modern-modal">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit text-warning"></i>
+                    <i data-lucide="pencil" class="text-warning"></i>
                     <span>Editar Item</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -176,10 +176,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancelar
+                    <i data-lucide="x"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-warning" id="btnSalvarItemFatura">
-                    <i class="fas fa-save"></i> Salvar
+                    <i data-lucide="save"></i> Salvar
                 </button>
             </div>
         </div>

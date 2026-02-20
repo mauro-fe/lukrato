@@ -358,7 +358,7 @@ $badgeStyle = $initialUnread > 0 ? 'inline-flex' : 'none';
 $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 ?>
 <button id="lk-bell" aria-label="Notificacoes" aria-expanded="false">
-    <i class="fas fa-bell"></i>
+    <i data-lucide="bell"></i>
     <span id="lk-bell-badge" <?= $initialUnread > 0 ? '' : 'class="hidden"' ?>>
         <?= $initialBadgeLabel ?>
     </span>

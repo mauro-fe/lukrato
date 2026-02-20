@@ -16,13 +16,13 @@ if (!isset($categories))       $categories = [];
     <div class="page-header" data-aos="fade-up">
         <button type=" button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-investimentos"
             title="Adicionar investimento">
-            <i class="fa-solid fa-plus"></i> Novo investimento
+            <i data-lucide="plus"></i> Novo investimento
         </button>
     </div>
 
     <section class="stats-grid">
         <div class="stat-card" data-aos="flip-left">
-            <div class="stat-ico blue"><i class="fa-solid fa-wallet"></i></div>
+            <div class="stat-ico blue"><i data-lucide="wallet"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Total Investido</span>
                 <span class="stat-value">R$ <?= number_format((float)$totalInvested, 2, ',', '.') ?></span>
@@ -30,7 +30,7 @@ if (!isset($categories))       $categories = [];
         </div>
 
         <div class="stat-card" data-aos="flip-left">
-            <div class="stat-ico green"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <div class="stat-ico green"><i data-lucide="trending-up"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Valor Atual</span>
                 <span class="stat-value">R$ <?= number_format((float)$currentValue, 2, ',', '.') ?></span>
@@ -38,7 +38,7 @@ if (!isset($categories))       $categories = [];
         </div>
 
         <div class="stat-card" data-aos="flip-left">
-            <div class="stat-ico orange"><i class="fa-solid fa-briefcase"></i></div>
+            <div class="stat-ico orange"><i data-lucide="briefcase"></i></div>
             <div class="stat-info">
                 <span class="stat-label">Total de Ativos</span>
                 <span class="stat-value"><?= (is_array($investments) ? count($investments) : 0) ?></span>
@@ -90,7 +90,7 @@ if (!isset($categories))       $categories = [];
                 <div class="empty-state">
                     <div>Nenhum investimento cadastrado ainda.</div>
                     <button class="btn-invest" data-bs-toggle="modal" data-bs-target="#modal-investimentos">
-                        <i class="fa-solid fa-plus"></i> Adicionar primeiro investimento
+                        <i data-lucide="plus"></i> Adicionar primeiro investimento
                     </button>
                 </div>
                 <?php else: ?>
@@ -387,23 +387,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <div class="invest-actions" data-actions>
                                     <button type="button" class="invest-actions__toggle" data-actions-toggle aria-expanded="false" aria-controls="${dropdownId}" title="Abrir ações">
                                         <span class="label">Ações</span>
-                                        <i class="fa-solid fa-chevron-down"></i>
+                                        <i data-lucide="chevron-down"></i>
                                     </button>
                                     <div class="invest-actions__menu" id="${dropdownId}" role="menu">
                                         <a class="invest-actions__item is-buy" href="#" data-acao="compra" data-id="${id}" data-nome="${nome}" data-ticker="${ticker}" title="Comprar mais">
-                                            <span class="icon"><i class="fa-solid fa-cart-plus"></i></span>
+                                            <span class="icon"><i data-lucide="shopping-cart"></i></span>
                                             <span>Comprar</span>
                                         </a>
                                         <a class="invest-actions__item is-sell" href="#" data-acao="venda" data-id="${id}" data-nome="${nome}" data-ticker="${ticker}" title="Vender">
-                                            <span class="icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+                                            <span class="icon"><i data-lucide="hand-coins"></i></span>
                                             <span>Vender</span>
                                         </a>
                                         <a class="invest-actions__item is-edit" href="${base}investimentos/edit/${id}" data-edit data-id="${id}" title="Editar">
-                                            <span class="icon"><i class="fa-regular fa-pen-to-square"></i></span>
+                                            <span class="icon"><i data-lucide="square-pen"></i></span>
                                             <span>Editar</span>
                                         </a>
                                         <a class="invest-actions__item is-delete" href="${base}investimentos/delete/${id}" data-delete data-id="${id}" title="Excluir">
-                                            <span class="icon"><i class="fa-regular fa-trash-can"></i></span>
+                                            <span class="icon"><i data-lucide="trash-2"></i></span>
                                             <span>Excluir</span>
                                         </a>
                                     </div>
@@ -436,21 +436,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                         <div class="invest-card-actions">
                             <a class="btn-icon success" href="#" data-acao="compra" data-id="${inv.id}" data-nome="${inv.nome}" data-ticker="${inv.ticker}" title="Comprar mais">
-                                <i class="fa-solid fa-cart-plus"></i>
+                                <i data-lucide="shopping-cart"></i>
                             </a>
                             <a class="btn-icon danger" href="#" data-acao="venda" data-id="${inv.id}" data-nome="${inv.nome}" data-ticker="${inv.ticker}" title="Vender">
-                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                                <i data-lucide="hand-coins"></i>
                             </a>
                             <a class="btn-icon" href="${base}investimentos/edit/${inv.id}" data-edit data-id="${inv.id}" title="Editar">
-                                <i class="fa-regular fa-pen-to-square"></i>
+                                <i data-lucide="square-pen"></i>
                             </a>
                             <a class="btn-icon neutral" href="${base}investimentos/delete/${inv.id}" data-delete data-id="${inv.id}" title="Excluir">
-                                <i class="fa-regular fa-trash-can"></i>
+                                <i data-lucide="trash-2"></i>
                             </a>
                         </div>
                     </div>
                     <button type="button" class="invest-card-toggle" data-invest-toggle aria-expanded="false">
-                        <span class="invest-toggle-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                        <span class="invest-toggle-icon"><i data-lucide="chevron-right"></i></span>
                         <span class="inv-toggle-text">Ver detalhes</span>
                     </button>
                     <div class="invest-card-details">

@@ -220,7 +220,7 @@
             if (!Array.isArray(items) || items.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
+                        <i data-lucide="inbox"></i>
                         <p>Nenhuma categoria de ${tipo} cadastrada</p>
                     </div>
                 `;
@@ -234,15 +234,15 @@
                 return `
                     <div class="category-item" data-id="${id}">
                         <div class="category-name">
-                            <i class="fas fa-tag"></i>
+                            <i data-lucide="tag"></i>
                             <span>${nome}</span>
                         </div>
                         <div class="category-actions">
                             <button type="button" class="action-btn edit" data-action="edit" data-id="${id}" title="Editar">
-                                <i class="fas fa-edit"></i>
+                                <i data-lucide="pencil"></i>
                             </button>
                             <button type="button" class="action-btn delete" data-action="delete" data-id="${id}" title="Excluir">
-                                <i class="fas fa-trash"></i>
+                                <i data-lucide="trash-2"></i>
                             </button>
                         </div>
                     </div>

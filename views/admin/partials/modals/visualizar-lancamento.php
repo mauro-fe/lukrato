@@ -9,7 +9,7 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="modal-icon-container"
                         style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-receipt" style="font-size: 1.5rem; color: white;"></i>
+                        <i data-lucide="receipt" style="font-size: 1.5rem; color: white;"></i>
                     </div>
                     <div>
                         <h5 class="modal-title mb-0" id="modalViewLancamentoLabel"
@@ -29,7 +29,7 @@
                         <div class="info-card p-3 rounded-3"
                             style="background: var(--color-bg); border: 1px solid var(--color-card-border);">
                             <h6 class="mb-3" style="color: var(--color-primary);"><i
-                                    class="fas fa-info-circle me-2"></i>Informações Principais</h6>
+                                    data-lucide="info" class="me-2"></i>Informações Principais</h6>
 
                             <div class="info-row d-flex justify-content-between mb-2">
                                 <span>Data:</span>
@@ -58,7 +58,7 @@
                         <div class="info-card p-3 rounded-3"
                             style="background: var(--color-bg); border: 1px solid var(--color-card-border);">
                             <h6 class="mb-3" style="color: var(--color-primary);"><i
-                                    class="fas fa-tags me-2"></i>Classificação</h6>
+                                    data-lucide="tags" class="me-2"></i>Classificação</h6>
 
                             <div class="info-row d-flex justify-content-between mb-2">
                                 <span>Categoria:</span>
@@ -89,7 +89,7 @@
                     style="background: var(--color-bg); border: 1px solid var(--color-card-border);"
                     id="viewLancDescricaoCard">
                     <h6 class="mb-2" style="color: var(--color-primary);"><i
-                            class="fas fa-align-left me-2"></i>Descrição</h6>
+                            data-lucide="align-left" class="me-2"></i>Descrição</h6>
                     <p id="viewLancDescricao" class="mb-0"></p>
                 </div>
 
@@ -98,7 +98,7 @@
                     style="background: var(--color-surface-muted); border: 1px solid var(--color-card-border); display: none;"
                     id="viewLancParcelamentoCard">
                     <h6 class="mb-2" style="color: var(--color-primary);"><i
-                            class="fas fa-layer-group me-2"></i>Parcelamento</h6>
+                            data-lucide="layers" class="me-2"></i>Parcelamento</h6>
                     <div class="d-flex justify-content-between">
                         <span class="">Parcela:</span>
                         <strong id="viewLancParcela"></strong>
@@ -109,11 +109,11 @@
             <!-- Footer -->
             <div class="modal-footer border-0 pt-0 px-4 pb-4">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i> Fechar
+                    <i data-lucide="x" class="me-1"></i> Fechar
                 </button>
                 <button type="button" class="btn btn-primary" id="btnEditFromView"
                     style="background: linear-gradient(135deg, var(--color-primary), #d35400); border: none;">
-                    <i class="fas fa-edit me-1"></i> Editar
+                    <i data-lucide="pencil" class="me-1"></i> Editar
                 </button>
             </div>
         </div>

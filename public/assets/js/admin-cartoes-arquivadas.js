@@ -69,7 +69,7 @@
         grid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
-                        <i class="fas fa-credit-card"></i>
+                        <i data-lucide="credit-card"></i>
                     </div>
                     <h3>Nenhum cartão arquivado</h3>
                     <p>Você não possui cartões arquivados no momento</p>
@@ -110,7 +110,7 @@
             const logoSrc = bandeirasLogos[bandeira] || '';
             const brandHTML = logoSrc ?
                 `<img src="${logoSrc}" alt="${bandeira}" class="brand-logo">` :
-                `<i class="fas fa-credit-card brand-icon-fallback"></i>`;
+                `<i data-lucide="credit-card" class="brand-icon-fallback"></i>`;
 
             return `
             <div class="credit-card" data-brand="${bandeira}" data-id="${id}" style="background: ${cor}">
@@ -121,10 +121,10 @@
                     </div>
                     <div class="card-actions">
                         <button class="card-action-btn" onclick="handleRestore(${id})" title="Restaurar">
-                            <i class="fas fa-undo"></i>
+                            <i data-lucide="undo-2"></i>
                         </button>
                         <button class="card-action-btn" onclick="handleHardDelete(${id}, '${nome.replace(/'/g, "\\'")}')" title="Excluir permanentemente">
-                        <i class="fas fa-trash"></i>
+                        <i data-lucide="trash-2"></i>
                     </button>
                 </div>
             </div>
@@ -165,7 +165,7 @@
             grid.innerHTML = `
         <div class="empty-state">
             <div class="empty-icon">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i data-lucide="triangle-alert"></i>
             </div>
             <h3>Erro ao carregar</h3>
             <p>${err.message || 'Não foi possível carregar os cartões arquivados'}</p>
@@ -185,8 +185,8 @@
             html: `Deseja restaurar o cartão <strong>${nome}</strong>?`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-undo"></i> Sim, restaurar',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonText: '<i data-lucide="undo-2"></i> Sim, restaurar',
+            cancelButtonText: '<i data-lucide="x"></i> Cancelar',
             confirmButtonColor: '#2ecc71',
             cancelButtonColor: '#6c757d',
             reverseButtons: true,
@@ -234,8 +234,8 @@
             html: `Tem certeza que deseja excluir <strong>${nomeCartao}</strong>?<br><small class="text-muted" style="color: #dc3545;">Esta ação não pode ser desfeita!</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
+            cancelButtonText: '<i data-lucide="x"></i> Cancelar',
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
             reverseButtons: true,
@@ -298,8 +298,8 @@
         `,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir tudo',
-                        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                        confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir tudo',
+                        cancelButtonText: '<i data-lucide="x"></i> Cancelar',
                         confirmButtonColor: '#dc3545',
                         cancelButtonColor: '#6c757d',
                         reverseButtons: true

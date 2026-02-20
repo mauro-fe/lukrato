@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Copiar link para clipboard (funcionalidade extra)
     const shareBtn = document.createElement('button');
     shareBtn.className = 'share-btn';
-    shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
+    shareBtn.innerHTML = '<i data-lucide="share-2"></i>';
+    if(window.lucide) lucide.createIcons();
     shareBtn.title = 'Compartilhar este link';
     shareBtn.style.cssText = `
         position: fixed;

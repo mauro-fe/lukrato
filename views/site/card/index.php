@@ -7,8 +7,10 @@
     <meta name="theme-color" content="#10b981">
     <title>Lukrato - Links</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/card.css">
-    <!-- Font Awesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/lucide-compat.css">
+    <script src="<?= BASE_URL ?>/assets/js/lucide.min.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -23,11 +25,11 @@
             <p class="subtitle">Controle financeiro inteligente para sua vida</p>
             <div class="stats">
                 <div class="stat-item">
-                    <i class="fas fa-users"></i>
+                    <i data-lucide="users"></i>
                     <span>+1000 usuários</span>
                 </div>
                 <div class="stat-item">
-                    <i class="fas fa-star"></i>
+                    <i data-lucide="star"></i>
                     <span>4.9★ avaliação</span>
                 </div>
             </div>
@@ -36,7 +38,7 @@
         <!-- Botão Principal (CTA) -->
         <section class="cta-section">
             <a href="/" class="btn btn-primary" target="_blank">
-                <i class="fas fa-rocket"></i>
+                <i data-lucide="rocket"></i>
                 <span>Começar Grátis Agora</span>
             </a>
         </section>
@@ -45,35 +47,35 @@
         <section class="links-section">
             <a href="/login" class="link-card" target="_blank">
                 <div class="link-icon">
-                    <i class="fas fa-sign-in-alt"></i>
+                    <i data-lucide="log-in"></i>
                 </div>
                 <div class="link-content">
                     <h3>Acessar Sistema</h3>
                     <p>Já tem conta? Faça login</p>
                 </div>
-                <i class="fas fa-chevron-right link-arrow"></i>
+                <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
 
             <a href="/planos" class="link-card" target="_blank">
                 <div class="link-icon">
-                    <i class="fas fa-crown"></i>
+                    <i data-lucide="crown"></i>
                 </div>
                 <div class="link-content">
                     <h3>Ver Planos Premium</h3>
                     <p>Desbloqueie todos os recursos</p>
                 </div>
-                <i class="fas fa-chevron-right link-arrow"></i>
+                <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
 
             <a href="/recursos" class="link-card" target="_blank">
                 <div class="link-icon">
-                    <i class="fas fa-chart-line"></i>
+                    <i data-lucide="line-chart"></i>
                 </div>
                 <div class="link-content">
                     <h3>Conheça os Recursos</h3>
                     <p>Veja tudo que você pode fazer</p>
                 </div>
-                <i class="fas fa-chevron-right link-arrow"></i>
+                <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
 
             <a href="https://wa.me/5544999999999?text=Olá,%20vim%20do%20link%20da%20bio!" class="link-card" target="_blank">
@@ -84,7 +86,7 @@
                     <h3>Suporte WhatsApp</h3>
                     <p>Tire suas dúvidas em tempo real</p>
                 </div>
-                <i class="fas fa-chevron-right link-arrow"></i>
+                <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
         </section>
 
@@ -93,22 +95,22 @@
             <h2 class="section-title">Por que escolher o Lukrato?</h2>
             <div class="features-grid">
                 <div class="feature-item">
-                    <i class="fas fa-wallet"></i>
+                    <i data-lucide="wallet"></i>
                     <h4>Controle Total</h4>
                     <p>Gerencie receitas e despesas</p>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-chart-pie"></i>
+                    <i data-lucide="pie-chart"></i>
                     <h4>Relatórios</h4>
                     <p>Visualize seus gastos</p>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-piggy-bank"></i>
+                    <i data-lucide="piggy-bank"></i>
                     <h4>Investimentos</h4>
                     <p>Acompanhe sua carteira</p>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-mobile-alt"></i>
+                    <i data-lucide="smartphone"></i>
                     <h4>Mobile First</h4>
                     <p>Use em qualquer lugar</p>
                 </div>
@@ -149,5 +151,6 @@
     </div>
 
     <script src="/assets/js/card.js"></script>
+    <script src="/assets/js/lucide-init.js"></script>
 </body>
 </html>

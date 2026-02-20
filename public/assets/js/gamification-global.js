@@ -162,7 +162,7 @@
                                 <h2>${ach.name}</h2>
                                 <p>${ach.description}</p>
                                 <p class="achievement-points-reward">
-                                    <i class="fas fa-star"></i> +${ach.points_reward} pontos
+                                    <i data-lucide="star"></i> +${ach.points_reward} pontos
                                 </p>
                             </div>
                         `,
@@ -205,7 +205,7 @@
                                 <h2>${ach.name}</h2>
                                 <p>${ach.description}</p>
                                 <p class="achievement-points-reward">
-                                    <i class="fas fa-star"></i> +${ach.points_reward} pontos
+                                    <i data-lucide="star"></i> +${ach.points_reward} pontos
                                 </p>
                             </div>
                         `,
@@ -604,7 +604,7 @@
                             <div class="referral-icon-big">${isReferrer ? '👥' : '🌟'}</div>
                             <p class="referral-message">${reward.mensagem}</p>
                             <div class="referral-pro-badge">
-                                <i class="fas fa-gem"></i> Acesso PRO ativado!
+                                <i data-lucide="gem"></i> Acesso PRO ativado!
                             </div>
                         </div>
                     `,
@@ -790,7 +790,7 @@
                         <h2>${ach.name}</h2>
                         <p>${ach.description}</p>
                         <p class="achievement-points-reward">
-                            <i class="fas fa-star"></i> +${ach.points_reward} pontos
+                            <i data-lucide="star"></i> +${ach.points_reward} pontos
                         </p>
                     </div>
                 `,
