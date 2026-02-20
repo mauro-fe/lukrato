@@ -24,6 +24,7 @@ return [
             'historico_meses'       => 3,    // Apenas 3 meses de histórico visível
             'max_cartoes'           => 1,    // Apenas 1 cartão de crédito
             'max_metas'             => 2,    // Apenas 2 metas financeiras
+            'max_orcamentos'        => 5,    // Apenas 5 orçamentos por categoria
         ],
 
         'pro' => [
@@ -33,6 +34,7 @@ return [
             'historico_meses'       => null, // ilimitado
             'max_cartoes'           => null, // ilimitado
             'max_metas'             => null, // ilimitado
+            'max_orcamentos'        => null, // ilimitado
         ],
 
     ],
@@ -82,6 +84,9 @@ return [
 
         'metas_limit' => 'Limite de {limit} metas atingido. ' .
             'Faça upgrade para criar metas ilimitadas.',
+
+        'orcamentos_limit' => 'Limite de {limit} orçamentos por categoria atingido. ' .
+            'Faça upgrade para definir orçamentos ilimitados.',
 
     ],
 

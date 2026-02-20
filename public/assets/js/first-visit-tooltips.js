@@ -216,22 +216,8 @@
                 icon: 'fa-star'
             }
         ],
-        'billing': [
-            {
-                selector: '.plan-card--recommended, .plan-card.pro',
-                title: 'Plano Pro',
-                message: 'Com o Pro você tem recursos ilimitados, relatórios avançados, exportação e suporte prioritário.',
-                position: 'left',
-                icon: 'fa-crown'
-            },
-            {
-                selector: '.billing-cycle-toggle, .cycle-toggle',
-                title: 'Ciclo de Pagamento',
-                message: 'Escolha entre mensal, semestral ou anual. Quanto maior o período, maior o desconto!',
-                position: 'bottom',
-                icon: 'fa-calendar-check'
-            }
-        ]
+        // Página de billing não precisa de tooltips - já é autoexplicativa
+        'billing': []
     };
 
     // ============================================

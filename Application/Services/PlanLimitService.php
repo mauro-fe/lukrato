@@ -215,12 +215,14 @@ class PlanLimitService
 
     /**
      * Conta quantas categorias personalizadas o usuário criou
+     * (total de categorias - 19 categorias padrão criadas no registro)
      */
     public function countCategoriasCustom(int $userId): int
     {
-        return Categoria::where('user_id', $userId)
-            ->where('is_default', 0)
-            ->count();
+        $total = Categoria::where('user_id', $userId)->count();
+        $defaultCount = 19; // 12 despesas + 7 receitas criadas automaticamente
+
+        return max(0, $total - $defaultCount);
     }
 
     /**
@@ -381,6 +383,65 @@ class PlanLimitService
     }
 
     // ============================================================
+    // VALIDAÇÃO DE ORÇAMENTOS POR CATEGORIA
+    // ============================================================
+
+    /**
+     * Conta quantos orçamentos ativos o usuário possui (categorias com orçamento)
+     */
+    public function countOrcamentos(int $userId): int
+    {
+        return \Application\Models\OrcamentoCategoria::where('user_id', $userId)
+            ->where('mes', (int) date('m'))
+            ->where('ano', (int) date('Y'))
+            ->count();
+    }
+
+    /**
+     * Verifica se o usuário pode criar um novo orçamento
+     */
+    public function canCreateOrcamento(int $userId): array
+    {
+        if ($this->isPro($userId)) {
+            return ['allowed' => true, 'limit' => null, 'used' => null];
+        }
+
+        $limit = $this->getLimit($userId, 'max_orcamentos');
+        $used = $this->countOrcamentos($userId);
+
+        if ($limit !== null && $used >= $limit) {
+            return [
+                'allowed' => false,
+                'limit' => $limit,
+                'used' => $used,
+                'remaining' => 0,
+                'message' => $this->getLimitMessage('orcamentos_limit', ['limit' => $limit]),
+                'upgrade_url' => '/assinatura',
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'limit' => $limit,
+            'used' => $used,
+            'remaining' => $limit - $used,
+        ];
+    }
+
+    /**
+     * Valida e lança exceção se não puder criar orçamento
+     * 
+     * @throws \DomainException
+     */
+    public function assertCanCreateOrcamento(int $userId): void
+    {
+        $result = $this->canCreateOrcamento($userId);
+        if (!$result['allowed']) {
+            throw new \DomainException($result['message']);
+        }
+    }
+
+    // ============================================================
     // VERIFICAÇÃO DE FEATURES
     // ============================================================
 
@@ -420,6 +481,7 @@ class PlanLimitService
             'cartoes' => $this->canCreateCartao($userId),
             'categorias' => $this->canCreateCategoria($userId),
             'metas' => $this->canCreateMeta($userId),
+            'orcamentos' => $this->canCreateOrcamento($userId),
             'historico' => $this->getHistoryRestriction($userId),
             'features' => $this->getFeatures($userId),
             'upgrade_url' => '/assinatura',
