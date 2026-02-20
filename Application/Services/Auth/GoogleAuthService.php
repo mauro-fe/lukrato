@@ -137,6 +137,7 @@ class GoogleAuthService
             'password' => $randomPassword,
             'password_confirmation' => $randomPassword,
             'google_id' => $userInfo['id'],
+            'skip_email_verification' => true,
         ];
 
         if (!empty($referralCode)) {
