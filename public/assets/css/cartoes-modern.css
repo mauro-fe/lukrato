@@ -699,6 +699,7 @@
   border-radius: 28px;
   border: 2px dashed color-mix(in srgb, var(--color-primary) 30%, transparent);
   box-shadow: var(--shadow-lg);
+  color: #ffffff;
 }
 
 .empty-icon {
@@ -725,6 +726,7 @@
 
 .empty-icon::after {
   content: "";
+  color: white !important;
   position: absolute;
   top: -50%;
   left: -50%;

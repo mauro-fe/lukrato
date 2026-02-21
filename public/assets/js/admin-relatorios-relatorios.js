@@ -1433,7 +1433,7 @@
         return `
             <div class="comparative-card comp-mini-card">
                 <div class="comp-mini-icon" style="background: linear-gradient(135deg, ${gradientColor});">
-                    <i data-lucide="piggy-bank"></i>
+                    <i data-lucide="piggy-bank" style= "color: white"></i>
                 </div>
                 <div class="comp-mini-body">
                     <span class="comp-mini-label">Taxa de Economia</span>
@@ -1564,7 +1564,7 @@
                 <div class="comparative-header">
                     <h3>${escapeHtml(title)}</h3>
                     <div class="period-labels">
-                        <span class="period-current"><i data-lucide="calendar"></i> ${getCurrentPeriod()}</span>
+                        <span class="period-current"><i data-lucide="calendar" style="color: white;"></i> ${getCurrentPeriod()}</span>
                         <span class="period-separator">vs</span>
                         <span class="period-previous">${getPreviousPeriod()}</span>
                     </div>

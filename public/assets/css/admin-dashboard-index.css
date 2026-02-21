@@ -2344,3 +2344,13 @@
   margin-left: 6px;
   opacity: 0.6;
 }
+
+/* ==================== LIGHT MODE ADJUSTMENTS ==================== */
+:root[data-theme="light"] .badges-card,
+:root[data-theme="light"] .streak-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .badge-item.unlocked {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}

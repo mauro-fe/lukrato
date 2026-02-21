@@ -1696,6 +1696,7 @@
 .quick-filter-btn:not(.active) .quick-filter-count {
   background: var(--color-primary);
   color: white;
+  border-radius: 5px;
 }
 
 .quick-filter-btn.active .quick-filter-count {

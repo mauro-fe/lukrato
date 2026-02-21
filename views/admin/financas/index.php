@@ -13,7 +13,8 @@
                 <div class="summary-icon">
                     <div class="saude-ring" id="saudeRing">
                         <svg viewBox="0 0 36 36">
-                            <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="ring-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="ring-fill" id="saudeRingFill" stroke-dasharray="100, 100"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                         </svg>
@@ -31,7 +32,8 @@
                 </div>
                 <div class="saude-cta-text">
                     <span class="summary-label">Saúde Financeira</span>
-                    <span class="saude-cta-msg">Defina orçamentos nas categorias para acompanhar sua saúde financeira</span>
+                    <span class="saude-cta-msg">Defina orçamentos nas categorias para acompanhar sua saúde
+                        financeira</span>
                 </div>
             </div>
         </div>
@@ -61,7 +63,7 @@
         <!-- Disponível -->
         <div class="summary-card">
             <div class="summary-icon green">
-                <i data-lucide="piggy-bank"></i>
+                <i data-lucide="piggy-bank" style="color: white"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Disponível</span>
@@ -97,7 +99,7 @@
         <!-- Objetivo Total -->
         <div class="summary-card">
             <div class="summary-icon blue">
-                <i data-lucide="flag"></i>
+                <i data-lucide="flag" style="color: var(--color-primary)"></i>
             </div>
             <div class="summary-info">
                 <span class="summary-label">Objetivo Total</span>
@@ -110,7 +112,8 @@
             <div class="summary-icon">
                 <div class="saude-ring" id="metasProgressRing">
                     <svg viewBox="0 0 36 36">
-                        <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="ring-bg"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                         <path class="ring-fill score-good" id="metasProgressRingFill" stroke-dasharray="0, 100"
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     </svg>
@@ -126,13 +129,13 @@
 
     <!-- ==================== TABS ==================== -->
     <div class="fin-tabs" data-aos="fade-up" data-aos-delay="100" role="tablist" aria-label="Seções de finanças">
-        <button class="fin-tab active" data-tab="orcamentos" role="tab"
-            aria-selected="true" aria-controls="tab-orcamentos" id="fin-tab-orcamentos">
+        <button class="fin-tab active" data-tab="orcamentos" role="tab" aria-selected="true"
+            aria-controls="tab-orcamentos" id="fin-tab-orcamentos">
             <i data-lucide="pie-chart"></i>
             <span>Orçamentos</span>
         </button>
-        <button class="fin-tab" data-tab="metas" role="tab"
-            aria-selected="false" aria-controls="tab-metas" id="fin-tab-metas">
+        <button class="fin-tab" data-tab="metas" role="tab" aria-selected="false" aria-controls="tab-metas"
+            id="fin-tab-metas">
             <i data-lucide="target"></i>
             <span>Metas</span>
         </button>
@@ -144,7 +147,8 @@
         <!-- Ações rápidas -->
         <div class="fin-actions-bar" data-aos="fade-up" data-aos-delay="150">
             <div class="actions-left">
-                <button class="fin-action-btn primary" id="btnAutoSugerir" title="A IA analisa seus últimos 3 meses e sugere orçamentos automaticamente">
+                <button class="fin-action-btn primary" id="btnAutoSugerir"
+                    title="A IA analisa seus últimos 3 meses e sugere orçamentos automaticamente">
                     <i data-lucide="wand-2"></i>
                     <span>Sugestão Inteligente</span>
                 </button>
@@ -219,7 +223,7 @@
         <!-- Estado vazio -->
         <div class="fin-empty-state" id="metasEmpty" style="display: none;">
             <div class="empty-icon">
-                <i data-lucide="target"></i>
+                <i data-lucide="target" style="color: var(--color-primary)"></i>
             </div>
             <h3>Nenhuma meta financeira</h3>
             <p>Crie metas para acompanhar seus objetivos financeiros.<br>
@@ -296,14 +300,15 @@
 <div class="fin-modal-overlay" id="modalSugestoes">
     <div class="fin-modal large">
         <div class="fin-modal-header">
-            <h3><i data-lucide="wand-2"></i> Sugestão Inteligente</h3>
+            <h3><i data-lucide="wand-2" style="color: var(--color-primary)"></i> Sugestão Inteligente</h3>
             <button class="fin-modal-close" data-close-modal="modalSugestoes">
                 <i data-lucide="x"></i>
             </button>
         </div>
         <div class="fin-modal-body">
             <p class="fin-modal-desc">
-                Analisamos seus gastos dos últimos 3 meses e sugerimos limites <strong>abaixo da sua média</strong> para ajudar você a economizar em cada categoria.
+                Analisamos seus gastos dos últimos 3 meses e sugerimos limites <strong>abaixo da sua média</strong> para
+                ajudar você a economizar em cada categoria.
                 Você pode ajustar os valores antes de aplicar.
             </p>
             <div class="sugestoes-list" id="sugestoesList">
@@ -336,14 +341,17 @@
             <div class="fin-modal-body">
                 <div class="fin-form-group">
                     <label class="fin-label"><i data-lucide="pencil"></i> Título</label>
-                    <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergência" required maxlength="150">
+                    <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergência"
+                        required maxlength="150">
                 </div>
                 <div class="fin-form-group">
-                    <label class="fin-label"><i data-lucide="landmark"></i> Vincular a uma conta <span class="fin-badge-optional">opcional</span></label>
+                    <label class="fin-label"><i data-lucide="landmark"></i> Vincular a uma conta <span
+                            class="fin-badge-optional">opcional</span></label>
                     <select id="metaContaId" class="fin-select">
                         <option value="">— Sem vínculo (aporte manual) —</option>
                     </select>
-                    <span class="fin-hint" id="metaContaHint" style="display:none"><i data-lucide="info"></i> O progresso será atualizado automaticamente com o saldo da conta.</span>
+                    <span class="fin-hint" id="metaContaHint" style="display:none"><i data-lucide="info"></i> O
+                        progresso será atualizado automaticamente com o saldo da conta.</span>
                 </div>
                 <div class="fin-form-row-2">
                     <div class="fin-form-group">
@@ -391,14 +399,22 @@
                 <div class="fin-form-group">
                     <label class="fin-label"><i data-lucide="palette"></i> Cor</label>
                     <div class="color-picker-grid" id="metaCorPicker">
-                        <button type="button" class="color-dot active" data-color="#6366f1" style="background:#6366f1"></button>
-                        <button type="button" class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></button>
-                        <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981"></button>
-                        <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b"></button>
-                        <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444"></button>
-                        <button type="button" class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6"></button>
-                        <button type="button" class="color-dot" data-color="#ec4899" style="background:#ec4899"></button>
-                        <button type="button" class="color-dot" data-color="#14b8a6" style="background:#14b8a6"></button>
+                        <button type="button" class="color-dot active" data-color="#6366f1"
+                            style="background:#6366f1"></button>
+                        <button type="button" class="color-dot" data-color="#3b82f6"
+                            style="background:#3b82f6"></button>
+                        <button type="button" class="color-dot" data-color="#10b981"
+                            style="background:#10b981"></button>
+                        <button type="button" class="color-dot" data-color="#f59e0b"
+                            style="background:#f59e0b"></button>
+                        <button type="button" class="color-dot" data-color="#ef4444"
+                            style="background:#ef4444"></button>
+                        <button type="button" class="color-dot" data-color="#8b5cf6"
+                            style="background:#8b5cf6"></button>
+                        <button type="button" class="color-dot" data-color="#ec4899"
+                            style="background:#ec4899"></button>
+                        <button type="button" class="color-dot" data-color="#14b8a6"
+                            style="background:#14b8a6"></button>
                     </div>
                 </div>
                 <input type="hidden" id="metaCor" value="#6366f1">
@@ -418,7 +434,7 @@
 <div class="fin-modal-overlay" id="modalTemplates">
     <div class="fin-modal large">
         <div class="fin-modal-header">
-            <h3><i data-lucide="wand-sparkles"></i> Templates de Metas</h3>
+            <h3><i data-lucide="wand-sparkles" style="color: var(--color-primary)"></i> Templates de Metas</h3>
             <button class="fin-modal-close" data-close-modal="modalTemplates">
                 <i data-lucide="x"></i>
             </button>

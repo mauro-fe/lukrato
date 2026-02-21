@@ -5,7 +5,7 @@
         <div class="modal-header">
             <div class="modal-header-content">
                 <div class="modal-icon">
-                    <i data-lucide="credit-card"></i>
+                    <i data-lucide="credit-card" style="color: white"></i>
                 </div>
                 <div>
                     <h2 class="modal-title" id="modalCartaoTitulo">Novo Cartão de Crédito</h2>

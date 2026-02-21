@@ -18,7 +18,7 @@
         <div class="stats-grid">
             <div class="stat-card" data-stat="total">
                 <div class="stat-icon">
-                    <i data-lucide="credit-card"></i>
+                    <i data-lucide="credit-card" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Total de Cartões</div>
@@ -28,7 +28,7 @@
 
             <div class="stat-card" data-stat="limite">
                 <div class="stat-icon">
-                    <i data-lucide="hand-coins"></i>
+                    <i data-lucide="hand-coins" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Total</div>
@@ -38,7 +38,7 @@
 
             <div class="stat-card" data-stat="disponivel">
                 <div class="stat-icon success">
-                    <i data-lucide="circle-check"></i>
+                    <i data-lucide="circle-check" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Disponível</div>
@@ -48,7 +48,7 @@
 
             <div class="stat-card" data-stat="utilizado">
                 <div class="stat-icon warning">
-                    <i data-lucide="trending-up"></i>
+                    <i data-lucide="trending-up" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Utilizado</div>
@@ -84,7 +84,8 @@
                     <img src="<?= BASE_URL ?>assets/img/bandeiras/elo.png" alt="Elo" class="brand-logo-filter">
                     Elo
                 </button>
-                <button class="filter-btn btn-clear-filters" id="btnLimparFiltrosCartoes" title="Limpar busca e filtros" style="display:none;">
+                <button class="filter-btn btn-clear-filters" id="btnLimparFiltrosCartoes" title="Limpar busca e filtros"
+                    style="display:none;">
                     <i data-lucide="eraser"></i>
                     Limpar
                 </button>
@@ -121,7 +122,7 @@
         <!-- Empty State -->
         <div class="empty-state" id="emptyState" style="display: none;">
             <div class="empty-icon">
-                <i data-lucide="credit-card"></i>
+                <i data-lucide="credit-card" style="color: white"></i>
             </div>
             <h3>Nenhum cartão cadastrado</h3>
             <p>Adicione seu primeiro cartão para começar a controlar seus gastos</p>

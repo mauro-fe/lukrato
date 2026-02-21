@@ -1119,7 +1119,7 @@ svg.lucide-scale {
 
 /* --- Gráficos & Análises --- */
 svg.lucide-pie-chart {
-  color: #8b5cf6;
+  color: var(--color-primary);
 }
 svg.lucide-bar-chart-3 {
   color: #06b6d4;
@@ -1278,7 +1278,7 @@ svg.lucide-phone {
   color: #22c55e;
 }
 svg.lucide-headphones {
-  color: #6366f1;
+  color: #ffffff;
 }
 
 /* --- Conteúdo & Edição --- */

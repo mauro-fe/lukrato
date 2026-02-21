@@ -582,7 +582,7 @@ if ($showOnboardingCongrats) {
                 </span>
             </div>
             <div class="level-badge" id="userLevel">
-                <i data-lucide="star"></i>
+                <i data-lucide="star" style="color: white"></i>
                 <span>Nível 1</span>
             </div>
         </div>
@@ -680,7 +680,7 @@ if ($showOnboardingCongrats) {
             <div class="modern-kpi" id="saldoCard">
                 <div class="kpi-header">
                     <div class="kpi-icon balance">
-                        <i data-lucide="wallet"></i>
+                        <i data-lucide="wallet" style="color: white"></i>
                     </div>
                     <span class="kpi-label">Saldo Atual</span>
                 </div>
@@ -716,7 +716,7 @@ if ($showOnboardingCongrats) {
             <div class="modern-kpi" id="saldoMesCard">
                 <div class="kpi-header">
                     <div class="kpi-icon balance">
-                        <i data-lucide="scale"></i>
+                        <i data-lucide="scale" style="color: white"></i>
                     </div>
                     <span class="kpi-label">Saldo do Mês</span>
                 </div>
@@ -736,7 +736,7 @@ if ($showOnboardingCongrats) {
         <div class="provisao-alerts-container" id="provisaoAlertsContainer">
             <!-- Alerta de despesas vencidas -->
             <div class="provisao-alert despesas" id="provisaoAlertDespesas" style="display:none;">
-                <div class="provisao-alert-icon"><i data-lucide="triangle-alert"></i></div>
+                <div class="provisao-alert-icon"><i data-lucide="triangle-alert" style="color:#fff"></i></div>
                 <div class="provisao-alert-text">
                     <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
                     <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
@@ -746,7 +746,7 @@ if ($showOnboardingCongrats) {
             </div>
             <!-- Alerta de receitas vencidas (não recebidas) -->
             <div class="provisao-alert receitas" id="provisaoAlertReceitas" style="display:none;">
-                <div class="provisao-alert-icon"><i data-lucide="info"></i></div>
+                <div class="provisao-alert-icon"><i data-lucide="info" style="color:#fff"></i></div>
                 <div class="provisao-alert-text">
                     <strong id="provisaoAlertReceitasCount">0</strong> recebimento(s) atrasado(s) totalizando
                     <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
@@ -756,7 +756,7 @@ if ($showOnboardingCongrats) {
             </div>
             <!-- Alerta de faturas vencidas -->
             <div class="provisao-alert faturas" id="provisaoAlertFaturas" style="display:none;">
-                <div class="provisao-alert-icon"><i data-lucide="credit-card"></i></div>
+                <div class="provisao-alert-icon"><i data-lucide="credit-card" style="color:#fff"></i></div>
                 <div class="provisao-alert-text">
                     <strong id="provisaoAlertFaturasCount">0</strong> fatura(s) vencida(s) totalizando
                     <strong id="provisaoAlertFaturasTotal">R$ 0,00</strong>
@@ -784,7 +784,7 @@ if ($showOnboardingCongrats) {
                 </div>
             </div>
             <div class="provisao-card projetado">
-                <div class="provisao-card-icon"><i data-lucide="line-chart"></i></div>
+                <div class="provisao-card-icon"><i data-lucide="line-chart" style="color:#fff"></i></div>
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">Saldo Projetado</span>
                     <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
@@ -846,7 +846,7 @@ if ($showOnboardingCongrats) {
 
         <div class="empty-state" id="emptyState" style="display:none;">
             <div class="empty-icon">
-                <i data-lucide="receipt"></i>
+                <i data-lucide="receipt" style="color: var(--color-primary)"></i>
             </div>
             <h3>Nenhum lançamento encontrado</h3>
             <p>Comece adicionando sua primeira transação para acompanhar suas finanças</p>

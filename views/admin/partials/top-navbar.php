@@ -47,7 +47,7 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
                     <ol class="lk-breadcrumbs">
                         <li class="lk-breadcrumb-item">
                             <a href="<?= BASE_URL ?>dashboard" title="Início">
-                                <i data-lucide="home" class="lk-breadcrumb-home"></i>
+                                <i data-lucide="home" class="lk-breadcrumb-home" style="color: var(--color-primary)"></i>
                             </a>
                         </li>
                         <?php foreach ($currentBreadcrumbs as $crumb): ?>
@@ -55,12 +55,14 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
                             <li class="lk-breadcrumb-item">
                                 <?php if (!empty($crumb['url'])): ?>
                                     <a href="<?= BASE_URL . $crumb['url'] ?>">
-                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"></i><?php endif; ?>
+                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"
+                                                style="color: var(--color-primary)"></i><?php endif; ?>
                                         <?= htmlspecialchars($crumb['label']) ?>
                                     </a>
                                 <?php else: ?>
                                     <span>
-                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"></i><?php endif; ?>
+                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"
+                                                style="color: var(--color-primary)"></i><?php endif; ?>
                                         <?= htmlspecialchars($crumb['label']) ?>
                                     </span>
                                 <?php endif; ?>
@@ -77,7 +79,8 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
         <div class="top-navbar-actions">
             <!-- User Info -->
             <div class="user-info">
-                <span class="greeting">Olá, <a href="<?= BASE_URL ?>perfil" class="greeting-name" title="Ir para o perfil"><strong><?= $topNavFirstName ?: 'usuário' ?></strong></a></span>
+                <span class="greeting">Olá, <a href="<?= BASE_URL ?>perfil" class="greeting-name"
+                        title="Ir para o perfil"><strong><?= $topNavFirstName ?: 'usuário' ?></strong></a></span>
                 <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>"
                     title="Gerenciar assinatura">
                     <i data-lucide="<?= $isPro ? 'crown' : 'leaf' ?>"></i>

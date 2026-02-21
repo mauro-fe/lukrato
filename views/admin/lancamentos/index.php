@@ -13,7 +13,7 @@
         <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">
                 <div class="icon-wrapper export">
-                    <i data-lucide="file-output"></i>
+                    <i data-lucide="file-output" style="color: var(--color-primary)"></i>
                 </div>
                 <div class="card-title-group">
                     <h3 class="card-title">Exportar Lançamentos</h3>
@@ -47,7 +47,7 @@
                     <div class="date-range-group">
                         <div class="input-group">
                             <label for="exportStart" class="input-label">
-                                <i data-lucide="calendar-days"></i>
+                                <i data-lucide="calendar-days" style="color: var(--color-primary)"></i>
                                 <span>Data Inicial</span>
                             </label>
                             <input type="date" id="exportStart" class="modern-input" data-default-today="1"
@@ -56,7 +56,7 @@
 
                         <div class="input-group">
                             <label for="exportEnd" class="input-label">
-                                <i data-lucide="calendar-days"></i>
+                                <i data-lucide="calendar-days" style="color: var(--color-primary)"></i>
                                 <span>Data Final</span>
                             </label>
                             <input type="date" id="exportEnd" class="modern-input" data-default-today="1"
@@ -85,7 +85,7 @@
         <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="200">
             <div class="card-header-icon">
                 <div class="icon-wrapper filter">
-                    <i data-lucide="filter"></i>
+                    <i data-lucide="filter" style="color: var(--color-primary)"></i>
                 </div>
                 <div class="card-title-group">
                     <h3 class="card-title">Filtros Avançados</h3>
@@ -97,7 +97,7 @@
                 <div class="filter-row">
                     <div class="filter-group">
                         <label for="filtroTipo" class="filter-label">
-                            <i data-lucide="tag"></i>
+                            <i data-lucide="tag" style="color: var(--color-primary)"></i>
                             <span>Tipo</span>
                         </label>
                         <select id="filtroTipo" class="modern-select" aria-label="Filtrar por tipo">
@@ -109,7 +109,7 @@
 
                     <div class="filter-group">
                         <label for="filtroCategoria" class="filter-label">
-                            <i data-lucide="folder"></i>
+                            <i data-lucide="folder" style="color: var(--color-primary)"></i>
                             <span>Categoria</span>
                         </label>
                         <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
@@ -120,7 +120,7 @@
 
                     <div class="filter-group">
                         <label for="filtroConta" class="filter-label">
-                            <i data-lucide="wallet"></i>
+                            <i data-lucide="wallet" style="color: var(--color-primary)"></i>
                             <span>Conta</span>
                         </label>
                         <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
@@ -134,7 +134,8 @@
                         <i data-lucide="search"></i>
                         <span>Aplicar Filtros</span>
                     </button>
-                    <button id="btnLimparFiltros" type="button" class="modern-btn" aria-label="Limpar filtros" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+                    <button id="btnLimparFiltros" type="button" class="modern-btn" aria-label="Limpar filtros"
+                        style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
                         <i data-lucide="eraser"></i>
                         <span>Limpar Filtros</span>
                     </button>
@@ -203,10 +204,12 @@
                             <tr class="lk-loading-row">
                                 <td colspan="8" style="text-align:center; padding:3rem 1rem;">
                                     <div class="lk-loading-state">
-                                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                        <div class="spinner-border" role="status"
+                                            style="width:2rem;height:2rem;color:var(--color-primary);">
                                             <span class="visually-hidden">Carregando...</span>
                                         </div>
-                                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando lançamentos...</p>
+                                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">
+                                            Carregando lançamentos...</p>
                                     </div>
                                 </td>
                             </tr>
@@ -242,11 +245,14 @@
                 <!-- Cards -->
                 <section class="lan-cards-container cards-container" id="lanCards">
                     <!-- Loading state mobile -->
-                    <div class="lk-loading-state" id="lanCardsLoading" style="text-align:center;padding:2rem 1rem;grid-column:1/-1;">
-                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                    <div class="lk-loading-state" id="lanCardsLoading"
+                        style="text-align:center;padding:2rem 1rem;grid-column:1/-1;">
+                        <div class="spinner-border" role="status"
+                            style="width:2rem;height:2rem;color:var(--color-primary);">
                             <span class="visually-hidden">Carregando...</span>
                         </div>
-                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando lançamentos...</p>
+                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando
+                            lançamentos...</p>
                     </div>
                 </section>
 

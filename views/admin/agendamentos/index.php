@@ -12,7 +12,7 @@
         <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">
                 <div class="icon-wrapper filter">
-                    <i data-lucide="filter"></i>
+                    <i data-lucide="filter" style="color: var(--color-primary)"></i>
                 </div>
                 <div class="card-title-group">
                     <h3 class="card-title">Filtros Avançados</h3>
@@ -26,7 +26,7 @@
 
                     <div class="filter-group">
                         <label for="filtroCategoria" class="filter-label">
-                            <i data-lucide="folder"></i>
+                            <i data-lucide="folder" style="color: var(--color-primary)"></i>
                             <span>Categoria</span>
                         </label>
                         <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
@@ -36,7 +36,7 @@
 
                     <div class="filter-group">
                         <label for="filtroConta" class="filter-label">
-                            <i data-lucide="wallet"></i>
+                            <i data-lucide="wallet" style="color: var(--color-primary)"></i>
                             <span>Conta</span>
                         </label>
                         <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
@@ -46,7 +46,7 @@
 
                     <div class="filter-group">
                         <label for="filtroStatus" class="filter-label">
-                            <i data-lucide="info"></i>
+                            <i data-lucide="info" style="color: var(--color-primary)"></i>
                             <span>Status</span>
                         </label>
                         <select id="filtroStatus" class="modern-select" aria-label="Filtrar por status">
@@ -144,10 +144,12 @@
                             <tr class="lk-loading-row">
                                 <td colspan="8" style="text-align:center;padding:2rem 1rem;">
                                     <div class="lk-loading-state">
-                                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                        <div class="spinner-border" role="status"
+                                            style="width:2rem;height:2rem;color:var(--color-primary);">
                                             <span class="visually-hidden">Carregando...</span>
                                         </div>
-                                        <p style="margin:0.75rem 0 0;color:var(--color-text-muted);font-size:0.85rem;">Carregando agendamentos...</p>
+                                        <p style="margin:0.75rem 0 0;color:var(--color-text-muted);font-size:0.85rem;">
+                                            Carregando agendamentos...</p>
                                     </div>
                                 </td>
                             </tr>
@@ -283,8 +285,8 @@
 </section>
 
 <!-- ==================== MODAL VISUALIZAÇÃO ==================== -->
-<div class="modal fade" id="modalVisualizacao" tabindex="-1" aria-labelledby="modalVisualizacaoLabel"
-    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalVisualizacao" tabindex="-1" aria-labelledby="modalVisualizacaoLabel" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modal-view-content">
             <div class="modal-header modal-view-header">
