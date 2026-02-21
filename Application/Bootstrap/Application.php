@@ -93,8 +93,8 @@ class Application
             return false;
         }
 
-        // Permitir rotas de auth (para sysadmin conseguir logar)
-        if (str_contains($path, '/api/auth/') || str_contains($path, '/login')) {
+        // Permitir rotas de auth (para sysadmin conseguir logar e usuários saírem)
+        if (str_contains($path, '/api/auth/') || str_contains($path, '/login') || str_contains($path, '/logout')) {
             return false;
         }
 
