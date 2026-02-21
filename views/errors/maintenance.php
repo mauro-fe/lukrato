@@ -179,6 +179,40 @@
         .footer-text a:hover {
             text-decoration: underline;
         }
+
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 50px;
+            padding: 0.65rem 1.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 1.5rem;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .btn-logout:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+
+        .btn-logout svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
     </style>
 </head>
 
@@ -212,6 +246,15 @@
         <div class="progress-bar">
             <div class="fill"></div>
         </div>
+
+        <a href="/logout" class="btn-logout">
+            <svg viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sair da conta
+        </a>
 
         <p class="footer-text">
             Lukrato &mdash; Controle Financeiro Pessoal<br>
