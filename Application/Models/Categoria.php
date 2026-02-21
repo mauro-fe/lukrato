@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property int $id
  * @property string $nome
+ * @property string|null $icone
  * @property string $tipo
  * @property int|null $user_id
  *
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 class Categoria extends Model
 {
     protected $table = 'categorias';
-    protected $fillable = ['nome', 'tipo', 'user_id'];
+    protected $fillable = ['nome', 'icone', 'tipo', 'user_id'];
     protected $casts = ['user_id' => 'int'];
     public $timestamps = false;
 

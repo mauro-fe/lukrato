@@ -88,7 +88,7 @@
 </section>
 
 <!-- ==================== MODAL: DETALHES DA FATURA ==================== -->
-<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1">
+<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modern-modal">
             <div class="modal-header">

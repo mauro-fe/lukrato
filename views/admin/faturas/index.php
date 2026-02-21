@@ -32,10 +32,10 @@
                     <div class="select-wrapper">
                         <select id="filtroStatus" class="filter-select">
                             <option value="">Todos os status</option>
-                            <option value="pendente">⏳ Pendentes</option>
-                            <option value="parcial">🔄 Parcialmente Pagas</option>
-                            <option value="paga">✅ Pagas</option>
-                            <option value="cancelado">❌ Canceladas</option>
+                            <option value="pendente">&#x25F7; Pendentes</option>
+                            <option value="parcial">&#x21BB; Parcialmente Pagas</option>
+                            <option value="paga">&#x2714; Pagas</option>
+                            <option value="cancelado">&#x2718; Canceladas</option>
                         </select>
                         <i data-lucide="chevron-down" class="select-arrow"></i>
                     </div>

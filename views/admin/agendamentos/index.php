@@ -284,7 +284,7 @@
 
 <!-- ==================== MODAL VISUALIZAÇÃO ==================== -->
 <div class="modal fade" id="modalVisualizacao" tabindex="-1" aria-labelledby="modalVisualizacaoLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modal-view-content">
             <div class="modal-header modal-view-header">

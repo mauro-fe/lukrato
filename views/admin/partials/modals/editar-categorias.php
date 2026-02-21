@@ -1,6 +1,6 @@
 <!-- Modal de Edição -->
 <div class="modal fade" id="modalEditCategoria" tabindex="-1" aria-labelledby="modalEditCategoriaLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">

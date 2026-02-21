@@ -11,6 +11,7 @@ use Application\Services\Auth\RegistrationResponseHandler;
 use Application\Core\Exceptions\ValidationException;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Throwable;
 
 /**
@@ -53,7 +54,7 @@ class RegistroController extends BaseController
     {
         // Valida CSRF com tokenId específico do formulário
         CsrfMiddleware::handle($this->request, 'register_form');
-        
+
         $email = $this->request->post('email', 'não-informado');
         $socialData = $_SESSION['social_register'] ?? null;
         $isGoogleRegistration = !empty($socialData) && ($socialData['provider'] ?? null) === 'google';
@@ -144,11 +145,12 @@ class RegistroController extends BaseController
      */
     private function handleValidationError(ValidationException $e, string $email): void
     {
-        LogService::warning('Falha de validação no registro.', [
-            'email' => $email,
-            'ip' => $this->request->ip() ?? 'unknown',
-            'errors' => $e->getErrors(),
-        ]);
+        LogService::persist(
+            \Application\Enums\LogLevel::WARNING,
+            LogCategory::AUTH,
+            'Registro: falha de validação',
+            ['email' => $email, 'ip' => $this->request->ip() ?? 'unknown', 'errors' => $e->getErrors()]
+        );
 
         $this->responseHandler->validationError($e->getErrors());
     }
@@ -158,11 +160,10 @@ class RegistroController extends BaseController
      */
     private function handleRegistrationError(Throwable $e, string $email): void
     {
-        LogService::error('Exceção crítica ao tentar registrar usuário.', [
+        LogService::captureException($e, LogCategory::AUTH, [
+            'action' => 'registro',
             'email' => $email,
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
+            'ip' => $this->request->ip() ?? 'unknown',
         ]);
 
         $this->responseHandler->generalError();

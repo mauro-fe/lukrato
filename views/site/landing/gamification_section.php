@@ -19,7 +19,7 @@
         <div class="max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
             <div
                 class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md mb-6 border border-orange-100">
-                <span class="text-2xl">🎮</span>
+                <span class="text-2xl"><i data-lucide="gamepad-2" class="w-6 h-6 text-primary"></i></span>
                 <span class="text-sm font-semibold text-gray-700">Sistema de Gamificação</span>
             </div>
 
@@ -115,7 +115,7 @@
 
             <!-- Lado Direito: Conquistas -->
             <div class="space-y-6" data-aos="fade-left">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6">🏆 Conquistas Desbloqueadas</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-6"><i data-lucide="trophy" class="w-6 h-6 inline-block align-middle text-primary"></i> Conquistas Desbloqueadas</h3>
 
                 <!-- Conquista 1 -->
                 <div
@@ -123,7 +123,7 @@
                     <div class="flex items-start gap-4">
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
-                            🎯
+                            <i data-lucide="target" class="w-8 h-8 text-white"></i>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
@@ -146,7 +146,7 @@
                     <div class="flex items-start gap-4">
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
-                            💰
+                            <i data-lucide="coins" class="w-8 h-8 text-white"></i>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
@@ -169,7 +169,7 @@
                     <div class="flex items-start gap-4">
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
-                            🔥
+                            <i data-lucide="flame" class="w-8 h-8 text-white"></i>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
@@ -192,7 +192,7 @@
                     <div class="flex items-start gap-4">
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-gray-300 rounded-2xl flex items-center justify-center text-3xl">
-                            🔒
+                            <i data-lucide="lock" class="w-8 h-8 text-gray-500"></i>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">

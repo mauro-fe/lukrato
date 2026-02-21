@@ -30,7 +30,7 @@
         max-width: var(--billing-max-width);
         margin: var(--spacing-6) auto;
         padding: var(--spacing-5);
-        background: var(--glass-bg);
+        background: var(--color-bg);
         backdrop-filter: var(--glass-backdrop);
         border-radius: var(--radius-xl);
         border: 1px solid var(--plan-border);
@@ -98,7 +98,7 @@
         font-size: clamp(2.25rem, 5vw, 3.5rem);
         font-weight: 900;
         margin: 0 0 var(--spacing-4);
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-primary) 100%);
+        background: var(--color-primary);
         background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -189,7 +189,7 @@
        CARD DO PLANO
        ========================================================================== */
     .plan-card {
-        background: var(--color-surface);
+        background: var(--color-bg);
         border: 2px solid var(--plan-border);
         border-radius: var(--radius-xl);
         padding: var(--spacing-6);
@@ -312,12 +312,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        background: var(--glass-bg);
         color: white;
         border-radius: var(--radius-lg);
         font-size: 1.75rem;
         flex-shrink: 0;
-        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 30%, transparent);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
     }
@@ -506,7 +505,7 @@
 
     /* Botão primário (ativo) */
     .plan-card__button--primary {
-        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        background: var(--color-primary);
         color: white;
         box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 40%, transparent);
         position: relative;
@@ -974,7 +973,7 @@
         flex-wrap: nowrap;
         margin-top: var(--spacing-3);
         padding: var(--spacing-2);
-        background: var(--color-surface-muted);
+        background: var(--color-bg);
         border-radius: var(--radius-lg);
         border: 1px solid var(--glass-border);
     }
@@ -1004,7 +1003,7 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        background: var(--color-primary);
         opacity: 0;
         transition: opacity 0.3s ease;
         z-index: -1;
@@ -1018,7 +1017,7 @@
 
     .plan-billing-toggle__btn.is-active {
         background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-        color: #fff;
+        color: var(--color-text);
         border-color: transparent;
         box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
         transform: translateY(-2px);
@@ -1120,19 +1119,32 @@ function formatInterval(string $interval): string
                 $meta = $plan['metadata'];
                 // Map FA icon names to Lucide equivalents
                 $faToLucide = [
-                    'fa-layer-group' => 'layers', 'layer-group' => 'layers',
-                    'fa-rocket' => 'rocket', 'rocket' => 'rocket',
-                    'fa-crown' => 'crown', 'crown' => 'crown',
-                    'fa-gem' => 'gem', 'gem' => 'gem',
-                    'fa-star' => 'star', 'star' => 'star',
-                    'fa-bolt' => 'zap', 'bolt' => 'zap',
-                    'fa-shield-alt' => 'shield', 'shield-alt' => 'shield',
-                    'fa-infinity' => 'infinity', 'infinity' => 'infinity',
-                    'fa-gift' => 'gift', 'gift' => 'gift',
-                    'fa-trophy' => 'trophy', 'trophy' => 'trophy',
-                    'fa-fire' => 'flame', 'fire' => 'flame',
-                    'fa-briefcase' => 'briefcase', 'briefcase' => 'briefcase',
-                    'fa-wallet' => 'wallet', 'wallet' => 'wallet',
+                    'fa-layer-group' => 'layers',
+                    'layer-group' => 'layers',
+                    'fa-rocket' => 'rocket',
+                    'rocket' => 'rocket',
+                    'fa-crown' => 'crown',
+                    'crown' => 'crown',
+                    'fa-gem' => 'gem',
+                    'gem' => 'gem',
+                    'fa-star' => 'star',
+                    'star' => 'star',
+                    'fa-bolt' => 'zap',
+                    'bolt' => 'zap',
+                    'fa-shield-alt' => 'shield',
+                    'shield-alt' => 'shield',
+                    'fa-infinity' => 'infinity',
+                    'infinity' => 'infinity',
+                    'fa-gift' => 'gift',
+                    'gift' => 'gift',
+                    'fa-trophy' => 'trophy',
+                    'trophy' => 'trophy',
+                    'fa-fire' => 'flame',
+                    'fire' => 'flame',
+                    'fa-briefcase' => 'briefcase',
+                    'briefcase' => 'briefcase',
+                    'fa-wallet' => 'wallet',
+                    'wallet' => 'wallet',
                 ];
                 $rawIcon = trim($meta['icone'] ?? $meta['icon'] ?? 'fa-layer-group');
                 $icon = $faToLucide[$rawIcon] ?? $faToLucide[ltrim($rawIcon, 'fa-')] ?? 'layers';
@@ -1185,8 +1197,7 @@ function formatInterval(string $interval): string
                     </p>
 
                     <!-- Preço -->
-                    <div class="plan-card__price"
-                        <?= strcasecmp($plan['code'], 'pro') === 0 ? 'id="planProPrice"' : '' ?>
+                    <div class="plan-card__price" <?= strcasecmp($plan['code'], 'pro') === 0 ? 'id="planProPrice"' : '' ?>
                         data-base-price="<?= number_format($priceValue, 2, '.', '') ?>"
                         aria-label="<?= $priceCents > 0 ? 'Preço: ' . number_format($priceValue, 2, ',', '.') . ' por ' . $intervalLabel : 'Plano gratuito' ?>">
                         <?php if ($priceCents > 0): ?>
@@ -1250,12 +1261,9 @@ function formatInterval(string $interval): string
                                 </div>
                             </div>
 
-                            <button type="button"
-                                class="plan-card__button plan-card__button--warning plan-card__button--renew"
-                                id="btn-renew-subscription"
-                                data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
-                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
-                                aria-label="Renovar assinatura do plano Pro">
+                            <button type="button" class="plan-card__button plan-card__button--warning plan-card__button--renew"
+                                id="btn-renew-subscription" data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
+                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>" aria-label="Renovar assinatura do plano Pro">
                                 <i class="plan-card__button-icon" data-lucide="refresh-cw" aria-hidden="true"></i>
                                 <span>Renovar agora</span>
                             </button>
@@ -1271,12 +1279,9 @@ function formatInterval(string $interval): string
                             </button>
 
                             <!-- Botão para reativar -->
-                            <button type="button"
-                                class="plan-card__button plan-card__button--primary"
-                                id="btn-reactivate-subscription"
+                            <button type="button" class="plan-card__button plan-card__button--primary" id="btn-reactivate-subscription"
                                 data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
-                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
-                                aria-label="Reativar assinatura do plano Pro">
+                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>" aria-label="Reativar assinatura do plano Pro">
                                 <i class="plan-card__button-icon" data-lucide="refresh-cw" aria-hidden="true"></i>
                                 <span>Reativar assinatura</span>
                             </button>
@@ -1288,12 +1293,9 @@ function formatInterval(string $interval): string
                                 <span>Acesso suspenso - Renove para continuar</span>
                             </div>
 
-                            <button type="button"
-                                class="plan-card__button plan-card__button--primary"
-                                id="btn-renew-subscription"
+                            <button type="button" class="plan-card__button plan-card__button--primary" id="btn-renew-subscription"
                                 data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
-                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
-                                aria-label="Renovar assinatura do plano Pro">
+                                data-plan-code="<?= htmlspecialchars($plan['code']) ?>" aria-label="Renovar assinatura do plano Pro">
                                 <i class="plan-card__button-icon" data-lucide="refresh-cw" aria-hidden="true"></i>
                                 <span>Renovar assinatura</span>
                             </button>
@@ -1335,12 +1337,12 @@ function formatInterval(string $interval): string
 
                                 <button type="button" class="plan-billing-toggle__btn" data-cycle="semiannual" data-months="6"
                                     data-discount="10">
-                                    <span>Semestral</span> <span class="plan-billing-toggle__off">💰 -10%</span>
+                                    <span>Semestral</span> <span class="plan-billing-toggle__off"> -10%</span>
                                 </button>
 
                                 <button type="button" class="plan-billing-toggle__btn" data-cycle="annual" data-months="12"
                                     data-discount="15">
-                                    <span>Anual</span> <span class="plan-billing-toggle__off">🎉 -15%</span>
+                                    <span>Anual</span> <span class="plan-billing-toggle__off"> -15%</span>
                                 </button>
                             </div>
                         <?php endif; ?>
@@ -1610,7 +1612,8 @@ function formatInterval(string $interval): string
                     // Para renovação/reativação: abrir modal diretamente
                     // Buscar o preço base do plano PRO do card
                     const proPriceEl = document.getElementById('planProPrice');
-                    const monthlyBase = proPriceEl ? Number(proPriceEl.dataset.basePrice || 0) : 14.90;
+                    const monthlyBase = proPriceEl ? Number(proPriceEl.dataset.basePrice || 0) :
+                        14.90;
 
                     // Configuração padrão: mensal
                     window.openBillingModal({
@@ -1632,5 +1635,6 @@ function formatInterval(string $interval): string
         // Configura handlers
         handleRenewClick(renewBtn, 'renew');
         handleRenewClick(reactivateBtn, 'reactivate');
+
     })();
 </script>

@@ -32,8 +32,8 @@
                         <span>Tipo</span>
                     </label>
                     <select id="catTipo" class="modern-select" name="tipo" required aria-label="Tipo de categoria">
-                        <option value="receita">💰 Receita</option>
-                        <option value="despesa">💸 Despesa</option>
+                        <option value="receita">↑ Receita</option>
+                        <option value="despesa">↓ Despesa</option>
                     </select>
                 </div>
             </div>
@@ -111,34 +111,38 @@
 <?php include __DIR__ . '/../partials/modals/editar-categorias.php'; ?>
 
 <!-- Modal de Orçamento / Limite Mensal -->
-<div class="modal fade" id="modalOrcamento" tabindex="-1" aria-labelledby="modalOrcamentoLabel" aria-hidden="true">
+<div class="modal fade" id="modalOrcamento" tabindex="-1" aria-labelledby="modalOrcamentoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalOrcamentoLabel">
                     <i data-lucide="wallet"></i> Limite Mensal
                 </h5>
-                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal"
+                    aria-label="Fechar"></button>
             </div>
 
             <div class="modal-body">
                 <div class="orc-modal-description">
                     <i data-lucide="info"></i>
-                    <span>Defina o valor máximo que deseja gastar por mês nesta categoria. Você será alertado quando estiver próximo ou ultrapassar o limite.</span>
+                    <span>Defina o valor máximo que deseja gastar por mês nesta categoria. Você será alertado quando
+                        estiver próximo ou ultrapassar o limite.</span>
                 </div>
 
                 <p class="orc-modal-cat-name">Categoria: <strong id="orcCategoriaNome">—</strong></p>
-                <p class="orc-modal-gasto d-none" id="orcGastoAtual">Gasto atual: <strong id="orcGastoValor">R$ 0,00</strong></p>
+                <p class="orc-modal-gasto d-none" id="orcGastoAtual">Gasto atual: <strong id="orcGastoValor">R$
+                        0,00</strong></p>
 
-                <div id="orcAlertError" class="alert alert-danger d-none py-2 px-3" style="font-size:0.85rem" role="alert"></div>
+                <div id="orcAlertError" class="alert alert-danger d-none py-2 px-3" style="font-size:0.85rem"
+                    role="alert"></div>
 
                 <form id="formOrcamento" novalidate>
                     <div class="mb-3">
                         <label class="form-label" for="orcValorLimite">Orçamento mensal (R$)</label>
                         <div class="orc-input-wrapper">
                             <span class="orc-input-prefix">R$</span>
-                            <input type="text" class="form-control orc-input-currency" id="orcValorLimite" name="valor_limite"
-                                placeholder="0,00" required inputmode="decimal" autocomplete="off">
+                            <input type="text" class="form-control orc-input-currency" id="orcValorLimite"
+                                name="valor_limite" placeholder="0,00" required inputmode="decimal" autocomplete="off">
                         </div>
                     </div>
                 </form>

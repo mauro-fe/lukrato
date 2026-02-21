@@ -10,6 +10,7 @@ use Application\Models\Conta;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\Categoria;
+use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -225,10 +226,16 @@ class CartaoFaturaService
                 ? sprintf('Pagamento parcial R$ %.2f - %d de %d item(s) - Fatura %02d/%04d', $totalPagar, $qtdItensPagos, count($itensNaoPagos), $mes, $ano)
                 : sprintf('%d item(s) pago(s) - Fatura %02d/%04d', $qtdItensPagos, $mes, $ano);
 
+            // Buscar categoria "Cartão de Crédito" do usuário para vincular ao lançamento
+            $categoriaCartao = Categoria::where('user_id', $userId)
+                ->where('nome', 'Cartão de Crédito')
+                ->where('tipo', 'despesa')
+                ->first();
+
             $lancamento = Lancamento::create([
                 'user_id' => $userId,
                 'conta_id' => $contaId,
-                'categoria_id' => null,                    // Fatura não tem categoria específica
+                'categoria_id' => $categoriaCartao?->id,   // Vincula à categoria "Cartão de Crédito"
                 'cartao_credito_id' => $cartaoId,
                 'forma_pagamento' => 'debito_conta',       // Débito na conta bancária
                 'tipo' => 'despesa',
@@ -290,7 +297,12 @@ class CartaoFaturaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            error_log("❌ [FATURA] Erro ao processar pagamento: " . $e->getMessage() . " | Line: " . $e->getLine());
+            LogService::captureException($e, LogCategory::FATURA, [
+                'cartao_id' => $cartaoId,
+                'mes' => $mes,
+                'ano' => $ano,
+                'user_id' => $userId,
+            ]);
             throw $e;
         }
     }
@@ -448,7 +460,12 @@ class CartaoFaturaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            error_log("❌ [PARCELAS] Erro ao processar pagamento: " . $e->getMessage() . " | Line: " . $e->getLine());
+            LogService::captureException($e, LogCategory::FATURA, [
+                'action' => 'pagar_parcelas',
+                'cartao_id' => $cartaoId,
+                'parcela_ids' => $parcelaIds ?? [],
+                'user_id' => $userId,
+            ]);
             throw $e;
         }
     }

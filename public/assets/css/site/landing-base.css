@@ -31,7 +31,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
-header{
+header {
   background-color: var(--color-bg) !important;
 }
 
@@ -405,14 +405,16 @@ svg {
   opacity: 1;
 }
 
-.lk-footer-icons i {
+.lk-footer-icons i,
+.lk-footer-icons svg.lucide {
   color: #092741;
   position: relative;
   z-index: 1;
   transition: all 0.3s ease;
 }
 
-.lk-footer-icons a:hover i {
+.lk-footer-icons a:hover i,
+.lk-footer-icons a:hover svg.lucide {
   color: #fff;
   transform: scale(1.1);
 }

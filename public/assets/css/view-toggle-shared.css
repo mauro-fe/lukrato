@@ -40,8 +40,11 @@
   box-shadow: 0 2px 8px rgba(230, 126, 34, 0.35);
 }
 
-.view-btn i {
+.view-btn i,
+.view-btn svg {
   font-size: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 /* ============================================================================
@@ -121,17 +124,17 @@
   .view-toggle {
     display: none; /* Esconde toggle no mobile - mostra só cards */
   }
-  
+
   .items-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .items-grid.list-view {
     display: grid;
     grid-template-columns: 1fr;
   }
-  
+
   .items-grid.list-view .item-card {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -142,11 +145,11 @@
   .items-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .items-grid.list-view .item-card {
     grid-template-columns: auto 1fr auto;
   }
-  
+
   .items-grid.list-view .item-value {
     min-width: 100px;
   }

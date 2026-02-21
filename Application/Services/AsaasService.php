@@ -5,6 +5,8 @@ namespace Application\Services;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Application\Services\CircuitBreakerService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 
 class AsaasService
 {
@@ -65,15 +67,11 @@ class AsaasService
             try {
                 $response = $this->client->request($method, ltrim($uri, '/'), $options);
             } catch (GuzzleException $e) {
-                // Se você tiver LogService, pode logar aqui
-                if (class_exists(LogService::class)) {
-                    LogService::error('Erro HTTP ao chamar Asaas', [
-                        'exception' => $e->getMessage(),
-                        'uri'       => $uri,
-                        'method'    => $method,
-                        'body'      => $body,
-                    ]);
-                }
+                LogService::captureException($e, LogCategory::PAYMENT, [
+                    'uri'    => $uri,
+                    'method' => $method,
+                    'body'   => $body,
+                ]);
 
                 throw new \RuntimeException('Falha ao comunicar com o Asaas. Tente novamente em instantes.');
             }
@@ -83,12 +81,12 @@ class AsaasService
             $data       = json_decode($rawBody, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                if (class_exists(LogService::class)) {
-                    LogService::error('Resposta inválida do Asaas (JSON)', [
-                        'status' => $statusCode,
-                        'body'   => $rawBody,
-                    ]);
-                }
+                LogService::persist(
+                    LogLevel::ERROR,
+                    LogCategory::PAYMENT,
+                    'Resposta inválida do Asaas (JSON)',
+                    ['status' => $statusCode, 'body' => $rawBody],
+                );
 
                 throw new \RuntimeException('Resposta inesperada do Asaas. Tente novamente em instantes.');
             }
@@ -103,12 +101,17 @@ class AsaasService
                 ?? 'Erro desconhecido na API do Asaas';
 
             if (class_exists(LogService::class)) {
-                LogService::error('Erro retornado do Asaas', [
-                    'status'  => $statusCode,
-                    'message' => $message,
-                    'uri'     => $uri,
-                    'method'  => $method,
-                ]);
+                LogService::persist(
+                    LogLevel::ERROR,
+                    LogCategory::PAYMENT,
+                    'Erro retornado do Asaas',
+                    [
+                        'status'  => $statusCode,
+                        'message' => $message,
+                        'uri'     => $uri,
+                        'method'  => $method,
+                    ],
+                );
             }
 
             throw new \RuntimeException($message);
@@ -338,9 +341,11 @@ class AsaasService
         // ✅ NÍVEL 1: Token simples (obrigatório)
         if (empty($this->webhookToken)) {
             // Sem token configurado = ERRO DE CONFIGURAÇÃO
-            if (class_exists(LogService::class)) {
-                LogService::critical('ASAAS_WEBHOOK_TOKEN não configurado! Webhooks desprotegidos!');
-            }
+            LogService::persist(
+                LogLevel::CRITICAL,
+                LogCategory::WEBHOOK,
+                'ASAAS_WEBHOOK_TOKEN não configurado! Webhooks desprotegidos!',
+            );
             // Por segurança, rejeitar se não tiver token configurado
             return false;
         }
@@ -363,22 +368,26 @@ class AsaasService
         }
 
         if (!is_string($received) || $received === '') {
-            if (class_exists(LogService::class)) {
-                LogService::warning('Webhook sem token de acesso', [
-                    'headers_received' => array_keys($headers),
-                ]);
-            }
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                'Webhook sem token de acesso',
+                ['headers_received' => array_keys($headers)],
+            );
             return false;
         }
 
         // Validação com hash_equals (timing-attack safe)
         if (!hash_equals($this->webhookToken, $received)) {
-            if (class_exists(LogService::class)) {
-                LogService::warning('Webhook com token inválido', [
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                'Webhook com token inválido',
+                [
                     'expected_length' => strlen($this->webhookToken),
                     'received_length' => strlen($received),
-                ]);
-            }
+                ],
+            );
             return false;
         }
 
@@ -395,9 +404,11 @@ class AsaasService
                 $expectedSignature = hash_hmac('sha256', $rawBody, $webhookSecret);
 
                 if (!hash_equals($expectedSignature, $signatureHeader)) {
-                    if (class_exists(LogService::class)) {
-                        LogService::warning('Webhook com assinatura HMAC inválida');
-                    }
+                    LogService::persist(
+                        LogLevel::WARNING,
+                        LogCategory::WEBHOOK,
+                        'Webhook com assinatura HMAC inválida',
+                    );
                     return false;
                 }
             }
@@ -411,12 +422,12 @@ class AsaasService
             $whitelist = array_map('trim', explode(',', $allowedIps));
 
             if (!in_array($clientIp, $whitelist, true)) {
-                if (class_exists(LogService::class)) {
-                    LogService::warning('Webhook de IP não autorizado', [
-                        'ip' => $clientIp,
-                        'whitelist' => $whitelist,
-                    ]);
-                }
+                LogService::persist(
+                    LogLevel::WARNING,
+                    LogCategory::WEBHOOK,
+                    'Webhook de IP não autorizado',
+                    ['ip' => $clientIp, 'whitelist' => $whitelist],
+                );
                 return false;
             }
         }

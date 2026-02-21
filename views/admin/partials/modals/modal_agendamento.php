@@ -563,7 +563,7 @@
 </style>
 
 <!-- ==================== MODAL AGENDAMENTO (REDESENHADO) ==================== -->
-<div class="modal fade modern-modal" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoLabel"
+<div class="modal fade modern-modal" id="modalAgendamento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="modalAgendamentoLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -921,7 +921,7 @@
     }
 </style>
 
-<div class="modal fade" id="modalExecutarAgendamento" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalExecutarAgendamento" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header modern-header">

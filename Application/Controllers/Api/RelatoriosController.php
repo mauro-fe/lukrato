@@ -7,7 +7,9 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Builders\ReportExportBuilder;
+use Application\Services\ComparativesService;
 use Application\Services\ExcelExportService;
+use Application\Services\InsightsService;
 use Application\Services\LogService;
 use Application\Services\PdfExportService;
 use Application\Services\ReportService;
@@ -22,6 +24,8 @@ class RelatoriosController extends BaseController
     private ReportExportBuilder $exportBuilder;
     private PdfExportService $pdfExport;
     private ExcelExportService $excelExport;
+    private InsightsService $insightsService;
+    private ComparativesService $comparativesService;
 
     public function __construct()
     {
@@ -30,6 +34,8 @@ class RelatoriosController extends BaseController
         $this->exportBuilder = new ReportExportBuilder();
         $this->pdfExport = new PdfExportService();
         $this->excelExport = new ExcelExportService();
+        $this->insightsService = new InsightsService();
+        $this->comparativesService = new ComparativesService();
     }
 
     public function index(): void
@@ -326,156 +332,12 @@ class RelatoriosController extends BaseController
             $this->validateAccess();
 
             $userId = Auth::id();
-            $year = (int)($_GET['year'] ?? date('Y'));
-            $month = (int)($_GET['month'] ?? date('m'));
+            $year   = (int)($_GET['year'] ?? date('Y'));
+            $month  = (int)($_GET['month'] ?? date('m'));
 
-            $currentStart = Carbon::create($year, $month, 1)->startOfMonth();
-            $currentEnd = Carbon::create($year, $month, 1)->endOfMonth();
-            $previousStart = (clone $currentStart)->subMonth()->startOfMonth();
-            $previousEnd = (clone $currentStart)->subMonth()->endOfMonth();
+            $insights = $this->insightsService->generate($userId, $year, $month);
 
-            $insights = [];
-
-            // Análise do mês atual vs anterior (respeitando afeta_caixa)
-            $currentData = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$currentStart->toDateString(), $currentEnd->toDateString()])
-                ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa');
-                })
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
-
-            $previousData = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$previousStart->toDateString(), $previousEnd->toDateString()])
-                ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa');
-                })
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
-
-            $currentReceitas = (float)($currentData->receitas ?? 0);
-            $currentDespesas = (float)($currentData->despesas ?? 0);
-            $previousReceitas = (float)($previousData->receitas ?? 0);
-            $previousDespesas = (float)($previousData->despesas ?? 0);
-
-            // Insight 1: Comparação de despesas
-            if ($previousDespesas > 0) {
-                $despesasVariation = (($currentDespesas - $previousDespesas) / $previousDespesas) * 100;
-                if (abs($despesasVariation) > 10) {
-                    $insights[] = [
-                        'type' => $despesasVariation > 0 ? 'warning' : 'success',
-                        'icon' => $despesasVariation > 0 ? 'arrow-trend-up' : 'arrow-trend-down',
-                        'title' => $despesasVariation > 0 ? 'Despesas aumentaram' : 'Despesas reduziram',
-                        'message' => sprintf(
-                            'Suas despesas %s %.1f%% em relação ao mês anterior',
-                            $despesasVariation > 0 ? 'aumentaram' : 'reduziram',
-                            abs($despesasVariation)
-                        )
-                    ];
-                }
-            }
-
-            // Insight 2: Análise de saldo
-            $currentSaldo = $currentReceitas - $currentDespesas;
-            if ($currentSaldo < 0) {
-                $insights[] = [
-                    'type' => 'danger',
-                    'icon' => 'exclamation-triangle',
-                    'title' => 'Saldo negativo',
-                    'message' => 'Suas despesas estão maiores que suas receitas este mês. Considere revisar seus gastos.'
-                ];
-            } elseif ($currentReceitas > 0) {
-                $taxaEconomia = ($currentSaldo / $currentReceitas) * 100;
-                if ($taxaEconomia > 20) {
-                    $insights[] = [
-                        'type' => 'success',
-                        'icon' => 'piggy-bank',
-                        'title' => 'Ótima economia!',
-                        'message' => sprintf('Você está economizando %.1f%% de sua renda este mês!', $taxaEconomia)
-                    ];
-                }
-            }
-
-            // Insight 3: Categoria com maior gasto
-            $topCategoria = \Application\Models\Lancamento::where('lancamentos.user_id', $userId)
-                ->where('lancamentos.tipo', 'despesa')
-                ->whereBetween('lancamentos.data', [$currentStart->toDateString(), $currentEnd->toDateString()])
-                ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
-                ->selectRaw('categorias.nome, SUM(lancamentos.valor) as total')
-                ->groupBy('categorias.id', 'categorias.nome')
-                ->orderByDesc('total')
-                ->first();
-
-            if ($topCategoria && $topCategoria->total > 0) {
-                $percentual = $currentDespesas > 0 ? ($topCategoria->total / $currentDespesas) * 100 : 0;
-                if ($percentual > 30) {
-                    $insights[] = [
-                        'type' => 'info',
-                        'icon' => 'chart-pie',
-                        'title' => 'Categoria em destaque',
-                        'message' => sprintf(
-                            '%s representa %.1f%% dos seus gastos (R$ %.2f)',
-                            $topCategoria->nome,
-                            $percentual,
-                            $topCategoria->total
-                        )
-                    ];
-                }
-            }
-
-            // Insight 4: Alerta de cartão próximo do limite
-            $cartoesComLimite = \Application\Models\CartaoCredito::where('user_id', $userId)
-                ->whereNotNull('limite_total')
-                ->where('limite_total', '>', 0)
-                ->get();
-
-            $qtdCartoesAlerta = 0;
-            foreach ($cartoesComLimite as $cartao) {
-                $gasto = \Application\Models\Lancamento::where('user_id', $userId)
-                    ->where('cartao_credito_id', $cartao->id)
-                    ->whereBetween('data', [$currentStart->toDateString(), $currentEnd->toDateString()])
-                    ->sum('valor');
-
-                if ($cartao->limite_total > 0 && ($gasto / $cartao->limite_total) > 0.8) {
-                    $qtdCartoesAlerta++;
-                }
-            }
-
-            if ($qtdCartoesAlerta > 0) {
-                $insights[] = [
-                    'type' => 'warning',
-                    'icon' => 'credit-card',
-                    'title' => 'Atenção ao limite do cartão',
-                    'message' => sprintf(
-                        '%s %s próximo%s do limite',
-                        $qtdCartoesAlerta,
-                        $qtdCartoesAlerta > 1 ? 'cartões estão' : 'cartão está',
-                        $qtdCartoesAlerta > 1 ? 's' : ''
-                    )
-                ];
-            }
-
-            // Se não houver insights específicos, adicionar mensagem positiva
-            if (empty($insights)) {
-                $insights[] = [
-                    'type' => 'success',
-                    'icon' => 'check-circle',
-                    'title' => 'Tudo em ordem!',
-                    'message' => 'Suas finanças estão equilibradas neste período.'
-                ];
-            }
-
-            Response::success(['insights' => $insights]);
+            Response::success(['insights' => InsightsService::toArrayList($insights)]);
         } catch (\Throwable $e) {
             error_log("Erro no insights: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
@@ -492,140 +354,16 @@ class RelatoriosController extends BaseController
             $this->validateAccess();
 
             $userId = Auth::id();
-            $year = (int)($_GET['year'] ?? date('Y'));
-            $month = (int)($_GET['month'] ?? date('m'));
+            $year   = (int)($_GET['year'] ?? date('Y'));
+            $month  = (int)($_GET['month'] ?? date('m'));
 
-            // Mês atual
-            $currentStart = Carbon::create($year, $month, 1)->startOfMonth();
-            $currentEnd = Carbon::create($year, $month, 1)->endOfMonth();
+            $data = $this->comparativesService->generate($userId, $year, $month);
 
-            // Mês anterior
-            $previousMonthStart = (clone $currentStart)->subMonth()->startOfMonth();
-            $previousMonthEnd = (clone $currentStart)->subMonth()->endOfMonth();
-
-            // Ano atual
-            $currentYearStart = Carbon::create($year, 1, 1)->startOfDay();
-            $currentYearEnd = Carbon::create($year, 12, 31)->endOfDay();
-
-            // Ano anterior
-            $previousYearStart = Carbon::create($year - 1, 1, 1)->startOfDay();
-            $previousYearEnd = Carbon::create($year - 1, 12, 31)->endOfDay();
-
-            // Dados mês atual (respeitando afeta_caixa)
-            $currentMonth = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$currentStart->toDateString(), $currentEnd->toDateString()])
-                ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa');
-                })
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
-
-            // Dados mês anterior
-            $previousMonth = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$previousMonthStart->toDateString(), $previousMonthEnd->toDateString()])
-                ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa');
-                })
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
-
-            // Dados ano atual
-            $currentYear = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$currentYearStart->toDateString(), $currentYearEnd->toDateString()])
-                ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa');
-                })
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
-
-            // Dados ano anterior
-            $previousYear = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$previousYearStart->toDateString(), $previousYearEnd->toDateString()])
-                ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa');
-                })
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
-
-            // Calcular variações
-            $monthlyComparison = [
-                'current' => [
-                    'receitas' => (float)($currentMonth->receitas ?? 0),
-                    'despesas' => (float)($currentMonth->despesas ?? 0),
-                    'saldo' => (float)(($currentMonth->receitas ?? 0) - ($currentMonth->despesas ?? 0))
-                ],
-                'previous' => [
-                    'receitas' => (float)($previousMonth->receitas ?? 0),
-                    'despesas' => (float)($previousMonth->despesas ?? 0),
-                    'saldo' => (float)(($previousMonth->receitas ?? 0) - ($previousMonth->despesas ?? 0))
-                ],
-                'variation' => [
-                    'receitas' => $this->calculateVariation($previousMonth->receitas ?? 0, $currentMonth->receitas ?? 0),
-                    'despesas' => $this->calculateVariation($previousMonth->despesas ?? 0, $currentMonth->despesas ?? 0),
-                    'saldo' => $this->calculateVariation(
-                        ($previousMonth->receitas ?? 0) - ($previousMonth->despesas ?? 0),
-                        ($currentMonth->receitas ?? 0) - ($currentMonth->despesas ?? 0)
-                    )
-                ]
-            ];
-
-            $yearlyComparison = [
-                'current' => [
-                    'receitas' => (float)($currentYear->receitas ?? 0),
-                    'despesas' => (float)($currentYear->despesas ?? 0),
-                    'saldo' => (float)(($currentYear->receitas ?? 0) - ($currentYear->despesas ?? 0))
-                ],
-                'previous' => [
-                    'receitas' => (float)($previousYear->receitas ?? 0),
-                    'despesas' => (float)($previousYear->despesas ?? 0),
-                    'saldo' => (float)(($previousYear->receitas ?? 0) - ($previousYear->despesas ?? 0))
-                ],
-                'variation' => [
-                    'receitas' => $this->calculateVariation($previousYear->receitas ?? 0, $currentYear->receitas ?? 0),
-                    'despesas' => $this->calculateVariation($previousYear->despesas ?? 0, $currentYear->despesas ?? 0),
-                    'saldo' => $this->calculateVariation(
-                        ($previousYear->receitas ?? 0) - ($previousYear->despesas ?? 0),
-                        ($currentYear->receitas ?? 0) - ($currentYear->despesas ?? 0)
-                    )
-                ]
-            ];
-
-            Response::success([
-                'monthly' => $monthlyComparison,
-                'yearly' => $yearlyComparison
-            ]);
+            Response::success($data);
         } catch (\Throwable $e) {
             error_log("Erro no comparatives: " . $e->getMessage());
             Response::error($e->getMessage(), 500);
         }
-    }
-
-    private function calculateVariation(float $previous, float $current): float
-    {
-        if ($previous == 0) {
-            return $current > 0 ? 100.0 : 0.0;
-        }
-        return round((($current - $previous) / $previous) * 100, 2);
     }
 
     /**

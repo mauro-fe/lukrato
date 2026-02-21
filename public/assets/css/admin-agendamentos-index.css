@@ -201,8 +201,11 @@
   transition: var(--transition-base);
 }
 
-.notification-btn i {
+.notification-btn i,
+.notification-btn svg {
   font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .notification-btn:hover {
@@ -249,8 +252,11 @@
   text-decoration: none;
 }
 
-.btn-modern i {
+.btn-modern i,
+.btn-modern svg {
   font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .btn-modern:hover {
@@ -525,8 +531,11 @@
   transform: scale(0.97);
 }
 
-.modern-btn i {
+.modern-btn i,
+.modern-btn svg {
   font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Botão Primary */
@@ -1071,8 +1080,11 @@
   );
 }
 
-.ag-card-btn i {
+.ag-card-btn i,
+.ag-card-btn svg {
   font-size: 14px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Destaque de cards mobile */
@@ -1200,7 +1212,11 @@
 .card-empty-cta {
   margin-top: var(--spacing-2);
   padding: var(--spacing-3) var(--spacing-6);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -1218,8 +1234,15 @@
 }
 
 @keyframes pulse-gentle {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 /* ============================================================================
@@ -1458,8 +1481,11 @@
   box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
 }
 
-.toggle-btn i {
+.toggle-btn i,
+.toggle-btn svg {
   font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .toggle-text {
@@ -1648,8 +1674,11 @@
   transform: translateY(-2px);
 }
 
-.quick-filter-btn i {
+.quick-filter-btn i,
+.quick-filter-btn svg {
   font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 /* Badge de contagem nos filtros */
@@ -1748,8 +1777,12 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* =============================================================================
@@ -1798,7 +1831,10 @@
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height 0.3s ease-out, opacity 0.2s ease, padding 0.3s ease;
+  transition:
+    max-height 0.3s ease-out,
+    opacity 0.2s ease,
+    padding 0.3s ease;
   padding-top: 0;
   padding-bottom: 0;
 }

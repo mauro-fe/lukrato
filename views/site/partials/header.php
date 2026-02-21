@@ -159,8 +159,17 @@ $breadcrumbItems = $breadcrumbItems ?? [];
         }
 
         @keyframes lk-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.95); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(0.95);
+            }
         }
     </style>
 
@@ -426,7 +435,9 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 var p = document.getElementById('lk-preloader');
                 if (p) {
                     p.classList.add('hide');
-                    setTimeout(function() { p.remove(); }, 500);
+                    setTimeout(function() {
+                        p.remove();
+                    }, 500);
                 }
             }
             // Aguarda o DOMContentLoaded + pequeno delay para Tailwind processar
@@ -491,7 +502,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                         <span class="inline-flex items-center gap-1">
                             Indicação
                             <span
-                                class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-1.5 py-0.5 rounded-full">🎁</span>
+                                class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-1.5 py-0.5 rounded-full"><i data-lucide="gift" class="w-3 h-3 inline-block"></i></span>
                         </span>
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
@@ -610,7 +621,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors flex items-center justify-between">
                     <span>Indicação</span>
                     <span
-                        class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full">🎁
+                        class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full"><i data-lucide="gift" class="w-3 h-3 inline-block"></i>
                         Ganhe PRO</span>
                 </a>
                 <a href="<?= BASE_URL ?>#contato" @click="mobileMenuOpen = false"

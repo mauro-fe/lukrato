@@ -103,7 +103,6 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         gap: var(--spacing-2);
         font-weight: 600;
         font-size: var(--font-size-sm);
-        min-width: 140px;
         padding: 0 var(--spacing-3);
         color: var(--color-text);
     }
@@ -113,12 +112,16 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         color: var(--color-primary);
     }
 
-    .dash-lk-header .month-dropdown-btn i {
+    .dash-lk-header .month-dropdown-btn i,
+    .dash-lk-header .month-dropdown-btn svg {
         font-size: 12px;
+        width: 12px;
+        height: 12px;
         transition: transform var(--transition-normal);
     }
 
-    .dash-lk-header .month-dropdown-btn:hover i {
+    .dash-lk-header .month-dropdown-btn:hover i,
+    .dash-lk-header .month-dropdown-btn:hover svg {
         transform: translateY(2px);
     }
 
@@ -145,8 +148,11 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         color: #fff;
     }
 
-    .lk-pro-cta i {
+    .lk-pro-cta i,
+    .lk-pro-cta svg {
         font-size: 14px;
+        width: 14px;
+        height: 14px;
     }
 
     /* Month dropdown */
@@ -672,7 +678,9 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         const shiftMonth = (delta) => {
             // Debounce para evitar múltiplos cliques rápidos
             if (shiftTimeout) return;
-            shiftTimeout = setTimeout(() => { shiftTimeout = null; }, 150);
+            shiftTimeout = setTimeout(() => {
+                shiftTimeout = null;
+            }, 150);
 
             const [y, m] = state.split('-').map(Number);
             const d = new Date(y, (m - 1) + delta, 1);
@@ -789,7 +797,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         // ---- Atalhos de teclado para navegação de mês
         document.addEventListener('keydown', (e) => {
             // Ignorar se estiver em input, textarea, select ou modal aberto
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName ===
+                'SELECT') return;
             if (e.target.closest('.modal.show') || e.target.closest('.swal2-container')) return;
 
             if (e.key === 'ArrowLeft') {

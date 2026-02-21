@@ -1,5 +1,5 @@
 <!-- ==================== MODAL: DETALHES DA FATURA ==================== -->
-<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1">
+<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modern-modal">
             <div class="modal-header">
@@ -30,13 +30,13 @@
             <div class="modal-body">
                 <input type="hidden" id="pagarFaturaId" value="">
                 <input type="hidden" id="pagarFaturaValorTotal" value="">
-                
+
                 <!-- Escolha do tipo de pagamento -->
                 <div id="pagarFaturaEscolha">
                     <p style="color: var(--color-text-muted); margin-bottom: 1.25rem; text-align: center;">
                         Como deseja efetuar o pagamento?
                     </p>
-                    
+
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <button type="button" id="btnPagarTotal" class="btn-opcao-pagamento" style="
                             display: flex; align-items: center; gap: 1rem; 
@@ -58,7 +58,7 @@
                                 <div id="valorTotalDisplay" style="font-size: 1.25rem; font-weight: bold; margin-top: 0.25rem;">R$ 0,00</div>
                             </div>
                         </button>
-                        
+
                         <button type="button" id="btnPagarParcial" class="btn-opcao-pagamento" style="
                             display: flex; align-items: center; gap: 1rem; 
                             padding: 1rem 1.25rem; 
@@ -81,7 +81,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Formulário de valor parcial (inicialmente escondido) -->
                 <div id="pagarFaturaFormParcial" style="display: none;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
@@ -98,7 +98,7 @@
                         </button>
                         <span style="color: var(--color-text); font-weight: 500;">Pagar valor personalizado</span>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="valorPagamentoParcial" class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
                             <i data-lucide="banknote" style="color: #10b981;"></i>
@@ -106,15 +106,15 @@
                         </label>
                         <div class="input-group">
                             <span class="input-group-text" style="background: var(--color-surface); border-color: var(--glass-border); color: var(--color-text);">R$</span>
-                            <input type="text" class="form-control" id="valorPagamentoParcial" 
-                                   placeholder="0,00"
-                                   style="font-size: 1.25rem; font-weight: 600; text-align: right; background: var(--color-surface); border-color: var(--glass-border); color: var(--color-text);">
+                            <input type="text" class="form-control" id="valorPagamentoParcial"
+                                placeholder="0,00"
+                                style="font-size: 1.25rem; font-weight: 600; text-align: right; background: var(--color-surface); border-color: var(--glass-border); color: var(--color-text);">
                         </div>
                         <small id="valorTotalInfo" style="display: block; text-align: right; color: var(--color-text-muted); margin-top: 0.5rem;">
                             Valor total da fatura: R$ 0,00
                         </small>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="contaPagamentoFatura" class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
                             <i data-lucide="landmark" style="color: #3b82f6;"></i>
@@ -124,10 +124,10 @@
                             <option value="">Carregando contas...</option>
                         </select>
                     </div>
-                    
+
                     <div style="margin: 1rem 0; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
                         <p style="margin: 0; color: #60a5fa; font-size: 0.875rem;">
-                            <i data-lucide="info"></i> 
+                            <i data-lucide="info"></i>
                             O valor informado será debitado da conta selecionada. Os itens serão marcados como pagos proporcionalmente.
                         </p>
                     </div>

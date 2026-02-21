@@ -6,6 +6,7 @@ use Application\Models\Agendamento;
 use Application\Models\Lancamento;
 use Application\Lib\Auth;
 use Application\Services\LogService;
+use Application\Enums\AgendamentoStatus;
 use RuntimeException;
 
 class AgendamentoService
@@ -482,5 +483,147 @@ class AgendamentoService
     {
         $dt = \DateTime::createFromFormat('Y-m-d', $data);
         return $dt && $dt->format('Y-m-d') === $data;
+    }
+
+    // ─── Execução com lock pessimista ──────────────────────
+
+    /**
+     * Executa agendamento com lock pessimista e proteção contra duplicatas.
+     * Retorna array com 'duplicate', 'resultado', 'data_pagamento_antes'.
+     */
+    public function executarComLock(int $userId, int $id, ?string $expectedData, ?int $contaId, ?string $formaPagamento): array
+    {
+        /** @var \Illuminate\Database\Connection $conn */
+        $conn = \Illuminate\Database\Capsule\Manager::connection();
+
+        return $conn->transaction(function () use ($userId, $id, $expectedData, $contaId, $formaPagamento) {
+
+            $agendamento = Agendamento::where('user_id', $userId)
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$agendamento) {
+                throw new RuntimeException('Agendamento não encontrado.', 404);
+            }
+
+            $statusExecutaveis = [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::NOTIFICADO->value];
+            if (!in_array($agendamento->status, $statusExecutaveis, true)) {
+                throw new RuntimeException('Somente agendamentos pendentes podem ser executados.', 400);
+            }
+
+            // Verificar duplicatas
+            if ($this->isDuplicate($agendamento, $id, $userId, $expectedData)) {
+                return ['duplicate' => true, 'agendamento' => $agendamento];
+            }
+
+            $dataAntes = $agendamento->data_pagamento instanceof \DateTimeInterface
+                ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
+                : (string) $agendamento->data_pagamento;
+
+            LogService::info('Executando agendamento (com lock)', [
+                'agendamento_id'       => $id,
+                'data_pagamento_atual' => $dataAntes,
+                'recorrente'           => (bool) $agendamento->recorrente,
+                'recorrencia_freq'     => $agendamento->recorrencia_freq,
+                'eh_parcelado'         => (bool) $agendamento->eh_parcelado,
+                'parcela_atual'        => $agendamento->parcela_atual,
+                'numero_parcelas'      => $agendamento->numero_parcelas,
+                'status'               => $agendamento->status,
+                'user_id'              => $userId,
+            ]);
+
+            $resultado = $this->executarAgendamento($agendamento, $contaId, $formaPagamento);
+            $resultado['duplicate'] = false;
+            $resultado['data_pagamento_antes'] = $dataAntes;
+
+            return $resultado;
+        });
+    }
+
+    /**
+     * Monta a mensagem de resposta para execução de agendamento.
+     */
+    public function buildExecutionMessage(array $resultado): string
+    {
+        if ($resultado['parcelado'] ?? false) {
+            if ($resultado['finalizado'] ?? false) {
+                return "Última parcela paga! ({$resultado['parcela_paga']}/{$resultado['total_parcelas']}) Agendamento finalizado.";
+            }
+            return "Parcela {$resultado['parcela_paga']}/{$resultado['total_parcelas']} paga! Próxima: " . date('d/m/Y', strtotime($resultado['proximaData']));
+        }
+
+        if ($resultado['recorrente']) {
+            return 'Lançamento criado! Próxima ocorrência agendada para ' . date('d/m/Y', strtotime($resultado['proximaData']));
+        }
+
+        return 'Agendamento executado com sucesso!';
+    }
+
+    // ─── Duplicate detection ────────────────────────────────
+
+    private function isDuplicate(Agendamento $agendamento, int $id, int $userId, ?string $expectedData): bool
+    {
+        // 1) Verificar data esperada vs data atual
+        if ($expectedData) {
+            try {
+                $expectedDT = new \DateTimeImmutable($expectedData);
+                $expectedDT = $expectedDT->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                $expectedDate = $expectedDT->format('Y-m-d');
+            } catch (\Throwable $e) {
+                $expectedDate = substr($expectedData, 0, 10);
+            }
+
+            $currentData = $agendamento->data_pagamento instanceof \DateTimeInterface
+                ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
+                : (string) $agendamento->data_pagamento;
+            $currentDate = substr($currentData, 0, 10);
+
+            if ($expectedDate !== $currentDate) {
+                LogService::warning('Execução duplicada bloqueada (data já avançou)', [
+                    'agendamento_id' => $id,
+                    'expected_date' => $expectedDate,
+                    'current_date' => $currentDate,
+                    'user_id' => $userId,
+                ]);
+                return true;
+            }
+        }
+
+        // 2) Recorrentes: proteção contra execução rápida consecutiva
+        if ($agendamento->recorrente && $agendamento->updated_at && $agendamento->created_at) {
+            $updatedAt = $agendamento->updated_at instanceof \DateTimeInterface
+                ? $agendamento->updated_at->getTimestamp()
+                : strtotime((string) $agendamento->updated_at);
+            $createdAt = $agendamento->created_at instanceof \DateTimeInterface
+                ? $agendamento->created_at->getTimestamp()
+                : strtotime((string) $agendamento->created_at);
+            $diffSeconds = time() - $updatedAt;
+            $isNewlyCreated = abs($updatedAt - $createdAt) < 15;
+
+            if ($diffSeconds >= 0 && $diffSeconds < 10 && !$isNewlyCreated && $expectedData) {
+                LogService::warning('Execução duplicada bloqueada (updated_at recente para recorrente)', [
+                    'agendamento_id' => $id,
+                    'diff_seconds' => $diffSeconds,
+                    'user_id' => $userId,
+                ]);
+                return true;
+            }
+        }
+
+        // 3) Proteção via concluido_em
+        if ($agendamento->concluido_em) {
+            $ultimaExecucao = strtotime($agendamento->concluido_em);
+            if (time() - $ultimaExecucao < 30) {
+                LogService::warning('Execução duplicada bloqueada (concluido_em recente)', [
+                    'agendamento_id' => $id,
+                    'concluido_em' => $agendamento->concluido_em,
+                    'user_id' => $userId,
+                ]);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

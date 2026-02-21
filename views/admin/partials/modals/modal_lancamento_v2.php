@@ -1,5 +1,5 @@
 <!-- Modal de Novo Lançamento -->
-<div class="lk-modal-overlay" id="modalLancamentoOverlay" onclick="contasManager.closeLancamentoModal()">
+<div class="lk-modal-overlay" id="modalLancamentoOverlay">
     <div class="lk-modal-modern lk-modal-lancamento" onclick="event.stopPropagation()" role="dialog"
         aria-labelledby="modalLancamentoTitulo">
         <!-- Header com Gradiente -->

@@ -40,14 +40,14 @@
                 <i data-lucide="triangle-alert"></i>
             </div>
             <div class="stat-content">
-                <h3 class="stat-value">3</h3>
+                <h3 class="stat-value" id="stat-error-total">–</h3>
                 <p class="stat-label">Logs de Erro</p>
-                <span class="stat-badge warning">
+                <span class="stat-badge warning" id="stat-error-badge">
                     <i data-lucide="clock"></i>
-                    Ultimo ha 20 min
+                    <span id="stat-error-unresolved">Carregando...</span>
                 </span>
             </div>
-            <a href="#" class="stat-link">Ver Logs <i data-lucide="arrow-right"></i></a>
+            <a href="#errorLogsSection" class="stat-link" onclick="document.getElementById('errorLogsSection').scrollIntoView({behavior:'smooth'});return false;">Ver Logs <i data-lucide="arrow-right"></i></a>
         </div>
     </div>
 
@@ -256,6 +256,101 @@
         </div>
     </div>
 
+    <!-- =============================================== -->
+    <!-- ERROR LOGS SECTION - Real-time Monitoring      -->
+    <!-- =============================================== -->
+    <div class="error-logs-section" id="errorLogsSection" data-aos="fade-up" data-aos-delay="320">
+        <h2 class="section-title">
+            <i data-lucide="shield-alert"></i>
+            Logs de Erro em Tempo Real
+            <div class="error-logs-title-actions">
+                <label class="auto-refresh-toggle" title="Atualização automática">
+                    <input type="checkbox" id="errorLogsAutoRefresh" checked>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Auto</span>
+                </label>
+                <button class="btn-refresh-stats" onclick="loadErrorLogs()" title="Atualizar logs">
+                    <i data-lucide="refresh-cw" id="errorLogsRefreshIcon"></i>
+                </button>
+            </div>
+        </h2>
+
+        <!-- Error Level Summary Cards -->
+        <div class="error-level-cards" id="errorLevelCards">
+            <div class="error-level-card level-critical">
+                <div class="error-level-icon"><i data-lucide="zap"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelCritical">0</span>
+                    <span class="error-level-label">Critical</span>
+                </div>
+            </div>
+            <div class="error-level-card level-error">
+                <div class="error-level-icon"><i data-lucide="x-circle"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelError">0</span>
+                    <span class="error-level-label">Error</span>
+                </div>
+            </div>
+            <div class="error-level-card level-warning">
+                <div class="error-level-icon"><i data-lucide="alert-triangle"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelWarning">0</span>
+                    <span class="error-level-label">Warning</span>
+                </div>
+            </div>
+            <div class="error-level-card level-info">
+                <div class="error-level-icon"><i data-lucide="info"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelInfo">0</span>
+                    <span class="error-level-label">Info</span>
+                </div>
+            </div>
+            <div class="error-level-card level-unresolved">
+                <div class="error-level-icon"><i data-lucide="clock"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelUnresolved">0</span>
+                    <span class="error-level-label">Não Resolvidos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Logs Filters -->
+        <div class="error-logs-filters">
+            <form id="errorLogsFilters" class="error-logs-filters-form">
+                <input type="text" name="search" class="filter-input" placeholder="Buscar mensagem, classe, arquivo..." id="errorLogSearch">
+                <select name="level" class="filter-select" id="errorLogLevel">
+                    <option value="">Todos os Níveis</option>
+                </select>
+                <select name="category" class="filter-select" id="errorLogCategory">
+                    <option value="">Todas as Categorias</option>
+                </select>
+                <select name="resolved" class="filter-select" id="errorLogResolved">
+                    <option value="">Todos</option>
+                    <option value="0" selected>Não Resolvidos</option>
+                    <option value="1">Resolvidos</option>
+                </select>
+                <select name="per_page" class="filter-select" id="errorLogPerPage">
+                    <option value="15">15 por página</option>
+                    <option value="25">25 por página</option>
+                    <option value="50">50 por página</option>
+                    <option value="100">100 por página</option>
+                </select>
+                <button type="submit" class="btn-control primary"><i data-lucide="filter"></i> Filtrar</button>
+                <button type="button" class="btn-control danger" onclick="confirmCleanupLogs()" title="Limpar logs antigos resolvidos">
+                    <i data-lucide="trash-2"></i> Limpar
+                </button>
+            </form>
+        </div>
+
+        <!-- Error Logs Table -->
+        <div class="error-logs-table-wrapper" id="errorLogsTableWrapper">
+            <div class="error-logs-loading">
+                <i data-lucide="loader-2" class="icon-spin"></i>
+                <span>Carregando logs...</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Filtros de Usuários -->
     <div class="user-filters-card" data-aos="fade-up" data-aos-delay="350">
         <form id="userFilters" class="user-filters-form">
@@ -344,11 +439,19 @@
 
         if (maintenanceActive) {
             btn.className = 'btn-control success';
-            icon.setAttribute('data-lucide', 'circle-check'); icon.className = ''; if(window.lucide) lucide.createIcons({nodes: [icon]});
+            icon.setAttribute('data-lucide', 'circle-check');
+            icon.className = '';
+            if (window.lucide) lucide.createIcons({
+                nodes: [icon]
+            });
             text.textContent = 'Desativar Manutenção (ATIVO)';
         } else {
             btn.className = 'btn-control danger';
-            icon.setAttribute('data-lucide', 'wrench'); icon.className = ''; if(window.lucide) lucide.createIcons({nodes: [icon]});
+            icon.setAttribute('data-lucide', 'wrench');
+            icon.className = '';
+            if (window.lucide) lucide.createIcons({
+                nodes: [icon]
+            });
             text.textContent = 'Ativar Modo Manutenção';
         }
     }
@@ -1266,6 +1369,412 @@
 
     // Inicializa tabela ao carregar
     fetchUsers(1);
+
+    // ============================================
+    // ERROR LOGS - REAL-TIME MONITORING
+    // ============================================
+
+    let errorLogsCurrentPage = 1;
+    let errorLogsAutoRefreshTimer = null;
+    const ERROR_LOGS_REFRESH_INTERVAL = 15000; // 15 seconds
+    let errorLogFiltersLoaded = false;
+
+    // Load summary for stat card + level cards
+    async function loadErrorLogsSummary() {
+        try {
+            const res = await fetch(`${BASE_URL}api/sysadmin/error-logs/summary?hours=24`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await res.json();
+            if (!data.success) return;
+
+            const summary = data.data;
+
+            // Update stat card
+            document.getElementById('stat-error-total').textContent = (summary.total || 0).toLocaleString('pt-BR');
+            const unresolvedEl = document.getElementById('stat-error-unresolved');
+            const badgeEl = document.getElementById('stat-error-badge');
+            if (summary.unresolved > 0) {
+                unresolvedEl.textContent = `${summary.unresolved} não resolvido${summary.unresolved > 1 ? 's' : ''}`;
+                badgeEl.className = 'stat-badge warning';
+            } else {
+                unresolvedEl.textContent = 'Tudo limpo!';
+                badgeEl.className = 'stat-badge success';
+            }
+
+            // Update level cards
+            const byLevel = summary.by_level || {};
+            document.getElementById('levelCritical').textContent = byLevel['CRITICAL'] || byLevel['critical'] || 0;
+            document.getElementById('levelError').textContent = byLevel['ERROR'] || byLevel['error'] || 0;
+            document.getElementById('levelWarning').textContent = byLevel['WARNING'] || byLevel['warning'] || 0;
+            document.getElementById('levelInfo').textContent = byLevel['INFO'] || byLevel['info'] || 0;
+            document.getElementById('levelUnresolved').textContent = summary.unresolved || 0;
+
+            // Populate filter dropdowns (only once)
+            if (!errorLogFiltersLoaded && data.data.filters) {
+                populateErrorLogFilters(data.data.filters);
+                errorLogFiltersLoaded = true;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar resumo de logs:', e);
+        }
+    }
+
+    function populateErrorLogFilters(filters) {
+        const levelSelect = document.getElementById('errorLogLevel');
+        const categorySelect = document.getElementById('errorLogCategory');
+
+        if (filters.levels && levelSelect) {
+            filters.levels.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.value;
+                opt.textContent = l.label;
+                levelSelect.appendChild(opt);
+            });
+        }
+
+        if (filters.categories && categorySelect) {
+            filters.categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.value;
+                opt.textContent = c.label;
+                categorySelect.appendChild(opt);
+            });
+        }
+    }
+
+    // Fetch and render error logs table
+    async function loadErrorLogs(page) {
+        if (page !== undefined) errorLogsCurrentPage = page;
+
+        const refreshIcon = document.getElementById('errorLogsRefreshIcon');
+        if (refreshIcon) refreshIcon.classList.add('icon-spin');
+
+        try {
+            // Load summary + logs in parallel
+            const form = document.getElementById('errorLogsFilters');
+            const params = new URLSearchParams(new FormData(form));
+            params.set('page', errorLogsCurrentPage);
+
+            const [logsRes] = await Promise.all([
+                fetch(`${BASE_URL}api/sysadmin/error-logs?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }),
+                loadErrorLogsSummary()
+            ]);
+
+            const logsData = await logsRes.json();
+
+            if (refreshIcon) refreshIcon.classList.remove('icon-spin');
+
+            if (!logsData.success) {
+                document.getElementById('errorLogsTableWrapper').innerHTML =
+                    `<div class='error-logs-empty'><i data-lucide='alert-circle'></i><p>Erro ao carregar logs</p></div>`;
+                return;
+            }
+
+            renderErrorLogsTable(logsData.data.data, logsData.data.total, logsData.data.page, logsData.data.per_page);
+        } catch (e) {
+            if (refreshIcon) refreshIcon.classList.remove('icon-spin');
+            console.error('Erro ao carregar logs:', e);
+            document.getElementById('errorLogsTableWrapper').innerHTML =
+                `<div class='error-logs-empty'><i data-lucide='wifi-off'></i><p>Erro de conexão</p></div>`;
+        }
+    }
+
+    function renderErrorLogsTable(logs, total, page, perPage) {
+        const wrapper = document.getElementById('errorLogsTableWrapper');
+        if (!logs || logs.length === 0) {
+            wrapper.innerHTML = `
+                <div class='error-logs-empty'>
+                    <i data-lucide='check-circle-2' style='color:#10b981;'></i>
+                    <p>Nenhum log encontrado</p>
+                    <span>Sistema operando normalmente</span>
+                </div>`;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        let html = `<div class='error-logs-table-card'><div class='table-responsive'><table class='error-logs-table'>`;
+        html += `<thead><tr>
+            <th style="width:40px"></th>
+            <th>Nível</th>
+            <th>Categoria</th>
+            <th>Mensagem</th>
+            <th>Arquivo</th>
+            <th>Usuário</th>
+            <th>Data</th>
+            <th class='text-center'>Ações</th>
+        </tr></thead><tbody>`;
+
+        logs.forEach(log => {
+            const levelClass = (log.level || '').toLowerCase();
+            const levelLabel = (log.level || 'N/A').toUpperCase();
+            const isResolved = !!log.resolved_at;
+            const timeAgo = getTimeAgo(log.created_at);
+            const shortMsg = truncate(log.message || log.exception_message || '(sem mensagem)', 60);
+            const fileName = log.file ? log.file.split('/').pop().split('\\\\').pop() : '–';
+            const fileLine = log.line ? `${fileName}:${log.line}` : fileName;
+
+            html += `<tr class='error-log-row ${isResolved ? "resolved" : ""}' data-log-id='${log.id}'>
+                <td><button class='btn-expand-log' onclick='toggleLogDetail(${log.id})' title='Ver detalhes'><i data-lucide='chevron-right'></i></button></td>
+                <td><span class='log-level-badge ${levelClass}'>${levelLabel}</span></td>
+                <td><span class='log-category-badge'>${log.category || '–'}</span></td>
+                <td class='log-message-cell' title='${escapeHtml(log.message || '')}'>${escapeHtml(shortMsg)}</td>
+                <td class='log-file-cell'><code>${escapeHtml(fileLine)}</code></td>
+                <td>${log.user_id ? '<span class="log-user-id">#' + log.user_id + '</span>' : '<span class="log-no-user">–</span>'}</td>
+                <td><span class='log-time' title='${log.created_at}'>${timeAgo}</span></td>
+                <td class='text-center'>
+                    ${!isResolved ? `<button class='btn-action resolve' title='Resolver' onclick='resolveErrorLog(${log.id})'><i data-lucide='check'></i></button>` : `<span class='log-resolved-badge'><i data-lucide='check-circle-2'></i></span>`}
+                </td>
+            </tr>`;
+
+            // Detail row (hidden by default)
+            html += `<tr class='error-log-detail' id='logDetail${log.id}' style='display:none'>
+                <td colspan='8'>
+                    <div class='log-detail-content'>
+                        <div class='log-detail-grid'>
+                            <div class='log-detail-item'>
+                                <strong>Mensagem Completa</strong>
+                                <pre>${escapeHtml(log.message || '–')}</pre>
+                            </div>
+                            ${log.exception_class ? `<div class='log-detail-item'>
+                                <strong>Exceção</strong>
+                                <code>${escapeHtml(log.exception_class)}</code>
+                                ${log.exception_message ? `<pre>${escapeHtml(log.exception_message)}</pre>` : ''}
+                            </div>` : ''}
+                            <div class='log-detail-item'>
+                                <strong>Arquivo</strong>
+                                <code>${escapeHtml(log.file || '–')}${log.line ? ':' + log.line : ''}</code>
+                            </div>
+                            ${log.url ? `<div class='log-detail-item'>
+                                <strong>URL</strong>
+                                <code>${escapeHtml(log.method || '')} ${escapeHtml(log.url)}</code>
+                            </div>` : ''}
+                            ${log.ip ? `<div class='log-detail-item'>
+                                <strong>IP</strong>
+                                <code>${escapeHtml(log.ip)}</code>
+                            </div>` : ''}
+                            ${log.user_agent ? `<div class='log-detail-item'>
+                                <strong>User Agent</strong>
+                                <small>${escapeHtml(log.user_agent)}</small>
+                            </div>` : ''}
+                            ${log.context && Object.keys(log.context).length > 0 ? `<div class='log-detail-item full-width'>
+                                <strong>Contexto</strong>
+                                <pre class='log-context-json'>${escapeHtml(JSON.stringify(log.context, null, 2))}</pre>
+                            </div>` : ''}
+                            ${log.stack_trace ? `<div class='log-detail-item full-width'>
+                                <strong>Stack Trace</strong>
+                                <pre class='log-stack-trace'>${escapeHtml(log.stack_trace)}</pre>
+                            </div>` : ''}
+                        </div>
+                        ${log.resolved_at ? `<div class='log-resolved-info'><i data-lucide='check-circle-2'></i> Resolvido em ${formatDate(log.resolved_at)}${log.resolved_by ? ' por #' + log.resolved_by : ''}</div>` : ''}
+                    </div>
+                </td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        html += renderErrorLogsPagination(total, page, perPage);
+        html += `</div>`;
+        wrapper.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderErrorLogsPagination(total, page, perPage) {
+        const totalPages = Math.ceil(total / perPage);
+        if (totalPages <= 1) return '';
+
+        const startItem = ((page - 1) * perPage) + 1;
+        const endItem = Math.min(page * perPage, total);
+
+        let html = `<div class='pagination-wrapper'>`;
+        html += `<div class='pagination-info'><span>Mostrando <strong>${startItem}</strong> - <strong>${endItem}</strong> de <strong>${total}</strong> logs</span></div>`;
+        html += `<div class='pagination-controls'>`;
+        html += `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='errorLogsGoToPage(1)' title='Primeira'><i data-lucide='chevrons-left'></i></button>`;
+        html += `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='errorLogsGoToPage(${page-1})' title='Anterior'><i data-lucide='chevron-left'></i></button>`;
+
+        for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+            html += `<button class='pagination-btn ${i===page?"active":""}' onclick='errorLogsGoToPage(${i})'>${i}</button>`;
+        }
+
+        html += `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='errorLogsGoToPage(${page+1})' title='Próxima'><i data-lucide='chevron-right'></i></button>`;
+        html += `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='errorLogsGoToPage(${totalPages})' title='Última'><i data-lucide='chevrons-right'></i></button>`;
+        html += `</div></div>`;
+        return html;
+    }
+
+    function errorLogsGoToPage(p) {
+        loadErrorLogs(p);
+    }
+
+    function toggleLogDetail(logId) {
+        const detail = document.getElementById('logDetail' + logId);
+        const row = document.querySelector(`tr[data-log-id="${logId}"]`);
+        if (!detail) return;
+
+        const isVisible = detail.style.display !== 'none';
+        detail.style.display = isVisible ? 'none' : 'table-row';
+        if (row) {
+            const btn = row.querySelector('.btn-expand-log i');
+            if (btn) {
+                btn.setAttribute('data-lucide', isVisible ? 'chevron-right' : 'chevron-down');
+                if (window.lucide) lucide.createIcons({
+                    nodes: [btn]
+                });
+            }
+        }
+        if (!isVisible && window.lucide) lucide.createIcons();
+    }
+
+    async function resolveErrorLog(logId) {
+        try {
+            const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/${logId}/resolve`, {
+                method: 'PUT'
+            });
+
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Resolvido!',
+                    text: 'Log marcado como resolvido.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadErrorLogs();
+            } else {
+                Swal.fire('Erro', data.message || 'Erro ao resolver log', 'error');
+            }
+        } catch (e) {
+            console.error('Erro ao resolver log:', e);
+            Swal.fire('Erro', 'Erro ao resolver log', 'error');
+        }
+    }
+
+    function confirmCleanupLogs() {
+        Swal.fire({
+            title: 'Limpar Logs Antigos?',
+            html: `
+                <p style="color:var(--color-text-muted);margin-bottom:16px;">Remove logs <strong>resolvidos</strong> com mais de X dias.</p>
+                <select id="cleanupDays" class="swal2-select" style="width:100%;">
+                    <option value="7">Mais de 7 dias</option>
+                    <option value="15">Mais de 15 dias</option>
+                    <option value="30" selected>Mais de 30 dias</option>
+                    <option value="60">Mais de 60 dias</option>
+                    <option value="90">Mais de 90 dias</option>
+                </select>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sim, limpar!',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                return document.getElementById('cleanupDays').value;
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/cleanup`, {
+                        method: 'DELETE',
+                        body: JSON.stringify({
+                            days: parseInt(result.value)
+                        })
+                    });
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Limpeza Concluída!',
+                            text: data.message || `${data.data?.deleted || 0} logs removidos.`,
+                            timer: 2500,
+                            showConfirmButton: false
+                        });
+                        loadErrorLogs();
+                    } else {
+                        Swal.fire('Erro', data.message || 'Erro na limpeza', 'error');
+                    }
+                } catch (e) {
+                    console.error('Erro cleanup:', e);
+                    Swal.fire('Erro', 'Erro ao limpar logs', 'error');
+                }
+            }
+        });
+    }
+
+    // Auto-refresh
+    function startErrorLogsAutoRefresh() {
+        stopErrorLogsAutoRefresh();
+        errorLogsAutoRefreshTimer = setInterval(() => {
+            loadErrorLogs();
+        }, ERROR_LOGS_REFRESH_INTERVAL);
+    }
+
+    function stopErrorLogsAutoRefresh() {
+        if (errorLogsAutoRefreshTimer) {
+            clearInterval(errorLogsAutoRefreshTimer);
+            errorLogsAutoRefreshTimer = null;
+        }
+    }
+
+    document.getElementById('errorLogsAutoRefresh').addEventListener('change', function() {
+        if (this.checked) {
+            startErrorLogsAutoRefresh();
+        } else {
+            stopErrorLogsAutoRefresh();
+        }
+    });
+
+    // Error logs filter form
+    document.getElementById('errorLogsFilters').addEventListener('submit', function(e) {
+        e.preventDefault();
+        errorLogsCurrentPage = 1;
+        loadErrorLogs();
+    });
+
+    // Helpers
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    function truncate(str, len) {
+        if (!str) return '';
+        return str.length > len ? str.substring(0, len) + '...' : str;
+    }
+
+    function getTimeAgo(dateStr) {
+        if (!dateStr) return '–';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffH = Math.floor(diffMin / 60);
+        const diffD = Math.floor(diffH / 24);
+
+        if (diffMin < 1) return 'Agora';
+        if (diffMin < 60) return `${diffMin}min atrás`;
+        if (diffH < 24) return `${diffH}h atrás`;
+        if (diffD < 7) return `${diffD}d atrás`;
+        return date.toLocaleDateString('pt-BR');
+    }
+
+    // Expose functions globally
+    window.errorLogsGoToPage = errorLogsGoToPage;
+    window.toggleLogDetail = toggleLogDetail;
+    window.resolveErrorLog = resolveErrorLog;
+    window.confirmCleanupLogs = confirmCleanupLogs;
+
+    // Init error logs
+    loadErrorLogs(1);
+    startErrorLogsAutoRefresh();
 
     // ============================================
     // ESTATÍSTICAS E GRÁFICOS

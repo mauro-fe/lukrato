@@ -7,6 +7,25 @@
     window.__LK_CATEGORIAS_LOADER__ = true;
 
     // ==================== CONFIGURAÇÃO ====================
+    // Mapeamento de cores para ícones de categorias
+    function getCategoryIconColor(icon) {
+        const colors = {
+            'house': '#f97316', 'utensils': '#ef4444', 'car': '#3b82f6',
+            'lightbulb': '#eab308', 'heart-pulse': '#ef4444', 'graduation-cap': '#6366f1',
+            'shirt': '#ec4899', 'clapperboard': '#a855f7', 'credit-card': '#0ea5e9',
+            'smartphone': '#6366f1', 'shopping-cart': '#f97316', 'coins': '#eab308',
+            'briefcase': '#3b82f6', 'laptop': '#06b6d4', 'trending-up': '#22c55e',
+            'gift': '#ec4899', 'banknote': '#22c55e', 'trophy': '#f59e0b',
+            'wallet': '#14b8a6', 'tag': '#94a3b8', 'pie-chart': '#8b5cf6',
+            'piggy-bank': '#ec4899', 'plane': '#0ea5e9', 'gamepad-2': '#a855f7',
+            'baby': '#f472b6', 'dog': '#92400e', 'wrench': '#64748b',
+            'church': '#6366f1', 'dumbbell': '#ef4444', 'music': '#a855f7',
+            'book-open': '#3b82f6', 'scissors': '#ec4899', 'building-2': '#64748b',
+            'landmark': '#3b82f6', 'receipt': '#14b8a6'
+        };
+        return colors[icon] || '#f97316';
+    }
+
     const CONFIG = {
         BASE_URL: (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/'),
         TABLE_HEIGHT: '520px',
@@ -230,11 +249,12 @@
             const html = items.map((cat) => {
                 const id = cat?.id ?? '';
                 const nome = Utils.escapeHtml(cat?.nome ?? '-');
+                const icone = cat?.icone || 'tag';
 
                 return `
                     <div class="category-item" data-id="${id}">
                         <div class="category-name">
-                            <i data-lucide="tag"></i>
+                            <i data-lucide="${icone}" style="color:${getCategoryIconColor(icone)}"></i>
                             <span>${nome}</span>
                         </div>
                         <div class="category-actions">

@@ -7,6 +7,7 @@ namespace Application\Services\Auth;
 use Application\Models\Usuario;
 use Application\Lib\Auth;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Google_Client;
 use Google\Service\Oauth2;
 use Exception;
@@ -173,9 +174,10 @@ class GoogleAuthService
                 'email' => $usuario->email,
             ]);
         } catch (\Throwable $e) {
-            LogService::error('Erro ao enviar email de boas-vindas (registro via Google)', [
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'enviar_welcome_email_google',
                 'user_id' => $usuario->id,
-                'error' => $e->getMessage(),
+                'email' => $usuario->email,
             ]);
         }
 
@@ -241,10 +243,10 @@ class GoogleAuthService
 
             return true;
         } catch (\Throwable $e) {
-            LogService::error('Erro ao fazer login automático após registro', [
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'login_after_registration',
                 'user_id' => $userId,
                 'email' => $email,
-                'error' => $e->getMessage(),
             ]);
             return false;
         }

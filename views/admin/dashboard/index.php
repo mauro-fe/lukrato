@@ -377,23 +377,16 @@ if ($showOnboardingCongrats) {
 <div class="lk-checklist" id="onboardingChecklist">
     <div class="lk-checklist-accent"></div>
     <div class="lk-checklist-body">
-<<<<<<< HEAD
-        <button class="lk-checklist-dismiss" id="checklistDismiss" title="Pular etapas">
-            <span>Pular</span>
-            <i data-lucide="x" style="font-size:0.7rem;"></i>
-        </button>
-
-=======
->>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
         <div class="lk-checklist-header">
-            <div class="lk-checklist-icon-box">🚀</div>
+            <div class="lk-checklist-icon-box"><i data-lucide="rocket" style="color:#fff;width:24px;height:24px;"></i>
+            </div>
             <div class="lk-checklist-title">
                 <h2>Primeiros passos</h2>
                 <p>Complete as etapas para aproveitar o melhor do Lukrato</p>
             </div>
             <button class="lk-checklist-dismiss" id="checklistDismiss" title="Pular etapas">
                 <span>Pular</span>
-                <i class="fas fa-times" style="font-size:0.65rem;"></i>
+                <i data-lucide="x" style="width:12px;height:12px;"></i>
             </button>
             <div class="lk-checklist-badge" id="checklistBadge">0/6</div>
         </div>
@@ -495,7 +488,7 @@ if ($showOnboardingCongrats) {
             if (data.all_complete) {
                 box.innerHTML =
                     '<div class="lk-checklist-complete">' +
-                    '<div class="lk-checklist-complete-icon">🎉</div>' +
+                    '<div class="lk-checklist-complete-icon"><i data-lucide="party-popper" style="width:48px;height:48px;color:var(--color-success);"></i></div>' +
                     '<h3>Parabéns! Você completou tudo</h3>' +
                     '<p>Agora é só manter o controle das suas finanças</p>' +
                     '</div>';
@@ -518,39 +511,24 @@ if ($showOnboardingCongrats) {
                 return a.done - b.done;
             });
 
-<<<<<<< HEAD
-        box.innerHTML = sorted.map(function(item) {
-            return '<a href="' + BASE_URL + item.href + '" class="lk-checklist-item ' + (item.done ? 'done' : '') + '">' +
-                '<div class="lk-checklist-check"><i data-lucide="check"></i></div>' +
-                '<div class="lk-checklist-item-icon" style="background:color-mix(in srgb, ' + item.color + ' 15%, var(--color-surface));color:' + item.color + ';">' +
-                    '<i data-lucide="' + item.icon + '"></i>' +
-                '</div>' +
-                '<div class="lk-checklist-item-text">' +
-                    '<span class="lk-checklist-item-label">' + item.label + '</span>' +
-                    '<span class="lk-checklist-item-desc">' + item.description + '</span>' +
-                '</div>' +
-                '<i data-lucide="chevron-right" class="lk-checklist-item-arrow"></i>' +
-            '</a>';
-        }).join('');
-    }
-=======
             box.innerHTML = sorted.map(function(item) {
                 return '<a href="' + BASE_URL + item.href + '" class="lk-checklist-item ' + (item.done ?
                         'done' : '') + '">' +
-                    '<div class="lk-checklist-check"><i class="fas fa-check"></i></div>' +
+                    '<div class="lk-checklist-check"><i data-lucide="check"></i></div>' +
                     '<div class="lk-checklist-item-icon" style="background:color-mix(in srgb, ' + item
                     .color + ' 15%, var(--color-surface));color:' + item.color + ';">' +
-                    '<i class="fas ' + item.icon + '"></i>' +
+                    '<i data-lucide="' + item.icon + '"></i>' +
                     '</div>' +
                     '<div class="lk-checklist-item-text">' +
                     '<span class="lk-checklist-item-label">' + item.label + '</span>' +
                     '<span class="lk-checklist-item-desc">' + item.description + '</span>' +
                     '</div>' +
-                    '<i class="fas fa-chevron-right lk-checklist-item-arrow"></i>' +
+                    '<i data-lucide="chevron-right" class="lk-checklist-item-arrow"></i>' +
                     '</a>';
             }).join('');
+
+            if (window.lucide) lucide.createIcons();
         }
->>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
 
         function fireConfetti() {
             if (typeof confetti !== 'function') return;
@@ -612,7 +590,8 @@ if ($showOnboardingCongrats) {
         <div class="gamification-grid">
             <!-- Streak -->
             <div class="streak-card">
-                <div class="streak-icon">🔥</div>
+                <div class="streak-icon"><i data-lucide="flame"
+                        style="width:28px;height:28px;color:var(--color-warning,#f59e0b);"></i></div>
                 <div class="streak-number" id="streakDays">0</div>
                 <div class="streak-label">Dias Ativos</div>
                 <div class="streak-protection" id="streakProtection" style="display: none;">
@@ -624,7 +603,12 @@ if ($showOnboardingCongrats) {
             <!-- Progresso -->
             <div class="level-progress-card">
                 <div class="level-progress-header">
-                    <span class="level-progress-label">Progresso para próximo nível</span>
+                    <div class="level-progress-label">
+                        <i data-lucide="bar-chart-3"></i>
+                        <span>Progresso para próximo nível</span>
+                    </div>
+
+
                     <span class="level-progress-points" id="levelProgressPoints">0 / 300 pontos</span>
                 </div>
                 <div class="level-progress-bar-container">
@@ -757,12 +741,8 @@ if ($showOnboardingCongrats) {
                     <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
                     <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
                 </div>
-<<<<<<< HEAD
-                <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i data-lucide="arrow-right"></i></a>
-=======
                 <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i
-                        class="fas fa-arrow-right"></i></a>
->>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
+                        data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de receitas vencidas (não recebidas) -->
             <div class="provisao-alert receitas" id="provisaoAlertReceitas" style="display:none;">
@@ -771,12 +751,8 @@ if ($showOnboardingCongrats) {
                     <strong id="provisaoAlertReceitasCount">0</strong> recebimento(s) atrasado(s) totalizando
                     <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
                 </div>
-<<<<<<< HEAD
-                <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i data-lucide="arrow-right"></i></a>
-=======
                 <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i
-                        class="fas fa-arrow-right"></i></a>
->>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
+                        data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de faturas vencidas -->
             <div class="provisao-alert faturas" id="provisaoAlertFaturas" style="display:none;">
@@ -820,15 +796,10 @@ if ($showOnboardingCongrats) {
         <!-- Próximos Vencimentos -->
         <div class="provisao-proximos">
             <div class="provisao-proximos-header">
-<<<<<<< HEAD
-                <span class="provisao-proximos-title" id="provisaoProximosTitle"><i data-lucide="clock"></i> Próximos Vencimentos</span>
-                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i data-lucide="arrow-right"></i></a>
-=======
-                <span class="provisao-proximos-title" id="provisaoProximosTitle"><i class="fas fa-clock"></i> Próximos
+                <span class="provisao-proximos-title" id="provisaoProximosTitle"><i data-lucide="clock"></i> Próximos
                     Vencimentos</span>
                 <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i
-                        class="fas fa-arrow-right"></i></a>
->>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
+                        data-lucide="arrow-right"></i></a>
             </div>
             <div class="provisao-proximos-list" id="provisaoProximosList">
                 <div class="provisao-empty" id="provisaoEmpty">

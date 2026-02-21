@@ -1100,8 +1100,11 @@ input.lk-input.lk-input-with-prefix {
   height: 300px;
 }
 
-.lk-btn i {
+.lk-btn i,
+.lk-btn svg {
   font-size: var(--font-size-sm);
+  width: 1em;
+  height: 1em;
 }
 
 /* Botão Primário */

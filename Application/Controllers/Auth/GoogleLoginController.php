@@ -7,6 +7,7 @@ namespace Application\Controllers\Auth;
 use Application\Controllers\BaseController;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Exception;
 
 /**
@@ -48,9 +49,8 @@ class GoogleLoginController extends BaseController
             header('Location: ' . $authUrl);
             exit;
         } catch (Exception $e) {
-            LogService::error('Erro ao iniciar login com Google', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'google_login_init',
             ]);
 
             $this->setError('Não foi possível conectar ao Google. Tente novamente.');

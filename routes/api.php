@@ -252,6 +252,12 @@ Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['
 Router::add('POST', '/api/sysadmin/maintenance', 'Api\\SysAdminController@toggleMaintenance', ['auth', 'sysadmin', 'csrf']);
 Router::add('GET', '/api/sysadmin/maintenance', 'Api\\SysAdminController@maintenanceStatus', ['auth', 'sysadmin']);
 
+// Error Logs (SysAdmin)
+Router::add('GET',    '/api/sysadmin/error-logs',               'Api\\SysAdminController@errorLogs',        ['auth', 'sysadmin']);
+Router::add('GET',    '/api/sysadmin/error-logs/summary',       'Api\\SysAdminController@errorLogsSummary', ['auth', 'sysadmin']);
+Router::add('PUT',    '/api/sysadmin/error-logs/{id}/resolve',  'Api\\SysAdminController@resolveErrorLog',  ['auth', 'sysadmin', 'csrf']);
+Router::add('DELETE', '/api/sysadmin/error-logs/cleanup',       'Api\\SysAdminController@cleanupErrorLogs', ['auth', 'sysadmin', 'csrf']);
+
 // ============================================
 // CAMPANHAS DE MENSAGENS (SYSADMIN)
 // ============================================

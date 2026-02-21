@@ -4,7 +4,7 @@
 
 <!-- Modal: Novo Investimento (Bootstrap 5) -->
 <div class="modal fade" id="modal-investimentos" tabindex="-1" aria-labelledby="modalInvestimentosLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 

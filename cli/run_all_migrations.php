@@ -28,6 +28,7 @@ $migrationsToRun = [
     '2026_01_11_000001_add_status_to_faturas.php',
     '2026_01_13_add_arquivado_to_cartoes_credito.php',
     '2026_01_13_add_billing_security_tables.php',
+    '2026_02_20_create_error_logs_table.php',
     'seed_achievements.php',
 ];
 

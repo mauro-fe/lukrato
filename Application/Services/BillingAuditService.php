@@ -3,6 +3,8 @@
 namespace Application\Services;
 
 use Illuminate\Database\Capsule\Manager as DB;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 
 /**
  * Serviço de Auditoria Financeira
@@ -33,12 +35,10 @@ class BillingAuditService
             DB::table('auditoria_cobrancas')->insert($record);
         } catch (\Throwable $e) {
             // Não falhar a operação principal por erro de log
-            if (class_exists(LogService::class)) {
-                LogService::error('Erro ao registrar auditoria de cobrança', [
-                    'error' => $e->getMessage(),
-                    'data' => $data,
-                ]);
-            }
+            LogService::captureException($e, LogCategory::PAYMENT, [
+                'action' => 'billing_audit_log',
+                'data' => $data,
+            ]);
         }
     }
 
@@ -87,12 +87,10 @@ class BillingAuditService
 
             return null;
         } catch (\Throwable $e) {
-            if (class_exists(LogService::class)) {
-                LogService::error('Erro ao verificar cobranças duplicadas', [
-                    'error' => $e->getMessage(),
-                    'user_id' => $userId,
-                ]);
-            }
+            LogService::captureException($e, LogCategory::PAYMENT, [
+                'action' => 'check_duplicate_charges',
+                'user_id' => $userId,
+            ]);
             return null;
         }
     }
@@ -118,19 +116,20 @@ class BillingAuditService
             DB::table('cobrancas_duplicadas')->insert($record);
 
             // Alertar
-            if (class_exists(LogService::class)) {
-                LogService::critical('🚨 COBRANÇA DUPLICADA DETECTADA', $data);
-            }
+            LogService::persist(
+                LogLevel::CRITICAL,
+                LogCategory::PAYMENT,
+                'COBRANÇA DUPLICADA DETECTADA',
+                $data,
+            );
 
             // Enviar email para admin (se configurado)
             self::notifyDuplicateCharge($data);
         } catch (\Throwable $e) {
-            if (class_exists(LogService::class)) {
-                LogService::error('Erro ao registrar cobrança duplicada', [
-                    'error' => $e->getMessage(),
-                    'data' => $data,
-                ]);
-            }
+            LogService::captureException($e, LogCategory::PAYMENT, [
+                'action' => 'report_duplicate_charge',
+                'data' => $data,
+            ]);
         }
     }
 

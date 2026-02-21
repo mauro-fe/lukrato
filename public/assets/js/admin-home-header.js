@@ -326,16 +326,8 @@
         };
 
         const setIcon = () => {
-            if (!icon) return;
-
-            const isMobile = media.matches;
-            const isClosed = isMobile
-                ? !body.classList.contains('sidebar-open-mobile')
-                : body.classList.contains('sidebar-collapsed');
-
-            icon.setAttribute('data-lucide', isClosed ? 'chevron-right' : 'chevron-left');
-            icon.className = '';
-            if(window.lucide) lucide.createIcons({nodes:[icon]});
+            // CSS handles chevron rotation via body.sidebar-collapsed
+            // No JS icon swap needed — the chevron-left rotates 180° automatically
         };
 
         const setDesktopState = (collapsed) => {

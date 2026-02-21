@@ -8,6 +8,7 @@ use Application\Repositories\DocumentoRepository;
 use Application\Repositories\TelefoneRepository;
 use Application\Repositories\EnderecoRepository;
 use Application\Builders\PerfilPayloadBuilder;
+use Application\Enums\LogCategory;
 use Application\Formatters\DocumentFormatter;
 use Application\Formatters\TelefoneFormatter;
 use Application\Services\AsaasService;
@@ -107,7 +108,11 @@ class PerfilService
                     try {
                         $asaasService->cancelarAssinatura($user->assinatura_id);
                     } catch (\Exception $e) {
-                        error_log("Erro ao cancelar assinatura Asaas: " . $e->getMessage());
+                        LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+                            'action' => 'cancelar_assinatura_ao_deletar_conta',
+                            'user_id' => $userId,
+                            'assinatura_id' => $user->assinatura_id,
+                        ]);
                         // Continua com a exclusão mesmo se falhar o cancelamento
                     }
                 }
@@ -119,7 +124,7 @@ class PerfilService
                     DB::table($table)->where('user_id', $userId)->delete();
                 } catch (\Exception $e) {
                     // Tabela não existe, ignorar
-                    error_log("Tabela {$table} não existe ou erro ao deletar: " . $e->getMessage());
+                    LogService::warning("Tabela {$table} não existe ou erro ao deletar: " . $e->getMessage());
                 }
             };
 

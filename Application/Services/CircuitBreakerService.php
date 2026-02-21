@@ -3,6 +3,8 @@
 namespace Application\Services;
 
 use Application\Services\LogService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 
 /**
  * Circuit Breaker para API do Asaas
@@ -77,9 +79,11 @@ class CircuitBreakerService
                 // Voltar ao normal
                 $this->setState(self::STATE_CLOSED);
 
-                if (class_exists(LogService::class)) {
-                    LogService::info("Circuit Breaker [{$this->serviceName}] FECHADO - Serviço recuperado");
-                }
+                LogService::persist(
+                    LogLevel::INFO,
+                    LogCategory::PAYMENT,
+                    "Circuit Breaker [{$this->serviceName}] FECHADO - Serviço recuperado",
+                );
                 return;
             }
 
@@ -109,9 +113,11 @@ class CircuitBreakerService
             // Voltou a falhar, abrir novamente
             $this->setState(self::STATE_OPEN);
 
-            if (class_exists(LogService::class)) {
-                LogService::warning("Circuit Breaker [{$this->serviceName}] ABERTO novamente - Serviço ainda instável");
-            }
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::PAYMENT,
+                "Circuit Breaker [{$this->serviceName}] ABERTO novamente - Serviço ainda instável",
+            );
             return;
         }
 
@@ -121,12 +127,15 @@ class CircuitBreakerService
             $state['opened_at'] = time();
             $state['success_count'] = 0;
 
-            if (class_exists(LogService::class)) {
-                LogService::error("Circuit Breaker [{$this->serviceName}] ABERTO - Muitas falhas detectadas", [
+            LogService::persist(
+                LogLevel::ERROR,
+                LogCategory::PAYMENT,
+                "Circuit Breaker [{$this->serviceName}] ABERTO - Muitas falhas detectadas",
+                [
                     'failures' => $state['failure_count'],
                     'threshold' => self::FAILURE_THRESHOLD,
-                ]);
-            }
+                ],
+            );
         }
 
         $this->saveState($state);

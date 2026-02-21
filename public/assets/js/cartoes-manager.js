@@ -116,13 +116,7 @@ class CartoesManager {
         const modalOverlay = document.getElementById('modalCartaoOverlay');
         const closeButtons = document.querySelectorAll('.modal-close, .modal-close-btn');
 
-        if (modalOverlay) {
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) {
-                    this.closeModal();
-                }
-            });
-        }
+        // Backdrop bloqueado - modal fecha apenas pelo botão X
 
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => this.closeModal());

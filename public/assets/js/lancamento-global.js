@@ -612,7 +612,7 @@ const lancamentoGlobalManager = {
             categoriasFiltradas.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.id;
-                option.textContent = `${cat.icone || ''} ${cat.nome}`.trim();
+                option.textContent = cat.nome;
                 select.appendChild(option);
             });
         }
@@ -804,7 +804,7 @@ const lancamentoGlobalManager = {
             if (btnSalvar) {
                 btnSalvar.disabled = true;
                 btnSalvar.innerHTML = '<i data-lucide="loader-2" class="icon-spin" style="width:16px;height:16px;display:inline-block;"></i> Salvando...';
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -996,7 +996,7 @@ const lancamentoGlobalManager = {
                 if (btnSalvar) {
                     btnSalvar.disabled = false;
                     btnSalvar.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;display:inline-block;"></i> Salvar';
-                    if(window.lucide) lucide.createIcons();
+                    if (window.lucide) lucide.createIcons();
                 }
             } else {
                 // Mostrar erros específicos da validação
@@ -1024,7 +1024,7 @@ const lancamentoGlobalManager = {
                     if (btnSalvar) {
                         btnSalvar.disabled = false;
                         btnSalvar.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;display:inline-block;"></i> Salvar';
-                        if(window.lucide) lucide.createIcons();
+                        if (window.lucide) lucide.createIcons();
                     }
                     return;
                 }
@@ -1040,7 +1040,7 @@ const lancamentoGlobalManager = {
             if (btnSalvar) {
                 btnSalvar.disabled = false;
                 btnSalvar.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;display:inline-block;"></i> Salvar';
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
 
             Swal.fire({

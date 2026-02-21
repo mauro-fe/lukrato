@@ -94,7 +94,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
     }
 
     .payment-modal__content {
-        background: var(--color-surface);
+        background: var(--color-bg);
         border-radius: var(--radius-xl);
         border: 2px solid var(--glass-border);
         box-shadow: var(--shadow-xl), 0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
@@ -166,8 +166,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         display: inline-flex;
         align-items: center;
         gap: var(--spacing-2);
-        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-        color: #fff;
+        background: var(--color-primary);
+        color: var(--color-text);
         font-size: 1.25rem;
         font-weight: 800;
         padding: var(--spacing-3) var(--spacing-6);
@@ -225,12 +225,13 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         font-size: .875rem;
         font-weight: 600;
         color: var(--color-text);
+        margin-top: var(--spacing-2);
     }
 
     .payment-form__input {
         border-radius: var(--radius-md);
         border: 2px solid var(--glass-border);
-        background: var(--color-surface-muted);
+        background: var(--color-bg) !important;
         padding: 12px 14px;
         font-size: 1rem;
         color: var(--color-text);
@@ -277,8 +278,8 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         border-radius: var(--radius-lg);
         padding: 14px 28px;
         border: none;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-        color: #fff;
+        background: var(--color-primary);
+        color: var(--color-text);
         cursor: pointer;
         font-size: 1rem;
         font-weight: 700;
@@ -348,6 +349,154 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         }
     }
 
+    /* ==========================================================================
+       COUPON / CUPOM DE DESCONTO
+       ========================================================================== */
+    .coupon-section {
+        border: 1px dashed var(--glass-border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .coupon-section.has-coupon {
+        border-color: var(--color-success, #10b981);
+        background: color-mix(in srgb, var(--color-success, #10b981) 5%, transparent);
+    }
+
+    .coupon-section__toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .coupon-section__toggle:hover {
+        color: var(--color-primary);
+    }
+
+    .coupon-section__toggle i,
+    .coupon-section__toggle svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .coupon-section__chevron {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .coupon-section__toggle.is-open .coupon-section__chevron {
+        transform: rotate(180deg);
+    }
+
+    .coupon-section__body {
+        padding: 0 16px 16px;
+    }
+
+    .coupon-section__row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .coupon-input {
+        flex: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        font-size: 0.9rem !important;
+    }
+
+    .btn-coupon-apply {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 18px;
+        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 85%, #000));
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-coupon-apply:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+    }
+
+    .btn-coupon-apply:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-coupon-apply i,
+    .btn-coupon-apply svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .coupon-section__feedback {
+        margin-top: 10px;
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .coupon-section__feedback i,
+    .coupon-section__feedback svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    .coupon-section__feedback.success {
+        background: color-mix(in srgb, var(--color-success, #10b981) 12%, transparent);
+        color: var(--color-success, #10b981);
+        border: 1px solid color-mix(in srgb, var(--color-success, #10b981) 25%, transparent);
+    }
+
+    .coupon-section__feedback.error {
+        background: color-mix(in srgb, var(--color-danger, #ef4444) 12%, transparent);
+        color: var(--color-danger, #ef4444);
+        border: 1px solid color-mix(in srgb, var(--color-danger, #ef4444) 25%, transparent);
+    }
+
+    .coupon-remove-btn {
+        margin-left: auto;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        padding: 2px;
+    }
+
+    .coupon-remove-btn:hover {
+        opacity: 1;
+    }
+
+    @media (max-width: 480px) {
+        .coupon-section__row {
+            flex-direction: column;
+        }
+    }
+
     /* Força o SweetAlert2 a ficar SEMPRE acima de qualquer modal */
     .swal2-container {
         z-index: 20000 !important;
@@ -377,7 +526,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         gap: 6px;
         padding: var(--spacing-3) var(--spacing-2);
         border: 2px solid transparent;
-        background: transparent;
+        background: var(--color-bg);
         border-radius: var(--radius-md);
         cursor: pointer;
         transition: all 0.3s ease;
@@ -950,6 +1099,27 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 <input type="hidden" name="amount_base_monthly" id="asaas_plan_amount_base_monthly" value="">
                 <input type="hidden" name="billing_type" id="asaas_billing_type" value="CREDIT_CARD">
 
+                <!-- ========== CAMPO DE CUPOM DE DESCONTO ========== -->
+                <div class="coupon-section">
+                    <div class="coupon-section__toggle" id="couponToggle">
+                        <i data-lucide="ticket"></i>
+                        <span>Tem um cupom de desconto?</span>
+                        <i data-lucide="chevron-down" class="coupon-section__chevron" id="couponChevron"></i>
+                    </div>
+                    <div class="coupon-section__body" id="couponBody" style="display:none">
+                        <div class="coupon-section__row">
+                            <input type="text" id="couponCodeInput" name="couponCode"
+                                class="payment-form__input coupon-input" placeholder="Digite o código do cupom"
+                                autocomplete="off" maxlength="30">
+                            <button type="button" id="couponApplyBtn" class="btn-coupon-apply" onclick="applyCoupon()">
+                                <i data-lucide="check"></i>
+                                <span>Aplicar</span>
+                            </button>
+                        </div>
+                        <div class="coupon-section__feedback" id="couponFeedback" style="display:none"></div>
+                    </div>
+                </div>
+
                 <!-- ========== SEÇÃO CARTÃO DE CRÉDITO ========== -->
                 <div id="credit-card-section" class="payment-section is-visible">
                     <div class="payment-form__field">
@@ -1254,6 +1424,125 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
         let hasPendingPayment = false;
         let pendingPaymentData = null;
         let paymentMethodsLocked = false;
+        let appliedCoupon = null; // { codigo, tipo_desconto, valor_desconto, desconto_formatado }
+
+        // ===============================
+        // CUPOM DE DESCONTO
+        // ===============================
+        const couponToggle = document.getElementById('couponToggle');
+        const couponBody = document.getElementById('couponBody');
+        const couponChevron = document.getElementById('couponChevron');
+        const couponInput = document.getElementById('couponCodeInput');
+        const couponApplyBtn = document.getElementById('couponApplyBtn');
+        const couponFeedback = document.getElementById('couponFeedback');
+        const couponSection = document.querySelector('.coupon-section');
+
+        couponToggle?.addEventListener('click', () => {
+            const isOpen = couponBody.style.display !== 'none';
+            couponBody.style.display = isOpen ? 'none' : 'block';
+            couponToggle.classList.toggle('is-open', !isOpen);
+        });
+
+        couponInput?.addEventListener('input', () => {
+            couponInput.value = couponInput.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        });
+
+        couponInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyCoupon();
+            }
+        });
+
+        async function applyCoupon() {
+            const code = couponInput?.value.trim();
+            if (!code) {
+                showCouponFeedback('error', 'Digite um código de cupom.');
+                return;
+            }
+
+            couponApplyBtn.disabled = true;
+            couponApplyBtn.querySelector('span').textContent = 'Validando...';
+
+            try {
+                const resp = await fetch(`${BASE_URL}api/cupons/validar?codigo=${encodeURIComponent(code)}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const json = await resp.json();
+
+                if (json.success && json.data?.cupom) {
+                    const c = json.data.cupom;
+                    appliedCoupon = c;
+                    couponInput.disabled = true;
+                    couponSection?.classList.add('has-coupon');
+
+                    showCouponFeedback('success',
+                        `<i data-lucide="check-circle-2"></i>
+                         <span>Cupom <strong>${c.codigo}</strong> aplicado! Desconto: <strong>${c.desconto_formatado}</strong></span>
+                         <button type="button" class="coupon-remove-btn" onclick="removeCoupon()" title="Remover cupom"><i data-lucide="x"></i></button>`
+                    );
+                    updatePriceWithCoupon();
+                } else {
+                    appliedCoupon = null;
+                    showCouponFeedback('error',
+                        `<i data-lucide="x-circle"></i><span>${json.message || 'Cupom inválido.'}</span>`);
+                }
+            } catch (err) {
+                console.error('Erro ao validar cupom:', err);
+                showCouponFeedback('error',
+                    '<i data-lucide="alert-circle"></i><span>Erro ao validar cupom. Tente novamente.</span>');
+            } finally {
+                couponApplyBtn.disabled = false;
+                couponApplyBtn.querySelector('span').textContent = 'Aplicar';
+            }
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            couponInput.disabled = false;
+            couponInput.value = '';
+            couponSection?.classList.remove('has-coupon');
+            couponFeedback.style.display = 'none';
+            updatePriceWithCoupon();
+        }
+
+        function showCouponFeedback(type, html) {
+            couponFeedback.className = 'coupon-section__feedback ' + type;
+            couponFeedback.innerHTML = html;
+            couponFeedback.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function updatePriceWithCoupon() {
+            const priceEl = document.getElementById('billing-modal-price');
+            if (!currentPlanConfig || !priceEl) return;
+
+            const base = currentPlanConfig.monthlyBase || 0;
+            const months = currentPlanConfig.months || 1;
+            const planDiscount = currentPlanConfig.discount || 0;
+            const total = calcTotal(base, months, planDiscount);
+
+            if (appliedCoupon && total > 0) {
+                let discountValue = 0;
+                if (appliedCoupon.tipo_desconto === 'percentual') {
+                    discountValue = total * (appliedCoupon.valor_desconto / 100);
+                } else {
+                    discountValue = appliedCoupon.valor_desconto;
+                }
+                const finalTotal = Math.max(0, total - discountValue);
+                priceEl.innerHTML =
+                    `<span style="text-decoration:line-through;opacity:0.5;font-size:0.85em;">${currencyFormatter.format(total)}</span> ${currencyFormatter.format(finalTotal)}`;
+            } else {
+                priceEl.textContent = currencyFormatter.format(total);
+            }
+        }
+
+        window.applyCoupon = applyCoupon;
+        window.removeCoupon = removeCoupon;
 
         // ===============================
         // TRAVAR/DESTRAVAR TABS DE PAGAMENTO
@@ -1384,10 +1673,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 modalPrice.textContent =
                     `${currentPlanConfig.planName} - ${currencyFormatter.format(total)}/${cycleLabel(currentPlanConfig.months)}`;
             }
-        }
 
-        function updateSubmitButton() {
-            const btnSpan = submitBtn?.querySelector('span');
+            // Atualizar preço com cupom se aplicado
+            if (appliedCoupon) {
+                updatePriceWithCoupon();
+            }
             const btnIcon = submitBtn?.querySelector('i, svg.lucide');
 
             if (!btnSpan || !btnIcon) return;
@@ -1798,6 +2088,11 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
             boletoPendingStatus?.classList.remove('is-visible');
 
             if (form) form.reset();
+
+            // Reset cupom
+            removeCoupon();
+            if (couponBody) couponBody.style.display = 'none';
+            couponToggle?.classList.remove('is-open');
         }
 
         window.closeBillingModal = closeBillingModal;
@@ -1915,6 +2210,7 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
                 discount: Number(inputPlanDiscount.value || 0),
                 amount_base_monthly: Number(inputBaseMonthly.value || currentPlanConfig.monthlyBase ||
                     0),
+                couponCode: appliedCoupon ? appliedCoupon.codigo : null,
                 amount: Number(inputPlanAmount.value || 0),
                 billingType: currentBillingType
             };

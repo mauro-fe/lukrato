@@ -86,11 +86,20 @@
                     <div class="text-center sm:text-left">
                         <div class="flex gap-1 mb-1 justify-center sm:justify-start"
                             aria-label="Avaliação 4.9 de 5 estrelas">
-                            <i data-lucide="star" class="text-yellow-400" aria-hidden="true"></i>
-                            <i data-lucide="star" class="text-yellow-400" aria-hidden="true"></i>
-                            <i data-lucide="star" class="text-yellow-400" aria-hidden="true"></i>
-                            <i data-lucide="star" class="text-yellow-400" aria-hidden="true"></i>
-                            <i data-lucide="star" class="text-yellow-400" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <!-- 5ª estrela: 90% preenchida (4.9/5) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="star-partial">
+                                        <stop offset="90%" stop-color="#facc15" />
+                                        <stop offset="90%" stop-color="#d1d5db" />
+                                    </linearGradient>
+                                </defs>
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#star-partial)" stroke="url(#star-partial)" />
+                            </svg>
                         </div>
                         <p class="text-sm text-gray-600">
                             <strong class="text-gray-900" itemprop="ratingValue">4.9</strong>/5 baseado em mais de <span
@@ -875,7 +884,7 @@
         <!-- Header -->
         <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-4">
-                <span class="text-2xl">🎁</span>
+                <span class="text-2xl"><i data-lucide="gift" class="w-6 h-6 text-primary"></i></span>
                 <span class="text-sm font-semibold text-primary">Programa de Indicação</span>
             </div>
 
@@ -901,7 +910,7 @@
                 <div class="flex items-center gap-4 mb-6">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <span class="text-3xl">👤</span>
+                        <i data-lucide="user" class="w-8 h-8 text-white"></i>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">Você ganha</h3>
@@ -933,7 +942,7 @@
                 <div class="flex items-center gap-4 mb-6">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-secondary to-gray-700 rounded-2xl flex items-center justify-center shadow-lg">
-                        <span class="text-3xl">👥</span>
+                        <i data-lucide="users" class="w-8 h-8 text-white"></i>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">Seu amigo ganha</h3>
@@ -1053,7 +1062,7 @@
                 <button @click="activeTab = 'whatsapp'"
                     :class="activeTab === 'whatsapp' ? 'bg-white text-primary shadow-md' : 'text-gray-600 hover:text-gray-900'"
                     class="px-8 py-3 rounded-lg font-semibold transition-all duration-300">
-                    <i class="fa-brands fa-whatsapp mr-2"></i>
+                    <i data-lucide="message-circle" class="w-5 h-5 mr-2"></i>
                     WhatsApp
                 </button>
                 <button @click="activeTab = 'email'"
@@ -1076,7 +1085,7 @@
 
             <div class="text-center mb-8">
                 <div class="inline-flex w-16 h-16 bg-green-500 rounded-full items-center justify-center mb-4 shadow-lg">
-                    <i class="fa-brands fa-whatsapp text-3xl text-white"></i>
+                    <i data-lucide="message-circle" class="w-8 h-8 text-white"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Atendimento rápido</h3>
                 <p class="text-gray-600">Normalmente respondemos em poucos minutos em horário comercial.</p>
@@ -1086,7 +1095,7 @@
                 <a href="https://wa.me/5544999506302?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20Lukrato."
                     target="_blank" rel="noopener"
                     class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <i data-lucide="message-circle" class="w-5 h-5"></i>
                     WhatsApp (Comercial)
                 </a>
 
@@ -1512,7 +1521,7 @@
                 <div id="cookieBannerInner">
                     <div class="cookie-content">
                         <div class="cookie-icon">
-                            <span>🍪</span>
+                            <i data-lucide="cookie" class="w-6 h-6"></i>
                         </div>
                         <div class="cookie-text">
                             <h4>Usamos cookies</h4>

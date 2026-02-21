@@ -572,130 +572,15 @@ class AgendamentoController extends BaseController
         }
 
         try {
-            // Obter dados opcionais do request ANTES da transação
             $data = $this->getRequestData();
-            $expectedData = $data['expected_data_pagamento'] ?? null;
+            $userId = $this->getUserId();
             $contaId = !empty($data['conta_id']) ? (int) $data['conta_id'] : null;
             $formaPagamento = !empty($data['forma_pagamento']) ? trim($data['forma_pagamento']) : null;
-            $userId = $this->getUserId();
+            $expectedData = $data['expected_data_pagamento'] ?? null;
 
-            // Executar TUDO dentro de uma transação com lock pessimista
-            // para evitar execução duplicada por race condition
-            $resultado = \Illuminate\Database\Capsule\Manager::connection()->transaction(function () use ($id, $expectedData, $contaId, $formaPagamento, $userId) {
+            $resultado = $this->service->executarComLock($userId, $id, $expectedData, $contaId, $formaPagamento);
 
-                // SELECT ... FOR UPDATE: trava a linha no banco até o fim da transação
-                // Qualquer outra requisição concorrente vai ESPERAR aqui
-                $agendamento = Agendamento::where('user_id', $userId)
-                    ->where('id', $id)
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$agendamento) {
-                    throw new \RuntimeException('Agendamento não encontrado.', 404);
-                }
-
-                // Permitir executar agendamentos pendentes OU notificados
-                $statusExecutaveis = [AgendamentoStatus::PENDENTE->value, AgendamentoStatus::NOTIFICADO->value];
-                if (!in_array($agendamento->status, $statusExecutaveis, true)) {
-                    throw new \RuntimeException('Somente agendamentos pendentes podem ser executados.', 400);
-                }
-
-                // Proteção contra execução duplicada (concorrência otimista)
-                // Agora dentro da transação com lock, então os dados são garantidamente atuais
-                if ($expectedData) {
-                    // Normalizar data esperada (frontend envia em UTC ISO: 2026-02-13T13:00:00.000000Z)
-                    // Converter para o mesmo timezone do servidor para comparação precisa
-                    try {
-                        $expectedDT = new \DateTimeImmutable($expectedData);
-                        $expectedDT = $expectedDT->setTimezone(new \DateTimeZone(date_default_timezone_get()));
-                        $expectedDate = $expectedDT->format('Y-m-d');
-                    } catch (\Throwable $e) {
-                        $expectedDate = substr($expectedData, 0, 10);
-                    }
-
-                    $currentData = $agendamento->data_pagamento instanceof \DateTimeInterface
-                        ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
-                        : (string) $agendamento->data_pagamento;
-                    $currentDate = substr($currentData, 0, 10);
-
-                    if ($expectedDate !== $currentDate) {
-                        LogService::warning('Execução duplicada bloqueada (data já avançou)', [
-                            'agendamento_id' => $id,
-                            'expected_date' => $expectedDate,
-                            'current_date' => $currentDate,
-                            'expected_raw' => $expectedData,
-                            'user_id' => $userId
-                        ]);
-                        return ['duplicate' => true, 'agendamento' => $agendamento];
-                    }
-                }
-
-                // Proteção contra execução rápida consecutiva (recorrentes)
-                // Se data_pagamento foi alterada nos últimos 10 segundos, provavelmente é uma execução duplicada
-                // (recorrentes voltam para 'pendente' imediatamente, então precisam desta proteção)
-                if ($agendamento->recorrente && $agendamento->updated_at && $agendamento->created_at) {
-                    $updatedAt = $agendamento->updated_at instanceof \DateTimeInterface
-                        ? $agendamento->updated_at->getTimestamp()
-                        : strtotime((string) $agendamento->updated_at);
-                    $createdAt = $agendamento->created_at instanceof \DateTimeInterface
-                        ? $agendamento->created_at->getTimestamp()
-                        : strtotime((string) $agendamento->created_at);
-                    $diffSeconds = time() - $updatedAt;
-                    $isNewlyCreated = abs($updatedAt - $createdAt) < 15; // Criado há pouco
-
-                    // Se foi atualizado há menos de 10 segundos E não é recém-criado,
-                    // bloquear como possível execução duplicada
-                    if ($diffSeconds >= 0 && $diffSeconds < 10 && !$isNewlyCreated && $expectedData) {
-                        LogService::warning('Execução duplicada bloqueada (updated_at recente para recorrente)', [
-                            'agendamento_id' => $id,
-                            'updated_at' => (string) $agendamento->updated_at,
-                            'diff_seconds' => $diffSeconds,
-                            'user_id' => $userId
-                        ]);
-                        return ['duplicate' => true, 'agendamento' => $agendamento];
-                    }
-                }
-
-                // Proteção secundária via concluido_em (para agendamentos únicos/finalizados)
-                if ($agendamento->concluido_em) {
-                    $ultimaExecucao = strtotime($agendamento->concluido_em);
-                    if (time() - $ultimaExecucao < 30) {
-                        LogService::warning('Execução duplicada bloqueada (concluido_em recente)', [
-                            'agendamento_id' => $id,
-                            'concluido_em' => $agendamento->concluido_em,
-                            'user_id' => $userId
-                        ]);
-                        return ['duplicate' => true, 'agendamento' => $agendamento];
-                    }
-                }
-
-                // Log detalhado ANTES da execução para debug
-                $dataAntes = $agendamento->data_pagamento instanceof \DateTimeInterface
-                    ? $agendamento->data_pagamento->format('Y-m-d H:i:s')
-                    : (string) $agendamento->data_pagamento;
-
-                LogService::info('Executando agendamento (com lock)', [
-                    'agendamento_id' => $id,
-                    'data_pagamento_atual' => $dataAntes,
-                    'recorrente' => (bool) $agendamento->recorrente,
-                    'recorrencia_freq' => $agendamento->recorrencia_freq,
-                    'recorrencia_intervalo' => $agendamento->recorrencia_intervalo,
-                    'eh_parcelado' => (bool) $agendamento->eh_parcelado,
-                    'parcela_atual' => $agendamento->parcela_atual,
-                    'numero_parcelas' => $agendamento->numero_parcelas,
-                    'status' => $agendamento->status,
-                    'user_id' => $userId,
-                ]);
-
-                // Executar agendamento (cria lançamento + gerencia recorrência/parcelamento)
-                $resultado = $this->service->executarAgendamento($agendamento, $contaId, $formaPagamento);
-                $resultado['duplicate'] = false;
-                $resultado['data_pagamento_antes'] = $dataAntes;
-
-                return $resultado;
-            });
-
-            // Tratar resultado de execução duplicada
+            // Execução duplicada detectada
             if ($resultado['duplicate'] ?? false) {
                 $agendamento = $resultado['agendamento'];
                 $agendamento->refresh()->load(['categoria:id,nome', 'conta:id,nome']);
@@ -709,45 +594,31 @@ class AgendamentoController extends BaseController
                 return;
             }
 
-            // Calcular status dinâmico para resposta
-            $statusDinamico = $this->service->calcularStatusDinamico($resultado['agendamento']);
+            // Sucesso
             $agendamentoData = $resultado['agendamento']->toArray();
-            $agendamentoData['status_dinamico'] = $statusDinamico;
-
-            // Montar mensagem apropriada
-            if ($resultado['parcelado'] ?? false) {
-                if ($resultado['finalizado'] ?? false) {
-                    $mensagem = "Última parcela paga! ({$resultado['parcela_paga']}/{$resultado['total_parcelas']}) Agendamento finalizado.";
-                } else {
-                    $mensagem = "Parcela {$resultado['parcela_paga']}/{$resultado['total_parcelas']} paga! Próxima: " . date('d/m/Y', strtotime($resultado['proximaData']));
-                }
-            } elseif ($resultado['recorrente']) {
-                $mensagem = 'Lançamento criado! Próxima ocorrência agendada para ' . date('d/m/Y', strtotime($resultado['proximaData']));
-            } else {
-                $mensagem = 'Agendamento executado com sucesso!';
-            }
+            $agendamentoData['status_dinamico'] = $this->service->calcularStatusDinamico($resultado['agendamento']);
 
             Response::success([
-                'message' => $mensagem,
-                'agendamento' => $agendamentoData,
-                'lancamento' => $resultado['lancamento'],
-                'proxima_data' => $resultado['proximaData'],
-                'recorrente' => $resultado['recorrente'],
-                'parcelado' => $resultado['parcelado'] ?? false,
-                'parcela_paga' => $resultado['parcela_paga'] ?? null,
+                'message'        => $this->service->buildExecutionMessage($resultado),
+                'agendamento'    => $agendamentoData,
+                'lancamento'     => $resultado['lancamento'],
+                'proxima_data'   => $resultado['proximaData'],
+                'recorrente'     => $resultado['recorrente'],
+                'parcelado'      => $resultado['parcelado'] ?? false,
+                'parcela_paga'   => $resultado['parcela_paga'] ?? null,
                 'total_parcelas' => $resultado['total_parcelas'] ?? null,
-                'finalizado' => $resultado['finalizado'] ?? false,
+                'finalizado'     => $resultado['finalizado'] ?? false,
             ]);
 
             LogService::info('Agendamento executado via endpoint', [
-                'agendamento_id' => $id,
+                'agendamento_id'       => $id,
                 'data_pagamento_antes' => $resultado['data_pagamento_antes'] ?? null,
-                'proxima_data' => $resultado['proximaData'] ?? null,
-                'recorrente' => $resultado['recorrente'],
-                'parcelado' => $resultado['parcelado'] ?? false,
-                'conta_id' => $contaId,
-                'forma_pagamento' => $formaPagamento,
-                'user_id' => $userId,
+                'proxima_data'         => $resultado['proximaData'] ?? null,
+                'recorrente'           => $resultado['recorrente'],
+                'parcelado'            => $resultado['parcelado'] ?? false,
+                'conta_id'             => $contaId,
+                'forma_pagamento'      => $formaPagamento,
+                'user_id'              => $userId,
             ]);
         } catch (Throwable $e) {
             $code = $e->getCode();

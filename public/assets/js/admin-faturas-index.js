@@ -11,6 +11,25 @@
     if (window.__LK_PARCELAMENTOS_LOADER__) return;
     window.__LK_PARCELAMENTOS_LOADER__ = true;
 
+    // Mapeamento de cores para ícones de categorias
+    function getCategoryIconColor(icon) {
+        const colors = {
+            'house': '#f97316', 'utensils': '#ef4444', 'car': '#3b82f6',
+            'lightbulb': '#eab308', 'heart-pulse': '#ef4444', 'graduation-cap': '#6366f1',
+            'shirt': '#ec4899', 'clapperboard': '#a855f7', 'credit-card': '#0ea5e9',
+            'smartphone': '#6366f1', 'shopping-cart': '#f97316', 'coins': '#eab308',
+            'briefcase': '#3b82f6', 'laptop': '#06b6d4', 'trending-up': '#22c55e',
+            'gift': '#ec4899', 'banknote': '#22c55e', 'trophy': '#f59e0b',
+            'wallet': '#14b8a6', 'tag': '#94a3b8', 'pie-chart': '#8b5cf6',
+            'piggy-bank': '#ec4899', 'plane': '#0ea5e9', 'gamepad-2': '#a855f7',
+            'baby': '#f472b6', 'dog': '#92400e', 'wrench': '#64748b',
+            'church': '#6366f1', 'dumbbell': '#ef4444', 'music': '#a855f7',
+            'book-open': '#3b82f6', 'scissors': '#ec4899', 'building-2': '#64748b',
+            'landmark': '#3b82f6', 'receipt': '#14b8a6'
+        };
+        return colors[icon] || '#f97316';
+    }
+
     // ============================================================================
     // CONFIGURAÇÃO
     // ============================================================================
@@ -296,7 +315,7 @@
 
             DOM.containerEl.innerHTML = '';
             DOM.containerEl.appendChild(fragment);
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         },
 
         createParcelamentoCard(parc) {
@@ -407,17 +426,16 @@
         },
 
         getBandeiraIcon(bandeira) {
-            const icons = {
-                'visa': '<i class="fab fa-cc-visa"></i>',
-                'mastercard': '<i class="fab fa-cc-mastercard"></i>',
-                'amex': '<i class="fab fa-cc-amex"></i>',
-                'discover': '<i class="fab fa-cc-discover"></i>',
-                'diners': '<i class="fab fa-cc-diners-club"></i>',
-                'jcb': '<i class="fab fa-cc-jcb"></i>',
-                'elo': '<i data-lucide="credit-card"></i>',
-                'hipercard': '<i data-lucide="credit-card"></i>'
+            // SVG inline para bandeiras de cartão (sem dependência de Font Awesome)
+            const svgIcons = {
+                'visa': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#1A1F71"/><text x="24" y="20" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff" font-family="sans-serif">VISA</text></svg>`,
+                'mastercard': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#1A1F71" opacity="0"/><circle cx="19" cy="16" r="10" fill="#EB001B" opacity=".85"/><circle cx="29" cy="16" r="10" fill="#F79E1B" opacity=".85"/></svg>`,
+                'elo': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#000"/><text x="24" y="20" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFCB05" font-family="sans-serif">elo</text></svg>`,
+                'amex': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#006FCF"/><text x="24" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff" font-family="sans-serif">AMEX</text></svg>`,
+                'hipercard': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#B11116"/><text x="24" y="20" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff" font-family="sans-serif">HIPER</text></svg>`,
+                'diners': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#0079BE"/><text x="24" y="20" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff" font-family="sans-serif">DINERS</text></svg>`,
             };
-            return icons[bandeira] || '<i data-lucide="credit-card"></i>';
+            return svgIcons[bandeira] || '<i data-lucide="credit-card"></i>';
         },
 
         getCartaoInfo(parc) {
@@ -433,6 +451,46 @@
         getResumoPrincipal(parc) {
             const temEstornos = parc.total_estornos && parc.total_estornos > 0;
 
+            // Data de vencimento
+            let vencimentoHTML = '';
+            // Tentar obter data_vencimento da API, ou calcular a partir da descrição + dia_vencimento do cartão
+            let dataVencStr = parc.data_vencimento;
+            if (!dataVencStr && parc.cartao?.dia_vencimento && parc.descricao) {
+                // Extrair mês/ano da descrição (ex: "Fatura 3/2026") - mesma lógica do backend
+                const descMatch = parc.descricao.match(/(\d{1,2})\/(\d{4})/);
+                if (descMatch) {
+                    const mesFatura = descMatch[1].padStart(2, '0');
+                    const anoFatura = descMatch[2];
+                    const dia = String(parc.cartao.dia_vencimento).padStart(2, '0');
+                    dataVencStr = `${anoFatura}-${mesFatura}-${dia}`;
+                }
+            }
+
+            if (dataVencStr) {
+                const dataFormatada = Utils.formatDate(dataVencStr);
+                // Verificar se está vencida e pendente
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const dataVenc = new Date(dataVencStr + 'T00:00:00');
+                const isPendente = parc.status !== 'paga' && parc.status !== 'concluido' && parc.status !== 'cancelado';
+                const isVencida = isPendente && dataVenc < hoje;
+                const isProxima = isPendente && !isVencida && (dataVenc - hoje) <= 3 * 24 * 60 * 60 * 1000; // 3 dias
+
+                let vencClass = 'resumo-vencimento';
+                if (isVencida) vencClass += ' vencimento-atrasado';
+                else if (isProxima) vencClass += ' vencimento-proximo';
+
+                vencimentoHTML = `
+                    <div class="${vencClass}">
+                        <i data-lucide="calendar-clock"></i>
+                        <span class="vencimento-label">Vencimento</span>
+                        <span class="vencimento-data">${dataFormatada}</span>
+                        ${isVencida ? '<span class="vencimento-tag tag-atrasado">Vencida</span>' : ''}
+                        ${isProxima ? '<span class="vencimento-tag tag-proximo">Em breve</span>' : ''}
+                    </div>
+                `;
+            }
+
             return `
                 <div class="resumo-item">
                     <span class="resumo-label">Total a Pagar</span>
@@ -444,6 +502,7 @@
                         <span class="resumo-valor" style="color: #10b981;">- ${Utils.formatMoney(parc.total_estornos)}</span>
                     </div>
                 ` : ''}
+                ${vencimentoHTML}
             `;
         },
 
@@ -478,21 +537,21 @@
         getStatusBadge(status, progresso = null) {
             if (progresso !== null) {
                 if (progresso === 0) {
-                    return '<span class="parc-card-badge badge-pendente">⏳ Pendente</span>';
+                    return '<span class="parc-card-badge badge-pendente"><i data-lucide="clock" style="width:12px;height:12px"></i> Pendente</span>';
                 } else if (progresso >= 100) {
-                    return '<span class="parc-card-badge badge-paga">✅ Paga</span>';
+                    return '<span class="parc-card-badge badge-paga"><i data-lucide="circle-check" style="width:12px;height:12px"></i> Paga</span>';
                 } else {
-                    return '<span class="parc-card-badge badge-parcial">🔄 Parcialmente Paga</span>';
+                    return '<span class="parc-card-badge badge-parcial"><i data-lucide="loader-2" style="width:12px;height:12px"></i> Parcial</span>';
                 }
             }
 
             const badges = {
-                'ativo': '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>',
-                'paga': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
-                'concluido': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
-                'cancelado': '<span class="parc-card-badge badge-cancelado">❌ Cancelada</span>'
+                'ativo': '<span class="parc-card-badge badge-ativo"><i data-lucide="clock" style="width:12px;height:12px"></i> Pendente</span>',
+                'paga': '<span class="parc-card-badge badge-paga"><i data-lucide="circle-check" style="width:12px;height:12px"></i> Paga</span>',
+                'concluido': '<span class="parc-card-badge badge-paga"><i data-lucide="circle-check" style="width:12px;height:12px"></i> Paga</span>',
+                'cancelado': '<span class="parc-card-badge badge-cancelado"><i data-lucide="x-circle" style="width:12px;height:12px"></i> Cancelada</span>'
             };
-            return badges[status] || '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>';
+            return badges[status] || '<span class="parc-card-badge badge-ativo"><i data-lucide="clock" style="width:12px;height:12px"></i> Pendente</span>';
         },
 
         async showDetalhes(id) {
@@ -510,7 +569,7 @@
 
                 STATE.faturaAtual = parc;
                 DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
                 this.attachDetalhesEventListeners(parc.id);
 
                 // Remover foco antes de mostrar modal
@@ -550,7 +609,7 @@
                     // Re-renderizar detalhes mantendo estado
                     if (STATE.faturaAtual) {
                         DOM.detalhesContent.innerHTML = this.renderDetalhes(STATE.faturaAtual);
-                        if(window.lucide) lucide.createIcons();
+                        if (window.lucide) lucide.createIcons();
                         this.attachDetalhesEventListeners(faturaId);
                     }
                 });
@@ -843,9 +902,9 @@
             // Se tiver categoria, mostrar o nome da categoria
             let categoriaInfo = '';
             if (parcela.categoria) {
-                const iconeCategoria = parcela.categoria.icone || '📋';
+                const iconeCategoria = parcela.categoria.icone || 'tag';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-                categoriaInfo = `${iconeCategoria} ${nomeCategoria}`;
+                categoriaInfo = `<i data-lucide="${iconeCategoria}" style="width:14px;height:14px;display:inline-block;vertical-align:middle;color:${getCategoryIconColor(iconeCategoria)}"></i> ${Utils.escapeHtml(nomeCategoria)}`;
             }
 
             // Card especial para estornos
@@ -946,9 +1005,8 @@
 
             // Se tiver categoria, mostrar o nome da categoria
             if (parcela.categoria) {
-                const iconeCategoria = parcela.categoria.icone || '📋';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-                descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
+                descricaoItem = nomeCategoria;
             }
 
             // Formatar data de compra
@@ -1460,7 +1518,7 @@
                 didOpen: () => {
                     const container = document.querySelector('.swal2-container');
                     if (container) container.style.zIndex = '99999';
-                    if(window.lucide) lucide.createIcons();
+                    if (window.lucide) lucide.createIcons();
                 }
             });
 
@@ -1629,7 +1687,7 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
-                        if(window.lucide) lucide.createIcons();
+                        if (window.lucide) lucide.createIcons();
                     },
                     preConfirm: () => {
                         const contaSelect = document.getElementById('swalContaSelect');
@@ -1692,7 +1750,7 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
-                        if(window.lucide) lucide.createIcons();
+                        if (window.lucide) lucide.createIcons();
                     }
                 });
 
@@ -2196,7 +2254,7 @@
                     </span>
                 `).join('');
 
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
 
                 // Adicionar eventos de remover
                 DOM.activeFilters.querySelectorAll('.filter-badge-remove').forEach(btn => {
@@ -2582,7 +2640,7 @@
             cancelButtonColor: '#6b7280',
             confirmButtonText: '<i data-lucide="undo-2"></i> Sim, reverter',
             cancelButtonText: 'Cancelar',
-            didOpen: () => { if(window.lucide) lucide.createIcons(); }
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2617,7 +2675,7 @@
                     `,
                     timer: 3000,
                     showConfirmButton: false,
-                    didOpen: () => { if(window.lucide) lucide.createIcons(); }
+                    didOpen: () => { if (window.lucide) lucide.createIcons(); }
                 });
 
                 // Fechar modal e recarregar
@@ -2651,7 +2709,7 @@
             cancelButtonColor: '#6b7280',
             confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
             cancelButtonText: 'Cancelar',
-            didOpen: () => { if(window.lucide) lucide.createIcons(); }
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2704,7 +2762,7 @@
             customClass: {
                 container: 'swal-above-modal'
             },
-            didOpen: () => { if(window.lucide) lucide.createIcons(); }
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2770,7 +2828,7 @@
                 icon.setAttribute('data-lucide', isVisible ? 'eye' : 'eye-off');
                 icon.className = '';
                 icon.innerHTML = '';
-                if(window.lucide) lucide.createIcons({nodes: [icon]});
+                if (window.lucide) lucide.createIcons({ nodes: [icon] });
             }
         }
     };

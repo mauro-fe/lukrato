@@ -1190,7 +1190,17 @@
             'wallet': 'wallet', 'credit-card': 'credit-card',
             'calendar-check': 'calendar-check', 'calendar': 'calendar',
             'crown': 'crown', 'trophy': 'trophy', 'leaf': 'leaf',
-            'shield-alt': 'shield', 'money-bill-wave': 'banknote'
+            'shield-alt': 'shield', 'money-bill-wave': 'banknote',
+            // Novos ícones (já Lucide nativos)
+            'trending-up': 'trending-up', 'trending-down': 'trending-down',
+            'shield-alert': 'shield-alert', 'gauge': 'gauge',
+            'target': 'target', 'clock': 'clock',
+            'receipt': 'receipt', 'calculator': 'calculator',
+            'layers': 'layers', 'calendar-clock': 'calendar-clock',
+            'pie-chart': 'pie-chart', 'calendar-range': 'calendar-range',
+            'list-plus': 'list-plus', 'list-minus': 'list-minus',
+            'file-text': 'file-text', 'piggy-bank': 'piggy-bank',
+            'banknote': 'banknote'
         };
         const insightsHTML = data.insights.map(insight => {
             const lucideIcon = faToLucide[insight.icon] || insight.icon;
@@ -1223,9 +1233,272 @@
 
         const monthlyHTML = renderComparative('Comparativo Mensal', data.monthly, 'mês anterior');
         const yearlyHTML = renderComparative('Comparativo Anual', data.yearly, 'ano anterior');
+        const categoriesHTML = renderCategoryComparison(data.categories || []);
+        const evolucaoHTML = renderEvolucao(data.evolucao || []);
+        const mediaDiariaHTML = renderMediaDiaria(data.mediaDiaria);
+        const taxaEconomiaHTML = renderTaxaEconomia(data.taxaEconomia);
+        const formasHTML = renderFormasPagamento(data.formasPagamento || []);
 
-        comparativesContainer.innerHTML = monthlyHTML + yearlyHTML;
+        comparativesContainer.innerHTML =
+            `<div class="comp-top-row">${monthlyHTML}${yearlyHTML}</div>` +
+            `<div class="comp-duo-grid">${mediaDiariaHTML}${taxaEconomiaHTML}</div>` +
+            categoriesHTML +
+            evolucaoHTML +
+            formasHTML;
+
         if (window.lucide) lucide.createIcons();
+
+        // Mini chart for evolução
+        renderEvolucaoChart(data.evolucao || []);
+    }
+
+    // ── Comparativo de categorias ───────────────────────
+    function renderCategoryComparison(categories) {
+        if (!categories || categories.length === 0) return '';
+
+        const rows = categories.map((cat, i) => {
+            const varClass = cat.variacao > 0 ? 'trend-negative' : cat.variacao < 0 ? 'trend-positive' : 'trend-neutral';
+            const varIcon = cat.variacao > 0 ? 'arrow-up' : cat.variacao < 0 ? 'arrow-down' : 'equal';
+            const varText = Math.abs(cat.variacao) < 0.1 ? 'Sem alteração' : `${cat.variacao > 0 ? '+' : ''}${cat.variacao.toFixed(1)}%`;
+            const total = categories.reduce((s, c) => s + c.atual, 0);
+            const pct = total > 0 ? (cat.atual / total * 100).toFixed(0) : 0;
+
+            return `
+                <div class="cat-comp-row" style="animation-delay: ${i * 0.06}s">
+                    <div class="cat-comp-rank">${i + 1}</div>
+                    <div class="cat-comp-info">
+                        <span class="cat-comp-name">${escapeHtml(cat.nome)}</span>
+                        <div class="cat-comp-bar-bg">
+                            <div class="cat-comp-bar" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                    <div class="cat-comp-values">
+                        <span class="cat-comp-current">${formatCurrency(cat.atual)}</span>
+                        <span class="cat-comp-prev">${formatCurrency(cat.anterior)}</span>
+                    </div>
+                    <div class="cat-comp-trend ${varClass}">
+                        <i data-lucide="${varIcon}"></i>
+                        <span>${varText}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="comparative-card comp-full-width">
+                <div class="comparative-header">
+                    <h3><i data-lucide="bar-chart-3"></i> Top Categorias de Despesa</h3>
+                    <span class="comp-subtitle">Mês atual vs anterior</span>
+                </div>
+                <div class="cat-comp-list">
+                    <div class="cat-comp-header-row">
+                        <span></span><span></span>
+                        <span class="cat-comp-col-label">Atual / Anterior</span>
+                        <span class="cat-comp-col-label">Variação</span>
+                    </div>
+                    ${rows}
+                </div>
+            </div>
+        `;
+    }
+
+    // ── Evolução últimos 6 meses ────────────────────────
+    function renderEvolucao(evolucao) {
+        if (!evolucao || evolucao.length === 0) return '';
+
+        return `
+            <div class="comparative-card comp-full-width">
+                <div class="comparative-header">
+                    <h3><i data-lucide="line-chart"></i> Evolução dos Últimos 6 Meses</h3>
+                    <span class="comp-subtitle">Receitas, despesas e saldo ao longo do tempo</span>
+                </div>
+                <div class="evolucao-chart-wrapper">
+                    <canvas id="evolucaoMiniChart" height="220"></canvas>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderEvolucaoChart(evolucao) {
+        if (!evolucao || evolucao.length === 0) return;
+        const canvas = document.getElementById('evolucaoMiniChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const labels = evolucao.map(e => e.label);
+        const style = getComputedStyle(document.documentElement);
+        const textColor = style.getPropertyValue('--color-text-muted').trim() || '#999';
+
+        if (canvas._chartInstance) canvas._chartInstance.destroy();
+
+        canvas._chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Receitas',
+                        data: evolucao.map(e => e.receitas),
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                    },
+                    {
+                        label: 'Despesas',
+                        data: evolucao.map(e => e.despesas),
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                    },
+                    {
+                        label: 'Saldo',
+                        type: 'line',
+                        data: evolucao.map(e => e.saldo),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3498db',
+                        fill: true,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, padding: 16, usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    },
+                    y: {
+                        grid: { color: 'rgba(128,128,128,0.1)' },
+                        ticks: {
+                            color: textColor,
+                            callback: (v) => formatCurrency(v)
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Média diária ────────────────────────────────────
+    function renderMediaDiaria(data) {
+        if (!data) return '';
+        const varClass = data.variacao > 0 ? 'trend-negative' : data.variacao < 0 ? 'trend-positive' : 'trend-neutral';
+        const varIcon = data.variacao > 0 ? 'arrow-up' : data.variacao < 0 ? 'arrow-down' : 'equal';
+
+        return `
+            <div class="comparative-card comp-mini-card">
+                <div class="comp-mini-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                    <i data-lucide="calendar-clock"></i>
+                </div>
+                <div class="comp-mini-body">
+                    <span class="comp-mini-label">Média Diária de Gastos</span>
+                    <div class="comp-mini-values">
+                        <span class="comp-mini-current">${formatCurrency(data.atual)}/dia</span>
+                        <span class="comp-mini-prev">anterior: ${formatCurrency(data.anterior)}/dia</span>
+                    </div>
+                    <div class="comp-mini-trend ${varClass}">
+                        <i data-lucide="${varIcon}"></i>
+                        <span>${Math.abs(data.variacao).toFixed(1)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ── Taxa de economia ────────────────────────────────
+    function renderTaxaEconomia(data) {
+        if (!data) return '';
+        const isPositive = data.atual >= 0;
+        const diffClass = data.diferenca > 0 ? 'trend-positive' : data.diferenca < 0 ? 'trend-negative' : 'trend-neutral';
+        const diffIcon = data.diferenca > 0 ? 'arrow-up' : data.diferenca < 0 ? 'arrow-down' : 'equal';
+        const gradientColor = isPositive ? '#2ecc71, #27ae60' : '#e74c3c, #c0392b';
+
+        return `
+            <div class="comparative-card comp-mini-card">
+                <div class="comp-mini-icon" style="background: linear-gradient(135deg, ${gradientColor});">
+                    <i data-lucide="piggy-bank"></i>
+                </div>
+                <div class="comp-mini-body">
+                    <span class="comp-mini-label">Taxa de Economia</span>
+                    <div class="comp-mini-values">
+                        <span class="comp-mini-current">${data.atual.toFixed(1)}%</span>
+                        <span class="comp-mini-prev">anterior: ${data.anterior.toFixed(1)}%</span>
+                    </div>
+                    <div class="comp-mini-trend ${diffClass}">
+                        <i data-lucide="${diffIcon}"></i>
+                        <span>${data.diferenca > 0 ? '+' : ''}${data.diferenca.toFixed(1)}pp</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ── Formas de pagamento ─────────────────────────────
+    function renderFormasPagamento(formas) {
+        if (!formas || formas.length === 0) return '';
+
+        const iconMap = {
+            'Pix': 'zap',
+            'Cartão de Crédito': 'credit-card',
+            'Cartão de Débito': 'credit-card',
+            'Dinheiro': 'banknote',
+            'Boleto': 'file-text',
+            'Depósito': 'landmark',
+            'Transferência': 'arrow-right-left',
+            'Estorno': 'undo-2',
+        };
+
+        const totalAtual = formas.reduce((s, f) => s + f.atual, 0);
+
+        const rows = formas.map((f, i) => {
+            const pct = totalAtual > 0 ? (f.atual / totalAtual * 100).toFixed(0) : 0;
+            const icon = iconMap[f.nome] || 'wallet';
+
+            return `
+                <div class="forma-comp-row" style="animation-delay: ${i * 0.06}s">
+                    <div class="forma-comp-icon"><i data-lucide="${icon}"></i></div>
+                    <div class="forma-comp-info">
+                        <span class="forma-comp-name">${escapeHtml(f.nome)}</span>
+                        <div class="forma-comp-bar-bg">
+                            <div class="forma-comp-bar" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                    <div class="forma-comp-values">
+                        <span class="forma-comp-current">${formatCurrency(f.atual)} <small>(${f.atual_qtd}x)</small></span>
+                        <span class="forma-comp-prev">${formatCurrency(f.anterior)} <small>(${f.anterior_qtd}x)</small></span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="comparative-card comp-full-width">
+                <div class="comparative-header">
+                    <h3><i data-lucide="wallet"></i> Formas de Pagamento</h3>
+                    <span class="comp-subtitle">Distribuição mês atual vs anterior</span>
+                </div>
+                <div class="forma-comp-list">
+                    ${rows}
+                </div>
+            </div>
+        `;
     }
 
     function renderComparative(title, data, period) {
@@ -1756,6 +2029,68 @@
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => handleTabChange(btn.dataset.view));
         });
+
+        // === Section tabs (Relatórios / Insights / Comparativos) ===
+        const switchSection = (section) => {
+            document.querySelectorAll('.rel-section-tab').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            document.querySelectorAll('.rel-section-panel').forEach(p => p.classList.remove('active'));
+
+            const activeTab = document.querySelector(`.rel-section-tab[data-section="${section}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                activeTab.setAttribute('aria-selected', 'true');
+            }
+            const panel = document.getElementById('section-' + section);
+            if (panel) {
+                panel.classList.add('active');
+            }
+
+            localStorage.setItem('rel_active_section', section);
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        };
+
+        const proLockedSections = ['insights', 'comparativos'];
+
+        document.querySelectorAll('.rel-section-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const section = tab.dataset.section;
+                if (!window.IS_PRO && proLockedSections.includes(section)) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Recurso Premium',
+                        html: 'Esta funcionalidade é exclusiva do <b>plano Pro</b>.<br>Faça upgrade para desbloquear!',
+                        confirmButtonText: '<i class="lucide-crown" style="margin-right:6px"></i> Fazer Upgrade',
+                        showCancelButton: true,
+                        cancelButtonText: 'Agora não',
+                        confirmButtonColor: '#f59e0b',
+                        cancelButtonColor: '#64748b'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            window.location.href = (window.BASE_URL || '/') + 'billing';
+                        }
+                    });
+                    return;
+                }
+                switchSection(section);
+            });
+        });
+
+        // Restaurar última aba selecionada
+        const savedSection = localStorage.getItem('rel_active_section');
+        if (savedSection && document.getElementById('section-' + savedSection)) {
+            // Não restaurar aba PRO-locked para free users
+            if (!window.IS_PRO && proLockedSections.includes(savedSection)) {
+                switchSection('relatorios');
+            } else {
+                switchSection(savedSection);
+            }
+        }
 
         const reportType = document.getElementById('reportType');
         if (reportType) {

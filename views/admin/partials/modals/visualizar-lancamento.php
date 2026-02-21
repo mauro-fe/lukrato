@@ -1,6 +1,6 @@
 <!-- Modal de Visualização de Lançamento -->
 <div class="modal fade" id="modalViewLancamento" tabindex="-1" aria-labelledby="modalViewLancamentoLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4" style="background: var(--color-bg); overflow: hidden;">
             <!-- Header -->

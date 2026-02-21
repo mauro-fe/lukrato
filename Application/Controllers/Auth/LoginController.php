@@ -8,6 +8,7 @@ use Application\Services\CacheService;
 use Application\Core\Exceptions\ValidationException;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Throwable;
 
 class LoginController extends BaseController
@@ -70,7 +71,7 @@ class LoginController extends BaseController
     public function processLogin(): void
     {
         LogService::info('[LOGIN DEBUG] Início processLogin');
-        
+
         if (!$this->request->isPost()) {
             LogService::warning('Login request rejected: not POST');
             $this->fail('Requisição inválida. Método esperado: POST.', 405);
@@ -81,14 +82,14 @@ class LoginController extends BaseController
             LogService::info('[LOGIN DEBUG] Validando CSRF');
             // Segurança
             $this->validateCsrfToken();
-            
+
             LogService::info('[LOGIN DEBUG] Aplicando rate limit');
             $this->applyRateLimit();
 
             // Autenticação
             $remember = $this->request->post('remember', '0') === '1';
             $email = $this->request->post('email', '');
-            
+
             LogService::info('[LOGIN DEBUG] Tentando autenticar', ['email' => $email]);
 
             $result = $this->authService->login(
@@ -106,13 +107,17 @@ class LoginController extends BaseController
                 'redirect' => $result['redirect']
             ]);
         } catch (ValidationException $e) {
-            LogService::warning('[LOGIN DEBUG] ValidationException', ['message' => $e->getMessage()]);
+            LogService::persist(
+                \Application\Enums\LogLevel::WARNING,
+                LogCategory::AUTH,
+                'Login: falha de validação',
+                ['email' => $email, 'errors' => $e->getErrors()]
+            );
             $this->handleValidationException($e);
         } catch (Throwable $e) {
-            LogService::error('[LOGIN DEBUG] Throwable', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'login',
+                'email' => $email,
             ]);
             $this->handleLoginError($e);
         }

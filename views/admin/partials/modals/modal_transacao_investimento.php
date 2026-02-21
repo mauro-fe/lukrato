@@ -6,7 +6,7 @@
 ?>
 
 <div class="modal fade" id="modal-transacao-investimento" tabindex="-1" aria-labelledby="modalTransacaoLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">

@@ -43,33 +43,33 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
         <div class="top-navbar-title">
             <h1><?= $pageTitle ?? 'Dashboard' ?></h1>
             <?php if (!empty($currentBreadcrumbs) || ($menu ?? '') !== 'dashboard'): ?>
-            <nav class="lk-breadcrumbs-wrapper" aria-label="Navegação">
-                <ol class="lk-breadcrumbs">
-                    <li class="lk-breadcrumb-item">
-                        <a href="<?= BASE_URL ?>dashboard" title="Início">
-                            <i data-lucide="home" class="lk-breadcrumb-home"></i>
-                        </a>
-                    </li>
-                    <?php foreach ($currentBreadcrumbs as $crumb): ?>
-                    <li class="lk-breadcrumb-separator"><i data-lucide="chevron-right" class="icon-xs"></i></li>
-                    <li class="lk-breadcrumb-item">
-                        <?php if (!empty($crumb['url'])): ?>
-                        <a href="<?= BASE_URL . $crumb['url'] ?>">
-                            <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"></i><?php endif; ?>
-                            <?= htmlspecialchars($crumb['label']) ?>
-                        </a>
-                        <?php else: ?>
-                        <span>
-                            <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"></i><?php endif; ?>
-                            <?= htmlspecialchars($crumb['label']) ?>
-                        </span>
-                        <?php endif; ?>
-                    </li>
-                    <?php endforeach; ?>
-                    <li class="lk-breadcrumb-separator"><i data-lucide="chevron-right" class="icon-xs"></i></li>
-                    <li class="lk-breadcrumb-item current"><?= $pageTitle ?? 'Dashboard' ?></li>
-                </ol>
-            </nav>
+                <nav class="lk-breadcrumbs-wrapper" aria-label="Navegação">
+                    <ol class="lk-breadcrumbs">
+                        <li class="lk-breadcrumb-item">
+                            <a href="<?= BASE_URL ?>dashboard" title="Início">
+                                <i data-lucide="home" class="lk-breadcrumb-home"></i>
+                            </a>
+                        </li>
+                        <?php foreach ($currentBreadcrumbs as $crumb): ?>
+                            <li class="lk-breadcrumb-separator"><i data-lucide="chevron-right" class="icon-xs"></i></li>
+                            <li class="lk-breadcrumb-item">
+                                <?php if (!empty($crumb['url'])): ?>
+                                    <a href="<?= BASE_URL . $crumb['url'] ?>">
+                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"></i><?php endif; ?>
+                                        <?= htmlspecialchars($crumb['label']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <span>
+                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"></i><?php endif; ?>
+                                        <?= htmlspecialchars($crumb['label']) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                        <li class="lk-breadcrumb-separator"><i data-lucide="chevron-right" class="icon-xs"></i></li>
+                        <li class="lk-breadcrumb-item current"><?= $pageTitle ?? 'Dashboard' ?></li>
+                    </ol>
+                </nav>
             <?php endif; ?>
         </div>
 
@@ -77,7 +77,7 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
         <div class="top-navbar-actions">
             <!-- User Info -->
             <div class="user-info">
-                <span class="greeting">Olá, <strong><?= $topNavFirstName ?: 'usuário' ?></strong></span>
+                <span class="greeting">Olá, <a href="<?= BASE_URL ?>perfil" class="greeting-name" title="Ir para o perfil"><strong><?= $topNavFirstName ?: 'usuário' ?></strong></a></span>
                 <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>"
                     title="Gerenciar assinatura">
                     <i data-lucide="<?= $isPro ? 'crown' : 'leaf' ?>"></i>

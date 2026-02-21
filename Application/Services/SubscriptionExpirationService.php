@@ -8,6 +8,8 @@ use Application\Models\AssinaturaUsuario;
 use Application\Models\Notificacao;
 use Application\Models\Usuario;
 use Application\Services\Mail\EmailTemplate;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -68,17 +70,20 @@ class SubscriptionExpirationService
                         'user_id' => $subscription->user_id,
                         'error' => $e->getMessage(),
                     ];
-                    LogService::error('[SubscriptionExpiration] Erro ao processar assinatura', [
+                    LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+                        'action' => 'process_expired_subscription',
                         'subscription_id' => $subscription->id,
-                        'error' => $e->getMessage(),
-                    ]);
+                        'user_id' => $subscription->user_id,
+                    ], $subscription->user_id);
                 }
             }
 
             LogService::info('[SubscriptionExpiration] Processamento concluído', $stats);
         } catch (\Throwable $e) {
             $stats['errors'][] = ['general' => $e->getMessage()];
-            LogService::error('[SubscriptionExpiration] Erro geral', ['error' => $e->getMessage()]);
+            LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+                'action' => 'process_expired_subscriptions_general',
+            ]);
         }
 
         return $stats;
@@ -261,10 +266,10 @@ class SubscriptionExpirationService
         try {
             return $this->mail->send($usuario->email, $nomeUsuario, $subject, $html, $text);
         } catch (\Throwable $e) {
-            LogService::error('[SubscriptionExpiration] Erro ao enviar email de vencimento', [
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'send_expiration_email',
                 'user_id' => $usuario->id,
-                'error' => $e->getMessage(),
-            ]);
+            ], $usuario->id);
             return false;
         }
     }
@@ -315,10 +320,10 @@ class SubscriptionExpirationService
         try {
             return $this->mail->send($usuario->email, $nomeUsuario, $subject, $html, $text);
         } catch (\Throwable $e) {
-            LogService::error('[SubscriptionExpiration] Erro ao enviar email de bloqueio', [
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'send_blocked_email',
                 'user_id' => $usuario->id,
-                'error' => $e->getMessage(),
-            ]);
+            ], $usuario->id);
             return false;
         }
     }

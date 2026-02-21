@@ -7,6 +7,8 @@ namespace Application\Controllers\Api;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\PlanLimitService;
+use Application\Services\LogService;
+use Application\Enums\LogCategory;
 
 /**
  * Controller para consultar limites e status do plano do usuário
@@ -41,8 +43,10 @@ class PlanController
                 'data' => $summary,
             ]);
         } catch (\Throwable $e) {
-            // Log do erro para debug
-            error_log("[PlanController] Erro ao buscar limites: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+                'action' => 'get_plan_limits',
+                'user_id' => $userId,
+            ], $userId);
 
             // Retornar resposta padrão sem bloquear o usuário
             Response::json([

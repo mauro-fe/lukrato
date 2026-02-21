@@ -9,7 +9,7 @@
  * sem ser intrusivo para usuários experientes.
  */
 
-(function() {
+(function () {
     'use strict';
 
     // ============================================
@@ -216,7 +216,6 @@
                 icon: 'star'
             }
         ],
-<<<<<<< HEAD
         'billing': [
             {
                 selector: '.plan-card--recommended, .plan-card.pro',
@@ -233,10 +232,6 @@
                 icon: 'calendar-check'
             }
         ]
-=======
-        // Página de billing não precisa de tooltips - já é autoexplicativa
-        'billing': []
->>>>>>> e6eb93ea585cc07b573cb47bc72ce7f3e6386b68
     };
 
     // ============================================
@@ -284,7 +279,7 @@
 
     function getCurrentPage() {
         const path = window.location.pathname.toLowerCase();
-        
+
         // Mapear URLs para identificadores de página
         const pageMap = {
             '/dashboard': 'dashboard',
@@ -323,9 +318,9 @@
         tooltip.className = 'fvt-tooltip';
         tooltip.setAttribute('role', 'tooltip');
         tooltip.setAttribute('aria-live', 'polite');
-        
+
         const proTag = config.proOnly ? '<span class="fvt-pro-tag">PRO</span>' : '';
-        
+
         tooltip.innerHTML = `
             <div class="fvt-tooltip-content">
                 <div class="fvt-tooltip-header">
@@ -344,8 +339,8 @@
             </div>
             <div class="fvt-arrow"></div>
         `;
-        
-        if(window.lucide) lucide.createIcons({nodes:[tooltip]});
+
+        if (window.lucide) lucide.createIcons({ nodes: [tooltip] });
         return tooltip;
     }
 
@@ -354,10 +349,10 @@
         const tooltipRect = tooltip.getBoundingClientRect();
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-        
+
         let top, left;
         const offset = 12;
-        
+
         switch (position) {
             case 'top':
                 top = targetRect.top + scrollTop - tooltipRect.height - offset;
@@ -379,17 +374,17 @@
                 top = targetRect.bottom + scrollTop + offset;
                 left = targetRect.left + scrollLeft;
         }
-        
+
         // Ajustar se sair da tela
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        
+
         if (left < 10) left = 10;
         if (left + tooltipRect.width > viewportWidth - 10) {
             left = viewportWidth - tooltipRect.width - 10;
         }
         if (top < scrollTop + 10) top = scrollTop + 10;
-        
+
         tooltip.style.top = `${top}px`;
         tooltip.style.left = `${left}px`;
         tooltip.dataset.position = position;
@@ -398,36 +393,36 @@
     function showTooltip(config, index = 0) {
         const target = document.querySelector(config.selector);
         if (!target) return null;
-        
+
         // Verificar se elemento está visível
         const rect = target.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return null;
-        
+
         // Verificar se é feature Pro e usuário é Free
         if (config.proOnly && window.PlanLimits && !window.PlanLimits.isPro()) {
             // Ainda mostrar, mas com indicação de que é Pro
         }
-        
+
         const tooltip = createTooltipElement(config);
         document.body.appendChild(tooltip);
-        
+
         // Aguardar renderização para posicionar
         requestAnimationFrame(() => {
             positionTooltip(tooltip, target, config.position);
-            
+
             // Animar entrada
             setTimeout(() => {
                 tooltip.classList.add('fvt-visible');
             }, 50 + (index * 200)); // Delay escalonado
         });
-        
+
         // Highlight no elemento alvo
         target.classList.add('fvt-highlighted');
-        
+
         // Eventos de fechamento
         const closeBtn = tooltip.querySelector('.fvt-close');
         const gotItBtn = tooltip.querySelector('.fvt-got-it');
-        
+
         const closeTooltip = () => {
             tooltip.classList.remove('fvt-visible');
             target.classList.remove('fvt-highlighted');
@@ -436,13 +431,13 @@
                 activeTooltips = activeTooltips.filter(t => t !== tooltip);
             }, CONFIG.animationDuration);
         };
-        
+
         closeBtn?.addEventListener('click', closeTooltip);
         gotItBtn?.addEventListener('click', closeTooltip);
-        
+
         // Auto-fechar após duração
         setTimeout(closeTooltip, CONFIG.tooltipDuration + (index * 2000));
-        
+
         activeTooltips.push(tooltip);
         return tooltip;
     }
@@ -454,16 +449,16 @@
     function showTooltipsForPage(page) {
         const tooltips = PAGE_TOOLTIPS[page];
         if (!tooltips || tooltips.length === 0) return;
-        
+
         // Mostrar até o máximo configurado
         let shown = 0;
         for (const config of tooltips) {
             if (shown >= CONFIG.maxTooltipsPerPage) break;
-            
+
             const tooltip = showTooltip(config, shown);
             if (tooltip) shown++;
         }
-        
+
         // Marcar página como visitada
         if (shown > 0) {
             markPageVisited(page);
@@ -472,18 +467,18 @@
 
     function init() {
         loadVisitedPages();
-        
+
         const currentPage = getCurrentPage();
         if (!currentPage) return;
-        
+
         // Só mostrar tooltips se for primeira visita
         if (hasVisitedPage(currentPage)) return;
-        
+
         // Aguardar carregamento completo da página
         setTimeout(() => {
             // Verificar se onboarding está ativo (não mostrar tooltips durante onboarding)
             if (window.gamificationPaused) return;
-            
+
             showTooltipsForPage(currentPage);
         }, 1500);
     }

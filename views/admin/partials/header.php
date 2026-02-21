@@ -314,42 +314,42 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Dashboard -->
             <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
                 title="Dashboard">
-                <i data-lucide="home"></i>
+                <i data-lucide="home" style="color:#3b82f6"></i>
                 <span>Dashboard</span>
             </a>
 
             <!-- Contas -->
             <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
                 title="Contas">
-                <i data-lucide="landmark"></i>
+                <i data-lucide="landmark" style="color:#6366f1"></i>
                 <span>Contas</span>
             </a>
 
             <!-- Cartões -->
             <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
                 title="Cartões de Crédito">
-                <i data-lucide="credit-card"></i>
+                <i data-lucide="credit-card" style="color:#0ea5e9"></i>
                 <span>Cartões</span>
             </a>
 
             <!-- Faturas de Cartão -->
             <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
                 title="Faturas de Cartão">
-                <i data-lucide="file-text"></i>
+                <i data-lucide="file-text" style="color:#64748b"></i>
                 <span>Faturas</span>
             </a>
 
             <!-- Categorias -->
             <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
                 title="Categorias">
-                <i data-lucide="tags"></i>
+                <i data-lucide="tags" style="color:#f97316"></i>
                 <span>Categorias</span>
             </a>
 
             <!-- Lançamentos -->
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                 <?= $aria('lancamentos') ?> title="lançamentos">
-                <i data-lucide="layers"></i>
+                <i data-lucide="layers" style="color:#8b5cf6"></i>
                 <span>lançamentos</span>
             </a>
 
@@ -357,28 +357,28 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Relatórios -->
             <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
                 title="Relatórios">
-                <i data-lucide="pie-chart"></i>
+                <i data-lucide="pie-chart" style="color:#ec4899"></i>
                 <span>Relatórios</span>
             </a>
 
             <!-- Finanças -->
             <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>"
                 <?= $aria('financas') ?> title="Finanças">
-                <i data-lucide="wallet"></i>
+                <i data-lucide="wallet" style="color:#14b8a6"></i>
                 <span>Finanças</span>
             </a>
 
             <!-- Agendamentos -->
             <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
                 <?= $aria('agendamentos') ?> title="Agendamentos">
-                <i data-lucide="clock"></i>
+                <i data-lucide="clock" style="color:#f59e0b"></i>
                 <span>Agendados</span>
             </a>
 
             <!-- Gamificação -->
             <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
                 <?= $aria('gamification') ?> title="Gamificação">
-                <i data-lucide="trophy"></i>
+                <i data-lucide="trophy" style="color:#eab308"></i>
                 <span>Conquistas</span>
             </a>
 
@@ -392,20 +392,20 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <!-- Perfil -->
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
                 title="Perfil">
-                <i data-lucide="circle-user"></i>
+                <i data-lucide="circle-user" style="color:#06b6d4"></i>
                 <span>Perfil</span>
             </a>
             <?php if ($isSysAdmin): ?>
                 <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
                     <?= $aria('super_admin') ?> title="SysAdmin">
-                    <i data-lucide="shield-check"></i>
+                    <i data-lucide="shield-check" style="color:#22c55e"></i>
                     <span>SysAdmin</span>
                 </a>
             <?php endif; ?>
 
             <!-- Sair -->
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
-                <i data-lucide="log-out"></i>
+                <i data-lucide="log-out" style="color:#ef4444"></i>
                 <span>Sair</span>
             </a>
 
@@ -413,7 +413,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             <?php if ($showUpgradeCTA): ?>
                 <div class="sidebar-pro-cta">
                     <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                        <i data-lucide="star"></i>
+                        <i data-lucide="star" style="color:#f59e0b"></i>
                         <span>Pro</span>
                     </a>
                 </div>

@@ -182,7 +182,6 @@
 }
 
 .modern-input {
-  width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--glass-border);
   background: var(--color-bg);
@@ -253,7 +252,6 @@
 
 .submit-btn {
   align-self: flex-start;
-  min-width: 200px;
 }
 
 .modern-btn {
@@ -274,6 +272,8 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-size: var(--font-size-sm);
+  background-color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .modern-btn::before {
@@ -292,8 +292,11 @@
   transform: scale(0.97);
 }
 
-.modern-btn i {
+.modern-btn i,
+.modern-btn svg {
   font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .modern-btn.primary:hover {
@@ -482,7 +485,11 @@
 
 .cat-card:hover {
   background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--glass-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 30%,
+    var(--glass-border)
+  );
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -513,7 +520,11 @@
 }
 
 .cat-card-icon.receita {
-  background: color-mix(in srgb, var(--color-success) 15%, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--color-success) 15%,
+    var(--color-surface)
+  );
   color: var(--color-success);
 }
 
@@ -973,8 +984,14 @@
    MODAL DE ORÇAMENTO
    ============================================================================ */
 
-#modalOrcamento .modal-content {
+.modal-content {
   background: var(--color-bg);
+}
+.modal-body {
+  padding: var(--spacing-4) var(--spacing-5) !important;
+}
+
+#modalOrcamento .modal-content {
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-lg);
   font-family: var(--font-primary);
@@ -1016,7 +1033,8 @@
   padding: var(--spacing-3);
   margin-bottom: var(--spacing-4);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   color: var(--color-text-muted);

@@ -758,10 +758,10 @@
 
                 if (field === STATE.sortField) {
                     icon.setAttribute('data-lucide', STATE.sortDirection === 'asc' ? 'arrow-up' : 'arrow-down');
-                    icon.className = 'sort-icon active';
+                    icon.setAttribute('class', 'sort-icon active');
                 } else {
                     icon.setAttribute('data-lucide', 'arrow-up-down');
-                    icon.className = 'sort-icon';
+                    icon.setAttribute('class', 'sort-icon');
                 }
             });
             if (window.lucide) lucide.createIcons();
@@ -2424,7 +2424,7 @@
             if (existingDetails?.classList.contains('parcelas-detalhes')) {
                 existingDetails.remove();
                 icon.setAttribute('data-lucide', 'chevron-right');
-                icon.className = '';
+                icon.setAttribute('class', '');
                 if (window.lucide) lucide.createIcons();
                 return;
             }
@@ -2489,7 +2489,7 @@
 
             grupoRow.after(detailsRow);
             icon.setAttribute('data-lucide', 'chevron-down');
-            icon.className = '';
+            icon.setAttribute('class', '');
             if (window.lucide) lucide.createIcons();
         },
 

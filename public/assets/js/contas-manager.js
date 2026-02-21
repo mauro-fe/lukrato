@@ -333,7 +333,7 @@ class ContasManager {
                         </button>
                     </div>
                 `;
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         } finally {
             this.showLoading(false);
@@ -364,7 +364,7 @@ class ContasManager {
                     </button>
                 </div>
             `;
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
             // Anexar listener para o botão de criar primeira conta
             setTimeout(() => {
                 const btnCriarPrimeira = document.getElementById('btnCriarPrimeiraConta');
@@ -378,7 +378,7 @@ class ContasManager {
         }
 
         container.innerHTML = this.contas.map(conta => this.createContaCard(conta)).join('');
-        if(window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
         this.attachContaCardListeners();
     }
 
@@ -858,7 +858,7 @@ class ContasManager {
                 confirmButton: 'swal-confirm-btn',
                 cancelButton: 'swal-cancel-btn'
             },
-            didOpen: () => { if(window.lucide) lucide.createIcons(); }
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -1055,7 +1055,7 @@ class ContasManager {
         `;
 
         document.body.appendChild(menuEl);
-        if(window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
 
         // Posicionar relativo ao botão clicado
         if (event && event.target) {
@@ -1201,15 +1201,7 @@ class ContasManager {
             });
         });
 
-        // Fechar ao clicar fora (no overlay)
-        const modalOverlay = document.getElementById('modalContaOverlay');
-        if (modalOverlay) {
-            modalOverlay.onclick = (e) => {
-                if (e.target === modalOverlay) {
-                    this.closeModal();
-                }
-            };
-        }
+        // Backdrop bloqueado - conta modal fecha apenas pelo botão X
     }
 
     /**
@@ -1256,16 +1248,7 @@ class ContasManager {
             corInstituicao.dataset.listenerAdded = 'true';
         }
 
-        // Fechar modal de nova instituição ao clicar no overlay
-        const modalNovaInstituicaoOverlay = document.getElementById('modalNovaInstituicaoOverlay');
-        if (modalNovaInstituicaoOverlay && !modalNovaInstituicaoOverlay.dataset.listenerAdded) {
-            modalNovaInstituicaoOverlay.addEventListener('click', (e) => {
-                if (e.target.id === 'modalNovaInstituicaoOverlay') {
-                    this.closeNovaInstituicaoModal();
-                }
-            });
-            modalNovaInstituicaoOverlay.dataset.listenerAdded = 'true';
-        }
+        // Backdrop bloqueado - nova instituição modal fecha apenas pelo botão X
 
         // Botão novo cartão
         const btnNovoCartao = document.getElementById('btnNovoCartao');
@@ -1348,22 +1331,12 @@ class ContasManager {
             this.voltarEscolhaTipo();
         });
 
-        // Fechar modal de lançamento ao clicar no overlay
-        document.getElementById('modalLancamentoOverlay')?.addEventListener('click', (e) => {
-            if (e.target.id === 'modalLancamentoOverlay') {
-                this.closeLancamentoModal();
-            }
-        });
+        // Backdrop bloqueado - lançamento modal fecha apenas pelo botão X
 
         // View Toggle (Cards/Lista)
         this.initViewToggle();
 
-        // Fechar modal ao clicar no overlay
-        document.getElementById('modalContaOverlay')?.addEventListener('click', (e) => {
-            if (e.target.id === 'modalContaOverlay') {
-                this.closeModal();
-            }
-        });
+        // Backdrop bloqueado - modal fecha apenas pelo botão X
 
         // Fechar modal com tecla ESC
         document.addEventListener('keydown', (e) => {
@@ -1512,7 +1485,7 @@ class ContasManager {
                         <p>Nenhuma movimentação recente</p>
                     </div>
                 `;
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
                 return;
             }
 
@@ -1543,7 +1516,7 @@ class ContasManager {
                     </div>
                 `;
             }).join('');
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
 
         } catch (error) {
             console.error('Erro ao carregar histórico:', error);
@@ -1553,7 +1526,7 @@ class ContasManager {
                     <p>Erro ao carregar histórico</p>
                 </div>
             `;
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
     }
 
@@ -2225,7 +2198,7 @@ class ContasManager {
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.removeProperty('background');
             btnSalvar.innerHTML = '<i data-lucide="check"></i> Salvar Lançamento';
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
     }
 
@@ -2277,7 +2250,7 @@ class ContasManager {
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Processando...';
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         try {
@@ -2634,7 +2607,7 @@ class ContasManager {
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Salvando...';
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         try {
@@ -2829,7 +2802,7 @@ class ContasManager {
 
         // Adicionar ao body
         document.body.appendChild(toast);
-        if(window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
 
         // Animar entrada
         setTimeout(() => toast.classList.add('lk-toast-show'), 10);

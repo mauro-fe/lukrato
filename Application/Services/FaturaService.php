@@ -1139,6 +1139,26 @@ class FaturaService
         $mesRetorno = $mesRef !== null ? $mesRef : ($primeiroMesRef ? $primeiroMesRef->mes_referencia : null);
         $anoRetorno = $anoRef !== null ? $anoRef : ($primeiroMesRef ? $primeiroMesRef->ano_referencia : null);
 
+        // Calcular data de vencimento usando a MESMA lógica do modal (formatarFaturaDetalhada):
+        // Extrair mês/ano da descrição da fatura (ex: "Fatura 3/2026")
+        $dataVencimento = null;
+        $mesFatura = null;
+        $anoFatura = null;
+        if (preg_match('/(\d{1,2})\/(\d{4})/', $fatura->descricao, $matches)) {
+            $mesFatura = (int)$matches[1];
+            $anoFatura = (int)$matches[2];
+        }
+
+        if ($mesFatura && $anoFatura && $fatura->cartaoCredito) {
+            $diaVencimento = $fatura->cartaoCredito->dia_vencimento ?? null;
+            if ($diaVencimento) {
+                // Ajustar dia caso o mês não tenha tantos dias (ex: fev 28/29)
+                $maxDia = cal_days_in_month(CAL_GREGORIAN, $mesFatura, $anoFatura);
+                $dia = min((int)$diaVencimento, $maxDia);
+                $dataVencimento = sprintf('%04d-%02d-%02d', $anoFatura, $mesFatura, $dia);
+            }
+        }
+
         return [
             'id' => $fatura->id,
             'descricao' => $fatura->descricao,
@@ -1146,6 +1166,7 @@ class FaturaService
             'numero_parcelas' => $fatura->numero_parcelas,
             'valor_parcela' => $fatura->valor_parcela,
             'data_compra' => $fatura->data_compra->format('Y-m-d'),
+            'data_vencimento' => $dataVencimento,
             // Mês/ano de referência (do filtro ou primeiro mês onde aparece)
             'mes_referencia' => $mesRetorno,
             'ano_referencia' => $anoRetorno,
@@ -1259,6 +1280,7 @@ class FaturaService
             'nome' => $cartao->nome_cartao ?? $cartao->bandeira,
             'bandeira' => $cartao->bandeira,
             'ultimos_digitos' => $cartao->ultimos_digitos ?? '',
+            'dia_vencimento' => $cartao->dia_vencimento ?? null,
             'cor_cartao' => $cor,
         ];
     }
