@@ -232,16 +232,20 @@
    3. BOTÕES COM MICRO-INTERAÇÕES
    ============================================================================ */
 
-.btn,
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button) {
+.btn:not(.modern-btn),
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+    .modern-btn
+  ) {
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Ripple effect - excluindo botão de suporte para não conflitar com tooltip */
-.btn:not(.lk-support-button)::after,
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button)::after {
+.btn:not(.lk-support-button):not(.modern-btn)::after,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+    .modern-btn
+  )::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -257,9 +261,9 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button)::after {
   pointer-events: none;
 }
 
-.btn:not(.lk-support-button):active::after,
-button:not(.theme-toggle):not(.lkh-modal-close):not(
-    .lk-support-button
+.btn:not(.lk-support-button):not(.modern-btn):active::after,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+    .modern-btn
   ):active::after {
   width: 300px;
   height: 300px;
@@ -269,10 +273,10 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(
 }
 
 /* Hover elevado */
-.btn:not(:disabled):not(.lk-support-button):hover,
+.btn:not(:disabled):not(.lk-support-button):not(.modern-btn):hover,
 button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
     .lk-support-button
-  ):hover {
+  ):not(.modern-btn):hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
