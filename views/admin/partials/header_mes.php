@@ -381,16 +381,34 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
 
     /* Responsividade */
     @media (max-width: 768px) {
-        .dash-lk-header {}
+        .dash-lk-header {
+            justify-content: center;
+        }
+
+        .dash-lk-header .month-selector {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dash-lk-header .lk-period {
+            flex: 1;
+            max-width: 320px;
+        }
 
         .dash-lk-header .month-dropdown-btn {
-            min-width: 120px;
-            font-size: var(--font-size-xs);
+            min-width: 0;
+            flex: 1;
+            font-size: var(--font-size-sm);
+            padding: 0 var(--spacing-2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .dash-lk-header .month-nav-btn {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
         }
 
         .lk-pro-cta {
@@ -407,6 +425,28 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
 
         .dash-lk-header .month-dropdown.active {
             transform: translateX(-50%) translateY(0);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dash-lk-header .lk-period {
+            max-width: 280px;
+        }
+
+        .dash-lk-header .month-dropdown-btn {
+            font-size: var(--font-size-xs);
+            padding: 0 var(--spacing-1);
+        }
+
+        .dash-lk-header .month-nav-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .dash-lk-header .month-nav-btn i,
+        .dash-lk-header .month-nav-btn svg {
+            width: 16px;
+            height: 16px;
         }
     }
 

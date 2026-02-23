@@ -3100,6 +3100,30 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupFilters() {
+            // Toggle para expandir/colapsar filtros
+            const toggleFilters = document.getElementById('toggleFilters');
+            const filtersContainer = document.querySelector('.filters-modern');
+            const filtersHeader = document.querySelector('.filters-header');
+            
+            if (filtersContainer && toggleFilters) {
+                const toggleFiltersHandler = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    filtersContainer.classList.toggle('collapsed');
+                };
+                
+                toggleFilters.addEventListener('click', toggleFiltersHandler);
+                
+                // Click no header também toggle (mas não nos filhos exceto o botão)
+                if (filtersHeader) {
+                    filtersHeader.addEventListener('click', (e) => {
+                        // Se clicou no botão, deixa o handler do botão cuidar
+                        if (e.target.closest('.filters-toggle')) return;
+                        filtersContainer.classList.toggle('collapsed');
+                    });
+                }
+            }
+
             // Recarregar ao trocar de mês no header
             document.addEventListener('lukrato:month-changed', () => {
                 STATE.activeQuickFilter = null;

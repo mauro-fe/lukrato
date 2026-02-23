@@ -1,5 +1,6 @@
 ﻿<!-- CSS MODERNIZADO -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/filters-modern.css?v=<?= filemtime(BASE_PATH . '/public/assets/css/filters-modern.css') ?>">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lancamentos-modern.css">
 
 <?php $isPro = $isPro ?? false; ?>
@@ -81,63 +82,76 @@
             </div>
         </div>
 
-        <!-- CARD DE FILTROS -->
-        <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="card-header-icon">
-                <div class="icon-wrapper filter">
-                    <i data-lucide="filter" style="color: var(--color-primary)"></i>
+        <!-- CARD DE FILTROS COLAPSÁVEL -->
+        <div class="filters-modern" data-aos="fade-up" data-aos-delay="200">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <div class="filters-icon">
+                        <i data-lucide="sliders-horizontal"></i>
+                    </div>
+                    <div class="filters-text">
+                        <h3>Filtros Avançados</h3>
+                        <span class="filters-subtitle">Refine sua busca por tipo, categoria e conta</span>
+                    </div>
                 </div>
-                <div class="card-title-group">
-                    <h3 class="card-title">Filtros Avançados</h3>
-                    <p class="card-subtitle">Refine sua busca por tipo, categoria e conta</p>
-                </div>
+                <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">
+                    <i data-lucide="chevron-down"></i>
+                </button>
             </div>
 
-            <div class="filter-controls">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label for="filtroTipo" class="filter-label">
+            <div class="filters-body" id="filtersBody">
+                <div class="filters-grid">
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroTipo">
                             <i data-lucide="tag" style="color: var(--color-primary)"></i>
-                            <span>Tipo</span>
+                            Tipo
                         </label>
-                        <select id="filtroTipo" class="modern-select" aria-label="Filtrar por tipo">
-                            <option value="">Todos os Tipos</option>
-                            <option value="receita">💰 Receitas</option>
-                            <option value="despesa">💸 Despesas</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroTipo" class="filter-select" aria-label="Filtrar por tipo">
+                                <option value="">Todos os Tipos</option>
+                                <option value="receita">💰 Receitas</option>
+                                <option value="despesa">💸 Despesas</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filtroCategoria" class="filter-label">
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroCategoria">
                             <i data-lucide="folder" style="color: var(--color-primary)"></i>
-                            <span>Categoria</span>
+                            Categoria
                         </label>
-                        <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
-                            <option value="">Todas as Categorias</option>
-                            <option value="none">Sem Categoria</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroCategoria" class="filter-select" aria-label="Filtrar por categoria">
+                                <option value="">Todas as Categorias</option>
+                                <option value="none">Sem Categoria</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filtroConta" class="filter-label">
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroConta">
                             <i data-lucide="wallet" style="color: var(--color-primary)"></i>
-                            <span>Conta</span>
+                            Conta
                         </label>
-                        <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
-                            <option value="">Todas as Contas</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroConta" class="filter-select" aria-label="Filtrar por conta">
+                                <option value="">Todas as Contas</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="filter-actions">
-                    <button id="btnFiltrar" type="button" class="modern-btn primary" aria-label="Aplicar filtros">
+                <div class="filters-actions">
+                    <button id="btnLimparFiltros" type="button" class="btn-filter-clear" aria-label="Limpar filtros">
+                        <i data-lucide="x"></i>
+                        <span>Limpar</span>
+                    </button>
+                    <button id="btnFiltrar" type="button" class="btn-filter-apply" aria-label="Aplicar filtros">
                         <i data-lucide="search"></i>
                         <span>Aplicar Filtros</span>
-                    </button>
-                    <button id="btnLimparFiltros" type="button" class="modern-btn" aria-label="Limpar filtros"
-                        style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
-                        <i data-lucide="eraser"></i>
-                        <span>Limpar Filtros</span>
                     </button>
                 </div>
             </div>
