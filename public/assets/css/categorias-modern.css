@@ -802,9 +802,8 @@
   }
 
   .submit-btn {
-    width: auto;
-    max-width: 220px;
-    align-self: center;
+    width: 100%;
+    max-width: 100%;
   }
 
   .categories-grid {
@@ -883,9 +882,8 @@
   }
 
   .submit-btn {
-    width: auto;
-    max-width: 200px;
-    align-self: center;
+    width: 100%;
+    max-width: 100%;
   }
 
   .category-header {
