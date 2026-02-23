@@ -274,14 +274,17 @@
   font-size: var(--font-size-sm);
   background-color: var(--color-primary);
   color: var(--color-text);
+  white-space: nowrap;
 }
 
 .modern-btn::before {
   content: "";
   position: absolute;
   inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
   opacity: 0;
   transition: opacity 0.2s ease;
+  z-index: 0;
 }
 
 .modern-btn:hover::before {
@@ -297,6 +300,20 @@
   font-size: 16px;
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.modern-btn span {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.modern-btn.primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
 }
 
 .modern-btn.primary:hover {
@@ -802,8 +819,9 @@
   }
 
   .submit-btn {
-    width: 100%;
+    width: auto;
     max-width: 100%;
+    align-self: stretch;
   }
 
   .categories-grid {
@@ -877,13 +895,14 @@
   }
 
   .modern-btn {
-    font-size: var(--font-size-xs);
-    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-3) var(--spacing-5);
   }
 
   .submit-btn {
-    width: 100%;
+    width: auto;
     max-width: 100%;
+    align-self: stretch;
   }
 
   .category-header {
