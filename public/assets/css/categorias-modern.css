@@ -802,7 +802,9 @@
   }
 
   .submit-btn {
-    width: 100%;
+    width: auto;
+    max-width: 220px;
+    align-self: center;
   }
 
   .categories-grid {
@@ -878,6 +880,12 @@
   .modern-btn {
     font-size: var(--font-size-xs);
     padding: var(--spacing-2) var(--spacing-4);
+  }
+
+  .submit-btn {
+    width: auto;
+    max-width: 200px;
+    align-self: center;
   }
 
   .category-header {

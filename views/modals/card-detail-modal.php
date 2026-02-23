@@ -5,7 +5,7 @@
             <div class="card-detail-header-content">
                 <div class="card-detail-title-area">
                     <div class="card-detail-icon" data-color>
-                        <i data-lucide="credit-card"></i>
+                        <i data-lucide="credit-card" style="color: white"></i>
                     </div>
                     <div class="card-detail-info">
                         <h2 data-cartao-nome></h2>

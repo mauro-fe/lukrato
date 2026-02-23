@@ -1929,19 +1929,44 @@
   }
 
   .summary-insights {
+    display: flex !important;
     flex-direction: column !important;
     padding: var(--spacing-3) !important;
     gap: var(--spacing-2) !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .insight-item {
-    min-width: 100% !important;
-    font-size: 0.75rem !important;
-    padding: var(--spacing-2) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: var(--spacing-2) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 0.8rem !important;
+    padding: var(--spacing-3) !important;
+    box-sizing: border-box !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
   }
 
-  .insight-item i {
-    font-size: 0.85rem !important;
+  .insight-item span {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+
+  .insight-item i,
+  .insight-item svg {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    flex-shrink: 0 !important;
   }
 
   /* ========== CARDS INDIVIDUAIS DE CARTÃO - MOBILE ========== */
@@ -2075,7 +2100,19 @@
   }
 
   .insight-item {
-    font-size: 0.7rem !important;
+    font-size: 0.75rem !important;
+    max-width: 100% !important;
+    padding: var(--spacing-2) var(--spacing-3) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .insight-item svg {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
   }
 
   .card-header-gradient {
@@ -3200,6 +3237,17 @@ canvas {
   .summary-grid {
     grid-template-columns: 1fr;
   }
+
+  .summary-insights {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--spacing-3);
+  }
+
+  .insight-item {
+    max-width: 100%;
+    width: 100%;
+  }
 }
 
 .summary-insights {
@@ -3210,6 +3258,8 @@ canvas {
   background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
+  justify-content: center;
+  overflow: hidden;
 }
 
 .insight-item {
@@ -3220,13 +3270,24 @@ canvas {
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  flex: 1;
-  min-width: 280px;
+  flex: 0 1 auto;
+  min-width: auto;
+  max-width: 400px;
 }
 
-.insight-item i {
-  font-size: 1rem;
+.insight-item i,
+.insight-item svg {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
   flex-shrink: 0;
+}
+
+.insight-item span {
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .insight-item.success {

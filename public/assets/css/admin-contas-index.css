@@ -1149,7 +1149,8 @@
   .btn-new-transaction {
     padding: 0.625rem 0.875rem;
     font-size: 0.8125rem;
-    width: 100%;
+    width: 80%;
+    margin-left: 25px;
     justify-content: center;
   }
 }
