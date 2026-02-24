@@ -262,7 +262,7 @@
   padding: var(--spacing-3) var(--spacing-6);
   border: none;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: 700;
   font-family: var(--font-primary);
   cursor: pointer;
@@ -271,7 +271,6 @@
   overflow: hidden;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  font-size: var(--font-size-sm);
   background-color: var(--color-primary);
   color: var(--color-text);
 }
@@ -295,13 +294,19 @@
 .modern-btn i,
 .modern-btn svg,
 .modern-btn [data-lucide],
-button.modern-btn svg.lucide {
+.modern-btn svg.lucide,
+button.modern-btn svg.lucide,
+button.submit-btn svg.lucide,
+.submit-btn svg.lucide {
   font-size: 16px !important;
   width: 16px !important;
   height: 16px !important;
   max-width: 16px !important;
   max-height: 16px !important;
+  min-width: 0 !important;
   flex-shrink: 0;
+  flex-grow: 0;
+  flex-basis: 16px;
 }
 
 .modern-btn.primary:hover {

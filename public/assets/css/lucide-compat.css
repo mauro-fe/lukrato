@@ -11,12 +11,15 @@
    ============================================================================ */
 
 /* ── BASE ─────────────────────────────────────────────────────── */
+/* !important necessário: Lucide JS cria SVGs com width="24" height="24"
+   como atributos HTML. Esses atributos conflitam com CSS em produção.
+   Sem !important, os valores 24px dos atributos podem vencer. */
 .lucide,
 [data-lucide] {
   display: inline-block;
   vertical-align: -0.125em;
-  width: 1.15em; /* ligeiramente maior que 1em para compensar visual weight do FA */
-  height: 1.15em;
+  width: 1.15em !important;
+  height: 1.15em !important;
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
@@ -437,17 +440,17 @@ body.sidebar-collapsed .sidebar .nav-item svg.lucide {
 /* ── RESPONSIVIDADE ───────────────────────────────────────────── */
 @media (max-width: 768px) {
   .icon-label {
-    width: 14px;
-    height: 14px;
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .sidebar .nav-item svg.lucide {
-    width: 18px;
-    height: 18px;
+    width: 18px !important;
+    height: 18px !important;
   }
 
   .stat-icon svg.lucide {
-    width: 24px;
-    height: 24px;
+    width: 24px !important;
+    height: 24px !important;
   }
 }

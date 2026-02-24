@@ -13,7 +13,7 @@
  *   LK.refreshIcons()          — re-escaneia todo o DOM
  *   LK.refreshIcons(container) — escaneia só dentro do container
  *
- * @version 1.0.0
+ * @version 1.1.0
  */
 (function () {
     'use strict';
@@ -22,39 +22,64 @@
     const LUCIDE_DEFAULTS = {
         nameAttr: 'data-lucide',
         'stroke-width': 2,
-        // NÃO definimos width/height aqui — deixamos o CSS controlar via 1em
-        // Isso permite que ícones herdem o tamanho da fonte do elemento pai
     };
 
-    // ── POST-PROCESS: remover atributos width/height dos SVGs ────
-    // Lucide JS seta width="24" height="24" como atributos SVG no elemento.
-    // Esses atributos podem conflitar com CSS em alguns cenários (produção).
-    // Removê-los garante que APENAS o CSS controle o tamanho do ícone.
-    function stripSvgSizeAttrs(root) {
-        const svgs = (root || document).querySelectorAll('svg.lucide[width], svg.lucide[height]');
-        svgs.forEach(function (svg) {
-            svg.removeAttribute('width');
-            svg.removeAttribute('height');
-        });
+    // ── STRIP SVG SIZE ATTRS ─────────────────────────────────────
+    // Lucide JS hardcodes width="24" height="24" como atributos HTML no SVG.
+    // Esses atributos conflitam com CSS em produção (podem ter prioridade
+    // sobre regras CSS dependendo do cache/ordem de carregamento).
+    // Removê-los garante que APENAS o CSS controle o tamanho.
+    function stripSvgSizeAttrs() {
+        var svgs = document.querySelectorAll('svg.lucide');
+        for (var i = 0; i < svgs.length; i++) {
+            if (svgs[i].hasAttribute('width')) svgs[i].removeAttribute('width');
+            if (svgs[i].hasAttribute('height')) svgs[i].removeAttribute('height');
+        }
+    }
+
+    // ── MONKEY-PATCH lucide.createIcons ──────────────────────────
+    // Vários arquivos (categorias-manager.js, faturas, etc.) chamam
+    // lucide.createIcons() diretamente. Sem o patch, esses calls
+    // recriam TODOS os SVGs com width="24" height="24" padrão.
+    // O patch intercepta TODAS as chamadas e garante que os atributos
+    // de tamanho sejam removidos após cada criação de ícones.
+    function patchCreateIcons() {
+        if (typeof lucide === 'undefined' || !lucide.createIcons) return;
+        if (lucide._lkPatched) return; // Já patcheado
+
+        var originalCreateIcons = lucide.createIcons.bind(lucide);
+
+        lucide.createIcons = function (opts) {
+            try {
+                originalCreateIcons(opts);
+            } catch (err) {
+                console.error('[Lucide] Erro em createIcons:', err);
+            }
+            // SEMPRE remove width/height após qualquer createIcons()
+            stripSvgSizeAttrs();
+        };
+
+        lucide._lkPatched = true;
     }
 
     // ── INIT ─────────────────────────────────────────────────────
-    function initIcons(root) {
+    function initIcons() {
         if (typeof lucide === 'undefined') {
             console.warn('[Lucide] Biblioteca não carregada. Verifique o script.');
             return;
         }
+
+        // Garantir que o patch esteja ativo antes de qualquer chamada
+        patchCreateIcons();
+
         try {
-            // Lucide.createIcons() busca todos [data-lucide] e substitui por <svg>
-            // Não passamos width/height — o CSS (.lucide { width:1em; height:1em }) controla o tamanho
             lucide.createIcons({
                 nameAttr: LUCIDE_DEFAULTS.nameAttr,
                 attrs: {
                     'stroke-width': LUCIDE_DEFAULTS['stroke-width'],
                 },
             });
-            // Remove width/height atributos para CSS ter controle total
-            stripSvgSizeAttrs(root);
+            // stripSvgSizeAttrs() já é chamado automaticamente pelo patch
         } catch (err) {
             console.error('[Lucide] Erro ao inicializar ícones:', err);
         }
@@ -75,7 +100,12 @@
                 if (mutation.type === 'childList') {
                     for (const node of mutation.addedNodes) {
                         if (node.nodeType !== Node.ELEMENT_NODE) continue;
-                        if (node.hasAttribute?.('data-lucide') || node.querySelector?.('[data-lucide]')) {
+                        // Só processa <i data-lucide> (não SVGs já processados)
+                        if (node.tagName === 'I' && node.hasAttribute('data-lucide')) {
+                            needsRefresh = true;
+                            break;
+                        }
+                        if (node.querySelector && node.querySelector('i[data-lucide]')) {
                             needsRefresh = true;
                             break;
                         }
@@ -85,7 +115,6 @@
             }
 
             if (needsRefresh) {
-                // Debounce para evitar múltiplas chamadas seguidas
                 clearTimeout(observerDebounce);
                 observerDebounce = setTimeout(() => initIcons(), 50);
             }
