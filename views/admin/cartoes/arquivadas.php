@@ -20,7 +20,7 @@
     <div class="stats-grid" id="statsContainer" style="margin-bottom: 2rem;">
         <div class="stat-card" data-aos="flip-left">
             <div class="stat-icon">
-                <i data-lucide="archive"></i>
+                <i data-lucide="archive" style="color: white"></i>
             </div>
             <div>
                 <div class="stat-value" id="totalArquivados" aria-live="polite">0</div>
@@ -30,7 +30,7 @@
 
         <div class="stat-card" data-aos="flip-right">
             <div class="stat-icon">
-                <i data-lucide="credit-card"></i>
+                <i data-lucide="credit-card" style="color: white"></i>
             </div>
             <div>
                 <div class="stat-value" id="limiteTotal" aria-live="polite">R$ 0,00</div>

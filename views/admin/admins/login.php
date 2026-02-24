@@ -399,6 +399,49 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
     <!-- Scripts de CSRF para renovação automática -->
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
+    
+    <!-- Renovação extra de CSRF para página de login -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Renovação mais frequente na página de login (5 minutos)
+        const LOGIN_CSRF_REFRESH_INTERVAL = 5 * 60 * 1000;
+        
+        // Renovar token quando usuário foca em campo do formulário
+        let lastRefresh = Date.now();
+        const MIN_REFRESH_GAP = 30000; // 30 segundos mínimo entre renovações
+        
+        function maybeRefreshToken() {
+            const now = Date.now();
+            if (now - lastRefresh > MIN_REFRESH_GAP) {
+                lastRefresh = now;
+                if (typeof window.refreshCsrfToken === 'function') {
+                    window.refreshCsrfToken();
+                }
+            }
+        }
+        
+        // Renovar ao focar nos campos
+        document.querySelectorAll('#loginForm input, #registerForm input').forEach(input => {
+            input.addEventListener('focus', maybeRefreshToken, { passive: true });
+        });
+        
+        // Timer extra de renovação para login
+        setInterval(() => {
+            if (typeof window.refreshCsrfToken === 'function') {
+                window.refreshCsrfToken();
+            }
+        }, LOGIN_CSRF_REFRESH_INTERVAL);
+        
+        // Renovar imediatamente quando a aba fica visível
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                maybeRefreshToken();
+            }
+        });
+    })();
+    </script>
 
     <script>
         // Real-time password strength + confirm match
@@ -717,9 +760,17 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         const loginForm = document.getElementById('loginForm');
 
         if (loginForm) {
+            // Renovar CSRF antes de submeter para evitar token expirado
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 clearErrors(loginForm);
+
+                // Sempre renovar o token CSRF antes de submeter
+                try {
+                    await refreshCsrfForForm('login_form');
+                } catch (err) {
+                    console.warn('Não foi possível renovar CSRF antes do submit, continuando...', err);
+                }
 
                 const emailVal = document.getElementById('email').value.trim();
                 const passwordVal = document.getElementById('password').value;

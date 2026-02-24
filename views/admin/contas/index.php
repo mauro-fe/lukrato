@@ -3,7 +3,7 @@
     <div class="stats-grid pt-5" id="statsContainer" role="region" aria-label="Estatísticas das contas">
         <div class="stat-card" data-aos="flip-left">
             <div class="stat-icon">
-                <i data-lucide="wallet"></i>
+                <i data-lucide="wallet" style="color: var(--color-primary)"></i>
             </div>
             <div>
                 <div class="stat-value" id="totalContas" aria-live="polite">0</div>
@@ -47,7 +47,7 @@
                         <i data-lucide="list"></i>
                     </button>
                 </div>
-                
+
                 <a class="btn btn-light" href="<?= BASE_URL ?>contas/arquivadas" aria-label="Ver contas arquivadas">
                     <i data-lucide="archive"></i> Arquivadas
                 </a>
@@ -74,9 +74,11 @@
             <!-- Fallback caso JS não carregue -->
             <noscript>
                 <div class="empty-state" style="text-align:center;padding:3rem 1rem;">
-                    <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;"><i data-lucide="wallet" style="color:var(--color-primary);"></i></div>
+                    <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;"><i data-lucide="wallet"
+                            style="color:var(--color-primary);"></i></div>
                     <h3 style="color:var(--color-text);margin-bottom:0.5rem;">JavaScript necessário</h3>
-                    <p style="color:var(--color-text-muted);">Ative o JavaScript no seu navegador para visualizar suas contas.</p>
+                    <p style="color:var(--color-text-muted);">Ative o JavaScript no seu navegador para visualizar suas
+                        contas.</p>
                 </div>
             </noscript>
         </div>

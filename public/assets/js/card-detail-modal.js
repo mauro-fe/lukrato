@@ -143,7 +143,7 @@
                     <div class="card-detail-header-content">
                         <div class="card-detail-title-area">
                             <div class="card-detail-icon" style="background: linear-gradient(135deg, ${cardColor}, ${cardColor}DD);">
-                                <i data-lucide="credit-card"></i>
+                                <i data-lucide="credit-card" style="color: white"></i>
                             </div>
                             <div class="card-detail-info">
                                 <h2>${Utils.escapeHtml(data.cartao.nome)}</h2>

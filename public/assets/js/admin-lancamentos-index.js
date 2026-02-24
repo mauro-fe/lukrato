@@ -2220,6 +2220,30 @@
             // Botão de filtrar
             DOM.btnFiltrar?.addEventListener('click', DataManager.load);
 
+            // Toggle para expandir/colapsar filtros
+            const toggleFilters = document.getElementById('toggleFilters');
+            const filtersContainer = document.querySelector('.filters-modern');
+            const filtersHeader = document.querySelector('.filters-header');
+            
+            if (filtersContainer && toggleFilters) {
+                const toggleFiltersHandler = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    filtersContainer.classList.toggle('collapsed');
+                };
+                
+                toggleFilters.addEventListener('click', toggleFiltersHandler);
+                
+                // Click no header também toggle (mas não nos filhos exceto o botão)
+                if (filtersHeader) {
+                    filtersHeader.addEventListener('click', (e) => {
+                        // Se clicou no botão, deixa o handler do botão cuidar
+                        if (e.target.closest('.filters-toggle')) return;
+                        filtersContainer.classList.toggle('collapsed');
+                    });
+                }
+            }
+
             // Botão de limpar filtros
             DOM.btnLimparFiltros?.addEventListener('click', () => {
                 if (DOM.selectTipo) DOM.selectTipo.value = '';

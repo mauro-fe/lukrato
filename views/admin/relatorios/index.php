@@ -30,9 +30,10 @@
             </div>
         </div>
 
-        <div class="stat-card stat-saldo" title="Diferença entre receitas e despesas (receitas - despesas)" tabindex="0">
+        <div class="stat-card stat-saldo" title="Diferença entre receitas e despesas (receitas - despesas)"
+            tabindex="0">
             <div class="stat-icon">
-                <i data-lucide="wallet"></i>
+                <i data-lucide="wallet" style="color: white"></i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Saldo do Mês</span>
@@ -41,9 +42,10 @@
             </div>
         </div>
 
-        <div class="stat-card stat-cartoes" title="Soma de todas as faturas de cartões de crédito neste mês" tabindex="0">
+        <div class="stat-card stat-cartoes" title="Soma de todas as faturas de cartões de crédito neste mês"
+            tabindex="0">
             <div class="stat-icon">
-                <i data-lucide="credit-card"></i>
+                <i data-lucide="credit-card" style="color: white"></i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Faturas Cartões</span>
@@ -55,16 +57,19 @@
 
     <!-- ==================== TABS DE SEÇÃO (estilo Perfil) ==================== -->
     <nav class="rel-section-tabs" role="tablist" aria-label="Seções de relatórios">
-        <button type="button" class="rel-section-tab active" data-section="relatorios" role="tab" aria-selected="true" aria-controls="section-relatorios">
+        <button type="button" class="rel-section-tab active" data-section="relatorios" role="tab" aria-selected="true"
+            aria-controls="section-relatorios">
             <span class="tab-icon"><i data-lucide="bar-chart-3" style="color:#e67e22"></i></span>
             <span class="tab-label">Relatórios</span>
         </button>
-        <button type="button" class="rel-section-tab<?= !$isPro ? ' pro-tab-locked' : '' ?>" data-section="insights" role="tab" aria-selected="false" aria-controls="section-insights">
+        <button type="button" class="rel-section-tab<?= !$isPro ? ' pro-tab-locked' : '' ?>" data-section="insights"
+            role="tab" aria-selected="false" aria-controls="section-insights">
             <span class="tab-icon"><i data-lucide="lightbulb" style="color:#facc15"></i></span>
             <span class="tab-label">Insights Inteligentes</span>
             <?php if (!$isPro): ?><span class="tab-pro-badge"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
         </button>
-        <button type="button" class="rel-section-tab<?= !$isPro ? ' pro-tab-locked' : '' ?>" data-section="comparativos" role="tab" aria-selected="false" aria-controls="section-comparativos">
+        <button type="button" class="rel-section-tab<?= !$isPro ? ' pro-tab-locked' : '' ?>" data-section="comparativos"
+            role="tab" aria-selected="false" aria-controls="section-comparativos">
             <span class="tab-icon"><i data-lucide="git-compare" style="color:#3b82f6"></i></span>
             <span class="tab-label">Comparativos</span>
             <?php if (!$isPro): ?><span class="tab-pro-badge"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
@@ -107,7 +112,7 @@
                 <div class="export-controls <?= !$isPro ? 'disabled-blur' : '' ?>">
                     <div class="form-group">
                         <label for="exportType">
-                            <i data-lucide="bar-chart-3"></i>
+                            <i data-lucide="bar-chart-3" style="color: var(--color-primary)"></i>
                             Tipo de Relatório
                         </label>
                         <select id="exportType" class="form-select" <?= !$isPro ? 'disabled' : '' ?>>
@@ -126,7 +131,7 @@
 
                     <div class="form-group">
                         <label for="exportFormat">
-                            <i data-lucide="file"></i>
+                            <i data-lucide="file" style="color: var(--color-primary)"></i>
                             Formato
                         </label>
                         <select id="exportFormat" class="form-select" <?= !$isPro ? 'disabled' : '' ?>>
@@ -192,7 +197,7 @@
         <div class="controls-row">
             <div class="control-group hidden" id="typeSelectWrapper">
                 <label for="reportType">
-                    <i data-lucide="filter"></i>
+                    <i data-lucide="filter" style="color: var(--color-primary)"></i>
                     Filtrar por
                 </label>
                 <select id="reportType" class="form-select">
@@ -203,7 +208,7 @@
 
             <div class="control-group hidden" id="accountSelectWrapper">
                 <label for="accountFilter">
-                    <i data-lucide="landmark"></i>
+                    <i data-lucide="landmark" style="color: var(--color-primary)"></i>
                     Conta
                 </label>
                 <select id="accountFilter" class="form-select">
@@ -212,7 +217,8 @@
             </div>
 
             <div class="control-group" id="clearFiltersWrapper" style="display:none; align-items: flex-end;">
-                <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary" title="Resetar filtros para padrão" style="white-space: nowrap;">
+                <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary"
+                    title="Resetar filtros para padrão" style="white-space: nowrap;">
                     <i data-lucide="eraser"></i>
                     Limpar Filtros
                 </button>

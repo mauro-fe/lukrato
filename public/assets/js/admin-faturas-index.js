@@ -376,7 +376,7 @@
                     </div>
                     <div class="header-right">
                         <div class="header-periodo">
-                            <i data-lucide="calendar-days"></i>
+                            <i data-lucide="calendar-days" style= "color:white"></i>
                             <span>${mes}/${ano}</span>
                         </div>
                         ${statusBadge}

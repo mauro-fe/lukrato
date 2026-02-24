@@ -6,7 +6,7 @@
     <div class="modern-card create-card" data-aos="fade-up">
         <div class="card-header-icon">
             <div class="icon-wrapper create">
-                <i data-lucide="circle-plus"></i>
+                <i data-lucide="circle-plus" style="color: var(--color-primary)"></i>
             </div>
             <div class="card-title-group">
                 <h3 class="card-title">Criar Nova Categoria</h3>
@@ -19,7 +19,7 @@
             <div class="form-grid">
                 <div class="input-group">
                     <label for="catNome" class="input-label">
-                        <i data-lucide="tag"></i>
+                        <i data-lucide="tag" style="color: var(--color-primary)"></i>
                         <span>Nome da Categoria</span>
                     </label>
                     <input id="catNome" class="modern-input" name="nome" placeholder="Ex: Alimentação, Salário..."
@@ -28,7 +28,7 @@
 
                 <div class="input-group">
                     <label for="catTipo" class="input-label">
-                        <i data-lucide="arrow-left-right"></i>
+                        <i data-lucide="arrow-left-right" style="color: var(--color-primary)"></i>
                         <span>Tipo</span>
                     </label>
                     <select id="catTipo" class="modern-select" name="tipo" required aria-label="Tipo de categoria">
@@ -111,7 +111,8 @@
 <?php include __DIR__ . '/../partials/modals/editar-categorias.php'; ?>
 
 <!-- Modal de Orçamento / Limite Mensal -->
-<div class="modal fade" id="modalOrcamento" tabindex="-1" aria-labelledby="modalOrcamentoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalOrcamento" tabindex="-1" aria-labelledby="modalOrcamentoLabel" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">

@@ -54,7 +54,7 @@
         <div class="profile-tab-panel active" id="panel-dados" role="tabpanel" aria-labelledby="tab-dados">
             <div class="profile-section">
                 <div class="section-header">
-                    <div class="section-icon"><i data-lucide="user" style="color:#3b82f6"></i></div>
+                    <div class="section-icon"><i data-lucide="user" style="color: white"></i></div>
                     <div class="section-header-text">
                         <h3>Dados Pessoais</h3>
                         <p>Informações básicas</p>
@@ -63,7 +63,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="pencil" class="icon-label" style="color:#6366f1"></i> Nome Completo
+                        <label class="form-label"><i data-lucide="pencil" class="icon-label" style="color:#6366f1"></i>
+                            Nome Completo
                             *</label>
                         <input class="form-input" id="nome" name="nome" type="text"
                             placeholder="Digite seu nome completo" required>
@@ -72,7 +73,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="mail" class="icon-label" style="color:#3b82f6"></i> E-mail *</label>
+                        <label class="form-label"><i data-lucide="mail" class="icon-label" style="color:#3b82f6"></i>
+                            E-mail *</label>
                         <input class="form-input" id="email" name="email" type="email" placeholder="seu@email.com"
                             required>
                     </div>
@@ -81,7 +83,8 @@
                 <!-- Código de Suporte -->
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="tag" class="icon-label" style="color:#f97316"></i> Código de Suporte</label>
+                        <label class="form-label"><i data-lucide="tag" class="icon-label" style="color:#f97316"></i>
+                            Código de Suporte</label>
                         <div style="display:flex;align-items:center;gap:8px;">
                             <input class="form-input" id="support_code" type="text" readonly
                                 style="font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
@@ -100,7 +103,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="fingerprint" class="icon-label" style="color:#8b5cf6"></i> CPF</label>
+                        <label class="form-label"><i data-lucide="fingerprint" class="icon-label"
+                                style="color:#8b5cf6"></i> CPF</label>
                         <input class="form-input" id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14"
                             placeholder="000.000.000-00">
                     </div>
@@ -108,12 +112,14 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="calendar" class="icon-label" style="color:#0ea5e9"></i> Nascimento</label>
+                        <label class="form-label"><i data-lucide="calendar" class="icon-label"
+                                style="color:#0ea5e9"></i> Nascimento</label>
                         <input class="form-input" id="data_nascimento" name="data_nascimento" type="date"
                             max="<?= date('Y-m-d') ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="smartphone" class="icon-label" style="color:#6366f1"></i> Telefone</label>
+                        <label class="form-label"><i data-lucide="smartphone" class="icon-label"
+                                style="color:#6366f1"></i> Telefone</label>
                         <input class="form-input" id="telefone" name="telefone" type="tel" inputmode="tel"
                             maxlength="15" placeholder="(00) 00000-0000">
                     </div>
@@ -121,7 +127,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="users" class="icon-label" style="color:#14b8a6"></i> Gênero</label>
+                        <label class="form-label"><i data-lucide="users" class="icon-label" style="color:#14b8a6"></i>
+                            Gênero</label>
                         <select class="form-select" name="sexo" id="sexo">
                             <option value="">Selecione</option>
                             <option value="M">Masculino</option>
@@ -145,7 +152,7 @@
         <div class="profile-tab-panel" id="panel-endereco" role="tabpanel" aria-labelledby="tab-endereco">
             <div class="profile-section">
                 <div class="section-header">
-                    <div class="section-icon"><i data-lucide="map-pin" style="color:#ef4444"></i></div>
+                    <div class="section-icon"><i data-lucide="map-pin" style="color:white"></i></div>
                     <div class="section-header-text">
                         <h3>Endereço</h3>
                         <p>Informações de localização</p>
@@ -154,12 +161,14 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="mail-open" class="icon-label" style="color:#f97316"></i> CEP</label>
+                        <label class="form-label"><i data-lucide="mail-open" class="icon-label"
+                                style="color:#f97316"></i> CEP</label>
                         <input class="form-input" id="end_cep" name="endereco[cep]" type="text" inputmode="numeric"
                             placeholder="00000-000" maxlength="9">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="map" class="icon-label" style="color:#22c55e"></i> Estado</label>
+                        <label class="form-label"><i data-lucide="map" class="icon-label" style="color:#22c55e"></i>
+                            Estado</label>
                         <input class="form-input" id="end_estado" name="endereco[estado]" type="text" placeholder="SP"
                             maxlength="2" style="text-transform: uppercase;">
                     </div>
@@ -167,7 +176,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="building-2" class="icon-label" style="color:#64748b"></i> Cidade</label>
+                        <label class="form-label"><i data-lucide="building-2" class="icon-label"
+                                style="color:#64748b"></i> Cidade</label>
                         <input class="form-input" id="end_cidade" name="endereco[cidade]" type="text"
                             placeholder="São Paulo">
                     </div>
@@ -175,7 +185,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="home" class="icon-label" style="color:#f97316"></i> Bairro</label>
+                        <label class="form-label"><i data-lucide="home" class="icon-label" style="color:#f97316"></i>
+                            Bairro</label>
                         <input class="form-input" id="end_bairro" name="endereco[bairro]" type="text"
                             placeholder="Centro">
                     </div>
@@ -183,7 +194,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="route" class="icon-label" style="color:#3b82f6"></i> Rua/Avenida</label>
+                        <label class="form-label"><i data-lucide="route" class="icon-label" style="color:#3b82f6"></i>
+                            Rua/Avenida</label>
                         <input class="form-input" id="end_rua" name="endereco[rua]" type="text"
                             placeholder="Rua das Flores">
                     </div>
@@ -191,11 +203,13 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="hash" class="icon-label" style="color:#6366f1"></i> Número</label>
+                        <label class="form-label"><i data-lucide="hash" class="icon-label" style="color:#6366f1"></i>
+                            Número</label>
                         <input class="form-input" id="end_numero" name="endereco[numero]" type="text" placeholder="123">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="building" class="icon-label" style="color:#64748b"></i> Complemento</label>
+                        <label class="form-label"><i data-lucide="building" class="icon-label"
+                                style="color:#64748b"></i> Complemento</label>
                         <input class="form-input" id="end_complemento" name="endereco[complemento]" type="text"
                             placeholder="Apto, Bloco (opcional)">
                     </div>
@@ -213,7 +227,7 @@
         <div class="profile-tab-panel" id="panel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca">
             <div class="profile-section">
                 <div class="section-header">
-                    <div class="section-icon"><i data-lucide="lock" style="color:#f59e0b"></i></div>
+                    <div class="section-icon"><i data-lucide="lock" style="color:white"></i></div>
                     <div class="section-header-text">
                         <h3>Segurança</h3>
                         <p>Altere sua senha de acesso</p>
@@ -226,12 +240,14 @@
 
                 <div class="form-row cols-3">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="key-round" class="icon-label" style="color:#f59e0b"></i> Senha Atual</label>
+                        <label class="form-label"><i data-lucide="key-round" class="icon-label"
+                                style="color:#f59e0b"></i> Senha Atual</label>
                         <input class="form-input" id="senha_atual" name="senha_atual" type="password"
                             placeholder="Digite sua senha atual" autocomplete="off">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="lock" class="icon-label" style="color:#f59e0b"></i> Nova Senha</label>
+                        <label class="form-label"><i data-lucide="lock" class="icon-label" style="color:#f59e0b"></i>
+                            Nova Senha</label>
                         <input class="form-input" id="nova_senha" name="nova_senha" type="password"
                             placeholder="Mínimo 8 caracteres" autocomplete="off" minlength="8">
                         <div class="pwd-strength" id="pwdStrengthProfile">
@@ -257,7 +273,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="circle-check" class="icon-label" style="color:#22c55e"></i> Confirmar
+                        <label class="form-label"><i data-lucide="circle-check" class="icon-label"
+                                style="color:#22c55e"></i> Confirmar
                             Senha</label>
                         <input class="form-input" id="conf_senha" name="conf_senha" type="password"
                             placeholder="Digite novamente" autocomplete="off" minlength="8">
@@ -282,7 +299,7 @@
         <!-- Seção de Plano -->
         <div class="profile-section plan-section">
             <div class="section-header">
-                <div class="section-icon"><i data-lucide="crown" style="color:#f59e0b"></i></div>
+                <div class="section-icon"><i data-lucide="crown" style="color:white"></i></div>
                 <div class="section-header-text">
                     <h3>Meu Plano</h3>
                     <p>Gerencie sua assinatura</p>
@@ -321,7 +338,7 @@
         <!-- Seção de Indicação -->
         <div class="profile-section referral-section">
             <div class="section-header">
-                <div class="section-icon"><i data-lucide="gift" style="color:#ec4899"></i></div>
+                <div class="section-icon"><i data-lucide="gift" style="color:white"></i></div>
                 <div class="section-header-text">
                     <h3>Indique Amigos</h3>
                     <p>Ganhe dias de PRO por cada indicação</p>
@@ -419,7 +436,7 @@
     <div class="profile-tab-panel" id="panel-perigo" role="tabpanel" aria-labelledby="tab-perigo">
         <div class="profile-section danger-zone">
             <div class="section-header">
-                <div class="section-icon"><i data-lucide="triangle-alert" style="color:#ef4444"></i></div>
+                <div class="section-icon"><i data-lucide="triangle-alert" style="color:white"></i></div>
                 <div class="section-header-text">
                     <h3>Zona de Perigo</h3>
                     <p>Ações irreversíveis com sua conta</p>
@@ -429,27 +446,32 @@
             <div class="danger-zone-content">
                 <div class="danger-zone-info">
                     <h4><i data-lucide="trash-2"
-                            style="width:18px;height:18px;display:inline-block;vertical-align:middle;color:#ef4444"></i> Excluir
+                            style="width:18px;height:18px;display:inline-block;vertical-align:middle;color:#ef4444"></i>
+                        Excluir
                         Conta</h4>
                     <p>Esta ação é <strong>permanente e irreversível</strong>. Todos os seus dados serão removidos:</p>
                     <ul>
                         <li><i data-lucide="bar-chart-3"
-                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#06b6d4"></i> Todos os
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#06b6d4"></i>
+                            Todos os
                             lançamentos e histórico financeiro</li>
                         <li><i data-lucide="credit-card"
-                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#0ea5e9"></i> Contas e
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#0ea5e9"></i>
+                            Contas e
                             cartões cadastrados</li>
                         <li><i data-lucide="folder-open"
                                 style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#f59e0b"></i>
                             Categorias personalizadas</li>
                         <li><i data-lucide="target"
-                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#ef4444"></i> Metas e
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#ef4444"></i>
+                            Metas e
                             agendamentos</li>
                         <li><i data-lucide="user"
                                 style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#3b82f6"></i>
                             Informações pessoais</li>
                         <li><i data-lucide="gem"
-                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#a855f7"></i> Plano
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#a855f7"></i>
+                            Plano
                             PRO (se ativo) será cancelado automaticamente</li>
                     </ul>
                 </div>

@@ -69,7 +69,7 @@
         grid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
-                        <i data-lucide="credit-card"></i>
+                        <i data-lucide="credit-card" style="color: white;"></i>
                     </div>
                     <h3>Nenhum cartão arquivado</h3>
                     <p>Você não possui cartões arquivados no momento</p>

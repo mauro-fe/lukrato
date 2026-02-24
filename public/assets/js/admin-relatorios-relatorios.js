@@ -1433,7 +1433,7 @@
         return `
             <div class="comparative-card comp-mini-card">
                 <div class="comp-mini-icon" style="background: linear-gradient(135deg, ${gradientColor});">
-                    <i data-lucide="piggy-bank"></i>
+                    <i data-lucide="piggy-bank" style= "color: white"></i>
                 </div>
                 <div class="comp-mini-body">
                     <span class="comp-mini-label">Taxa de Economia</span>
@@ -1564,7 +1564,7 @@
                 <div class="comparative-header">
                     <h3>${escapeHtml(title)}</h3>
                     <div class="period-labels">
-                        <span class="period-current"><i data-lucide="calendar"></i> ${getCurrentPeriod()}</span>
+                        <span class="period-current"><i data-lucide="calendar" style="color: white;"></i> ${getCurrentPeriod()}</span>
                         <span class="period-separator">vs</span>
                         <span class="period-previous">${getPreviousPeriod()}</span>
                     </div>
@@ -1647,7 +1647,7 @@
             <div class="consolidated-summary">
                 <div class="summary-header">
                     <div class="summary-icon">
-                        <i data-lucide="credit-card"></i>
+                        <i data-lucide="credit-card" style="color: white"></i>
                     </div>
                     <div class="summary-title">
                         <h3>Visão Geral dos Cartões</h3>
@@ -1658,7 +1658,7 @@
                 <div class="summary-grid">
                     <div class="summary-stat">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
-                            <i data-lucide="file-text"></i>
+                            <i data-lucide="file-text" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Total em Faturas</span>
@@ -1668,7 +1668,7 @@
                     
                     <div class="summary-stat">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
-                            <i data-lucide="wallet"></i>
+                            <i data-lucide="wallet" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Limite Total</span>
@@ -1681,7 +1681,7 @@
                 data.resumo_consolidado.utilizacao_geral > 50 ? '#f39c12, #e67e22' :
                     '#2ecc71, #27ae60'
             });">
-                            <i data-lucide="pie-chart"></i>
+                            <i data-lucide="pie-chart" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Utilização Geral</span>
@@ -1691,7 +1691,7 @@
                     
                     <div class="summary-stat">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #2ecc71, #27ae60);">
-                            <i data-lucide="banknote"></i>
+                            <i data-lucide="banknote" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Disponível</span>
@@ -1743,7 +1743,7 @@
                             <div class="card-header-gradient">
                                 <div class="card-brand">
                                     <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}99);">
-                                        <i data-lucide="credit-card"></i>
+                                        <i data-lucide="credit-card" style="color: white"></i>
                                     </div>
                                     <div class="card-info">
                                         <h3 class="card-name">${escapeHtml(card.nome)}</h3>

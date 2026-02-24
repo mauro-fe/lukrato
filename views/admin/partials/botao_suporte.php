@@ -51,6 +51,7 @@
 
     .lk-support-button i {
         animation: headset-bounce 2s ease-in-out infinite;
+        color: white !important;
     }
 
     .lk-support-button:hover i {

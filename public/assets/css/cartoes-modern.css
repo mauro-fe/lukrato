@@ -699,6 +699,7 @@
   border-radius: 28px;
   border: 2px dashed color-mix(in srgb, var(--color-primary) 30%, transparent);
   box-shadow: var(--shadow-lg);
+  color: #ffffff;
 }
 
 .empty-icon {
@@ -725,6 +726,7 @@
 
 .empty-icon::after {
   content: "";
+  color: white !important;
   position: absolute;
   top: -50%;
   left: -50%;
@@ -944,11 +946,14 @@
 
   .filter-group {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     gap: 0.5rem !important;
     padding: 0.5rem 0 !important;
     scrollbar-width: none !important;
+    width: 100% !important;
   }
 
   .filter-group::-webkit-scrollbar {
@@ -957,9 +962,10 @@
 
   .filter-btn {
     white-space: nowrap !important;
-    padding: 8px 16px !important;
+    padding: 10px 16px !important;
     font-size: 13px !important;
-    flex-shrink: 0 !important;
+    flex: 0 0 auto !important;
+    min-width: fit-content !important;
   }
 
   .brand-logo-filter {
@@ -1250,9 +1256,16 @@
     gap: 0.75rem !important;
   }
 
+  .filter-group {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+  }
+
   .filter-btn {
-    padding: 6px 12px !important;
+    padding: 8px 14px !important;
     font-size: 12px !important;
+    flex: 0 0 auto !important;
   }
 
   .modal-detalhes-cartao .modal-body {

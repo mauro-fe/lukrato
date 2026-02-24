@@ -26,7 +26,7 @@
                 <!-- Status -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroStatus">
-                        <i data-lucide="circle-check"></i>
+                        <i data-lucide="circle-check" style="color: var(--color-primary)"></i>
                         Status
                     </label>
                     <div class="select-wrapper">
@@ -44,7 +44,7 @@
                 <!-- Cartão -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroCartao">
-                        <i data-lucide="credit-card"></i>
+                        <i data-lucide="credit-card" style="color: var(--color-primary)"></i>
                         Cartão
                     </label>
                     <div class="select-wrapper">
@@ -58,7 +58,7 @@
                 <!-- Ano -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroAno">
-                        <i data-lucide="calendar"></i>
+                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
                         Ano
                     </label>
                     <div class="select-wrapper">
@@ -72,7 +72,7 @@
                 <!-- Mês -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroMes">
-                        <i data-lucide="calendar"></i>
+                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
                         Mês
                     </label>
                     <div class="select-wrapper">

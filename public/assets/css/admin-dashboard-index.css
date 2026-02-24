@@ -1140,10 +1140,6 @@
     font-size: 18px !important;
   }
 
-  .month-dropdown-btn {
-    font-size: 0.8rem !important;
-  }
-
   /* Transaction cards mobile compacto */
   .transaction-card {
     padding: 14px !important;
@@ -2343,4 +2339,14 @@
   animation: spin 0.6s linear infinite;
   margin-left: 6px;
   opacity: 0.6;
+}
+
+/* ==================== LIGHT MODE ADJUSTMENTS ==================== */
+:root[data-theme="light"] .badges-card,
+:root[data-theme="light"] .streak-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .badge-item.unlocked {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }

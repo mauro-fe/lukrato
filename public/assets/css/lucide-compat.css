@@ -181,11 +181,14 @@ button [data-lucide],
   width: 20px;
   height: 20px;
   text-align: center;
-  color: currentColor;
-  transition: transform var(--transition-fast, 0.15s);
+  color: #ffffff !important;
+  transition:
+    transform var(--transition-fast, 0.15s),
+    color var(--transition-fast, 0.15s);
 }
 .sidebar .nav-item:hover svg.lucide {
   transform: scale(1.1);
+  color: var(--color-primary) !important;
 }
 
 /* Botões genéricos — universal via attribute selector */
