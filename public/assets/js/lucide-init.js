@@ -26,6 +26,18 @@
         // Isso permite que ícones herdem o tamanho da fonte do elemento pai
     };
 
+    // ── POST-PROCESS: remover atributos width/height dos SVGs ────
+    // Lucide JS seta width="24" height="24" como atributos SVG no elemento.
+    // Esses atributos podem conflitar com CSS em alguns cenários (produção).
+    // Removê-los garante que APENAS o CSS controle o tamanho do ícone.
+    function stripSvgSizeAttrs(root) {
+        const svgs = (root || document).querySelectorAll('svg.lucide[width], svg.lucide[height]');
+        svgs.forEach(function (svg) {
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+        });
+    }
+
     // ── INIT ─────────────────────────────────────────────────────
     function initIcons(root) {
         if (typeof lucide === 'undefined') {
@@ -41,6 +53,8 @@
                     'stroke-width': LUCIDE_DEFAULTS['stroke-width'],
                 },
             });
+            // Remove width/height atributos para CSS ter controle total
+            stripSvgSizeAttrs(root);
         } catch (err) {
             console.error('[Lucide] Erro ao inicializar ícones:', err);
         }

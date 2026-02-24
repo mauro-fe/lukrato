@@ -294,12 +294,13 @@
 
 .modern-btn i,
 .modern-btn svg,
+.modern-btn [data-lucide],
 button.modern-btn svg.lucide {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  max-width: 16px;
-  max-height: 16px;
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
   flex-shrink: 0;
 }
 

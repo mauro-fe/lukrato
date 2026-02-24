@@ -197,43 +197,6 @@
    BOTÕES MODERNOS
    ============================================================================ */
 
-.modern-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-6);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  font-family: var(--font-primary);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
-}
-
-.modern-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.modern-btn:hover::before {
-  opacity: 1;
-}
-
-.modern-btn:active {
-  transform: scale(0.97);
-}
-
 .modern-btn i,
 .modern-btn svg {
   font-size: 16px;

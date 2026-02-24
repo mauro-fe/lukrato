@@ -140,6 +140,8 @@ svg.lucide {
 
 /* ── ÍCONES EM BOTÕES ─────────────────────────────────────────── */
 /* Nota: SEM margin-right — botões usam display:inline-flex + gap */
+/* !important necessário para sobrescrever atributos SVG width="24" height="24"
+   que o Lucide JS adiciona por padrão em cada <svg> criado. */
 .btn .lucide,
 .btn [data-lucide],
 button .lucide,
@@ -148,8 +150,8 @@ button [data-lucide],
 [class*="-btn"] .lucide,
 [class*="btn-"] [data-lucide],
 [class*="-btn"] [data-lucide] {
-  width: 1em;
-  height: 1em;
+  width: 1em !important;
+  height: 1em !important;
   vertical-align: -0.125em;
   flex-shrink: 0;
 }
@@ -193,6 +195,7 @@ button [data-lucide],
 
 /* Botões genéricos — universal via attribute selector */
 /* Cobre .btn, .modern-btn, .btn-primary, .icon-btn, .month-nav-btn, etc. */
+/* !important para sobrescrever width="24" height="24" do Lucide JS */
 .btn svg.lucide,
 .modern-btn svg.lucide,
 .lk-btn svg.lucide,
@@ -201,8 +204,10 @@ button [data-lucide],
 button svg.lucide,
 [class*="btn-"] svg.lucide,
 [class*="-btn"] svg.lucide {
-  width: 1em;
-  height: 1em;
+  width: 1em !important;
+  height: 1em !important;
+  max-width: 1em;
+  max-height: 1em;
   vertical-align: -0.125em;
   flex-shrink: 0;
 }
