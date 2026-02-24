@@ -100,44 +100,44 @@
         <h2><i data-lucide="trophy"></i> Ranking</h2>
 
         <?php if ($isPro ?? false): ?>
-            <!-- Ranking para usuários PRO -->
-            <div class="leaderboard-container" id="leaderboardContainer">
-                <!-- Loading state -->
-                <div class="lk-loading-state" style="text-align:center;padding:2rem;">
-                    <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
-                        <span class="visually-hidden">Carregando...</span>
-                    </div>
-                    <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando ranking...</p>
+        <!-- Ranking para usuários PRO -->
+        <div class="leaderboard-container" id="leaderboardContainer">
+            <!-- Loading state -->
+            <div class="lk-loading-state" style="text-align:center;padding:2rem;">
+                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                    <span class="visually-hidden">Carregando...</span>
                 </div>
+                <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando ranking...</p>
             </div>
+        </div>
         <?php else: ?>
-            <!-- CTA de Upgrade para acessar o Ranking -->
-            <div class="leaderboard-locked">
-                <div class="locked-icon">
-                    <i data-lucide="crown"></i>
-                </div>
-                <h3><i data-lucide="trophy" style="width:20px;height:20px;display:inline-block;vertical-align:middle;"></i>
-                    Ranking Exclusivo PRO</h3>
-                <p>Compare seu progresso com outros usuários e veja sua posição no ranking global!</p>
-                <div class="locked-features">
-                    <div class="locked-feature">
-                        <i data-lucide="medal"></i>
-                        <span>Top 10 usuários</span>
-                    </div>
-                    <div class="locked-feature">
-                        <i data-lucide="line-chart"></i>
-                        <span>Sua posição no ranking</span>
-                    </div>
-                    <div class="locked-feature">
-                        <i data-lucide="trophy"></i>
-                        <span>Pontuação global</span>
-                    </div>
-                </div>
-                <a href="<?= BASE_URL ?>billing" class="btn-upgrade-ranking">
-                    <i data-lucide="crown"></i>
-                    <span>Fazer Upgrade para PRO</span>
-                </a>
+        <!-- CTA de Upgrade para acessar o Ranking -->
+        <div class="leaderboard-locked">
+            <div class="locked-icon">
+                <i data-lucide="crown"></i>
             </div>
+            <h3><i data-lucide="trophy" style="width:20px;height:20px;display:inline-block;vertical-align:middle;"></i>
+                Ranking Exclusivo PRO</h3>
+            <p>Compare seu progresso com outros usuários e veja sua posição no ranking global!</p>
+            <div class="locked-features">
+                <div class="locked-feature">
+                    <i data-lucide="medal"></i>
+                    <span>Top 10 usuários</span>
+                </div>
+                <div class="locked-feature">
+                    <i data-lucide="line-chart"></i>
+                    <span>Sua posição no ranking</span>
+                </div>
+                <div class="locked-feature">
+                    <i data-lucide="trophy"></i>
+                    <span>Pontuação global</span>
+                </div>
+            </div>
+            <a href="<?= BASE_URL ?>billing" class="btn-upgrade-ranking">
+                <i data-lucide="crown"></i>
+                <span>Fazer Upgrade para PRO</span>
+            </a>
+        </div>
         <?php endif; ?>
     </section>
 </div>

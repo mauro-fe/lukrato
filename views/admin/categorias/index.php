@@ -1,5 +1,5 @@
 ﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/categorias-modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/categorias-modern.css?v=<?= time() ?>">
 
 <section class="cat-page">
     <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
