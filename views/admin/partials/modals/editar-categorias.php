@@ -13,14 +13,38 @@
                 <div id="editCategoriaAlert" class="alert alert-danger d-none" role="alert"></div>
 
                 <form id="formEditCategoria" novalidate>
+                    <input type="hidden" name="icone" id="editCategoriaIcone" value="">
+
+                    <!-- Icon Preview + Picker -->
+                    <div class="edit-icon-section mb-3">
+                        <label class="form-label">Ícone</label>
+                        <div class="edit-icon-row">
+                            <div class="edit-icon-preview" id="editIconPreview">
+                                <i data-lucide="tag"></i>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-icon-change-btn" id="btnEditIconPicker">
+                                <i data-lucide="palette"></i> Alterar ícone
+                            </button>
+                        </div>
+                        <div class="edit-icon-picker-panel d-none" id="editIconPickerPanel">
+                            <div class="edit-icon-search-wrapper mb-2">
+                                <input type="text" class="form-control form-control-sm" id="editIconSearchInput"
+                                    placeholder="Buscar ícone..." autocomplete="off" />
+                            </div>
+                            <div class="edit-icon-grid" id="editIconPickerGrid">
+                                <!-- Populado via JS -->
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label" for="editCategoriaNome">📝 Nome</label>
+                        <label class="form-label" for="editCategoriaNome">Nome</label>
                         <input type="text" class="form-control form-control-sm" id="editCategoriaNome" name="nome"
                             placeholder="Nome da categoria" required minlength="2" maxlength="100">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" for="editCategoriaTipo">🏷️ Tipo</label>
+                        <label class="form-label" for="editCategoriaTipo">Tipo</label>
                         <select class="form-select form-select-sm" id="editCategoriaTipo" name="tipo" required>
                             <option value="receita">Receita</option>
                             <option value="despesa">Despesa</option>

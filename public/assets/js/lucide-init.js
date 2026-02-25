@@ -41,8 +41,9 @@
     // Vários arquivos (categorias-manager.js, faturas, etc.) chamam
     // lucide.createIcons() diretamente. Sem o patch, esses calls
     // recriam TODOS os SVGs com width="24" height="24" padrão.
-    // O patch intercepta TODAS as chamadas e garante que os atributos
-    // de tamanho sejam removidos após cada criação de ícones.
+    // O patch intercepta TODAS as chamadas e garante que:
+    // 1. SVGs já processados NÃO sejam re-processados (evita corrupção do DOM)
+    // 2. Atributos de tamanho sejam removidos após cada criação de ícones.
     function patchCreateIcons() {
         if (typeof lucide === 'undefined' || !lucide.createIcons) return;
         if (lucide._lkPatched) return; // Já patcheado
@@ -50,11 +51,27 @@
         var originalCreateIcons = lucide.createIcons.bind(lucide);
 
         lucide.createIcons = function (opts) {
+            // Proteger SVGs já processados: remove data-lucide temporariamente
+            var existingSvgs = document.querySelectorAll('svg[data-lucide]');
+            var savedAttrs = [];
+            for (var i = 0; i < existingSvgs.length; i++) {
+                savedAttrs.push(existingSvgs[i].getAttribute('data-lucide'));
+                existingSvgs[i].removeAttribute('data-lucide');
+            }
+
             try {
                 originalCreateIcons(opts);
             } catch (err) {
                 console.error('[Lucide] Erro em createIcons:', err);
             }
+
+            // Restaurar data-lucide nos SVGs protegidos
+            for (var j = 0; j < existingSvgs.length; j++) {
+                if (existingSvgs[j].parentNode && savedAttrs[j]) {
+                    existingSvgs[j].setAttribute('data-lucide', savedAttrs[j]);
+                }
+            }
+
             // SEMPRE remove width/height após qualquer createIcons()
             stripSvgSizeAttrs();
         };

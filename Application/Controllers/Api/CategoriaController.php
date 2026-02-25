@@ -161,8 +161,10 @@ class CategoriaController extends BaseController
         // Sanitizar dados
         $nome = trim((string)($payload['nome'] ?? ''));
         $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
+        $icone = trim((string)($payload['icone'] ?? ''));
+        $icone = $icone !== '' ? $icone : null;
 
-        error_log("📝 [CATEGORIA CREATE] Tentando criar: Nome='{$nome}', Tipo='{$tipo}', UserID={$this->userId}");
+        error_log("📝 [CATEGORIA CREATE] Tentando criar: Nome='{$nome}', Tipo='{$tipo}', Icone='{$icone}', UserID={$this->userId}");
 
         // Verificar se é uma requisição duplicada recente (dentro de 5 segundos)
         // Usa arquivo compartilhado entre processos do Apache
@@ -207,7 +209,7 @@ class CategoriaController extends BaseController
         error_log("✅ [CATEGORIA CREATE] Nenhuma duplicata, prosseguindo com criação");
 
         // Criar DTO e categoria
-        $dto = CreateCategoriaDTO::fromRequest($this->userId, ['nome' => $nome, 'tipo' => $tipo]);
+        $dto = CreateCategoriaDTO::fromRequest($this->userId, ['nome' => $nome, 'tipo' => $tipo, 'icone' => $icone]);
         $categoriaData = $dto->toArray();
 
         // Verificar se é seed automático (não dar pontos)
@@ -285,6 +287,8 @@ class CategoriaController extends BaseController
         // Sanitizar dados
         $nome = trim((string)($payload['nome'] ?? ''));
         $tipo = strtolower(trim((string)($payload['tipo'] ?? '')));
+        $icone = trim((string)($payload['icone'] ?? ''));
+        $icone = $icone !== '' ? $icone : null;
 
         // Verificar duplicata
         $dup = Categoria::forUser($this->userId)
@@ -299,7 +303,7 @@ class CategoriaController extends BaseController
         }
 
         // Criar DTO e atualizar
-        $dto = UpdateCategoriaDTO::fromRequest(['nome' => $nome, 'tipo' => $tipo]);
+        $dto = UpdateCategoriaDTO::fromRequest(['nome' => $nome, 'tipo' => $tipo, 'icone' => $icone]);
         $this->categoriaRepo->update($categoria->id, $dto->toArray());
 
         Response::success($categoria->fresh());
