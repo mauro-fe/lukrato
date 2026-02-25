@@ -3,6 +3,9 @@
  * Carrega e gerencia categorias de receitas e despesas
  */
 
+// Bloqueia admin-categorias-index.js (loader legado) — este arquivo é o principal
+window.__LK_CATEGORIAS_LOADER__ = true;
+
 class CategoriasManager {
     constructor() {
         this.categorias = [];
