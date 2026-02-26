@@ -425,6 +425,16 @@
             return colors[cartao?.bandeira?.toLowerCase()] || 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)';
         },
 
+        getAccentColorSolid(cartao) {
+            if (cartao?.cor_cartao) return cartao.cor_cartao;
+            const colors = {
+                'visa': '#1A1F71', 'mastercard': '#EB001B', 'elo': '#FFCB05',
+                'amex': '#006FCF', 'diners': '#0079BE', 'discover': '#FF6000',
+                'hipercard': '#B11116'
+            };
+            return colors[cartao?.bandeira?.toLowerCase()] || '#8b5cf6';
+        },
+
         getBandeiraIcon(bandeira) {
             // SVG inline para bandeiras de cartão (sem dependência de Font Awesome)
             const svgIcons = {
@@ -568,6 +578,15 @@
                 }
 
                 STATE.faturaAtual = parc;
+
+                // Aplicar cor do cartão no modal
+                const modalEl = DOM.modalDetalhes;
+                if (modalEl && parc.cartao) {
+                    const accent = this.getAccentColorSolid(parc.cartao);
+                    const modalContent = modalEl.querySelector('.modal-content');
+                    if (modalContent) modalContent.style.setProperty('--card-accent', accent);
+                }
+
                 DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
                 if (window.lucide) lucide.createIcons();
                 this.attachDetalhesEventListeners(parc.id);

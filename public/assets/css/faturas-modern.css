@@ -418,13 +418,13 @@
 }
 
 .detalhes-value-highlight {
-  color: var(--color-primary);
+  color: var(--card-accent, var(--color-primary));
   font-size: var(--font-size-xl);
 }
 
 /* Barra de Progresso no Modal */
 .detalhes-progresso {
-  background: var(--color-primary);
+  background: var(--card-accent, var(--color-primary));
   padding: var(--spacing-3);
   border-radius: var(--radius-sm);
   color: white;
@@ -4485,8 +4485,8 @@
 }
 
 .modern-modal .modal-header {
-  background: var(--color-primary);
-  color: var(--color-text);
+  background: var(--card-accent, var(--color-primary));
+  color: #fff;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: var(--spacing-3) var(--spacing-4);
   border: none;
