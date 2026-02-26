@@ -884,8 +884,8 @@
             if (pagar) pagar.textContent = 'R$ 1.250,00';
             if (receber) receber.textContent = 'R$ 3.800,00';
             if (projetado) projetado.textContent = 'R$ 5.430,00';
-            if (pagarCount) pagarCount.textContent = '4 agendamentos';
-            if (receberCount) receberCount.textContent = '2 agendamentos';
+            if (pagarCount) pagarCount.textContent = '4 pendentes';
+            if (receberCount) receberCount.textContent = '2 pendentes';
 
             // Show sample upcoming items
             const list = document.getElementById('provisaoProximosList');
@@ -923,13 +923,13 @@
             const titleEl = document.getElementById('provisaoProximosTitle');
             const verTodosEl = document.getElementById('provisaoVerTodos');
             if (titleEl) {
-                titleEl.innerHTML = isPro 
+                titleEl.innerHTML = isPro
                     ? '<i data-lucide="clock"></i> Próximos Vencimentos'
                     : '<i data-lucide="credit-card"></i> Próximas Faturas';
             }
             if (verTodosEl) {
-                verTodosEl.href = isPro 
-                    ? `${window.BASE_URL || '/'}agendamentos`
+                verTodosEl.href = isPro
+                    ? `${window.BASE_URL || '/'}lancamentos`
                     : `${window.BASE_URL || '/'}faturas`;
             }
 
@@ -940,12 +940,12 @@
             const pagarCount = document.getElementById('provisaoPagarCount');
             const receberCount = document.getElementById('provisaoReceberCount');
             const projetadoLabel = document.getElementById('provisaoProjetadoLabel');
-            
+
             // Card A Receber - só mostra dados para Pro
             const receberCard = receber?.closest('.provisao-card');
 
             if (pagar) pagar.textContent = money(p.a_pagar || 0);
-            
+
             if (isPro) {
                 if (receber) receber.textContent = money(p.a_receber || 0);
                 if (receberCard) receberCard.style.opacity = '1';
@@ -954,19 +954,19 @@
                 if (receber) receber.textContent = 'R$ --';
                 if (receberCard) receberCard.style.opacity = '0.5';
             }
-            
+
             if (projetado) {
                 projetado.textContent = money(p.saldo_projetado || 0);
                 projetado.style.color = (p.saldo_projetado || 0) >= 0 ? '' : 'var(--color-danger)';
             }
-            
+
             // Contador de A Pagar com faturas de cartão
             if (pagarCount) {
                 const countAgend = p.count_pagar || 0;
                 const countFat = p.count_faturas || 0;
-                
+
                 if (isPro) {
-                    let pagarText = `${countAgend} agendamento${countAgend !== 1 ? 's' : ''}`;
+                    let pagarText = `${countAgend} pendente${countAgend !== 1 ? 's' : ''}`;
                     if (countFat > 0) {
                         pagarText += ` • ${countFat} fatura${countFat !== 1 ? 's' : ''}`;
                     }
@@ -976,18 +976,18 @@
                     pagarCount.textContent = `${countFat} fatura${countFat !== 1 ? 's' : ''}`;
                 }
             }
-            
+
             if (isPro) {
-                if (receberCount) receberCount.textContent = `${p.count_receber || 0} agendamento${(p.count_receber || 0) !== 1 ? 's' : ''}`;
+                if (receberCount) receberCount.textContent = `${p.count_receber || 0} pendente${(p.count_receber || 0) !== 1 ? 's' : ''}`;
             } else {
                 if (receberCount) receberCount.textContent = 'Pro';
             }
-            
+
             if (projetadoLabel) projetadoLabel.textContent = `saldo atual: ${money(p.saldo_atual || 0)}`;
 
             // Alertas de vencidos (separados por tipo)
             const vencidos = data.vencidos || {};
-            
+
             // Alerta de despesas vencidas (só Pro)
             const alertDespesas = document.getElementById('provisaoAlertDespesas');
             if (alertDespesas) {
@@ -1037,7 +1037,7 @@
             const list = document.getElementById('provisaoProximosList');
             const emptyEl = document.getElementById('provisaoEmpty');
             let proximos = data.proximos || [];
-            
+
             // Free: filtra para mostrar apenas faturas
             if (!isPro) {
                 proximos = proximos.filter(item => item.is_fatura === true);
@@ -1068,7 +1068,7 @@
 
                         let badges = '';
                         if (isHoje) badges += '<span class="provisao-item-badge vence-hoje">Hoje</span>';
-                        
+
                         if (isFatura) {
                             // Badge especial para fatura de cartão
                             badges += '<span class="provisao-item-badge fatura"><i data-lucide="credit-card"></i> Fatura</span>';
@@ -1099,7 +1099,7 @@
                             <span class="provisao-item-valor ${tipoClass}">${money(item.valor || 0)}</span>
                             <span class="provisao-item-data">${dateDisplay}</span>
                         `;
-                        
+
                         // Adicionar link para faturas
                         if (isFatura && item.cartao_id) {
                             el.style.cursor = 'pointer';

@@ -4,7 +4,6 @@ namespace Application\Services;
 
 use Application\Models\Lancamento;
 use Application\Models\Conta;
-use Application\Models\Agendamento;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\CartaoCredito;
 use Application\Enums\LancamentoTipo;
@@ -17,24 +16,25 @@ class DashboardProvisaoService
 {
     /**
      * Gera todos os dados de provisão para o mês informado.
+     * Baseado em lançamentos pendentes (pago = false) em vez de agendamentos.
      */
     public function generate(int $userId, string $month): ProvisaoResultDTO
     {
         $start = "{$month}-01";
         $end   = date('Y-m-t', strtotime($start));
-        $now   = date('Y-m-d H:i:s');
+        $now   = date('Y-m-d');
 
-        // 1) Agendamentos do mês
-        $agendamentosMes = $this->queryAgendamentosMes($userId, $start, $end);
-        [$totalPagar, $totalReceber, $countPagar, $countReceber] = $this->sumAgendamentos($agendamentosMes);
+        // 1) Lançamentos pendentes do mês
+        $pendentesMes = $this->queryPendentesMes($userId, $start, $end);
+        [$totalPagar, $totalReceber, $countPagar, $countReceber] = $this->sumPendentes($pendentesMes);
 
         // 2) Saldo atual
         $saldoAtual = $this->calcularSaldoAtualTotal($userId);
 
-        // 3) Próximos vencimentos (agendamentos)
+        // 3) Próximos vencimentos (lançamentos pendentes futuros)
         $proximos = $this->queryProximosVencimentos($userId, $now);
 
-        // 4) Agendamentos vencidos
+        // 4) Lançamentos vencidos (data < hoje e não pagos)
         $vencidosData = $this->queryVencidos($userId, $now);
 
         // 5) Parcelas ativas
@@ -48,7 +48,7 @@ class DashboardProvisaoService
         [$totalFaturas, $countFaturas, $proximosFaturas] = $this->queryFaturasPendentesMes($userId, $anoNum, $mesNum, $cartoes);
         [$totalFaturasVencidas, $countFaturasVencidas, $vencidosFaturas] = $this->queryFaturasVencidas($userId, $now, $cartoes);
 
-        // ── Mesclar e montar resposta ──
+        // ── Montar resposta ──
         return $this->buildResponse(
             $month,
             $saldoAtual,
@@ -71,24 +71,39 @@ class DashboardProvisaoService
 
     // ─── Queries ────────────────────────────────────────────
 
-    private function queryAgendamentosMes(int $userId, string $start, string $end): \Illuminate\Database\Eloquent\Collection
+    /**
+     * Query base para lançamentos pendentes (não pagos, não cancelados, não transferência).
+     * Exclui lançamentos de cartão de crédito (já tratados via FaturaCartaoItem).
+     */
+    private function basePendentes(int $userId): \Illuminate\Database\Eloquent\Builder
     {
-        return Agendamento::where('user_id', $userId)
-            ->whereIn('status', ['pendente', 'notificado'])
-            ->where(function ($q) {
-                $q->whereNull('concluido_em')->orWhere('recorrente', true);
-            })
-            ->whereBetween('data_pagamento', [$start . ' 00:00:00', $end . ' 23:59:59'])
+        return Lancamento::where('user_id', $userId)
+            ->where('pago', false)
+            ->whereNull('cancelado_em')
+            ->where('eh_transferencia', false)
+            ->whereNull('cartao_credito_id');
+    }
+
+    /**
+     * Lançamentos pendentes do mês (pelo campo data).
+     */
+    private function queryPendentesMes(int $userId, string $start, string $end): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->basePendentes($userId)
+            ->whereBetween('data', [$start, $end])
             ->get();
     }
 
-    private function sumAgendamentos($agendamentos): array
+    /**
+     * Soma lançamentos pendentes separando por tipo.
+     */
+    private function sumPendentes($lancamentos): array
     {
         $totalPagar = $totalReceber = $countPagar = $countReceber = 0;
 
-        foreach ($agendamentos as $ag) {
-            $valor = ($ag->valor_centavos ?? 0) / 100;
-            if (strtolower($ag->tipo ?? '') === 'receita') {
+        foreach ($lancamentos as $l) {
+            $valor = (float) ($l->valor ?? 0);
+            if ($l->tipo === LancamentoTipo::RECEITA->value) {
                 $totalReceber += $valor;
                 $countReceber++;
             } else {
@@ -139,56 +154,54 @@ class DashboardProvisaoService
         return $saldosIniciais + $r - $d;
     }
 
+    /**
+     * Próximos vencimentos: lançamentos pendentes com data >= hoje.
+     */
     private function queryProximosVencimentos(int $userId, string $now): \Illuminate\Support\Collection
     {
-        return Agendamento::with(['categoria:id,nome'])
-            ->where('user_id', $userId)
-            ->whereIn('status', ['pendente', 'notificado'])
-            ->where(function ($q) {
-                $q->whereNull('concluido_em')->orWhere('recorrente', true);
-            })
-            ->where('data_pagamento', '>=', $now)
-            ->orderBy('data_pagamento', 'asc')
+        return $this->basePendentes($userId)
+            ->with(['categoria:id,nome'])
+            ->where('data', '>=', $now)
+            ->orderBy('data', 'asc')
             ->limit(5)
             ->get()
-            ->map(fn($ag) => [
-                'id'               => $ag->id,
-                'titulo'           => $ag->titulo,
-                'tipo'             => $ag->tipo,
-                'valor'            => ($ag->valor_centavos ?? 0) / 100,
-                'data_pagamento'   => $ag->data_pagamento instanceof \DateTimeInterface
-                    ? $ag->data_pagamento->format('Y-m-d H:i:s')
-                    : (string) $ag->data_pagamento,
-                'categoria'        => $ag->categoria?->nome ?? null,
-                'eh_parcelado'     => (bool) $ag->eh_parcelado,
-                'parcela_atual'    => $ag->parcela_atual,
-                'numero_parcelas'  => $ag->numero_parcelas,
-                'recorrente'       => (bool) $ag->recorrente,
+            ->map(fn($l) => [
+                'id'               => $l->id,
+                'titulo'           => $l->descricao,
+                'tipo'             => $l->tipo,
+                'valor'            => (float) ($l->valor ?? 0),
+                'data_pagamento'   => $l->data instanceof \DateTimeInterface
+                    ? $l->data->format('Y-m-d')
+                    : (string) $l->data,
+                'categoria'        => $l->categoria?->nome ?? null,
+                'eh_parcelado'     => (bool) $l->eh_parcelado,
+                'parcela_atual'    => $l->parcela_atual ?? $l->numero_parcela,
+                'numero_parcelas'  => $l->total_parcelas,
+                'recorrente'       => (bool) $l->recorrente,
             ]);
     }
 
+    /**
+     * Lançamentos vencidos: pendentes com data < hoje.
+     */
     private function queryVencidos(int $userId, string $now): array
     {
-        $query = Agendamento::where('user_id', $userId)
-            ->whereIn('status', ['pendente', 'notificado'])
-            ->where(function ($q) {
-                $q->whereNull('concluido_em')->orWhere('recorrente', true);
-            })
-            ->where('data_pagamento', '<', $now)
-            ->orderBy('data_pagamento', 'asc')
+        $query = $this->basePendentes($userId)
+            ->where('data', '<', $now)
+            ->orderBy('data', 'asc')
             ->get();
 
-        $despesas = $query->filter(fn($ag) => strtolower($ag->tipo ?? '') !== 'receita');
-        $receitas = $query->filter(fn($ag) => strtolower($ag->tipo ?? '') === 'receita');
+        $despesas = $query->filter(fn($l) => $l->tipo !== LancamentoTipo::RECEITA->value);
+        $receitas = $query->filter(fn($l) => $l->tipo === LancamentoTipo::RECEITA->value);
 
-        $items = $query->map(fn($ag) => [
-            'id'             => $ag->id,
-            'titulo'         => $ag->titulo,
-            'tipo'           => $ag->tipo,
-            'valor'          => ($ag->valor_centavos ?? 0) / 100,
-            'data_pagamento' => $ag->data_pagamento instanceof \DateTimeInterface
-                ? $ag->data_pagamento->format('Y-m-d H:i:s')
-                : (string) $ag->data_pagamento,
+        $items = $query->map(fn($l) => [
+            'id'             => $l->id,
+            'titulo'         => $l->descricao,
+            'tipo'           => $l->tipo,
+            'valor'          => (float) ($l->valor ?? 0),
+            'data_pagamento' => $l->data instanceof \DateTimeInterface
+                ? $l->data->format('Y-m-d')
+                : (string) $l->data,
         ]);
 
         return [
@@ -198,18 +211,22 @@ class DashboardProvisaoService
         ];
     }
 
+    /**
+     * Parcelas ativas: lançamentos parcelados pendentes.
+     */
     private function queryParcelasAtivas(int $userId): array
     {
-        $parcelas = Agendamento::where('user_id', $userId)
+        $parcelas = $this->basePendentes($userId)
             ->where('eh_parcelado', true)
-            ->whereIn('status', ['pendente', 'notificado'])
-            ->whereNull('concluido_em')
-            ->where('numero_parcelas', '>', 1)
+            ->where(function ($q) {
+                $q->where('total_parcelas', '>', 1)
+                    ->orWhere('numero_parcela', '>', 0);
+            })
             ->get();
 
         $total = 0;
         foreach ($parcelas as $p) {
-            $total += ($p->valor_centavos ?? 0) / 100;
+            $total += (float) ($p->valor ?? 0);
         }
 
         return [$parcelas->count(), $total];
@@ -346,8 +363,8 @@ class DashboardProvisaoService
         $totalVencidos  = round($vencidosItems->sum('valor'), 2) + $totalFaturasVencidas;
         $countVencidos  = $vencidosItems->count() + $countFaturasVencidas;
 
-        $totalDespesasVencidas = $despesas->sum(fn($ag) => ($ag->valor_centavos ?? 0) / 100);
-        $totalReceitasVencidas = $receitas->sum(fn($ag) => ($ag->valor_centavos ?? 0) / 100);
+        $totalDespesasVencidas = $despesas->sum(fn($l) => (float) ($l->valor ?? 0));
+        $totalReceitasVencidas = $receitas->sum(fn($l) => (float) ($l->valor ?? 0));
 
         return new ProvisaoResultDTO(
             month: $month,

@@ -164,15 +164,37 @@ const lancamentoGlobalManager = {
             });
         }
 
-        // Cartão de crédito - mostrar parcelamento
+        // Cartão de crédito - mostrar parcelamento, ocultar recorrência
         const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
         if (cartaoSelect) {
             cartaoSelect.addEventListener('change', () => {
                 const temCartao = cartaoSelect.value !== '';
-                document.getElementById('globalParcelamentoGroup').style.display = temCartao ? 'block' : 'none';
+                const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
+                const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
+
+                if (parcelamentoGroup) parcelamentoGroup.style.display = temCartao ? 'block' : 'none';
                 if (!temCartao) {
                     document.getElementById('globalLancamentoParcelado').checked = false;
                     document.getElementById('globalNumeroParcelasGroup').style.display = 'none';
+                }
+
+                // Toggle recorrência, lembrete e pago: oculta quando tem cartão (vai para fatura)
+                const lembreteGroup = document.getElementById('globalLembreteGroup');
+                const pagoGroup = document.getElementById('globalPagoGroup');
+                if (temCartao) {
+                    if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+                    const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
+                    if (recorrenteCheck) recorrenteCheck.checked = false;
+                    const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
+                    if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+                    if (lembreteGroup) lembreteGroup.style.display = 'none';
+                    if (pagoGroup) pagoGroup.style.display = 'none';
+                } else {
+                    if (this.tipoAtual !== 'transferencia') {
+                        if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
+                        if (lembreteGroup) lembreteGroup.style.display = 'block';
+                        if (pagoGroup) pagoGroup.style.display = 'block';
+                    }
                 }
             });
         }
@@ -813,11 +835,12 @@ const lancamentoGlobalManager = {
         // Mostrar/ocultar seleção de cartão
         const cartaoGroup = document.getElementById('globalCartaoCreditoGroup');
         const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
+        const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
 
         if (forma === 'cartao_credito') {
             if (cartaoGroup) {
                 cartaoGroup.classList.add('active');
-                cartaoGroup.style.display = 'block'; // Garantir que está visível
+                cartaoGroup.style.display = 'block';
             }
             // Preencher cartões se ainda não preenchidos
             this.preencherCartoes();
@@ -826,6 +849,16 @@ const lancamentoGlobalManager = {
             if (cartaoSelect && cartaoSelect.value) {
                 if (parcelamentoGroup) parcelamentoGroup.style.display = 'block';
             }
+            // Ocultar recorrência, lembrete e pago (cartão vai para fatura)
+            if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+            const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
+            if (recorrenteCheck) recorrenteCheck.checked = false;
+            const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
+            if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+            const lembreteGroup = document.getElementById('globalLembreteGroup');
+            if (lembreteGroup) lembreteGroup.style.display = 'none';
+            const pagoGroup = document.getElementById('globalPagoGroup');
+            if (pagoGroup) pagoGroup.style.display = 'none';
         } else {
             if (cartaoGroup) {
                 cartaoGroup.classList.remove('active');
@@ -837,6 +870,14 @@ const lancamentoGlobalManager = {
             // Limpar seleção de cartão
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
             if (cartaoSelect) cartaoSelect.value = '';
+            // Restaurar recorrência, lembrete e pago para despesas
+            if (this.tipoAtual !== 'transferencia') {
+                if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
+                const lembreteGroup = document.getElementById('globalLembreteGroup');
+                if (lembreteGroup) lembreteGroup.style.display = 'block';
+                const pagoGroup = document.getElementById('globalPagoGroup');
+                if (pagoGroup) pagoGroup.style.display = 'block';
+            }
         }
     },
 
@@ -863,6 +904,17 @@ const lancamentoGlobalManager = {
                 cartaoGroup.style.display = 'block';
             }
             this.preencherCartoes(true); // true = é estorno
+            // Ocultar recorrência, lembrete e pago (estorno vai para fatura)
+            const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
+            if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+            const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
+            if (recorrenteCheck) recorrenteCheck.checked = false;
+            const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
+            if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+            const lembreteGroup = document.getElementById('globalLembreteGroup');
+            if (lembreteGroup) lembreteGroup.style.display = 'none';
+            const pagoGroup = document.getElementById('globalPagoGroup');
+            if (pagoGroup) pagoGroup.style.display = 'none';
         } else {
             if (cartaoGroup) {
                 cartaoGroup.classList.remove('active');
@@ -870,6 +922,13 @@ const lancamentoGlobalManager = {
             }
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
             if (cartaoSelect) cartaoSelect.value = '';
+            // Restaurar recorrência, lembrete e pago
+            const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
+            if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
+            const lembreteGroup = document.getElementById('globalLembreteGroup');
+            if (lembreteGroup) lembreteGroup.style.display = 'block';
+            const pagoGroup = document.getElementById('globalPagoGroup');
+            if (pagoGroup) pagoGroup.style.display = 'block';
         }
     },
 

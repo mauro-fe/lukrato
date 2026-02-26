@@ -725,7 +725,7 @@ if ($showOnboardingCongrats) {
         </div>
     </section>
 
-    <!-- Previsão Financeira (Agendamentos) -->
+    <!-- Previsão Financeira -->
     <section class="provisao-section" id="provisaoSection" data-aos="fade-up" data-aos-duration="500">
         <h2 class="provisao-title">
             <i data-lucide="calendar-check"></i>
@@ -741,7 +741,7 @@ if ($showOnboardingCongrats) {
                     <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
                     <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i
+                <a href="<?= BASE_URL ?>lancamentos?tipo=despesa&pago=0" class="provisao-alert-link">Ver <i
                         data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de receitas vencidas (não recebidas) -->
@@ -751,7 +751,7 @@ if ($showOnboardingCongrats) {
                     <strong id="provisaoAlertReceitasCount">0</strong> recebimento(s) atrasado(s) totalizando
                     <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i
+                <a href="<?= BASE_URL ?>lancamentos?tipo=receita&pago=0" class="provisao-alert-link">Ver <i
                         data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de faturas vencidas -->
@@ -772,7 +772,7 @@ if ($showOnboardingCongrats) {
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">A Pagar</span>
                     <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoPagarCount">0 agendamentos</span>
+                    <span class="provisao-card-count" id="provisaoPagarCount">0 pendentes</span>
                 </div>
             </div>
             <div class="provisao-card receber">
@@ -780,7 +780,7 @@ if ($showOnboardingCongrats) {
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">A Receber</span>
                     <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoReceberCount">0 agendamentos</span>
+                    <span class="provisao-card-count" id="provisaoReceberCount">0 pendentes</span>
                 </div>
             </div>
             <div class="provisao-card projetado">
@@ -798,7 +798,7 @@ if ($showOnboardingCongrats) {
             <div class="provisao-proximos-header">
                 <span class="provisao-proximos-title" id="provisaoProximosTitle"><i data-lucide="clock"></i> Próximos
                     Vencimentos</span>
-                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i
+                <a href="<?= BASE_URL ?>lancamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i
                         data-lucide="arrow-right"></i></a>
             </div>
             <div class="provisao-proximos-list" id="provisaoProximosList">

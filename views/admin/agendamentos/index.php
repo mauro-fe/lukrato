@@ -1,6 +1,7 @@
 <!-- CSS Agendamentos -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/filters-modern.css?v=<?= filemtime(BASE_PATH . '/public/assets/css/filters-modern.css') ?>">
+<link rel="stylesheet"
+    href="<?= BASE_URL ?>assets/css/filters-modern.css?v=<?= filemtime(BASE_PATH . '/public/assets/css/filters-modern.css') ?>">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-agendamentos-index.css?v=<?= md5(uniqid(rand(), true)) ?>">
 
 
@@ -21,7 +22,8 @@
                         <span class="filters-subtitle">Refine sua busca por tipo, categoria e conta</span>
                     </div>
                 </div>
-                <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros" onclick="if(window.toggleAgendamentosFilters)window.toggleAgendamentosFilters(event)">
+                <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros"
+                    onclick="if(window.toggleAgendamentosFilters)window.toggleAgendamentosFilters(event)">
                     <i data-lucide="chevron-down"></i>
                 </button>
             </div>
@@ -447,46 +449,47 @@
 
 <!-- Toggle Filtros (fallback) -->
 <script>
-(function() {
-    function setupFiltersToggle() {
-        const filtersContainer = document.querySelector('.filters-modern');
-        if (!filtersContainer) {
-            console.warn('Filters toggle: container não encontrado');
-            return;
-        }
-        
-        // Função global de toggle
-        window.toggleAgendamentosFilters = function(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
+    (function() {
+        function setupFiltersToggle() {
+            const filtersContainer = document.querySelector('.filters-modern');
+            if (!filtersContainer) {
+                console.warn('Filters toggle: container não encontrado');
+                return;
             }
-            filtersContainer.classList.toggle('collapsed');
-            console.log('Toggle filters:', filtersContainer.classList.contains('collapsed') ? 'fechado' : 'aberto');
-        };
-        
-        // Botão toggle
-        const toggleBtn = document.getElementById('toggleFilters');
-        if (toggleBtn) {
-            toggleBtn.onclick = window.toggleAgendamentosFilters;
-        }
-        
-        // Header click (opcional)
-        const filtersHeader = document.querySelector('.filters-header');
-        if (filtersHeader) {
-            filtersHeader.onclick = function(e) {
-                if (e.target.closest('#toggleFilters') || e.target.closest('.filters-toggle')) return;
-                window.toggleAgendamentosFilters(e);
+
+            // Função global de toggle
+            window.toggleAgendamentosFilters = function(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                filtersContainer.classList.toggle('collapsed');
+                console.log('Toggle filters:', filtersContainer.classList.contains('collapsed') ? 'fechado' :
+                    'aberto');
             };
+
+            // Botão toggle
+            const toggleBtn = document.getElementById('toggleFilters');
+            if (toggleBtn) {
+                toggleBtn.onclick = window.toggleAgendamentosFilters;
+            }
+
+            // Header click (opcional)
+            const filtersHeader = document.querySelector('.filters-header');
+            if (filtersHeader) {
+                filtersHeader.onclick = function(e) {
+                    if (e.target.closest('#toggleFilters') || e.target.closest('.filters-toggle')) return;
+                    window.toggleAgendamentosFilters(e);
+                };
+            }
         }
-    }
-    
-    // Executar quando DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupFiltersToggle);
-    } else {
-        // Pequeno delay para garantir que tudo carregou
-        setTimeout(setupFiltersToggle, 100);
-    }
-})();
+
+        // Executar quando DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupFiltersToggle);
+        } else {
+            // Pequeno delay para garantir que tudo carregou
+            setTimeout(setupFiltersToggle, 100);
+        }
+    })();
 </script>
