@@ -5,103 +5,112 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 60vh;
-        padding: 2rem;
+        min-height: 70vh;
+    }
+
+    .maintenance-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
+        background: var(--color-bg);
     }
 
     .maintenance-card {
-        background: var(--color-surface, #fff);
-        border-radius: 1.25rem;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-        padding: 3rem 2.5rem;
-        max-width: 520px;
+        background: var(--color-surface);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        padding: var(--spacing-5);
         width: 100%;
         text-align: center;
-        animation: fadeInUp 0.6s ease-out;
+        animation: fadeInUp 0.7s cubic-bezier(.68, -0.55, .27, 1.55);
+        position: relative;
     }
 
     .maintenance-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 1.5rem;
-        background: linear-gradient(135deg, var(--color-primary-light, #e8f0fe) 0%, var(--color-primary-lighter, #f0f4ff) 100%);
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 2rem;
+        background: var(--color-primary);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: var(--shadow-md);
     }
 
-    .maintenance-icon svg {
-        width: 36px;
-        height: 36px;
-        color: var(--color-primary, #4f46e5);
+    .maintenance-icon i {
+        font-size: 3rem;
+        color: var(--color-primary);
     }
 
     .maintenance-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--color-text, #1a1a2e);
-        margin: 0 0 0.75rem;
+        font-size: var(--font-size-2xl);
+        font-weight: 800;
+        color: var(--color-text);
+        margin-bottom: 1rem;
+        letter-spacing: -1px;
     }
 
     .maintenance-text {
-        font-size: 1rem;
-        color: var(--color-text-muted, #6b7280);
-        line-height: 1.6;
-        margin: 0 0 1.5rem;
+        font-size: var(--font-size-lg);
+        color: var(--color-text-muted);
+        line-height: 1.7;
+        margin-bottom: 2rem;
     }
 
     .maintenance-hint {
-        font-size: 0.875rem;
-        color: var(--color-text-muted, #9ca3af);
-        margin: 0 0 2rem;
-        padding: 0.75rem 1rem;
-        background: var(--color-surface-alt, #f9fafb);
-        border-radius: 0.75rem;
-        border: 1px solid var(--color-border, #e5e7eb);
+        font-size: var(--font-size-base);
+        color: var(--color-text-muted);
+        margin-bottom: 2.5rem;
+        padding: 1rem 1.5rem;
+        background: var(--color-surface-muted);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-card-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
     .maintenance-hint i {
-        width: 16px;
-        height: 16px;
-        vertical-align: -2px;
-        margin-right: 4px;
-        color: var(--color-primary, #4f46e5);
+        font-size: 1.2rem;
+        color: var(--color-primary);
     }
 
     .maintenance-btn {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: var(--color-primary, #4f46e5);
-        color: #fff;
+        gap: 0.7rem;
+        padding: 1rem 2.5rem;
+        background: var(--color-primary);
+        color: var(--color-text) !important;
         border: none;
-        border-radius: 0.75rem;
-        font-size: 0.95rem;
-        font-weight: 600;
+        border-radius: var(--radius-lg);
+        font-size: var(--font-size-lg);
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: box-shadow 0.2s, transform 0.2s;
+        box-shadow: var(--shadow-md);
         text-decoration: none;
+        margin-top: 1.5rem;
     }
 
     .maintenance-btn:hover {
-        background: var(--color-primary-dark, #4338ca);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        background: var(--color-primary-dark, #d35400);
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: var(--shadow-lg);
         color: #fff;
-        text-decoration: none;
     }
 
-    .maintenance-btn svg {
-        width: 18px;
-        height: 18px;
+    .maintenance-btn i {
+        font-size: 1.3rem;
     }
 
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(40px);
         }
 
         to {
@@ -110,14 +119,30 @@
         }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
         .maintenance-card {
-            padding: 2rem 1.5rem;
+            padding: 2rem 1rem;
+            border-radius: var(--radius-md);
         }
 
         .maintenance-title {
-            font-size: 1.25rem;
+            font-size: var(--font-size-base);
         }
+
+        .maintenance-btn {
+            padding: 0.8rem 1.2rem;
+            font-size: var(--font-size-base);
+        }
+    }
+
+    .maintenance-title {
+        font-size: 1.3rem;
+    }
+
+    .maintenance-btn {
+        padding: 0.8rem 1.2rem;
+        font-size: 1rem;
+    }
     }
 </style>
 
@@ -126,18 +151,17 @@
         <div class="maintenance-icon">
             <i data-lucide="hard-hat"></i>
         </div>
-
         <h1 class="maintenance-title">Estamos melhorando esta página!</h1>
-
         <p class="maintenance-text">
-            A área de <strong>Agendamentos</strong> está passando por melhorias para oferecer uma experiência ainda melhor para você.
+            A área de <strong>Agendamentos</strong> está passando por melhorias para oferecer uma experiência ainda
+            melhor para você.<br>
+            <span style="color:#6366f1;font-weight:600">Fique tranquilo, seus dados estão seguros.</span>
         </p>
-
         <div class="maintenance-hint">
             <i data-lucide="lightbulb"></i>
-            Enquanto isso, você pode gerenciar seus lançamentos futuros diretamente pela página de <strong>Lançamentos</strong>.
+            Enquanto isso, você pode gerenciar seus lançamentos futuros diretamente pela página de
+            <strong>Lançamentos</strong>.
         </div>
-
         <a href="<?= BASE_URL ?>lancamentos" class="maintenance-btn">
             <i data-lucide="arrow-right"></i>
             Ir para Lançamentos
