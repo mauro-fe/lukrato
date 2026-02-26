@@ -5,12 +5,24 @@ declare(strict_types=1);
 namespace Application\Validators;
 
 use Application\Enums\LancamentoTipo;
+use Application\Enums\Recorrencia;
 
 /**
  * Validador para lançamentos.
  */
 class LancamentoValidator
 {
+    /** Frequências válidas de recorrência */
+    private const FREQ_VALIDAS = [
+        'semanal',
+        'quinzenal',
+        'mensal',
+        'bimestral',
+        'trimestral',
+        'semestral',
+        'anual',
+    ];
+
     /**
      * Valida dados para criação de lançamento.
      */
@@ -48,7 +60,7 @@ class LancamentoValidator
                 $valor = str_replace(['R$', ' ', '.'], '', $valor);
                 $valor = str_replace(',', '.', $valor);
             }
-            
+
             if (!is_numeric($valor) || !is_finite((float)$valor)) {
                 $errors['valor'] = 'Valor inválido.';
             } elseif ((float)$valor <= 0) {
@@ -68,6 +80,46 @@ class LancamentoValidator
         $observacao = trim($data['observacao'] ?? '');
         if (!empty($observacao) && mb_strlen($observacao) > 500) {
             $errors['observacao'] = 'A observação não pode ter mais de 500 caracteres.';
+        }
+
+        // Validar recorrência
+        $recorrente = (bool)($data['recorrente'] ?? false);
+        if ($recorrente) {
+            $freq = $data['recorrencia_freq'] ?? null;
+            if (empty($freq)) {
+                $errors['recorrencia_freq'] = 'A frequência da recorrência é obrigatória.';
+            } elseif (!in_array($freq, self::FREQ_VALIDAS, true)) {
+                $errors['recorrencia_freq'] = 'Frequência inválida. Use: ' . implode(', ', self::FREQ_VALIDAS) . '.';
+            }
+
+            $fim = $data['recorrencia_fim'] ?? null;
+            if ($fim !== null && $fim !== '') {
+                if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $fim)) {
+                    $errors['recorrencia_fim'] = 'Data de fim da recorrência inválida. Use YYYY-MM-DD.';
+                } elseif (!empty($data_value) && $fim <= $data_value) {
+                    $errors['recorrencia_fim'] = 'A data de fim deve ser posterior à data do lançamento.';
+                }
+            }
+
+            // Validar total de repetições
+            $total = $data['recorrencia_total'] ?? null;
+            if ($total !== null && $total !== '') {
+                $total = (int)$total;
+                if ($total < 2) {
+                    $errors['recorrencia_total'] = 'O número de repetições deve ser pelo menos 2.';
+                } elseif ($total > 120) {
+                    $errors['recorrencia_total'] = 'O número máximo de repetições é 120.';
+                }
+            }
+        }
+
+        // Validar lembrete
+        $lembrar = $data['lembrar_antes_segundos'] ?? null;
+        if ($lembrar !== null && $lembrar !== '') {
+            $lembrar = (int)$lembrar;
+            if ($lembrar < 0) {
+                $errors['lembrar_antes_segundos'] = 'Antecedência do lembrete inválida.';
+            }
         }
 
         return $errors;

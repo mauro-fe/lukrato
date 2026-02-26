@@ -368,12 +368,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <span>Finanças</span>
             </a>
 
-            <!-- Agendamentos -->
-            <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
-                <?= $aria('agendamentos') ?> title="Agendamentos">
-                <i data-lucide="clock"></i>
-                <span>Agendados</span>
-            </a>
+            <!-- Agendamentos removido - unificado em lançamentos -->
 
             <!-- Gamificação -->
             <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"

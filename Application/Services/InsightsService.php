@@ -170,6 +170,10 @@ class InsightsService
         $topCategoria = Lancamento::where('lancamentos.user_id', $this->userId)
             ->where('lancamentos.tipo', 'despesa')
             ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
+            ->where(function ($q) {
+                $q->whereNull('lancamentos.origem_tipo')
+                   ->orWhere('lancamentos.origem_tipo', '!=', 'pagamento_fatura');
+            })
             ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->selectRaw('categorias.nome, SUM(lancamentos.valor) as total')
             ->groupBy('categorias.id', 'categorias.nome')
@@ -275,6 +279,10 @@ class InsightsService
                 ->where('tipo', 'despesa')
                 ->where('categoria_id', $orc->categoria_id)
                 ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
+                ->where(function ($q) {
+                    $q->whereNull('origem_tipo')
+                       ->orWhere('origem_tipo', '!=', 'pagamento_fatura');
+                })
                 ->sum('valor');
 
             $pct = ($orc->valor_limite > 0) ? ($gasto / $orc->valor_limite) * 100 : 0;
@@ -532,6 +540,10 @@ class InsightsService
             ->where('lancamentos.eh_transferencia', 0)
             ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->whereNotNull('lancamentos.categoria_id')
+            ->where(function ($q) {
+                $q->whereNull('lancamentos.origem_tipo')
+                   ->orWhere('lancamentos.origem_tipo', '!=', 'pagamento_fatura');
+            })
             ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->selectRaw('categorias.nome, SUM(lancamentos.valor) as total')
             ->groupBy('categorias.id', 'categorias.nome')

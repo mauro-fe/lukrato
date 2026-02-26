@@ -110,7 +110,7 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth', 'onboarding']);
 
-    Router::add('GET', '/agendamentos',      'Admin\\AgendamentoController@index',   ['auth', 'onboarding']);
+    // Agendamentos removido - unificado em lançamentos
 
     Router::add('GET', '/investimentos',      'Admin\\InvestimentosController@index',   ['auth', 'onboarding']);
 
@@ -187,6 +187,10 @@ function registerApiRoutes(): void
     Router::add('PUT',    '/api/lancamentos/{id}', 'Api\\LancamentosController@update',  ['auth', 'csrf']);
 
     Router::add('DELETE', '/api/lancamentos/{id}', 'Api\\LancamentosController@destroy', ['auth', 'csrf']);
+
+    Router::add('POST',   '/api/lancamentos/{id}/cancelar-recorrencia', 'Api\\LancamentosController@cancelarRecorrencia', ['auth', 'csrf']);
+    Router::add('PUT',    '/api/lancamentos/{id}/pagar',                'Api\\LancamentosController@marcarPago',          ['auth', 'csrf']);
+    Router::add('GET',    '/api/lancamentos/{id}/fatura-detalhes',      'Api\\LancamentosController@faturaDetalhes',      ['auth']);
 
 
 
@@ -331,19 +335,7 @@ function registerApiRoutes(): void
 
 
 
-    // Agendamentos
-
-    Router::add('POST', '/api/agendamentos',                 'Api\\AgendamentoController@store',        ['auth', 'csrf']);
-
-    Router::add('GET',  '/api/agendamentos',                 'Api\\AgendamentoController@index',        ['auth']);
-
-    Router::add('POST', '/api/agendamentos/{id}',            'Api\\AgendamentoController@update',       ['auth', 'csrf']);
-
-    Router::add('POST', '/api/agendamentos/{id}/status',     'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
-
-    Router::add('POST', '/api/agendamentos/{id}/cancelar',   'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
-
-    Router::add('POST', '/api/agendamentos/{id}/reativar',   'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
+    // Agendamentos (removido - unificado em lançamentos)
 
     // Faturas de Cartão (antigo: Parcelamentos)
     Router::add('GET',    '/api/parcelamentos',                        'Api\\FaturasController@index',           ['auth']);

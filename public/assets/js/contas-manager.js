@@ -1545,37 +1545,39 @@ class ContasManager {
         document.getElementById('lancamentoContaId').value = this.contaSelecionadaLancamento.id;
         document.getElementById('lancamentoTipo').value = tipo;
 
-        // Data de hoje (ou amanhã para agendamento)
+        // Data de hoje
         const hoje = new Date();
-        if (tipo === 'agendamento') {
-            hoje.setDate(hoje.getDate() + 1); // Amanhã como padrão para agendamento
-        }
         // Usar data local, não UTC (evita pular um dia em fusos negativos)
         document.getElementById('lancamentoData').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
 
-        // Grupos específicos
-        const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
+        // Grupos específicos - Recorrência e Lembrete
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
-        const horaAgendamentoGroup = document.getElementById('horaAgendamentoGroup');
-        const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
-        const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
-        const formaPagamentoAgendamentoGroup = document.getElementById('formaPagamentoAgendamentoGroup');
+        const lembreteGroup = document.getElementById('lembreteGroup');
+        const recorrenciaDetalhes = document.getElementById('recorrenciaDetalhes');
+        const canaisNotificacaoInline = document.getElementById('canaisNotificacaoInline');
+        const lancamentoRecorrente = document.getElementById('lancamentoRecorrente');
+        const lancamentoTempoAviso = document.getElementById('lancamentoTempoAviso');
         const labelData = document.getElementById('labelDataLancamento');
 
-        // Ocultar grupos de agendamento por padrão
-        if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
+        // Ocultar grupos por padrão e resetar
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
-        if (horaAgendamentoGroup) horaAgendamentoGroup.style.display = 'none';
-        if (tempoAvisoGroup) tempoAvisoGroup.style.display = 'none';
-        if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'none';
-        if (formaPagamentoAgendamentoGroup) formaPagamentoAgendamentoGroup.style.display = 'none';
+        if (lembreteGroup) lembreteGroup.style.display = 'none';
+        if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+        if (canaisNotificacaoInline) canaisNotificacaoInline.style.display = 'none';
+        if (lancamentoRecorrente) lancamentoRecorrente.checked = false;
+        if (lancamentoTempoAviso) lancamentoTempoAviso.value = '';
         if (labelData) labelData.textContent = 'Data';
+
+        // Pago toggle
+        const pagoGroup = document.getElementById('pagoGroup');
+        const pagoCheckbox = document.getElementById('lancamentoPago');
+        if (pagoGroup) pagoGroup.style.display = 'none';
+        if (pagoCheckbox) pagoCheckbox.checked = true;
 
         // Carregar categorias (exceto para transferência)
         const categoriaGroup = document.getElementById('categoriaGroup');
         if (tipo !== 'transferencia') {
-            const tipoCat = tipo === 'agendamento' ? 'despesa' : tipo;
-            this.preencherCategorias(tipoCat);
+            this.preencherCategorias(tipo);
             if (categoriaGroup) categoriaGroup.style.display = 'block';
         } else {
             if (categoriaGroup) categoriaGroup.style.display = 'none';
@@ -1607,6 +1609,22 @@ class ContasManager {
             contaDestinoGroup.style.display = 'none';
             // Mostrar forma de recebimento
             if (formaRecebimentoGroup) formaRecebimentoGroup.style.display = 'block';
+            // Mostrar recorrência e lembrete
+            if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
+            if (lembreteGroup) lembreteGroup.style.display = 'block';
+            if (pagoGroup) pagoGroup.style.display = 'block';
+
+            // Receita: ocultar opção "Sem fim (Spotify)" e default = quantidade
+            const radioInfinito = document.getElementById('recorrenciaRadioInfinito');
+            if (radioInfinito) radioInfinito.style.display = 'none';
+            const radios = document.querySelectorAll('input[name="recorrencia_modo"]');
+            radios.forEach(r => r.checked = r.value === 'quantidade');
+
+            // Textos de pago para receita
+            const pagoLabel = document.getElementById('pagoLabel');
+            const pagoHelper = document.getElementById('pagoHelperText');
+            if (pagoLabel) pagoLabel.textContent = 'Já foi recebido';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi recebido.';
         } else if (tipo === 'despesa') {
             titulo.textContent = '💸 Nova Despesa';
             btnSalvar.innerHTML = '<i data-lucide="check"></i> Salvar Despesa';
@@ -1618,6 +1636,22 @@ class ContasManager {
             contaDestinoGroup.style.display = 'none';
             // Mostrar forma de pagamento
             if (formaPagamentoGroup) formaPagamentoGroup.style.display = 'block';
+            // Mostrar recorrência e lembrete
+            if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
+            if (lembreteGroup) lembreteGroup.style.display = 'block';
+            if (pagoGroup) pagoGroup.style.display = 'block';
+
+            // Despesa: mostrar todas as opções e default = infinito
+            const radioInfinito = document.getElementById('recorrenciaRadioInfinito');
+            if (radioInfinito) radioInfinito.style.display = '';
+            const radios = document.querySelectorAll('input[name="recorrencia_modo"]');
+            radios.forEach(r => r.checked = r.value === 'infinito');
+
+            // Textos de pago para despesa
+            const pagoLabel = document.getElementById('pagoLabel');
+            const pagoHelper = document.getElementById('pagoHelperText');
+            if (pagoLabel) pagoLabel.textContent = 'Já foi pago';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi pago.';
 
             // Carregar cartões de crédito
             this.carregarCartoesCredito();
@@ -1634,41 +1668,10 @@ class ContasManager {
 
             // Preencher select de contas destino
             this.preencherContasDestino();
-        } else if (tipo === 'agendamento') {
-            titulo.textContent = '📅 Novo Agendamento';
-            btnSalvar.innerHTML = '<i data-lucide="calendar-check"></i> Agendar';
-            btnSalvar.className = 'lk-btn lk-btn-primary';
-            btnSalvar.style.background = 'linear-gradient(135deg, #e67e22, #d35400)';
-            if (headerGradient) {
-                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)', 'important');
-            }
-            contaDestinoGroup.style.display = 'none';
-            cartaoCreditoGroup.style.display = 'none';
-
-            // Mostrar campos específicos de agendamento
-            if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'block';
-            if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
-            if (labelData) labelData.textContent = 'Data do Agendamento';
-
-            // Mostrar campo de hora
-            const horaAgendamentoGroup = document.getElementById('horaAgendamentoGroup');
-            if (horaAgendamentoGroup) horaAgendamentoGroup.style.display = 'block';
-
-            // Mostrar campo de tempo de aviso
-            const tempoAvisoGroup = document.getElementById('tempoAvisoGroup');
-            if (tempoAvisoGroup) tempoAvisoGroup.style.display = 'block';
-
-            // Mostrar canais de notificação
-            const canaisNotificacaoGroup = document.getElementById('canaisNotificacaoGroup');
-            if (canaisNotificacaoGroup) canaisNotificacaoGroup.style.display = 'block';
-
-            // Mostrar forma de pagamento para agendamento
-            const formaPagamentoAgendamentoGroup = document.getElementById('formaPagamentoAgendamentoGroup');
-            if (formaPagamentoAgendamentoGroup) formaPagamentoAgendamentoGroup.style.display = 'block';
-
-            // Configurar evento de recorrência
-            this.configurarEventosRecorrencia();
         }
+
+        // Configurar eventos de recorrência e lembrete
+        this.configurarEventosRecorrencia();
 
         // Focar no primeiro campo
         setTimeout(() => {
@@ -1677,16 +1680,60 @@ class ContasManager {
     }
 
     /**
-     * Configurar eventos de recorrência
-     * Agora a recorrência é sempre indefinida, não precisa de lógica adicional
+     * Configurar eventos de recorrência e lembrete
      */
     configurarEventosRecorrencia() {
-        // Recorrência agora repete para sempre até ser cancelada
-        // Não precisa mais do campo "quantas vezes repetir"
+        // Listener para o select de tempo de aviso (lembrete)
+        const tempoAviso = document.getElementById('lancamentoTempoAviso');
+        if (tempoAviso && !tempoAviso._lkListenerAdded) {
+            tempoAviso.addEventListener('change', () => {
+                const canaisDiv = document.getElementById('canaisNotificacaoInline');
+                if (canaisDiv) {
+                    canaisDiv.style.display = tempoAviso.value ? 'block' : 'none';
+                }
+            });
+            tempoAviso._lkListenerAdded = true;
+        }
     }
 
     /**
-     * Selecionar tipo de agendamento (receita/despesa)
+     * Toggle visibilidade dos detalhes de recorrência
+     * Chamado pelo onchange do checkbox lancamentoRecorrente
+     */
+    toggleRecorrencia() {
+        const checkbox = document.getElementById('lancamentoRecorrente');
+        const detalhes = document.getElementById('recorrenciaDetalhes');
+        if (detalhes) {
+            detalhes.style.display = checkbox?.checked ? 'block' : 'none';
+        }
+        // Reset sub-groups when unchecked
+        if (!checkbox?.checked) {
+            const totalGroup = document.getElementById('recorrenciaTotalGroup');
+            const fimGroup = document.getElementById('recorrenciaFimGroup');
+            if (totalGroup) totalGroup.style.display = 'none';
+            if (fimGroup) fimGroup.style.display = 'none';
+            // Reset radio baseado no tipo atual
+            const tipoAtual = document.getElementById('lancamentoTipo')?.value;
+            const defaultModo = tipoAtual === 'receita' ? 'quantidade' : 'infinito';
+            const radios = document.querySelectorAll('input[name="recorrencia_modo"]');
+            radios.forEach(r => r.checked = r.value === defaultModo);
+        }
+    }
+
+    /**
+     * Toggle visibilidade dos sub-grupos de fim de recorrência
+     * Chamado pelo onchange dos radios recorrencia_modo
+     */
+    toggleRecorrenciaFim() {
+        const modo = document.querySelector('input[name="recorrencia_modo"]:checked')?.value || 'infinito';
+        const totalGroup = document.getElementById('recorrenciaTotalGroup');
+        const fimGroup = document.getElementById('recorrenciaFimGroup');
+        if (totalGroup) totalGroup.style.display = modo === 'quantidade' ? 'block' : 'none';
+        if (fimGroup) fimGroup.style.display = modo === 'data' ? 'block' : 'none';
+    }
+
+    /**
+     * Selecionar tipo de agendamento (receita/despesa) - legacy
      */
     selecionarTipoAgendamento(tipo) {
         const btnReceita = document.querySelector('#tipoAgendamentoGroup .lk-btn-tipo-receita');
@@ -2174,14 +2221,36 @@ class ContasManager {
         document.getElementById('numeroParcelasGroup').style.display = 'none';
         document.getElementById('contaDestinoGroup').style.display = 'none';
 
-        // Ocultar campos de agendamento
+        // Ocultar campos de agendamento e recorrência
         const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
+        const lembreteGroup = document.getElementById('lembreteGroup');
+        const recorrenciaDetalhes = document.getElementById('recorrenciaDetalhes');
+        const canaisNotificacaoInline = document.getElementById('canaisNotificacaoInline');
+        const lancamentoRecorrente = document.getElementById('lancamentoRecorrente');
+        const lancamentoTempoAviso = document.getElementById('lancamentoTempoAviso');
         const labelData = document.getElementById('labelDataLancamento');
 
         if (tipoAgendamentoGroup) tipoAgendamentoGroup.style.display = 'none';
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+        if (lembreteGroup) lembreteGroup.style.display = 'none';
+        if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+        if (canaisNotificacaoInline) canaisNotificacaoInline.style.display = 'none';
+        if (lancamentoRecorrente) lancamentoRecorrente.checked = false;
+        if (lancamentoTempoAviso) lancamentoTempoAviso.value = '';
         if (labelData) labelData.textContent = 'Data';
+
+        // Ocultar pago toggle
+        const pagoGroup = document.getElementById('pagoGroup');
+        if (pagoGroup) pagoGroup.style.display = 'none';
+
+        // Resetar sub-grupos de recorrência
+        const recorrenciaTotalGroup = document.getElementById('recorrenciaTotalGroup');
+        const recorrenciaFimGroup = document.getElementById('recorrenciaFimGroup');
+        if (recorrenciaTotalGroup) recorrenciaTotalGroup.style.display = 'none';
+        if (recorrenciaFimGroup) recorrenciaFimGroup.style.display = 'none';
+        const radios = document.querySelectorAll('input[name="recorrencia_modo"]');
+        radios.forEach(r => r.checked = r.value === 'infinito');
 
         // Restaurar título
         document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
@@ -2356,6 +2425,40 @@ class ContasManager {
                 total_parcelas: totalParcelas,
             };
 
+            // Campos de recorrência (para receita e despesa)
+            if (tipo === 'receita' || tipo === 'despesa') {
+                // Campo de pago
+                const pagoCheck = document.getElementById('lancamentoPago');
+                data.pago = pagoCheck?.checked ? '1' : '0';
+
+                const recorrenteCheck = document.getElementById('lancamentoRecorrente');
+                if (recorrenteCheck?.checked) {
+                    data.recorrente = '1';
+                    data.recorrencia_freq = document.getElementById('lancamentoRecorrenciaFreq')?.value || 'mensal';
+
+                    // Determinar modo de fim
+                    const modo = document.querySelector('input[name="recorrencia_modo"]:checked')?.value || 'infinito';
+                    if (modo === 'quantidade') {
+                        const total = parseInt(document.getElementById('lancamentoRecorrenciaTotal')?.value) || 12;
+                        data.recorrencia_total = total;
+                    } else if (modo === 'data') {
+                        const recorrenciaFim = document.getElementById('lancamentoRecorrenciaFim')?.value || null;
+                        if (recorrenciaFim) {
+                            data.recorrencia_fim = recorrenciaFim;
+                        }
+                    }
+                    // modo === 'infinito' → não envia nem total nem fim
+                }
+
+                // Campos de lembrete
+                const tempoAviso = document.getElementById('lancamentoTempoAviso')?.value || '';
+                if (tempoAviso) {
+                    data.lembrar_antes_segundos = parseInt(tempoAviso);
+                    data.canal_inapp = document.getElementById('lancamentoCanalInapp')?.checked ? '1' : '0';
+                    data.canal_email = document.getElementById('lancamentoCanalEmail')?.checked ? '1' : '0';
+                }
+            }
+
             let apiUrl = `${this.baseUrl}/lancamentos`;
             let requestData = data;
 
@@ -2369,56 +2472,6 @@ class ContasManager {
                     data: formData.get('data'),
                     descricao: formData.get('descricao'),
                     observacao: formData.get('observacoes') || null,
-                };
-            }
-            // Se for AGENDAMENTO, usar endpoint específico de agendamentos
-            else if (tipo === 'agendamento') {
-                apiUrl = `${this.baseUrl}/agendamentos`;
-                const tipoAgendamento = formData.get('tipo_agendamento') || 'despesa';
-                const recorrencia = formData.get('recorrencia') || null;
-                const repeticoes = formData.get('numero_repeticoes') || null;
-
-                // Montar data com hora
-                let dataPagamento = formData.get('data');
-                const hora = formData.get('hora') || '12:00';
-                if (dataPagamento && !dataPagamento.includes(' ') && !dataPagamento.includes('T')) {
-                    dataPagamento = dataPagamento + ' ' + hora + ':00';
-                }
-
-                // Calcular recorrencia_fim se tiver repetições
-                let recorrenciaFim = null;
-                if (recorrencia && repeticoes && parseInt(repeticoes) > 0) {
-                    recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, recorrencia, parseInt(repeticoes));
-                }
-
-                // Tempo de aviso (minutos -> segundos)
-                const tempoAvisoMinutos = parseInt(formData.get('tempo_aviso') || '0');
-                const lembrarAntesSegundos = tempoAvisoMinutos * 60;
-
-                // Canais de notificação
-                const canalInapp = document.getElementById('lancamentoCanalInapp')?.checked ? '1' : '0';
-                const canalEmail = document.getElementById('lancamentoCanalEmail')?.checked ? '1' : '0';
-
-                // Forma de pagamento para agendamento
-                const formaPagamentoAg = document.getElementById('lancamentoFormaPagamentoAg')?.value || null;
-
-                requestData = {
-                    titulo: formData.get('descricao'),
-                    tipo: tipoAgendamento,
-                    valor: valor,
-                    valor_centavos: Math.round(valor * 100),
-                    data_pagamento: dataPagamento,
-                    categoria_id: formData.get('categoria_id') || null,
-                    conta_id: contaId,
-                    descricao: formData.get('observacoes') || null,
-                    recorrente: recorrencia ? '1' : '0',
-                    recorrencia_freq: recorrencia || null,
-                    recorrencia_intervalo: recorrencia ? 1 : null,
-                    recorrencia_fim: recorrenciaFim,
-                    lembrar_antes_segundos: lembrarAntesSegundos,
-                    canal_inapp: canalInapp,
-                    canal_email: canalEmail,
-                    forma_pagamento: formaPagamentoAg
                 };
             }
             // Se for PARCELAMENTO SEM CARTÃO (conta bancária), usar endpoint de parcelamentos
@@ -2461,15 +2514,13 @@ class ContasManager {
             const tiposTexto = {
                 'receita': 'Receita',
                 'despesa': 'Despesa',
-                'transferencia': 'Transferência',
-                'agendamento': 'Agendamento'
+                'transferencia': 'Transferência'
             };
             const tipoTexto = tiposTexto[tipo] || 'Lançamento';
-            const mensagem = tipo === 'agendamento' ? 'agendado' : 'criada';
             await Swal.fire({
                 icon: 'success',
                 title: 'Sucesso!',
-                html: `<strong>${tipoTexto}</strong> ${mensagem} com sucesso!`,
+                html: `<strong>${tipoTexto}</strong> criada com sucesso!`,
                 timer: 2000,
                 showConfirmButton: false,
                 toast: false,
@@ -2544,9 +2595,7 @@ class ContasManager {
             document.dispatchEvent(new CustomEvent('lukrato:data-changed'));
 
             // Disparar evento específico de lançamento criado para onboarding
-            if (tipo !== 'agendamento') {
-                window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
-            }
+            window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
 
         } catch (error) {
             console.error('❌ Erro ao criar lançamento:', error);

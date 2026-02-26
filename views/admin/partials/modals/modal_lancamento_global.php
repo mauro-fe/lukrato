@@ -50,7 +50,7 @@
                     Escolha o tipo de movimentação
                 </h3>
 
-                <div class="lk-tipo-grid lk-tipo-grid-4">
+                <div class="lk-tipo-grid lk-tipo-grid-3">
                     <!-- Receita -->
                     <button type="button" class="lk-tipo-card lk-tipo-receita"
                         onclick="lancamentoGlobalManager.mostrarFormulario('receita')">
@@ -83,17 +83,6 @@
                         <p>Entre contas</p>
                         <div class="lk-tipo-badge">⇄ Mover</div>
                     </button>
-
-                    <!-- Agendamento -->
-                    <button type="button" class="lk-tipo-card lk-tipo-agendamento"
-                        onclick="lancamentoGlobalManager.mostrarFormulario('agendamento')">
-                        <div class="lk-tipo-icon">
-                            <i data-lucide="calendar-plus"></i>
-                        </div>
-                        <h4>Agendamento</h4>
-                        <p>Programar para depois</p>
-                        <div class="lk-tipo-badge">📅 Agendar</div>
-                    </button>
                 </div>
             </div>
 
@@ -110,7 +99,7 @@
                     <input type="hidden" id="globalLancamentoTipo" name="tipo">
                     <input type="hidden" id="globalLancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
 
-                    Tipo de Agendamento (somente para agendamento)
+                    <!-- Tipo de Agendamento (somente para agendamento) - LEGACY hidden -->
                     <div class="lk-form-group" id="globalTipoAgendamentoGroup" style="display: none;">
                         <label class="lk-label required">
                             <i data-lucide="tag"></i>
@@ -125,7 +114,6 @@
                                 onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
                                 <i data-lucide="arrow-up"></i> Despesa
                             </button>
-
                         </div>
                     </div>
 
@@ -316,15 +304,7 @@
                         <input type="date" id="globalLancamentoData" name="data" class="lk-input" required>
                     </div>
 
-                    <!-- Hora (somente para agendamento) -->
-                    <div class="lk-form-group" id="globalHoraGroup" style="display: none;">
-                        <label for="globalLancamentoHora" class="lk-label">
-                            <i data-lucide="clock"></i>
-                            Hora
-                        </label>
-                        <input type="time" id="globalLancamentoHora" name="hora" class="lk-input" value="12:00">
-                        <small class="lk-helper-text">Horário de execução do agendamento</small>
-                    </div>
+                    <!-- Hora (removido - agendamentos foram unificados nos lançamentos) -->
 
                     <!-- Categoria -->
                     <div class="lk-form-group" id="globalCategoriaGroup">
@@ -346,102 +326,137 @@
                         </div>
                     </div>
 
-                    <!-- Recorrência (somente para agendamento) -->
+                    <!-- Recorrência (para receita e despesa) -->
                     <div class="lk-form-group" id="globalRecorrenciaGroup" style="display: none;">
-                        <label for="globalLancamentoRecorrencia" class="lk-label">
-                            <i data-lucide="refresh-cw"></i>
-                            Recorrência
-                        </label>
-                        <div class="lk-select-wrapper">
-                            <select id="globalLancamentoRecorrencia" name="recorrencia_freq" class="lk-select">
-                                <option value="">Não repetir</option>
-                                <option value="diario">Diariamente</option>
-                                <option value="semanal">Semanalmente</option>
-                                <option value="mensal">Mensalmente</option>
-                                <option value="anual">Anualmente</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="globalLancamentoRecorrente" name="recorrente" value="1"
+                                    class="lk-checkbox" onchange="lancamentoGlobalManager.toggleRecorrencia()">
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i data-lucide="refresh-cw"></i>
+                                    Repetir este lançamento
+                                </span>
+                            </label>
                         </div>
-                        <small class="lk-helper-text">🔁 Repete para sempre até você cancelar</small>
+
+                        <div id="globalRecorrenciaDetalhes" style="display: none;">
+                            <label class="lk-label">
+                                <i data-lucide="refresh-cw"></i>
+                                Frequência
+                            </label>
+                            <div class="lk-select-wrapper" style="margin-bottom: 0.75rem;">
+                                <select id="globalLancamentoRecorrenciaFreq" name="recorrencia_freq" class="lk-select">
+                                    <option value="semanal">Semanalmente</option>
+                                    <option value="quinzenal">Quinzenalmente</option>
+                                    <option value="mensal" selected>Mensalmente</option>
+                                    <option value="bimestral">Bimestralmente</option>
+                                    <option value="trimestral">Trimestralmente</option>
+                                    <option value="semestral">Semestralmente</option>
+                                    <option value="anual">Anualmente</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                            </div>
+
+                            <label class="lk-label">
+                                <i data-lucide="flag"></i>
+                                Quando termina?
+                            </label>
+                            <div class="lk-radio-group" style="margin-bottom: 0.5rem;">
+                                <label class="lk-radio-label" id="globalRecorrenciaRadioInfinito">
+                                    <input type="radio" name="global_recorrencia_modo" value="infinito" class="lk-radio" checked
+                                        onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Sem fim <small style="opacity:0.7">(ex: Spotify, Netflix)</small></span>
+                                </label>
+                                <label class="lk-radio-label">
+                                    <input type="radio" name="global_recorrencia_modo" value="quantidade" class="lk-radio"
+                                        onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Após um número de vezes</span>
+                                </label>
+                                <label class="lk-radio-label">
+                                    <input type="radio" name="global_recorrencia_modo" value="data" class="lk-radio"
+                                        onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Até uma data específica</span>
+                                </label>
+                            </div>
+
+                            <div id="globalRecorrenciaTotalGroup" style="display: none;">
+                                <div class="lk-input-group">
+                                    <input type="number" id="globalLancamentoRecorrenciaTotal" name="recorrencia_total"
+                                        class="lk-input" min="2" max="120" value="12" placeholder="12">
+                                    <span class="lk-input-suffix">vezes</span>
+                                </div>
+                                <small class="lk-helper-text">Total de repetições incluindo a primeira.</small>
+                            </div>
+
+                            <div id="globalRecorrenciaFimGroup" style="display: none;">
+                                <input type="date" id="globalLancamentoRecorrenciaFim" name="recorrencia_fim" class="lk-input">
+                                <small class="lk-helper-text">Data em que a repetição termina.</small>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Campo oculto para repetições (sempre indefinido) -->
-                    <input type="hidden" id="globalLancamentoRepeticoes" name="recorrencia_repeticoes" value="">
-
-                    <!-- Tempo de Aviso (somente para agendamento) -->
-                    <div class="lk-form-group" id="globalTempoAvisoGroup" style="display: none;">
+                    <!-- Lembrete (para receita e despesa) -->
+                    <div class="lk-form-group" id="globalLembreteGroup" style="display: none;">
                         <label for="globalLancamentoTempoAviso" class="lk-label">
-                            <i data-lucide="clock"></i>
-                            Avisar com antecedência
-                        </label>
-                        <div class="lk-select-wrapper">
-                            <select id="globalLancamentoTempoAviso" name="tempo_aviso" class="lk-select">
-                                <option value="0">No momento da execução</option>
-                                <option value="5">5 minutos antes</option>
-                                <option value="15">15 minutos antes</option>
-                                <option value="30">30 minutos antes</option>
-                                <option value="60" selected>1 hora antes</option>
-                                <option value="120">2 horas antes</option>
-                                <option value="360">6 horas antes</option>
-                                <option value="720">12 horas antes</option>
-                                <option value="1440">1 dia antes</option>
-                                <option value="2880">2 dias antes</option>
-                                <option value="4320">3 dias antes</option>
-                                <option value="10080">1 semana antes</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                        </div>
-                        <small class="lk-helper-text">Quando você será notificado sobre este agendamento</small>
-                    </div>
-
-                    <!-- Canais de Notificação (somente para agendamento) -->
-                    <div class="lk-form-group" id="globalCanaisNotificacaoGroup" style="display: none;">
-                        <label class="lk-label">
                             <i data-lucide="bell"></i>
-                            Canais de Notificação
-                        </label>
-                        <div class="lk-checkbox-wrapper">
-                            <label class="lk-checkbox-label">
-                                <input type="checkbox" id="globalCanalInapp" name="canal_inapp" value="1"
-                                    class="lk-checkbox" checked>
-                                <span class="lk-checkbox-custom"></span>
-                                <span class="lk-checkbox-text">
-                                    <i data-lucide="monitor"></i>
-                                    Aviso no sistema
-                                </span>
-                            </label>
-                        </div>
-                        <div class="lk-checkbox-wrapper">
-                            <label class="lk-checkbox-label">
-                                <input type="checkbox" id="globalCanalEmail" name="canal_email" value="1"
-                                    class="lk-checkbox" checked>
-                                <span class="lk-checkbox-custom"></span>
-                                <span class="lk-checkbox-text">
-                                    <i data-lucide="mail"></i>
-                                    E-mail
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Forma de Pagamento (somente para agendamento) -->
-                    <div class="lk-form-group" id="globalFormaPagamentoAgendamentoGroup" style="display: none;">
-                        <label for="globalFormaPagamentoAg" class="lk-label">
-                            <i data-lucide="credit-card"></i>
-                            Forma de Pagamento
+                            Lembrete
                             <span class="lk-optional-badge">opcional</span>
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalFormaPagamentoAg" name="forma_pagamento_ag" class="lk-select">
-                                <option value="">Selecione (opcional)</option>
-                                <option value="pix">📱 PIX</option>
-                                <option value="dinheiro">💵 Dinheiro</option>
-                                <option value="boleto">📄 Boleto</option>
-                                <option value="transferencia">🏦 Transferência</option>
-                                <option value="deposito">🏦 Depósito</option>
+                            <select id="globalLancamentoTempoAviso" name="lembrar_antes_segundos" class="lk-select">
+                                <option value="">Sem lembrete</option>
+                                <option value="86400">1 dia antes</option>
+                                <option value="172800">2 dias antes</option>
+                                <option value="259200">3 dias antes</option>
+                                <option value="604800">1 semana antes</option>
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
+
+                        <div id="globalCanaisNotificacaoInline" style="display: none; margin-top: 0.5rem;">
+                            <div class="lk-checkbox-wrapper">
+                                <label class="lk-checkbox-label">
+                                    <input type="checkbox" id="globalCanalInapp" name="canal_inapp" value="1"
+                                        class="lk-checkbox" checked>
+                                    <span class="lk-checkbox-custom"></span>
+                                    <span class="lk-checkbox-text">
+                                        <i data-lucide="monitor"></i>
+                                        Aviso no sistema
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="lk-checkbox-wrapper">
+                                <label class="lk-checkbox-label">
+                                    <input type="checkbox" id="globalCanalEmail" name="canal_email" value="1"
+                                        class="lk-checkbox" checked>
+                                    <span class="lk-checkbox-custom"></span>
+                                    <span class="lk-checkbox-text">
+                                        <i data-lucide="mail"></i>
+                                        E-mail
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status de Pagamento -->
+                    <div class="lk-form-group" id="globalPagoGroup" style="display: none;">
+                        <div class="lk-checkbox-wrapper">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="globalLancamentoPago" name="pago" value="1"
+                                    class="lk-checkbox" checked>
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i data-lucide="circle-check"></i>
+                                    <span id="globalPagoLabel">Já foi pago</span>
+                                </span>
+                            </label>
+                        </div>
+                        <small class="lk-helper-text" id="globalPagoHelperText">Desmarque se ainda não foi pago.</small>
                     </div>
 
                     <!-- Botões de Ação -->

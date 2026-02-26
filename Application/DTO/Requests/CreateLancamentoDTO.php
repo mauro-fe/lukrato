@@ -20,6 +20,15 @@ readonly class CreateLancamentoDTO
         public ?int $contaIdDestino = null,
         public bool $pago = true,
         public ?string $formaPagamento = null,
+        // Recorrência
+        public bool $recorrente = false,
+        public ?string $recorrenciaFreq = null,
+        public ?string $recorrenciaFim = null,
+        public ?int $recorrenciaTotal = null,
+        // Lembretes
+        public ?int $lembrarAntesSegundos = null,
+        public bool $canalEmail = false,
+        public bool $canalInapp = false,
     ) {}
 
     public function toArray(): array
@@ -38,6 +47,13 @@ readonly class CreateLancamentoDTO
             'conta_id_destino' => $this->contaIdDestino,
             'pago' => $this->pago ? 1 : 0,
             'forma_pagamento' => $this->formaPagamento,
+            'recorrente' => $this->recorrente ? 1 : 0,
+            'recorrencia_freq' => $this->recorrenciaFreq,
+            'recorrencia_fim' => $this->recorrenciaFim,
+            'recorrencia_total' => $this->recorrenciaTotal,
+            'lembrar_antes_segundos' => $this->lembrarAntesSegundos,
+            'canal_email' => $this->canalEmail ? 1 : 0,
+            'canal_inapp' => $this->canalInapp ? 1 : 0,
         ];
     }
 
@@ -57,6 +73,13 @@ readonly class CreateLancamentoDTO
             contaIdDestino: isset($data['conta_id_destino']) ? (int)$data['conta_id_destino'] : null,
             pago: !isset($data['pago']) || (bool)$data['pago'],
             formaPagamento: $data['forma_pagamento'] ?? null,
+            recorrente: (bool)($data['recorrente'] ?? false),
+            recorrenciaFreq: $data['recorrencia_freq'] ?? null,
+            recorrenciaFim: $data['recorrencia_fim'] ?? null,
+            recorrenciaTotal: isset($data['recorrencia_total']) ? (int)$data['recorrencia_total'] : null,
+            lembrarAntesSegundos: isset($data['lembrar_antes_segundos']) ? (int)$data['lembrar_antes_segundos'] : null,
+            canalEmail: (bool)($data['canal_email'] ?? false),
+            canalInapp: (bool)($data['canal_inapp'] ?? false),
         );
     }
 }

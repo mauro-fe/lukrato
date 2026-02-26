@@ -163,7 +163,9 @@ class LancamentosController extends BaseController
         $rows = $q->selectRaw('
             l.id, l.data, l.tipo, l.valor, l.descricao, l.observacao, 
             l.categoria_id, l.conta_id, l.conta_id_destino, l.eh_transferencia, l.eh_saldo_inicial,
-            l.pago, l.parcelamento_id, l.cartao_credito_id, l.forma_pagamento,
+            l.pago, l.parcelamento_id, l.cartao_credito_id, l.forma_pagamento, l.origem_tipo,
+            l.recorrente, l.recorrencia_freq, l.recorrencia_fim, l.recorrencia_total, l.recorrencia_pai_id, l.cancelado_em,
+            l.lembrar_antes_segundos, l.canal_email, l.canal_inapp,
             COALESCE(c.nome, "") as categoria,
             COALESCE(a.nome, "") as conta_nome,
             COALESCE(a.instituicao, "") as conta_instituicao,
@@ -194,6 +196,18 @@ class LancamentosController extends BaseController
             'cartao_nome'      => (string)($r->cartao_nome ?? ''),
             'cartao_bandeira'  => (string)($r->cartao_bandeira ?? ''),
             'forma_pagamento'  => (string)($r->forma_pagamento ?? ''),
+            'origem_tipo'      => (string)($r->origem_tipo ?? ''),
+            // Recorrência
+            'recorrente'       => (bool)($r->recorrente ?? 0),
+            'recorrencia_freq' => $r->recorrencia_freq ?? null,
+            'recorrencia_fim'  => $r->recorrencia_fim ?? null,
+            'recorrencia_total' => $r->recorrencia_total ? (int)$r->recorrencia_total : null,
+            'recorrencia_pai_id' => $r->recorrencia_pai_id ? (int)$r->recorrencia_pai_id : null,
+            'cancelado_em'     => $r->cancelado_em ?? null,
+            // Lembretes
+            'lembrar_antes_segundos' => $r->lembrar_antes_segundos ? (int)$r->lembrar_antes_segundos : null,
+            'canal_email'      => (bool)($r->canal_email ?? 0),
+            'canal_inapp'      => (bool)($r->canal_inapp ?? 0),
         ])->values()->all();
 
         Response::success($out);
@@ -307,6 +321,15 @@ class LancamentosController extends BaseController
                 'conta_id'         => $contaId,
                 'pago'             => $pago,
                 'forma_pagamento'  => $formaPagamento,
+                // Recorrência
+                'recorrente'             => (bool)($payload['recorrente'] ?? false),
+                'recorrencia_freq'       => $payload['recorrencia_freq'] ?? null,
+                'recorrencia_fim'        => $payload['recorrencia_fim'] ?? null,
+                'recorrencia_total'      => isset($payload['recorrencia_total']) ? (int)$payload['recorrencia_total'] : null,
+                // Lembretes
+                'lembrar_antes_segundos' => $payload['lembrar_antes_segundos'] ?? null,
+                'canal_email'            => (bool)($payload['canal_email'] ?? false),
+                'canal_inapp'            => (bool)($payload['canal_inapp'] ?? false),
             ]);
 
             $usage = $this->limitService->assertCanCreate($userId, $dto->data);
@@ -539,6 +562,137 @@ class LancamentosController extends BaseController
             'usage' => $usage,
             'ui_message' => $this->limitService->getWarningMessage($usage),
             'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null
+        ]);
+    }
+
+    /**
+     * Cancela recorrência de um lançamento (todos os futuros não pagos).
+     * POST /api/lancamentos/{id}/cancelar-recorrencia
+     */
+    public function cancelarRecorrencia(int $id): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $result = $this->creationService->cancelarRecorrencia($id, $userId);
+        if ($result->isError()) {
+            Response::error($result->message, $result->httpCode);
+            return;
+        }
+
+        Response::success($result->data, $result->message);
+    }
+
+    /**
+     * Marca um lançamento futuro como pago.
+     * PUT /api/lancamentos/{id}/pagar
+     */
+    public function marcarPago(int $id): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
+        if (!$lancamento) {
+            Response::error('Lancamento nao encontrado', 404);
+            return;
+        }
+
+        if ($lancamento->pago) {
+            Response::error('Lançamento já está pago.', 422);
+            return;
+        }
+
+        if ($lancamento->cancelado_em) {
+            Response::error('Lançamento cancelado não pode ser marcado como pago.', 422);
+            return;
+        }
+
+        $lancamento->pago = true;
+        $lancamento->data_pagamento = date('Y-m-d');
+        $lancamento->save();
+
+        $lancamento->loadMissing(['categoria', 'conta']);
+
+        Response::success(LancamentoResponseFormatter::format($lancamento), 'Lançamento marcado como pago.');
+    }
+
+    /**
+     * Retorna os itens de uma fatura agrupados por categoria
+     * GET /api/lancamentos/{id}/fatura-detalhes
+     */
+    public function faturaDetalhes(int $id): void
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
+        if (!$lancamento) {
+            Response::error('Lancamento nao encontrado', 404);
+            return;
+        }
+
+        if ($lancamento->origem_tipo !== 'pagamento_fatura' || !$lancamento->cartao_credito_id) {
+            Response::error('Este lançamento não é um pagamento de fatura.', 422);
+            return;
+        }
+
+        // Extrair mês/ano da observação (ex: "14 item(s) pago(s) - Fatura 02/2026")
+        $mes = null;
+        $ano = null;
+        if (preg_match('/Fatura (\d{1,2})\/(\d{4})/', $lancamento->observacao ?? '', $matches)) {
+            $mes = (int)$matches[1];
+            $ano = (int)$matches[2];
+        }
+
+        if (!$mes || !$ano) {
+            Response::error('Não foi possível identificar a fatura.', 422);
+            return;
+        }
+
+        // Buscar itens da fatura agrupados por categoria
+        $itens = DB::table('fatura_cartao_itens as fi')
+            ->leftJoin('categorias as c', 'c.id', '=', 'fi.categoria_id')
+            ->where('fi.cartao_credito_id', $lancamento->cartao_credito_id)
+            ->where('fi.user_id', $userId)
+            ->whereYear('fi.data_vencimento', $ano)
+            ->whereMonth('fi.data_vencimento', $mes)
+            ->selectRaw('COALESCE(c.id, 0) as categoria_id')
+            ->selectRaw("COALESCE(c.nome, 'Sem categoria') as categoria_nome")
+            ->selectRaw("COALESCE(c.icone, '📦') as categoria_icone")
+            ->selectRaw('SUM(fi.valor) as total')
+            ->selectRaw('COUNT(*) as qtd_itens')
+            ->groupBy('categoria_id', 'categoria_nome', 'categoria_icone')
+            ->orderByDesc('total')
+            ->get();
+
+        $totalGeral = $itens->sum('total');
+
+        $categorias = $itens->map(fn($row) => [
+            'categoria_id'    => (int)$row->categoria_id,
+            'categoria_nome'  => (string)$row->categoria_nome,
+            'categoria_icone' => (string)$row->categoria_icone,
+            'total'           => round((float)$row->total, 2),
+            'qtd_itens'       => (int)$row->qtd_itens,
+            'percentual'      => $totalGeral > 0 ? round(((float)$row->total / $totalGeral) * 100, 1) : 0,
+        ])->values()->all();
+
+        Response::success([
+            'lancamento_id'    => $lancamento->id,
+            'cartao_credito_id' => $lancamento->cartao_credito_id,
+            'mes'              => $mes,
+            'ano'              => $ano,
+            'total'            => round($totalGeral, 2),
+            'categorias'       => $categorias,
         ]);
     }
 }

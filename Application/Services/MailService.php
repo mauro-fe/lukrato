@@ -6,6 +6,7 @@ namespace Application\Services;
 
 use Application\Contracts\MailServiceInterface;
 use Application\Models\Agendamento;
+use Application\Models\Lancamento;
 use Application\Models\Usuario;
 use Application\Services\Mail\EmailTemplate;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -210,6 +211,77 @@ class MailService implements MailServiceInterface
 
     $text = "{$subject}\n"
       . "Quando: {$dataPagamento}\n"
+      . "Valor: {$valor}\n"
+      . ($link !== '#' ? "Painel: {$link}\n\n" : "\n")
+      . "Você está recebendo este aviso porque ativou notificações por e-mail na Lukrato.";
+
+    return $this->send($usuario->email, $nomeUsuario, $subject, $html, $text);
+  }
+
+  public function sendLancamentoReminder(Lancamento $lancamento, Usuario $usuario, string $tipo = 'padrao'): bool
+  {
+    $titulo = $lancamento->descricao ?? 'Lançamento';
+    $dataLancamento = $lancamento->data instanceof \DateTimeInterface
+      ? $lancamento->data->format('d/m/Y')
+      : (string) $lancamento->data;
+
+    $valor = $lancamento->valor
+      ? 'R$ ' . number_format((float) $lancamento->valor, 2, ',', '.')
+      : '-';
+
+    $tipoLanc = ucfirst($lancamento->tipo ?? 'despesa');
+    $nomeUsuario = trim((string) ($usuario->primeiro_nome ?? $usuario->nome ?? ''));
+
+    $baseUrl = defined('BASE_URL')
+      ? rtrim(BASE_URL, '/')
+      : rtrim($_ENV['APP_URL'] ?? '', '/');
+    $link = $baseUrl ? $baseUrl . '/lancamentos' : '#';
+
+    if ($tipo === 'antecedencia') {
+      $subject = 'Lembrete: ' . $titulo . ' vence em breve';
+      $headerTitle = 'Lembrete antecipado';
+      $headerSubtitle = "Olá {$nomeUsuario}, seu lançamento está próximo!";
+    } elseif ($tipo === 'horario') {
+      $subject = 'Atenção: ' . $titulo . ' vence hoje!';
+      $headerTitle = 'Vencimento hoje!';
+      $headerSubtitle = "Olá {$nomeUsuario}, seu lançamento vence hoje.";
+    } else {
+      $subject = 'Lembrete: ' . $titulo;
+      $headerTitle = 'Lembrete de lançamento';
+      $headerSubtitle = "Olá {$nomeUsuario}, preparamos este lembrete para você.";
+    }
+
+    $content = EmailTemplate::row('Descrição', $titulo);
+    $content .= EmailTemplate::row('Tipo', $tipoLanc);
+    $content .= EmailTemplate::row('Data', $dataLancamento);
+    $content .= EmailTemplate::row('Valor', EmailTemplate::badge($valor), false);
+
+    if ($lancamento->recorrente) {
+      $freq = $lancamento->recorrencia_freq ?? '';
+      $content .= EmailTemplate::row('Recorrência', ucfirst($freq));
+    }
+
+    $content .= EmailTemplate::row(
+      'Observação',
+      'Este lembrete foi configurado em seu painel da Lukrato.'
+    );
+
+    if ($link !== '#') {
+      $content .= EmailTemplate::button('Ver lançamentos', $link, true);
+    }
+
+    $html = EmailTemplate::wrap(
+      $subject,
+      '#111827',
+      $headerTitle,
+      $headerSubtitle,
+      $content,
+      'Você está recebendo este aviso porque ativou notificações por e-mail para lançamentos.'
+    );
+
+    $text = "{$subject}\n"
+      . "Tipo: {$tipoLanc}\n"
+      . "Data: {$dataLancamento}\n"
       . "Valor: {$valor}\n"
       . ($link !== '#' ? "Painel: {$link}\n\n" : "\n")
       . "Você está recebendo este aviso porque ativou notificações por e-mail na Lukrato.";

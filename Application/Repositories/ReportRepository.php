@@ -140,7 +140,11 @@ class ReportRepository
         $query = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->whereBetween('l.data', [$params->start, $params->end])
-            ->where('l.tipo', $tipo);
+            ->where('l.tipo', $tipo)
+            ->where(function ($q) {
+                $q->whereNull('l.origem_tipo')
+                   ->orWhere('l.origem_tipo', '!=', 'pagamento_fatura');
+            });
 
         return $this->applyUserScope($query, $params->userId, 'l');
     }

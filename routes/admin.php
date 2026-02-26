@@ -38,8 +38,7 @@ Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['a
 // Categorias
 Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth', 'onboarding']);
 
-// Agendamentos
-Router::add('GET', '/agendamentos', 'Admin\\AgendamentoController@index', ['auth', 'onboarding']);
+// Agendamentos (removido - unificado em lançamentos)
 
 // Investimentos
 Router::add('GET', '/investimentos', 'Admin\\InvestimentosController@index', ['auth', 'onboarding']);

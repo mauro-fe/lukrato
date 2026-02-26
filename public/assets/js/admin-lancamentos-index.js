@@ -971,7 +971,47 @@
                     </td>
                 `;
             } else {
-                descricaoCell = `<td class="td-descricao">${Utils.escapeHtml(descricao)}</td>`;
+                // Badges de recorrência e status
+                let badges = '';
+                const isRecorrente = item.recorrente == 1 || item.recorrente === true;
+                const isCancelado = !!item.cancelado_em;
+                const isPago = Boolean(item.pago);
+                const dataLanc = new Date(item.data || item.created_at);
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const isFuturo = !isPago && dataLanc > hoje;
+
+                if (isCancelado) {
+                    badges += '<span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Recorrência cancelada"><i data-lucide="x-circle" style="width:10px;height:10px;"></i> Cancelado</span>';
+                } else if (isRecorrente) {
+                    const freq = item.recorrencia_freq || '';
+                    badges += `<span class="badge bg-info ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Recorrente (${freq})"><i data-lucide="refresh-cw" style="width:10px;height:10px;"></i> ${freq}</span>`;
+                }
+                if (isFuturo && !isCancelado) {
+                    badges += '<span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Lançamento futuro (pendente)"><i data-lucide="clock" style="width:10px;height:10px;"></i> Futuro</span>';
+                }
+
+                // Pagamento de fatura - badge + botão expandir
+                const isPagamentoFatura = item.origem_tipo === 'pagamento_fatura';
+                if (isPagamentoFatura) {
+                    badges += '<span class="badge bg-purple ms-1" style="font-size:0.65rem;vertical-align:middle;background:#7c3aed !important;" title="Pagamento de Fatura de Cartão"><i data-lucide="credit-card" style="width:10px;height:10px;"></i> Fatura</span>';
+                    descricaoCell = `
+                        <td class="td-descricao">
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-fatura-detalhes" 
+                                        data-lancamento-id="${id}"
+                                        title="Ver detalhes da fatura">
+                                    <i data-lucide="chevron-right"></i>
+                                </button>
+                                <div>
+                                    <span>${Utils.escapeHtml(descricao)}${badges}</span>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                } else {
+                    descricaoCell = `<td class="td-descricao">${Utils.escapeHtml(descricao)}${badges}</td>`;
+                }
             }
 
             // Cartão de crédito
@@ -1047,6 +1087,17 @@
                 buttons.push(`<button class="lk-btn ghost" data-action="view" data-id="${id}" title="Visualizar"><i data-lucide="eye"></i></button>`);
                 if (Utils.canEditLancamento(item)) {
                     buttons.push(`<button class="lk-btn ghost" data-action="edit" data-id="${id}" title="Editar"><i data-lucide="pen"></i></button>`);
+                }
+                // Marcar como pago (apenas para lançamentos futuros não pagos e não cancelados)
+                const isPagoAction = Boolean(item.pago);
+                const isCanceladoAction = !!item.cancelado_em;
+                if (!isPagoAction && !isCanceladoAction) {
+                    buttons.push(`<button class="lk-btn ghost" data-action="marcar-pago" data-id="${id}" title="Marcar como Pago" style="color:#28a745;"><i data-lucide="circle-check"></i></button>`);
+                }
+                // Cancelar recorrência (apenas para recorrentes ativos)
+                const isRecorrenteAction = item.recorrente == 1 || item.recorrente === true;
+                if (isRecorrenteAction && !isCanceladoAction) {
+                    buttons.push(`<button class="lk-btn ghost" data-action="cancelar-recorrencia" data-id="${id}" title="Cancelar Recorrência" style="color:#dc3545;"><i data-lucide="x-circle"></i></button>`);
                 }
                 buttons.push(`<button class="lk-btn delete" data-action="delete" data-id="${id}" title="Excluir"><i data-lucide="trash-2"></i></button>`);
                 actionsCell = `<td class="td-acoes"><div class="lk-actions">${buttons.join('')}</div></td>`;
@@ -1219,6 +1270,72 @@
                     } else {
                         Notifications.toast('Falha ao excluir lançamento.', 'error');
                     }
+                })();
+            }
+
+            if (action === 'marcar-pago') {
+                (async () => {
+                    const ok = await Notifications.ask(
+                        'Marcar como pago?',
+                        'Este lançamento será marcado como pago.'
+                    );
+                    if (!ok) return;
+
+                    btn.disabled = true;
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/pagar`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                            }
+                        });
+                        if (response.ok) {
+                            Notifications.toast('Lançamento marcado como pago!');
+                            await DataManager.load();
+                        } else {
+                            const err = await response.json();
+                            Notifications.toast(err.message || 'Erro ao marcar como pago.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao marcar como pago:', error);
+                        Notifications.toast('Erro ao marcar como pago.', 'error');
+                    }
+                    btn.disabled = false;
+                })();
+            }
+
+            if (action === 'cancelar-recorrencia') {
+                (async () => {
+                    const ok = await Notifications.ask(
+                        'Cancelar recorrência?',
+                        'Todos os lançamentos futuros não pagos desta série serão cancelados. Esta ação não pode ser desfeita.'
+                    );
+                    if (!ok) return;
+
+                    btn.disabled = true;
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/cancelar-recorrencia`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                            }
+                        });
+                        if (response.ok) {
+                            Notifications.toast('Recorrência cancelada com sucesso!');
+                            await DataManager.load();
+                        } else {
+                            const err = await response.json();
+                            Notifications.toast(err.message || 'Erro ao cancelar recorrência.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao cancelar recorrência:', error);
+                        Notifications.toast('Erro ao cancelar recorrência.', 'error');
+                    }
+                    btn.disabled = false;
                 })();
             }
         },
@@ -1453,6 +1570,29 @@
                 const statusLabel = isPago ? 'Pago' : 'Pendente';
                 const statusLucideIcon = isPago ? 'circle-check' : 'clock';
 
+                // Badges de recorrência/status para card view
+                const isRecorrente = item.recorrente == 1 || item.recorrente === true;
+                const isCancelado = !!item.cancelado_em;
+                const dataLanc = new Date(item.data || item.created_at);
+                const hojeCard = new Date();
+                hojeCard.setHours(0, 0, 0, 0);
+                const isFuturo = !isPago && dataLanc > hojeCard;
+                let cardBadges = '';
+                if (isCancelado) {
+                    cardBadges += ' <span class="badge bg-secondary" style="font-size:0.6rem;">Cancelado</span>';
+                } else if (isRecorrente) {
+                    cardBadges += ` <span class="badge bg-info" style="font-size:0.6rem;">${item.recorrencia_freq || 'Recorrente'}</span>`;
+                }
+                if (isFuturo && !isCancelado) {
+                    cardBadges += ' <span class="badge bg-warning text-dark" style="font-size:0.6rem;">Futuro</span>';
+                }
+
+                // Pagamento de fatura badge para mobile
+                const isPagFaturaMobile = item.origem_tipo === 'pagamento_fatura';
+                if (isPagFaturaMobile) {
+                    cardBadges += ' <span class="badge" style="font-size:0.6rem;background:#7c3aed;color:white;">💳 Fatura</span>';
+                }
+
                 // Botões de ação para desktop/tablet
                 const actionsHtml = `
                 ${Utils.canEditLancamento(item)
@@ -1535,7 +1675,7 @@
                         </div>
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}${cardBadges}</span>
                         </div>
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Status</span>
@@ -1543,6 +1683,14 @@
                                 <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                             </span>
                         </div>
+                        ${isPagFaturaMobile ? `
+                        <div class="lan-card-detail-row card-detail-row" style="justify-content:center;">
+                            <button class="btn btn-sm toggle-fatura-detalhes-mobile" data-lancamento-id="${id}" 
+                                    style="background:#7c3aed;color:white;font-size:0.75rem;border:none;border-radius:6px;padding:4px 12px;">
+                                <i data-lucide="credit-card" style="width:12px;height:12px;"></i> Ver composição da fatura
+                            </button>
+                        </div>
+                        ` : ''}
                         <div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
                             <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
                             <span class="lan-card-detail-value card-detail-value actions-slot" style="display: flex !important; gap: 8px;">
@@ -1714,6 +1862,70 @@
                     } else {
                         Notifications.toast('Falha ao excluir lançamento.', 'error');
                     }
+                })();
+            }
+
+            if (action === 'marcar-pago') {
+                (async () => {
+                    const ok = await Notifications.ask(
+                        'Marcar como pago?',
+                        'Este lançamento será marcado como pago.'
+                    );
+                    if (!ok) return;
+
+                    actionBtn.disabled = true;
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/pagar`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                            }
+                        });
+                        if (response.ok) {
+                            Notifications.toast('Lançamento marcado como pago!');
+                            await DataManager.load();
+                        } else {
+                            const err = await response.json();
+                            Notifications.toast(err.message || 'Erro ao marcar como pago.', 'error');
+                        }
+                    } catch (error) {
+                        Notifications.toast('Erro ao marcar como pago.', 'error');
+                    }
+                    actionBtn.disabled = false;
+                })();
+            }
+
+            if (action === 'cancelar-recorrencia') {
+                (async () => {
+                    const ok = await Notifications.ask(
+                        'Cancelar recorrência?',
+                        'Todos os lançamentos futuros não pagos desta série serão cancelados.'
+                    );
+                    if (!ok) return;
+
+                    actionBtn.disabled = true;
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/cancelar-recorrencia`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                            }
+                        });
+                        if (response.ok) {
+                            Notifications.toast('Recorrência cancelada com sucesso!');
+                            await DataManager.load();
+                        } else {
+                            const err = await response.json();
+                            Notifications.toast(err.message || 'Erro ao cancelar recorrência.', 'error');
+                        }
+                    } catch (error) {
+                        Notifications.toast('Erro ao cancelar recorrência.', 'error');
+                    }
+                    actionBtn.disabled = false;
                 })();
             }
         }
@@ -2224,16 +2436,16 @@
             const toggleFilters = document.getElementById('toggleFilters');
             const filtersContainer = document.querySelector('.filters-modern');
             const filtersHeader = document.querySelector('.filters-header');
-            
+
             if (filtersContainer && toggleFilters) {
                 const toggleFiltersHandler = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     filtersContainer.classList.toggle('collapsed');
                 };
-                
+
                 toggleFilters.addEventListener('click', toggleFiltersHandler);
-                
+
                 // Click no header também toggle (mas não nos filhos exceto o botão)
                 if (filtersHeader) {
                     filtersHeader.addEventListener('click', (e) => {
@@ -2640,6 +2852,210 @@
     };
 
     // ============================================================================
+    // FATURA DETALHES (expandir detalhes de pagamento de fatura)
+    // ============================================================================
+
+    const FaturaDetalhes = {
+        cache: {},
+
+        /**
+         * Toggle detalhes da fatura (expandir/colapsar)
+         */
+        async toggle(lancamentoId) {
+            const row = document.querySelector(`tr[data-id="${lancamentoId}"]`);
+            if (!row) return;
+
+            const icon = row.querySelector('.toggle-fatura-detalhes i');
+            const existingDetails = row.nextElementSibling;
+
+            // Se já está expandido, colapsar
+            if (existingDetails?.classList.contains('fatura-detalhes-row')) {
+                existingDetails.remove();
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'chevron-right');
+                    icon.setAttribute('class', '');
+                }
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            // Buscar dados (com cache)
+            let data = this.cache[lancamentoId];
+            if (!data) {
+                try {
+                    const response = await fetch(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
+                    const json = await response.json();
+                    if (json.success && json.data) {
+                        data = json.data;
+                        this.cache[lancamentoId] = data;
+                    } else {
+                        console.warn('Erro ao buscar detalhes da fatura:', json.message);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Erro ao buscar detalhes da fatura:', err);
+                    return;
+                }
+            }
+
+            const categorias = data.categorias || [];
+            if (categorias.length === 0) return;
+
+            // Montar HTML dos detalhes por categoria
+            const catRows = categorias.map(cat => {
+                const barWidth = Math.min(cat.percentual, 100);
+                const icone = cat.categoria_icone || '📦';
+                return `
+                    <div class="fatura-cat-row d-flex align-items-center gap-2 py-1" style="font-size:0.85rem;">
+                        <span style="width:24px;text-align:center;">${icone}</span>
+                        <span class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-medium">${Utils.escapeHtml(cat.categoria_nome)}</span>
+                                <span class="text-muted" style="font-size:0.8rem;">${cat.qtd_itens} item${cat.qtd_itens !== 1 ? 's' : ''} · ${cat.percentual}%</span>
+                            </div>
+                            <div class="progress" style="height:4px;margin-top:2px;">
+                                <div class="progress-bar" style="width:${barWidth}%;background:#7c3aed;"></div>
+                            </div>
+                        </span>
+                        <span class="fw-bold text-nowrap" style="min-width:90px;text-align:right;">${Utils.fmtMoney(cat.total)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const mesAno = String(data.mes).padStart(2, '0') + '/' + data.ano;
+
+            // Criar row com detalhes
+            const detailsRow = document.createElement('tr');
+            detailsRow.className = 'fatura-detalhes-row';
+            detailsRow.innerHTML = `
+                <td colspan="8" class="p-0 border-0">
+                    <div style="background:var(--color-bg-secondary, #f8f9fa);padding:12px 16px;border-left:3px solid #7c3aed;margin:0 8px 4px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0" style="font-size:0.9rem;color:#7c3aed;">
+                                <i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:middle;"></i>
+                                Composição da Fatura ${mesAno}
+                            </h6>
+                            <span class="text-muted" style="font-size:0.8rem;">${categorias.length} categoria${categorias.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        ${catRows}
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top:1px solid rgba(0,0,0,0.1);font-size:0.85rem;">
+                            <span class="fw-bold">Total</span>
+                            <span class="fw-bold">${Utils.fmtMoney(data.total)}</span>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <a href="${CONFIG.BASE_URL}admin/faturas" class="text-decoration-none" style="font-size:0.8rem;color:#7c3aed;">
+                                Ver fatura completa <i data-lucide="arrow-right" style="width:12px;height:12px;vertical-align:middle;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            row.after(detailsRow);
+            if (icon) {
+                icon.setAttribute('data-lucide', 'chevron-down');
+                icon.setAttribute('class', '');
+            }
+            if (window.lucide) lucide.createIcons();
+        },
+
+        /**
+         * Toggle detalhes no mobile card
+         */
+        async toggleMobile(lancamentoId, containerEl) {
+            const existing = containerEl.querySelector('.fatura-detalhes-mobile');
+
+            if (existing) {
+                existing.remove();
+                return;
+            }
+
+            let data = this.cache[lancamentoId];
+            if (!data) {
+                try {
+                    const response = await fetch(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
+                    const json = await response.json();
+                    if (json.success && json.data) {
+                        data = json.data;
+                        this.cache[lancamentoId] = data;
+                    } else {
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Erro ao buscar detalhes da fatura:', err);
+                    return;
+                }
+            }
+
+            const categorias = data.categorias || [];
+            if (categorias.length === 0) return;
+
+            const mesAno = String(data.mes).padStart(2, '0') + '/' + data.ano;
+
+            const catItems = categorias.map(cat => {
+                const icone = cat.categoria_icone || '📦';
+                return `
+                    <div class="d-flex justify-content-between align-items-center py-1" style="font-size:0.8rem;">
+                        <span>${icone} ${Utils.escapeHtml(cat.categoria_nome)} <span class="text-muted">(${cat.qtd_itens})</span></span>
+                        <span class="fw-bold">${Utils.fmtMoney(cat.total)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'fatura-detalhes-mobile';
+            detailsDiv.innerHTML = `
+                <div style="background:var(--color-bg-secondary, #f8f9fa);padding:10px 12px;border-left:3px solid #7c3aed;border-radius:0 8px 8px 0;margin:8px 0;">
+                    <div style="font-size:0.8rem;color:#7c3aed;font-weight:600;margin-bottom:6px;">
+                        💳 Composição da Fatura ${mesAno}
+                    </div>
+                    ${catItems}
+                    <div class="d-flex justify-content-between mt-1 pt-1" style="border-top:1px solid rgba(0,0,0,0.1);font-size:0.8rem;">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold">${Utils.fmtMoney(data.total)}</span>
+                    </div>
+                    <div class="text-end mt-1">
+                        <a href="${CONFIG.BASE_URL}admin/faturas" style="font-size:0.75rem;color:#7c3aed;">Ver fatura →</a>
+                    </div>
+                </div>
+            `;
+
+            const detailsContainer = containerEl.querySelector('.lan-card-details, .card-details');
+            if (detailsContainer) {
+                detailsContainer.appendChild(detailsDiv);
+            } else {
+                containerEl.appendChild(detailsDiv);
+            }
+        },
+
+        /**
+         * Instala event listeners
+         */
+        installListeners() {
+            document.addEventListener('click', (e) => {
+                // Desktop: toggle fatura detalhes
+                if (e.target.closest('.toggle-fatura-detalhes')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.toggle-fatura-detalhes');
+                    const lancamentoId = btn.dataset.lancamentoId;
+                    FaturaDetalhes.toggle(lancamentoId);
+                }
+
+                // Mobile: toggle fatura detalhes
+                if (e.target.closest('.toggle-fatura-detalhes-mobile')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.toggle-fatura-detalhes-mobile');
+                    const lancamentoId = btn.dataset.lancamentoId;
+                    const card = btn.closest('.lan-card, .card-item');
+                    if (card) {
+                        FaturaDetalhes.toggleMobile(lancamentoId, card);
+                    }
+                }
+            });
+        }
+    };
+
+    // ============================================================================
     // INICIALIZAÇÃO
     // ============================================================================
 
@@ -2651,6 +3067,9 @@
         // Instalar sistema de agrupamento de parcelamentos
         ParcelamentoGrouper.installInterceptor();
         ParcelamentoGrouper.installListeners();
+
+        // Instalar sistema de detalhes de fatura
+        FaturaDetalhes.installListeners();
 
         // Inicializar componentes
         ExportManager.initDefaults();

@@ -22,7 +22,16 @@ use Illuminate\Database\Eloquent\Model;
  * Relacionamentos:
  * - parcelamento: opcional, para agrupar parcelas visualmente
  * - cartaoCredito: opcional, para lançamentos de cartão
- * - agendamento: opcional, para rastreio de origem
+ * - recorrenciaPai: opcional, para agrupar lançamentos recorrentes
+ * 
+ * Recorrência e Lembretes (substitui Agendamentos):
+ * - recorrente: Se é lançamento recorrente (infinito ou até uma data)
+ * - recorrencia_freq: Frequência (semanal, mensal, etc.)
+ * - recorrencia_fim: Data limite (null = infinito)
+ * - recorrencia_pai_id: FK para o primeiro lançamento do grupo
+ * - cancelado_em: Quando recorrência/futuro foi cancelado
+ * - lembrar_antes_segundos: Antecedência do lembrete
+ * - canal_email/canal_inapp: Canais de notificação
  */
 /**
  * @property int $id
@@ -49,6 +58,17 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $afeta_competencia
  * @property bool $afeta_caixa
  * @property string|null $origem_tipo
+ * @property bool $recorrente
+ * @property string|null $recorrencia_freq
+ * @property \Carbon\Carbon|string|null $recorrencia_fim
+ * @property int|null $recorrencia_total
+ * @property int|null $recorrencia_pai_id
+ * @property \Carbon\Carbon|string|null $cancelado_em
+ * @property int|null $lembrar_antes_segundos
+ * @property bool $canal_email
+ * @property bool $canal_inapp
+ * @property \Carbon\Carbon|string|null $notificado_em
+ * @property \Carbon\Carbon|string|null $lembrete_antecedencia_em
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
@@ -72,6 +92,8 @@ class Lancamento extends Model
     public const ORIGEM_PARCELAMENTO   = 'parcelamento';
     public const ORIGEM_AGENDAMENTO    = 'agendamento';
     public const ORIGEM_TRANSFERENCIA  = 'transferencia';
+    public const ORIGEM_RECORRENCIA       = 'recorrencia';
+    public const ORIGEM_PAGAMENTO_FATURA  = 'pagamento_fatura';
 
     protected $fillable = [
         'user_id',
@@ -96,11 +118,23 @@ class Lancamento extends Model
         // Campos de parcelamento
         'parcelamento_id',
         'numero_parcela',
-        // Campos de competência (novos)
+        // Campos de competência
         'data_competencia',
         'afeta_competencia',
         'afeta_caixa',
         'origem_tipo',
+        // Campos de recorrência e lembrete
+        'recorrente',
+        'recorrencia_freq',
+        'recorrencia_fim',
+        'recorrencia_total',
+        'recorrencia_pai_id',
+        'cancelado_em',
+        'lembrar_antes_segundos',
+        'canal_email',
+        'canal_inapp',
+        'notificado_em',
+        'lembrete_antecedencia_em',
     ];
 
     protected $casts = [
@@ -123,6 +157,16 @@ class Lancamento extends Model
         'numero_parcela'    => 'int',
         'afeta_competencia' => 'bool',
         'afeta_caixa'       => 'bool',
+        'recorrente'        => 'bool',
+        'recorrencia_fim'   => 'date:Y-m-d',
+        'recorrencia_total' => 'int',
+        'recorrencia_pai_id' => 'int',
+        'cancelado_em'      => 'datetime',
+        'lembrar_antes_segundos' => 'int',
+        'canal_email'       => 'bool',
+        'canal_inapp'       => 'bool',
+        'notificado_em'     => 'datetime',
+        'lembrete_antecedencia_em' => 'datetime',
     ];
 
 
@@ -142,6 +186,46 @@ class Lancamento extends Model
     public function cartaoCredito()
     {
         return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
+    }
+
+    /**
+     * Lançamento "pai" da recorrência (primeiro do grupo)
+     */
+    public function recorrenciaPai()
+    {
+        return $this->belongsTo(self::class, 'recorrencia_pai_id');
+    }
+
+    /**
+     * Lançamentos filhos (gerados por recorrência)
+     */
+    public function recorrenciaFilhos()
+    {
+        return $this->hasMany(self::class, 'recorrencia_pai_id');
+    }
+
+    /**
+     * Verifica se este lançamento é recorrente (pai ou filho)
+     */
+    public function isRecorrente(): bool
+    {
+        return (bool)$this->recorrente || !empty($this->recorrencia_pai_id);
+    }
+
+    /**
+     * Verifica se é um lançamento futuro não pago
+     */
+    public function isFuturo(): bool
+    {
+        return !$this->pago && $this->data > now()->format('Y-m-d');
+    }
+
+    /**
+     * Verifica se foi cancelado
+     */
+    public function isCancelado(): bool
+    {
+        return !empty($this->cancelado_em);
     }
 
     /**

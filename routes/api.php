@@ -93,6 +93,9 @@ Router::add('PUT',    '/api/lancamentos/{id}',   'Api\\LancamentosController@upd
 Router::add('DELETE', '/api/lancamentos/{id}',   'Api\\LancamentosController@destroy', ['auth', 'csrf']);
 Router::add('GET',    '/api/lancamentos/usage',  'Api\\LancamentosController@usage',   ['auth']);
 Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export',  ['auth']);
+Router::add('POST',   '/api/lancamentos/{id}/cancelar-recorrencia', 'Api\\LancamentosController@cancelarRecorrencia', ['auth', 'csrf']);
+Router::add('PUT',    '/api/lancamentos/{id}/pagar',                'Api\\LancamentosController@marcarPago',          ['auth', 'csrf']);
+Router::add('GET',    '/api/lancamentos/{id}/fatura-detalhes',      'Api\\LancamentosController@faturaDetalhes',      ['auth']);
 
 // Rota para histórico recente de uma conta (alias do index com limit)
 Router::add('GET',    '/api/contas/{id}/lancamentos', 'Api\\LancamentosController@index', ['auth']);
@@ -143,18 +146,8 @@ Router::add('PUT',    '/api/categorias/{id}', 'Api\\CategoriaController@update',
 Router::add('DELETE', '/api/categorias/{id}', 'Api\\CategoriaController@delete', ['auth', 'csrf']);
 
 // ============================================
-// AGENDAMENTOS (REST)
+// AGENDAMENTOS (REMOVIDO - unificado em lançamentos)
 // ============================================
-
-Router::add('GET',  '/api/agendamentos',                  'Api\\AgendamentoController@index',        ['auth']);
-Router::add('GET',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@show',         ['auth']);
-Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoController@store',        ['auth', 'csrf']);
-Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']); // Compat
-Router::add('POST', '/api/agendamentos/{id}/status',      'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/executar',    'Api\\AgendamentoController@executar',     ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/cancelar',    'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/reativar',    'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
 
 // ============================================
 // INVESTIMENTOS

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Contracts;
 
 use Application\Models\Agendamento;
+use Application\Models\Lancamento;
 use Application\Models\Usuario;
 
 /**
@@ -40,6 +41,12 @@ interface MailServiceInterface
      * @param string $tipo Tipo do lembrete: 'antecedencia', 'horario' ou 'padrao'
      */
     public function sendAgendamentoReminder(Agendamento $agendamento, Usuario $usuario, string $tipo = 'padrao'): bool;
+
+    /**
+     * Envia lembrete de lançamento.
+     * @param string $tipo Tipo do lembrete: 'antecedencia', 'horario' ou 'padrao'
+     */
+    public function sendLancamentoReminder(Lancamento $lancamento, Usuario $usuario, string $tipo = 'padrao'): bool;
 
     /**
      * Envia mensagem de suporte.

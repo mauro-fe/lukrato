@@ -191,8 +191,6 @@ const lancamentoGlobalManager = {
             totalParcelasInput.addEventListener('input', () => this.atualizarPreviewParcelamento());
         }
 
-        // Recorrência - agora é sempre indefinida, não precisa de lógica adicional
-
         // Submit do formulário
         const form = document.getElementById('globalFormLancamento');
         if (form) {
@@ -317,7 +315,7 @@ const lancamentoGlobalManager = {
 
         // Configurar tipo
         const tipoInput = document.getElementById('globalLancamentoTipo');
-        if (tipoInput) tipoInput.value = tipo === 'agendamento' ? 'despesa' : tipo;
+        if (tipoInput) tipoInput.value = tipo;
 
         const contaIdInput = document.getElementById('globalLancamentoContaId');
         if (contaIdInput) contaIdInput.value = this.contaSelecionada.id;
@@ -329,8 +327,7 @@ const lancamentoGlobalManager = {
         const titulos = {
             receita: 'Nova Receita',
             despesa: 'Nova Despesa',
-            transferencia: 'Nova Transferência',
-            agendamento: 'Novo Agendamento'
+            transferencia: 'Nova Transferência'
         };
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
         if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova Movimentação';
@@ -342,7 +339,7 @@ const lancamentoGlobalManager = {
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) {
             // Remover classes anteriores
-            headerGradient.classList.remove('receita', 'despesa', 'transferencia', 'agendamento');
+            headerGradient.classList.remove('receita', 'despesa', 'transferencia');
 
             // Aplicar cor conforme o tipo
             if (tipo === 'receita') {
@@ -351,8 +348,6 @@ const lancamentoGlobalManager = {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)', 'important');
             } else if (tipo === 'transferencia') {
                 headerGradient.style.setProperty('background', 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)', 'important');
-            } else if (tipo === 'agendamento') {
-                headerGradient.style.setProperty('background', 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)', 'important');
             }
         }
 
@@ -392,40 +387,106 @@ const lancamentoGlobalManager = {
         const tipoCategoriaABuscar = tipo === 'receita' ? 'receita' : 'despesa';
         this.preencherCategorias(tipoCategoriaABuscar);
 
-        // Mostrar/ocultar seleção de tipo de agendamento
-        const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
-        if (tipoAgGroup) {
-            tipoAgGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
-        }
-
-        // Mostrar/ocultar campo de hora (apenas agendamento)
-        const horaGroup = document.getElementById('globalHoraGroup');
-        if (horaGroup) {
-            horaGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
-        }
-
-        // Mostrar/ocultar campos de recorrência (apenas agendamento)
+        // Recorrência e Lembrete (para receita e despesa)
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
-        if (recorrenciaGroup) {
-            recorrenciaGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        const lembreteGroup = document.getElementById('globalLembreteGroup');
+        const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
+        const canaisNotificacaoInline = document.getElementById('globalCanaisNotificacaoInline');
+        const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
+        const tempoAvisoSelect = document.getElementById('globalLancamentoTempoAviso');
+
+        const showRecorrencia = (tipo === 'receita' || tipo === 'despesa');
+
+        if (recorrenciaGroup) recorrenciaGroup.style.display = showRecorrencia ? 'block' : 'none';
+        if (lembreteGroup) lembreteGroup.style.display = showRecorrencia ? 'block' : 'none';
+        if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+        if (canaisNotificacaoInline) canaisNotificacaoInline.style.display = 'none';
+        if (recorrenteCheck) recorrenteCheck.checked = false;
+        if (tempoAvisoSelect) tempoAvisoSelect.value = '';
+
+        // Pago toggle (para receita e despesa)
+        const pagoGroup = document.getElementById('globalPagoGroup');
+        const pagoCheck = document.getElementById('globalLancamentoPago');
+        if (pagoGroup) pagoGroup.style.display = showRecorrencia ? 'block' : 'none';
+        if (pagoCheck) pagoCheck.checked = true;
+
+        // Textos de pago conforme tipo
+        const pagoLabel = document.getElementById('globalPagoLabel');
+        const pagoHelper = document.getElementById('globalPagoHelperText');
+        if (tipo === 'receita') {
+            if (pagoLabel) pagoLabel.textContent = 'Já foi recebido';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi recebido.';
+        } else {
+            if (pagoLabel) pagoLabel.textContent = 'Já foi pago';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi pago.';
         }
 
-        // Mostrar/ocultar campo de tempo de aviso (apenas agendamento)
-        const tempoAvisoGroup = document.getElementById('globalTempoAvisoGroup');
-        if (tempoAvisoGroup) {
-            tempoAvisoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
-        }
+        // Resetar sub-grupos de recorrência
+        const totalGroup = document.getElementById('globalRecorrenciaTotalGroup');
+        const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
+        if (totalGroup) totalGroup.style.display = 'none';
+        if (fimGroup) fimGroup.style.display = 'none';
 
-        // Mostrar/ocultar canais de notificação (apenas agendamento)
-        const canaisNotificacaoGroup = document.getElementById('globalCanaisNotificacaoGroup');
-        if (canaisNotificacaoGroup) {
-            canaisNotificacaoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
-        }
+        // Receita: ocultar opção "Sem fim (Spotify)" e default = quantidade
+        // Despesa: mostrar todas e default = infinito
+        const radioInfinito = document.getElementById('globalRecorrenciaRadioInfinito');
+        const defaultModo = tipo === 'receita' ? 'quantidade' : 'infinito';
+        if (radioInfinito) radioInfinito.style.display = tipo === 'receita' ? 'none' : '';
+        const radios = document.querySelectorAll('input[name="global_recorrencia_modo"]');
+        radios.forEach(r => r.checked = r.value === defaultModo);
 
-        // Mostrar/ocultar forma de pagamento para agendamento
-        const formaPagamentoAgendamentoGroup = document.getElementById('globalFormaPagamentoAgendamentoGroup');
-        if (formaPagamentoAgendamentoGroup) {
-            formaPagamentoAgendamentoGroup.style.display = tipo === 'agendamento' ? 'block' : 'none';
+        // Configurar listener de lembrete
+        this.configurarEventosLembrete();
+    },
+
+    /**
+     * Toggle visibilidade dos detalhes de recorrência (global modal)
+     * Chamado pelo onchange do checkbox globalLancamentoRecorrente
+     */
+    toggleRecorrencia() {
+        const checkbox = document.getElementById('globalLancamentoRecorrente');
+        const detalhes = document.getElementById('globalRecorrenciaDetalhes');
+        if (detalhes) {
+            detalhes.style.display = checkbox?.checked ? 'block' : 'none';
+        }
+        // Reset sub-groups when unchecked
+        if (!checkbox?.checked) {
+            const totalGroup = document.getElementById('globalRecorrenciaTotalGroup');
+            const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
+            if (totalGroup) totalGroup.style.display = 'none';
+            if (fimGroup) fimGroup.style.display = 'none';
+            // Reset radio baseado no tipo atual
+            const defaultModo = this.tipoAtual === 'receita' ? 'quantidade' : 'infinito';
+            const radios = document.querySelectorAll('input[name="global_recorrencia_modo"]');
+            radios.forEach(r => r.checked = r.value === defaultModo);
+        }
+    },
+
+    /**
+     * Toggle sub-grupos de fim de recorrência (global modal)
+     * Chamado pelo onchange dos radios global_recorrencia_modo
+     */
+    toggleRecorrenciaFim() {
+        const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value || 'infinito';
+        const totalGroup = document.getElementById('globalRecorrenciaTotalGroup');
+        const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
+        if (totalGroup) totalGroup.style.display = modo === 'quantidade' ? 'block' : 'none';
+        if (fimGroup) fimGroup.style.display = modo === 'data' ? 'block' : 'none';
+    },
+
+    /**
+     * Configurar listener no select de lembrete para mostrar canais
+     */
+    configurarEventosLembrete() {
+        const tempoAviso = document.getElementById('globalLancamentoTempoAviso');
+        if (tempoAviso && !tempoAviso._lkListenerAdded) {
+            tempoAviso.addEventListener('change', () => {
+                const canaisDiv = document.getElementById('globalCanaisNotificacaoInline');
+                if (canaisDiv) {
+                    canaisDiv.style.display = tempoAviso.value ? 'block' : 'none';
+                }
+            });
+            tempoAviso._lkListenerAdded = true;
         }
     },
 
@@ -658,11 +719,41 @@ const lancamentoGlobalManager = {
         const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
         if (numParcelasGroup) numParcelasGroup.style.display = 'none';
 
-        // Resetar tipo de agendamento
+        // Resetar tipo de agendamento (legacy)
         const tipoAgGroup = document.getElementById('globalTipoAgendamentoGroup');
         if (tipoAgGroup) tipoAgGroup.style.display = 'none';
         const tipoAgInput = document.getElementById('globalLancamentoTipoAgendamento');
         if (tipoAgInput) tipoAgInput.value = 'despesa';
+
+        // Resetar recorrência
+        const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
+        if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
+        const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
+        if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
+        const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
+        if (recorrenteCheck) recorrenteCheck.checked = false;
+
+        // Resetar sub-grupos de recorrência
+        const recorrenciaTotalGroup = document.getElementById('globalRecorrenciaTotalGroup');
+        if (recorrenciaTotalGroup) recorrenciaTotalGroup.style.display = 'none';
+        const recorrenciaFimGroup = document.getElementById('globalRecorrenciaFimGroup');
+        if (recorrenciaFimGroup) recorrenciaFimGroup.style.display = 'none';
+        const modoRadios = document.querySelectorAll('input[name="global_recorrencia_modo"]');
+        modoRadios.forEach(r => r.checked = r.value === 'infinito');
+
+        // Resetar pago
+        const pagoGroup = document.getElementById('globalPagoGroup');
+        if (pagoGroup) pagoGroup.style.display = 'none';
+        const pagoCheck = document.getElementById('globalLancamentoPago');
+        if (pagoCheck) pagoCheck.checked = true;
+
+        // Resetar lembrete
+        const lembreteGroup = document.getElementById('globalLembreteGroup');
+        if (lembreteGroup) lembreteGroup.style.display = 'none';
+        const tempoAvisoSelect = document.getElementById('globalLancamentoTempoAviso');
+        if (tempoAvisoSelect) tempoAvisoSelect.value = '';
+        const canaisInline = document.getElementById('globalCanaisNotificacaoInline');
+        if (canaisInline) canaisInline.style.display = 'none';
 
         // Resetar fatura estorno
         const faturaGroup = document.getElementById('globalFaturaEstornoGroup');
@@ -813,61 +904,7 @@ const lancamentoGlobalManager = {
             let apiUrl = `${this.baseUrl}api/lancamentos`;
             let requestData = dados;
 
-
-            if (this.tipoAtual === 'agendamento') {
-                // Usar endpoint de agendamentos
-                apiUrl = `${this.baseUrl}api/agendamentos`;
-                const tipoAgendamento = document.getElementById('globalLancamentoTipoAgendamento')?.value || 'despesa';
-
-                // Montar data com hora do campo de hora
-                let dataPagamento = dados.data;
-                const horaInput = document.getElementById('globalLancamentoHora');
-                const hora = horaInput?.value || '12:00';
-                if (dataPagamento && !dataPagamento.includes(' ') && !dataPagamento.includes('T')) {
-                    dataPagamento = dataPagamento + ' ' + hora + ':00';
-                }
-
-                // Coletar campos de recorrência
-                const recorrenciaFreq = document.getElementById('globalLancamentoRecorrencia')?.value || '';
-                const repeticoes = document.getElementById('globalLancamentoRepeticoes')?.value || '';
-                const recorrente = recorrenciaFreq !== '' ? '1' : '0';
-
-                // Calcular recorrencia_fim se tiver repetições
-                let recorrenciaFim = null;
-                if (recorrente === '1' && repeticoes && parseInt(repeticoes) > 0) {
-                    recorrenciaFim = this.calcularRecorrenciaFim(dataPagamento, recorrenciaFreq, parseInt(repeticoes));
-                }
-
-                // Coletar tempo de aviso (converter de minutos para segundos)
-                const tempoAvisoMinutos = parseInt(document.getElementById('globalLancamentoTempoAviso')?.value || '0');
-                const lembrarAntesSegundos = tempoAvisoMinutos * 60;
-
-                // Coletar canais de notificação
-                const canalInapp = document.getElementById('globalCanalInapp')?.checked ? '1' : '0';
-                const canalEmail = document.getElementById('globalCanalEmail')?.checked ? '1' : '0';
-
-                // Coletar forma de pagamento para agendamento
-                const formaPagamentoAg = document.getElementById('globalFormaPagamentoAg')?.value || null;
-
-                requestData = {
-                    titulo: dados.descricao,
-                    tipo: tipoAgendamento,
-                    valor: dados.valor,
-                    valor_centavos: Math.round(dados.valor * 100),
-                    data_pagamento: dataPagamento,
-                    categoria_id: dados.categoria_id,
-                    conta_id: dados.conta_id,
-                    descricao: dados.observacao || '',
-                    recorrente: recorrente,
-                    recorrencia_freq: recorrenciaFreq || null,
-                    recorrencia_intervalo: recorrente === '1' ? 1 : null,
-                    recorrencia_fim: recorrenciaFim,
-                    lembrar_antes_segundos: lembrarAntesSegundos,
-                    canal_inapp: canalInapp,
-                    canal_email: canalEmail,
-                    forma_pagamento: formaPagamentoAg
-                };
-            } else if (this.tipoAtual === 'transferencia') {
+            if (this.tipoAtual === 'transferencia') {
                 apiUrl = `${this.baseUrl}api/transfers`;
                 requestData = {
                     conta_id: dados.conta_id,
@@ -945,8 +982,7 @@ const lancamentoGlobalManager = {
                 const titulos = {
                     'receita': 'Receita Criada!',
                     'despesa': 'Despesa Criada!',
-                    'transferencia': 'Transferência Criada!',
-                    'agendamento': 'Agendamento Criado!'
+                    'transferencia': 'Transferência Criada!'
                 };
                 const titulo = titulos[tipoLancamento] || 'Lançamento Criado!';
 
@@ -970,17 +1006,8 @@ const lancamentoGlobalManager = {
                     }
                 });
 
-                // Recarregar página se estiver em página relevante
-                const currentPath = window.location.pathname.toLowerCase();
-
-
-                // Sempre recarregar se criou agendamento
-                if (tipoLancamento === 'agendamento') {
-                    window.location.reload();
-                    return;
-                }
-
                 // Recarregar para contas ou lançamentos
+                const currentPath = window.location.pathname.toLowerCase();
                 if (currentPath.includes('contas') || currentPath.includes('lancamentos')) {
                     window.location.reload();
                     return;
@@ -1162,7 +1189,7 @@ const lancamentoGlobalManager = {
         }
 
         // Forma de pagamento para despesas
-        if (this.tipoAtual === 'despesa' || this.tipoAtual === 'agendamento') {
+        if (this.tipoAtual === 'despesa') {
             const formaEl = document.getElementById('globalFormaPagamento');
             const formaPag = formaEl?.value || '';
             if (formaPag) {
@@ -1206,6 +1233,40 @@ const lancamentoGlobalManager = {
                         dados.fatura_mes_ano = faturaEl.value;
                     }
                 }
+            }
+        }
+
+        // Campos de recorrência (para receita e despesa)
+        if (this.tipoAtual === 'receita' || this.tipoAtual === 'despesa') {
+            // Campo de pago
+            const pagoCheck = document.getElementById('globalLancamentoPago');
+            dados.pago = pagoCheck?.checked ? true : false;
+
+            const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
+            if (recorrenteCheck?.checked) {
+                dados.recorrente = '1';
+                dados.recorrencia_freq = document.getElementById('globalLancamentoRecorrenciaFreq')?.value || 'mensal';
+
+                // Determinar modo de fim
+                const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value || 'infinito';
+                if (modo === 'quantidade') {
+                    const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 12;
+                    dados.recorrencia_total = total;
+                } else if (modo === 'data') {
+                    const recorrenciaFim = document.getElementById('globalLancamentoRecorrenciaFim')?.value || null;
+                    if (recorrenciaFim) {
+                        dados.recorrencia_fim = recorrenciaFim;
+                    }
+                }
+                // modo === 'infinito' → não envia nem total nem fim
+            }
+
+            // Campos de lembrete
+            const tempoAviso = document.getElementById('globalLancamentoTempoAviso')?.value || '';
+            if (tempoAviso) {
+                dados.lembrar_antes_segundos = parseInt(tempoAviso);
+                dados.canal_inapp = document.getElementById('globalCanalInapp')?.checked ? '1' : '0';
+                dados.canal_email = document.getElementById('globalCanalEmail')?.checked ? '1' : '0';
             }
         }
 
