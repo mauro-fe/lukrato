@@ -81,6 +81,15 @@
         selectLancTipo: document.getElementById('editLancTipo'),
         selectLancConta: document.getElementById('editLancConta'),
         selectLancCategoria: document.getElementById('editLancCategoria'),
+        // Modal de edição transferência
+        modalEditTransEl: document.getElementById('modalEditarTransferencia'),
+        formTrans: document.getElementById('formTransLancamento'),
+        editTransAlert: document.getElementById('editTransAlert'),
+        inputTransData: document.getElementById('editTransData'),
+        inputTransValor: document.getElementById('editTransValor'),
+        selectTransConta: document.getElementById('editTransConta'),
+        selectTransContaDestino: document.getElementById('editTransContaDestino'),
+        inputTransDescricao: document.getElementById('editTransDescricao'),
         inputLancValor: document.getElementById('editLancValor'),
         inputLancDescricao: document.getElementById('editLancDescricao'),
         selectLancFormaPagamento: document.getElementById('editLancFormaPagamento'),
@@ -190,7 +199,7 @@
 
         isTransferencia: (data) => Boolean(data?.eh_transferencia),
 
-        canEditLancamento: (data) => !Utils.isSaldoInicial(data) && !Utils.isTransferencia(data),
+        canEditLancamento: (data) => !Utils.isSaldoInicial(data),
 
         // ---------- Forma de Pagamento ----------
         formatFormaPagamento: (forma) => {
@@ -648,6 +657,12 @@
             if (DOM.selectLancConta) {
                 OptionsManager.populateContaSelect(DOM.selectLancConta, DOM.selectLancConta.value || null);
             }
+            if (DOM.selectTransConta) {
+                OptionsManager.populateContaSelect(DOM.selectTransConta, DOM.selectTransConta.value || null);
+            }
+            if (DOM.selectTransContaDestino) {
+                OptionsManager.populateContaSelect(DOM.selectTransContaDestino, DOM.selectTransContaDestino.value || null);
+            }
             if (DOM.selectLancCategoria) {
                 OptionsManager.populateCategoriaSelect(
                     DOM.selectLancCategoria,
@@ -987,6 +1002,13 @@
                     const freq = item.recorrencia_freq || '';
                     badges += `<span class="badge bg-info ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Recorrente (${freq})"><i data-lucide="refresh-cw" style="width:10px;height:10px;"></i> ${freq}</span>`;
                 }
+                // Indicadores de lembrete / notificação
+                if (item.canal_email) {
+                    badges += '<span class="badge bg-primary ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Notificar por e-mail"><i data-lucide="mail" style="width:10px;height:10px;"></i> E-mail</span>';
+                }
+                if (item.canal_inapp) {
+                    badges += '<span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Notificar no app"><i data-lucide="bell" style="width:10px;height:10px;"></i> InApp</span>';
+                }
                 if (isFuturo && !isCancelado) {
                     badges += '<span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;vertical-align:middle;" title="Lançamento futuro (pendente)"><i data-lucide="clock" style="width:10px;height:10px;"></i> Futuro</span>';
                 }
@@ -1024,12 +1046,28 @@
             const formaPgto = Utils.formatFormaPagamento(item.forma_pagamento);
             const formaPgtoCell = `<td class="td-forma-pgto">${formaPgto}</td>`;
 
-            // Status (Pago/Pendente)
+            // Status (Pago / Pendente / Transferência)
             const isPago = Boolean(item.pago);
-            const statusClass = isPago ? 'status-pago' : 'status-pendente';
-            const statusLabel = isPago ? 'Pago' : 'Pendente';
-            const statusLucideIcon = isPago ? 'circle-check' : 'clock';
+            const isTransfer = Boolean(item.eh_transferencia);
+            let statusClass, statusLabel, statusLucideIcon;
+            if (isTransfer) {
+                statusClass = 'status-transferencia';
+                statusLabel = 'Transferência';
+                statusLucideIcon = 'repeat';
+            } else if (isPago) {
+                statusClass = 'status-pago';
+                statusLabel = 'Pago';
+                statusLucideIcon = 'circle-check';
+            } else {
+                statusClass = 'status-pendente';
+                statusLabel = 'Pendente';
+                statusLucideIcon = 'clock';
+            }
             const statusCell = `<td class="td-status"><span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span></td>`;
+
+            // Data de pagamento
+            const dataPagamentoFormatted = Utils.fmtDate(item.data_pagamento);
+            const dataPagamentoCell = `<td class="td-data-pagamento">${Utils.escapeHtml(dataPagamentoFormatted)}</td>`;
 
             // Valor cell (special for groups)
             let valorCell;
@@ -1091,7 +1129,7 @@
                 // Marcar como pago (apenas para lançamentos futuros não pagos e não cancelados)
                 const isPagoAction = Boolean(item.pago);
                 const isCanceladoAction = !!item.cancelado_em;
-                if (!isPagoAction && !isCanceladoAction) {
+                if (!isPagoAction && !isCanceladoAction && !isTransfer) {
                     buttons.push(`<button class="lk-btn ghost" data-action="marcar-pago" data-id="${id}" title="Marcar como Pago" style="color:#28a745;"><i data-lucide="circle-check"></i></button>`);
                 }
                 // Cancelar recorrência (apenas para recorrentes ativos)
@@ -1112,6 +1150,8 @@
                     <td class="td-conta">${Utils.escapeHtml(conta)}</td>
                     ${descricaoCell}
                     ${valorCell}
+                    ${statusCell}
+                    ${dataPagamentoCell}
                     ${actionsCell}
                 </tr>
             `;
@@ -1245,7 +1285,11 @@
 
             if (action === 'edit') {
                 if (!Utils.canEditLancamento(item)) return;
-                ModalManager.openEditLancamento(item);
+                if (item.eh_transferencia) {
+                    ModalManager.openEditTransferencia(item);
+                } else {
+                    ModalManager.openEditLancamento(item);
+                }
             }
 
             if (action === 'delete') {
@@ -1564,11 +1608,25 @@
                 // Forma de Pagamento
                 const formaPgto = Utils.formatFormaPagamento(item.forma_pagamento);
 
-                // Status (Pago/Pendente)
+                // Status (Pago / Pendente / Transferência)
                 const isPago = Boolean(item.pago);
-                const statusClass = isPago ? 'status-pago' : 'status-pendente';
-                const statusLabel = isPago ? 'Pago' : 'Pendente';
-                const statusLucideIcon = isPago ? 'circle-check' : 'clock';
+                const isTransfer = Boolean(item.eh_transferencia);
+                let statusClass = '';
+                let statusLabel = '';
+                let statusLucideIcon = '';
+                if (isTransfer) {
+                    statusClass = 'status-transferencia';
+                    statusLabel = 'Transferência';
+                    statusLucideIcon = 'repeat';
+                } else if (isPago) {
+                    statusClass = 'status-pago';
+                    statusLabel = 'Pago';
+                    statusLucideIcon = 'circle-check';
+                } else {
+                    statusClass = 'status-pendente';
+                    statusLabel = 'Pendente';
+                    statusLucideIcon = 'clock';
+                }
 
                 // Badges de recorrência/status para card view
                 const isRecorrente = item.recorrente == 1 || item.recorrente === true;
@@ -1582,6 +1640,12 @@
                     cardBadges += ' <span class="badge bg-secondary" style="font-size:0.6rem;">Cancelado</span>';
                 } else if (isRecorrente) {
                     cardBadges += ` <span class="badge bg-info" style="font-size:0.6rem;">${item.recorrencia_freq || 'Recorrente'}</span>`;
+                }
+                if (item.canal_email) {
+                    cardBadges += ' <span class="badge bg-primary" style="font-size:0.6rem;">✉️ E-mail</span>';
+                }
+                if (item.canal_inapp) {
+                    cardBadges += ' <span class="badge bg-secondary" style="font-size:0.6rem;">🔔 InApp</span>';
                 }
                 if (isFuturo && !isCancelado) {
                     cardBadges += ' <span class="badge bg-warning text-dark" style="font-size:0.6rem;">Futuro</span>';
@@ -2004,6 +2068,113 @@
             modal.show();
         },
 
+        // Transfer modal helpers
+        ensureTransModal: () => {
+            if (STATE.modalEditTrans) return STATE.modalEditTrans;
+            if (!DOM.modalEditTransEl) return null;
+            if (window.bootstrap?.Modal) {
+                if (DOM.modalEditTransEl.parentElement && DOM.modalEditTransEl.parentElement !== document.body) {
+                    document.body.appendChild(DOM.modalEditTransEl);
+                }
+                STATE.modalEditTrans = window.bootstrap.Modal.getOrCreateInstance(DOM.modalEditTransEl);
+                return STATE.modalEditTrans;
+            }
+            return null;
+        },
+
+        openEditTransferencia: (data) => {
+            const modal = ModalManager.ensureTransModal();
+            if (!modal || !Utils.canEditLancamento(data)) return;
+
+            STATE.editingLancamentoId = data?.id ?? null;
+            if (!STATE.editingLancamentoId) return;
+
+            // clear alerts
+            if (DOM.editTransAlert) {
+                DOM.editTransAlert.classList.add('d-none');
+                DOM.editTransAlert.textContent = '';
+            }
+
+            // preencher campos
+            if (DOM.inputTransData) DOM.inputTransData.value = (data?.data || '').slice(0, 10);
+            if (DOM.inputTransValor) DOM.inputTransValor.value = MoneyMask.format(Math.abs(Number(data?.valor || 0)));
+            if (DOM.inputTransDescricao) DOM.inputTransDescricao.value = data?.descricao || '';
+
+            // popular selects de conta
+            if (DOM.selectTransConta) OptionsManager.populateContaSelect(DOM.selectTransConta, data?.conta_id ?? null);
+            if (DOM.selectTransContaDestino) OptionsManager.populateContaSelect(DOM.selectTransContaDestino, data?.conta_id_destino ?? null);
+
+            modal.show();
+        },
+
+        submitTransForm: async (ev) => {
+            ev.preventDefault();
+            if (!STATE.editingLancamentoId) return;
+
+            if (DOM.editTransAlert) {
+                DOM.editTransAlert.classList.add('d-none');
+                DOM.editTransAlert.textContent = '';
+            }
+
+            const dataValue = DOM.inputTransData?.value || '';
+            const valorValue = DOM.inputTransValor?.value || '';
+            const contaOrigem = DOM.selectTransConta?.value || '';
+            const contaDestino = DOM.selectTransContaDestino?.value || '';
+            const descricao = (DOM.inputTransDescricao?.value || '').trim();
+
+            if (!dataValue) {
+                if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe a data.'; DOM.editTransAlert.classList.remove('d-none'); }
+                return;
+            }
+            if (!contaOrigem) {
+                if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Selecione a conta de origem.'; DOM.editTransAlert.classList.remove('d-none'); }
+                return;
+            }
+            if (!contaDestino) {
+                if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Selecione a conta de destino.'; DOM.editTransAlert.classList.remove('d-none'); }
+                return;
+            }
+            if (contaOrigem === contaDestino) {
+                if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Conta de destino deve ser diferente da origem.'; DOM.editTransAlert.classList.remove('d-none'); }
+                return;
+            }
+
+            const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
+            if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
+                if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe um valor válido.'; DOM.editTransAlert.classList.remove('d-none'); }
+                return;
+            }
+
+            const payload = {
+                data: dataValue,
+                tipo: 'transferencia',
+                valor: Number(valorFloat.toFixed(2)),
+                descricao: descricao,
+                conta_id: Number(contaOrigem),
+                conta_id_destino: Number(contaDestino),
+                forma_pagamento: 'transferencia'
+            };
+
+            const submitBtn = DOM.formTrans?.querySelector('button[type="submit"]');
+            submitBtn?.setAttribute('disabled', 'disabled');
+            try {
+                const res = await API.updateLancamento(STATE.editingLancamentoId, payload);
+                const json = await res.json().catch(() => null);
+                if (!res.ok || (json && json.status !== 'success')) {
+                    const msg = json?.message || (json?.errors ? Object.values(json.errors).join('\n') : 'Falha ao atualizar transferência.');
+                    throw new Error(msg);
+                }
+
+                ModalManager.ensureTransModal()?.hide();
+                Notifications.toast('Transferência atualizada com sucesso!');
+                await DataManager.load();
+            } catch (err) {
+                if (DOM.editTransAlert) { DOM.editTransAlert.textContent = err.message || 'Falha ao atualizar.'; DOM.editTransAlert.classList.remove('d-none'); }
+            } finally {
+                submitBtn?.removeAttribute('disabled');
+            }
+        },
+
         // Inicializa modal de visualização
         ensureViewModal: () => {
             if (!STATE.modalViewLanc && DOM.modalViewLancEl) {
@@ -2143,6 +2314,8 @@
                 categoria_id: categoriaValue ? Number(categoriaValue) : null,
                 forma_pagamento: formaPagamentoValue || null
             };
+
+            // payload remains unchanged for normal edit
 
             // Detectar se é um parcelamento
             const ehParcelado = payload.eh_parcelado == 1 || payload.eh_parcelado === '1';

@@ -14,6 +14,7 @@ readonly class UpdateLancamentoDTO
         public ?string $observacao = null,
         public ?int $categoriaId = null,
         public ?int $contaId = null,
+        public ?int $contaDestinoId = null,
         public ?string $formaPagamento = null,
     ) {}
 
@@ -27,6 +28,7 @@ readonly class UpdateLancamentoDTO
             'observacao' => $this->observacao,
             'categoria_id' => $this->categoriaId,
             'conta_id' => $this->contaId,
+            'conta_id_destino' => $this->contaDestinoId,
             'forma_pagamento' => $this->formaPagamento,
         ];
     }
@@ -41,6 +43,7 @@ readonly class UpdateLancamentoDTO
             observacao: $data['observacao'] ?? null,
             categoriaId: isset($data['categoria_id']) ? (int)$data['categoria_id'] : null,
             contaId: isset($data['conta_id']) ? (int)$data['conta_id'] : null,
+            contaDestinoId: isset($data['conta_id_destino']) ? (int)$data['conta_id_destino'] : null,
             formaPagamento: $data['forma_pagamento'] ?? null,
         );
     }

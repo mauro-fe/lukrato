@@ -378,11 +378,6 @@ class LancamentosController extends BaseController
             return;
         }
 
-        if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
-            Response::error('Nao e possivel editar uma transferencia. Crie uma nova.', 422);
-            return;
-        }
-
         // Mesclar dados atuais com novos
         $mergedData = [
             'tipo' => $payload['tipo'] ?? $lancamento->tipo,
@@ -391,6 +386,7 @@ class LancamentosController extends BaseController
             'descricao' => $payload['descricao'] ?? $lancamento->descricao,
             'observacao' => $payload['observacao'] ?? $lancamento->observacao,
             'conta_id' => $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id,
+            'conta_id_destino' => $payload['conta_id_destino'] ?? $payload['contaIdDestino'] ?? $lancamento->conta_id_destino,
             'categoria_id' => $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id,
             'forma_pagamento' => array_key_exists('forma_pagamento', $payload) ? $payload['forma_pagamento'] : $lancamento->forma_pagamento,
         ];
@@ -401,6 +397,14 @@ class LancamentosController extends BaseController
         // Validar conta e categoria (regras de negócio)
         $contaId = is_scalar($mergedData['conta_id']) ? (int)$mergedData['conta_id'] : null;
         $contaId = $this->validateConta($contaId, $userId, $errors);
+
+        // validar conta destino (para transferências)
+        $contaDestinoId = is_scalar($mergedData['conta_id_destino']) ? (int)$mergedData['conta_id_destino'] : null;
+        $contaDestinoId = $this->validateConta($contaDestinoId, $userId, $errors);
+
+        if ($contaId !== null && $contaDestinoId !== null && $contaId === $contaDestinoId) {
+            $errors['conta_id_destino'] = 'Conta de destino deve ser diferente da conta de origem.';
+        }
 
         $categoriaId = is_scalar($mergedData['categoria_id']) ? (int)$mergedData['categoria_id'] : null;
         $categoriaId = $this->validateCategoria($categoriaId, $userId, $errors);
@@ -419,6 +423,7 @@ class LancamentosController extends BaseController
             'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
             'categoria_id' => $categoriaId,
             'conta_id' => $contaId,
+            'conta_id_destino' => $contaDestinoId,
             'forma_pagamento' => $mergedData['forma_pagamento'] ?? null,
         ]);
 

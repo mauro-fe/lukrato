@@ -210,13 +210,15 @@
                                     <span>Valor</span>
                                     <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
+                                <th class="th-status">Status</th>
+                                <th class="th-data-pagamento">Pago em</th>
                                 <th class="th-acoes">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="lancamentosTableBody">
                             <!-- Loading state inicial -->
                             <tr class="lk-loading-row">
-                                <td colspan="8" style="text-align:center; padding:3rem 1rem;">
+                                <td colspan="10" style="text-align:center; padding:3rem 1rem;">
                                     <div class="lk-loading-state">
                                         <div class="spinner-border" role="status"
                                             style="width:2rem;height:2rem;color:var(--color-primary);">
@@ -301,3 +303,4 @@
 
 <?php include __DIR__ . '/../partials/modals/editar-lancamentos.php'; ?>
 <?php include __DIR__ . '/../partials/modals/visualizar-lancamento.php'; ?>
+<?php include __DIR__ . '/../partials/modals/editar-transferencia.php'; ?>
