@@ -1308,14 +1308,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   opacity: 0;
   transition: opacity 0.3s ease;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .modal-fatura-overlay.show {
@@ -1323,224 +1324,423 @@
 }
 
 .modal-fatura-container {
+  --card-accent: #e67e22;
   background: var(--color-surface);
-  border-radius: 16px;
-  max-width: 900px;
-  width: 90%;
+  border-radius: 20px;
+  max-width: 680px;
+  width: 92%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--glass-border);
-  transform: scale(0.9) translateY(-20px);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  border: none;
+  transform: scale(0.92) translateY(24px);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
 }
 
 .modal-fatura-overlay.show .modal-fatura-container {
   transform: scale(1) translateY(0);
 }
 
+/* ── Header ── */
 .modal-fatura-header {
+  background: var(--card-accent);
+  padding: 0;
+  border-bottom: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative glow behind header */
+.modal-fatura-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 260px;
+  height: 260px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.modal-fatura-header::after {
+  content: "";
+  position: absolute;
+  bottom: -60%;
+  left: -20%;
+  width: 200px;
+  height: 200px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.modal-fatura-header--paga {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+}
+
+.header-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--glass-border);
-  background: var(--color-surface);
+  padding: 1.25rem 1.5rem 0.5rem;
+  position: relative;
+  z-index: 1;
 }
 
-.header-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.cartao-info {
+.header-card-identity {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
+.header-brand-logo {
+  width: 40px;
+  height: 28px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.header-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .cartao-nome {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #fff;
+  letter-spacing: 0.01em;
 }
 
 .cartao-numero {
-  font-size: 0.9375rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 1px;
 }
 
-.fatura-navegacao {
+.header-actions {
   display: flex;
   align-items: center;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.header-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
+  padding: 0.75rem 1.5rem 1rem;
+  position: relative;
+  z-index: 1;
 }
 
-.fatura-empty {
+.fatura-periodo {
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 700;
+  min-width: 150px;
   text-align: center;
-}
-
-.fatura-empty i {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
 }
 
 .btn-nav-mes {
-  background: var(--color-surface);
-  border: 1px solid var(--glass-border);
-  width: 36px;
-  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: #fff;
   transition: all 0.2s ease;
-  font-size: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
 }
 
 .btn-nav-mes:hover {
-  background: linear-gradient(135deg, var(--color-primary), #d35400);
-  border-color: var(--color-primary);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(230, 126, 34, 0.3);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-nav-mes:active {
   transform: translateY(0);
 }
 
-.fatura-periodo {
-  font-size: 0.9375rem;
-  color: var(--color-text);
-  font-weight: 700;
-  margin: 0;
-  min-width: 140px;
-  text-align: center;
-  letter-spacing: 0.3px;
-  text-transform: capitalize;
+.btn-nav-mes svg {
+  width: 16px;
+  height: 16px;
 }
 
-.modal-fatura-header h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.modal-fatura-header h2 i {
-  color: var(--color-primary);
-}
-
-.btn-fechar-fatura {
-  background: none;
+.btn-historico-toggle {
+  background: rgba(255, 255, 255, 0.15);
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.btn-historico-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-historico-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-fechar-fatura {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
   transition: all 0.2s ease;
 }
 
 .btn-fechar-fatura:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
+.btn-fechar-fatura svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Body ── */
 .modal-fatura-body {
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
 }
 
-/* Resumo Principal Melhorado */
+/* ── Empty state ── */
+.fatura-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.empty-icon-wrap svg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-text-muted);
+}
+
+.fatura-empty h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.fatura-empty p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Resumo principal (total + vencimento) ── */
 .fatura-resumo-principal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   gap: 1rem;
   margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
-  border-radius: 12px;
-  color: white;
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card-accent) 12%, transparent) 0%,
+    color-mix(in srgb, var(--card-accent) 4%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--card-accent) 18%, transparent);
 }
 
 .resumo-item {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.3rem;
 }
 
 .resumo-label {
-  font-size: 0.8125rem;
-  opacity: 0.9;
-  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-weight: 600;
 }
 
 .resumo-valor {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--card-accent);
   line-height: 1;
 }
 
 .resumo-data {
   font-size: 1.125rem;
   font-weight: 600;
+  color: var(--color-text);
   line-height: 1;
 }
 
-.fatura-resumo {
-  background: var(--color-primary);
-  border-radius: 12px;
-  padding: 2rem;
-  color: white;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.25);
-}
-
-.fatura-total {
+/* ── Seção títulos (barra) ── */
+.secao-titulo-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--glass-border);
 }
 
-.fatura-total span {
-  font-size: 0.95rem;
-  opacity: 0.9;
-}
-
-.fatura-total strong {
-  font-size: 2rem;
+.secao-titulo-text {
+  font-size: 0.8rem;
   font-weight: 700;
-}
-
-.fatura-vencimento {
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+}
+
+.secao-titulo-text svg {
+  width: 14px;
+  height: 14px;
+}
+
+.secao-titulo-check {
+  margin-right: 0;
+}
+
+.secao-titulo-check .secao-titulo-text {
+  margin-left: 0.25rem;
+}
+
+.secao-titulo-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--card-accent) 12%, transparent);
+  color: var(--card-accent);
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.secao-titulo-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ── Lançamentos lista ── */
+.lancamentos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.lancamento-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0.875rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  gap: 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.lancamento-item:hover {
+  background: color-mix(in srgb, var(--card-accent) 5%, transparent);
+  border-color: color-mix(in srgb, var(--card-accent) 15%, transparent);
+}
+
+.lanc-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.lanc-desc {
   font-size: 0.9rem;
-  opacity: 0.9;
+  font-weight: 500;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.lanc-data-compra {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.lanc-data-compra svg {
+  width: 12px;
+  height: 12px;
+}
+
+.lanc-parcela {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.lanc-valor {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--card-accent);
+  flex-shrink: 0;
 }
 
 .fatura-parcelas {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .secao-titulo {
@@ -1552,368 +1752,110 @@
   letter-spacing: 0.5px;
 }
 
-.lancamentos-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.lancamento-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.875rem 1rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  gap: 1rem;
-  transition: all 0.15s ease;
-}
-
-.lancamento-item:hover {
-  background: rgba(230, 126, 34, 0.05);
-  border-color: rgba(230, 126, 34, 0.2);
-}
-
-.lanc-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-
-.lanc-desc {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lanc-data-compra {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.lanc-parcela {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
-}
-
-.lanc-valor {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.fatura-parcelas h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 1.5rem;
-}
-
-.table-parcelas {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.table-parcelas thead tr {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
-
-.table-parcelas th {
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.table-parcelas tbody tr {
-  border-bottom: 1px solid var(--glass-border);
-  transition: background 0.2s ease;
-}
-
-.table-parcelas tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.table-parcelas tbody tr:last-child {
-  border-bottom: none;
-}
-
-.table-parcelas td {
-  padding: 1rem;
-  color: var(--color-text);
-}
-
-.table-parcelas td.valor {
-  font-weight: 600;
-  color: var(--color-primary);
-  text-align: right;
-}
-
-.modal-fatura-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 2rem;
-  border-top: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 0 0 16px 16px;
-}
-
-.modal-fatura-footer .footer-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.modal-fatura-footer .footer-label {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.modal-fatura-footer .footer-valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.btn-pagar-fatura {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  pointer-events: auto;
-  transition: none;
-}
-
-/* ==================== FATURA PAGA ==================== */
-
-.fatura-paga-info {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: linear-gradient(
-    135deg,
-    rgba(16, 185, 129, 0.1) 0%,
-    rgba(5, 150, 105, 0.05) 100%
-  );
-  border-radius: 12px;
-  margin-bottom: 2rem;
-}
-
-.fatura-paga-info .status-icon {
-  font-size: 5rem;
-  color: #10b981;
-  margin-bottom: 1rem;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.fatura-paga-info h3 {
-  font-size: 1.75rem;
-  color: #10b981;
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-}
-
-.data-pagamento {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
-  margin-bottom: 2rem;
-}
-
-.pagamento-detalhes {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.detalhe-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.detalhe-item:last-child {
-  margin-bottom: 0;
-}
-
-.detalhe-item .label {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.95rem;
-}
-
-.detalhe-item .valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #10b981;
-}
-
-.fatura-actions {
-  margin-bottom: 1.5rem;
-}
-
-.btn-desfazer-pagamento {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  padding: 1rem 2.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.btn-desfazer-pagamento:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-}
-
-.btn-desfazer-pagamento:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-}
-
-.btn-desfazer-pagamento i {
-  font-size: 1.1rem;
-}
-
-.aviso-reversao {
-  background: rgba(245, 158, 11, 0.1);
-  border-left: 4px solid #f59e0b;
-  padding: 1rem 1.25rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  text-align: left;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.5;
-}
-
-.aviso-reversao i {
-  color: #f59e0b;
-  font-size: 1.2rem;
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-/* Seção de Lançamentos Pagos */
+/* ── Parcelas pagas ── */
 .fatura-parcelas-pagas {
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.15);
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: rgba(16, 185, 129, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1rem;
 }
 
-.fatura-parcelas-pagas .secao-titulo {
+.fatura-parcelas-pagas .secao-titulo-text {
   color: #10b981;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
+}
+
+.fatura-parcelas-pagas .secao-titulo-count {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.fatura-parcelas-pagas .secao-titulo-bar {
+  border-bottom-color: rgba(16, 185, 129, 0.12);
 }
 
 .lancamento-item.lancamento-pago {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  padding: 0.75rem 0.875rem;
+  border-radius: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+.lancamento-item.lancamento-pago:hover {
+  background: rgba(16, 185, 129, 0.07);
 }
 
 .lancamento-item.lancamento-pago .lanc-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   flex: 1;
 }
 
 .lancamento-item.lancamento-pago .lanc-data-pagamento {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
+}
+
+.lancamento-item.lancamento-pago .lanc-data-pagamento svg {
+  width: 12px;
+  height: 12px;
 }
 
 .lancamento-item.lancamento-pago .lanc-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .lancamento-item.lancamento-pago .lanc-valor {
   font-weight: 600;
   color: #10b981;
-  min-width: 120px;
+  min-width: 100px;
   text-align: right;
 }
 
+/* ── Botão desfazer ── */
 .btn-desfazer-parcela {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.4rem 0.75rem;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .btn-desfazer-parcela:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .btn-desfazer-parcela:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+  transform: scale(0.97);
 }
 
-.btn-desfazer-parcela i {
-  font-size: 0.9rem;
+.btn-desfazer-parcela svg {
+  width: 13px;
+  height: 13px;
 }
 
-/* Layout de Fatura Totalmente Paga */
+/* ── Fatura Totalmente Paga ── */
 .fatura-totalmente-paga {
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .status-paga-header {
@@ -1921,20 +1863,30 @@
   padding: 2rem 1rem;
   background: linear-gradient(
     135deg,
-    rgba(16, 185, 129, 0.1) 0%,
-    rgba(16, 185, 129, 0.05) 100%
+    rgba(16, 185, 129, 0.08) 0%,
+    rgba(16, 185, 129, 0.03) 100%
   );
   border-radius: 16px;
-  margin-bottom: 2rem;
-  border: 2px solid rgba(16, 185, 129, 0.2);
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
-.status-paga-header i {
-  font-size: 4rem;
-  color: #10b981;
-  margin-bottom: 1rem;
-  display: block;
+.status-paga-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
   animation: scaleIn 0.5s ease-out;
+}
+
+.status-paga-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #10b981;
 }
 
 @keyframes scaleIn {
@@ -1952,147 +1904,148 @@
 }
 
 .status-paga-header h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #10b981;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .status-paga-header p {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
 .fatura-parcelas-pagas-completa {
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.15);
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: rgba(16, 185, 129, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  border-radius: 14px;
+  padding: 1.25rem;
 }
 
-.fatura-parcelas-pagas-completa .secao-titulo {
+.fatura-parcelas-pagas-completa .secao-titulo-text {
   color: #10b981;
-  margin-bottom: 1.25rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
 }
 
-.secao-titulo-com-botao {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+.fatura-parcelas-pagas-completa .secao-titulo-count {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
 }
 
-.secao-titulo-com-botao .secao-titulo {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.btn-desfazer-todas {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-}
-
-.btn-desfazer-todas:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.btn-desfazer-todas:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
-}
-
-.btn-desfazer-todas i {
-  font-size: 1rem;
+.fatura-parcelas-pagas-completa .secao-titulo-bar {
+  border-bottom-color: rgba(16, 185, 129, 0.12);
 }
 
 .fatura-parcelas-pagas-completa .lancamentos-lista {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.375rem;
 }
 
-.fatura-parcelas-pagas {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.fatura-parcelas-pagas h4 {
-  margin-bottom: 1.25rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.lancamento-item.paga {
-  background: rgba(16, 185, 129, 0.1);
-  border-left: 3px solid #10b981;
-  opacity: 0.95;
-  transition: all 0.2s ease;
-}
-
-.lancamento-item.paga:hover {
-  background: rgba(16, 185, 129, 0.15);
-  opacity: 1;
-}
-
-.lanc-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.status-badge {
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
+.btn-desfazer-todas {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   white-space: nowrap;
 }
 
-.status-badge.pago {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.btn-desfazer-todas:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
-.lanc-parcela {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 0.25rem;
-  display: block;
+.btn-desfazer-todas:active {
+  transform: scale(0.97);
+}
+
+.btn-desfazer-todas svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Footer ── */
+.modal-fatura-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.modal-fatura-footer .footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.modal-fatura-footer .footer-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.modal-fatura-footer .footer-valor {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--card-accent);
+}
+
+.btn-pagar-fatura {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  background: var(--card-accent) !important;
+  border-color: var(--card-accent) !important;
+  color: #fff !important;
+  transition: all 0.2s ease;
 }
 
 .btn-pagar-fatura:hover {
-  transform: none;
-  box-shadow: none;
-  filter: none;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--card-accent) 35%, transparent);
+}
+
+.btn-pagar-fatura svg {
+  width: 16px;
+  height: 16px;
+}
+
+.badge-recorrente {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(230, 126, 34, 0.15);
+  color: var(--color-primary, #e67e22);
+  border-radius: 6px;
+  padding: 2px 8px 2px 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.badge-recorrente svg {
+  width: 11px;
+  height: 11px;
 }
 
 /* Checkbox customizado */
@@ -2151,12 +2104,6 @@
 }
 
 .fatura-parcelas h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.lancamento-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -2375,41 +2322,66 @@
 /* Responsivo */
 @media (max-width: 768px) {
   .modal-fatura-container {
-    width: 95%;
+    width: 96%;
     max-height: 95vh;
+    border-radius: 16px;
   }
 
-  .modal-fatura-header {
-    padding: 1.5rem;
+  .header-top-row {
+    padding: 1rem 1rem 0.4rem;
   }
 
-  .modal-fatura-header h2 {
-    font-size: 1.25rem;
+  .header-nav-row {
+    padding: 0.5rem 1rem 0.75rem;
+  }
+
+  .header-brand-logo {
+    width: 32px;
+    height: 22px;
+  }
+
+  .cartao-nome {
+    font-size: 0.9rem;
+  }
+
+  .fatura-periodo {
+    font-size: 0.9rem;
+    min-width: 130px;
   }
 
   .modal-fatura-body {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
-  .fatura-resumo {
-    padding: 1.5rem;
+  .fatura-resumo-principal {
+    padding: 1rem 1.15rem;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
-  .fatura-total strong {
-    font-size: 1.75rem;
+  .resumo-valor {
+    font-size: 1.4rem;
   }
 
-  .table-parcelas {
+  .lancamento-item {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .lanc-desc {
     font-size: 0.85rem;
   }
 
-  .table-parcelas th,
-  .table-parcelas td {
-    padding: 0.75rem 0.5rem;
+  .modal-fatura-footer {
+    padding: 0.75rem 1rem;
   }
 
-  .modal-fatura-footer {
-    padding: 1rem;
+  .modal-fatura-footer .footer-valor {
+    font-size: 1.15rem;
+  }
+
+  .btn-pagar-fatura {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
   }
 }
 

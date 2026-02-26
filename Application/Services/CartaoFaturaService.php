@@ -63,6 +63,7 @@ class CartaoFaturaService
         $itens = FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
             ->whereYear('data_vencimento', $ano)
             ->whereMonth('data_vencimento', $mes)
+            ->whereNull('cancelado_em')
             ->orderBy('data_compra', 'desc')
             ->orderBy('id', 'desc')
             ->get();
@@ -76,6 +77,8 @@ class CartaoFaturaService
                 'nome' => $cartao->nome_cartao,
                 'ultimos_digitos' => $cartao->ultimos_digitos,
                 'dia_vencimento' => $cartao->dia_vencimento,
+                'bandeira' => $cartao->bandeira,
+                'cor_cartao' => $cartao->cor_cartao ?? $cartao->conta?->instituicaoFinanceira?->cor_primaria ?? null,
             ],
             'itens' => $itens->map(fn($item) => [
                 'id' => $item->id,
@@ -89,6 +92,10 @@ class CartaoFaturaService
                 'categoria_id' => $item->categoria_id,
                 'mes_referencia' => $item->mes_referencia,
                 'ano_referencia' => $item->ano_referencia,
+                'recorrente' => (bool)$item->recorrente,
+                'recorrencia_freq' => $item->recorrencia_freq,
+                'recorrencia_pai_id' => $item->recorrencia_pai_id,
+                'cancelado_em' => $item->cancelado_em,
             ])->toArray(),
             'total' => $total,
             'vencimento' => $dataVencimento,

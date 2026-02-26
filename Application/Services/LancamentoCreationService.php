@@ -89,6 +89,10 @@ class LancamentoCreationService
             'observacao'        => $dto->observacao,
             'eh_parcelado'      => (bool)($payload['eh_parcelado'] ?? false),
             'total_parcelas'    => (int)($payload['total_parcelas'] ?? 1),
+            // Campos de recorrência (assinatura no cartão)
+            'recorrente'        => (bool)($payload['recorrente'] ?? false),
+            'recorrencia_freq'  => $payload['recorrencia_freq'] ?? null,
+            'recorrencia_fim'   => $payload['recorrencia_fim'] ?? null,
         ]);
 
         if (!$resultado['success']) {

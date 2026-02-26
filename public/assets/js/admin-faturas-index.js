@@ -934,13 +934,13 @@
             return `
                 <div class="parcela-card ${cardClass}" id="${cardId}">
                     <div class="parcela-card-header">
-                        <span class="parcela-numero">${parcela.numero_parcela || (index + 1)}/${parcela.total_parcelas || 1}</span>
+                        <span class="parcela-numero">${parcela.recorrente ? '<i data-lucide="refresh-cw" style="width:12px;height:12px;display:inline-block;vertical-align:middle;color:var(--primary, #e67e22);margin-right:3px;"></i> Recorrente' : `${parcela.numero_parcela || (index + 1)}/${parcela.total_parcelas || 1}`}</span>
                         <span class="${statusClass}">${statusText}</span>
                     </div>
                     <div class="parcela-card-body">
                         <div class="parcela-card-info">
                             <span class="parcela-card-label">Descrição</span>
-                            <span class="parcela-card-value">${Utils.escapeHtml(descricaoItem)}</span>
+                            <span class="parcela-card-value">${Utils.escapeHtml(descricaoItem)}${parcela.recorrente ? ' <span class="badge-recorrente" title="Assinatura recorrente" style="display:inline-flex;align-items:center;background:rgba(230,126,34,0.15);border-radius:6px;padding:1px 6px;margin-left:6px;"><i data-lucide="refresh-cw" style="width:12px;height:12px;color:var(--primary, #e67e22);"></i></span>' : ''}</span>
                         </div>
                         ${parcela.data_compra ? `
                         <div class="parcela-card-info">
@@ -1040,10 +1040,10 @@
             return `
                 <tr class="${rowClass}">
                     <td data-label="#">
-                        <span class="parcela-numero">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
+                        <span class="parcela-numero">${parcela.recorrente ? '<i data-lucide="refresh-cw" style="width:12px;height:12px;display:inline-block;vertical-align:middle;color:var(--primary, #e67e22);"></i>' : `${parcela.numero_parcela}/${parcela.total_parcelas}`}</span>
                     </td>
                     <td data-label="Descrição" class="td-descricao">
-                        <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}</div>
+                        <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}${parcela.recorrente ? ' <span class="badge-recorrente" style="display:inline-flex;align-items:center;background:rgba(230,126,34,0.15);border-radius:6px;padding:1px 6px;margin-left:6px;"><i data-lucide="refresh-cw" style="width:12px;height:12px;color:var(--primary, #e67e22);"></i></span>' : ''}</div>
                     </td>
                     <td data-label="Data Compra">
                         <span style="font-size: 0.85rem; color: #9ca3af;">${dataCompraFormatada}</span>

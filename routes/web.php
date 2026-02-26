@@ -242,6 +242,11 @@ function registerApiRoutes(): void
     Router::add('GET',    '/api/cartoes/{id}/faturas-historico', 'Api\\CartoesController@faturasHistorico', ['auth']);
     Router::add('GET',    '/api/cartoes/{id}/parcelamentos-resumo', 'Api\\CartoesController@parcelamentosResumo', ['auth']);
 
+    // Recorrências / Assinaturas de Cartão
+    Router::add('GET',    '/api/cartoes/recorrencias',                'Api\\CartoesController@recorrencias',         ['auth']);
+    Router::add('GET',    '/api/cartoes/{id}/recorrencias',           'Api\\CartoesController@recorrenciasCartao',   ['auth']);
+    Router::add('POST',   '/api/cartoes/recorrencias/{id}/cancelar',  'Api\\CartoesController@cancelarRecorrencia',  ['auth', 'csrf']);
+
 
     // Categorias
 

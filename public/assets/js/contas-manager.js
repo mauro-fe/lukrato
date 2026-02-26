@@ -2051,31 +2051,40 @@ class ContasManager {
         const selectCartao = document.getElementById('lancamentoCartaoCredito');
         const parcelamentoGroup = document.getElementById('parcelamentoGroup');
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
+        const assinaturaCartaoGroup = document.getElementById('assinaturaCartaoGroup');
 
         if (selectCartao.value) {
-            // Mostrar opção de parcelamento
+            // Mostrar opção de parcelamento e assinatura
             parcelamentoGroup.style.display = 'block';
+            if (assinaturaCartaoGroup) assinaturaCartaoGroup.style.display = 'block';
 
-            // Ocultar recorrência (parcelamento do cartão substitui)
+            // Ocultar recorrência normal (substituída pela assinatura do cartão)
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
             const lancamentoRecorrente = document.getElementById('lancamentoRecorrente');
             if (lancamentoRecorrente) lancamentoRecorrente.checked = false;
             const recorrenciaDetalhes = document.getElementById('recorrenciaDetalhes');
             if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
 
-            // Adicionar listener no checkbox
+            // Adicionar listener no checkbox de parcelamento
             const checkboxParcelado = document.getElementById('lancamentoParcelado');
             if (checkboxParcelado && !checkboxParcelado.dataset.listenerAdded) {
                 checkboxParcelado.addEventListener('change', () => this.aoMarcarParcelado());
                 checkboxParcelado.dataset.listenerAdded = 'true';
             }
         } else {
-            // Ocultar parcelamento
+            // Ocultar parcelamento e assinatura de cartão
             parcelamentoGroup.style.display = 'none';
+            if (assinaturaCartaoGroup) assinaturaCartaoGroup.style.display = 'none';
             document.getElementById('numeroParcelasGroup').style.display = 'none';
             document.getElementById('lancamentoParcelado').checked = false;
 
-            // Restaurar recorrência
+            // Limpar assinatura do cartão
+            const checkAssinatura = document.getElementById('lancamentoAssinaturaCartao');
+            if (checkAssinatura) checkAssinatura.checked = false;
+            const detalhesAssinatura = document.getElementById('assinaturaCartaoDetalhes');
+            if (detalhesAssinatura) detalhesAssinatura.style.display = 'none';
+
+            // Restaurar recorrência normal
             const tipo = document.getElementById('lancamentoTipo')?.value;
             if (recorrenciaGroup && (tipo === 'despesa' || tipo === 'receita')) {
                 recorrenciaGroup.style.display = 'block';
@@ -2092,6 +2101,14 @@ class ContasManager {
 
         if (checkbox.checked) {
             numeroParcelasGroup.style.display = 'block';
+
+            // Desmarcar assinatura (mutuamente exclusivo)
+            const checkAssinatura = document.getElementById('lancamentoAssinaturaCartao');
+            if (checkAssinatura) {
+                checkAssinatura.checked = false;
+                const detalhes = document.getElementById('assinaturaCartaoDetalhes');
+                if (detalhes) detalhes.style.display = 'none';
+            }
 
             // Adicionar listeners para calcular preview
             const inputValor = document.getElementById('lancamentoValor');
@@ -2115,6 +2132,42 @@ class ContasManager {
             if (preview) {
                 preview.style.display = 'none';
             }
+        }
+    }
+
+    /**
+     * Toggle assinatura/recorrência no cartão de crédito
+     */
+    toggleAssinaturaCartao() {
+        const checkbox = document.getElementById('lancamentoAssinaturaCartao');
+        const detalhes = document.getElementById('assinaturaCartaoDetalhes');
+
+        if (checkbox.checked) {
+            detalhes.style.display = 'block';
+
+            // Desmarcar parcelamento (mutuamente exclusivo)
+            const checkParcelado = document.getElementById('lancamentoParcelado');
+            if (checkParcelado) {
+                checkParcelado.checked = false;
+                const numParcelasGroup = document.getElementById('numeroParcelasGroup');
+                if (numParcelasGroup) numParcelasGroup.style.display = 'none';
+                const preview = document.getElementById('parcelamentoPreview');
+                if (preview) preview.style.display = 'none';
+            }
+        } else {
+            detalhes.style.display = 'none';
+        }
+    }
+
+    /**
+     * Toggle data fim da assinatura no cartão
+     */
+    toggleAssinaturaCartaoFim() {
+        const modo = document.querySelector('input[name="assinatura_modo"]:checked')?.value || 'infinito';
+        const fimGroup = document.getElementById('assinaturaCartaoFimGroup');
+
+        if (fimGroup) {
+            fimGroup.style.display = modo === 'data' ? 'block' : 'none';
         }
     }
 
@@ -2352,6 +2405,14 @@ class ContasManager {
             document.getElementById('formSection').style.display = 'none';
             document.getElementById('formLancamento').reset();
             document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
+
+            // Resetar campos de assinatura do cartão
+            const assinaturaGroup = document.getElementById('assinaturaCartaoGroup');
+            if (assinaturaGroup) assinaturaGroup.style.display = 'none';
+            const assinaturaDetalhes = document.getElementById('assinaturaCartaoDetalhes');
+            if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
+            const assinaturaFimGroup = document.getElementById('assinaturaCartaoFimGroup');
+            if (assinaturaFimGroup) assinaturaFimGroup.style.display = 'none';
         }, 300);
     }
 
@@ -2476,6 +2537,24 @@ class ContasManager {
                 eh_parcelado: ehParcelado,
                 total_parcelas: totalParcelas,
             };
+
+            // Campos de assinatura/recorrência no cartão de crédito
+            if (cartaoCreditoId && tipo === 'despesa') {
+                const assinaturaCheck = document.getElementById('lancamentoAssinaturaCartao');
+                if (assinaturaCheck?.checked) {
+                    data.recorrente = '1';
+                    data.recorrencia_freq = document.getElementById('lancamentoAssinaturaFreq')?.value || 'mensal';
+                    data.eh_parcelado = false; // Assinatura não é parcelamento
+
+                    const modoAssinatura = document.querySelector('input[name="assinatura_modo"]:checked')?.value || 'infinito';
+                    if (modoAssinatura === 'data') {
+                        const fimAssinatura = document.getElementById('lancamentoAssinaturaFim')?.value || null;
+                        if (fimAssinatura) {
+                            data.recorrencia_fim = fimAssinatura;
+                        }
+                    }
+                }
+            }
 
             // Campos de recorrência (para receita e despesa)
             if (tipo === 'receita' || tipo === 'despesa') {

@@ -1205,6 +1205,8 @@ class FaturaService
                 'pago' => (bool) $item->pago,
                 'data_pagamento' => $item->data_pagamento?->format('Y-m-d'),
                 'tipo' => $item->tipo ?? 'despesa', // 'despesa' ou 'estorno'
+                'recorrente' => (bool) $item->recorrente,
+                'recorrencia_freq' => $item->recorrencia_freq,
             ];
         })->values()->toArray();
 

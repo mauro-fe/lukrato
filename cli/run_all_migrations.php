@@ -31,6 +31,7 @@ $migrationsToRun = [
     '2026_02_20_create_error_logs_table.php',
     '2026_02_25_add_recorrencia_lembrete_to_lancamentos.php',
     '2026_02_26_add_recorrencia_total_to_lancamentos.php',
+    '2026_02_28_add_recorrencia_to_faturas_cartao_itens.php',
     'seed_achievements.php',
 ];
 

@@ -69,6 +69,9 @@ class CartaoCreditoLancamentoService
             if ($ehParcelado && $totalParcelas >= 2) {
                 // Criar itens de fatura parcelados
                 $itens = $this->criarLancamentoParcelado($userId, $data, $cartao, $contaId);
+            } elseif (!empty($data['recorrente'])) {
+                // Criar item de fatura recorrente (assinatura)
+                $itens[] = $this->criarLancamentoRecorrente($userId, $data, $cartao, $contaId);
             } else {
                 // Criar item de fatura à vista
                 $itens[] = $this->criarLancamentoVista($userId, $data, $cartao, $contaId);
@@ -76,13 +79,17 @@ class CartaoCreditoLancamentoService
 
             DB::commit();
 
+            $isRecorrente = !empty($data['recorrente']);
+
             return [
                 'success' => true,
                 'itens' => $itens,
                 'total_criados' => count($itens),
-                'message' => $ehParcelado
-                    ? "Compra parcelada em {$totalParcelas}x adicionada à fatura do cartão"
-                    : 'Compra adicionada à fatura do cartão',
+                'message' => $isRecorrente
+                    ? 'Assinatura recorrente adicionada à fatura do cartão'
+                    : ($ehParcelado
+                        ? "Compra parcelada em {$totalParcelas}x adicionada à fatura do cartão"
+                        : 'Compra adicionada à fatura do cartão'),
             ];
         } catch (Exception $e) {
             DB::rollBack();
@@ -156,6 +163,67 @@ class CartaoCreditoLancamentoService
         $fatura->save();
 
         // Atualizar limite disponível do cartão (reduz limite)
+        $this->atualizarLimiteCartao($cartao->id, $data['valor'], 'debito');
+
+        return $item;
+    }
+
+    /**
+     * Criar item de fatura recorrente (assinatura) no cartão
+     * 
+     * Cria o primeiro item com recorrente=true e recorrencia_pai_id=NULL.
+     * Os próximos meses serão gerados automaticamente pelo cron (RecorrenciaCartaoService).
+     * 
+     * Exemplo: Spotify R$21,90/mês → cria 1 item agora, cron gera os próximos.
+     */
+    private function criarLancamentoRecorrente(int $userId, array $data, CartaoCredito $cartao, ?int $contaId): FaturaCartaoItem
+    {
+        $dataCompra = $data['data'] ?? date('Y-m-d');
+        $vencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
+        $competencia = $this->calcularCompetencia($dataCompra, $cartao->dia_fechamento);
+
+        $fatura = $this->buscarOuCriarFatura(
+            $userId,
+            $cartao->id,
+            $vencimento['mes'],
+            $vencimento['ano']
+        );
+
+        $item = FaturaCartaoItem::create([
+            'user_id' => $userId,
+            'cartao_credito_id' => $cartao->id,
+            'fatura_id' => $fatura->id,
+            'lancamento_id' => null,
+            'descricao' => $data['descricao'],
+            'valor' => $data['valor'],
+            'data_compra' => $dataCompra,
+            'data_vencimento' => $vencimento['data'],
+            'categoria_id' => $data['categoria_id'] ?? null,
+            'parcela_atual' => 1,
+            'total_parcelas' => 1,
+            'mes_referencia' => $competencia['mes'],
+            'ano_referencia' => $competencia['ano'],
+            'pago' => false,
+            // Campos de recorrência
+            'recorrente' => true,
+            'recorrencia_freq' => $data['recorrencia_freq'] ?? 'mensal',
+            'recorrencia_fim' => $data['recorrencia_fim'] ?? null,
+            'recorrencia_pai_id' => null, // Este é o item pai (original)
+        ]);
+
+        LogService::info("[CARTAO] Item de fatura recorrente criado (assinatura)", [
+            'item_id' => $item->id,
+            'fatura_id' => $fatura->id,
+            'valor' => $data['valor'],
+            'freq' => $data['recorrencia_freq'] ?? 'mensal',
+            'descricao' => $data['descricao'],
+        ]);
+
+        // Atualizar valor total da fatura
+        $fatura->valor_total += $data['valor'];
+        $fatura->save();
+
+        // Atualizar limite disponível do cartão
         $this->atualizarLimiteCartao($cartao->id, $data['valor'], 'debito');
 
         return $item;

@@ -493,6 +493,24 @@ class SchedulerController extends BaseController
             ]);
         }
 
+        // 3. Gerar itens recorrentes de cartão de crédito (assinaturas)
+        try {
+            $recorrenciaService = new \Application\Services\RecorrenciaCartaoService();
+            $recResult = $recorrenciaService->processRecurringCardItems();
+            $results['tasks']['process_card_recurrences'] = [
+                'status' => 'success',
+                'result' => $recResult,
+            ];
+        } catch (\Throwable $e) {
+            $results['tasks']['process_card_recurrences'] = [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'process_card_recurrences',
+            ]);
+        }
+
         // Verifica se houve algum erro
         foreach ($results['tasks'] as $task) {
             if ($task['status'] === 'error') {

@@ -650,4 +650,70 @@ class CartoesController
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
+
+    // ─── Recorrências / Assinaturas ───────────────────────────
+
+    /**
+     * GET /api/cartoes/recorrencias
+     * Listar todas as assinaturas/recorrências ativas do usuário
+     */
+    public function recorrencias(): void
+    {
+        $userId = Auth::id();
+        try {
+            $service = new \Application\Services\RecorrenciaCartaoService();
+            $itens = $service->listarRecorrenciasAtivas($userId);
+            Response::json(['status' => 'success', 'data' => $itens]);
+        } catch (\Exception $e) {
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'listar_recorrencias',
+                'user_id' => $userId,
+            ]);
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * GET /api/cartoes/{id}/recorrencias
+     * Listar recorrências ativas de um cartão específico
+     */
+    public function recorrenciasCartao(int $id): void
+    {
+        $userId = Auth::id();
+        try {
+            $service = new \Application\Services\RecorrenciaCartaoService();
+            $itens = $service->listarRecorrenciasAtivas($userId, $id);
+            Response::json(['status' => 'success', 'data' => $itens]);
+        } catch (\Exception $e) {
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'listar_recorrencias_cartao',
+                'cartao_id' => $id,
+                'user_id' => $userId,
+            ]);
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/cartoes/recorrencias/{id}/cancelar
+     * Cancelar uma assinatura/recorrência
+     */
+    public function cancelarRecorrencia(int $id): void
+    {
+        $userId = Auth::id();
+        try {
+            $service = new \Application\Services\RecorrenciaCartaoService();
+            $resultado = $service->cancelarRecorrencia($id, $userId);
+
+            $statusCode = $resultado['success'] ? 200 : 400;
+            Response::json($resultado, $statusCode);
+        } catch (\Exception $e) {
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'cancelar_recorrencia',
+                'item_pai_id' => $id,
+                'user_id' => $userId,
+            ]);
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -343,7 +343,7 @@ class CartoesManager {
                     </button>
                 </div>
             `;
-            if(window.lucide) lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
     }
 
@@ -464,7 +464,7 @@ class CartoesManager {
                 ${this.alertas.map(alerta => this.criarAlertaHTML(alerta)).join('')}
             </div>
         `;
-        if(window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
     }
 
     /**
@@ -560,7 +560,7 @@ class CartoesManager {
         emptyState.style.display = 'none';
 
         grid.innerHTML = this.filteredCartoes.map(cartao => this.createCardHTML(cartao)).join('');
-        if(window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
 
         // Add event listeners para ações
         this.setupCardActions();
@@ -1441,7 +1441,7 @@ class CartoesManager {
 
         const modal = this.criarModalFatura(fatura, parcelamentos, statusPagamento, cartaoId);
         document.body.appendChild(modal);
-        if(window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
 
         // Animar entrada
         setTimeout(() => {
@@ -1626,10 +1626,56 @@ class CartoesManager {
      * Criar HTML do modal da fatura
      */
     criarModalFatura(fatura, parcelamentos = null, statusPagamento = null, cartaoId = null) {
+        // Resolver cor do cartão
+        const corCartao = this.resolverCorCartao(fatura, cartaoId);
+
         const modal = document.createElement('div');
         modal.className = 'modal-fatura-overlay';
-        modal.innerHTML = `<div class="modal-fatura-container">${this.criarConteudoModal(fatura, parcelamentos, statusPagamento, cartaoId)}</div>`;
+        modal.innerHTML = `<div class="modal-fatura-container" style="--card-accent: ${corCartao};">${this.criarConteudoModal(fatura, parcelamentos, statusPagamento, cartaoId)}</div>`;
         return modal;
+    }
+
+    /**
+     * Resolver a cor do cartão para usar como accent
+     */
+    resolverCorCartao(fatura, cartaoId) {
+        // 1. Cor vinda da API (cor_cartao ou instituição)
+        if (fatura.cartao?.cor_cartao) {
+            return fatura.cartao.cor_cartao;
+        }
+
+        // 2. Buscar no array de cartões carregados
+        const id = cartaoId || fatura.cartao_id || fatura.cartao?.id;
+        if (id) {
+            const cartaoLocal = this.cartoes.find(c => c.id === id);
+            if (cartaoLocal) {
+                const cor = cartaoLocal.cor_cartao ||
+                    cartaoLocal.conta?.instituicao_financeira?.cor_primaria ||
+                    cartaoLocal.instituicao_cor;
+                if (cor) return cor;
+                // Fallback por bandeira
+                return this.getAccentColor(cartaoLocal.bandeira);
+            }
+        }
+
+        // 3. Fallback por bandeira da fatura
+        return this.getAccentColor(fatura.cartao?.bandeira);
+    }
+
+    /**
+     * Retorna uma cor sólida (hex) para usar como accent baseada na bandeira
+     */
+    getAccentColor(bandeira) {
+        const colors = {
+            'visa': '#1A1F71',
+            'mastercard': '#EB001B',
+            'elo': '#00A4E0',
+            'amex': '#006FCF',
+            'diners': '#0079BE',
+            'discover': '#FF6000',
+            'hipercard': '#822124',
+        };
+        return colors[bandeira?.toLowerCase()] || '#e67e22';
     }
 
     /**
@@ -1639,106 +1685,94 @@ class CartoesManager {
         // Garantir que temos o cartaoId correto
         const idCartao = cartaoId || fatura.cartao_id || fatura.cartao?.id;
 
-
-
         // Se a fatura está paga, mostrar modal diferente
         if (statusPagamento && statusPagamento.pago) {
             return this.criarConteudoModalFaturaPaga(fatura, statusPagamento, parcelamentos, idCartao);
         }
 
+        const totalPendentes = (fatura.itens || []).filter(p => !p.pago).length;
+        const totalPagos = (fatura.itens || []).filter(p => p.pago).length;
+        const brandLogo = fatura.cartao?.bandeira ? this.getBrandIcon(fatura.cartao.bandeira) : null;
+
         return `
                 <div class="modal-fatura-header">
-                    <div class="header-info">
-                        <div class="cartao-info">
-                            <span class="cartao-nome">${fatura.cartao.nome}</span>
-                            <span class="cartao-numero">•••• ${fatura.cartao.ultimos_digitos}</span>
+                    <div class="header-top-row">
+                        <div class="header-card-identity">
+                            ${brandLogo ? `<img src="${brandLogo}" alt="${fatura.cartao.bandeira}" class="header-brand-logo" onerror="this.style.display='none'">` : ''}
+                            <div class="header-card-text">
+                                <span class="cartao-nome">${fatura.cartao.nome}</span>
+                                <span class="cartao-numero">•••• ${fatura.cartao.ultimos_digitos}</span>
+                            </div>
                         </div>
-                        <div class="fatura-navegacao">
-                            <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, -1)" title="Mês anterior">
-                                <i data-lucide="chevron-left"></i>
+                        <div class="header-actions">
+                            <button class="btn-historico-toggle" onclick="cartoesManager.toggleHistoricoFatura(${idCartao})" title="Ver histórico">
+                                <i data-lucide="history"></i>
                             </button>
-                            <span class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</span>
-                            <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, 1)" title="Próximo mês">
-                                <i data-lucide="chevron-right"></i>
+                            <button class="btn-fechar-fatura" title="Fechar">
+                                <i data-lucide="x"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="header-actions">
-                        <button class="btn-historico-toggle" onclick="cartoesManager.toggleHistoricoFatura(${idCartao})" title="Ver histórico">
-                            <i data-lucide="history"></i>
+                    <div class="header-nav-row">
+                        <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, -1)" title="Mês anterior">
+                            <i data-lucide="chevron-left"></i>
                         </button>
-                        <button class="btn-fechar-fatura" title="Fechar">
-                            <i data-lucide="x"></i>
+                        <span class="fatura-periodo">${this.getNomeMes(fatura.mes)} ${fatura.ano}</span>
+                        <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, 1)" title="Próximo mês">
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="modal-fatura-body">
-                    ${(fatura.itens || []).filter(p => !p.pago).length === 0 && (fatura.itens || []).filter(p => p.pago).length === 0 ? `
+                    ${totalPendentes === 0 && totalPagos === 0 ? `
                         <div class="fatura-empty">
-                            <i data-lucide="circle-check"></i>
-                            <h3>Nenhuma fatura pendente</h3>
-                            <p>Você não tem compras para pagar neste mês!</p>
+                            <div class="empty-icon-wrap">
+                                <i data-lucide="inbox"></i>
+                            </div>
+                            <h3>Nenhum lançamento</h3>
+                            <p>Não há compras registradas neste mês.</p>
                         </div>
-                    ` : (fatura.itens || []).filter(p => !p.pago).length === 0 && (fatura.itens || []).filter(p => p.pago).length > 0 ? `
+                    ` : totalPendentes === 0 && totalPagos > 0 ? `
                         <!-- Todas as parcelas já foram pagas -->
                         <div class="fatura-totalmente-paga">
                             <div class="status-paga-header">
-                                <i data-lucide="circle-check"></i>
-                                <h3>Fatura Totalmente Paga</h3>
-                                <p>Todas as compras deste mês já foram pagas!</p>
+                                <div class="status-paga-icon"><i data-lucide="circle-check"></i></div>
+                                <h3>Fatura Paga</h3>
+                                <p>Todos os lançamentos deste mês foram pagos</p>
                             </div>
 
                             <div class="fatura-parcelas-pagas-completa">
-                                <h3 class="secao-titulo">
-                                    <i data-lucide="receipt" style="color: #10b981; margin-right: 8px;"></i>
-                                    Itens Pagos (${(fatura.itens || []).filter(p => p.pago).length})
-                                </h3>
+                                <div class="secao-titulo-bar">
+                                    <span class="secao-titulo-text"><i data-lucide="receipt"></i> Itens Pagos</span>
+                                    <span class="secao-titulo-count">${totalPagos}</span>
+                                </div>
                                 <div class="lancamentos-lista">
-                                    ${(fatura.itens || []).filter(p => p.pago).map(parcela => `
-                                        <div class="lancamento-item lancamento-pago">
-                                            <div class="lanc-info">
-                                                <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
-                                                ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
-                                                <span class="lanc-data-pagamento">
-                                                    <i data-lucide="calendar-check"></i>
-                                                    Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
-                                                </span>
-                                            </div>
-                                            <div class="lanc-right">
-                                                <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
-                                                <button class="btn-desfazer-parcela" 
-                                                    onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
-                                                    title="Desfazer pagamento desta parcela">
-                                                    <i data-lucide="undo-2"></i>
-                                                    Desfazer
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `).join('')}
+                                    ${(fatura.itens || []).filter(p => p.pago).map(parcela => this.renderItemPago(parcela)).join('')}
                                 </div>
                             </div>
                         </div>
                     ` : `
                         <div class="fatura-resumo-principal">
-                            <div class="resumo-item">
-                                <span class="resumo-label">Total a Pagar</span>
+                            <div class="resumo-item resumo-valor-principal">
+                                <span class="resumo-label">Total a pagar</span>
                                 <strong class="resumo-valor">${this.formatMoney(fatura.total)}</strong>
                             </div>
-                            <div class="resumo-item">
+                            <div class="resumo-item resumo-vencimento">
                                 <span class="resumo-label">Vencimento</span>
                                 <strong class="resumo-data">${this.formatDate(fatura.vencimento)}</strong>
                             </div>
                         </div>
 
                         <div class="fatura-parcelas">
-                            <h3 class="secao-titulo">
-                                <label class="checkbox-custom">
+                            <div class="secao-titulo-bar">
+                                <label class="checkbox-custom secao-titulo-check">
                                     <input type="checkbox" id="selectAllParcelas">
                                     <span class="checkmark"></span>
+                                    <span class="secao-titulo-text">Pendentes</span>
                                 </label>
-                                Lançamentos Pendentes
-                            </h3>
+                                <span class="secao-titulo-count">${totalPendentes}</span>
+                            </div>
                             <div class="lancamentos-lista">
                                 ${(fatura.itens || []).filter(p => !p.pago).map(parcela => `
                                     <div class="lancamento-item">
@@ -1747,7 +1781,10 @@ class CartoesManager {
                                             <span class="checkmark"></span>
                                         </label>
                                         <div class="lanc-info">
-                                            <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                            <span class="lanc-desc">
+                                                ${this.escapeHtml(parcela.descricao)}
+                                                ${this.renderBadgeRecorrente(parcela)}
+                                            </span>
                                             ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                         </div>
                                         <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
@@ -1756,52 +1793,62 @@ class CartoesManager {
                             </div>
                         </div>
 
-                        ${(fatura.itens || []).filter(p => p.pago).length > 0 ? `
-                            <div class="fatura-parcelas-pagas" style="margin-top: 1.5rem;">
-                                <h3 class="secao-titulo">
-                                    <i data-lucide="circle-check" style="color: #10b981; margin-right: 8px;"></i>
-                                    Lançamentos Pagos
-                                </h3>
+                        ${totalPagos > 0 ? `
+                            <div class="fatura-parcelas-pagas">
+                                <div class="secao-titulo-bar">
+                                    <span class="secao-titulo-text"><i data-lucide="circle-check"></i> Pagos</span>
+                                    <span class="secao-titulo-count">${totalPagos}</span>
+                                </div>
                                 <div class="lancamentos-lista">
-                                    ${(fatura.itens || []).filter(p => p.pago).map(parcela => `
-                                        <div class="lancamento-item lancamento-pago">
-                                            <div class="lanc-info">
-                                                <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
-                                                ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
-                                                <span class="lanc-data-pagamento">
-                                                    <i data-lucide="calendar-check"></i>
-                                                    Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
-                                                </span>
-                                            </div>
-                                            <div class="lanc-right">
-                                                <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
-                                                <button class="btn-desfazer-parcela" 
-                                                    onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
-                                                    title="Desfazer pagamento desta parcela">
-                                                    <i data-lucide="undo-2"></i>
-                                                    Desfazer
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `).join('')}
+                                    ${(fatura.itens || []).filter(p => p.pago).map(parcela => this.renderItemPago(parcela)).join('')}
                                 </div>
                             </div>
                         ` : ''}
                     `}
                 </div>
 
-                ${(fatura.itens || []).filter(p => !p.pago).length > 0 ? `
+                ${totalPendentes > 0 ? `
                     <div class="modal-fatura-footer">
                         <div class="footer-info">
-                            <span class="footer-label">Total selecionado:</span>
+                            <span class="footer-label">Total selecionado</span>
                             <strong class="footer-valor" id="totalSelecionado">${this.formatMoney(fatura.total)}</strong>
                         </div>
                         <button class="btn btn-primary btn-pagar-fatura" id="btnPagarSelecionadas">
-                            <i data-lucide="check"></i>
-                            Pagar Parcelas Selecionadas
+                            <i data-lucide="check-circle"></i>
+                            Pagar Selecionadas
                         </button>
                     </div>
                 ` : ''}
+        `;
+    }
+
+    /**
+     * Renderiza um item pago de fatura (reutilizável)
+     */
+    renderItemPago(parcela) {
+        return `
+            <div class="lancamento-item lancamento-pago">
+                <div class="lanc-info">
+                    <span class="lanc-desc">
+                        ${this.escapeHtml(parcela.descricao)}
+                        ${this.renderBadgeRecorrente(parcela)}
+                    </span>
+                    ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
+                    <span class="lanc-data-pagamento">
+                        <i data-lucide="calendar-check"></i>
+                        Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
+                    </span>
+                </div>
+                <div class="lanc-right">
+                    <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
+                    <button class="btn-desfazer-parcela" 
+                        onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
+                        title="Desfazer pagamento desta parcela">
+                        <i data-lucide="undo-2"></i>
+                        Desfazer
+                    </button>
+                </div>
+            </div>
         `;
     }
 
@@ -1836,7 +1883,7 @@ class CartoesManager {
             if (btnPagar) {
                 btnPagar.disabled = true;
                 btnPagar.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Processando...';
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
                 btnPagar.style.opacity = '0.6';
                 btnPagar.style.cursor = 'not-allowed';
             }
@@ -1908,40 +1955,63 @@ class CartoesManager {
     }
 
     /**
+     * Retorna label da frequência de recorrência
+     */
+    getFreqLabel(freq) {
+        const labels = {
+            'mensal': 'Mensal',
+            'bimestral': 'Bimestral',
+            'trimestral': 'Trimestral',
+            'semestral': 'Semestral',
+            'anual': 'Anual'
+        };
+        return labels[freq] || 'Recorrente';
+    }
+
+    /**
+     * Renderiza badge de recorrência para itens de fatura
+     */
+    renderBadgeRecorrente(parcela) {
+        if (!parcela.recorrente) return '';
+        const freqLabel = this.getFreqLabel(parcela.recorrencia_freq);
+        return `<span class="badge-recorrente" title="Assinatura ${freqLabel.toLowerCase()}"><i data-lucide="refresh-cw"></i> ${freqLabel}</span>`;
+    }
+
+    /**
      * Criar conteúdo do modal para fatura já paga
      */
     criarConteudoModalFaturaPaga(fatura, statusPagamento, parcelamentos, cartaoId) {
-        // Garantir que temos o cartaoId correto
         const idCartao = cartaoId || fatura.cartao_id || fatura.cartao?.id;
+        const totalPagos = (fatura.itens || []).filter(p => p.pago).length;
+        const brandLogo = fatura.cartao?.bandeira ? this.getBrandIcon(fatura.cartao.bandeira) : null;
 
-
-
-        // Usar data_pagamento do status, ou pegar da primeira parcela paga como fallback
         const dataPagamento = statusPagamento?.data_pagamento ||
             (fatura.itens || []).find(p => p.pago && p.data_pagamento)?.data_pagamento ||
             null;
 
-
         return `
-            <div class="modal-fatura-header">
-                <div class="header-info">
-                    <div class="cartao-info">
-                        <span class="cartao-nome">${fatura.cartao.nome}</span>
-                        <span class="cartao-numero">•••• ${fatura.cartao.ultimos_digitos}</span>
+            <div class="modal-fatura-header modal-fatura-header--paga">
+                <div class="header-top-row">
+                    <div class="header-card-identity">
+                        ${brandLogo ? `<img src="${brandLogo}" alt="${fatura.cartao.bandeira}" class="header-brand-logo" onerror="this.style.display='none'">` : ''}
+                        <div class="header-card-text">
+                            <span class="cartao-nome">${fatura.cartao.nome}</span>
+                            <span class="cartao-numero">•••• ${fatura.cartao.ultimos_digitos}</span>
+                        </div>
                     </div>
-                    <div class="fatura-navegacao">
-                        <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, -1)" title="Mês anterior">
-                            <i data-lucide="chevron-left"></i>
-                        </button>
-                        <span class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</span>
-                        <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, 1)" title="Próximo mês">
-                            <i data-lucide="chevron-right"></i>
+                    <div class="header-actions">
+                        <button class="btn-fechar-fatura" title="Fechar">
+                            <i data-lucide="x"></i>
                         </button>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="btn-fechar-fatura" title="Fechar">
-                        <i data-lucide="x"></i>
+                <div class="header-nav-row">
+                    <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, -1)" title="Mês anterior">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <span class="fatura-periodo">${this.getNomeMes(fatura.mes)} ${fatura.ano}</span>
+                    <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, 1)" title="Próximo mês">
+                        <i data-lucide="chevron-right"></i>
                     </button>
                 </div>
             </div>
@@ -1949,49 +2019,29 @@ class CartoesManager {
             <div class="modal-fatura-body">
                 <div class="fatura-totalmente-paga">
                     <div class="status-paga-header">
-                        <i data-lucide="circle-check"></i>
-                        <h3>Fatura Totalmente Paga</h3>
+                        <div class="status-paga-icon"><i data-lucide="circle-check"></i></div>
+                        <h3>Fatura Paga</h3>
                         <p>
-                            ${dataPagamento ? `Pago em ${this.formatDate(dataPagamento)} • ` : 'Fatura paga • '}
-                            Valor: ${this.formatMoney(statusPagamento.valor)}
+                            ${dataPagamento ? `Pago em ${this.formatDate(dataPagamento)} &bull; ` : ''}
+                            ${this.formatMoney(statusPagamento.valor)}
                         </p>
                     </div>
 
                     <div class="fatura-parcelas-pagas-completa">
-                        <div class="secao-titulo-com-botao">
-                            <h3 class="secao-titulo">
-                                <i data-lucide="receipt" style="color: #10b981; margin-right: 8px;"></i>
-                                Itens Pagos (${(fatura.itens || []).filter(p => p.pago).length})
-                            </h3>
-                            <button class="btn-desfazer-todas" 
-                                onclick="cartoesManager.desfazerPagamento(${idCartao}, ${fatura.mes}, ${fatura.ano})"
-                                title="Desfazer pagamento de todas as parcelas">
-                                <i data-lucide="undo-2"></i>
-                                Desfazer Todas
-                            </button>
+                        <div class="secao-titulo-bar">
+                            <span class="secao-titulo-text"><i data-lucide="receipt"></i> Itens Pagos</span>
+                            <div class="secao-titulo-right">
+                                <span class="secao-titulo-count">${totalPagos}</span>
+                                <button class="btn-desfazer-todas" 
+                                    onclick="cartoesManager.desfazerPagamento(${idCartao}, ${fatura.mes}, ${fatura.ano})"
+                                    title="Desfazer pagamento de todas as parcelas">
+                                    <i data-lucide="undo-2"></i>
+                                    Desfazer Todas
+                                </button>
+                            </div>
                         </div>
                         <div class="lancamentos-lista">
-                            ${(fatura.itens || []).filter(p => p.pago).map(parcela => `
-                                <div class="lancamento-item lancamento-pago">
-                                    <div class="lanc-info">
-                                        <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
-                                        ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
-                                        <span class="lanc-data-pagamento">
-                                            <i data-lucide="calendar-check"></i>
-                                            ${parcela.parcela_atual}/${parcela.total_parcelas}
-                                        </span>
-                                    </div>
-                                    <div class="lanc-right">
-                                        <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
-                                        <button class="btn-desfazer-parcela" 
-                                            onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
-                                            title="Desfazer pagamento desta parcela">
-                                            <i data-lucide="undo-2"></i>
-                                            Desfazer
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('')}
+                            ${(fatura.itens || []).filter(p => p.pago).map(parcela => this.renderItemPago(parcela)).join('')}
                         </div>
                     </div>
                 </div>
@@ -2207,9 +2257,13 @@ class CartoesManager {
             // Atualizar conteúdo do modal sem fechá-lo
             const modalContainer = document.querySelector('.modal-fatura-container');
             if (modalContainer) {
+                // Atualizar cor do cartão
+                const corCartao = this.resolverCorCartao(fatura, cartaoId);
+                modalContainer.style.setProperty('--card-accent', corCartao);
+
                 const novoConteudo = this.criarConteudoModal(fatura, parcelamentos, statusPagamento, cartaoId);
                 modalContainer.innerHTML = novoConteudo;
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
 
                 // Re-adicionar event listeners
                 modalContainer.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
@@ -2310,7 +2364,7 @@ class CartoesManager {
 
                 const conteudo = this.criarConteudoModal(fatura, parcelamentos, statusResponse, cartaoId);
                 modalContainer.innerHTML = conteudo;
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
 
                 this.adicionarEventListenersModal(fatura);
             } else {
@@ -2318,7 +2372,7 @@ class CartoesManager {
                 const historico = await this.carregarHistoricoFaturas(cartaoId);
                 const conteudo = this.criarConteudoHistorico(historico, cartaoId);
                 modalContainer.innerHTML = conteudo;
-                if(window.lucide) lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
 
                 this.adicionarEventListenersModal(null);
             }

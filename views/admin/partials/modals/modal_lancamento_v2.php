@@ -257,6 +257,65 @@
                         </div>
                     </div>
 
+                    <!-- Assinatura / Recorrência no Cartão (somente se cartão selecionado) -->
+                    <div class="lk-form-group" id="assinaturaCartaoGroup" style="display: none;">
+                        <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="lancamentoAssinaturaCartao" name="recorrente_cartao" value="1"
+                                    class="lk-checkbox" onchange="contasManager.toggleAssinaturaCartao()">
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i data-lucide="refresh-cw"></i>
+                                    Assinatura / Recorrente
+                                </span>
+                            </label>
+                        </div>
+                        <small class="lk-helper-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">
+                            Ex: Spotify, ChatGPT, Netflix — cobra todo mês automaticamente
+                        </small>
+
+                        <div id="assinaturaCartaoDetalhes" style="display: none;">
+                            <label class="lk-label">
+                                <i data-lucide="refresh-cw"></i>
+                                Frequência da cobrança
+                            </label>
+                            <div class="lk-select-wrapper" style="margin-bottom: 0.75rem;">
+                                <select id="lancamentoAssinaturaFreq" name="recorrencia_freq_cartao" class="lk-select">
+                                    <option value="mensal" selected>Mensal</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                            </div>
+
+                            <label class="lk-label">
+                                <i data-lucide="flag"></i>
+                                Até quando?
+                            </label>
+                            <div class="lk-radio-group" style="margin-bottom: 0.5rem;">
+                                <label class="lk-radio-label">
+                                    <input type="radio" name="assinatura_modo" value="infinito" class="lk-radio" checked
+                                        onchange="contasManager.toggleAssinaturaCartaoFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Sem data de fim <small style="opacity:0.7">(cancelo quando quiser)</small></span>
+                                </label>
+                                <label class="lk-radio-label">
+                                    <input type="radio" name="assinatura_modo" value="data" class="lk-radio"
+                                        onchange="contasManager.toggleAssinaturaCartaoFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Até uma data específica</span>
+                                </label>
+                            </div>
+
+                            <div id="assinaturaCartaoFimGroup" style="display: none;">
+                                <input type="date" id="lancamentoAssinaturaFim" name="recorrencia_fim_cartao" class="lk-input">
+                                <small class="lk-helper-text">Data em que a assinatura termina.</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Número de Parcelas (quando parcelado) -->
                     <div class="lk-form-group" id="numeroParcelasGroup" style="display: none;">
                         <label for="lancamentoTotalParcelas" class="lk-label required">
