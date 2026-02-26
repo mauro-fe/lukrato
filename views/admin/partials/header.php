@@ -368,10 +368,10 @@ if ($currentUser && isset($currentUser->theme_preference)) {
                 <span>Finanças</span>
             </a>
 
-            <!-- Agendamentos -->
+            <!-- Agendamentos (em manutenção) -->
             <a href="<?= BASE_URL ?>agendamentos" class="nav-item <?= $active('agendamentos') ?>"
-                <?= $aria('agendamentos') ?> title="Agendamentos">
-                <i data-lucide="clock"></i>
+                <?= $aria('agendamentos') ?> title="Agendamentos — Em manutenção">
+                <i data-lucide="hard-hat"></i>
                 <span>Agendados</span>
             </a>
 

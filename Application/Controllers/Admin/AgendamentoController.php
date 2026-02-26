@@ -10,13 +10,12 @@ class AgendamentoController extends BaseController
     public function index(): void
     {
         $data = [
-            'pageTitle' => 'Agendados',
-            'subTitle' => 'Gerencie seus agendamentos de contas a pagar/receber',
+            'pageTitle' => 'Agendamentos — Em Manutenção',
+            'subTitle' => 'Esta funcionalidade está sendo aprimorada',
         ];
 
-
         $this->render(
-            'admin/agendamentos/index',
+            'admin/agendamentos/manutencao',
             $data,
             'admin/partials/header',
             'admin/partials/footer'
@@ -26,26 +25,14 @@ class AgendamentoController extends BaseController
 
     public function create(): void
     {
-        $this->render(
-            'admin/agendamentos/create',
-            ['pageTitle' => 'Novo Agendamento', 'subTitle' => 'Cadastrar novo agendamento'],
-            'admin/partials/header',
-            'admin/partials/footer'
-        );
+        header('Location: ' . BASE_URL . 'agendamentos');
+        exit;
     }
 
 
     public function edit(int $id): void
     {
-
-        $this->render(
-            'admin/agendamentos/edit',
-            [
-                'pageTitle' => 'Editar Agendamento',
-                'subTitle' => "Editando Agendamento #$id",
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
-        );
+        header('Location: ' . BASE_URL . 'agendamentos');
+        exit;
     }
 }

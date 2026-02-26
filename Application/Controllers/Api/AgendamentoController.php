@@ -24,12 +24,31 @@ class AgendamentoController extends BaseController
     private readonly AgendamentoService $service;
     private readonly AgendamentoRepository $agendamentoRepo;
 
+    /** Quando true, toda a API de agendamentos devolve 503 */
+    private const MAINTENANCE_MODE = true;
+
     public function __construct()
     {
         parent::__construct();
         $this->validator = new GUMP();
         $this->service = new AgendamentoService();
         $this->agendamentoRepo = new AgendamentoRepository();
+    }
+
+    /**
+     * Se em manutenção, devolve 503 e interrompe.
+     */
+    private function checkMaintenance(): bool
+    {
+        if (self::MAINTENANCE_MODE) {
+            http_response_code(503);
+            Response::json([
+                'success' => false,
+                'message' => 'A área de Agendamentos está em manutenção. Utilize a página de Lançamentos enquanto aplicamos melhorias.',
+            ], 503);
+            return true;
+        }
+        return false;
     }
 
     private function ensureSchedulingAccess(): bool
@@ -92,6 +111,7 @@ class AgendamentoController extends BaseController
 
     public function store(): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -166,6 +186,7 @@ class AgendamentoController extends BaseController
 
     public function index(): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -224,6 +245,7 @@ class AgendamentoController extends BaseController
      */
     public function show(int $id): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -258,6 +280,7 @@ class AgendamentoController extends BaseController
 
     public function update(int $id): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -433,6 +456,7 @@ class AgendamentoController extends BaseController
 
     public function updateStatus(int $id): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -483,6 +507,7 @@ class AgendamentoController extends BaseController
 
     public function cancel(int $id): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -517,6 +542,7 @@ class AgendamentoController extends BaseController
 
     public function restore(int $id): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
@@ -565,6 +591,7 @@ class AgendamentoController extends BaseController
      */
     public function executar(int $id): void
     {
+        if ($this->checkMaintenance()) return;
         $this->requireAuthApi();
 
         if (!$this->ensureSchedulingAccess()) {
